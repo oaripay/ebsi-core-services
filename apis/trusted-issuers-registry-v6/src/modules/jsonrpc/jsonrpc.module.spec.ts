@@ -16,6 +16,7 @@ import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 import crypto from "node:crypto";
 import type { RawServerDefault } from "fastify";
+import { fastifyAccepts } from "@fastify/accepts";
 import {
   FastifyAdapter,
   type NestFastifyApplication,
@@ -32,6 +33,7 @@ import {
 import type { GenerateKeyPairResult } from "jose";
 import { useContainer } from "class-validator";
 import { http, HttpResponse } from "msw";
+import { methodNotAllowed } from "@ebsiint-api/shared";
 import * as StatusList2021CredentialHelpers from "@ebsiint-api/shared";
 import { JsonRpcModule } from "./jsonrpc.module.js";
 import type { JsonRpcResponseObject } from "./jsonrpc.interface.js";
@@ -191,11 +193,18 @@ describe("JsonRpc Module", () => {
     configService =
       moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
 
+    // Parse "Accept" request header
+    await app.register(fastifyAccepts);
+
     app.useGlobalFilters(new AllExceptionsFilter());
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     useContainer(app.select(JsonRpcModule), { fallbackOnErrors: true });
+
+    const fastifyInstance = app.getHttpAdapter().getInstance();
+    fastifyInstance.addHook("onRequest", methodNotAllowed);
+
     await app.init();
-    await app.getHttpAdapter().getInstance().ready();
+    await fastifyInstance.ready();
     server = app.getHttpServer();
 
     jsonRpcService = moduleFixture.get<JsonRpcService>(JsonRpcService);

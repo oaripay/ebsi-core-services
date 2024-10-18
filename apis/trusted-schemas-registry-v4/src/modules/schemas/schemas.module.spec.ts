@@ -9,6 +9,8 @@ import {
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
+import { fastifyAccepts } from "@fastify/accepts";
+import { methodNotAllowed } from "@ebsiint-api/shared";
 import { SchemasModule } from "./schemas.module.js";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
 import { setupTestEnv } from "../../../tests/utils/schemaRegistry.js";
@@ -43,6 +45,9 @@ describe("Schemas Module", () => {
     // Turn off logger
     Logger.overrideLogger(false);
 
+    // Parse "Accept" request header
+    await app.register(fastifyAccepts);
+
     app.useGlobalFilters(new AllExceptionsFilter());
     app.useGlobalPipes(
       new ValidationPipe({
@@ -52,8 +57,11 @@ describe("Schemas Module", () => {
       }),
     );
 
+    const fastifyInstance = app.getHttpAdapter().getInstance();
+    fastifyInstance.addHook("onRequest", methodNotAllowed);
+
     await app.init();
-    await app.getHttpAdapter().getInstance().ready();
+    await fastifyInstance.ready();
 
     server = app.getHttpServer();
 

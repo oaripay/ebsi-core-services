@@ -1,6 +1,6 @@
 import { Controller, Head, Get, HttpCode, Query } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { paginateWithoutTotal } from "@ebsiint-api/shared";
+import { Accepts, paginateWithoutTotal } from "@ebsiint-api/shared";
 import AccessesService from "./accesses.service.js";
 import { HeadAccessesDto, SubjectAccessesDto } from "./dto/index.js";
 import type { ApiConfig } from "../../config/configuration.js";
@@ -24,6 +24,7 @@ export default class AccessesController {
   }
 
   @Get("")
+  @Accepts("application/json")
   async getAccessesBySubject(@Query() query: SubjectAccessesDto) {
     const { subject, "page[after]": pageAfter, "page[size]": pageSize } = query;
 

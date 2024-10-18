@@ -1,6 +1,6 @@
 import { Controller, Get, Query, Param } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { PaginatedListWithoutTotal } from "@ebsiint-api/shared";
+import { Accepts, PaginatedListWithoutTotal } from "@ebsiint-api/shared";
 import { HashAlgorithmsService } from "./hash-algorithms.service.js";
 import { formatHashAlgorithms } from "./hash-algorithms.formatter.js";
 import {
@@ -20,6 +20,7 @@ export class HashAlgorithmsController {
   ) {}
 
   @Get("")
+  @Accepts("application/json")
   async getHahsAlgorithms(
     @Query() query: GetHashAlgorithmsDto,
   ): Promise<PaginatedListWithoutTotal<HashAlgorithmLink>> {
@@ -67,6 +68,7 @@ export class HashAlgorithmsController {
   }
 
   @Get("/:hashAlgorithmId")
+  @Accepts("application/json")
   async getHashAlgorithm(
     @Param() params: GetHashAlgorithmDto,
   ): Promise<HashAlgorithmResponseObject> {

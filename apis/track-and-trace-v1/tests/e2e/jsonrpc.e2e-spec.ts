@@ -10,6 +10,8 @@ import {
 import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 import type { RawServerDefault } from "fastify";
+import { fastifyAccepts } from "@fastify/accepts";
+import { fastifyHelmet } from "@fastify/helmet";
 import axios from "axios";
 import type {
   EbsiEnvConfiguration,
@@ -21,6 +23,7 @@ import {
   getSigner,
   generatePrivateKey,
   getPublicKeyJwk,
+  methodNotAllowed,
 } from "@ebsiint-api/shared";
 import { hexToBytes } from "did-jwt";
 import { AppModule } from "../../src/app.module.js";
@@ -100,10 +103,29 @@ describeWriteOps()("Track and Trace - JSON-RPC (e2e)", () => {
     configService =
       moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
 
+    // https://cheatsheetseries.owasp.org/cheatsheets/REST_Security_Cheat_Sheet.html#security-headers
+    await app.register(fastifyHelmet, {
+      contentSecurityPolicy: {
+        directives: {
+          "frame-ancestors": ["'none'"],
+        },
+      },
+      xFrameOptions: {
+        action: "deny",
+      },
+    });
+
+    // Parse "Accept" request header
+    await app.register(fastifyAccepts);
+
     app.useGlobalFilters(new AllExceptionsFilter());
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
+
+    const fastifyInstance = app.getHttpAdapter().getInstance();
+    fastifyInstance.addHook("onRequest", methodNotAllowed);
+
     await app.init();
-    await app.getHttpAdapter().getInstance().ready();
+    await fastifyInstance.ready();
 
     server = getServer(app, configService);
 

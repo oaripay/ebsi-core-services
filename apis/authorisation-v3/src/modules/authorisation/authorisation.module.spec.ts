@@ -102,7 +102,8 @@ describe.each(["EBSI URI", "URL"] as const)(
       app = await configureApp(moduleFixture);
 
       await app.init();
-      await app.getHttpAdapter().getInstance().ready();
+      const fastifyInstance = app.getHttpAdapter().getInstance();
+      await fastifyInstance.ready();
 
       server = app.getHttpServer();
 

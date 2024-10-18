@@ -1,6 +1,6 @@
 import { Controller, Get, Param, Query } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { PaginatedListWithoutTotal } from "@ebsiint-api/shared";
+import { Accepts, PaginatedListWithoutTotal } from "@ebsiint-api/shared";
 import DocumentsService from "./documents.service.js";
 import {
   formatDocumentAccesses,
@@ -39,6 +39,7 @@ export default class DocumentsController {
   ) {}
 
   @Get("")
+  @Accepts("application/json")
   async getDocuments(
     @Query() query: GetDocumentsDto,
   ): Promise<PaginatedListWithoutTotal<DocumentsLink>> {
@@ -84,6 +85,7 @@ export default class DocumentsController {
   }
 
   @Get("/:documentId")
+  @Accepts("application/json")
   async getDocument(@Param() params: GetDocumentParamsDto): Promise<Document> {
     const { documentId } = params;
 
@@ -93,6 +95,7 @@ export default class DocumentsController {
   }
 
   @Get("/:documentId/events")
+  @Accepts("application/json")
   async getDocumentEvents(
     @Param() params: GetDocumentEventsParamsDto,
     @Query() query: GetDocumentEventsDto,
@@ -140,6 +143,7 @@ export default class DocumentsController {
   }
 
   @Get("/:documentId/events/:eventId")
+  @Accepts("application/json")
   async getDocumentEvent(
     @Param() params: GetDocumentEventParamsDto,
   ): Promise<Event> {
@@ -154,6 +158,7 @@ export default class DocumentsController {
   }
 
   @Get("/:documentId/accesses")
+  @Accepts("application/json")
   async getDocumentAccesses(
     @Param() params: GetDocumentAccessesParamsDto,
     @Query() query: GetDocumentAccessesDto,

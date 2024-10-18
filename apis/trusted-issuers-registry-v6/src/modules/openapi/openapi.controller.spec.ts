@@ -6,6 +6,7 @@ import {
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
+import { fastifyAccepts } from "@fastify/accepts";
 import { OpenApiModule } from "./openapi.module.js";
 
 describe("OpenApiController", () => {
@@ -20,7 +21,12 @@ describe("OpenApiController", () => {
       new FastifyAdapter(),
     );
     await app.init();
-    await app.getHttpAdapter().getInstance().ready();
+
+    // Parse "Accept" request header
+    await app.register(fastifyAccepts);
+
+    const fastifyInstance = app.getHttpAdapter().getInstance();
+    await fastifyInstance.ready();
     server = app.getHttpServer();
   });
 

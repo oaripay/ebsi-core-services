@@ -1,5 +1,5 @@
 import { Controller, Body, Post, HttpCode, UseGuards } from "@nestjs/common";
-import { InvalidRequestJsonRpcError } from "@ebsiint-api/shared";
+import { Accepts, InvalidRequestJsonRpcError } from "@ebsiint-api/shared";
 import { JsonRpcService } from "./jsonrpc.service.js";
 import type { JsonRpcResponseObject } from "./jsonrpc.interface.js";
 import { BearerJwtAuthGuard } from "../auth/guards/index.js";
@@ -29,9 +29,10 @@ function formatJsonRpcResponse(
 export default class AppController {
   constructor(private jsonRpcService: JsonRpcService) {}
 
+  @Post()
+  @Accepts("application/json")
   @HttpCode(200)
   @UseGuards(BearerJwtAuthGuard)
-  @Post()
   async jsonRPC(
     @Body() body: JsonRpcDto,
     @Subject() subject: SubjectInfo,

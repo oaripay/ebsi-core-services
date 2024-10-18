@@ -13,9 +13,11 @@ import { ethers } from "ethers";
 import { calculateJwkThumbprint, exportJWK, generateKeyPair } from "jose";
 import type { JWK } from "jose";
 import type { RawServerDefault } from "fastify";
+import { fastifyAccepts } from "@fastify/accepts";
+import { fastifyHelmet } from "@fastify/helmet";
 import { useContainer } from "class-validator";
 import type { EbsiIssuer } from "@cef-ebsi/verifiable-credential";
-import { waitToBeMined } from "@ebsiint-api/shared";
+import { methodNotAllowed, waitToBeMined } from "@ebsiint-api/shared";
 import { AppModule } from "../../src/app.module.js";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
 import type { ApiConfig } from "../../src/config/configuration.js";
@@ -90,13 +92,47 @@ describeWriteOps()("DID Registry API v6 - JSON-RPC (e2e)", () => {
     // Turn off logger
     Logger.overrideLogger(false);
 
+    // https://cheatsheetseries.owasp.org/cheatsheets/REST_Security_Cheat_Sheet.html#security-headers
+    await app.register(fastifyHelmet, {
+      contentSecurityPolicy: {
+        directives: {
+          "frame-ancestors": ["'none'"],
+        },
+      },
+      xFrameOptions: {
+        action: "deny",
+      },
+    });
+
+    // Parse "Accept" request header
+    await app.register(fastifyAccepts);
+
     configService =
       moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
 
+    // https://cheatsheetseries.owasp.org/cheatsheets/REST_Security_Cheat_Sheet.html#security-headers
+    await app.register(fastifyHelmet, {
+      contentSecurityPolicy: {
+        directives: {
+          "frame-ancestors": ["'none'"],
+        },
+      },
+      xFrameOptions: {
+        action: "deny",
+      },
+    });
+
+    // Parse "Accept" request header
+    await app.register(fastifyAccepts);
+
     app.useGlobalFilters(new AllExceptionsFilter());
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
+
+    const fastifyInstance = app.getHttpAdapter().getInstance();
+    fastifyInstance.addHook("onRequest", methodNotAllowed);
+
     await app.init();
-    await app.getHttpAdapter().getInstance().ready();
+    await fastifyInstance.ready();
 
     server = getServer(app, configService);
 

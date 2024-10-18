@@ -27,6 +27,7 @@
     "@apidevtools/json-schema-ref-parser": "^11.7.0",
     "@ebsiint-api/shared": "^1.1.0-rc.10",
     "@ebsiint-sc/trusted-schemas-registry": "^1.0.1-rc.8",
+    "@fastify/accepts": "^4.3.0",
     "@fastify/helmet": "^11.1.1",
     "@nestjs/axios": "^3.0.3",
     "@nestjs/common": "^10.4.1",

@@ -1,6 +1,6 @@
 import { Controller, Get, Query, Param, Header } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { PaginatedList } from "@ebsiint-api/shared";
+import { Accepts, PaginatedList } from "@ebsiint-api/shared";
 import { SchemasService } from "./schemas.service.js";
 import {
   formatSchemas,
@@ -30,6 +30,7 @@ export class SchemasController {
   ) {}
 
   @Get("")
+  @Accepts("application/json")
   async getSchemas(
     @Query() query: GetSchemasQuery,
   ): Promise<PaginatedList<GetSchemasResponse>> {
@@ -51,12 +52,14 @@ export class SchemasController {
   }
 
   @Get("/:schemaId")
+  @Accepts("application/json")
   async getSchema(@Param() params: GetSchemaParams): Promise<unknown> {
     const { schemaId } = params;
     return this.schemasService.getSchema(schemaId);
   }
 
   @Get("/:schemaId/revisions")
+  @Accepts("application/json")
   async getSchemaRevisions(
     @Param() params: GetSchemaParams,
     @Query() query: GetSchemaRevisionsQuery,
@@ -84,6 +87,7 @@ export class SchemasController {
   }
 
   @Get("/:schemaId/revisions/:schemaRevisionId")
+  @Accepts("application/json")
   async getSchemaRevision(
     @Param() params: GetSchemaRevisionParams,
   ): Promise<unknown> {
@@ -92,6 +96,7 @@ export class SchemasController {
   }
 
   @Get("/:schemaId/revisions/:schemaRevisionId/metadata")
+  @Accepts("application/json")
   async getSchemaRevisionMetadataList(
     @Param() params: GetSchemaRevisionParams,
     @Query() query: GetSchemaRevisionMetadataQuery,
@@ -118,6 +123,7 @@ export class SchemasController {
   }
 
   @Get("/:schemaId/revisions/:schemaRevisionId/metadata/:metadataId")
+  @Accepts("application/ld+json")
   @Header("Content-type", "application/ld+json")
   async getSchemaRevisionMetadata(
     @Param() params: GetSchemaRevisionMetadataParams,

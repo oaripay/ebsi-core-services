@@ -14,6 +14,8 @@ import { ConfigService } from "@nestjs/config";
 import { ValidationPipe, Logger } from "@nestjs/common";
 import { ethers } from "ethers";
 import type { RawServerDefault } from "fastify";
+import { fastifyAccepts } from "@fastify/accepts";
+import { fastifyHelmet } from "@fastify/helmet";
 import {
   FastifyAdapter,
   type NestFastifyApplication,
@@ -29,6 +31,7 @@ import type { GenerateKeyPairResult, JWK } from "jose";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 import { DidRegistry, DidRegistry__factory } from "@ebsiint-sc/did-registry-v2";
+import { methodNotAllowed } from "@ebsiint-api/shared";
 import { JsonRpcModule } from "./jsonrpc.module.js";
 import type { JsonRpcResponseObject } from "./jsonrpc.interface.js";
 import {
@@ -140,11 +143,29 @@ describe(
       configService =
         moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
 
+      // https://cheatsheetseries.owasp.org/cheatsheets/REST_Security_Cheat_Sheet.html#security-headers
+      await app.register(fastifyHelmet, {
+        contentSecurityPolicy: {
+          directives: {
+            "frame-ancestors": ["'none'"],
+          },
+        },
+        xFrameOptions: {
+          action: "deny",
+        },
+      });
+
+      // Parse "Accept" request header
+      await app.register(fastifyAccepts);
+
       app.useGlobalFilters(new AllExceptionsFilter());
       app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
+      const fastifyInstance = app.getHttpAdapter().getInstance();
+      fastifyInstance.addHook("onRequest", methodNotAllowed);
+
       await app.init();
-      await app.getHttpAdapter().getInstance().ready();
+      await fastifyInstance.ready();
       server = app.getHttpServer();
 
       newUser = await createUser();

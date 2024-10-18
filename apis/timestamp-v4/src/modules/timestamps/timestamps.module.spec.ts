@@ -8,9 +8,14 @@ import {
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
+import { fastifyAccepts } from "@fastify/accepts";
 import { ethers } from "ethers";
 import { Timestamp, Timestamp__factory } from "@ebsiint-sc/timestamp-v2";
-import { multibase, multihashEncode } from "@ebsiint-api/shared";
+import {
+  methodNotAllowed,
+  multibase,
+  multihashEncode,
+} from "@ebsiint-api/shared";
 import { TimestampsModule } from "./timestamps.module.js";
 import { TimestampLink } from "./timestamps.interface.js";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
@@ -47,6 +52,9 @@ describe("Timestamps Module", () => {
       new FastifyAdapter(),
     );
 
+    // Parse "Accept" request header
+    await app.register(fastifyAccepts);
+
     // Turn off logger
     Logger.overrideLogger(false);
 
@@ -58,8 +66,12 @@ describe("Timestamps Module", () => {
         forbidNonWhitelisted: true,
       }),
     );
+
+    const fastifyInstance = app.getHttpAdapter().getInstance();
+    fastifyInstance.addHook("onRequest", methodNotAllowed);
+
     await app.init();
-    await app.getHttpAdapter().getInstance().ready();
+    await fastifyInstance.ready();
     server = app.getHttpServer();
 
     // Mock Contract service

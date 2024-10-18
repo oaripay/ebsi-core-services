@@ -15,6 +15,7 @@ import {
   PaginatedList,
   InvalidRequestJsonRpcError,
   getErrorMessage,
+  Accepts,
 } from "@ebsiint-api/shared";
 import IdentifiersService from "./identifiers.service.js";
 import { formatIdentifiers } from "./identifiers.formatter.js";
@@ -36,6 +37,7 @@ export default class IdentifiersController {
   ) {}
 
   @Get("")
+  @Accepts("application/json")
   async getIdentifiers(
     @Query() query: GetIdentifiersDto,
   ): Promise<PaginatedList<DidLink>> {
@@ -63,6 +65,7 @@ export default class IdentifiersController {
   }
 
   @Get("/:did")
+  @Accepts("application/did+ld+json", "application/did+json")
   async getDidDocument(
     @Param() params: GetIdentifierParamsDto,
     @Query() query: GetIdentifierQueryDto,

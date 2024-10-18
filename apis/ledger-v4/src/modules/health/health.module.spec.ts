@@ -18,8 +18,10 @@ import {
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
+import { fastifyAccepts } from "@fastify/accepts";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
+import { methodNotAllowed } from "@ebsiint-api/shared";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
 import { DEPENDENCIES, type ApiConfig } from "../../config/configuration.js";
 import { HealthModule } from "./health.module.js";
@@ -61,8 +63,15 @@ describe("Health Module", () => {
 
     app.useGlobalFilters(new AllExceptionsFilter());
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
+
+    // Parse "Accept" request header
+    await app.register(fastifyAccepts);
+
+    const fastifyInstance = app.getHttpAdapter().getInstance();
+    fastifyInstance.addHook("onRequest", methodNotAllowed);
+
     await app.init();
-    await app.getHttpAdapter().getInstance().ready();
+    await fastifyInstance.ready();
     server = app.getHttpServer();
 
     httpService = await moduleFixture.resolve<HttpService>(HttpService);

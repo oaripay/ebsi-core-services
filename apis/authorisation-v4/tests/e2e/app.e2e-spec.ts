@@ -32,7 +32,8 @@ describe("Authorisation API v4 - Generic tests (e2e)", () => {
     Logger.overrideLogger(false);
 
     await app.init();
-    await app.getHttpAdapter().getInstance().ready();
+    const fastifyInstance = app.getHttpAdapter().getInstance();
+    await fastifyInstance.ready();
 
     server = getServer(app, configService);
 
@@ -49,10 +50,96 @@ describe("Authorisation API v4 - Generic tests (e2e)", () => {
 
   describe("GET /", () => {
     it("should return 'ok'", async () => {
-      expect.assertions(2);
+      expect.assertions(4);
+
       const response = await request(server).get("");
+
       expect(response.text).toBe("ok");
       expect(response.status).toBe(200);
+
+      // Check headers
+      expect(response.headers["content-security-policy"]).toContain(
+        "frame-ancestors 'none'",
+      );
+      expect(response.headers["x-frame-options"]).toStrictEqual("DENY");
+    });
+
+    it("should return an error 405 if called with a method different from GET", async () => {
+      expect.assertions(16);
+
+      // POST
+      let response = await request(server).post("/");
+
+      expect(response.body).toStrictEqual({
+        detail: "Cannot POST /. Allowed HTTP methods: GET",
+        status: 405,
+        title: "Method Not Allowed",
+        type: "about:blank",
+      });
+      expect(response.headers["allow"]).toStrictEqual("GET");
+      expect(response.headers["content-type"]).toStrictEqual(
+        "application/problem+json; charset=utf-8",
+      );
+      expect(response.status).toBe(405);
+
+      // HEAD
+      response = await request(server).head("/");
+
+      expect(response.body).toStrictEqual({}); // HEAD response body is empty
+      expect(response.headers["allow"]).toStrictEqual("GET");
+      expect(response.headers["content-type"]).toStrictEqual(
+        "application/problem+json; charset=utf-8",
+      );
+      expect(response.status).toBe(405);
+
+      // PUT
+      response = await request(server).put("/");
+
+      expect(response.body).toStrictEqual({
+        detail: "Cannot PUT /. Allowed HTTP methods: GET",
+        status: 405,
+        title: "Method Not Allowed",
+        type: "about:blank",
+      });
+      expect(response.headers["allow"]).toStrictEqual("GET");
+      expect(response.headers["content-type"]).toStrictEqual(
+        "application/problem+json; charset=utf-8",
+      );
+      expect(response.status).toBe(405);
+
+      // PATCH
+      response = await request(server).patch("/");
+
+      expect(response.body).toStrictEqual({
+        detail: "Cannot PATCH /. Allowed HTTP methods: GET",
+        status: 405,
+        title: "Method Not Allowed",
+        type: "about:blank",
+      });
+      expect(response.headers["allow"]).toStrictEqual("GET");
+      expect(response.headers["content-type"]).toStrictEqual(
+        "application/problem+json; charset=utf-8",
+      );
+      expect(response.status).toBe(405);
+    });
+
+    it("should return an error 406 if called with an unsupported 'Accept' header", async () => {
+      expect.assertions(3);
+
+      const response = await request(server)
+        .get("/")
+        .set("Accept", "application/xml");
+
+      expect(response.body).toStrictEqual({
+        detail: "Only 'text/plain' content types supported",
+        status: 406,
+        title: "Not Acceptable",
+        type: "about:blank",
+      });
+      expect(response.headers["content-type"]).toStrictEqual(
+        "application/problem+json; charset=utf-8",
+      );
+      expect(response.status).toBe(406);
     });
   });
 

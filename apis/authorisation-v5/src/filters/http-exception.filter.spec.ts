@@ -9,17 +9,23 @@ import {
 import { ConfigService } from "@nestjs/config";
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { AxiosError } from "axios";
-import { ProblemDetailsError } from "@ebsiint-api/shared";
+import {
+  MethodNotAllowedError,
+  ProblemDetailsError,
+} from "@ebsiint-api/shared";
 import { AllExceptionsFilter } from "./http-exception.filter.js";
 import { configureApp } from "../../tests/utils/app.js";
 
 const mockGetResponse = vi.fn().mockImplementation(() => ({
   code: vi.fn().mockImplementation((code: unknown) => ({
     type: vi.fn().mockImplementation((type: unknown) => ({
-      send: vi.fn().mockImplementation((send: unknown) => ({
-        code,
-        type,
-        send,
+      headers: vi.fn().mockImplementation((headers: unknown) => ({
+        send: vi.fn().mockImplementation((send: unknown) => ({
+          code,
+          type,
+          headers,
+          send,
+        })),
       })),
     })),
   })),
@@ -56,7 +62,8 @@ describe("All exception filter tests", () => {
     app = await configureApp(moduleFixture);
 
     await app.init();
-    await app.getHttpAdapter().getInstance().ready();
+    const fastifyInstance = app.getHttpAdapter().getInstance();
+    await fastifyInstance.ready();
     service = moduleFixture.get<AllExceptionsFilter>(AllExceptionsFilter);
   });
 
@@ -76,10 +83,31 @@ describe("All exception filter tests", () => {
     expect(response).toStrictEqual({
       code: 403,
       type: "application/problem+json",
+      headers: {},
       send: {
         title: "Custom Error",
         detail: "Custom detail",
         status: 403,
+        type: "about:blank",
+      },
+    });
+  });
+
+  it("should handle additional headers on MethodNotAllowedError", () => {
+    const problem = new MethodNotAllowedError("Custom Error", ["POST", "PUT"], {
+      detail: "Custom detail",
+    });
+    const response = service.catch(problem, mockArgumentsHost);
+    expect(response).toStrictEqual({
+      code: MethodNotAllowedError.statusCode,
+      type: "application/problem+json",
+      headers: {
+        Allow: "POST, PUT",
+      },
+      send: {
+        title: "Custom Error",
+        status: MethodNotAllowedError.statusCode,
+        detail: "Custom detail",
         type: "about:blank",
       },
     });
@@ -92,6 +120,7 @@ describe("All exception filter tests", () => {
     expect(response).toStrictEqual({
       code: 404,
       type: "application/problem+json",
+      headers: {},
       send: {
         title: "Not Found",
         detail,
@@ -108,6 +137,7 @@ describe("All exception filter tests", () => {
     expect(response).toStrictEqual({
       code: 400,
       type: "application/problem+json",
+      headers: {},
       send: {
         title: "Bad Request",
         detail,
@@ -128,6 +158,7 @@ describe("All exception filter tests", () => {
     const expectedError = {
       code: 500,
       type: "application/problem+json",
+      headers: {},
       send: {
         title: "Internal Server Error",
         detail:

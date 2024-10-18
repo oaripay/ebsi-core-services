@@ -1,6 +1,6 @@
 import { Controller, Get, Param, Query } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { PaginatedListWithoutTotal } from "@ebsiint-api/shared";
+import { Accepts, PaginatedListWithoutTotal } from "@ebsiint-api/shared";
 import { UsersService } from "./users.service.js";
 import { formatUsers } from "./users.formatter.js";
 import { UserLink, UserResponseObject } from "./users.interface.js";
@@ -17,6 +17,7 @@ export class UsersController {
   ) {}
 
   @Get("")
+  @Accepts("application/json")
   async getUsers(
     @Query() query: GetUsersQuery,
   ): Promise<PaginatedListWithoutTotal<UserLink>> {
@@ -59,6 +60,7 @@ export class UsersController {
   }
 
   @Get("/:user")
+  @Accepts("application/json")
   async getUser(@Param() params: GetUserParams): Promise<UserResponseObject> {
     return this.usersService.getUser(params.user);
   }

@@ -33,7 +33,8 @@ async function startApp() {
   Logger.overrideLogger(mockedLogger);
 
   await app.init();
-  await app.getHttpAdapter().getInstance().ready();
+  const fastifyInstance = app.getHttpAdapter().getInstance();
+  await fastifyInstance.ready();
 
   return app;
 }
@@ -65,7 +66,7 @@ describe("App Module", () => {
 
   describe("GET /", () => {
     it("should return 'ok' without logging the request nor the response", async () => {
-      expect.assertions(3);
+      expect.assertions(5);
 
       vi.stubEnv("LOG_LEVEL", "debug");
 
@@ -76,6 +77,12 @@ describe("App Module", () => {
 
       expect(response.text).toBe("ok");
       expect(response.status).toBe(200);
+
+      // Check headers
+      expect(response.headers["content-security-policy"]).toContain(
+        "frame-ancestors 'none'",
+      );
+      expect(response.headers["x-frame-options"]).toStrictEqual("DENY");
 
       // The last logs show that the application was started
       const calls = mockedLogger.log.mock.calls.length;
@@ -105,6 +112,127 @@ describe("App Module", () => {
         type: "about:blank",
       });
       expect(response.status).toBe(400);
+
+      await app.close();
+    });
+
+    it("should return an error 405 if called with a method different from GET", async () => {
+      expect.assertions(17);
+
+      const app = await startApp();
+      const server = app.getHttpServer();
+
+      // POST
+      let response = await request(server).post("/");
+
+      expect(response.body).toStrictEqual({
+        detail: "Cannot POST /. Allowed HTTP methods: GET",
+        status: 405,
+        title: "Method Not Allowed",
+        type: "about:blank",
+      });
+      expect(response.headers["allow"]).toStrictEqual("GET");
+      expect(response.headers["content-type"]).toStrictEqual(
+        "application/problem+json; charset=utf-8",
+      );
+      expect(response.status).toBe(405);
+
+      // HEAD
+      response = await request(server).head("/");
+
+      expect(response.body).toStrictEqual({}); // HEAD response body is empty
+      expect(response.headers["allow"]).toStrictEqual("GET");
+      expect(response.headers["content-type"]).toStrictEqual(
+        "application/problem+json; charset=utf-8",
+      );
+      expect(response.status).toBe(405);
+
+      // PUT
+      response = await request(server).put("/");
+
+      expect(response.body).toStrictEqual({
+        detail: "Cannot PUT /. Allowed HTTP methods: GET",
+        status: 405,
+        title: "Method Not Allowed",
+        type: "about:blank",
+      });
+      expect(response.headers["allow"]).toStrictEqual("GET");
+      expect(response.headers["content-type"]).toStrictEqual(
+        "application/problem+json; charset=utf-8",
+      );
+      expect(response.status).toBe(405);
+
+      // PATCH
+      response = await request(server).patch("/");
+
+      expect(response.body).toStrictEqual({
+        detail: "Cannot PATCH /. Allowed HTTP methods: GET",
+        status: 405,
+        title: "Method Not Allowed",
+        type: "about:blank",
+      });
+      expect(response.headers["allow"]).toStrictEqual("GET");
+      expect(response.headers["content-type"]).toStrictEqual(
+        "application/problem+json; charset=utf-8",
+      );
+      expect(response.status).toBe(405);
+
+      // Check logs
+      expect(mockedLogger.error.mock.calls).toStrictEqual([
+        [
+          "Cannot POST /. Allowed HTTP methods: GET",
+          expect.stringContaining("MethodNotAllowedError: Method Not Allowed"),
+          "AllExceptionsFilter",
+        ],
+        [
+          "Cannot HEAD /. Allowed HTTP methods: GET",
+          expect.stringContaining("MethodNotAllowedError: Method Not Allowed"),
+          "AllExceptionsFilter",
+        ],
+        [
+          "Cannot PUT /. Allowed HTTP methods: GET",
+          expect.stringContaining("MethodNotAllowedError: Method Not Allowed"),
+          "AllExceptionsFilter",
+        ],
+        [
+          "Cannot PATCH /. Allowed HTTP methods: GET",
+          expect.stringContaining("MethodNotAllowedError: Method Not Allowed"),
+          "AllExceptionsFilter",
+        ],
+      ]);
+
+      await app.close();
+    });
+
+    it("should return an error 406 if called with an unsupported 'Accept' header", async () => {
+      expect.assertions(4);
+
+      const app = await startApp();
+      const server = app.getHttpServer();
+
+      const response = await request(server)
+        .get("/")
+        .set("Accept", "application/xml");
+
+      expect(response.body).toStrictEqual({
+        detail: "Only 'text/plain' content types supported",
+        status: 406,
+        title: "Not Acceptable",
+        type: "about:blank",
+      });
+      expect(response.headers["content-type"]).toStrictEqual(
+        "application/problem+json; charset=utf-8",
+      );
+      expect(response.status).toBe(406);
+
+      // Check logs
+      expect(mockedLogger.error.mock.calls).toStrictEqual([
+        [
+          "Cannot GET / with 'Accept' header 'application/xml'",
+          expect.stringContaining("NotAcceptableError: Not Acceptable"),
+          "AcceptsGuard",
+        ],
+      ]);
 
       await app.close();
     });

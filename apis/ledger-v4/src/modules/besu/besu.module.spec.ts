@@ -17,10 +17,12 @@ import request from "supertest";
 import { Test, type TestingModule } from "@nestjs/testing";
 import { ValidationPipe, Logger } from "@nestjs/common";
 import type { RawServerDefault } from "fastify";
+import { fastifyAccepts } from "@fastify/accepts";
 import {
   FastifyAdapter,
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
+import { methodNotAllowed } from "@ebsiint-api/shared";
 import { BesuModule } from "./besu.module.js";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
 import { BesuService } from "./besu.service.js";
@@ -59,8 +61,15 @@ describe("Besu Module", () => {
 
       app.useGlobalFilters(new AllExceptionsFilter());
       app.useGlobalPipes(new ValidationPipe({ transform: true }));
+
+      // Parse "Accept" request header
+      await app.register(fastifyAccepts);
+
+      const fastifyInstance = app.getHttpAdapter().getInstance();
+      fastifyInstance.addHook("onRequest", methodNotAllowed);
+
       await app.init();
-      await app.getHttpAdapter().getInstance().ready();
+      await fastifyInstance.ready();
       server = app.getHttpServer();
 
       besuService = moduleFixture.get<BesuService>(BesuService);

@@ -31,6 +31,7 @@
     "@ebsiint-sc/track-and-trace": "1.0.0-rc.3",
     "@ethersproject/address": "^5.7.0",
     "@ethersproject/bignumber": "^5.7.0",
+    "@fastify/accepts": "^4.3.0",
     "@fastify/helmet": "^11.1.1",
     "@nestjs/axios": "^3.0.3",
     "@nestjs/cache-manager": "^2.2.2",

@@ -1,6 +1,6 @@
 import { Controller, Get, Query, Param } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { PaginatedListWithoutTotal } from "@ebsiint-api/shared";
+import { Accepts, PaginatedListWithoutTotal } from "@ebsiint-api/shared";
 import TimestampsService from "./timestamps.service.js";
 import { formatTimestamps } from "./timestamps.formatter.js";
 import {
@@ -20,6 +20,7 @@ export default class TimestampsController {
   ) {}
 
   @Get("")
+  @Accepts("application/json")
   async getTimestamps(
     @Query() query: GetTimestampsDto,
   ): Promise<PaginatedListWithoutTotal<TimestampLink>> {
@@ -66,6 +67,7 @@ export default class TimestampsController {
   }
 
   @Get("/:timestampId")
+  @Accepts("application/json")
   async getTimestamp(
     @Param() params: GetTimestampDto,
   ): Promise<TimestampResponseObject> {

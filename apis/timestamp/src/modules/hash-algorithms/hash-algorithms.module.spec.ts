@@ -7,7 +7,9 @@ import {
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
+import { fastifyAccepts } from "@fastify/accepts";
 import { Timestamp, Timestamp__factory } from "@ebsiint-sc/timestamp";
+import { methodNotAllowed } from "@ebsiint-api/shared";
 import { HashAlgorithmsModule } from "./hash-algorithms.module.js";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
 import { setupTestEnv } from "../../../tests/utils/timestamp.js";
@@ -45,10 +47,17 @@ describe("HashAlgorithms Module", () => {
     // Turn off logger
     Logger.overrideLogger(false);
 
+    // Parse "Accept" request header
+    await app.register(fastifyAccepts);
+
     app.useGlobalFilters(new AllExceptionsFilter());
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
+
+    const fastifyInstance = app.getHttpAdapter().getInstance();
+    fastifyInstance.addHook("onRequest", methodNotAllowed);
+
     await app.init();
-    await app.getHttpAdapter().getInstance().ready();
+    await fastifyInstance.ready();
     server = app.getHttpServer();
 
     // Mock Contract service

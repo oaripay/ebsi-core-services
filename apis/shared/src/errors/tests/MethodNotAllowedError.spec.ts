@@ -5,23 +5,15 @@ describe("error MethodNotAllowedError", () => {
   it("should extend ProblemDetailsError", () => {
     expect.assertions(1);
 
-    const error = new MethodNotAllowedError("Test Error");
+    const error = new MethodNotAllowedError("Test Error", ["DELETE"]);
 
     expect(error instanceof ProblemDetailsError).toBe(true);
   });
 
-  it("should have 'Method Not Allowed' as default title", () => {
-    expect.assertions(1);
-
-    const error = new MethodNotAllowedError();
-
-    expect(error.title).toBe("Method Not Allowed");
-  });
-
   it("should have the correct properties", () => {
-    expect.assertions(7);
+    expect.assertions(8);
 
-    const error = new MethodNotAllowedError("Test Error", {
+    const error = new MethodNotAllowedError("Test Error", ["GET"], {
       type: "test",
       extensions: {
         custom: "value",
@@ -35,12 +27,13 @@ describe("error MethodNotAllowedError", () => {
     expect(error.detail).toBeUndefined();
     expect(error.instance).toBeUndefined();
     expect(error.extensions).toStrictEqual({ custom: "value" });
+    expect(error.headers).toStrictEqual({ Allow: "GET" });
   });
 
   it("should print the correct JSON object", () => {
     expect.assertions(2);
 
-    const error = new MethodNotAllowedError("Test Error", {
+    const error = new MethodNotAllowedError("Test Error", ["GET"], {
       type: "test",
       extensions: {
         custom: "value",
@@ -61,7 +54,7 @@ describe("error MethodNotAllowedError", () => {
   it("should print the correct string", () => {
     expect.assertions(1);
 
-    const error = new MethodNotAllowedError("Test Error", {
+    const error = new MethodNotAllowedError("Test Error", ["GET"], {
       type: "test",
       extensions: {
         custom: "value",

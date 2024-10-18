@@ -1,6 +1,6 @@
 import { Controller, Get, Query, Param } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { PaginatedListWithoutTotal } from "@ebsiint-api/shared";
+import { Accepts, PaginatedListWithoutTotal } from "@ebsiint-api/shared";
 import RecordsService from "./records.service.js";
 import { formatRecords, formatRecordVersions } from "./records.formatter.js";
 import {
@@ -23,6 +23,7 @@ export default class RecordsController {
   ) {}
 
   @Get("")
+  @Accepts("application/json")
   async getRecords(
     @Query() query: GetRecordsDto,
   ): Promise<PaginatedListWithoutTotal<RecordLink>> {
@@ -67,6 +68,7 @@ export default class RecordsController {
   }
 
   @Get("/:recordId")
+  @Accepts("application/json")
   async getRecord(
     @Param() params: GetRecordDto,
   ): Promise<RecordResponseObject> {
@@ -75,6 +77,7 @@ export default class RecordsController {
   }
 
   @Get("/:recordId/versions")
+  @Accepts("application/json")
   async getRecordVersions(
     @Param() params: GetRecordDto,
     @Query() query: GetRecordVersionsDto,
@@ -101,6 +104,7 @@ export default class RecordsController {
   }
 
   @Get("/:recordId/versions/:versionId")
+  @Accepts("application/json")
   async getRecordVersion(
     @Param() params: GetRecordVersionDto,
   ): Promise<RecordVersionResponseObject> {

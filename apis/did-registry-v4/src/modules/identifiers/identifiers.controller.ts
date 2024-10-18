@@ -11,7 +11,11 @@ import {
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import type { FastifyReply } from "fastify";
-import { PaginatedList, InvalidRequestJsonRpcError } from "@ebsiint-api/shared";
+import {
+  PaginatedList,
+  InvalidRequestJsonRpcError,
+  Accepts,
+} from "@ebsiint-api/shared";
 import IdentifiersService from "./identifiers.service.js";
 import { formatIdentifiers } from "./identifiers.formatter.js";
 import { DidLink } from "./identifiers.interface.js";
@@ -33,6 +37,7 @@ export default class IdentifiersController {
   ) {}
 
   @Get("")
+  @Accepts("application/json")
   async getIdentifiers(
     @Query() query: GetIdentifiersDto,
   ): Promise<PaginatedList<DidLink>> {
@@ -60,6 +65,7 @@ export default class IdentifiersController {
   }
 
   @Get("/:did")
+  @Accepts("application/did+ld+json", "application/did+json")
   async getDidDocument(
     @Param() params: GetIdentifierParamsDto,
     @Query() query: GetIdentifierQueryDto,
@@ -81,8 +87,9 @@ export default class IdentifiersController {
     return res.type("application/did+ld+json").send(didDocument);
   }
 
-  @HttpCode(200)
   @Post("/:did/actions")
+  @Accepts("application/json")
+  @HttpCode(200)
   async processAction(
     @Param() params: GetIdentifierParamsDto,
     @Body() body: JsonRpcDto,

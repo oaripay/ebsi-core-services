@@ -18,6 +18,7 @@ import {
   BadRequestError,
   InvalidRequestJsonRpcError,
   ForbiddenError,
+  MethodNotAllowedError,
 } from "@ebsiint-api/shared";
 import { stringify } from "safe-stable-stringify";
 
@@ -26,6 +27,12 @@ function getProblemDetailsError(
   logger: Logger,
 ): ProblemDetailsError {
   if (error instanceof ProblemDetailsError) {
+    // Log MethodNotAllowedError because we can't easily log it in the hook itself
+    if (error instanceof MethodNotAllowedError) {
+      logger.error(error.detail ?? error.message, error.stack);
+    }
+
+    // Don't log other ProblemDetailsError (we assume that they've been logged already)
     return error;
   }
 
@@ -113,6 +120,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     return response
       .code(problemError.status)
       .type("application/problem+json")
+      .headers(problemError.headers ?? {})
       .send(problemError.toJSON());
   }
 }

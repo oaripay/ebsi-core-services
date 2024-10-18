@@ -18,6 +18,7 @@ import {
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
+import { fastifyAccepts } from "@fastify/accepts";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
@@ -60,8 +61,12 @@ describe("HealthController", () => {
     app.useGlobalFilters(new AllExceptionsFilter());
     app.useGlobalPipes(new ValidationPipe());
 
+    // Parse "Accept" request header
+    await app.register(fastifyAccepts);
+
     await app.init();
-    await app.getHttpAdapter().getInstance().ready();
+    const fastifyInstance = app.getHttpAdapter().getInstance();
+    await fastifyInstance.ready();
 
     server = app.getHttpServer();
 

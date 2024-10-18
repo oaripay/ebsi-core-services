@@ -1,5 +1,6 @@
 import { Controller, Body, Post, HttpCode, UseGuards } from "@nestjs/common";
 import {
+  Accepts,
   InvalidRequestJsonRpcError,
   getErrorMessage,
 } from "@ebsiint-api/shared";
@@ -21,8 +22,9 @@ function formatJsonRpcResponse(
 export class JsonRpcController {
   constructor(private jsonRpcService: JsonRpcService) {}
 
-  @HttpCode(200)
   @Post()
+  @Accepts("application/json")
+  @HttpCode(200)
   async jsonRPC(
     @Body() unsafeBody: unknown,
     @Subject() subject: SubjectInfo,

@@ -10,8 +10,11 @@ import {
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
+import { fastifyAccepts } from "@fastify/accepts";
+import { fastifyHelmet } from "@fastify/helmet";
 import {
   PaginatedList,
+  methodNotAllowed,
   prefixWith0x,
   waitToBeMined,
 } from "@ebsiint-api/shared";
@@ -99,11 +102,29 @@ describe("TPR API v3 - JSON RPC (e2e)", () => {
     configService =
       moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
 
+    // https://cheatsheetseries.owasp.org/cheatsheets/REST_Security_Cheat_Sheet.html#security-headers
+    await app.register(fastifyHelmet, {
+      contentSecurityPolicy: {
+        directives: {
+          "frame-ancestors": ["'none'"],
+        },
+      },
+      xFrameOptions: {
+        action: "deny",
+      },
+    });
+
+    // Parse "Accept" request header
+    await app.register(fastifyAccepts);
+
     app.useGlobalFilters(new AllExceptionsFilter());
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
+    const fastifyInstance = app.getHttpAdapter().getInstance();
+    fastifyInstance.addHook("onRequest", methodNotAllowed);
+
     await app.init();
-    await app.getHttpAdapter().getInstance().ready();
+    await fastifyInstance.ready();
 
     ledgerApi = `${configService.get<string>("ledgerApiUrl")}/blockchains/besu`;
 

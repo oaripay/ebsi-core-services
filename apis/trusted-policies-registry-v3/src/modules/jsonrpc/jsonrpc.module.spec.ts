@@ -16,6 +16,7 @@ import { ConfigService } from "@nestjs/config";
 import { ValidationPipe, Logger } from "@nestjs/common";
 import { ethers } from "ethers";
 import type { RawServerDefault } from "fastify";
+import { fastifyAccepts } from "@fastify/accepts";
 import {
   FastifyAdapter,
   type NestFastifyApplication,
@@ -30,6 +31,7 @@ import {
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 import { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry-v2";
+import { methodNotAllowed } from "@ebsiint-api/shared";
 import { JsonRpcModule } from "./jsonrpc.module.js";
 import { JsonRpcService } from "./jsonrpc.service.js";
 import type { JsonRpcResponseObject } from "./jsonrpc.interface.js";
@@ -119,11 +121,17 @@ describe("JsonRpc Module", () => {
     configService =
       moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
 
+    // Parse "Accept" request header
+    await app.register(fastifyAccepts);
+
     app.useGlobalFilters(new AllExceptionsFilter());
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
+    const fastifyInstance = app.getHttpAdapter().getInstance();
+    fastifyInstance.addHook("onRequest", methodNotAllowed);
+
     await app.init();
-    await app.getHttpAdapter().getInstance().ready();
+    await fastifyInstance.ready();
 
     server = app.getHttpServer();
 

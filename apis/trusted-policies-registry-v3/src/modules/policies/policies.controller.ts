@@ -1,6 +1,6 @@
 import { Controller, Get, Param, Query } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { PaginationQuery, PaginatedList } from "@ebsiint-api/shared";
+import { PaginationQuery, PaginatedList, Accepts } from "@ebsiint-api/shared";
 import { PoliciesService } from "./policies.service.js";
 import { formatPolicies } from "./policies.formatter.js";
 import { PolicyLink, PolicyResponseObject } from "./policies.interface.js";
@@ -15,6 +15,7 @@ export class PoliciesController {
   ) {}
 
   @Get("")
+  @Accepts("application/json")
   async getPolicies(
     @Query() query: PaginationQuery,
   ): Promise<PaginatedList<PolicyLink>> {
@@ -36,6 +37,7 @@ export class PoliciesController {
   }
 
   @Get("/:policyName")
+  @Accepts("application/json")
   async getPolicy(
     @Param() params: GetPolicyParams,
   ): Promise<PolicyResponseObject> {

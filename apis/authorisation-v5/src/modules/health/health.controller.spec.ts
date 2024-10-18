@@ -55,7 +55,8 @@ describe("HealthController", () => {
     app = await configureApp(moduleFixture);
 
     await app.init();
-    await app.getHttpAdapter().getInstance().ready();
+    const fastifyInstance = app.getHttpAdapter().getInstance();
+    await fastifyInstance.ready();
     server = app.getHttpServer();
 
     httpService = await moduleFixture.resolve<HttpService>(HttpService);

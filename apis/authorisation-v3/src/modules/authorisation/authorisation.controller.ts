@@ -9,6 +9,7 @@ import {
   Header,
 } from "@nestjs/common";
 import type { ReadonlyDeep } from "type-fest";
+import { Accepts } from "@ebsiint-api/shared";
 import { AuthorisationService } from "./authorisation.service.js";
 import type {
   JsonWebKeySet,
@@ -24,21 +25,24 @@ import { CUSTOM_SCOPES } from "./authorisation.constants.js";
 export class AuthorisationController {
   constructor(private authorisationService: AuthorisationService) {}
 
-  @HttpCode(200)
   @Get("/.well-known/openid-configuration")
+  @Accepts("application/json")
+  @HttpCode(200)
   getOPMetadata(): OPMetadata {
     return this.authorisationService.getOPMetadata();
   }
 
-  @HttpCode(200)
   @Get("/jwks")
+  @Accepts("application/jwk-set+json")
+  @HttpCode(200)
   @Header("Content-type", "application/jwk-set+json")
   getJwks(): Promise<JsonWebKeySet> {
     return this.authorisationService.getJwks();
   }
 
-  @HttpCode(200)
   @Get("/presentation-definitions")
+  @Accepts("application/json")
+  @HttpCode(200)
   getPresentationDefinitions(
     @Query() { scope }: GetPresentationDefinitionsDto,
   ): ReadonlyDeep<PresentationDefinition> {
@@ -46,8 +50,9 @@ export class AuthorisationController {
     return this.authorisationService.getPresentationDefinitions(customScope);
   }
 
-  @HttpCode(200)
   @Post("/token")
+  @Accepts("application/json")
+  @HttpCode(200)
   @Header("Cache-Control", "no-store")
   @Header("Pragma", "no-cache")
   createAccessToken(

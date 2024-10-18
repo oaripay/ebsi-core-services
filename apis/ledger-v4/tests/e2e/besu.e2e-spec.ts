@@ -7,7 +7,10 @@ import {
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
+import { fastifyAccepts } from "@fastify/accepts";
+import { fastifyHelmet } from "@fastify/helmet";
 import { ConfigService } from "@nestjs/config";
+import { methodNotAllowed } from "@ebsiint-api/shared";
 import type { ApiConfig } from "../../src/config/configuration.js";
 import { AppModule } from "../../src/app.module.js";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
@@ -29,13 +32,31 @@ describe("Ledger API v4 - POST /ledger/v4/blockchains/besu", () => {
     const configService =
       moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
 
+    // https://cheatsheetseries.owasp.org/cheatsheets/REST_Security_Cheat_Sheet.html#security-headers
+    await app.register(fastifyHelmet, {
+      contentSecurityPolicy: {
+        directives: {
+          "frame-ancestors": ["'none'"],
+        },
+      },
+      xFrameOptions: {
+        action: "deny",
+      },
+    });
+
+    // Parse "Accept" request header
+    await app.register(fastifyAccepts);
+
     app.useGlobalFilters(new AllExceptionsFilter());
     app.useGlobalPipes(new ValidationPipe());
+
+    const fastifyInstance = app.getHttpAdapter().getInstance();
+    fastifyInstance.addHook("onRequest", methodNotAllowed);
 
     Logger.overrideLogger(false);
 
     await app.init();
-    await app.getHttpAdapter().getInstance().ready();
+    await fastifyInstance.ready();
 
     server = getServer(app, configService);
   });

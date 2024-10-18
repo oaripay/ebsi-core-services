@@ -5,8 +5,13 @@ import {
 } from "@nestjs/platform-fastify";
 import { ConfigService } from "@nestjs/config";
 import { ValidationPipe } from "@nestjs/common";
-import fastifyHelmet from "@fastify/helmet";
-import { setupInterceptors, frameworkErrors } from "@ebsiint-api/shared";
+import { fastifyHelmet } from "@fastify/helmet";
+import { fastifyAccepts } from "@fastify/accepts";
+import {
+  setupInterceptors,
+  frameworkErrors,
+  methodNotAllowed,
+} from "@ebsiint-api/shared";
 import { AppModule } from "./app.module.js";
 import { AllExceptionsFilter } from "./filters/http-exception.filter.js";
 import { createLogger, consoleTransport } from "./logger/logger.js";
@@ -58,7 +63,20 @@ async function bootstrap(): Promise<void> {
 
   app.setGlobalPrefix(apiUrlPrefix);
 
-  await app.register(fastifyHelmet);
+  // https://cheatsheetseries.owasp.org/cheatsheets/REST_Security_Cheat_Sheet.html#security-headers
+  await app.register(fastifyHelmet, {
+    contentSecurityPolicy: {
+      directives: {
+        "frame-ancestors": ["'none'"],
+      },
+    },
+    xFrameOptions: {
+      action: "deny",
+    },
+  });
+
+  // Parse "Accept" request header
+  await app.register(fastifyAccepts);
 
   app.useGlobalFilters(new AllExceptionsFilter());
   app.useGlobalPipes(
@@ -68,6 +86,9 @@ async function bootstrap(): Promise<void> {
       forbidNonWhitelisted: true,
     }),
   );
+
+  const fastifyInstance = app.getHttpAdapter().getInstance();
+  fastifyInstance.addHook("onRequest", methodNotAllowed);
 
   // Setup axios interceptors
   setupInterceptors(domain, localOrigin);

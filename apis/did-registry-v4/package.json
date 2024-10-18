@@ -28,6 +28,7 @@
     "@ebsiint-api/shared": "^1.1.0-rc.10",
     "@ebsiint-sc/did-registry": "^1.1.0-rc.8",
     "@ebsiint-sc/did-registry-v2": "^2.0.0-rc.7",
+    "@fastify/accepts": "^4.3.0",
     "@fastify/helmet": "^11.1.1",
     "@nestjs/axios": "^3.0.3",
     "@nestjs/cache-manager": "^2.2.2",

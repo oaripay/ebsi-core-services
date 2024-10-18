@@ -10,9 +10,16 @@ import {
 } from "@nestjs/platform-fastify";
 import { ConfigService } from "@nestjs/config";
 import type { RawServerDefault } from "fastify";
+import { fastifyAccepts } from "@fastify/accepts";
+import { fastifyHelmet } from "@fastify/helmet";
 import type { TransactionRequest } from "@ethersproject/abstract-provider";
 import type { JSONSchema } from "@apidevtools/json-schema-ref-parser/dist/lib/types";
-import { prefixWith0x, computeId, waitToBeMined } from "@ebsiint-api/shared";
+import {
+  prefixWith0x,
+  computeId,
+  waitToBeMined,
+  methodNotAllowed,
+} from "@ebsiint-api/shared";
 import type { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
 import { AppModule } from "../../src/app.module.js";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
@@ -93,11 +100,29 @@ describe("TSR API v4 - Schemas (e2e)", () => {
     const configService =
       moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
 
+    // https://cheatsheetseries.owasp.org/cheatsheets/REST_Security_Cheat_Sheet.html#security-headers
+    await app.register(fastifyHelmet, {
+      contentSecurityPolicy: {
+        directives: {
+          "frame-ancestors": ["'none'"],
+        },
+      },
+      xFrameOptions: {
+        action: "deny",
+      },
+    });
+
+    // Parse "Accept" request header
+    await app.register(fastifyAccepts);
+
     app.useGlobalFilters(new AllExceptionsFilter());
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
+    const fastifyInstance = app.getHttpAdapter().getInstance();
+    fastifyInstance.addHook("onRequest", methodNotAllowed);
+
     await app.init();
-    await app.getHttpAdapter().getInstance().ready();
+    await fastifyInstance.ready();
 
     server = getServer(app, configService);
     if (writeOps()) {

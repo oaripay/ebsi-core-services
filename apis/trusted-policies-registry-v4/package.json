@@ -31,6 +31,7 @@
     "@ebsiint-subgraph/trusted-policies-registry-v3": "^0.0.0-rc.0",
     "@ethersproject/address": "^5.7.0",
     "@ethersproject/bignumber": "^5.7.0",
+    "@fastify/accepts": "^4.3.0",
     "@fastify/helmet": "^11.1.1",
     "@graphprotocol/client-cli": "^3.0.4",
     "@nestjs/axios": "^3.0.3",

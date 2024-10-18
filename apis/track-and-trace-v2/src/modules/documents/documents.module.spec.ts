@@ -8,8 +8,10 @@ import {
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
+import { fastifyAccepts } from "@fastify/accepts";
 import { TrackAndTrace__factory } from "@ebsiint-sc/track-and-trace-v2";
 import { setupServer } from "msw/node";
+import { methodNotAllowed } from "@ebsiint-api/shared";
 import { DocumentsModule } from "./documents.module.js";
 import type {
   Document,
@@ -57,6 +59,9 @@ describe("Documents Module", () => {
     // Turn off logger
     Logger.overrideLogger(false);
 
+    // Parse "Accept" request header
+    await app.register(fastifyAccepts);
+
     app.useGlobalFilters(new AllExceptionsFilter());
     app.useGlobalPipes(
       new ValidationPipe({
@@ -65,8 +70,12 @@ describe("Documents Module", () => {
         forbidNonWhitelisted: true,
       }),
     );
+
+    const fastifyInstance = app.getHttpAdapter().getInstance();
+    fastifyInstance.addHook("onRequest", methodNotAllowed);
+
     await app.init();
-    await app.getHttpAdapter().getInstance().ready();
+    await fastifyInstance.ready();
     server = app.getHttpServer();
 
     // Mock Contract service

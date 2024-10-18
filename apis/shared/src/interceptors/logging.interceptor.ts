@@ -44,9 +44,7 @@ export class LoggingInterceptor implements NestInterceptor {
     context: ExecutionContext,
     call$: CallHandler,
   ): Observable<unknown> {
-    const req: FastifyRequest = context
-      .switchToHttp()
-      .getRequest<FastifyRequest>();
+    const req = context.switchToHttp().getRequest<FastifyRequest>();
     const { method, url, body, headers } = req;
 
     // Global condition: "ebsi-healthcheck" should not be present in the request headers. If it's the case, the request and response are not logged.
@@ -102,12 +100,8 @@ export class LoggingInterceptor implements NestInterceptor {
    * @param context details about the current request
    */
   private logNext(body: unknown, context: ExecutionContext): void {
-    const req: FastifyRequest = context
-      .switchToHttp()
-      .getRequest<FastifyRequest>();
-    const res: FastifyReply = context
-      .switchToHttp()
-      .getResponse<FastifyReply>();
+    const req = context.switchToHttp().getRequest<FastifyRequest>();
+    const res = context.switchToHttp().getResponse<FastifyReply>();
     const { method, url } = req;
 
     const { statusCode } = res;
@@ -128,9 +122,7 @@ export class LoggingInterceptor implements NestInterceptor {
    * @param context details about the current request
    */
   private logError(error: Error, context: ExecutionContext): void {
-    const req: FastifyRequest = context
-      .switchToHttp()
-      .getRequest<FastifyRequest>();
+    const req = context.switchToHttp().getRequest<FastifyRequest>();
     const { method, url, body } = req;
 
     if (error instanceof HttpException) {

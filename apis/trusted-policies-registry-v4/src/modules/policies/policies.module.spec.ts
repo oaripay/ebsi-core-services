@@ -8,6 +8,8 @@ import {
 } from "@nestjs/platform-fastify";
 import { PolicyRegistry__factory } from "@ebsiint-sc/trusted-policies-registry-v3";
 import type { RawServerDefault } from "fastify";
+import { fastifyAccepts } from "@fastify/accepts";
+import { methodNotAllowed } from "@ebsiint-api/shared";
 import { PoliciesModule } from "./policies.module.js";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
 import { setupTestEnv } from "../../../tests/utils/trustedPoliciesRegistry.js";
@@ -40,6 +42,9 @@ describe("Policies Module", () => {
     // Turn off logger
     Logger.overrideLogger(false);
 
+    // Parse "Accept" request header
+    await app.register(fastifyAccepts);
+
     app.useGlobalFilters(new AllExceptionsFilter());
     app.useGlobalPipes(
       new ValidationPipe({
@@ -49,8 +54,11 @@ describe("Policies Module", () => {
       }),
     );
 
+    const fastifyInstance = app.getHttpAdapter().getInstance();
+    fastifyInstance.addHook("onRequest", methodNotAllowed);
+
     await app.init();
-    await app.getHttpAdapter().getInstance().ready();
+    await fastifyInstance.ready();
 
     server = app.getHttpServer();
 

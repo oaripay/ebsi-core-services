@@ -10,6 +10,7 @@ import {
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import {
+  Accepts,
   PaginatedListWithoutTotal,
   PaginationQuery,
 } from "@ebsiint-api/shared";
@@ -58,6 +59,7 @@ export class IssuersController {
   ) {}
 
   @Get("")
+  @Accepts("application/json")
   @UsePipes(validationPipe)
   async issuers(
     @Query() query: GetIssuersQueryDto,
@@ -107,6 +109,7 @@ export class IssuersController {
   }
 
   @Get("/:did")
+  @Accepts("application/json")
   @UsePipes(validationPipe)
   async getIssuer(
     @Param() params: GetIssuerParamsDto,
@@ -116,6 +119,7 @@ export class IssuersController {
   }
 
   @Get("/:did/attributes")
+  @Accepts("application/json")
   @UsePipes(validationPipe)
   async getIssuerAttributes(
     @Param() params: GetIssuerParamsDto,
@@ -155,6 +159,7 @@ export class IssuersController {
   }
 
   @Get("/:did/attributes/:attributeId")
+  @Accepts("application/json")
   @UsePipes(validationPipe)
   async issuerAttributeId(
     @Param() params: GetIssuerAttributeParamsDto,
@@ -170,6 +175,7 @@ export class IssuersController {
   }
 
   @Get("/:did/attributes/:attributeId/revisions")
+  @Accepts("application/json")
   @UsePipes(validationPipe)
   async issuerAttributeIdRevisions(
     @Param() params: GetIssuerAttributeParamsDto,
@@ -197,6 +203,7 @@ export class IssuersController {
   }
 
   @Get("/:did/proxies")
+  @Accepts("application/json")
   @UsePipes(validationPipe)
   async getIssuerProxies(
     @Param() params: GetIssuerParamsDto,
@@ -223,6 +230,7 @@ export class IssuersController {
   }
 
   @Get("/:did/proxies/:proxyId")
+  @Accepts("application/json")
   @UsePipes(validationPipe)
   async getIssuerProxy(
     @Param() params: GetIssuerProxyParamsDto,
@@ -233,6 +241,7 @@ export class IssuersController {
   }
 
   @Get("/:did/proxies/:proxyId/*")
+  @Accepts("text/plain")
   // it does not use the restrictive validation pipe because
   // it accepts all routes (*)
   @Header("content-type", "text/plain; charset=utf-8")

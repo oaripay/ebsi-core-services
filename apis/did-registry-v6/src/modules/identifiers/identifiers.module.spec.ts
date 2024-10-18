@@ -7,9 +7,11 @@ import {
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
+import { fastifyAccepts } from "@fastify/accepts";
 import { ethers } from "ethers";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { DidRegistry__factory } from "@ebsiint-sc/did-registry-v4";
+import { methodNotAllowed } from "@ebsiint-api/shared";
 import { graphServer } from "../../../tests/mocks/node.js";
 import { dids } from "../../../tests/mocks/handlers.js";
 import { IdentifiersModule } from "./identifiers.module.js";
@@ -57,6 +59,9 @@ describe("Identifiers Module", () => {
     // Turn off logger
     Logger.overrideLogger(false);
 
+    // Parse "Accept" request header
+    await app.register(fastifyAccepts);
+
     app.useGlobalFilters(new AllExceptionsFilter());
     app.useGlobalPipes(
       new ValidationPipe({
@@ -65,8 +70,12 @@ describe("Identifiers Module", () => {
         forbidNonWhitelisted: true,
       }),
     );
+
+    const fastifyInstance = app.getHttpAdapter().getInstance();
+    fastifyInstance.addHook("onRequest", methodNotAllowed);
+
     await app.init();
-    await app.getHttpAdapter().getInstance().ready();
+    await fastifyInstance.ready();
     server = app.getHttpServer();
 
     // Mock Contract service

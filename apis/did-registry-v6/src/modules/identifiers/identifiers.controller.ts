@@ -12,6 +12,7 @@ import {
 import { ConfigService } from "@nestjs/config";
 import type { FastifyReply } from "fastify";
 import {
+  Accepts,
   InvalidRequestJsonRpcError,
   PaginatedListWithoutTotal,
   getErrorMessage,
@@ -36,6 +37,7 @@ export default class IdentifiersController {
   ) {}
 
   @Get("")
+  @Accepts("application/json")
   async getIdentifiers(
     @Query() query: GetIdentifiersDto,
   ): Promise<PaginatedListWithoutTotal<DidLink>> {
@@ -74,6 +76,7 @@ export default class IdentifiersController {
   }
 
   @Get("/:did")
+  @Accepts("application/did+ld+json", "application/did+json")
   async getDidDocument(
     @Param() params: GetIdentifierParamsDto,
     @Query() query: GetIdentifierQueryDto,
@@ -96,6 +99,7 @@ export default class IdentifiersController {
   }
 
   @Get("/:did/events")
+  @Accepts("application/json")
   async getDidDocumentEvents(
     @Param() params: GetIdentifierParamsDto,
     @Query() query: GetIdentifiersDto,
@@ -121,6 +125,7 @@ export default class IdentifiersController {
   }
 
   @HttpCode(200)
+  @Accepts("application/json")
   @Post("/:did/actions")
   async processAction(
     @Param() params: GetIdentifierParamsDto,

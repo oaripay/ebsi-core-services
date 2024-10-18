@@ -17,6 +17,7 @@ import {
   NotFoundError,
   BadRequestError,
   ForbiddenError,
+  MethodNotAllowedError,
 } from "@ebsiint-api/shared";
 import { stringify } from "safe-stable-stringify";
 import { OAuth2Error } from "../modules/authorisation/errors/index.js";
@@ -26,6 +27,12 @@ function getProblemDetailsError(
   logger: Logger,
 ): ProblemDetailsError {
   if (error instanceof ProblemDetailsError) {
+    // Log MethodNotAllowedError because we can't easily log it in the hook itself
+    if (error instanceof MethodNotAllowedError) {
+      logger.error(error.detail ?? error.message, error.stack);
+    }
+
+    // Don't log other ProblemDetailsError (we assume that they've been logged already)
     return error;
   }
 
@@ -40,7 +47,7 @@ function getProblemDetailsError(
   }
 
   if (error instanceof ForbiddenException) {
-    // Log NestJS ForbiddenError
+    // Log NestJS ForbiddenException
     logger.error(error.message, error.stack);
 
     // Map to Problem Details error
@@ -111,6 +118,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     return response
       .code(problemError.status)
       .type("application/problem+json")
+      .headers(problemError.headers ?? {})
       .send(problemError.toJSON());
   }
 }

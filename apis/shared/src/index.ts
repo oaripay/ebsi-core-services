@@ -2,6 +2,8 @@ export * from "./axiosInterceptors.js";
 export * from "./decorators/index.js";
 export * from "./dto/index.js";
 export * from "./errors/index.js";
+export * from "./guards/index.js";
+export * from "./hooks/index.js";
 export * from "./interceptors/index.js";
 export * from "./interfaces/index.js";
 export * from "./utils/index.js";

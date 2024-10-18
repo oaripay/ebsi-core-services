@@ -71,7 +71,8 @@ describe("Authorisation API v3 (e2e)", () => {
     Logger.overrideLogger(false);
 
     await app.init();
-    await app.getHttpAdapter().getInstance().ready();
+    const fastifyInstance = app.getHttpAdapter().getInstance();
+    await fastifyInstance.ready();
 
     server = getServer(app, configService);
 
