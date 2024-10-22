@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: EUPL V1.2
-pragma solidity ^0.8.12;
+pragma solidity 0.8.12;
 
 // Imports necessary contracts and libraries from OpenZeppelin,
 // TrackAndTrace interface, DID registry, and EBSI Policy Registry.
@@ -34,7 +34,7 @@ contract TrackAndTrace is
     using Pagination for bytes[];
 
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
-    uint256 public constant MAX_METADATA_LENGTH = 4000;
+    uint256 public constant MAX_STRING_LENGTH = 4000;
     uint256 public constant MAX_DELEGATED_CHILDREN = 10;
 
     // Variables
@@ -67,6 +67,14 @@ contract TrackAndTrace is
         address _tprAddress,
         address _didRegistryAddress
     ) public initializer {
+        if (
+            _roleDefaultAdminAddress == address(0) ||
+            _upgraderAddress == address(0) ||
+            _tprAddress == address(0) ||
+            _didRegistryAddress == address(0)
+        ) {
+            revert ZeroAddress();
+        }
         __AccessControl_init();
         _grantRole(DEFAULT_ADMIN_ROLE, _roleDefaultAdminAddress);
         _grantRole(UPGRADER_ROLE, _upgraderAddress);
@@ -85,10 +93,14 @@ contract TrackAndTrace is
         string calldata authorisedDid,
         bool whiteList
     ) external {
-        require(
-            trustedPoliciesRegistry.checkPolicy("TNT:authoriseDid", msg.sender),
-            "Policy error: sender doesn't have the attribute TNT:authoriseDid"
-        );
+        if (
+            trustedPoliciesRegistry.checkPolicy(
+                "TNT:authoriseDid",
+                msg.sender
+            ) == false
+        ) {
+            revert NotAuthorised();
+        }
 
         if (_authorize(bytes(senderDid), ACCOUNT_TYPE.DID_EBSI) == false) {
             revert NotDidController();
@@ -186,6 +198,13 @@ contract TrackAndTrace is
         }
 
         documentsMapped.remove(documentHash);
+        bytes memory creatorBytes = bytes(documents[documentHash].creator);
+        uint256 index = accessBySubjectIndex[creatorBytes][documentHash];
+        delete accessBySubjectIndex[creatorBytes][documentHash];
+        accessBySubject[creatorBytes][index] = accessBySubject[creatorBytes][
+            accessBySubject[creatorBytes].length - 1
+        ];
+        accessBySubject[creatorBytes].pop();
         delete documents[documentHash];
 
         emit DocumentRemoved(documentHash);
@@ -196,13 +215,14 @@ contract TrackAndTrace is
         if (bytes(documents[documentHash].creator).length > 0) {
             revert DocumentExists();
         }
-        require(
+        if (
             trustedPoliciesRegistry.checkPolicy(
                 "TNT:migrationRemoveDocument",
                 msg.sender
-            ),
-            "Policy error: sender doesn't have the attribute TNT:migrationRemoveDocument"
-        );
+            ) == false
+        ) {
+            revert NotAuthorised();
+        }
         emit DocumentRemoved(documentHash);
     }
     /**
@@ -324,7 +344,7 @@ contract TrackAndTrace is
      * Requirements:
      * - The `sender` must be authorized to write to the document.
      * - The sender must have the appropriate permission (`TNT_WRITE`).
-     * - The event metadata length must not exceed `MAX_METADATA_LENGTH`.
+     * - The event metadata length must not exceed `MAX_STRING_LENGTH`.
      *
      * Emits an `EventWritten` event upon success.
      *
@@ -379,7 +399,7 @@ contract TrackAndTrace is
      * Requirements:
      * - The `sender` must be authorized to write to the document.
      * - The sender must have the appropriate permission (`TNT_WRITE`).
-     * - The event metadata length must not exceed `MAX_METADATA_LENGTH`.
+     * - The event metadata length must not exceed `MAX_STRING_LENGTH`.
      *
      * Emits an `EventWritten` event upon success.
      *
@@ -455,9 +475,9 @@ contract TrackAndTrace is
             uint256 next
         )
     {
-        require(pageSize <= 50, "PSize not <= 50");
-        require(pageSize > 0, "PSize not >0");
-        require(page > 0, "Page not >0");
+        if (pageSize > 50) revert PageSizeTooBig();
+        if (pageSize == 0) revert PageSizeZero();
+        if (page == 0) revert PageZero();
         return documentsMapped.keys().paginate(page, pageSize);
     }
     /**
@@ -480,7 +500,9 @@ contract TrackAndTrace is
         bytes32 documentHash
     ) external view returns (DocumentGetter memory) {
         Document storage iDoc = documents[documentHash];
-        require(bytes(iDoc.creator).length > 0, "Document does not exist");
+        if (bytes(iDoc.creator).length == 0) {
+            revert DocumentDoesNotExist();
+        }
         DocumentGetter memory doc;
         doc.creator = iDoc.creator;
         doc.documentMetadata = iDoc.documentMetadata;
@@ -527,13 +549,12 @@ contract TrackAndTrace is
             uint256 next
         )
     {
-        require(pageSize <= 50, "PSize not <= 50");
-        require(pageSize > 0, "PSize not >0");
-        require(page > 0, "Page not >0");
-        require(
-            bytes(documents[documentHash].creator).length > 0,
-            "Document does not exist"
-        );
+        if (pageSize > 50) revert PageSizeTooBig();
+        if (pageSize == 0) revert PageSizeZero();
+        if (page == 0) revert PageZero();
+        if (bytes(documents[documentHash].creator).length == 0) {
+            revert DocumentDoesNotExist();
+        }
         return documents[documentHash].eventHashes.paginate(page, pageSize);
     }
     /**
@@ -561,12 +582,13 @@ contract TrackAndTrace is
         bytes32 documentHash,
         bytes32 eventHash
     ) external view returns (Event memory) {
-        require(
-            bytes(documents[documentHash].creator).length > 0,
-            "Document does not exist"
-        );
+        if (bytes(documents[documentHash].creator).length == 0) {
+            revert DocumentDoesNotExist();
+        }
         Event memory ev = documents[documentHash].events[eventHash];
-        require(ev.sender.length > 0, "Event does not exist");
+        if (ev.sender.length == 0) {
+            revert EventDoesNotExist();
+        }
         return ev;
     }
     /**
@@ -609,13 +631,12 @@ contract TrackAndTrace is
             uint256 next
         )
     {
-        require(pageSize <= 50, "PSize not <= 50");
-        require(pageSize > 0, "PSize not >0");
-        require(page > 0, "Page not >0");
-        require(
-            bytes(documents[documentHash].creator).length > 0,
-            "Document does not exist"
-        );
+        if (pageSize > 50) revert PageSizeTooBig();
+        if (pageSize == 0) revert PageSizeZero();
+        if (page == 0) revert PageZero();
+        if (bytes(documents[documentHash].creator).length == 0) {
+            revert DocumentDoesNotExist();
+        }
         bytes[] storage invitedUsers = documents[documentHash].allInvited;
         return invitedUsers.paginate(page, pageSize);
     }
@@ -658,10 +679,12 @@ contract TrackAndTrace is
             uint256 next
         )
     {
-        require(pageSize <= 50, "PSize not <= 50");
-        require(pageSize > 0, "PSize not >0");
-        require(page > 0, "Page not >0");
-        require(accessBySubject[subject].length > 0, "Subject does not exist");
+        if (pageSize > 50) revert PageSizeTooBig();
+        if (pageSize == 0) revert PageSizeZero();
+        if (page == 0) revert PageZero();
+        if (accessBySubject[subject].length == 0) {
+            revert SubjectDoesNotExist();
+        }
         return accessBySubject[subject].paginate(page, pageSize);
     }
     /**
@@ -737,10 +760,9 @@ contract TrackAndTrace is
         if (acc.length == 0) {
             revert InvalidArrayLength();
         }
-        require(
-            bytes(documents[docHash].creator).length > 0,
-            "Document does not exist"
-        );
+        if (bytes(documents[docHash].creator).length == 0) {
+            revert DocumentDoesNotExist();
+        }
         uint256 accLength = acc.length;
         bytes[] memory grantedByAccounts = new bytes[](accLength);
         ACCOUNT_TYPE[] memory grantedByAccountType = new ACCOUNT_TYPE[](
@@ -766,7 +788,12 @@ contract TrackAndTrace is
     }
 
     // public functions
-    function initializeV2(address _tprAddress) public reinitializer(2) {
+    function initializeV2(
+        address _tprAddress
+    ) public onlyRole(UPGRADER_ROLE) reinitializer(2) {
+        if (_tprAddress == address(0)) {
+            revert ZeroAddress();
+        }
         trustedPoliciesRegistry = IPolicyRegistry(_tprAddress);
         emit ContractReinitialized(2, abi.encode(_tprAddress));
     }
@@ -783,8 +810,11 @@ contract TrackAndTrace is
         bytes32 timestampProof,
         string calldata creator
     ) internal {
-        if (bytes(documentMetadata).length > MAX_METADATA_LENGTH) {
+        if (bytes(documentMetadata).length > MAX_STRING_LENGTH) {
             revert InvalidMetadata();
+        }
+        if (bytes(creator).length > MAX_STRING_LENGTH) {
+            revert StringTooLong();
         }
         if (bytes(documents[documentHash].creator).length > 0) {
             revert DocumentExists();
@@ -867,12 +897,7 @@ contract TrackAndTrace is
         _document.invited[subjectAccount].grantedByAccountType[
             permission
         ] = grantedByAccType;
-        if (_document.invited[subjectAccount].subject.length == 0) {
-            _document.invited[subjectAccount].subject = subjectAccount;
-            _document
-                .invited[subjectAccount]
-                .subjectAccountType = subjectAccType;
-        }
+        _document.invited[subjectAccount].subjectAccountType = subjectAccType;
         // add helpers
 
         if (
@@ -978,9 +1003,16 @@ contract TrackAndTrace is
         Source timestampSource,
         bytes32 timestampProof
     ) internal {
-        if (bytes(eventParams.metadata).length > MAX_METADATA_LENGTH) {
+        if (bytes(eventParams.metadata).length > MAX_STRING_LENGTH) {
             revert InvalidMetadata();
         }
+        if (
+            bytes(eventParams.externalHash).length > MAX_STRING_LENGTH ||
+            bytes(eventParams.origin).length > MAX_STRING_LENGTH
+        ) {
+            revert StringTooLong();
+        }
+
         bytes32 eventHash = keccak256(bytes(eventParams.externalHash));
         Document storage _document = documents[eventParams.documentHash];
         if (_document.events[eventHash].hash != 0x00) {

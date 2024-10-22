@@ -160,7 +160,7 @@ describe("Track and Trace API v2 - Accesses (e2e)", () => {
 
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
-          `/accesses?page[after]=1&page[size]=10&subject=${testAuthorisedLegalEntityDid}`,
+          `/accesses?page[after]=1&page[size]=10&subject=${encodeURIComponent(testAuthorisedLegalEntityDid)}`,
         ),
         items: expect.arrayContaining([
           expect.objectContaining({
@@ -173,10 +173,10 @@ describe("Track and Trace API v2 - Accesses (e2e)", () => {
         pageSize: 10,
         links: expect.objectContaining({
           first: expect.stringContaining(
-            `/accesses?page[after]=1&page[size]=10&subject=${testAuthorisedLegalEntityDid}`,
+            `/accesses?page[after]=1&page[size]=10&subject=${encodeURIComponent(testAuthorisedLegalEntityDid)}`,
           ),
           prev: expect.stringContaining(
-            `/accesses?page[after]=1&page[size]=10&subject=${testAuthorisedLegalEntityDid}`,
+            `/accesses?page[after]=1&page[size]=10&subject=${encodeURIComponent(testAuthorisedLegalEntityDid)}`,
           ),
           next: expect.stringContaining("/accesses?page[after]="),
         }),

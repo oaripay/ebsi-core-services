@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.12;
+pragma solidity 0.8.12;
 
 interface ITrackAndTraceInterface {
     // List of structures and variable types
@@ -29,7 +29,6 @@ interface ITrackAndTraceInterface {
         mapping(ACCESS_ENUM => bool) acc;
         mapping(ACCESS_ENUM => bytes) grantedBy;
         mapping(ACCESS_ENUM => ACCOUNT_TYPE) grantedByAccountType;
-        bytes subject;
         ACCOUNT_TYPE subjectAccountType;
         /**
          * When the subject has "delegate" permission he can grant
@@ -134,6 +133,8 @@ interface ITrackAndTraceInterface {
     error DidNotInvited();
     error DocumentExists();
     error DocumentDoesNotExist();
+    error EventDoesNotExist();
+    error SubjectDoesNotExist();
     error InvalidAccess();
     error OnlyAccessGranter();
     error OnlyCreator();
@@ -143,9 +144,14 @@ interface ITrackAndTraceInterface {
     error NotDidController();
     error NotWhitelisted();
     error InvalidMetadata();
+    error StringTooLong();
     error PermissionExists();
     error InvalidArrayLength();
     error InvalidTimestamp();
     error ExternalHashExist();
     error TooManyDelegatedChildren();
+    error ZeroAddress();
+    error PageSizeTooBig();
+    error PageSizeZero();
+    error PageZero();
 }

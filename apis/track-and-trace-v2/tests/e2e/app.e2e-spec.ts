@@ -180,7 +180,9 @@ describe("Track and Trace API v2 - Generic tests (e2e)", () => {
     const dependencies = Object.keys(
       DEPENDENCIES,
     ) as (keyof typeof DEPENDENCIES)[];
-    const expectedStatuses = ([...dependencies, "Besu"] as const)
+    const expectedStatuses = (
+      [...dependencies, "Besu", "TNT Subgraph"] as const
+    )
       .map((dependency) => ({
         [`${dependency}`]: { status: "up" },
       }))

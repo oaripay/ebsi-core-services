@@ -55,6 +55,7 @@ describe("TrackAndTrace - tests", () => {
   let trackAndTrace;
   let didRegistryMock: DidRegistryMock;
   let tprMock: PolicyRegistryMock;
+  let trackAndTraceFactory;
 
   async function createDocument(
     documentHash: ethers.utils.formatBytes32String,
@@ -98,19 +99,22 @@ describe("TrackAndTrace - tests", () => {
       await trackAndTraceLibFactory.deploy()
     ).deployed();
 
-    const trackAndTraceFactory = await ethers.getContractFactory(
-      "TrackAndTrace",
-      { libraries: { TrackAndTraceLib: trackAndTraceLibContract.address } },
-    );
+    trackAndTraceFactory = await ethers.getContractFactory("TrackAndTrace", {
+      libraries: { TrackAndTraceLib: trackAndTraceLibContract.address },
+    });
 
     // deploy TPR mock
     const policyRegistryFactory =
       await ethers.getContractFactory("PolicyRegistryMock");
-    tprMock = await (await policyRegistryFactory.deploy()).deployed();
+    tprMock = (await (
+      await policyRegistryFactory.deploy()
+    ).deployed()) as unknown as PolicyRegistryMock;
 
     // deploy DID mock
     const didMockFactory = await ethers.getContractFactory("DidRegistryMock");
-    didRegistryMock = await (await didMockFactory.deploy()).deployed();
+    didRegistryMock = (await (
+      await didMockFactory.deploy()
+    ).deployed()) as unknown as DidRegistryMock;
     // trackAndTrace = await trackAndTraceFactory.deploy();
     console.log(`deploying track and trace proxy`);
     trackAndTrace = await upgrades.deployProxy(
@@ -131,6 +135,56 @@ describe("TrackAndTrace - tests", () => {
       .authoriseDid(supportOfficeAccount, creatorAccount, true);
   });
   describe("Basic", () => {
+    it("should test initialize", async () => {
+      await expect(
+        upgrades.deployProxy(
+          trackAndTraceFactory,
+          [
+            ethers.constants.AddressZero,
+            await upgrader.getAddress(),
+            await tprMock.address,
+            await didRegistryMock.address,
+          ],
+          { unsafeAllowLinkedLibraries: true },
+        ),
+      ).to.be.revertedWithCustomError(trackAndTrace, "ZeroAddress");
+      await expect(
+        upgrades.deployProxy(
+          trackAndTraceFactory,
+          [
+            await upgrader.getAddress(),
+            ethers.constants.AddressZero,
+            await tprMock.address,
+            await didRegistryMock.address,
+          ],
+          { unsafeAllowLinkedLibraries: true },
+        ),
+      ).to.be.revertedWithCustomError(trackAndTrace, "ZeroAddress");
+      await expect(
+        upgrades.deployProxy(
+          trackAndTraceFactory,
+          [
+            await upgrader.getAddress(),
+            await tprMock.address,
+            ethers.constants.AddressZero,
+            await didRegistryMock.address,
+          ],
+          { unsafeAllowLinkedLibraries: true },
+        ),
+      ).to.be.revertedWithCustomError(trackAndTrace, "ZeroAddress");
+      await expect(
+        upgrades.deployProxy(
+          trackAndTraceFactory,
+          [
+            await upgrader.getAddress(),
+            await tprMock.address,
+            await didRegistryMock.address,
+            ethers.constants.AddressZero,
+          ],
+          { unsafeAllowLinkedLibraries: true },
+        ),
+      ).to.be.revertedWithCustomError(trackAndTrace, "ZeroAddress");
+    });
     it("should be already initialized", async () => {
       await expect(
         trackAndTrace.initialize(
@@ -142,10 +196,14 @@ describe("TrackAndTrace - tests", () => {
       ).to.be.revertedWith("Initializable: contract is already initialized");
     });
     it("should reinitialize", async () => {
-      await expect(trackAndTrace.initializeV2(await tprMock.address)).to.emit(
-        trackAndTrace,
-        "ContractReinitialized",
+      await expect(
+        trackAndTrace.initializeV2(await tprMock.address),
+      ).to.be.revertedWith(
+        "AccessControl: account 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266 is missing role 0x189ab7a9244df0848122154315af71fe140f3db0fe014031783b0946b8c9d2e3",
       );
+      await expect(
+        trackAndTrace.connect(upgrader).initializeV2(await tprMock.address),
+      ).to.emit(trackAndTrace, "ContractReinitialized");
     });
     it("should be reverted if the wallet is not controller of did ebsi", async () => {
       await didRegistryMock.setDidResult(false);
@@ -162,10 +220,9 @@ describe("TrackAndTrace - tests", () => {
       );
       const trackAndTraceLibContract = await trackAndTraceLibFactory.deploy();
 
-      const trackAndTraceFactory = await ethers.getContractFactory(
-        "TrackAndTrace",
-        { libraries: { TrackAndTraceLib: trackAndTraceLibContract.address } },
-      );
+      trackAndTraceFactory = await ethers.getContractFactory("TrackAndTrace", {
+        libraries: { TrackAndTraceLib: trackAndTraceLibContract.address },
+      });
       const newTrackAndTraceImplementation =
         await trackAndTraceFactory.deploy();
 
@@ -196,9 +253,7 @@ describe("TrackAndTrace - tests", () => {
         trackAndTrace
           .connect(broadcaster)
           .authoriseDid(supportOfficeAccount, creatorAccount, true),
-      ).to.revertedWith(
-        "Policy error: sender doesn't have the attribute TNT:authoriseDid",
-      );
+      ).to.revertedWithCustomError(trackAndTrace, "NotAuthorised");
     });
 
     it("should create document", async () => {
