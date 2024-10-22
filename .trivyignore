@@ -1,1 +1,6 @@
-# No CVE to ignore
+# CVE-2024-21534
+# jsonpath-plus (package.json)
+# CRITICAL
+# installed versions: 6.0.1, 7.1.0
+# fixed version: 10.0.0
+CVE-2024-21534
