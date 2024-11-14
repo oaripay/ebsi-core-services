@@ -890,6 +890,13 @@ paths:
 
           Call to send a signed transaction to the blockchain.
           Requires an access token with "timestamp_write" scope.
+
+          This method returns the hash of the transaction that has been sent to the blockchain.
+
+          You can check the transaction status by querying Ledger API v4 using the `eth_getTransactionByHash`
+          method. Note that the REST endpoints may not return the latest data immediately after the transaction
+          is included in a block. The Graph has to process the block event and to update its database before
+          returning the latest data. This can take a couple of seconds after the block is mined.
         content:
           application/json:
             schema:
