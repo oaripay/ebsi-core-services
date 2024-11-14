@@ -653,6 +653,21 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
+  /track-and-trace/v2/abi:
+    get:
+      operationId: get-abi
+      summary: Get ABI
+      description: Returns the ABI of Track and Trace SC v2.
+      tags:
+        - ABI
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                description: The ABI of Track and Trace SC v2.
   /track-and-trace/v2/jsonrpc:
     post:
       operationId: post-jsonrpc

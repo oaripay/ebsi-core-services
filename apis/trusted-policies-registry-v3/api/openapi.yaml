@@ -221,6 +221,21 @@ paths:
                   $ref: "#/components/examples/NotFound"
         "500":
           $ref: "#/components/responses/500"
+  /trusted-policies-registry/v3/abi:
+    get:
+      operationId: get-abi
+      summary: Get ABI
+      description: Returns the ABI of TPR SC v2.
+      tags:
+        - ABI
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                description: The ABI of TPR SC v2.
   /trusted-policies-registry/v3/jsonrpc:
     post:
       operationId: post-jsonrpc

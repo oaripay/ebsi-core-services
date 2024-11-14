@@ -18,6 +18,7 @@ import {
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 import { frameworkErrors, methodNotAllowed } from "@ebsiint-api/shared";
+import { DidRegistry__factory } from "@ebsiint-sc/did-registry-v2";
 import { fastifyHelmet } from "@fastify/helmet";
 import { fastifyAccepts } from "@fastify/accepts";
 import { AppModule } from "./app.module.js";
@@ -461,6 +462,38 @@ describe("App Module", () => {
             "AcceptsGuard",
           ],
         ]);
+
+        await app.close();
+      });
+    });
+
+    describe("GET /abi", () => {
+      it("should not log the request and return the ABI", async () => {
+        expect.assertions(5);
+
+        vi.stubEnv("LOG_LEVEL", "debug");
+
+        const app = await startApp();
+        const server = app.getHttpServer();
+
+        const response = await request(server).get("/abi");
+
+        expect(response.body).toStrictEqual(DidRegistry__factory.abi);
+        expect(response.status).toBe(200);
+
+        // Check headers
+        expect(response.headers["content-security-policy"]).toContain(
+          "frame-ancestors 'none'",
+        );
+        expect(response.headers["x-frame-options"]).toStrictEqual("DENY");
+
+        // The last logs show that the application was started
+        const calls = mockedLogger.log.mock.calls.length;
+        expect(mockedLogger.log).toHaveBeenNthCalledWith(
+          calls,
+          "Nest application successfully started",
+          "NestApplication",
+        );
 
         await app.close();
       });

@@ -11,6 +11,7 @@ import type { RawServerDefault } from "fastify";
 import { fastifyAccepts } from "@fastify/accepts";
 import { fastifyHelmet } from "@fastify/helmet";
 import { methodNotAllowed } from "@ebsiint-api/shared";
+import { TrustedSchemasRegistry__factory } from "@ebsiint-sc/trusted-schemas-registry-v3";
 import { AppModule } from "../../src/app.module.js";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
 import {
@@ -165,6 +166,23 @@ describe("TSR API v4 - Generic tests (e2e)", () => {
         "application/problem+json; charset=utf-8",
       );
       expect(response.status).toBe(406);
+    });
+  });
+
+  describe("GET /abi", () => {
+    it("should return the ABI", async () => {
+      expect.assertions(4);
+
+      const response = await request(server).get("/abi");
+
+      expect(response.body).toStrictEqual(TrustedSchemasRegistry__factory.abi);
+      expect(response.status).toBe(200);
+
+      // Check headers
+      expect(response.headers["content-security-policy"]).toContain(
+        "frame-ancestors 'none'",
+      );
+      expect(response.headers["x-frame-options"]).toStrictEqual("DENY");
     });
   });
 

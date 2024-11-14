@@ -525,6 +525,38 @@ describe("App Module", () => {
       });
     });
 
+    describe("GET /abi", () => {
+      it("should not log the request and return the ABI", async () => {
+        expect.assertions(5);
+
+        vi.stubEnv("LOG_LEVEL", "debug");
+
+        const app = await startApp();
+        const server = app.getHttpServer();
+
+        const response = await request(server).get("/abi");
+
+        expect(response.body).toStrictEqual(TrackAndTrace__factory.abi);
+        expect(response.status).toBe(200);
+
+        // Check headers
+        expect(response.headers["content-security-policy"]).toContain(
+          "frame-ancestors 'none'",
+        );
+        expect(response.headers["x-frame-options"]).toStrictEqual("DENY");
+
+        // The last logs show that the application was started
+        const calls = mockedLogger.log.mock.calls.length;
+        expect(mockedLogger.log).toHaveBeenNthCalledWith(
+          calls,
+          "Nest application successfully started",
+          "NestApplication",
+        );
+
+        await app.close();
+      });
+    });
+
     describe("GET /unknown-route", () => {
       it("should return an error and log it", async () => {
         expect.assertions(3);

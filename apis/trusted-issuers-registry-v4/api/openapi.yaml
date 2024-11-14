@@ -680,6 +680,21 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
+  /trusted-issuers-registry/v4/abi:
+    get:
+      operationId: get-abi
+      summary: Get ABI
+      description: Returns the ABI of TIR SC v2.
+      tags:
+        - ABI
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                description: The ABI of TIR SC v2.
   /trusted-issuers-registry/v4/jsonrpc:
     post:
       operationId: post-jsonrpc

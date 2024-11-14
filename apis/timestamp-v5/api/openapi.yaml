@@ -698,6 +698,21 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
+  /timestamp/v5/abi:
+    get:
+      operationId: get-abi
+      summary: Get ABI
+      description: Returns the ABI of Timestamp SC v3.
+      tags:
+        - ABI
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                description: The ABI of Timestamp SC v3.
   /timestamp/v5/jsonrpc:
     post:
       operationId: post-jsonrpc

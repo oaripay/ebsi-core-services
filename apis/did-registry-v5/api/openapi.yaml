@@ -347,6 +347,21 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
+  /did-registry/v5/abi:
+    get:
+      operationId: get-abi
+      summary: Get ABI
+      description: Returns the ABI of DID Registry SC v3.
+      tags:
+        - ABI
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                description: The ABI of DID Registry SC v3.
   /did-registry/v5/jsonrpc:
     post:
       operationId: post-jsonrpc

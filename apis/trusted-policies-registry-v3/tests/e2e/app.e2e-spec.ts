@@ -11,6 +11,7 @@ import {
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import { methodNotAllowed } from "@ebsiint-api/shared";
+import { PolicyRegistry__factory } from "@ebsiint-sc/trusted-policies-registry-v2";
 import { AppModule } from "../../src/app.module.js";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
 import {
@@ -168,6 +169,23 @@ describe("TPR API v3 - Generic tests (e2e)", () => {
         "application/problem+json; charset=utf-8",
       );
       expect(response.status).toBe(406);
+    });
+  });
+
+  describe("GET /abi", () => {
+    it("should return the ABI", async () => {
+      expect.assertions(4);
+
+      const response = await request(server).get("/abi");
+
+      expect(response.body).toStrictEqual(PolicyRegistry__factory.abi);
+      expect(response.status).toBe(200);
+
+      // Check headers
+      expect(response.headers["content-security-policy"]).toContain(
+        "frame-ancestors 'none'",
+      );
+      expect(response.headers["x-frame-options"]).toStrictEqual("DENY");
     });
   });
 

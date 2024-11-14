@@ -12,6 +12,7 @@ import { fastifyAccepts } from "@fastify/accepts";
 import { fastifyHelmet } from "@fastify/helmet";
 import { useContainer } from "class-validator";
 import { methodNotAllowed } from "@ebsiint-api/shared";
+import { TrackAndTrace__factory } from "@ebsiint-sc/track-and-trace";
 import { AppModule } from "../../src/app.module.js";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
 import {
@@ -169,6 +170,23 @@ describe("TnT API v1 - Generic tests (e2e)", () => {
         "application/problem+json; charset=utf-8",
       );
       expect(response.status).toBe(406);
+    });
+  });
+
+  describe("GET /abi", () => {
+    it("should return the ABI", async () => {
+      expect.assertions(4);
+
+      const response = await request(server).get("/abi");
+
+      expect(response.body).toStrictEqual(TrackAndTrace__factory.abi);
+      expect(response.status).toBe(200);
+
+      // Check headers
+      expect(response.headers["content-security-policy"]).toContain(
+        "frame-ancestors 'none'",
+      );
+      expect(response.headers["x-frame-options"]).toStrictEqual("DENY");
     });
   });
 

@@ -1,13 +1,23 @@
 import { Accepts, Log } from "@ebsiint-api/shared";
-import { Controller, Get } from "@nestjs/common";
+import { Tir__factory } from "@ebsiint-sc/trusted-issuers-registry-v3";
+import { Controller, Get, HttpCode } from "@nestjs/common";
 
 @Controller()
 export class AppController {
   @Log({ logRequest: false })
   @Accepts("text/plain")
   @Get()
+  @HttpCode(200)
   root(): string {
     return "ok";
+  }
+
+  @Log({ logRequest: false })
+  @Get("/abi")
+  @Accepts("application/json")
+  @HttpCode(200)
+  abi() {
+    return Tir__factory.abi;
   }
 }
 
