@@ -1105,7 +1105,7 @@ describe("Timestamp API v4 - Records (e2e)", () => {
     "appendRecordVersionHashes",
     "revokeRecordOwner",
   ])("record owners test suite for method %s", (method: string) => {
-    it("should fail when trying to perform a signedTransaction", async () => {
+    it("should fail when trying to invoke sendSignedTransaction", async () => {
       expect.assertions(6);
       const insertParam: JsonRpcParams = {
         from: adminUser.wallet.address,

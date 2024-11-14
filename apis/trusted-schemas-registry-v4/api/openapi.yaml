@@ -702,29 +702,6 @@ paths:
                       s: "0x..."
                       v: "0x..."
                       signedRawTransaction: "--- signed raw transaction ---"
-              Send Transaction (DEPRECATED):
-                description: |
-                  THIS METHOD IS DEPRECATED! Use "sendSignedTransaction" instead.
-                  Call to send a signed transaction to the blockchain.
-                value:
-                  jsonrpc: "2.0"
-                  method: signedTransaction
-                  id: 1
-                  params:
-                    - protocol: eth
-                      unsignedTransaction:
-                        from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
-                        to: "0xFde86148db58f57787C06BeAf63a9c3f789357b3"
-                        data: "0x0000..."
-                        nonce: "0x00"
-                        chainId: "0x1b3b"
-                        gasLimit: "0x10000"
-                        gasPrice: "0x00"
-                        value: "0x00"
-                      r: "0x..."
-                      s: "0x..."
-                      v: "0x..."
-                      signedRawTransaction: "--- signed raw transaction ---"
       responses:
         "200":
           description: Response

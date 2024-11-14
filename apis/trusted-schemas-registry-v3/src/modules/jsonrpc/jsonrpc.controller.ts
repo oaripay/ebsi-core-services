@@ -95,9 +95,7 @@ export class JsonRpcController {
         );
         return formatJsonRpcResponse(result, id);
       }
-      case "sendSignedTransaction":
-      case "signedTransaction": {
-        // Note: "signedTransaction" is deprecated and will be replaced by "sendSignedTransaction" in the next major version
+      case "sendSignedTransaction": {
         const result = await this.jsonRpcService.sendTransaction(sub, body, id);
         return formatJsonRpcResponse(result, id);
       }

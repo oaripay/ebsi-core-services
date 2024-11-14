@@ -3,15 +3,15 @@ import {
   ValidateNested,
   ArrayMinSize,
   ArrayMaxSize,
-  IsIn,
+  Equals,
 } from "class-validator";
 import { Type } from "class-transformer";
 import { SignedTransactionParam } from "./signed-transaction-param.dto.js";
 import { JsonRpcDto } from "../jsonrpc.dto.js";
 
 export class RequestSendSignedTransactionDto extends JsonRpcDto {
-  @IsIn(["sendSignedTransaction", "signedTransaction"])
-  declare method: "sendSignedTransaction" | "signedTransaction";
+  @Equals("sendSignedTransaction")
+  declare method: "sendSignedTransaction";
 
   @IsArray()
   @ValidateNested({ each: true })
