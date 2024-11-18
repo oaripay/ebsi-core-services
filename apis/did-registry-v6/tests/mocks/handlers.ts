@@ -274,6 +274,43 @@ export const handlers = [
     });
   }),
 
+  graphql.query("GetControllers", ({ variables }) => {
+    const { did, timestamp } = variables;
+
+    if (did === did2) {
+      return HttpResponse.json({
+        data: {
+          didDocument: {
+            controllers: [
+              {
+                controller: {
+                  verificationMethods:
+                    didDocumentData.didDocument.verificationMethods,
+                  verificationRelationships:
+                    didDocumentData.didDocument.verificationRelationships.filter(
+                      (v) => {
+                        return (
+                          v.notBefore <= timestamp &&
+                          timestamp <= v.notAfter &&
+                          v.name === "capabilityInvocation"
+                        );
+                      },
+                    ),
+                },
+              },
+            ],
+          },
+        },
+      });
+    }
+
+    return HttpResponse.json({
+      data: {
+        didDocument: null,
+      },
+    });
+  }),
+
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   graphql.query("GetDidDocumentByTimestamp", ({ variables }) => {

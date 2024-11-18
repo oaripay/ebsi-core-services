@@ -17,7 +17,7 @@ function formatJsonRpcResponse(
   return { jsonrpc: "2.0", id: id ?? null, result };
 }
 
-@Controller("/jsonrpc")
+@Controller("/")
 export default class AppController {
   constructor(private jsonRpcService: JsonRpcService) {}
 

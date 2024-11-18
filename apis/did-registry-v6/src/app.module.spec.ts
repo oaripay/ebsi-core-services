@@ -11,20 +11,18 @@ import {
 import request from "supertest";
 import { Test, type TestingModule } from "@nestjs/testing";
 import { ValidationPipe, Logger } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
 import {
   FastifyAdapter,
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import { graphql, http, HttpResponse } from "msw";
+import { graphql, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 import { frameworkErrors, methodNotAllowed } from "@ebsiint-api/shared";
-import { DidRegistry__factory } from "@ebsiint-sc/did-registry-v4";
 import { fastifyHelmet } from "@fastify/helmet";
 import { fastifyAccepts } from "@fastify/accepts";
 import { AppModule } from "./app.module.js";
 import { AllExceptionsFilter } from "./filters/http-exception.filter.js";
-import { DEPENDENCIES, type ApiConfig } from "./config/configuration.js";
+import { DEPENDENCIES } from "./config/configuration.js";
 import { createLogger } from "./logger/logger.js";
 
 describe("App Module", () => {
@@ -55,176 +53,6 @@ describe("App Module", () => {
     mockServer.close();
   });
 
-  describe("onApplicationBootstrap hook", () => {
-    afterEach(() => {
-      mockServer.resetHandlers();
-    });
-
-    it("should prevent the app from starting if a dependency triggers a network error", async () => {
-      expect.assertions(1);
-
-      const moduleFixture: TestingModule = await Test.createTestingModule({
-        imports: [AppModule],
-      }).compile();
-
-      const app = moduleFixture.createNestApplication<NestFastifyApplication>(
-        new FastifyAdapter(),
-      );
-
-      // Turn off logger
-      Logger.overrideLogger(false);
-
-      const configService =
-        app.get<ConfigService<ApiConfig, true>>(ConfigService);
-
-      // Parse "Accept" request header
-      await app.register(fastifyAccepts);
-
-      app.useGlobalFilters(new AllExceptionsFilter());
-      app.useGlobalPipes(new ValidationPipe({ transform: true }));
-
-      const fastifyInstance = app.getHttpAdapter().getInstance();
-      fastifyInstance.addHook("onRequest", methodNotAllowed);
-
-      const domain = configService.get<string>("domain");
-      const localOrigin = configService.get<string>("localOrigin") || domain;
-
-      // All the dependencies return a 200 except Authorisation API
-      mockServer.use(
-        ...dependencies.map((dependency) => {
-          return http.get(`${localOrigin}${DEPENDENCIES[dependency]}`, () =>
-            dependency === "Authorisation API v5"
-              ? HttpResponse.error()
-              : HttpResponse.json({}),
-          );
-        }),
-      );
-
-      await expect(() => app.init()).rejects.toThrow(
-        `Unable to get ${localOrigin}${DEPENDENCIES["Authorisation API v5"]}, shutting down...`,
-      );
-
-      await app.close();
-    });
-
-    it("should prevent the app from starting if one of the dependencies still responds with a 404 after all the attempts", async () => {
-      expect.assertions(2);
-
-      const moduleFixture: TestingModule = await Test.createTestingModule({
-        imports: [AppModule],
-      }).compile();
-
-      const app = moduleFixture.createNestApplication<NestFastifyApplication>(
-        new FastifyAdapter(),
-      );
-
-      const mockedLogger = {
-        log: vi.fn(),
-        warn: vi.fn(),
-        error: vi.fn(),
-      };
-      Logger.overrideLogger(mockedLogger);
-
-      const configService =
-        app.get<ConfigService<ApiConfig, true>>(ConfigService);
-
-      // Parse "Accept" request header
-      await app.register(fastifyAccepts);
-
-      app.useGlobalFilters(new AllExceptionsFilter());
-      app.useGlobalPipes(new ValidationPipe({ transform: true }));
-
-      const fastifyInstance = app.getHttpAdapter().getInstance();
-      fastifyInstance.addHook("onRequest", methodNotAllowed);
-
-      const domain = configService.get<string>("domain");
-      const localOrigin = configService.get<string>("localOrigin") || domain;
-
-      mockServer.use(
-        ...dependencies.map((dependency) => {
-          return http.get(`${localOrigin}${DEPENDENCIES[dependency]}`, () =>
-            dependency === "Authorisation API v5"
-              ? HttpResponse.text("Not Found", { status: 404 })
-              : HttpResponse.json({}),
-          );
-        }),
-      );
-
-      await expect(() => app.init()).rejects.toThrow(
-        `Unable to get ${localOrigin}${DEPENDENCIES["Authorisation API v5"]}, shutting down...`,
-      );
-
-      // Retry 30 times -> log 30 errors
-      expect(mockedLogger.error).toHaveBeenCalledTimes(30);
-
-      await app.close();
-    });
-
-    it("should start if all the dependencies are up and running", async () => {
-      expect.assertions(2);
-
-      const moduleFixture: TestingModule = await Test.createTestingModule({
-        imports: [AppModule],
-      }).compile();
-
-      const app = moduleFixture.createNestApplication<NestFastifyApplication>(
-        new FastifyAdapter(),
-      );
-
-      const mockedLogger = {
-        log: vi.fn(),
-        warn: vi.fn(),
-        error: vi.fn(),
-      };
-      Logger.overrideLogger(mockedLogger);
-
-      const configService =
-        app.get<ConfigService<ApiConfig, true>>(ConfigService);
-
-      // Parse "Accept" request header
-      await app.register(fastifyAccepts);
-
-      app.useGlobalFilters(new AllExceptionsFilter());
-      app.useGlobalPipes(new ValidationPipe({ transform: true }));
-
-      const fastifyInstance = app.getHttpAdapter().getInstance();
-      fastifyInstance.addHook("onRequest", methodNotAllowed);
-
-      const domain = configService.get<string>("domain");
-      const localOrigin = configService.get<string>("localOrigin") || domain;
-
-      let reqCounter = 0;
-
-      mockServer.use(
-        ...dependencies.map((dependency) => {
-          return http.get(`${localOrigin}${DEPENDENCIES[dependency]}`, () => {
-            if (dependency === "Authorisation API v5") {
-              reqCounter += 1;
-
-              // Authorisation API first responds 15 times with a 404 (because it's starting)
-              if (reqCounter <= 15) {
-                return HttpResponse.text("Not Found", { status: 404 });
-              }
-
-              // Then, it responds with a 200
-              return HttpResponse.json({});
-            }
-
-            // All other dependencies respond with a 200
-            return HttpResponse.json({});
-          });
-        }),
-      );
-
-      await expect(app.init()).resolves.not.toThrow();
-
-      // Retry 15 times -> log 15 errors
-      expect(mockedLogger.error).toHaveBeenCalledTimes(15);
-
-      await app.close();
-    });
-  });
-
   describe("Generic tests", () => {
     const mockedLogger = {
       log: vi.fn(),
@@ -248,9 +76,6 @@ describe("App Module", () => {
       // Turn off logger
       Logger.overrideLogger(mockedLogger);
 
-      const configService =
-        app.get<ConfigService<ApiConfig, true>>(ConfigService);
-
       // https://cheatsheetseries.owasp.org/cheatsheets/REST_Security_Cheat_Sheet.html#security-headers
       await app.register(fastifyHelmet, {
         contentSecurityPolicy: {
@@ -271,18 +96,6 @@ describe("App Module", () => {
 
       const fastifyInstance = app.getHttpAdapter().getInstance();
       fastifyInstance.addHook("onRequest", methodNotAllowed);
-
-      const domain = configService.get<string>("domain");
-      const localOrigin = configService.get<string>("localOrigin") || domain;
-
-      // Mock dependencies
-      const authorisationApiUrl = `${configService.get<string>(
-        "authorisationApiUrl",
-      )}`.replace(domain, localOrigin);
-
-      mockServer.use(
-        http.get(authorisationApiUrl, () => HttpResponse.json({})),
-      );
 
       await app.init();
       await fastifyInstance.ready();
@@ -477,38 +290,6 @@ describe("App Module", () => {
       });
     });
 
-    describe("GET /abi", () => {
-      it("should not log the request and return the ABI", async () => {
-        expect.assertions(5);
-
-        vi.stubEnv("LOG_LEVEL", "debug");
-
-        const app = await startApp();
-        const server = app.getHttpServer();
-
-        const response = await request(server).get("/abi");
-
-        expect(response.body).toStrictEqual(DidRegistry__factory.abi);
-        expect(response.status).toBe(200);
-
-        // Check headers
-        expect(response.headers["content-security-policy"]).toContain(
-          "frame-ancestors 'none'",
-        );
-        expect(response.headers["x-frame-options"]).toStrictEqual("DENY");
-
-        // The last logs show that the application was started
-        const calls = mockedLogger.log.mock.calls.length;
-        expect(mockedLogger.log).toHaveBeenNthCalledWith(
-          calls,
-          "Nest application successfully started",
-          "NestApplication",
-        );
-
-        await app.close();
-      });
-    });
-
     describe("GET /unknown-route", () => {
       it("should return an error and log it", async () => {
         expect.assertions(3);
@@ -567,25 +348,6 @@ describe("App Module", () => {
         vi.stubEnv("LOG_LEVEL", "debug");
 
         const app = await startApp();
-        const configService =
-          app.get<ConfigService<ApiConfig, true>>(ConfigService);
-
-        const localOrigin =
-          configService.get<string>("localOrigin") ||
-          configService.get<string>("domain");
-
-        // All the dependencies return a 200
-        mockServer.use(
-          ...dependencies.map((dependency) =>
-            http.get(`${localOrigin}${DEPENDENCIES[dependency]}`, () =>
-              HttpResponse.json({}),
-            ),
-          ),
-          http.get(configService.get("besuReadinessEndpoint"), () =>
-            HttpResponse.json({}),
-          ),
-        );
-
         await request(app.getHttpServer())
           .get("/health")
           .set("EBSI-Healthcheck", "1");
@@ -606,24 +368,6 @@ describe("App Module", () => {
         vi.stubEnv("LOG_LEVEL", "info");
 
         const app = await startApp();
-        const configService =
-          app.get<ConfigService<ApiConfig, true>>(ConfigService);
-
-        const localOrigin =
-          configService.get<string>("localOrigin") ||
-          configService.get<string>("domain");
-
-        // All the dependencies return a 200
-        mockServer.use(
-          ...dependencies.map((dependency) =>
-            http.get(`${localOrigin}${DEPENDENCIES[dependency]}`, () =>
-              HttpResponse.json({}),
-            ),
-          ),
-          http.get(configService.get("besuReadinessEndpoint"), () =>
-            HttpResponse.json({}),
-          ),
-        );
 
         await request(app.getHttpServer()).get("/health");
 
@@ -664,24 +408,6 @@ describe("App Module", () => {
         vi.stubEnv("LOG_LEVEL", "debug");
 
         const app = await startApp();
-        const configService =
-          app.get<ConfigService<ApiConfig, true>>(ConfigService);
-
-        const localOrigin =
-          configService.get<string>("localOrigin") ||
-          configService.get<string>("domain");
-
-        // All the dependencies return a 200
-        mockServer.use(
-          ...dependencies.map((dependency) =>
-            http.get(`${localOrigin}${DEPENDENCIES[dependency]}`, () =>
-              HttpResponse.json({}),
-            ),
-          ),
-          http.get(configService.get("besuReadinessEndpoint"), () =>
-            HttpResponse.json({}),
-          ),
-        );
 
         await request(app.getHttpServer()).get("/health");
 
@@ -704,7 +430,7 @@ describe("App Module", () => {
         );
 
         // Expect all the dependencies to be up
-        const expectedStatuses = [...dependencies, "Besu", "DIDR Subgraph"]
+        const expectedStatuses = [...dependencies, "DIDR Subgraph"]
           .map((dependency) => ({
             [`${dependency}`]: { status: "up" },
           }))

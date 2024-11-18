@@ -76,7 +76,7 @@ describeWriteOps()("DID Registry API v6 - JSON-RPC (e2e)", () => {
   const now = Math.floor(Date.now() / 1000);
   const in6months = now + 6 * 30 * 24 * 3600;
   let user: TestUser;
-  let lastDid: string;
+  let testUserDid: string;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -103,9 +103,6 @@ describeWriteOps()("DID Registry API v6 - JSON-RPC (e2e)", () => {
         action: "deny",
       },
     });
-
-    // Parse "Accept" request header
-    await app.register(fastifyAccepts);
 
     configService =
       moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
@@ -138,16 +135,8 @@ describeWriteOps()("DID Registry API v6 - JSON-RPC (e2e)", () => {
 
     ledgerApi = `${configService.get<string>("ledgerApiUrl")}/blockchains/besu`;
 
-    // Get last identifier
-    const getAllIdentifiers = await request(server).get("/identifiers");
-
-    const { items: identifiers } = getAllIdentifiers.body as {
-      items: {
-        did: string;
-        href: string;
-      }[];
-    };
-    lastDid = identifiers[identifiers.length - 1]!.did;
+    testUserDid = configService.get("testUserDid");
+    if (!testUserDid) throw new Error("TEST_USER_DID is not defined");
   });
 
   afterAll(async () => {
@@ -176,7 +165,7 @@ describeWriteOps()("DID Registry API v6 - JSON-RPC (e2e)", () => {
       };
     });
 
-    describe("/jsonrpc - send transaction for insertDidDocument", () => {
+    describe("/ - send transaction for insertDidDocument", () => {
       it("should work", async () => {
         expect.assertions(5);
 
@@ -197,7 +186,7 @@ describeWriteOps()("DID Registry API v6 - JSON-RPC (e2e)", () => {
         } satisfies InsertDidDocumentSchema;
 
         const responseBuild: SupertestJsonRpcResponse = await request(server)
-          .post("/jsonrpc")
+          .post("/")
           .auth(user.token, { type: "bearer" })
           .send({
             jsonrpc: "2.0",
@@ -233,7 +222,7 @@ describeWriteOps()("DID Registry API v6 - JSON-RPC (e2e)", () => {
         const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
 
         const responseSend: SupertestJsonRpcResponse = await request(server)
-          .post("/jsonrpc")
+          .post("/")
           .auth(user.token, { type: "bearer" })
           .send({
             jsonrpc: "2.0",
@@ -329,7 +318,7 @@ describeWriteOps()("DID Registry API v6 - JSON-RPC (e2e)", () => {
       "rollVerificationMethod",
       "addService",
       "revokeService",
-    ] as const)("/jsonrpc - send transaction for %s", (method) => {
+    ] as const)("/ - send transaction for %s", (method) => {
       it("should work", async () => {
         expect.assertions(5);
 
@@ -355,7 +344,7 @@ describeWriteOps()("DID Registry API v6 - JSON-RPC (e2e)", () => {
             params = {
               from: user.wallet.address,
               did: user.info.did,
-              controller: lastDid,
+              controller: testUserDid,
             } satisfies AddControllerSchema;
             break;
           }
@@ -363,7 +352,7 @@ describeWriteOps()("DID Registry API v6 - JSON-RPC (e2e)", () => {
             params = {
               from: user.wallet.address,
               did: user.info.did,
-              controller: lastDid,
+              controller: testUserDid,
             } satisfies RevokeControllerSchema;
             break;
           }
@@ -459,7 +448,7 @@ describeWriteOps()("DID Registry API v6 - JSON-RPC (e2e)", () => {
         }
 
         const responseBuild: SupertestJsonRpcResponse = await request(server)
-          .post("/jsonrpc")
+          .post("/")
           .auth(user.token, { type: "bearer" })
           .send({
             jsonrpc: "2.0",
@@ -495,7 +484,7 @@ describeWriteOps()("DID Registry API v6 - JSON-RPC (e2e)", () => {
         const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
 
         const responseSend: SupertestJsonRpcResponse = await request(server)
-          .post("/jsonrpc")
+          .post("/")
           .auth(user.token, { type: "bearer" })
           .send({
             jsonrpc: "2.0",

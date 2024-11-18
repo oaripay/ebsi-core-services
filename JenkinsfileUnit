@@ -126,6 +126,23 @@ pipeline {
                 }
             }
         }
+        stage('Did-Registry-Api-v6-jsonrpc') {
+            when {
+                expression { params.api == 'all' || params.api.contains('did-registry-api-v6-jsonrpc') }
+            }
+            steps {
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                    sh '''
+                        source $NVM_DIR/nvm.sh > /dev/null 2>&1
+                        nvm use > /dev/null 2>&1
+                        yarn nx test:ci @ebsiint-api/did-registry-api-v6-jsonrpc
+                    '''
+                }
+                script {
+                    sh 'rm ${WORKSPACE}/apis/did-registry-v6-jsonrpc/.scannerwork/report-task.txt'
+                }
+            }
+        }
         stage('Ledger-Api') {
             when {
                 expression { params.api == 'all' || params.api.contains('ledger-api') }

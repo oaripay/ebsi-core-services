@@ -17,6 +17,7 @@ COPY ./apis/authorisation-v5/package.json ./apis/authorisation-v5/
 COPY ./apis/did-registry-v4/package.json ./apis/did-registry-v4/
 COPY ./apis/did-registry-v5/package.json ./apis/did-registry-v5/
 COPY ./apis/did-registry-v6/package.json ./apis/did-registry-v6/
+COPY ./apis/did-registry-v6-jsonrpc/package.json ./apis/did-registry-v6-jsonrpc/
 COPY ./apis/ledger/package.json ./apis/ledger/
 COPY ./apis/ledger-v4/package.json ./apis/ledger-v4/
 COPY ./apis/shared/package.json ./apis/shared/

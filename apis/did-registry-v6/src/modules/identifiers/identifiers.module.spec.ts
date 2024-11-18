@@ -17,11 +17,11 @@ import { dids } from "../../../tests/mocks/handlers.js";
 import { IdentifiersModule } from "./identifiers.module.js";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
 import { setupTestEnv } from "../../../tests/utils/didRegistry.js";
-import { LedgerService } from "../ledger/ledger.service.js";
 import { UserDetails } from "../../../tests/utils/data.js";
 import {
   did1,
   did2,
+  did2Address,
   did3,
   didDocument,
 } from "../../../tests/utils/constants.js";
@@ -32,7 +32,6 @@ describe("Identifiers Module", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault;
   let testEnv: Awaited<ReturnType<typeof setupTestEnv>>;
-  let ledgerService: LedgerService;
   let users: UserDetails[];
 
   beforeAll(async () => {
@@ -77,12 +76,6 @@ describe("Identifiers Module", () => {
     await app.init();
     await fastifyInstance.ready();
     server = app.getHttpServer();
-
-    // Mock Contract service
-    ledgerService = moduleFixture.get<LedgerService>(LedgerService);
-    vi.spyOn(ledgerService, "getContract").mockImplementation(
-      () => didRegistryContract,
-    );
 
     graphServer.listen({
       // This is to ignore GET/POST Requests and only focus on GraphQL
@@ -490,13 +483,12 @@ describe("Identifiers Module", () => {
     it("should perform the action checkController", async () => {
       expect.assertions(4);
 
-      const { did, wallet } = users[0]!;
       let response = await request(server)
-        .post(`/identifiers/${did}/actions`)
+        .post(`/identifiers/${did2}/actions`)
         .send({
           jsonrpc: "2.0",
           method: "checkController",
-          params: [wallet.address],
+          params: [did2Address],
           id: 123,
         });
 
@@ -509,7 +501,7 @@ describe("Identifiers Module", () => {
 
       const randomAddress = ethers.Wallet.createRandom().address;
       response = await request(server)
-        .post(`/identifiers/${did}/actions`)
+        .post(`/identifiers/${did2}/actions`)
         .send({
           jsonrpc: "2.0",
           method: "checkController",
@@ -608,7 +600,7 @@ describe("Identifiers Module", () => {
         jsonrpc: "2.0",
         error: {
           code: -32600,
-          message: "did doesn't exist",
+          message: "Identifier Not Found",
         },
         id: null,
       });

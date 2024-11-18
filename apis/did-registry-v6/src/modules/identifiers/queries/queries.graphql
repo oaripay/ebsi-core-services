@@ -70,6 +70,30 @@ query GetDidDocumentEvents($did: ID!, $skip: Int, $pagesize: Int) {
   }
 }
 
+query GetControllers($did: ID!, $timestamp: BigInt!) {
+  didDocument(id: $did) {
+    controllers(first: 100) {
+      controller {
+        verificationMethods(where: { isSecp256k1: true }) {
+          publicKey
+          id
+        }
+        verificationRelationships(
+          where: {
+            and: [
+              { name: "capabilityInvocation" }
+              { notBefore_lte: $timestamp }
+              { notAfter_gte: $timestamp }
+            ]
+          }
+        ) {
+          vMethodId
+        }
+      }
+    }
+  }
+}
+
 fragment DocumentsFields on DidDocument {
   baseDocument
   id

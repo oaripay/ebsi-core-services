@@ -1,0 +1,6 @@
+// src/mocks/node.js
+import { setupServer } from "msw/node";
+import { handlers } from "./handlers.js";
+
+export const graphServer = setupServer(...handlers);
+export default graphServer;

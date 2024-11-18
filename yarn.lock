@@ -4275,20 +4275,20 @@
     yargs "~17.7.2"
 
 "@stoplight/spectral-core@>=1", "@stoplight/spectral-core@^1.15.1", "@stoplight/spectral-core@^1.18.3", "@stoplight/spectral-core@^1.7.0", "@stoplight/spectral-core@^1.8.0", "@stoplight/spectral-core@^1.8.1":
-  version "1.18.3"
-  resolved "https://registry.yarnpkg.com/@stoplight/spectral-core/-/spectral-core-1.18.3.tgz#d6859182aa09681fe1e5af5a5f4c39082e554542"
-  integrity sha512-YY8x7X2SWJIhGTLPol+eFiQpWPz0D0mJdkK2i4A0QJG68KkNhypP6+JBC7/Kz3XWjqr0L/RqAd+N5cQLPOKZGQ==
+  version "1.19.1"
+  resolved "https://registry.yarnpkg.com/@stoplight/spectral-core/-/spectral-core-1.19.1.tgz#1078639119c1558f4aa45447dd0b3018253e1421"
+  integrity sha512-YiWhXdjyjn4vCl3102ywzwCEJzncxapFcj4dxcj1YP/bZ62DFeGJ8cEaMP164vSw2kI3rX7EMMzI/c8XOUnTfQ==
   dependencies:
     "@stoplight/better-ajv-errors" "1.0.3"
     "@stoplight/json" "~3.21.0"
     "@stoplight/path" "1.3.2"
     "@stoplight/spectral-parsers" "^1.0.0"
-    "@stoplight/spectral-ref-resolver" "^1.0.0"
+    "@stoplight/spectral-ref-resolver" "^1.0.4"
     "@stoplight/spectral-runtime" "^1.0.0"
     "@stoplight/types" "~13.6.0"
     "@types/es-aggregate-error" "^1.0.2"
     "@types/json-schema" "^7.0.11"
-    ajv "^8.6.0"
+    ajv "^8.17.1"
     ajv-errors "~3.0.0"
     ajv-formats "~2.1.0"
     es-aggregate-error "^1.0.7"
@@ -4355,7 +4355,7 @@
     "@stoplight/yaml" "~4.2.3"
     tslib "^2.3.1"
 
-"@stoplight/spectral-ref-resolver@^1.0.0", "@stoplight/spectral-ref-resolver@^1.0.4":
+"@stoplight/spectral-ref-resolver@^1.0.4":
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/@stoplight/spectral-ref-resolver/-/spectral-ref-resolver-1.0.4.tgz#cf0dc3d5f3fd36fb198a352657c20ef1c859bef5"
   integrity sha512-5baQIYL0NJTSVy8v6RxOR4U51xOUYM8wJri1YvlAT6bPN8m0EIxMwfVYi0xUZEMVeHcWx869nIkoqyWmOutF2A==
@@ -5670,7 +5670,7 @@ ajv@^6.12.3, ajv@^6.12.4, ajv@^6.12.5, ajv@^6.12.6:
     json-schema-traverse "^0.4.1"
     uri-js "^4.2.2"
 
-ajv@^8.0.0, ajv@^8.0.1, ajv@^8.10.0, ajv@^8.11.0, ajv@^8.12.0, ajv@^8.17.1, ajv@^8.6.0, ajv@^8.6.3, ajv@^8.8.2:
+ajv@^8.0.0, ajv@^8.0.1, ajv@^8.10.0, ajv@^8.11.0, ajv@^8.12.0, ajv@^8.17.1, ajv@^8.6.3, ajv@^8.8.2:
   version "8.17.1"
   resolved "https://registry.yarnpkg.com/ajv/-/ajv-8.17.1.tgz#37d9a5c776af6bc92d7f4f9510eba4c0a60d11a6"
   integrity sha512-B/gBuNg5SiMTrPkC+A2+cW0RszwxYmn6VYxB/inlBStS5nx6xHIt/ehKRhIMhqusl7a8LjQoZnjCs5vhwxOQ1g==
@@ -7245,7 +7245,7 @@ cross-inspect@1.0.0:
   dependencies:
     tslib "^2.4.0"
 
-cross-spawn@7.0.3, cross-spawn@^7.0.0, cross-spawn@^7.0.1, cross-spawn@^7.0.2, cross-spawn@^7.0.3:
+cross-spawn@7.0.3:
   version "7.0.3"
   resolved "https://registry.yarnpkg.com/cross-spawn/-/cross-spawn-7.0.3.tgz#f73a85b9d5d41d045551c177e2882d4ac85728a6"
   integrity sha512-iRDPJKUPVEND7dHPO8rkbOnPpyDygcDFtWjpeWNCgy8WP2rXcxXL8TskReQl6OrB2G7+UJrags1q15Fudc7G6w==
@@ -7262,6 +7262,15 @@ cross-spawn@^5.1.0:
     lru-cache "^4.0.1"
     shebang-command "^1.2.0"
     which "^1.2.9"
+
+cross-spawn@^7.0.0, cross-spawn@^7.0.1, cross-spawn@^7.0.2, cross-spawn@^7.0.3:
+  version "7.0.5"
+  resolved "https://registry.yarnpkg.com/cross-spawn/-/cross-spawn-7.0.5.tgz#910aac880ff5243da96b728bc6521a5f6c2f2f82"
+  integrity sha512-ZVJrKKYunU38/76t0RMOulHOnUcbU9GbpWKAOZ0mhjr7CX6FVrH+4FrAapSOekrgFQ3f/8gwMEuIft0aKq6Hug==
+  dependencies:
+    path-key "^3.1.0"
+    shebang-command "^2.0.0"
+    which "^2.0.1"
 
 dargs@^8.0.0:
   version "8.1.0"

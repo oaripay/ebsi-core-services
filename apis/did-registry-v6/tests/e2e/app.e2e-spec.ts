@@ -12,12 +12,8 @@ import { fastifyAccepts } from "@fastify/accepts";
 import { fastifyHelmet } from "@fastify/helmet";
 import { useContainer } from "class-validator";
 import { methodNotAllowed } from "@ebsiint-api/shared";
-import { DidRegistry__factory } from "@ebsiint-sc/did-registry-v4";
 import { AppModule } from "../../src/app.module.js";
-import {
-  DEPENDENCIES,
-  type ApiConfig,
-} from "../../src/config/configuration.js";
+import { type ApiConfig } from "../../src/config/configuration.js";
 import { getServer } from "../utils/getServer.js";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
 
@@ -82,7 +78,7 @@ describe("DID Registry API v6 - Generic tests (e2e)", () => {
     it("should return 'ok'", async () => {
       expect.assertions(4);
 
-      const response = await request(server).get("");
+      const response = await request(server).get("/");
 
       expect(response.text).toBe("ok");
       expect(response.status).toBe(200);
@@ -173,38 +169,15 @@ describe("DID Registry API v6 - Generic tests (e2e)", () => {
     });
   });
 
-  describe("GET /abi", () => {
-    it("should return the ABI", async () => {
-      expect.assertions(4);
-
-      const response = await request(server).get("/abi");
-
-      expect(response.body).toStrictEqual(DidRegistry__factory.abi);
-      expect(response.status).toBe(200);
-
-      // Check headers
-      expect(response.headers["content-security-policy"]).toContain(
-        "frame-ancestors 'none'",
-      );
-      expect(response.headers["x-frame-options"]).toStrictEqual("DENY");
-    });
-  });
-
   describe("GET /health", () => {
     it("should return 200 with status up", async () => {
       expect.assertions(2);
       const response = await request(server).get("/health");
 
       // Expect all the dependencies to be up
-      const dependencies = Object.keys(
-        DEPENDENCIES,
-      ) as (keyof typeof DEPENDENCIES)[];
-      const expectedStatuses = ([...dependencies, "Besu"] as const)
-        .map((dependency) => ({
-          [`${dependency}`]: { status: "up" },
-        }))
-        .reduce((acc, currentVal) => ({ ...acc, ...currentVal }), {});
-      expectedStatuses["DIDR Subgraph"] = { status: "up" };
+      const expectedStatuses = {
+        "DIDR Subgraph": { status: "up" },
+      };
 
       expect(response.body).toStrictEqual({
         details: expectedStatuses,

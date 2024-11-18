@@ -1,15 +1,12 @@
 // For more info, read https://docs.nestjs.com/recipes/terminus
 import { Controller, Get } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
 import { Accepts } from "@ebsiint-api/shared";
 import {
   HealthCheck,
   HealthCheckService,
-  HttpHealthIndicator,
   HealthCheckResult,
   HealthCheckError,
 } from "@nestjs/terminus";
-import { DEPENDENCIES, type ApiConfig } from "../../config/configuration.js";
 // eslint-disable-next-line import/extensions, import/no-relative-packages
 import { getBuiltGraphSDK } from "../../../.graphclient/index.js";
 
@@ -17,32 +14,13 @@ const sdk = getBuiltGraphSDK();
 
 @Controller("/health")
 export class HealthController {
-  constructor(
-    private health: HealthCheckService,
-    private configService: ConfigService<ApiConfig, true>,
-    private http: HttpHealthIndicator,
-  ) {}
+  constructor(private health: HealthCheckService) {}
 
   @Get()
   @Accepts("application/json")
   @HealthCheck()
   check(): Promise<HealthCheckResult> {
     return this.health.check([
-      ...(Object.keys(DEPENDENCIES) as (keyof typeof DEPENDENCIES)[]).map(
-        (dependency) => async () =>
-          this.http.pingCheck(
-            dependency,
-            `${
-              this.configService.get<string>("localOrigin") ||
-              this.configService.get<string>("domain")
-            }${DEPENDENCIES[dependency]}`,
-          ),
-      ),
-      () =>
-        this.http.pingCheck(
-          "Besu",
-          this.configService.get<string>("besuReadinessEndpoint"),
-        ),
       async () => {
         let message = "";
         try {

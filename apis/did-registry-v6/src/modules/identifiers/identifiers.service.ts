@@ -5,21 +5,19 @@ import {
   NotFoundError,
   remove0xPrefix,
   getErrorMessage,
-  isEthersError,
   InvalidRequestJsonRpcError,
-  logAxiosError,
   InternalServerError,
 } from "@ebsiint-api/shared";
 import type { JWK } from "jose";
-import axios from "axios";
+import { ethers } from "ethers";
 import {
   getBuiltGraphSDK,
+  GetControllersQuery,
   GetDidDocumentEventsQuery,
   // eslint-disable-next-line import/extensions, import/no-relative-packages
 } from "../../../.graphclient/index.js";
 import type { JsonRpcSchema } from "./validators/JsonRpcSchema.js";
 import { requestCheckControllerDtoSchema } from "./validators/RequestCheckControllerSchema.js";
-import LedgerService from "../ledger/ledger.service.js";
 import { Event } from "./identifiers.interface.js";
 
 const sdk = getBuiltGraphSDK();
@@ -27,8 +25,6 @@ const sdk = getBuiltGraphSDK();
 @Injectable()
 export default class IdentifiersService {
   private readonly logger = new Logger(IdentifiersService.name);
-
-  constructor(private ledgerService: LedgerService) {}
 
   async getIdentifiers(
     page = 1,
@@ -272,26 +268,13 @@ export default class IdentifiersService {
     body: JsonRpcSchema,
     id: number | string | null | undefined,
   ): Promise<boolean> {
+    let address: string;
     try {
       const parsedBody = requestCheckControllerDtoSchema.parse(body);
-      const address = parsedBody.params[0]!;
-      const contract = this.ledgerService.getContract();
-      return await contract["checkController(string,address)"](did, address);
+      address = parsedBody.params[0]!;
     } catch (err) {
-      if (isEthersError(err)) {
-        this.logger.error(err, err.stack); // Log the original error with all ethers.js details for internal debugging
-        throw new InvalidRequestJsonRpcError(err.reason, id); // throw simplified ethers error to the user
-      }
-
       if (err instanceof Error) {
-        if (axios.isAxiosError(err)) {
-          logAxiosError(err, this.logger);
-        } else {
-          this.logger.error(err.message, err.stack);
-        }
-
         const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-
         if (err.stack) {
           error.stack = err.stack;
         }
@@ -302,5 +285,45 @@ export default class IdentifiersService {
       this.logger.error(err);
       throw err;
     }
+
+    const timestamp = Math.floor(Date.now() / 1000);
+    let res: GetControllersQuery;
+    try {
+      res = await sdk.GetControllers({ did, timestamp });
+    } catch (error) {
+      this.logger.error(
+        error,
+        error instanceof Error ? error.stack : undefined,
+      );
+      throw new InternalServerError();
+    }
+
+    if (!res.didDocument) {
+      throw new InvalidRequestJsonRpcError("Identifier Not Found", id);
+    }
+
+    // eslint-disable-next-line @typescript-eslint/prefer-for-of
+    for (let i = 0; i < res.didDocument.controllers.length; i += 1) {
+      const { controller } = res.didDocument.controllers[i]!;
+      // eslint-disable-next-line @typescript-eslint/prefer-for-of
+      for (let j = 0; j < controller.verificationRelationships.length; j += 1) {
+        const relationship = controller.verificationRelationships[j];
+        if (relationship && relationship.vMethodId) {
+          const vMethod = controller.verificationMethods.find(
+            (v) => v.id === `${did}#${relationship.vMethodId}`,
+          );
+          if (vMethod) {
+            const vMethodAddress = ethers.utils.computeAddress(
+              vMethod.publicKey as string,
+            );
+            if (vMethodAddress.toLowerCase() === address.toLowerCase()) {
+              return true;
+            }
+          }
+        }
+      }
+    }
+
+    return false;
   }
 }

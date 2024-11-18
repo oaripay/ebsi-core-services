@@ -19,7 +19,11 @@ import {
 } from "@ebsiint-api/shared";
 import IdentifiersService from "./identifiers.service.js";
 import { formatEvents, formatIdentifiers } from "./identifiers.formatter.js";
-import { DidLink, Event } from "./identifiers.interface.js";
+import {
+  DidLink,
+  Event,
+  JsonRpcResponseObject,
+} from "./identifiers.interface.js";
 import {
   GetIdentifierParamsDto,
   GetIdentifierQueryDto,
@@ -27,7 +31,6 @@ import {
 } from "./dto/index.js";
 import type { ApiConfig } from "../../config/configuration.js";
 import jsonRpcSchema from "./validators/JsonRpcSchema.js";
-import { JsonRpcResponseObject } from "../jsonrpc/jsonrpc.interface.js";
 
 @Controller("/identifiers")
 export default class IdentifiersController {

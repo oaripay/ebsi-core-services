@@ -262,7 +262,7 @@ describe("JsonRpc Module", () => {
     it("should reject a POST without JWT", async () => {
       expect.assertions(3);
 
-      const response = await request(server).post("/jsonrpc").send();
+      const response = await request(server).post("/").send();
 
       expect(response.body).toStrictEqual({
         detail: "Invalid or missing JWT",
@@ -280,7 +280,7 @@ describe("JsonRpc Module", () => {
       expect.assertions(3);
 
       const response = await request(server)
-        .post("/jsonrpc")
+        .post("/")
         .auth("very.bad.token.123.abc", { type: "bearer" })
         .send();
 
@@ -316,7 +316,7 @@ describe("JsonRpc Module", () => {
         .sign(signer.privateKey);
 
       let response = await request(server)
-        .post("/jsonrpc")
+        .post("/")
         .auth(accessTokenWithInvalidKid, { type: "bearer" })
         .send();
 
@@ -344,7 +344,7 @@ describe("JsonRpc Module", () => {
         .sign(signer.privateKey);
 
       response = await request(server)
-        .post("/jsonrpc")
+        .post("/")
         .auth(accessTokenWithInvalidSignature, { type: "bearer" })
         .send();
 
@@ -364,7 +364,7 @@ describe("JsonRpc Module", () => {
       expect.assertions(4);
 
       let response = await request(server)
-        .post("/jsonrpc")
+        .post("/")
         .auth(newUserDidrInviteAccessToken, { type: "bearer" })
         .send();
 
@@ -379,7 +379,7 @@ describe("JsonRpc Module", () => {
       expect(response.status).toBe(400);
 
       response = await request(server)
-        .post("/jsonrpc")
+        .post("/")
         .auth(newUserDidrInviteAccessToken, { type: "bearer" })
         .send({});
 
@@ -402,7 +402,7 @@ describe("JsonRpc Module", () => {
       expect.assertions(2);
 
       const response = await request(server)
-        .post("/jsonrpc")
+        .post("/")
         .auth(newUserDidrInviteAccessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
@@ -460,7 +460,7 @@ describe("JsonRpc Module", () => {
       const accessToken = newUserDidrInviteAccessToken;
 
       const responseBuild1: SupertestJsonRpcResponse = await request(server)
-        .post("/jsonrpc")
+        .post("/")
         .auth(accessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
@@ -473,7 +473,7 @@ describe("JsonRpc Module", () => {
       const transaction1 = responseBuild1.body.result as UnsignedTransaction;
 
       const responseBuild2: SupertestJsonRpcResponse = await request(server)
-        .post("/jsonrpc")
+        .post("/")
         .auth(accessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
@@ -495,7 +495,7 @@ describe("JsonRpc Module", () => {
 
       // Tampering signatures
       const responseSend1 = await request(server)
-        .post("/jsonrpc")
+        .post("/")
         .auth(accessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
@@ -529,7 +529,7 @@ describe("JsonRpc Module", () => {
       transaction1.from = transaction2.from;
 
       const responseSend2 = await request(server)
-        .post("/jsonrpc")
+        .post("/")
         .auth(accessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
@@ -594,7 +594,7 @@ describe("JsonRpc Module", () => {
         .sign(authApiKeyPair.privateKey);
 
       const responseBuild: SupertestJsonRpcResponse = await request(server)
-        .post("/jsonrpc")
+        .post("/")
         .auth(accessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
@@ -613,7 +613,7 @@ describe("JsonRpc Module", () => {
       const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
 
       let responseSend = await request(server)
-        .post("/jsonrpc")
+        .post("/")
         .auth(accessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
@@ -640,7 +640,7 @@ describe("JsonRpc Module", () => {
 
       // replay same transaction
       responseSend = await request(server)
-        .post("/jsonrpc")
+        .post("/")
         .auth(accessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
@@ -689,7 +689,7 @@ describe("JsonRpc Module", () => {
       } satisfies InsertDidDocumentSchema;
 
       const responseBuild = await request(server)
-        .post("/jsonrpc")
+        .post("/")
         .auth(accessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
@@ -725,7 +725,7 @@ describe("JsonRpc Module", () => {
       } satisfies InsertDidDocumentSchema;
 
       const responseBuild = await request(server)
-        .post("/jsonrpc")
+        .post("/")
         .auth(accessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
@@ -759,7 +759,7 @@ describe("JsonRpc Module", () => {
     "rollVerificationMethod",
     "addService",
     "revokeService",
-  ] as const)("/jsonrpc with method %s", (method) => {
+  ] as const)("/ with method %s", (method) => {
     it("should return a valid unsigned transaction that we can sign and send to sendSignedTransaction", async () => {
       expect.assertions(4);
 
@@ -908,7 +908,7 @@ describe("JsonRpc Module", () => {
       }
 
       const responseBuild: SupertestJsonRpcResponse = await request(server)
-        .post("/jsonrpc")
+        .post("/")
         .auth(accessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
@@ -942,7 +942,7 @@ describe("JsonRpc Module", () => {
       const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
 
       const responseSend = await request(server)
-        .post("/jsonrpc")
+        .post("/")
         .auth(accessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
@@ -1556,7 +1556,7 @@ describe("JsonRpc Module", () => {
       for (const setup of testSetup) {
         // eslint-disable-next-line no-await-in-loop
         const response = await request(server)
-          .post("/jsonrpc")
+          .post("/")
           .auth(setup.accessToken, { type: "bearer" })
           .send({
             jsonrpc: "2.0",

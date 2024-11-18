@@ -109,3 +109,4 @@ export const didDocumentDataEmpty = {
 export const did1 = "did:ebsi:z23FGxCRmGZmei6uY3KCseXA";
 export const did2 = "did:ebsi:ziuZbygL2HMhNFHcoB5W99h";
 export const did3 = "did:ebsi:z24iHa6jkHi8tdsyA3P5di58";
+export const did2Address = "0x27963878eaB177FD544BCa78432637DAbFe0cD11";
