@@ -1999,39 +1999,6 @@
     "@repeaterjs/repeater" "^3.0.4"
     tslib "^2.4.0"
 
-"@graphprotocol/graph-cli@0.71.0":
-  version "0.71.0"
-  resolved "https://registry.yarnpkg.com/@graphprotocol/graph-cli/-/graph-cli-0.71.0.tgz#1ae67f0423793189406eacfb07c80f74cba37e6e"
-  integrity sha512-ITcSBHuXPuaoRs7FzNtqD0tCOIy4JGsM3j4IQNA2yZgXgr/TmmHG7KTB/c3B5Zlnsr9foXrU71T6ixGmwJ4PKw==
-  dependencies:
-    "@float-capital/float-subgraph-uncrashable" "^0.0.0-alpha.4"
-    "@oclif/core" "2.8.6"
-    "@oclif/plugin-autocomplete" "^2.3.6"
-    "@oclif/plugin-not-found" "^2.4.0"
-    "@whatwg-node/fetch" "^0.8.4"
-    assemblyscript "0.19.23"
-    binary-install-raw "0.0.13"
-    chalk "3.0.0"
-    chokidar "3.5.3"
-    debug "4.3.4"
-    docker-compose "0.23.19"
-    dockerode "2.5.8"
-    fs-extra "9.1.0"
-    glob "9.3.5"
-    gluegun "5.1.6"
-    graphql "15.5.0"
-    immutable "4.2.1"
-    ipfs-http-client "55.0.0"
-    jayson "4.0.0"
-    js-yaml "3.14.1"
-    prettier "3.0.3"
-    semver "7.4.0"
-    sync-request "6.1.0"
-    tmp-promise "3.0.3"
-    web3-eth-abi "1.7.0"
-    which "2.0.2"
-    yaml "1.10.2"
-
 "@graphprotocol/graph-cli@0.81.0":
   version "0.81.0"
   resolved "https://registry.yarnpkg.com/@graphprotocol/graph-cli/-/graph-cli-0.81.0.tgz#4728b38d155e8d59ab33fddf2cb7c1e1305ae679"
@@ -7245,10 +7212,10 @@ cross-inspect@1.0.0:
   dependencies:
     tslib "^2.4.0"
 
-cross-spawn@7.0.3:
-  version "7.0.3"
-  resolved "https://registry.yarnpkg.com/cross-spawn/-/cross-spawn-7.0.3.tgz#f73a85b9d5d41d045551c177e2882d4ac85728a6"
-  integrity sha512-iRDPJKUPVEND7dHPO8rkbOnPpyDygcDFtWjpeWNCgy8WP2rXcxXL8TskReQl6OrB2G7+UJrags1q15Fudc7G6w==
+cross-spawn@7.0.3, cross-spawn@^7.0.0, cross-spawn@^7.0.1, cross-spawn@^7.0.2, cross-spawn@^7.0.3, cross-spawn@^7.0.5:
+  version "7.0.5"
+  resolved "https://registry.yarnpkg.com/cross-spawn/-/cross-spawn-7.0.5.tgz#910aac880ff5243da96b728bc6521a5f6c2f2f82"
+  integrity sha512-ZVJrKKYunU38/76t0RMOulHOnUcbU9GbpWKAOZ0mhjr7CX6FVrH+4FrAapSOekrgFQ3f/8gwMEuIft0aKq6Hug==
   dependencies:
     path-key "^3.1.0"
     shebang-command "^2.0.0"
@@ -7262,15 +7229,6 @@ cross-spawn@^5.1.0:
     lru-cache "^4.0.1"
     shebang-command "^1.2.0"
     which "^1.2.9"
-
-cross-spawn@^7.0.0, cross-spawn@^7.0.1, cross-spawn@^7.0.2, cross-spawn@^7.0.3:
-  version "7.0.5"
-  resolved "https://registry.yarnpkg.com/cross-spawn/-/cross-spawn-7.0.5.tgz#910aac880ff5243da96b728bc6521a5f6c2f2f82"
-  integrity sha512-ZVJrKKYunU38/76t0RMOulHOnUcbU9GbpWKAOZ0mhjr7CX6FVrH+4FrAapSOekrgFQ3f/8gwMEuIft0aKq6Hug==
-  dependencies:
-    path-key "^3.1.0"
-    shebang-command "^2.0.0"
-    which "^2.0.1"
 
 dargs@^8.0.0:
   version "8.1.0"
