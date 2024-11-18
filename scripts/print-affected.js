@@ -1,0 +1,69 @@
+#!/usr/bin/env node
+
+const { EOL } = require("os");
+const { spawnSync } = require("child_process");
+const { writeFileSync } = require("fs");
+
+/**
+ * The script below should prepare a list of affected (modified) services and apps managed through Docker containers.
+ * Therefore, results should not contain SC or shared utilities which are not Dockerized.
+ * Git commit hash values should be used consistently throughout the rest of the toolchain managing the manifested resources.
+ */
+
+const deprecatedServices = [
+  "@ebsiint-api/authorisation-api-v2",
+  "@ebsiint-api/did-registry-api-v3",
+  "@ebsiint-api/trusted-apps-registry-api-v3",
+  "@ebsiint-api/trusted-apps-registry-api-v4",
+  "@ebsiint-api/trusted-issuers-registry-api-v3",
+  "@ebsiint-sc/trusted-apps-registry",
+  "@ebsiint-sc/trusted-apps-registry-v3",
+];
+
+const processResult = spawnSync("sh", [
+  "-c",
+  `yarn nx print-affected --base=main~1 --head=main | sed '/^{/,/^}/!d'`,
+]);
+
+try {
+  const { projects } = JSON.parse(processResult.stdout.toString());
+  const affected = projects
+    // microservices and apps
+    .filter(
+      (project) =>
+        project.startsWith("@ebsiint-api") ||
+        project.startsWith("@ebsiint-app") ||
+        project === "@ebsiint-subgraph/subgraphs-deployer",
+    )
+    // NOT service utilities
+    .filter((project) => project !== "@ebsiint-api/shared")
+    // Filter out deprecated services
+    .filter((project) => !deprecatedServices.includes(project))
+    .map((project) => {
+      const [scope, packageName] = project.split("/");
+      return packageName;
+    });
+
+  if (affected.length === 0) {
+    console.log(
+      "No affected packages. No need for new docker images or deployments",
+    );
+    // Theory says exit with non-zero code to communicate an error.
+    // The idea is that this scripts communicates an error to prevent jenkins deployment steps from executing in vain.
+    return process.exit(1);
+  }
+
+  console.log("affected services", affected);
+
+  const updates = affected
+    .map((pkg) => `version_tag::${pkg}: ${process.env.GIT_COMMIT}`)
+    .join(EOL);
+
+  writeFileSync("affected.yaml", updates);
+
+  console.log("affected.yaml created successfully");
+  console.log(updates);
+} catch (error) {
+  console.error("Could not parse results", error.message);
+  console.log("The process result", processResult);
+}
