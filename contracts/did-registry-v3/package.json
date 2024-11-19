@@ -49,6 +49,7 @@
     "targets": {
       "build": {
         "outputs": [
+          "{projectRoot}/artifacts",
           "{projectRoot}/dist",
           "{projectRoot}/src/types"
         ]

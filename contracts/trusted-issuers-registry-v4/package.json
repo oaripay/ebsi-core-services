@@ -50,6 +50,7 @@
     "targets": {
       "build": {
         "outputs": [
+          "{projectRoot}/artifacts",
           "{projectRoot}/dist",
           "{projectRoot}/src/abi",
           "{projectRoot}/src/types"
