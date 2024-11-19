@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "build": "nest build -p tsconfig.production.json",
-    "docker:build": "docker build . -t ebsi/did-registry-api-v6:${GIT_COMMIT} --build-arg DOCKER_TAG=${GIT_COMMIT}",
+    "docker:build": "docker build . -t ebsi/did-registry-api-v6-jsonrpc:${GIT_COMMIT} --build-arg DOCKER_TAG=${GIT_COMMIT}",
     "lint": "yarn lint:openapi && yarn lint:eslint && yarn lint:tsc && yarn lint:prettier",
     "lint:eslint": "eslint . --ext .js,.cjs,.ts",
     "lint:openapi": "spectral lint api/openapi.yaml",

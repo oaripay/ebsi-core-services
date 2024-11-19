@@ -160,6 +160,24 @@ services:
         condition: service_healthy
       subgraphs-deployer:
         condition: service_completed_successfully
+  did-registry-api-v6-jsonrpc:
+    image: ebsi/did-registry-api-v6-jsonrpc:${GIT_COMMIT}
+    ports:
+      - "3000:3000"
+    environment:
+      NETWORK: test
+      DOMAIN: https://api-test.ebsi.eu
+      GRAPHQL_ENDPOINT: http://graph-node:8000/subgraphs/name/ebsi/did-registry-v4
+      CONTRACT_ADDR: "0xb44e3f0e2A049EBEd8fB5a28524D2164796a9963"
+      BESU_RPC_NODE: http://besu:8545
+      BESU_READINESS_ENDPOINT: http://besu:8545/readiness
+    depends_on:
+      besu:
+        condition: service_healthy
+      graph-node:
+        condition: service_healthy
+      subgraphs-deployer:
+        condition: service_completed_successfully
   timestamp-api-v5:
     image: ebsi/timestamp-api-v5:${GIT_COMMIT}
     # ports:

@@ -38,4 +38,4 @@ ARG DOCKER_TAG
 RUN echo "DOCKER_TAG=$DOCKER_TAG" >> .env.default
 RUN chown node:node /app
 USER node
-CMD [ "node", "apis/did-registry-v6/dist/main" ]
+CMD [ "node", "apis/did-registry-v6-jsonrpc/dist/main" ]
