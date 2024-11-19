@@ -70,9 +70,10 @@
   "resolutions": {
     "**/ganache/bufferutil": "^4.0.8",
     "**/ganache/utf-8-validate": "^6.0.3",
+    "**/ganache/secp256k1": "^4.0.4",
     "**/@ganache/utils/@trufflesuite/bigint-buffer": "1.1.10",
     "**/@ethersproject/providers/ws": "^7.5.10",
-    "**/@ethersproject/signing-key/elliptic": "^6.5.7",
+    "**/@ethersproject/signing-key/elliptic": "^6.6.0",
     "**/@graphql-mesh/cli/node-libcurl": "link:./node_modules/.cache/null",
     "**/@graphprotocol/graph-cli/semver": "^7.5.2",
     "**/gluegun/cross-spawn": "^7.0.5",
