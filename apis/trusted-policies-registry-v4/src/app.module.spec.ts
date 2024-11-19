@@ -9,7 +9,7 @@ import {
   beforeEach,
 } from "vitest";
 import request from "supertest";
-import { Test, type TestingModule } from "@nestjs/testing";
+import { Test } from "@nestjs/testing";
 import { ValidationPipe, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import {
@@ -63,7 +63,7 @@ describe("App Module", () => {
     it("should prevent the app from starting if a dependency triggers a network error", async () => {
       expect.assertions(1);
 
-      const moduleFixture: TestingModule = await Test.createTestingModule({
+      const moduleFixture = await Test.createTestingModule({
         imports: [AppModule],
       }).compile();
 
@@ -110,7 +110,7 @@ describe("App Module", () => {
     it("should prevent the app from starting if one of the dependencies still responds with a 404 after all the attempts", async () => {
       expect.assertions(2);
 
-      const moduleFixture: TestingModule = await Test.createTestingModule({
+      const moduleFixture = await Test.createTestingModule({
         imports: [AppModule],
       }).compile();
 
@@ -163,7 +163,7 @@ describe("App Module", () => {
     it("should start if all the dependencies are up and running", async () => {
       expect.assertions(2);
 
-      const moduleFixture: TestingModule = await Test.createTestingModule({
+      const moduleFixture = await Test.createTestingModule({
         imports: [AppModule],
       }).compile();
 
@@ -234,7 +234,7 @@ describe("App Module", () => {
 
     async function startApp() {
       // Start server
-      const moduleFixture: TestingModule = await Test.createTestingModule({
+      const moduleFixture = await Test.createTestingModule({
         imports: [AppModule],
       }).compile();
 

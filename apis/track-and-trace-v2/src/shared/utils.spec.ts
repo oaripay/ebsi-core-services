@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { encode } from "@ebsiint-api/shared";
-import { exportJWK, generateKeyPair } from "jose";
+import { exportJWK, generateKeyPair, type JWK } from "jose";
 import { didToHex, hexToDid } from "./utils.js";
 
 describe("hexToDid", () => {
@@ -32,7 +32,10 @@ describe("hexToDid", () => {
     // Create random did:key DID
     const { publicKey } = await generateKeyPair("ES256K");
     const publicKeyJwk = await exportJWK(publicKey);
-    const did = EbsiWallet.createDid("NATURAL_PERSON", publicKeyJwk);
+    const did = EbsiWallet.createDid(
+      "NATURAL_PERSON",
+      publicKeyJwk as JWK & { kty: string },
+    );
 
     const publicKeyHex = encode.publicKey.fromJWKToHex(publicKeyJwk);
 
@@ -51,7 +54,10 @@ describe("didToHex", () => {
 
     const { publicKey } = await generateKeyPair("ES256");
     const publicKeyJwk = await exportJWK(publicKey);
-    const did = EbsiWallet.createDid("NATURAL_PERSON", publicKeyJwk);
+    const did = EbsiWallet.createDid(
+      "NATURAL_PERSON",
+      publicKeyJwk as JWK & { kty: string },
+    );
 
     await expect(didToHex(did)).rejects.toThrow(
       `The DID ${did} must use secp256k1 curve. Received: P-256`,
@@ -72,7 +78,10 @@ describe("didToHex", () => {
     // Create random did:key DID
     const { publicKey } = await generateKeyPair("ES256K");
     const publicKeyJwk = await exportJWK(publicKey);
-    const did = EbsiWallet.createDid("NATURAL_PERSON", publicKeyJwk);
+    const did = EbsiWallet.createDid(
+      "NATURAL_PERSON",
+      publicKeyJwk as JWK & { kty: string },
+    );
 
     const publicKeyHex = encode.publicKey.fromJWKToHex(publicKeyJwk);
     const didBuffer = Buffer.from(publicKeyHex, "hex");

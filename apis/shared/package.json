@@ -21,9 +21,9 @@
   "dependencies": {
     "@apidevtools/json-schema-ref-parser": "^11.7.0",
     "@cef-ebsi/ebsi-did-resolver": "^4.0.3",
-    "@cef-ebsi/key-did-resolver": "^2.0.3",
-    "@cef-ebsi/key-encoder": "^1.0.3",
-    "@cef-ebsi/verifiable-credential": "^6.0.4",
+    "@cef-ebsi/key-did-resolver": "^2.1.0-alpha.0",
+    "@cef-ebsi/key-encoder": "^2.0.0-alpha.0",
+    "@cef-ebsi/verifiable-credential": "^6.2.0-alpha.1",
     "@ethersproject/abstract-provider": "^5.7.0",
     "@fastify/accepts": "^4.3.0",
     "@nestjs/common": "^10.4.1",

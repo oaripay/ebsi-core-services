@@ -1,7 +1,7 @@
 import { it, expect } from "vitest";
 import { randomBytes } from "node:crypto";
 import request from "supertest";
-import { Test, type TestingModule } from "@nestjs/testing";
+import { Test } from "@nestjs/testing";
 import { ValidationPipe, Logger } from "@nestjs/common";
 import {
   FastifyAdapter,
@@ -60,7 +60,7 @@ interface Actor {
 
 describeWriteOps()("Track and Trace - User Journey (e2e)", () => {
   it("should support a complete user journey", async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
+    const moduleFixture = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
 

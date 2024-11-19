@@ -7,7 +7,7 @@ import { TrackAndTrace } from "@ebsiint-sc/track-and-trace";
 // eslint-disable-next-line import/extensions
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers.js";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
-import { exportJWK, generateKeyPair } from "jose";
+import { exportJWK, generateKeyPair, type JWK } from "jose";
 import { createDocument, createEvent, type TestDocument } from "./data.js";
 import { didToHex } from "../../src/shared/utils.js";
 import { AccountType, Permission } from "../../src/shared/constants.js";
@@ -184,7 +184,7 @@ export async function setupTestEnv({
   const didKeyPublicKeyJwk = await exportJWK(didKeyPublicKey);
   const grantedDidKeyAccount = EbsiWallet.createDid(
     "NATURAL_PERSON",
-    didKeyPublicKeyJwk,
+    didKeyPublicKeyJwk as JWK & { kty: string },
   );
 
   // Deploy contract

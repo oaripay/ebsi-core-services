@@ -3,7 +3,7 @@ import request from "supertest";
 import crypto from "node:crypto";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
-import { Test, type TestingModule } from "@nestjs/testing";
+import { Test } from "@nestjs/testing";
 import { ConfigService } from "@nestjs/config";
 import { ValidationPipe, Logger } from "@nestjs/common";
 import {
@@ -169,7 +169,7 @@ describe("TIR API v6 - Issuers (e2e)", () => {
   let beforeLastExistingIssuerDid: string;
 
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
+    const moduleFixture = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
 

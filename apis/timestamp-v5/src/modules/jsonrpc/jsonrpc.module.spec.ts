@@ -9,7 +9,7 @@ import {
 } from "vitest";
 import crypto from "node:crypto";
 import request from "supertest";
-import { Test, type TestingModule } from "@nestjs/testing";
+import { Test } from "@nestjs/testing";
 import { ValidationPipe, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
@@ -197,7 +197,7 @@ describe("JsonRpc Module", () => {
     );
 
     // Start server
-    const moduleFixture: TestingModule = await Test.createTestingModule({
+    const moduleFixture = await Test.createTestingModule({
       imports: [JsonRpcModule],
     }).compile();
 

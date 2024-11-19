@@ -1,7 +1,7 @@
 import { vi, describe, beforeAll, afterAll, it, expect } from "vitest";
 import request from "supertest";
 import { ethers } from "ethers";
-import { Test, type TestingModule } from "@nestjs/testing";
+import { Test } from "@nestjs/testing";
 import { ValidationPipe, Logger } from "@nestjs/common";
 import {
   FastifyAdapter,
@@ -29,7 +29,7 @@ describe("Policies Module", () => {
     });
     const { policiesRegistryContract } = testEnv;
 
-    const moduleFixture: TestingModule = await Test.createTestingModule({
+    const moduleFixture = await Test.createTestingModule({
       imports: [UsersModule],
     }).compile();
 

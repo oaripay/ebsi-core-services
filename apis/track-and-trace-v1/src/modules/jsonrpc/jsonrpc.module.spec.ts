@@ -9,7 +9,7 @@ import {
 } from "vitest";
 import request from "supertest";
 import { randomBytes } from "node:crypto";
-import { Test, type TestingModule } from "@nestjs/testing";
+import { Test } from "@nestjs/testing";
 import { ConfigService } from "@nestjs/config";
 import { ValidationPipe, Logger } from "@nestjs/common";
 import { ethers } from "ethers";
@@ -25,7 +25,7 @@ import {
   generateKeyPair,
   exportJWK,
 } from "jose";
-import type { GenerateKeyPairResult } from "jose";
+import type { GenerateKeyPairResult, JWK } from "jose";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 import {
@@ -116,7 +116,7 @@ describe("JsonRpc Module", () => {
     user3Wallet.publicKey,
   );
   const user3 = {
-    did: util.createDid(user3PublicKeyJwk),
+    did: util.createDid(user3PublicKeyJwk as JWK & { kty: string }),
     wallet: user3Wallet,
     accessToken: {
       tntAuthorise: "",
@@ -158,7 +158,7 @@ describe("JsonRpc Module", () => {
     );
 
     // Start server
-    const moduleFixture: TestingModule = await Test.createTestingModule({
+    const moduleFixture = await Test.createTestingModule({
       imports: [JsonRpcModule],
     }).compile();
 

@@ -14,7 +14,7 @@ import request from "supertest";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 import type { PaginatedList } from "@ebsiint-api/shared";
-import { Test, type TestingModule } from "@nestjs/testing";
+import { Test } from "@nestjs/testing";
 import { Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
@@ -116,7 +116,7 @@ describe.each(["EBSI URI", "URL"] as const)(
         },
       });
 
-      const moduleFixture: TestingModule = await Test.createTestingModule({
+      const moduleFixture = await Test.createTestingModule({
         imports: [AuthorisationModule],
       }).compile();
 

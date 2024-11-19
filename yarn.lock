@@ -658,23 +658,23 @@
   resolved "https://registry.yarnpkg.com/@cef-ebsi/ebsi-uri/-/ebsi-uri-0.1.0.tgz#be0f80c8724f63fa669481d2d4327fb7aef45a50"
   integrity sha512-6YH8RehbOoFL+WES999HfiflYcYHxif4W5lWCHjsvUlPqmBRvOtEJ5pew/Fyi4goP4y0WbCwDWYGWfq3ywQ8hw==
 
-"@cef-ebsi/key-did-resolver@^2.0.3":
-  version "2.0.3"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/key-did-resolver/-/key-did-resolver-2.0.3.tgz#468079bff945514448fc6f0e29a07741103b01a6"
-  integrity sha512-6wcPGhGItnNA+nLmkvSnWwcinykNmEd6Msr8mwsaI8Qv4zzmnJE1I9V6YLqUsxZX+WZPKMOBcZ3c69LnIy9x7A==
+"@cef-ebsi/key-did-resolver@^2.1.0-alpha.0":
+  version "2.1.0-alpha.0"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/key-did-resolver/-/key-did-resolver-2.1.0-alpha.0.tgz#d0582b228f648b1251d552f20b16a14c38ad0dd1"
+  integrity sha512-C5mHX45jTsSC48pus5/ISdphX4yveXD41ieUc0CDzK4/m/2UYevqgIAkTVKrv+Wosl70jIervMze+E+7UBOkDg==
   dependencies:
     did-resolver "^4.1.0"
-    jose "^4.15.5"
     lodash.isplainobject "^4.0.6"
     multiformats "^9.6.2"
+    uint8arrays "3.1.1"
 
-"@cef-ebsi/key-encoder@^1.0.3":
-  version "1.0.3"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/key-encoder/-/key-encoder-1.0.3.tgz#1502442c3e4e72a9eb5a3e989ad7b98574cdc98d"
-  integrity sha512-8wduTq7NyD9A+QISjdubeIjA+EJRC1gCyyDyoKNrUMAJuP7YKqx/A0CHKEU3gnvIy/khSRAjYKsznQs+qyfhVg==
+"@cef-ebsi/key-encoder@^2.0.0-alpha.0":
+  version "2.0.0-alpha.0"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/key-encoder/-/key-encoder-2.0.0-alpha.0.tgz#c1a485921a0390b08e556ca2efd7818e9c3ce254"
+  integrity sha512-jd7uEJKMrbkFzKndBii8RTFCqo44T1PqbfK7GORtr5Eu1CGt/F2w++5zWqqm5XfnQDRNEeSRsAjt6Fc9MEHm+Q==
   dependencies:
+    "@noble/secp256k1" "^2.1.0"
     asn1.js "^5.4.1"
-    elliptic "^6.5.7"
 
 "@cef-ebsi/vcdm1.1-accreditation-schema@1.3.0":
   version "1.3.0"
@@ -700,61 +700,58 @@
   dependencies:
     "@cef-ebsi/vcdm1.1-attestation-schema" "1.3.0"
 
-"@cef-ebsi/verifiable-credential@^6.0.4":
-  version "6.0.4"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/verifiable-credential/-/verifiable-credential-6.0.4.tgz#ab1e60338b204ba8487c63a95354a30ce27aed3d"
-  integrity sha512-w3g1rv5AgRY7ucsiCKu0pxMaLl4nhaCF32FnM1B4xmC4R5echYHAnUvR7SGw3JDaWff6bAkEOybQF+Em08mXzg==
+"@cef-ebsi/verifiable-credential@^6.2.0-alpha.1":
+  version "6.2.0-alpha.1"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/verifiable-credential/-/verifiable-credential-6.2.0-alpha.1.tgz#ca6682f7c597a7d205b35aeded71607e0f2dbb18"
+  integrity sha512-mMaObPeDivmD0HCVzkTOpzAVjWtmag7NtNycWItu3LDw5xb86hSOoxjMK0qD2BxYDTrwz2Swj/ERFl/rlnkurg==
   dependencies:
     "@cef-ebsi/ebsi-did-resolver" "^4.0.3"
     "@cef-ebsi/ebsi-uri" "^0.1.0"
-    "@cef-ebsi/key-did-resolver" "^2.0.3"
+    "@cef-ebsi/key-did-resolver" "^2.1.0-alpha.0"
     "@cef-ebsi/vcdm1.1-accreditation-schema" "1.3.0"
     "@cef-ebsi/vcdm1.1-attestation-schema" "1.3.0"
     "@cef-ebsi/vcdm1.1-revocation-statuslist-schema" "1.3.0"
     "@noble/curves" "^1.6.0"
+    "@noble/hashes" "^1.5.0"
     "@segment/ajv-human-errors" "^2.13.0"
     ajv "^8.17.1"
     ajv-formats "^2.1.1"
     axios "^1.7.7"
     did-jwt "^8.0.4"
     did-resolver "^4.1.0"
-    ethers "^5.7.2"
-    jose "^4.15.5"
     lodash.clonedeep "^4.5.0"
     memoize "^10.0.0"
     multiformats "^9.6.2"
     pako "^2.1.0"
     uint8arrays "3.1.1"
 
-"@cef-ebsi/verifiable-presentation@^7.0.4":
-  version "7.0.4"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/verifiable-presentation/-/verifiable-presentation-7.0.4.tgz#4a03276fe2bc0dd91eff26cddc989f9407f2bded"
-  integrity sha512-qx91g3bs0KE+NLomI+V7feDP7C5hoGEJ6PPNUI7XCXROuTig8aozlMIY/BadgQ10nC7WvIK7W+Y7ExQrtpGAgg==
+"@cef-ebsi/verifiable-presentation@^7.2.0-alpha.0":
+  version "7.2.0-alpha.0"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/verifiable-presentation/-/verifiable-presentation-7.2.0-alpha.0.tgz#406e6111adbe60011a0e4fcaacf0f458e83f0814"
+  integrity sha512-uWFseiwPNHjFXYqoCavooCF8UcwYQoLTgxDQNEBa25AbFFy/ax2+xqD9gF6jn0xpNWeGowXyHG0q4KLcn6jaOg==
   dependencies:
     "@cef-ebsi/ebsi-did-resolver" "^4.0.3"
     "@cef-ebsi/ebsi-uri" "^0.1.0"
-    "@cef-ebsi/key-did-resolver" "^2.0.3"
+    "@cef-ebsi/key-did-resolver" "^2.1.0-alpha.0"
     "@cef-ebsi/vcdm1.1-presentation-schema" "1.0.3"
-    "@cef-ebsi/verifiable-credential" "^6.0.4"
+    "@cef-ebsi/verifiable-credential" "^6.2.0-alpha.1"
     "@segment/ajv-human-errors" "^2.13.0"
     did-jwt "^8.0.4"
     did-resolver "^4.1.0"
-    jose "^4.15.5"
     memoize "^10.0.0"
 
-"@cef-ebsi/wallet-lib@^5.0.4":
-  version "5.0.4"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/wallet-lib/-/wallet-lib-5.0.4.tgz#e549c1d5c9b9cbda655a3458f73ea189ca6fa4a6"
-  integrity sha512-OzTc/2Fz6mgiO5LIGsTddo3VHs1vJcNUtaYu7BMYEQ3zdCi4DL2sxMku1Bt6/W4f8I3h9Pg4+pUBSTLNjkURnw==
+"@cef-ebsi/wallet-lib@^6.0.0-alpha.1":
+  version "6.0.0-alpha.1"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/wallet-lib/-/wallet-lib-6.0.0-alpha.1.tgz#2abd17e6529e4d10ce5a4bd0ad14e3353100e855"
+  integrity sha512-KhFv8h45VaGwyFl8vzJeXDZ64bPOpJsIacij/M8pJXYw5IX11AUseR8jtTP36mOY1UJzTTCY13TAZR+0H4R9RQ==
   dependencies:
     "@cef-ebsi/ebsi-did-resolver" "^4.0.3"
-    "@cef-ebsi/key-did-resolver" "^2.0.3"
-    "@cef-ebsi/key-encoder" "^1.0.3"
+    "@cef-ebsi/key-did-resolver" "^2.1.0-alpha.0"
+    "@cef-ebsi/key-encoder" "^2.0.0-alpha.0"
     "@noble/hashes" "^1.5.0"
-    bn.js "^5.2.1"
+    "@noble/secp256k1" "^2.1.0"
     did-jwt "^8.0.4"
-    elliptic "^6.5.7"
-    jose "^4.15.5"
+    did-resolver "^4.1.0"
     multiformats "^9.6.2"
 
 "@changesets/apply-release-plan@^7.0.5":
@@ -3096,6 +3093,11 @@
   version "1.7.1"
   resolved "https://registry.yarnpkg.com/@noble/secp256k1/-/secp256k1-1.7.1.tgz#b251c70f824ce3ca7f8dc3df08d58f005cc0507c"
   integrity sha512-hOUk6AyBFmqVrv7k5WAw/LpszxVbj9gGN4JRkIX52fdFAj1UA61KXmZDvqVEm+pOyec3+fIeZB02LYa/pWOArw==
+
+"@noble/secp256k1@^2.1.0":
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/@noble/secp256k1/-/secp256k1-2.1.0.tgz#71d829a0b8ce84aea137708f82273977eea84597"
+  integrity sha512-XLEQQNdablO0XZOIniFQimiXsZDNwaYgL96dZwC54Q30imSbAOFf3NKtepc+cXyuZf5Q1HCgbqgZ2UFFuHVcEw==
 
 "@nodelib/fs.scandir@2.1.5":
   version "2.1.5"

@@ -2,7 +2,7 @@ import { randomBytes, randomUUID } from "node:crypto";
 import { URLSearchParams } from "node:url";
 import { describe, beforeAll, it, expect, beforeEach, afterAll } from "vitest";
 import request from "supertest";
-import { Test, type TestingModule } from "@nestjs/testing";
+import { Test } from "@nestjs/testing";
 import { Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import type {
@@ -69,7 +69,7 @@ describe("Authorisation  API v4 (e2e)", () => {
   let ebsiEnvConfig: EbsiEnvConfiguration;
 
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
+    const moduleFixture = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
 

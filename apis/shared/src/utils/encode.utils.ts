@@ -11,7 +11,7 @@ const keyEncoder = new KeyEncoder("secp256k1");
 
 export const encode = {
   publicKey: {
-    fromJWKToHex: (keyJwk: JWK): string => {
+    fromJWKToHex: (keyJwk: JWK) => {
       return ec
         .keyFromPublic({
           x: bytes.toHex(base64url.baseDecode(keyJwk.x || "")),
@@ -19,7 +19,7 @@ export const encode = {
         })
         .getPublic("hex");
     },
-    fromHexToJWK: (keyHex: string): JWK => {
+    fromHexToJWK: (keyHex: string) => {
       const hex = keyHex.replace("0x", "");
       const pubPoint = ec.keyFromPublic(hex, "hex").getPublic();
       return {
@@ -27,9 +27,9 @@ export const encode = {
         crv: "secp256k1",
         x: base64url.baseEncode(pubPoint.getX().toBuffer("be", 32)),
         y: base64url.baseEncode(pubPoint.getY().toBuffer("be", 32)),
-      };
+      } satisfies JWK;
     },
-    fromJWKToPEM: (keyJwk: JWK): string => {
+    fromJWKToPEM: (keyJwk: JWK) => {
       const keyHex = ec
         .keyFromPublic({
           x: bytes.toHex(base64url.baseDecode(keyJwk.x || "")),
@@ -40,7 +40,7 @@ export const encode = {
     },
   },
   privateKey: {
-    fromJWKToHex: (keyJwk: JWK): string => {
+    fromJWKToHex: (keyJwk: JWK) => {
       return bytes.toHex(base64url.baseDecode(keyJwk.d || ""));
     },
     fromHexToJWK: (keyHex: string): JWK => {

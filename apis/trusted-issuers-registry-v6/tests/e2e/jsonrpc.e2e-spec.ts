@@ -4,7 +4,7 @@ import request from "supertest";
 import { ethers } from "ethers";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
-import { Test, type TestingModule } from "@nestjs/testing";
+import { Test } from "@nestjs/testing";
 import { ConfigService } from "@nestjs/config";
 import { ValidationPipe, Logger } from "@nestjs/common";
 import {
@@ -196,7 +196,7 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
       newIssuer2 = createIssuer(IssuerType.RootTAO);
       newIssuer3 = createIssuer(IssuerType.RootTAO);
 
-      const moduleFixture: TestingModule = await Test.createTestingModule({
+      const moduleFixture = await Test.createTestingModule({
         imports: [AppModule],
       }).compile();
 

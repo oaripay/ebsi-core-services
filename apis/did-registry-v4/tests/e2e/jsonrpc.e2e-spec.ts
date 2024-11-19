@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { describe, beforeAll, it, expect } from "vitest";
 import request from "supertest";
-import { Test, type TestingModule } from "@nestjs/testing";
+import { Test } from "@nestjs/testing";
 import { ValidationPipe, Logger } from "@nestjs/common";
 import {
   FastifyAdapter,
@@ -76,7 +76,7 @@ describeWriteOps()("DID Registry API v4 - JSON RPC - e2e", () => {
   let lastDid: string;
 
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
+    const moduleFixture = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
 

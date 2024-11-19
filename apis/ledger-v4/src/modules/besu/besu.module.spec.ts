@@ -14,7 +14,7 @@ import type { JsonRpcServer } from "hardhat/types";
 // eslint-disable-next-line import/extensions
 import * as taskNames from "hardhat/builtin-tasks/task-names.js";
 import request from "supertest";
-import { Test, type TestingModule } from "@nestjs/testing";
+import { Test } from "@nestjs/testing";
 import { ValidationPipe, Logger } from "@nestjs/common";
 import type { RawServerDefault } from "fastify";
 import { fastifyAccepts } from "@fastify/accepts";
@@ -48,7 +48,7 @@ describe("Besu Module", () => {
       await hardhatServer.listen();
 
       // Start server
-      const moduleFixture: TestingModule = await Test.createTestingModule({
+      const moduleFixture = await Test.createTestingModule({
         imports: [BesuModule],
       }).compile();
 

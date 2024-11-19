@@ -1,6 +1,6 @@
 import { describe, beforeAll, afterAll, it, expect } from "vitest";
 import request from "supertest";
-import { Test, type TestingModule } from "@nestjs/testing";
+import { Test } from "@nestjs/testing";
 import { ValidationPipe, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import {
@@ -22,7 +22,7 @@ describe("Ledger API v3 - Generic tests (e2e)", () => {
   let apiUrlPrefix = "";
 
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
+    const moduleFixture = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
 

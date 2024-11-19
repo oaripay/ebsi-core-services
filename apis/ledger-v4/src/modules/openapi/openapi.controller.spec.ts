@@ -1,6 +1,6 @@
 import { describe, beforeAll, it, expect } from "vitest";
 import request from "supertest";
-import { Test, type TestingModule } from "@nestjs/testing";
+import { Test } from "@nestjs/testing";
 import {
   FastifyAdapter,
   type NestFastifyApplication,
@@ -14,7 +14,7 @@ describe("OpenApiController", () => {
   let server: RawServerDefault;
 
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
+    const moduleFixture = await Test.createTestingModule({
       imports: [OpenApiModule],
     }).compile();
     app = moduleFixture.createNestApplication<NestFastifyApplication>(

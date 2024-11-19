@@ -1,7 +1,7 @@
 import { randomBytes } from "node:crypto";
 import { describe, beforeAll, it, expect, afterAll } from "vitest";
 import request from "supertest";
-import { Test, type TestingModule } from "@nestjs/testing";
+import { Test } from "@nestjs/testing";
 import { ValidationPipe, Logger } from "@nestjs/common";
 import {
   FastifyAdapter,
@@ -29,7 +29,7 @@ describe("Track and Trace API v2 - Documents (e2e)", () => {
   let documentWithEvents: string;
 
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
+    const moduleFixture = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
 

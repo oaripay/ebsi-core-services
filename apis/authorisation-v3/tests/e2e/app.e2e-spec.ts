@@ -1,6 +1,6 @@
 import { describe, beforeAll, afterAll, it, expect } from "vitest";
 import request from "supertest";
-import { Test, type TestingModule } from "@nestjs/testing";
+import { Test } from "@nestjs/testing";
 import { Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
@@ -19,7 +19,7 @@ describe("Authorisation API v3 - Generic tests (e2e)", () => {
   let apiUrlPrefix = "";
 
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
+    const moduleFixture = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
 

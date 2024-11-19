@@ -2,7 +2,7 @@ import { vi, describe, beforeAll, afterAll, it, expect } from "vitest";
 import crypto from "node:crypto";
 import request from "supertest";
 import { ethers } from "ethers";
-import { Test, type TestingModule } from "@nestjs/testing";
+import { Test } from "@nestjs/testing";
 import { ValidationPipe, Logger } from "@nestjs/common";
 import {
   FastifyAdapter,
@@ -35,7 +35,7 @@ describe("Schemas Module", () => {
       schemaMetadataTotal: SCHEMA_METADATA_TOTAL,
     });
 
-    const moduleFixture: TestingModule = await Test.createTestingModule({
+    const moduleFixture = await Test.createTestingModule({
       imports: [SchemasModule],
     }).compile();
 

@@ -1,5 +1,5 @@
 import { vi, describe, beforeAll, afterAll, it, expect } from "vitest";
-import { Test, type TestingModule } from "@nestjs/testing";
+import { Test } from "@nestjs/testing";
 import {
   Logger,
   NotFoundException,
@@ -56,7 +56,7 @@ describe("All exception filter tests", () => {
   let service: AllExceptionsFilter;
 
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
+    const moduleFixture = await Test.createTestingModule({
       imports: [],
       providers: [AllExceptionsFilter, ConfigService],
     }).compile();

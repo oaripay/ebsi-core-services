@@ -8,7 +8,7 @@ import {
   afterAll,
 } from "vitest";
 import request from "supertest";
-import { Test, type TestingModule } from "@nestjs/testing";
+import { Test } from "@nestjs/testing";
 import { Logger } from "@nestjs/common";
 import { HealthIndicatorResult } from "@nestjs/terminus";
 import { HttpService } from "@nestjs/axios";
@@ -43,7 +43,7 @@ describe("HealthController", () => {
       },
     });
 
-    const moduleFixture: TestingModule = await Test.createTestingModule({
+    const moduleFixture = await Test.createTestingModule({
       imports: [HealthModule],
     }).compile();
 

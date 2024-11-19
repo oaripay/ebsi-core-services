@@ -1,7 +1,7 @@
 import { randomBytes } from "node:crypto";
 import { vi, describe, beforeAll, afterAll, it, expect } from "vitest";
 import request from "supertest";
-import { Test, type TestingModule } from "@nestjs/testing";
+import { Test } from "@nestjs/testing";
 import { ValidationPipe, Logger } from "@nestjs/common";
 import {
   FastifyAdapter,
@@ -46,7 +46,7 @@ describe("Issuers Module", () => {
     issuer = testEnv.issuers[testEnv.issuers.length - 1]!;
     issuer2 = testEnv.issuers[testEnv.issuers.length - 2]!;
 
-    const moduleFixture: TestingModule = await Test.createTestingModule({
+    const moduleFixture = await Test.createTestingModule({
       imports: [IssuersModule],
     }).compile();
 

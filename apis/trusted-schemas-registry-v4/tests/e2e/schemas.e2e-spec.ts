@@ -2,7 +2,7 @@ import { describe, beforeAll, it, expect, afterAll } from "vitest";
 import crypto from "node:crypto";
 import { ethers } from "ethers";
 import request from "supertest";
-import { Test, type TestingModule } from "@nestjs/testing";
+import { Test } from "@nestjs/testing";
 import { ValidationPipe, Logger } from "@nestjs/common";
 import {
   FastifyAdapter,
@@ -86,7 +86,7 @@ describe("TSR API v4 - Schemas (e2e)", () => {
   };
 
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
+    const moduleFixture = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
 
