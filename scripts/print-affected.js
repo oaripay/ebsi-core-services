@@ -20,6 +20,8 @@ const deprecatedServices = [
   "@ebsiint-sc/trusted-apps-registry-v3",
 ];
 
+// for the jenkins pipeline, read GIT_PREVIOUS_SUCCESSFUL_COMMIT so that the diff is done between last succesful build and HEAD
+// otherwise, if the variable is not present, make the diff with the previous commit
 const baseCommit = process.env["GIT_PREVIOUS_SUCCESSFUL_COMMIT"] ?? "main~1";
 
 const processResult = spawnSync("sh", [
