@@ -20,7 +20,7 @@ const deprecatedServices = [
   "@ebsiint-sc/trusted-apps-registry-v3",
 ];
 
-const baseCommit = process.argv[2] ?? "main~1";
+const baseCommit = process.env["GIT_PREVIOUS_SUCCESSFUL_COMMIT"] ?? "main~1";
 
 const processResult = spawnSync("sh", [
   "-c",
