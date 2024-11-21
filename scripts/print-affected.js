@@ -20,9 +20,11 @@ const deprecatedServices = [
   "@ebsiint-sc/trusted-apps-registry-v3",
 ];
 
+const baseCommit = process.argv[2] ?? "main~1";
+
 const processResult = spawnSync("sh", [
   "-c",
-  `yarn nx print-affected --base=main~1 --head=main | sed '/^{/,/^}/!d'`,
+  `yarn nx print-affected --base=${baseCommit} --head=main | sed '/^{/,/^}/!d'`,
 ]);
 
 try {
