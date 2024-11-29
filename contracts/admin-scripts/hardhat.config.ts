@@ -95,6 +95,10 @@ const config: HardhatUserConfig & {
       gas: 70000000,
       gasPrice: 0,
     },
+    box: {
+      url: "http://192.168.55.5:8545", // config for node1-besu-1
+      accounts,
+    },
   },
   typechain: {
     outDir: "src/types",

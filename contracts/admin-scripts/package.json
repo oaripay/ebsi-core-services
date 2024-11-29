@@ -13,7 +13,9 @@
     "lint": "yarn run lint:prettier && yarn lint:eslint && yarn lint:tsc",
     "lint:eslint": "eslint . --ext .js,.cjs,.ts",
     "lint:tsc": "tsc --noEmit --incremental false",
-    "lint:prettier": "prettier . --check"
+    "lint:prettier": "prettier . --check",
+    "box": "scripts/deploy-box.sh",
+    "deploy-box": "yarn clean && yarn compile && yarn box"
   },
   "dependencies": {
     "@ebsiint-sc/bootstrap": "^1.0.1-rc.8",
