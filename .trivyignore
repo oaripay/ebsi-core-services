@@ -1,13 +1,19 @@
-# CVE-2024-21534
-# jsonpath-plus (package.json)
-# CRITICAL
-# installed versions: 6.0.1, 7.1.0
-# fixed version: 10.0.0
-CVE-2024-21534
+# CVEs related to @ebsiint-subgraph/subgraphs-deployer
 
-# CVE-2024-21538
-# cross-spawn (package.json)
-# HIGH
-# installed versions: 7.0.3
-# fixed version: 7.0.5
-CVE-2024-21538
+# axios@0.21.4 (MEDIUM, found in /app/node_modules)
+CVE-2023-45857
+
+# lodash.trim@4.5.1, lodash.trimend@4.5.1 (MEDIUM, found in /app/node_modules)
+CVE-2020-28500
+
+# request@2.88.2 (MEDIUM, found in /app/node_modules)
+CVE-2023-28155
+
+# secp256k1@4.0.3 (HIGH, found in /app/node_modules/ganache/node_modules)
+CVE-2024-48930
+
+# taffydb@2.6.2 (HIGH, found in /app/node_modules/protobufjs/cli/node_modules)
+CVE-2019-10790
+
+# tough-cookie@2.5.0 (MEDIUM, found in /app/node_modules)
+CVE-2023-26136
