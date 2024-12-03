@@ -1,13 +1,20 @@
 import { isDidV1 } from "@ebsiint-api/shared";
-import { z } from "zod";
 import validator from "validator";
-import { jsonRpcSchema } from "./JsonRpcSchema.js";
+import { z } from "zod";
+
 import { baseParamSchema } from "./BaseParamSchema.js";
+import { jsonRpcSchema } from "./JsonRpcSchema.js";
 
 const { isHexadecimal } = validator.default;
 
 export const setAttributeMetadataSchema = baseParamSchema.merge(
   z.object({
+    attributeIdTao: z
+      .string()
+      .startsWith("0x", "Must be prefixed with 0x")
+      .length(66) // 2 -> "0x" + 64 -> sha256
+      .refine(isHexadecimal, { message: "Must be hexadecimal" }),
+
     did: z.string().superRefine((val, ctx) => {
       const didValidation = isDidV1(val);
       if (!didValidation.success) {
@@ -18,12 +25,6 @@ export const setAttributeMetadataSchema = baseParamSchema.merge(
       }
     }),
 
-    revisionId: z
-      .string()
-      .startsWith("0x", "Must be prefixed with 0x")
-      .length(66) // 2 -> "0x" + 64 -> sha256
-      .refine(isHexadecimal, { message: "Must be hexadecimal" }),
-
     /**
      * 0: Undefined
      * 1: RootTAO
@@ -32,6 +33,12 @@ export const setAttributeMetadataSchema = baseParamSchema.merge(
      * 4: Revoked
      */
     issuerType: z.number().min(0).max(4),
+
+    revisionId: z
+      .string()
+      .startsWith("0x", "Must be prefixed with 0x")
+      .length(66) // 2 -> "0x" + 64 -> sha256
+      .refine(isHexadecimal, { message: "Must be hexadecimal" }),
 
     taoDid: z.string().superRefine((val, ctx) => {
       const didValidation = isDidV1(val);
@@ -42,12 +49,6 @@ export const setAttributeMetadataSchema = baseParamSchema.merge(
         });
       }
     }),
-
-    attributeIdTao: z
-      .string()
-      .startsWith("0x", "Must be prefixed with 0x")
-      .length(66) // 2 -> "0x" + 64 -> sha256
-      .refine(isHexadecimal, { message: "Must be hexadecimal" }),
   }),
 );
 

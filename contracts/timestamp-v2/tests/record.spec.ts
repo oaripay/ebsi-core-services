@@ -1,9 +1,10 @@
-import { ethers, waffle, network } from "hardhat";
-import crypto from "node:crypto";
-import { Contract } from "ethers";
-import { expect } from "chai";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
 import StringManipArtifact from "@ebsiint-sc/bootstrap-v2/artifacts/contracts/utils/StringManip.sol/StringManip.json";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
+import { expect } from "chai";
+import { ethers, network, waffle } from "hardhat";
+import crypto from "node:crypto";
+
+import type { PolicyRegistryMock, Timestamp } from "../src/types";
 
 import { testTprAddress } from "./testAddress";
 
@@ -15,10 +16,10 @@ const MAX_UINT256 =
 const randomHash = () => `0x${crypto.randomBytes(32).toString("hex")}`;
 
 describe("Record Hashes", () => {
-  let ts: Contract;
+  let ts: Timestamp;
   let admin: SignerWithAddress;
   let user: SignerWithAddress;
-  let policyContractMock: Contract;
+  let policyContractMock: PolicyRegistryMock;
 
   before(async () => {
     const policyRegistryFactory =
@@ -49,8 +50,8 @@ describe("Record Hashes", () => {
     const contractFactory = await ethers.getContractFactory("Timestamp", {
       libraries: {
         HashAlgoLib: haLib.address,
-        TimestampLib: tsLib.address,
         RecordLib: rsLib.address,
+        TimestampLib: tsLib.address,
       },
     });
     ts = await contractFactory.deploy(testTprAddress);
@@ -62,6 +63,7 @@ describe("Record Hashes", () => {
     await ts.insertHashAlgorithm(512, "SHA512", "oid2", 1, "");
     await ts.insertHashAlgorithm(256, "SHA3-256", "oid3", 1, "");
   });
+
   it("timestampVersionHashes should failed if > 3", async () => {
     await expect(
       ts.timestampVersionHashes(
@@ -137,6 +139,7 @@ describe("Record Hashes", () => {
       ),
     ).to.be.revertedWith("timestampData>3");
   });
+
   it("timestampVersionHashes should failed for unknown hash algo", async () => {
     await expect(
       ts.timestampVersionHashes(
@@ -156,6 +159,7 @@ describe("Record Hashes", () => {
       ),
     ).to.be.revertedWith("hashAlgo unknown");
   });
+
   it("timestampVersionHashes should failed if record doesn't exists", async () => {
     await expect(
       ts.timestampVersionHashes(
@@ -171,6 +175,7 @@ describe("Record Hashes", () => {
       ),
     ).to.be.revertedWith("wrong record count");
   });
+
   it("timestampVersionHashes should failed for empty value and hash", async () => {
     await expect(
       ts.timestampVersionHashes(
@@ -267,6 +272,7 @@ describe("Record Hashes", () => {
       ),
     ).to.be.revertedWith("wrong record count");
   });
+
   it("timestampVersionHashes should failed for two records", async () => {
     const hash1 = randomHash();
     const hash2 = randomHash();
@@ -307,6 +313,7 @@ describe("Record Hashes", () => {
       ),
     ).to.be.revertedWith("wrong record count");
   });
+
   it("timestampVersionHashes should fail for sender not owner", async () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
     const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
@@ -336,6 +343,7 @@ describe("Record Hashes", () => {
       ),
     ).to.be.revertedWith("sender is not listed as owner");
   });
+
   it("timestampVersionHashes should succeed", async () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
     const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
@@ -402,6 +410,7 @@ describe("Record Hashes", () => {
       [],
     );
   });
+
   it("timestampVersionHashes should succeed with empty data", async () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
     const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
@@ -460,6 +469,7 @@ describe("Record Hashes", () => {
       [],
     );
   });
+
   it("timestampRecordHashes should failed if hash algo and values length are different", async () => {
     await expect(
       ts.timestampRecordHashes(
@@ -484,6 +494,7 @@ describe("Record Hashes", () => {
       ),
     ).to.be.revertedWith("hashvalue/algo count mismatch");
   });
+
   it("timestampRecordHashes should failed if > 3", async () => {
     await expect(
       ts.timestampRecordHashes(
@@ -556,6 +567,7 @@ describe("Record Hashes", () => {
       ),
     ).to.be.revertedWith("timestampData>3");
   });
+
   it("timestampRecordHashes should failed for unknown hash algo", async () => {
     await expect(
       ts.timestampRecordHashes(
@@ -574,6 +586,7 @@ describe("Record Hashes", () => {
       ),
     ).to.be.revertedWith("hashAlgo unknown");
   });
+
   it("timestampRecordHashes should failed for empty value and hash", async () => {
     await expect(
       ts.timestampRecordHashes(
@@ -606,12 +619,13 @@ describe("Record Hashes", () => {
     const ids = await ts.getRecordIds(1, 10);
     expect(ids.items).to.have.length(1);
   });
-  it("timestampRecordHashes should suceed with same info twice because recordId contains blocknumber", async () => {
+
+  it("timestampRecordHashes should succeed with same info twice because recordId contains blocknumber", async () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
     const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
     const hash3 = ethers.utils.toUtf8Bytes("38862f7");
 
-    ts.timestampRecordHashes(
+    await ts.timestampRecordHashes(
       [0, 1, 2],
       [hash1, hash2, hash3],
       [
@@ -622,6 +636,7 @@ describe("Record Hashes", () => {
       ethers.utils.toUtf8Bytes("info: btc to the moon"),
     );
   });
+
   it("timestampRecordHashes should succeed", async () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
     const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
@@ -669,6 +684,7 @@ describe("Record Hashes", () => {
     const firstTsIds = await ts.getRecordIdsByFirstVersionHash(hash2, 1, 10);
     expect(firstTsIds.items).to.deep.equal([recordId]);
   });
+
   it("timestampRecordHashes should succeed with empty data", async () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
     const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
@@ -788,6 +804,7 @@ describe("Record Hashes", () => {
       ),
     ).to.be.revertedWith("timestampData>3");
   });
+
   it("timestampRecordVersionHashes should failed for unknown hash algo", async () => {
     await expect(
       ts.timestampRecordVersionHashes(
@@ -807,6 +824,7 @@ describe("Record Hashes", () => {
       ),
     ).to.be.revertedWith("hashAlgo unknown");
   });
+
   it("timestampRecordVersionHashes should failed if record doesn't exists", async () => {
     await expect(
       ts.timestampRecordVersionHashes(
@@ -822,6 +840,7 @@ describe("Record Hashes", () => {
       ),
     ).to.be.revertedWith("record unknown");
   });
+
   it("timestampRecordVersionHashes should failed for empty value and hash", async () => {
     await expect(
       ts.timestampRecordVersionHashes(
@@ -899,6 +918,7 @@ describe("Record Hashes", () => {
       .to.emit(ts, "RecordedHashes")
       .withArgs(recordId, tsids, ethers.constants.HashZero);
   });
+
   it("timestampRecordVersionHashes should fail for sender not owner", async () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
     const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
@@ -941,6 +961,7 @@ describe("Record Hashes", () => {
       ),
     ).to.be.revertedWith("sender is not listed as owner");
   });
+
   it("timestampRecordVersionHashes should succeed", async () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
     const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
@@ -1008,9 +1029,11 @@ describe("Record Hashes", () => {
     expect(vd0.hashAlgorithmIds[1]).to.equal(1);
     expect(vd0.hashAlgorithmIds[2]).to.equal(2);
     expect(vd0.hashValues).to.have.length(3);
-    vd0.hashValues.forEach((el: unknown, id: number) => {
+
+    for (const [id, el] of vd0.hashValues.entries()) {
       expect(el).to.equal(ethers.utils.hexlify(hashValues[id]));
-    });
+    }
+
     // expect(vd0.hashValues).to.equal([hash1, hash2, hash3]);
     expect(vd0.infoIds).to.have.length(1);
     expect(vd0.infoIds[0]).to.equal(
@@ -1027,9 +1050,11 @@ describe("Record Hashes", () => {
     expect(vd1.hashAlgorithmIds[1]).to.equal(0);
     expect(vd1.hashAlgorithmIds[2]).to.equal(1);
     expect(vd1.hashValues).to.have.length(3);
-    vd1.hashValues.forEach((el: unknown, id: number) => {
+
+    for (const [id, el] of vd1.hashValues.entries()) {
       expect(el).to.equal(ethers.utils.hexlify(hashPrimeValues[id]));
-    });
+    }
+
     // expect(vd0.hashValues).to.equal([hash1, hash2, hash3]);
     expect(vd1.infoIds).to.have.length(1);
     expect(vd1.infoIds[0]).to.equal(ethers.utils.sha256(versionInfoprime));
@@ -1038,6 +1063,7 @@ describe("Record Hashes", () => {
     expect(vd1.prev).to.equal(1);
     expect(vd1.next).to.equal(1);
   });
+
   it("timestampRecordVersionHashes should succeed with empty data", async () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
     const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
@@ -1097,9 +1123,11 @@ describe("Record Hashes", () => {
     expect(vd0.hashAlgorithmIds[1]).to.equal(1);
     expect(vd0.hashAlgorithmIds[2]).to.equal(2);
     expect(vd0.hashValues).to.have.length(3);
-    vd0.hashValues.forEach((el: unknown, id: number) => {
+
+    for (const [id, el] of vd0.hashValues.entries()) {
       expect(el).to.equal(ethers.utils.hexlify(hashValues[id]));
-    });
+    }
+
     // expect(vd0.hashValues).to.equal([hash1, hash2, hash3]);
     expect(vd0.infoIds).to.have.length(1);
     expect(vd0.infoIds[0]).to.equal(
@@ -1116,9 +1144,11 @@ describe("Record Hashes", () => {
     expect(vd1.hashAlgorithmIds[1]).to.equal(0);
     expect(vd1.hashAlgorithmIds[2]).to.equal(1);
     expect(vd1.hashValues).to.have.length(3);
-    vd1.hashValues.forEach((el: unknown, id: number) => {
+
+    for (const [id, el] of vd1.hashValues.entries()) {
       expect(el).to.equal(ethers.utils.hexlify(hashPrimeValues[id]));
-    });
+    }
+
     // expect(vd0.hashValues).to.equal([hash1, hash2, hash3]);
     expect(vd1.infoIds).to.have.length(1);
     expect(vd1.infoIds[0]).to.equal(ethers.utils.sha256(versionInfoprime));
@@ -1140,6 +1170,7 @@ describe("Record Hashes", () => {
       "record unknown",
     );
   });
+
   it("getRecord should succeed", async () => {
     const hash1Value = ethers.utils.toUtf8Bytes(`value-1`);
     const hash2Value = ethers.utils.toUtf8Bytes(`value-2`);
@@ -1200,8 +1231,8 @@ describe("Record Hashes", () => {
     expect(r1.revokedOwnerIds).to.deep.equal([]);
     expect(r1.totalVersions).to.equal(2);
     /// add ownerdIds and revoke some
-    const notBefore = new Date().getTime();
-    const notAfter = notBefore + 1000000;
+    const notBefore = Date.now();
+    const notAfter = notBefore + 1_000_000;
     await ts.insertRecordOwner(recordId, "anotherownerId", notBefore, notAfter);
     const r2 = await ts.getRecord(recordId);
     expect(r2.ownerIds).to.deep.equal([
@@ -1239,13 +1270,14 @@ describe("Record Hashes", () => {
     // pagesize > 50 should revert
     await expect(ts.getRecordIds(1, 51)).to.be.revertedWith("PSize not <= 50");
   });
+
   it("getRecordIds should succeed", async () => {
     const recIds: string[] = [];
     for (let i = 1; i < 12; i += 1) {
       const hash1Value = ethers.utils.toUtf8Bytes(`value-1-${i}`);
       const hash2Value = ethers.utils.toUtf8Bytes(`value-2-${i}`);
       const hash3Value = ethers.utils.toUtf8Bytes(`value-3-${i}`);
-      // eslint-disable-next-line no-await-in-loop
+
       let blockNumber = await ethers.provider.getBlockNumber();
       blockNumber += 1;
       //  recordId = sha256(abi.encode(msg.sender, block.number, hashValue));
@@ -1256,7 +1288,7 @@ describe("Record Hashes", () => {
         ),
       );
       // INSERT SHOULD BE DONE IN ORDER !!!
-      // eslint-disable-next-line no-await-in-loop
+
       await ts.timestampRecordHashes(
         [0, 1, 2],
         [hash1Value, hash2Value, hash3Value],
@@ -1272,9 +1304,10 @@ describe("Record Hashes", () => {
 
     const r0 = await ts.getRecordIds(1, 1);
     expect(r0.items).to.have.length(1);
-    r0.items.forEach((el: unknown, id: number) => {
+
+    for (const [id, el] of r0.items.entries()) {
       expect(el).to.equal(recIds.slice(0, 1)[id]);
-    });
+    }
 
     expect(r0.total).to.equal(11);
     expect(r0.howMany).to.equal(1);
@@ -1283,9 +1316,11 @@ describe("Record Hashes", () => {
 
     const r = await ts.getRecordIds(1, 11);
     expect(r.items).to.have.length(11);
-    r.items.forEach((el: unknown, id: number) => {
+
+    for (const [id, el] of r.items.entries()) {
       expect(el).to.equal(recIds[id]);
-    });
+    }
+
     expect(r.total).to.equal(11);
     expect(r.howMany).to.equal(11);
     expect(r.prev).to.equal(1);
@@ -1331,6 +1366,7 @@ describe("Record Hashes", () => {
       ts.getRecordIdsByFirstVersionHash([], 1, 51),
     ).to.be.revertedWith("hashValue empty");
   });
+
   it("getRecordIdsByFirstVersionHash should succeed", async () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
     const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
@@ -1345,7 +1381,7 @@ describe("Record Hashes", () => {
       ),
     );
 
-    ts.timestampRecordHashes(
+    await ts.timestampRecordHashes(
       [0, 1, 2],
       [hash1, hash2, hash3],
       [
@@ -1371,12 +1407,14 @@ describe("Record Hashes", () => {
         [admin.address, blockNumber, hash2],
       ),
     );
-    ts.timestampRecordHashes(
+
+    await ts.timestampRecordHashes(
       [1, 2],
       [hash2, hash3],
       [ethers.utils.toUtf8Bytes("yolo")],
       [],
     );
+
     const firstTsIds2 = await ts.getRecordIdsByFirstVersionHash(hash2, 1, 10);
     expect(firstTsIds2.items).to.deep.equal([recordId, recordId2]);
     expect(firstTsIds2.total).to.equal(2);
@@ -1458,9 +1496,11 @@ describe("Record Hashes", () => {
     expect(vd0.hashAlgorithmIds[1]).to.equal(1);
     expect(vd0.hashAlgorithmIds[2]).to.equal(2);
     expect(vd0.hashValues).to.have.length(3);
-    vd0.hashValues.forEach((el: unknown, id: number) => {
+
+    for (const [id, el] of vd0.hashValues.entries()) {
       expect(el).to.equal(ethers.utils.hexlify(hashvalues[id]));
-    });
+    }
+
     // expect(vd0.hashValues).to.equal([hash1, hash2, hash3]);
     expect(vd0.infoIds).to.have.length(1);
     expect(vd0.infoIds[0]).to.equal(
@@ -1476,15 +1516,18 @@ describe("Record Hashes", () => {
     expect(vd1.hashAlgorithmIds[0]).to.equal(2);
     expect(vd1.hashAlgorithmIds[1]).to.equal(0);
     expect(vd1.hashValues).to.have.length(2);
-    vd1.hashValues.forEach((el: unknown, id: number) => {
+
+    for (const [id, el] of vd1.hashValues.entries()) {
       expect(el).to.equal(ethers.utils.hexlify(hashvaluesprime[id]));
-    });
+    }
+
     expect(vd1.infoIds).to.have.length(0);
     expect(vd1.total).to.equal(2);
     expect(vd1.howMany).to.equal(2);
     expect(vd1.prev).to.equal(1);
     expect(vd1.next).to.equal(1);
   });
+
   it("getRecordVersion should failed with wrong recordId, page or pageSize", async () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
     const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
@@ -1533,6 +1576,7 @@ describe("Record Hashes", () => {
       ts.getRecordVersionInfo(ethers.constants.HashZero),
     ).to.be.revertedWith("versionInfoId empty");
   });
+
   it("getRecordVersionInfo should succeed", async () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
     const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
@@ -1563,18 +1607,18 @@ describe("Record Hashes", () => {
     const versionInfoprime = ethers.utils.toUtf8Bytes(
       "PRIME info: btc to the moon",
     );
-    await expect(
-      ts.timestampVersionHashes(
-        hash1,
-        [2, 0],
-        hashvaluesprime,
-        [
-          ethers.utils.toUtf8Bytes("btcprime"),
-          ethers.utils.toUtf8Bytes("new prime"),
-        ],
-        versionInfoprime,
-      ),
+
+    await ts.timestampVersionHashes(
+      hash1,
+      [2, 0],
+      hashvaluesprime,
+      [
+        ethers.utils.toUtf8Bytes("btcprime"),
+        ethers.utils.toUtf8Bytes("new prime"),
+      ],
+      versionInfoprime,
     );
+
     const infoPrime = await ts.getRecordVersionInfo(
       ethers.utils.sha256(versionInfoprime),
     );
@@ -1599,6 +1643,7 @@ describe("Record Hashes", () => {
       ),
     ).to.be.revertedWith("recordId empty");
   });
+
   it("appendRecordVersionHashes should failed for unknown recordId or versionId", async () => {
     //  should revert
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
@@ -1649,7 +1694,6 @@ describe("Record Hashes", () => {
     const hash1 = randomHash();
     // create 10 records sharing the same hash
     for (let i = 0; i < 10; i += 1) {
-      // eslint-disable-next-line no-await-in-loop
       await ts.timestampRecordHashes(
         [0, 1],
         [randomHash(), hash1],
@@ -1690,7 +1734,6 @@ describe("Record Hashes", () => {
 
     // append new timestamps to the first version of that record
     for (let i = 0; i < 9; i += 1) {
-      // eslint-disable-next-line no-await-in-loop
       await ts.appendRecordVersionHashes(
         recordId,
         0,
@@ -1716,10 +1759,11 @@ describe("Record Hashes", () => {
       ethers.utils.toUtf8Bytes("info: btc to the moon"),
     );
 
-    await expect(ts.timestampHashes([1], [hash1], [], [])).to.be.revertedWith(
+    await expect(ts.timestampHashes([1], [hash1], [])).to.be.revertedWith(
       "timestamp with different hashAlgo",
     );
   });
+
   it("appendRecordVersionHashes should fail for sender not owner", async () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
     const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
@@ -1765,6 +1809,7 @@ describe("Record Hashes", () => {
       ),
     ).to.be.revertedWith("sender is not listed as owner");
   });
+
   it("appendRecordVersionHashes should succeed", async () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
     const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
@@ -1836,9 +1881,10 @@ describe("Record Hashes", () => {
     expect(vd0.hashAlgorithmIds[3]).to.equal(2);
     expect(vd0.hashAlgorithmIds[4]).to.equal(0);
     expect(vd0.hashValues).to.have.length(5);
-    vd0.hashValues.forEach((el: unknown, id: number) => {
+
+    for (const [id, el] of vd0.hashValues.entries()) {
       expect(el).to.equal(ethers.utils.hexlify(hashvalues[id]));
-    });
+    }
 
     expect(vd0.infoIds).to.have.length(2);
     expect(vd0.infoIds[0]).to.equal(
@@ -1857,6 +1903,7 @@ describe("Record Hashes", () => {
     expect(vd1.total).to.equal(0);
     expect(vd1.howMany).to.equal(0);
   });
+
   it("appendRecordVersionHashes should succeed with empty data", async () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
     const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
@@ -1921,9 +1968,10 @@ describe("Record Hashes", () => {
     expect(vd0.hashAlgorithmIds[3]).to.equal(2);
     expect(vd0.hashAlgorithmIds[4]).to.equal(0);
     expect(vd0.hashValues).to.have.length(5);
-    vd0.hashValues.forEach((el: unknown, id: number) => {
+
+    for (const [id, el] of vd0.hashValues.entries()) {
       expect(el).to.equal(ethers.utils.hexlify(hashvalues[id]));
-    });
+    }
 
     expect(vd0.infoIds).to.have.length(2);
     expect(vd0.infoIds[0]).to.equal(
@@ -1954,6 +2002,7 @@ describe("Record Hashes", () => {
       ts.insertRecordVersionInfo(ethers.utils.sha256(hash1), 0, []),
     ).to.be.revertedWith("versionInfo empty");
   });
+
   it("insertRecordVersionInfo should failed for unknown recordId or versionId", async () => {
     //  should revert
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
@@ -1983,6 +2032,7 @@ describe("Record Hashes", () => {
       ts.insertRecordVersionInfo(recordId, 1, versionInfo),
     ).to.be.revertedWith("record/version unknown");
   });
+
   it("insertRecordVersionInfo should fail for sender not owner", async () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
     const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
@@ -2015,6 +2065,7 @@ describe("Record Hashes", () => {
       tsUser.insertRecordVersionInfo(recordId, 0, versionInfoprime),
     ).to.be.revertedWith("sender is not listed as owner");
   });
+
   it("insertRecordVersionInfo should succeed", async () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
     const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
@@ -2062,9 +2113,10 @@ describe("Record Hashes", () => {
     expect(vd0.hashAlgorithmIds[1]).to.equal(1);
     expect(vd0.hashAlgorithmIds[2]).to.equal(2);
     expect(vd0.hashValues).to.have.length(3);
-    vd0.hashValues.forEach((el: unknown, id: number) => {
+
+    for (const [id, el] of vd0.hashValues.entries()) {
       expect(el).to.equal(ethers.utils.hexlify(hashvalues[id]));
-    });
+    }
 
     expect(vd0.infoIds).to.have.length(2);
     expect(vd0.infoIds[0]).to.equal(
@@ -2120,6 +2172,7 @@ describe("Record Hashes", () => {
       tsUser.detachRecordVersionHash(recordId, 0, hash1),
     ).to.be.revertedWith("sender is not listed as owner");
   });
+
   it("detachRecordVersionHash should succeed with only one tsId in the version", async () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
     let blockNumber = await ethers.provider.getBlockNumber();
@@ -2262,8 +2315,8 @@ describe("Record Hashes", () => {
     expect(r1.revokedOwnerIds).to.deep.equal([]);
     expect(r1.totalVersions).to.equal(2);
     /// add ownerdIds and revoke some
-    const notBefore = new Date().getTime();
-    const notAfter = notBefore + 1000000;
+    const notBefore = Date.now();
+    const notAfter = notBefore + 1_000_000;
     await ts.insertRecordOwner(recordId, "anotherownerId", notBefore, notAfter);
     const r2 = await ts.getRecord(recordId);
     expect(r2.ownerIds).to.deep.equal([
@@ -2319,6 +2372,7 @@ describe("Record Hashes", () => {
       ts.revokeRecordOwner(recordId, user.address),
     ).to.be.revertedWith("ownerId unknown");
   });
+
   it("revokeRecordOwner should fail for sender not owner", async () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
     const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
@@ -2343,8 +2397,8 @@ describe("Record Hashes", () => {
       ethers.utils.toUtf8Bytes("info: btc to the moon"),
     );
     // add ownerdIds and revoke some
-    const notBefore = new Date().getTime();
-    const notAfter = notBefore + 1000000;
+    const notBefore = Date.now();
+    const notAfter = notBefore + 1_000_000;
     await ts.insertRecordOwner(recordId, "anotherownerId", notBefore, notAfter);
     const r0 = await ts.getRecord(recordId);
     expect(r0.ownerIds).to.deep.equal([
@@ -2360,6 +2414,7 @@ describe("Record Hashes", () => {
       tsUser.revokeRecordOwner(recordId, "anotherownerId"),
     ).to.be.revertedWith("sender is not listed as owner");
   });
+
   it("revokeRecordOwner should work", async () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
     const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
@@ -2384,8 +2439,8 @@ describe("Record Hashes", () => {
       ethers.utils.toUtf8Bytes("info: btc to the moon"),
     );
     // add ownerdIds and revoke some
-    const notBefore = new Date().getTime();
-    const notAfter = notBefore + 1000000;
+    const notBefore = Date.now();
+    const notAfter = notBefore + 1_000_000;
     await ts.insertRecordOwner(recordId, "anotherownerId", notBefore, notAfter);
     const r0 = await ts.getRecord(recordId);
     expect(r0.ownerIds).to.deep.equal([
@@ -2463,6 +2518,7 @@ describe("Record Hashes", () => {
       ts.insertRecordOwner(recordId, "ownerId", 2, 1),
     ).to.be.revertedWith("date incorrect");
   });
+
   it("insertRecordOwner should fail for sender not owner ", async () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
     const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
@@ -2496,6 +2552,7 @@ describe("Record Hashes", () => {
       tsUser.insertRecordOwner(recordId, "ownerId", 1, 2),
     ).to.be.revertedWith("sender is not listed as owner");
   });
+
   it("insertRecordOwner should work ", async () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
     const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
@@ -2531,7 +2588,7 @@ describe("Record Hashes", () => {
     expect(r1.revokedOwnerIds).to.deep.equal([]);
     expect(r1.totalVersions).to.equal(1);
 
-    await ts.insertRecordOwner(recordId, "anotherOwnerId", 112345646787, 0);
+    await ts.insertRecordOwner(recordId, "anotherOwnerId", 112_345_646_787, 0);
     const r2 = await ts.getRecord(recordId);
     expect(r2.ownerIds).to.deep.equal([
       admin.address.toLowerCase(),
@@ -2614,8 +2671,8 @@ describe("Record Hashes", () => {
     expect(inf1.revoked).to.be.false;
 
     // add ownerdIds and revoke some
-    const notBefore = new Date().getTime();
-    const notAfter = notBefore + 1000000;
+    const notBefore = Date.now();
+    const notAfter = notBefore + 1_000_000;
     await ts.insertRecordOwner(recordId, "anotherownerId", notBefore, notAfter);
     const inf2 = await ts.getRecordOwnerInfo(recordId, "anotherownerId");
     expect(inf2.notBefore).to.equal(notBefore);

@@ -1,10 +1,11 @@
 import {
-  IsArray,
-  ArrayMinSize,
   ArrayMaxSize,
+  ArrayMinSize,
   Equals,
+  IsArray,
   IsEthereumAddress,
 } from "class-validator";
+
 import { JsonRpcDto } from "../../jsonrpc/dto/index.js";
 
 export class RequestCheckControllerDto extends JsonRpcDto {

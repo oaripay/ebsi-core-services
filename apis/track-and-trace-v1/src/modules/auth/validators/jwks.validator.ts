@@ -7,10 +7,10 @@ import { z } from "zod";
  */
 export const jwkSchema = z
   .object({
+    crv: z.optional(z.string()),
+    kid: z.optional(z.string()),
     // Only validate that `kty` is present
     kty: z.string(),
-    kid: z.optional(z.string()),
-    crv: z.optional(z.string()),
   })
   .passthrough(); // Allow extra properties
 

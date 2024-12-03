@@ -1,22 +1,24 @@
-import { vi, describe, beforeAll, afterAll, it, expect } from "vitest";
-import request from "supertest";
-import { Test } from "@nestjs/testing";
-import { ValidationPipe, Logger } from "@nestjs/common";
+import type { RawServerDefault } from "fastify";
+
+import { EbsiWallet } from "@cef-ebsi/wallet-lib";
+import { methodNotAllowed } from "@ebsiint-api/shared";
+import { TrackAndTrace__factory } from "@ebsiint-sc/track-and-trace-v2";
+import { fastifyAccepts } from "@fastify/accepts";
+import { Logger, ValidationPipe } from "@nestjs/common";
 import {
   FastifyAdapter,
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import type { RawServerDefault } from "fastify";
-import { fastifyAccepts } from "@fastify/accepts";
+import { Test } from "@nestjs/testing";
 import { setupServer } from "msw/node";
-import { TrackAndTrace__factory } from "@ebsiint-sc/track-and-trace-v2";
-import { EbsiWallet } from "@cef-ebsi/wallet-lib";
-import { methodNotAllowed } from "@ebsiint-api/shared";
-import { AccessesModule } from "./accesses.module.js";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
-import { setupTestEnv } from "../../../tests/utils/trackAndTrace.js";
-import { hexToDid } from "../../shared/utils.js";
+import request from "supertest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+
 import { handlers } from "../../../tests/utils/graphServer.js";
+import { setupTestEnv } from "../../../tests/utils/trackAndTrace.js";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
+import { hexToDid } from "../../shared/utils.js";
+import { AccessesModule } from "./accesses.module.js";
 
 describe("Accesses Module", () => {
   let app: NestFastifyApplication;
@@ -147,25 +149,25 @@ describe("Accesses Module", () => {
       );
 
       expect(response.body).toStrictEqual({
-        self: expect.stringContaining(
-          `/accesses?page[after]=1&page[size]=10&subject=${encodeURIComponent(randomDid)}`,
-        ),
         items: [],
-        pageSize: 10,
         links: {
           first: expect.stringContaining(
-            `/accesses?page[after]=1&page[size]=10&subject=${encodeURIComponent(randomDid)}`,
-          ),
-          prev: expect.stringContaining(
-            `/accesses?page[after]=1&page[size]=10&subject=${encodeURIComponent(randomDid)}`,
-          ),
-          next: expect.stringContaining(
             `/accesses?page[after]=1&page[size]=10&subject=${encodeURIComponent(randomDid)}`,
           ),
           last: expect.stringContaining(
             `/accesses?page[after]=1&page[size]=10&subject=${encodeURIComponent(randomDid)}`,
           ),
+          next: expect.stringContaining(
+            `/accesses?page[after]=1&page[size]=10&subject=${encodeURIComponent(randomDid)}`,
+          ),
+          prev: expect.stringContaining(
+            `/accesses?page[after]=1&page[size]=10&subject=${encodeURIComponent(randomDid)}`,
+          ),
         },
+        pageSize: 10,
+        self: expect.stringContaining(
+          `/accesses?page[after]=1&page[size]=10&subject=${encodeURIComponent(randomDid)}`,
+        ),
       });
       expect(response.status).toBe(200);
     });
@@ -184,32 +186,32 @@ describe("Accesses Module", () => {
       const doc = documentsWithBlockSource[0]!;
 
       expect(response.body).toStrictEqual({
-        self: expect.stringContaining(
-          `/accesses?page[after]=1&page[size]=10&subject=${encodeURIComponent(grantedDidEbsiAccount)}`,
-        ),
         items: [
           {
-            subject: grantedDidEbsiAccount,
             documentId: doc.documentHash,
             grantedBy: doc.didEbsiCreator,
             permission: "delegate",
+            subject: grantedDidEbsiAccount,
           },
         ],
-        pageSize: 10,
         links: {
           first: expect.stringContaining(
-            `/accesses?page[after]=1&page[size]=10&subject=${encodeURIComponent(grantedDidEbsiAccount)}`,
-          ),
-          prev: expect.stringContaining(
-            `/accesses?page[after]=1&page[size]=10&subject=${encodeURIComponent(grantedDidEbsiAccount)}`,
-          ),
-          next: expect.stringContaining(
             `/accesses?page[after]=1&page[size]=10&subject=${encodeURIComponent(grantedDidEbsiAccount)}`,
           ),
           last: expect.stringContaining(
             `/accesses?page[after]=1&page[size]=10&subject=${encodeURIComponent(grantedDidEbsiAccount)}`,
           ),
+          next: expect.stringContaining(
+            `/accesses?page[after]=1&page[size]=10&subject=${encodeURIComponent(grantedDidEbsiAccount)}`,
+          ),
+          prev: expect.stringContaining(
+            `/accesses?page[after]=1&page[size]=10&subject=${encodeURIComponent(grantedDidEbsiAccount)}`,
+          ),
         },
+        pageSize: 10,
+        self: expect.stringContaining(
+          `/accesses?page[after]=1&page[size]=10&subject=${encodeURIComponent(grantedDidEbsiAccount)}`,
+        ),
       });
       expect(response.status).toBe(200);
     });
@@ -228,32 +230,32 @@ describe("Accesses Module", () => {
       const doc = documentsWithBlockSource[0]!;
 
       expect(response.body).toStrictEqual({
-        self: expect.stringContaining(
-          `/accesses?page[after]=1&page[size]=10&subject=${encodeURIComponent(grantedDidKeyAccount)}`,
-        ),
         items: [
           {
-            subject: grantedDidKeyAccount,
             documentId: doc.documentHash,
             grantedBy: doc.didEbsiCreator,
             permission: "write",
+            subject: grantedDidKeyAccount,
           },
         ],
-        pageSize: 10,
         links: {
           first: expect.stringContaining(
-            `/accesses?page[after]=1&page[size]=10&subject=${encodeURIComponent(grantedDidKeyAccount)}`,
-          ),
-          prev: expect.stringContaining(
-            `/accesses?page[after]=1&page[size]=10&subject=${encodeURIComponent(grantedDidKeyAccount)}`,
-          ),
-          next: expect.stringContaining(
             `/accesses?page[after]=1&page[size]=10&subject=${encodeURIComponent(grantedDidKeyAccount)}`,
           ),
           last: expect.stringContaining(
             `/accesses?page[after]=1&page[size]=10&subject=${encodeURIComponent(grantedDidKeyAccount)}`,
           ),
+          next: expect.stringContaining(
+            `/accesses?page[after]=1&page[size]=10&subject=${encodeURIComponent(grantedDidKeyAccount)}`,
+          ),
+          prev: expect.stringContaining(
+            `/accesses?page[after]=1&page[size]=10&subject=${encodeURIComponent(grantedDidKeyAccount)}`,
+          ),
         },
+        pageSize: 10,
+        self: expect.stringContaining(
+          `/accesses?page[after]=1&page[size]=10&subject=${encodeURIComponent(grantedDidKeyAccount)}`,
+        ),
       });
       expect(response.status).toBe(200);
     });

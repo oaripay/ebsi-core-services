@@ -1,4 +1,4 @@
-import { IsString, IsArray, Equals, IsOptional } from "class-validator";
+import { Equals, IsArray, IsOptional, IsString } from "class-validator";
 
 export class JsonRpcDto {
   @Equals("2.0")
@@ -11,7 +11,7 @@ export class JsonRpcDto {
   params!: unknown[];
 
   @IsOptional()
-  id?: number | string | null;
+  id?: null | number | string;
 }
 
 export default { JsonRpcDto };

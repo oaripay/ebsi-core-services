@@ -1,12 +1,13 @@
-import { z } from "zod";
 import { isAddress } from "@ethersproject/address";
-import { jsonRpcSchema } from "./JsonRpcSchema.js";
+import { z } from "zod";
+
 import { baseParamSchema } from "./BaseParamSchema.js";
+import { jsonRpcSchema } from "./JsonRpcSchema.js";
 
 export const deleteUserAttributeSchema = baseParamSchema.merge(
   z.object({
-    user: z.string().refine(isAddress, { message: "Invalid Ethereum address" }),
     attribute: z.string(),
+    user: z.string().refine(isAddress, { message: "Invalid Ethereum address" }),
   }),
 );
 

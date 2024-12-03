@@ -1,12 +1,13 @@
-// eslint-disable-next-line @typescript-eslint/triple-slash-reference
-/// <reference path="../../../../contracts/trusted-policies-registry/src/types/hardhat.d.ts" />
+import "../../../../contracts/trusted-policies-registry/src/types/hardhat.d.ts";
+
 import hre from "hardhat";
+
 import "@nomiclabs/hardhat-ethers";
-import crypto from "node:crypto";
+import { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry";
 import { ethers } from "ethers";
+import crypto from "node:crypto";
 import { range } from "rxjs";
 import { mergeMap, toArray } from "rxjs/operators";
-import { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry";
 
 import {
   ATTRIBUTE_OPERATIONS,
@@ -15,134 +16,29 @@ import {
 } from "../../src/modules/policies/policies.interface.js";
 
 export interface PolicyObject {
-  policyId: number;
+  description: string;
   opType: number;
   policyConditions: {
-    name: string;
     attributeName: string;
+    attributeOperation: number;
+    expectedValue: boolean | number | string;
+    name: string;
     typeOfValue: number;
     value: ethers.BytesLike;
-    expectedValue: string | number | boolean;
-    attributeOperation: number;
   }[];
+  policyId: number;
   policyName: string;
-  description: string;
   status: true;
+}
+
+export interface SetupOptions {
+  policiesTotal?: number;
+  usersTotal?: number;
 }
 
 export interface UserObject {
   address: string;
   attributes: Record<string, string>;
-}
-
-export async function insertPolicy(
-  contract: PolicyRegistry,
-  policyId: number,
-): Promise<PolicyObject> {
-  const opType = OPERATION_TYPES.indexOf("AND");
-  const policyConditions = [
-    {
-      name: "condition-string",
-      attributeName: "any",
-      value: ethers.utils.toUtf8Bytes("vxc4gdbfgb"),
-      expectedValue: "vxc4gdbfgb",
-      attributeOperation: ATTRIBUTE_OPERATIONS.indexOf("EQUAL"),
-      typeOfValue: ATTRIBUTE_TYPES.indexOf("STRING"),
-    },
-    {
-      name: "condition-bytes",
-      attributeName: "any",
-      value: ethers.utils.toUtf8Bytes("asdasdd"),
-      expectedValue: "0x61736461736464", // bytes representation of "asdasdd"
-      attributeOperation: ATTRIBUTE_OPERATIONS.indexOf("EQUAL"),
-      typeOfValue: ATTRIBUTE_TYPES.indexOf("BYTES"),
-    },
-    {
-      name: "condition-boolean-uint8array",
-      attributeName: "any",
-      value: new Uint8Array(32),
-      expectedValue: false,
-      attributeOperation: ATTRIBUTE_OPERATIONS.indexOf("EQUAL"),
-      typeOfValue: ATTRIBUTE_TYPES.indexOf("BOOLEAN"),
-    },
-    {
-      name: "condition-boolean-array",
-      attributeName: "any",
-      value: [...(Array(31).fill(0) as number[]), 1],
-      expectedValue: true,
-      attributeOperation: ATTRIBUTE_OPERATIONS.indexOf("EQUAL"),
-      typeOfValue: ATTRIBUTE_TYPES.indexOf("BOOLEAN"),
-    },
-    {
-      name: "condition-boolean-string",
-      attributeName: "any",
-      value: `0x${"00".repeat(31)}01`,
-      expectedValue: true,
-      attributeOperation: ATTRIBUTE_OPERATIONS.indexOf("EQUAL"),
-      typeOfValue: ATTRIBUTE_TYPES.indexOf("BOOLEAN"),
-    },
-    {
-      name: "condition-address",
-      attributeName: "any",
-      value: "0x00000000219ab540356cbb839cbe05303d7705fa",
-      expectedValue: "0x00000000219ab540356cbb839cbe05303d7705fa",
-      attributeOperation: ATTRIBUTE_OPERATIONS.indexOf("EQUAL"),
-      typeOfValue: ATTRIBUTE_TYPES.indexOf("ADDRESS"),
-    },
-    {
-      name: "condition-uint256",
-      attributeName: "any",
-      value: `0x${(42).toString(16)}`, // 42 in hex
-      expectedValue: "42", // as string, because UINT256 can be greater than JS' Number.MAX_SAFE_INTEGER
-      attributeOperation: ATTRIBUTE_OPERATIONS.indexOf("EQUAL"),
-      typeOfValue: ATTRIBUTE_TYPES.indexOf("UINT256"),
-    },
-  ];
-  const policyName = `policy-test-${crypto.randomBytes(16).toString("hex")}`;
-  const description = crypto.randomBytes(16).toString("hex");
-
-  await contract.insertPolicy(
-    opType,
-    // Remove "expectedValue" from properties
-    policyConditions.map(({ expectedValue, ...otherProps }) => otherProps),
-    policyName,
-    description,
-  );
-
-  return {
-    policyId,
-    opType,
-    policyConditions,
-    policyName,
-    description,
-    status: true,
-  };
-}
-
-export async function insertUser(
-  contract: PolicyRegistry,
-): Promise<UserObject> {
-  const attributeNames = ["test-attr1", "test-attr2", "test-attr3"];
-  const attributeValues = [
-    `0x${crypto.randomBytes(12).toString("hex")}`,
-    `0x${crypto.randomBytes(20).toString("hex")}`,
-    `0x${crypto.randomBytes(32).toString("hex")}`,
-  ];
-  const user: UserObject = {
-    address: ethers.Wallet.createRandom().address,
-    attributes: {},
-  };
-  attributeNames.forEach((name, i) => {
-    user.attributes[name] = attributeValues[i]!;
-  });
-
-  await contract.insertUserAttributes(
-    user.address,
-    attributeNames,
-    attributeValues,
-  );
-
-  return user;
 }
 
 export async function deployPoliciesRegistryContract(): Promise<PolicyRegistry> {
@@ -163,22 +59,128 @@ export async function deployPoliciesRegistryContract(): Promise<PolicyRegistry> 
   return policiesRegistry;
 }
 
-export interface SetupOptions {
-  policiesTotal?: number;
-  usersTotal?: number;
+export async function insertPolicy(
+  contract: PolicyRegistry,
+  policyId: number,
+): Promise<PolicyObject> {
+  const opType = OPERATION_TYPES.indexOf("AND");
+  const policyConditions = [
+    {
+      attributeName: "any",
+      attributeOperation: ATTRIBUTE_OPERATIONS.indexOf("EQUAL"),
+      expectedValue: "vxc4gdbfgb",
+      name: "condition-string",
+      typeOfValue: ATTRIBUTE_TYPES.indexOf("STRING"),
+      value: ethers.utils.toUtf8Bytes("vxc4gdbfgb"),
+    },
+    {
+      attributeName: "any",
+      attributeOperation: ATTRIBUTE_OPERATIONS.indexOf("EQUAL"),
+      expectedValue: "0x61736461736464", // bytes representation of "asdasdd"
+      name: "condition-bytes",
+      typeOfValue: ATTRIBUTE_TYPES.indexOf("BYTES"),
+      value: ethers.utils.toUtf8Bytes("asdasdd"),
+    },
+    {
+      attributeName: "any",
+      attributeOperation: ATTRIBUTE_OPERATIONS.indexOf("EQUAL"),
+      expectedValue: false,
+      name: "condition-boolean-uint8array",
+      typeOfValue: ATTRIBUTE_TYPES.indexOf("BOOLEAN"),
+      value: new Uint8Array(32),
+    },
+    {
+      attributeName: "any",
+      attributeOperation: ATTRIBUTE_OPERATIONS.indexOf("EQUAL"),
+      expectedValue: true,
+      name: "condition-boolean-array",
+      typeOfValue: ATTRIBUTE_TYPES.indexOf("BOOLEAN"),
+      value: [...(Array.from({ length: 31 }).fill(0) as number[]), 1],
+    },
+    {
+      attributeName: "any",
+      attributeOperation: ATTRIBUTE_OPERATIONS.indexOf("EQUAL"),
+      expectedValue: true,
+      name: "condition-boolean-string",
+      typeOfValue: ATTRIBUTE_TYPES.indexOf("BOOLEAN"),
+      value: `0x${"00".repeat(31)}01`,
+    },
+    {
+      attributeName: "any",
+      attributeOperation: ATTRIBUTE_OPERATIONS.indexOf("EQUAL"),
+      expectedValue: "0x00000000219ab540356cbb839cbe05303d7705fa",
+      name: "condition-address",
+      typeOfValue: ATTRIBUTE_TYPES.indexOf("ADDRESS"),
+      value: "0x00000000219ab540356cbb839cbe05303d7705fa",
+    },
+    {
+      attributeName: "any",
+      attributeOperation: ATTRIBUTE_OPERATIONS.indexOf("EQUAL"),
+      expectedValue: "42", // as string, because UINT256 can be greater than JS' Number.MAX_SAFE_INTEGER
+      name: "condition-uint256",
+      typeOfValue: ATTRIBUTE_TYPES.indexOf("UINT256"),
+      value: `0x${(42).toString(16)}`, // 42 in hex
+    },
+  ];
+  const policyName = `policy-test-${crypto.randomBytes(16).toString("hex")}`;
+  const description = crypto.randomBytes(16).toString("hex");
+
+  await contract.insertPolicy(
+    opType,
+    // Remove "expectedValue" from properties
+    policyConditions.map(({ expectedValue, ...otherProps }) => otherProps),
+    policyName,
+    description,
+  );
+
+  return {
+    description,
+    opType,
+    policyConditions,
+    policyId,
+    policyName,
+    status: true,
+  };
 }
 
-export async function setupTestEnv(
-  opts: SetupOptions = {
-    policiesTotal: 1,
-  },
-): Promise<{
-  provider: ethers.providers.JsonRpcProvider;
-  policiesRegistryContract: PolicyRegistry;
-  policies: PolicyObject[];
-  users: UserObject[];
+export async function insertUser(
+  contract: PolicyRegistry,
+): Promise<UserObject> {
+  const attributeNames = ["test-attr1", "test-attr2", "test-attr3"];
+  const attributeValues = [
+    `0x${crypto.randomBytes(12).toString("hex")}`,
+    `0x${crypto.randomBytes(20).toString("hex")}`,
+    `0x${crypto.randomBytes(32).toString("hex")}`,
+  ];
+  const user: UserObject = {
+    address: ethers.Wallet.createRandom().address,
+    attributes: {},
+  };
+  for (const [i, name] of attributeNames.entries()) {
+    user.attributes[name] = attributeValues[i]!;
+  }
+
+  await contract.insertUserAttributes(
+    user.address,
+    attributeNames,
+    attributeValues,
+  );
+
+  return user;
+}
+
+export async function setupTestEnv(opts: SetupOptions): Promise<{
   adminWallet: ethers.Wallet;
+  policies: PolicyObject[];
+  policiesRegistryContract: PolicyRegistry;
+  provider: ethers.providers.JsonRpcProvider;
+  users: UserObject[];
 }> {
+  const { policiesTotal, usersTotal } = {
+    policiesTotal: 1,
+    usersTotal: 1,
+    ...opts,
+  };
   const ethersProvider = hre.ethers.provider;
 
   // Deploy contract
@@ -200,25 +202,25 @@ export async function setupTestEnv(
   };
 
   const policies =
-    opts.policiesTotal! >= 1
-      ? (await range(0, opts.policiesTotal)
+    policiesTotal >= 1
+      ? (await range(0, policiesTotal)
           .pipe(mergeMap(createPolicy), toArray())
           .toPromise())!
       : [];
 
   const users =
-    opts.usersTotal! >= 1
-      ? (await range(0, opts.usersTotal)
+    usersTotal >= 1
+      ? (await range(0, usersTotal)
           .pipe(mergeMap(createUser), toArray())
           .toPromise())!
       : [];
 
   // Return test env variables
   return {
-    provider: ethersProvider,
-    policiesRegistryContract,
-    policies,
-    users,
     adminWallet,
+    policies,
+    policiesRegistryContract,
+    provider: ethersProvider,
+    users,
   };
 }

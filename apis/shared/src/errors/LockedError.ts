@@ -5,9 +5,9 @@ import { ProblemDetailsError } from "./ProblemDetailsError.js";
  */
 
 export class LockedError extends ProblemDetailsError {
-  static statusCode = 423;
-
   static defaultTitle = "Locked";
+
+  static statusCode = 423;
 
   /**
    * @param title A short, human-readable summary of the problem type. It SHOULD NOT change from occurrence to occurrence of the problem, except for purposes of localization.
@@ -20,10 +20,10 @@ export class LockedError extends ProblemDetailsError {
   constructor(
     title: string = LockedError.defaultTitle,
     options?: {
-      type?: string;
       detail?: string;
-      instance?: string;
       extensions?: Record<string, unknown>;
+      instance?: string;
+      type?: string;
     },
   ) {
     super(LockedError.statusCode, title, options);

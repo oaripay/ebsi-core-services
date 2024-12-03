@@ -1,21 +1,13 @@
 import { isDidV1 } from "@ebsiint-api/shared";
-import { z } from "zod";
 import { Resolver } from "did-resolver";
-import { jsonRpcSchema } from "./JsonRpcSchema.js";
+import { z } from "zod";
+
 import { baseParamSchema } from "./BaseParamSchema.js";
+import { jsonRpcSchema } from "./JsonRpcSchema.js";
 
 export const authoriseDidSchemaBuilder = (didResolver: Resolver) =>
   baseParamSchema.merge(
     z.object({
-      senderDid: z.string().superRefine((val, ctx) => {
-        const didValidation = isDidV1(val);
-        if (!didValidation.success) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: didValidation.error,
-          });
-        }
-      }),
       authorisedDid: z.string().superRefine(async (val, ctx) => {
         const didValidation = isDidV1(val);
 
@@ -37,6 +29,15 @@ export const authoriseDidSchemaBuilder = (didResolver: Resolver) =>
               typeof doc.didResolutionMetadata["message"] === "string"
                 ? doc.didResolutionMetadata["message"]
                 : `DID document ${val} not found`,
+          });
+        }
+      }),
+      senderDid: z.string().superRefine((val, ctx) => {
+        const didValidation = isDidV1(val);
+        if (!didValidation.success) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: didValidation.error,
           });
         }
       }),

@@ -1,28 +1,28 @@
 import { errors as EthersErrorCodes, Transaction } from "ethers";
 
 export interface EthersError extends Error {
+  address?: string;
+  args?: unknown[];
+  cancelled?: boolean;
+  // Properties from code logic
+  code: EthersErrorCodes;
+  errorArgs?: unknown[];
+  errorSignature?: string;
+  hash?: string;
+  method?: string;
+  reason: string;
+  receipt?: unknown;
+
+  replacement?: unknown;
   /**
    * Properties documented
    * @see https://github.com/ethers-io/ethers.js/blob/master/packages/logger/src.ts/index.ts#L113-L148
    */
   transaction?: Transaction;
-  address?: string;
-  args?: unknown[];
-  method?: string;
-  errorSignature?: string;
-  errorArgs?: unknown[];
-  cancelled?: boolean;
-  hash?: string;
-  replacement?: unknown;
-  receipt?: unknown;
-
-  // Properties from code logic
-  code: EthersErrorCodes;
-  reason: string;
-  version?: string;
-
   // Properties from actual error returned
   transactionHash?: string;
+
+  version?: string;
 }
 
 export function isEthersError(err: unknown): err is EthersError {

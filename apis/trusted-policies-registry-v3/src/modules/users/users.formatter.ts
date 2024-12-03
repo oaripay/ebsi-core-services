@@ -1,5 +1,6 @@
+import { paginate, PaginatedList } from "@ebsiint-api/shared";
 import { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry-v2";
-import { PaginatedList, paginate } from "@ebsiint-api/shared";
+
 import { UserLink } from "./users.interface.js";
 
 export function formatUsers(
@@ -13,8 +14,8 @@ export function formatUsers(
   // Reshape items
   const items = users.items.map((user) => {
     return {
-      user,
       href: `${baseUrl}/${user}`,
+      user,
     };
   });
 

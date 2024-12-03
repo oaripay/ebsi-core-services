@@ -1,12 +1,12 @@
+import { IsBaseDocument, IsDidV1, IsPublicKeyHex } from "@ebsiint-api/shared";
 import {
-  IsString,
+  Equals,
   IsHexadecimal,
   IsInt,
-  Min,
-  Equals,
+  IsString,
   Matches,
+  Min,
 } from "class-validator";
-import { IsDidV1, IsBaseDocument, IsPublicKeyHex } from "@ebsiint-api/shared";
 
 export class ArgsInsertDidDocument {
   @IsDidV1()

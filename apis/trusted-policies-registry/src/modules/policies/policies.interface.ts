@@ -21,23 +21,23 @@ export const OPERATION_TYPES = [
 ] as const;
 
 export interface PolicyConditionStructOutput {
-  name: string;
   attributeName: string;
-  typeOfValue: (typeof ATTRIBUTE_TYPES)[number];
-  value: string | boolean;
   attributeOperation: (typeof ATTRIBUTE_OPERATIONS)[number];
-}
-
-export interface PolicyResponseObject {
-  policyId: string;
-  description: string;
-  policyName: string;
-  operationType: (typeof OPERATION_TYPES)[number];
-  status: boolean;
-  policyConditions: PolicyConditionStructOutput[];
+  name: string;
+  typeOfValue: (typeof ATTRIBUTE_TYPES)[number];
+  value: boolean | string;
 }
 
 export interface PolicyLink {
-  policyName: string;
   href: string;
+  policyName: string;
+}
+
+export interface PolicyResponseObject {
+  description: string;
+  operationType: (typeof OPERATION_TYPES)[number];
+  policyConditions: PolicyConditionStructOutput[];
+  policyId: string;
+  policyName: string;
+  status: boolean;
 }

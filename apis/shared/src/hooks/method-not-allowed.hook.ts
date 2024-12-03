@@ -1,8 +1,9 @@
 import type { onRequestHookHandler } from "fastify";
+
 import {
   HTTP_METHODS,
-  MethodNotAllowedError,
   type HttpMethod,
+  MethodNotAllowedError,
 } from "../errors/MethodNotAllowedError.js";
 
 /**

@@ -1,4 +1,5 @@
 import { IsHexadecimal, IsOptional, Length, Matches } from "class-validator";
+
 import { GetIssuerParamsDto } from "./get-issuer.params.dto.js";
 
 export class GetIssuerProxyParamsDto extends GetIssuerParamsDto {

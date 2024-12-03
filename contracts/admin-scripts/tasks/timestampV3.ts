@@ -1,4 +1,7 @@
 import { task } from "hardhat/config";
+
+import type { Timestamp } from "../src/types/contracts/timestamp-v3/timestamp/index.js";
+
 import { Settings } from "../utils/settings";
 
 task("timestampV3", "Deploy contract Track And Trace")
@@ -7,10 +10,10 @@ task("timestampV3", "Deploy contract Track And Trace")
   .setAction(
     async (
       taskArgs: {
-        upgrader: string;
         tpr: string;
+        upgrader: string;
       },
-      { ethers, upgrades, run },
+      { ethers, run, upgrades },
     ) => {
       // compile
       await run("compile", { quiet: true });
@@ -62,7 +65,7 @@ task("timestampV3", "Deploy contract Track And Trace")
   );
 
 task("timestampV3Upgrade", "Upgrade Timestamp").setAction(
-  async (taskArgs: NonNullable<unknown>, { ethers, upgrades, run }) => {
+  async (_, { ethers, run, upgrades }) => {
     // compile
     await run("compile", { force: true });
 
@@ -105,11 +108,11 @@ task("timestampV3Upgrade", "Upgrade Timestamp").setAction(
     console.log(`factory loaded`);
 
     // deploy
-    const timestamp = await upgrades.upgradeProxy(
+    const timestamp = (await upgrades.upgradeProxy(
       proxyAddress,
       timestampFactory,
-      { unsafeAllowLinkedLibraries: true, redeployImplementation: "always" },
-    );
+      { redeployImplementation: "always", unsafeAllowLinkedLibraries: true },
+    )) as Timestamp;
 
     console.log(
       `TrackAndTrace contract upgraded to ${await timestamp.getImplementation()}`,

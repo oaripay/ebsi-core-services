@@ -1,65 +1,68 @@
-import {
-  vi,
-  describe,
-  beforeAll,
-  beforeEach,
-  afterEach,
-  afterAll,
-  it,
-  expect,
-  MockInstance,
-} from "vitest";
-import { randomBytes } from "node:crypto";
-import axios from "axios";
-import request from "supertest";
-import { Test } from "@nestjs/testing";
-import { ValidationPipe, Logger } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
-import { ethers } from "ethers";
 import type { RawServerDefault } from "fastify";
+
+import { computeId, methodNotAllowed } from "@ebsiint-api/shared";
+import { SchemaSCRegistry } from "@ebsiint-sc/trusted-schemas-registry-v2";
 import { fastifyAccepts } from "@fastify/accepts";
+import { Logger, ValidationPipe } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import {
   FastifyAdapter,
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
+import { Test } from "@nestjs/testing";
+import axios from "axios";
+import { ethers } from "ethers";
 import {
-  SignJWT,
   calculateJwkThumbprint,
   exportJWK,
   generateKeyPair,
   type GenerateKeyPairResult,
+  SignJWT,
 } from "jose";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
-import { SchemaSCRegistry } from "@ebsiint-sc/trusted-schemas-registry-v2";
-import { computeId, methodNotAllowed } from "@ebsiint-api/shared";
-import { JsonRpcModule } from "./jsonrpc.module.js";
-import { JsonRpcService } from "./jsonrpc.service.js";
+import { randomBytes } from "node:crypto";
+import request from "supertest";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  MockInstance,
+  vi,
+} from "vitest";
+
+import type { ApiConfig } from "../../config/configuration.js";
 import type { JsonRpcResponseObject } from "./jsonrpc.interface.js";
-import { formatEthersUnsignedTransaction } from "./jsonrpc.utils.js";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
-import { setupTestEnv } from "../../../tests/utils/schemaRegistry.js";
+import type { InsertSchemaSchema } from "./validators/RequestInsertSchemaSchema.js";
+import type { UnsignedTransaction } from "./validators/RequestSendSignedTransactionSchema.js";
+import type { UpdateMetadataSchema } from "./validators/RequestUpdateMetadataSchema.js";
+import type { UpdateSchemaSchema } from "./validators/RequestUpdateSchemaSchema.js";
+
 import {
   createDid,
   createSchema,
   createVerifiableAuthorisationSchema,
 } from "../../../tests/utils/data.js";
+import { setupTestEnv } from "../../../tests/utils/schemaRegistry.js";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
 import { LedgerService } from "../ledger/ledger.service.js";
-import type { ApiConfig } from "../../config/configuration.js";
-import type { InsertSchemaSchema } from "./validators/RequestInsertSchemaSchema.js";
-import type { UpdateSchemaSchema } from "./validators/RequestUpdateSchemaSchema.js";
-import type { UpdateMetadataSchema } from "./validators/RequestUpdateMetadataSchema.js";
-import type { UnsignedTransaction } from "./validators/RequestSendSignedTransactionSchema.js";
-
-interface SupertestJsonRpcResponse {
-  status: number;
-  body: JsonRpcResponseObject;
-}
+import { JsonRpcModule } from "./jsonrpc.module.js";
+import { JsonRpcService } from "./jsonrpc.service.js";
+import { formatEthersUnsignedTransaction } from "./jsonrpc.utils.js";
 
 type JsonRpcParams =
   | InsertSchemaSchema
-  | UpdateSchemaSchema
-  | UpdateMetadataSchema;
+  | UpdateMetadataSchema
+  | UpdateSchemaSchema;
+
+interface SupertestJsonRpcResponse {
+  body: JsonRpcResponseObject;
+  status: number;
+}
 
 describe("JsonRpc Module", () => {
   let app: NestFastifyApplication;
@@ -137,8 +140,10 @@ describe("JsonRpc Module", () => {
       http.get(referencedSchemaUrl, () => HttpResponse.json(rawSchema)),
     );
 
-    schemaId = `0x${(await computeId(rawSchema)).toString("hex")}`;
-    schema2Id = `0x${(await computeId(rawSchema2)).toString("hex")}`;
+    const schemaIdBuffer = await computeId(rawSchema);
+    schemaId = `0x${schemaIdBuffer.toString("hex")}`;
+    const schema2IdBuffer = await computeId(rawSchema2);
+    schema2Id = `0x${schema2IdBuffer.toString("hex")}`;
 
     mockServer.resetHandlers();
 
@@ -188,29 +193,29 @@ describe("JsonRpc Module", () => {
     authApiKid = await calculateJwkThumbprint(publicKeyJwk);
 
     userAccessTokenPayload = {
-      sub: adminDid,
       scp: "openid tsr_write",
+      sub: adminDid,
     };
     userAccessToken = await new SignJWT(userAccessTokenPayload)
       .setProtectedHeader({
-        typ: "JWT",
         alg: "ES256",
         kid: authApiKid,
+        typ: "JWT",
       })
       .sign(authApiKeyPair.privateKey);
 
     defaultSignerSiopAccessTokenPayload = {
-      sub: testEnv.user.did,
       scp: "openid tsr_write",
+      sub: testEnv.user.did,
     };
 
     defaultSignerSiopAccessToken = await new SignJWT(
       defaultSignerSiopAccessTokenPayload,
     )
       .setProtectedHeader({
-        typ: "JWT",
         alg: "ES256",
         kid: authApiKid,
+        typ: "JWT",
       })
       .sign(authApiKeyPair.privateKey);
 
@@ -244,9 +249,7 @@ describe("JsonRpc Module", () => {
       jsonRpcService,
       "isDidControlledByAddress",
     );
-    isDidControlledByAddressMock.mockImplementation(async () =>
-      Promise.resolve(true),
-    );
+    isDidControlledByAddressMock.mockImplementation(() => true);
 
     // Mock $ref response
     mockServer.use(
@@ -271,9 +274,9 @@ describe("JsonRpc Module", () => {
 
     const param: JsonRpcParams = {
       from: signer.address,
-      schemaId,
-      schema: `0x${serializedSchemaBuffer.toString("hex")}`,
       metadata: `0x${serializedMetadataBuffer.toString("hex")}`,
+      schema: `0x${serializedSchemaBuffer.toString("hex")}`,
+      schemaId,
     } satisfies InsertSchemaSchema;
 
     // The DID does not exist
@@ -281,9 +284,10 @@ describe("JsonRpc Module", () => {
       if (url.includes(`/identifiers/${testEnv.user.did}/actions`)) {
         return Promise.resolve({
           data: {
-            jsonrpc: "2.0",
-            error: { code: -32600, message: "did doesn't exist" },
+            error: { code: -32_600, message: "did doesn't exist" },
+            // eslint-disable-next-line unicorn/no-null
             id: null,
+            jsonrpc: "2.0",
           },
           status: 400,
         });
@@ -296,15 +300,15 @@ describe("JsonRpc Module", () => {
       .post("/jsonrpc")
       .auth(defaultSignerSiopAccessToken, { type: "bearer" })
       .send({
+        id: 231,
         jsonrpc: "2.0",
         method: "insertSchema",
         params: [param],
-        id: 231,
       });
 
     expect(responseBuild.body).toStrictEqual({
-      jsonrpc: "2.0",
       id: 231,
+      jsonrpc: "2.0",
       result: {
         chainId: expect.any(String),
         data: expect.any(String),
@@ -320,6 +324,7 @@ describe("JsonRpc Module", () => {
 
     const unsignedTransaction = responseBuild.body.result;
     const uTx = formatEthersUnsignedTransaction(
+      // eslint-disable-next-line unicorn/prefer-structured-clone
       JSON.parse(
         JSON.stringify(unsignedTransaction),
       ) as unknown as UnsignedTransaction,
@@ -332,24 +337,24 @@ describe("JsonRpc Module", () => {
       .post("/jsonrpc")
       .auth(defaultSignerSiopAccessToken, { type: "bearer" })
       .send({
+        id: "45",
         jsonrpc: "2.0",
         method: "sendSignedTransaction",
         params: [
           {
             protocol: "eth",
-            unsignedTransaction,
             r,
             s,
-            v: `0x${Number(v).toString(16)}`,
             signedRawTransaction: sgnTx,
+            unsignedTransaction,
+            v: `0x${Number(v).toString(16)}`,
           },
         ],
-        id: "45",
       });
 
     expect(responseSend.body).toStrictEqual({
       error: {
-        code: -32600,
+        code: -32_600,
         message: `The DID ${testEnv.user.did} does not exist`,
       },
       id: "45",
@@ -404,9 +409,9 @@ describe("JsonRpc Module", () => {
     const kid = await calculateJwkThumbprint(await exportJWK(signer.publicKey));
     const accessTokenWithInvalidKid = await new SignJWT(userAccessTokenPayload)
       .setProtectedHeader({
-        typ: "JWT",
         alg: "ES256",
         kid,
+        typ: "JWT",
       })
       .sign(signer.privateKey);
 
@@ -431,9 +436,9 @@ describe("JsonRpc Module", () => {
       userAccessTokenPayload,
     )
       .setProtectedHeader({
-        typ: "JWT",
         alg: "ES256",
         kid: authApiKid,
+        typ: "JWT",
       })
       .sign(signer.privateKey);
 
@@ -464,9 +469,10 @@ describe("JsonRpc Module", () => {
 
     expect(response.body).toStrictEqual({
       error: {
-        code: -32600,
+        code: -32_600,
         message: "JSON-RPC payload must be an object",
       },
+      // eslint-disable-next-line unicorn/no-null
       id: null,
       jsonrpc: "2.0",
     });
@@ -478,20 +484,21 @@ describe("JsonRpc Module", () => {
     const wallet = ethers.Wallet.createRandom();
 
     const transaction = {
-      from: wallet.address,
-      to: schemasRegistryContract.address,
+      chainId: "0x1b3b",
       data: schemasRegistryContract.interface.encodeFunctionData(
         "insertSchema",
         [schemaId, serializedSchemaBuffer, serializedMetadataBuffer],
       ),
-      value: "0x00",
-      nonce: "0x00",
-      chainId: "0x1b3b",
+      from: wallet.address,
       gasLimit: "0x1000000",
       gasPrice: "0x00",
+      nonce: "0x00",
+      to: schemasRegistryContract.address,
+      value: "0x00",
     };
 
     const uTx = formatEthersUnsignedTransaction(
+      // eslint-disable-next-line unicorn/prefer-structured-clone
       JSON.parse(JSON.stringify(transaction)) as unknown as UnsignedTransaction,
     );
     uTx.chainId = Number(uTx.chainId);
@@ -502,31 +509,31 @@ describe("JsonRpc Module", () => {
       .post("/jsonrpc")
       .auth(userAccessToken, { type: "bearer" })
       .send({
+        id: "45",
         jsonrpc: "2.0",
         method: "sendSignedTransaction",
         params: [
           {
             protocol: "eth",
-            unsignedTransaction: transaction,
             r,
             s,
-            v: `0x${Number(v).toString(16)}`,
             signedRawTransaction: sgnTx,
+            unsignedTransaction: transaction,
+            v: `0x${Number(v).toString(16)}`,
           },
         ],
-        id: "45",
       });
 
     const { chainId } = await schemasRegistryContract.provider.getNetwork();
     const actualChainId = ethers.BigNumber.from(chainId).toHexString();
 
     expect(responseSend.body).toStrictEqual({
-      jsonrpc: "2.0",
-      id: "45",
       error: {
-        code: -32600,
+        code: -32_600,
         message: `Invalid unsignedTransaction.chainId. Expected ${actualChainId}. Received 0x1b3b`,
       },
+      id: "45",
+      jsonrpc: "2.0",
     });
     expect(responseSend.status).toBe(400);
   });
@@ -538,21 +545,21 @@ describe("JsonRpc Module", () => {
       .post("/jsonrpc")
       .auth(userAccessToken, { type: "bearer" })
       .send({
+        id: 123,
         jsonrpc: "2.0",
         method: "unknown-method",
         params: [],
-        id: 123,
       });
 
     expect(response.body).toStrictEqual({
-      jsonrpc: "2.0",
-      id: 123,
       error: {
-        code: -32600,
+        code: -32_600,
         message: expect.stringContaining(
           "The method 'unknown-method' is invalid",
         ),
       },
+      id: 123,
+      jsonrpc: "2.0",
     });
     expect(response.status).toBe(400);
   });
@@ -564,29 +571,29 @@ describe("JsonRpc Module", () => {
 
     const param: JsonRpcParams = {
       from: signer.address,
-      schemaId,
-      schema: `0x${serializedSchemaBuffer.toString("hex")}`,
       metadata: `0x${serializedMetadataBuffer.toString("hex")}`,
+      schema: `0x${serializedSchemaBuffer.toString("hex")}`,
+      schemaId,
     } satisfies InsertSchemaSchema;
 
     // The DID is not controlled by the signer
     vi.spyOn(jsonRpcService, "isDidControlledByAddress").mockImplementation(
-      async () => Promise.resolve(false),
+      () => Promise.resolve(false),
     );
 
     const responseBuild: SupertestJsonRpcResponse = await request(server)
       .post("/jsonrpc")
       .auth(defaultSignerSiopAccessToken, { type: "bearer" })
       .send({
+        id: 231,
         jsonrpc: "2.0",
         method: "insertSchema",
         params: [param],
-        id: 231,
       });
 
     expect(responseBuild.body).toStrictEqual({
-      jsonrpc: "2.0",
       id: 231,
+      jsonrpc: "2.0",
       result: {
         chainId: expect.any(String),
         data: expect.any(String),
@@ -602,6 +609,7 @@ describe("JsonRpc Module", () => {
 
     const unsignedTransaction = responseBuild.body.result;
     const uTx = formatEthersUnsignedTransaction(
+      // eslint-disable-next-line unicorn/prefer-structured-clone
       JSON.parse(
         JSON.stringify(unsignedTransaction),
       ) as unknown as UnsignedTransaction,
@@ -614,24 +622,24 @@ describe("JsonRpc Module", () => {
       .post("/jsonrpc")
       .auth(defaultSignerSiopAccessToken, { type: "bearer" })
       .send({
+        id: "45",
         jsonrpc: "2.0",
         method: "sendSignedTransaction",
         params: [
           {
             protocol: "eth",
-            unsignedTransaction,
             r,
             s,
-            v: `0x${Number(v).toString(16)}`,
             signedRawTransaction: sgnTx,
+            unsignedTransaction,
+            v: `0x${Number(v).toString(16)}`,
           },
         ],
-        id: "45",
       });
 
     expect(responseSend.body).toStrictEqual({
       error: {
-        code: -32600,
+        code: -32_600,
         message: `The DID ${testEnv.user.did} is not controlled by the address ${signer.address}`,
       },
       id: "45",
@@ -655,30 +663,30 @@ describe("JsonRpc Module", () => {
 
     const param: JsonRpcParams = {
       from: signer.address,
-      schemaId: schema2Id,
-      schema: `0x${serializedSchema2Buffer.toString("hex")}`,
       metadata: `0x${serializedMetadataBuffer.toString("hex")}`,
+      schema: `0x${serializedSchema2Buffer.toString("hex")}`,
+      schemaId: schema2Id,
     } satisfies InsertSchemaSchema;
 
     const response: SupertestJsonRpcResponse = await request(server)
       .post("/jsonrpc")
       .auth(defaultSignerSiopAccessToken, { type: "bearer" })
       .send({
+        id: 231,
         jsonrpc: "2.0",
         method: "insertSchema",
         params: [param],
-        id: 231,
       });
 
     expect(response.body).toStrictEqual({
-      jsonrpc: "2.0",
-      id: 231,
       error: {
-        code: -32600,
+        code: -32_600,
         message: expect.stringContaining(
           `Error downloading ${referencedSchemaUrl}`,
         ),
       },
+      id: 231,
+      jsonrpc: "2.0",
     });
     expect(response.status).toBe(400);
   });
@@ -692,7 +700,7 @@ describe("JsonRpc Module", () => {
       it("should return a valid unsigned transaction that we can sign and send to sendSignedTransaction", async () => {
         expect.assertions(4);
 
-        let param: JsonRpcParams | null = null;
+        let param: JsonRpcParams;
 
         const signer = ethers.Wallet.createRandom();
 
@@ -700,27 +708,27 @@ describe("JsonRpc Module", () => {
           case "insertSchema": {
             param = {
               from: signer.address,
-              schemaId,
-              schema: `0x${serializedSchemaBuffer.toString("hex")}`,
               metadata: `0x${serializedMetadataBuffer.toString("hex")}`,
-            } satisfies InsertSchemaSchema;
-            break;
-          }
-          case "updateSchema": {
-            param = {
-              from: signer.address,
+              schema: `0x${serializedSchemaBuffer.toString("hex")}`,
               schemaId,
-              schema: `0x${serializedUpdatedSchemaBuffer.toString("hex")}`,
-              metadata: `0x${serializedUpdatedMetadataBuffer.toString("hex")}`,
-            } satisfies UpdateSchemaSchema;
+            } satisfies InsertSchemaSchema;
             break;
           }
           case "updateMetadata": {
             param = {
               from: signer.address,
-              schemaRevisionId: ethers.utils.sha256(serializedSchemaBuffer),
               metadata: `0x${serializedMetadataBuffer2.toString("hex")}`,
+              schemaRevisionId: ethers.utils.sha256(serializedSchemaBuffer),
             } satisfies UpdateMetadataSchema;
+            break;
+          }
+          case "updateSchema": {
+            param = {
+              from: signer.address,
+              metadata: `0x${serializedUpdatedMetadataBuffer.toString("hex")}`,
+              schema: `0x${serializedUpdatedSchemaBuffer.toString("hex")}`,
+              schemaId,
+            } satisfies UpdateSchemaSchema;
             break;
           }
           default: {
@@ -732,15 +740,15 @@ describe("JsonRpc Module", () => {
           .post("/jsonrpc")
           .auth(defaultSignerSiopAccessToken, { type: "bearer" })
           .send({
+            id: 231,
             jsonrpc: "2.0",
             method,
             params: [param],
-            id: 231,
           });
 
         expect(responseBuild.body).toStrictEqual({
-          jsonrpc: "2.0",
           id: 231,
+          jsonrpc: "2.0",
           result: {
             chainId: expect.any(String),
             data: expect.any(String),
@@ -756,6 +764,7 @@ describe("JsonRpc Module", () => {
 
         const unsignedTransaction = responseBuild.body.result;
         const uTx = formatEthersUnsignedTransaction(
+          // eslint-disable-next-line unicorn/prefer-structured-clone
           JSON.parse(
             JSON.stringify(unsignedTransaction),
           ) as unknown as UnsignedTransaction,
@@ -768,24 +777,24 @@ describe("JsonRpc Module", () => {
           .post("/jsonrpc")
           .auth(defaultSignerSiopAccessToken, { type: "bearer" })
           .send({
+            id: "45",
             jsonrpc: "2.0",
             method: "sendSignedTransaction",
             params: [
               {
                 protocol: "eth",
-                unsignedTransaction,
                 r,
                 s,
-                v: `0x${Number(v).toString(16)}`,
                 signedRawTransaction: sgnTx,
+                unsignedTransaction,
+                v: `0x${Number(v).toString(16)}`,
               },
             ],
-            id: "45",
           });
 
         expect(responseSend.body).toStrictEqual({
-          jsonrpc: "2.0",
           id: "45",
+          jsonrpc: "2.0",
           result: expect.any(String),
         });
         expect(responseSend.status).toBe(200);
@@ -796,33 +805,33 @@ describe("JsonRpc Module", () => {
 
         const signer = ethers.Wallet.createRandom();
 
-        let param: JsonRpcParams | null = null;
+        let param: JsonRpcParams;
 
         switch (method) {
           case "insertSchema": {
             param = {
               from: signer.address,
-              schemaId,
+              metadata: `0x${serializedMetadataBuffer.toString("hex")}`,
               schema: `0x${serializedSchemaBuffer.toString("hex")}`,
-              metadata: `0x${serializedMetadataBuffer.toString("hex")}`,
-            } satisfies InsertSchemaSchema;
-            break;
-          }
-          case "updateSchema": {
-            param = {
-              from: signer.address,
               schemaId,
-              schema: `0x${serializedUpdatedSchemaBuffer.toString("hex")}`,
-              metadata: `0x${serializedMetadataBuffer.toString("hex")}`,
-            } satisfies UpdateSchemaSchema;
+            } satisfies InsertSchemaSchema;
             break;
           }
           case "updateMetadata": {
             param = {
               from: signer.address,
-              schemaRevisionId: ethers.utils.sha256(serializedSchemaBuffer),
               metadata: `0x${serializedMetadataBuffer2.toString("hex")}`,
+              schemaRevisionId: ethers.utils.sha256(serializedSchemaBuffer),
             } satisfies UpdateMetadataSchema;
+            break;
+          }
+          case "updateSchema": {
+            param = {
+              from: signer.address,
+              metadata: `0x${serializedMetadataBuffer.toString("hex")}`,
+              schema: `0x${serializedUpdatedSchemaBuffer.toString("hex")}`,
+              schemaId,
+            } satisfies UpdateSchemaSchema;
             break;
           }
           default: {
@@ -841,8 +850,9 @@ describe("JsonRpc Module", () => {
           });
 
         expect(responseBuild.body).toStrictEqual({
-          jsonrpc: "2.0",
+          // eslint-disable-next-line unicorn/no-null
           id: null,
+          jsonrpc: "2.0",
           result: expect.objectContaining({}),
         });
         expect(responseBuild.status).toBe(200);
@@ -854,187 +864,182 @@ describe("JsonRpc Module", () => {
         const signer = ethers.Wallet.createRandom();
 
         const testSetup: {
-          params: JsonRpcParams;
           expectedErrorMessages: string[];
+          params: JsonRpcParams;
         }[] = [];
 
         switch (method) {
           case "insertSchema": {
-            // `schema` param is not valid JSON encoded in hex
-            testSetup.push({
-              params: {
-                from: signer.address,
-                schemaId,
-                schema: "0x1234",
-                metadata: `0x${serializedMetadataBuffer.toString("hex")}`,
-              } satisfies InsertSchemaSchema,
-              expectedErrorMessages: [
-                "Invalid 'params.0.schema': Must be a JSON object encoded in hexadecimal",
-              ],
-            });
-
-            // `metadata` param is not valid JSON encoded in hex
-            testSetup.push({
-              params: {
-                from: signer.address,
-                schemaId,
-                schema: `0x${serializedSchemaBuffer.toString("hex")}`,
-                metadata: "0x1234",
-              } satisfies InsertSchemaSchema,
-              expectedErrorMessages: [
-                "Invalid 'params.0.metadata': Must be a JSON object encoded in hexadecimal",
-              ],
-            });
-
-            // `metadata` param doesn't start with 0x
-            testSetup.push({
-              params: {
-                from: signer.address,
-                schemaId,
-                schema: `0x${serializedSchemaBuffer.toString("hex")}`,
-                metadata: serializedMetadataBuffer.toString("hex"),
-              } satisfies InsertSchemaSchema,
-              expectedErrorMessages: [
-                "Invalid 'params.0.metadata': Must start with 0x",
-              ],
-            });
-
-            // Multiple errors at the same time
-            testSetup.push({
-              params: {
-                from: signer.address,
-                schemaId: "42",
-                schema: "0x123",
-                metadata: "0x1234",
-              } satisfies InsertSchemaSchema,
-              expectedErrorMessages: [
-                "Invalid 'params.0.schemaId': Must start with 0x",
-                "Invalid 'params.0.schema': Length must be even",
-                "Invalid 'params.0.metadata': Must be a JSON object encoded in hexadecimal",
-              ],
-            });
+            testSetup.push(
+              // `schema` param is not valid JSON encoded in hex
+              {
+                expectedErrorMessages: [
+                  "Invalid 'params.0.schema': Must be a JSON object encoded in hexadecimal",
+                ],
+                params: {
+                  from: signer.address,
+                  metadata: `0x${serializedMetadataBuffer.toString("hex")}`,
+                  schema: "0x1234",
+                  schemaId,
+                } satisfies InsertSchemaSchema,
+              },
+              // `metadata` param is not valid JSON encoded in hex
+              {
+                expectedErrorMessages: [
+                  "Invalid 'params.0.metadata': Must be a JSON object encoded in hexadecimal",
+                ],
+                params: {
+                  from: signer.address,
+                  metadata: "0x1234",
+                  schema: `0x${serializedSchemaBuffer.toString("hex")}`,
+                  schemaId,
+                } satisfies InsertSchemaSchema,
+              },
+              // `metadata` param doesn't start with 0x
+              {
+                expectedErrorMessages: [
+                  "Invalid 'params.0.metadata': Must start with 0x",
+                ],
+                params: {
+                  from: signer.address,
+                  metadata: serializedMetadataBuffer.toString("hex"),
+                  schema: `0x${serializedSchemaBuffer.toString("hex")}`,
+                  schemaId,
+                } satisfies InsertSchemaSchema,
+              },
+              {
+                expectedErrorMessages: [
+                  "Invalid 'params.0.schemaId': Must start with 0x",
+                  "Invalid 'params.0.schema': Length must be even",
+                  "Invalid 'params.0.metadata': Must be a JSON object encoded in hexadecimal",
+                ],
+                params: {
+                  from: signer.address,
+                  metadata: "0x1234",
+                  schema: "0x123",
+                  schemaId: "42",
+                } satisfies InsertSchemaSchema,
+              },
+            );
 
             // `schemaId` param doesn't match the computed schema ID
             const randomSchemaId = `0x${randomBytes(32).toString("hex")}`;
             testSetup.push({
-              params: {
-                from: signer.address,
-                schemaId: randomSchemaId,
-                schema: `0x${serializedSchemaBuffer.toString("hex")}`,
-                metadata: `0x${serializedMetadataBuffer.toString("hex")}`,
-              } satisfies InsertSchemaSchema,
               expectedErrorMessages: [
                 `Invalid 'params.0.schemaId': "${randomSchemaId}" is different from the actual schema ID "${schemaId}"`,
               ],
-            });
-
-            break;
-          }
-          case "updateSchema": {
-            // `schema` param is not valid JSON encoded in hex
-            testSetup.push({
               params: {
                 from: signer.address,
-                schemaId,
-                schema: "0x1234",
                 metadata: `0x${serializedMetadataBuffer.toString("hex")}`,
-              } satisfies UpdateSchemaSchema,
-              expectedErrorMessages: [
-                "Invalid 'params.0.schema': Must be a JSON object encoded in hexadecimal",
-              ],
-            });
-
-            // `metadata` param is not valid JSON encoded in hex
-            testSetup.push({
-              params: {
-                from: signer.address,
-                schemaId,
-                schema: `0x${serializedUpdatedSchemaBuffer.toString("hex")}`,
-                metadata: "0x1234",
-              } satisfies UpdateSchemaSchema,
-              expectedErrorMessages: [
-                "Invalid 'params.0.metadata': Must be a JSON object encoded in hexadecimal",
-              ],
-            });
-
-            // `schemaId` is not an hex string
-            testSetup.push({
-              params: {
-                from: signer.address,
-                schemaId: "11.11.2011",
-                schema: `0x${serializedUpdatedSchemaBuffer.toString("hex")}`,
-                metadata: `0x${serializedMetadataBuffer.toString("hex")}`,
-              } satisfies UpdateSchemaSchema,
-              expectedErrorMessages: [
-                "Invalid 'params.0.schemaId': Must start with 0x",
-              ],
-            });
-
-            // Multiple errors at the same time
-            testSetup.push({
-              params: {
-                from: signer.address,
-                schemaId: "42",
-                schema: "0x123",
-                metadata: "0x1234",
-              } satisfies UpdateSchemaSchema,
-              expectedErrorMessages: [
-                "Invalid 'params.0.schemaId': Must start with 0x",
-                "Invalid 'params.0.schema': Length must be even",
-                "Invalid 'params.0.metadata': Must be a JSON object encoded in hexadecimal",
-              ],
-            });
-
-            // the user tries to insert breaking changes (update schema1 with schema2)
-            testSetup.push({
-              params: {
-                from: signer.address,
-                schemaId,
-                schema: `0x${serializedSchema2Buffer.toString("hex")}`,
-                metadata: `0x${serializedMetadataBuffer2.toString("hex")}`,
-              } satisfies UpdateSchemaSchema,
-              expectedErrorMessages: [
-                `Invalid 'params.0.schemaId': "${schemaId}" is different from the actual schema ID "${schema2Id}"`,
-              ],
+                schema: `0x${serializedSchemaBuffer.toString("hex")}`,
+                schemaId: randomSchemaId,
+              } satisfies InsertSchemaSchema,
             });
 
             break;
           }
           case "updateMetadata": {
-            testSetup.push({
-              params: {
-                from: signer.address,
-                schemaRevisionId: "1234",
-                metadata: `0x${serializedMetadataBuffer2.toString("hex")}`,
-              } satisfies UpdateMetadataSchema,
-              expectedErrorMessages: [
-                "Invalid 'params.0.schemaRevisionId': Must start with 0x",
-              ],
-            });
+            testSetup.push(
+              {
+                expectedErrorMessages: [
+                  "Invalid 'params.0.schemaRevisionId': Must start with 0x",
+                ],
+                params: {
+                  from: signer.address,
+                  metadata: `0x${serializedMetadataBuffer2.toString("hex")}`,
+                  schemaRevisionId: "1234",
+                } satisfies UpdateMetadataSchema,
+              },
+              {
+                expectedErrorMessages: [
+                  "Invalid 'params.0.schemaRevisionId': Must be hexadecimal",
+                  "Invalid 'params.0.metadata': Must be a JSON object encoded in hexadecimal",
+                ],
+                params: {
+                  from: signer.address,
+                  metadata: "0x1234",
+                  schemaRevisionId: "0x",
+                } satisfies UpdateMetadataSchema,
+              },
+              {
+                expectedErrorMessages: [
+                  "Invalid 'params.0.schemaRevisionId': Must be hexadecimal",
+                  "Invalid 'params.0.metadata': Must start with 0x",
+                ],
+                params: {
+                  from: signer.address,
+                  metadata: serializedMetadataBuffer.toString("hex"),
+                  schemaRevisionId: "0x",
+                } satisfies UpdateMetadataSchema,
+              },
+            );
 
-            testSetup.push({
-              params: {
-                from: signer.address,
-                schemaRevisionId: "0x",
-                metadata: "0x1234",
-              } satisfies UpdateMetadataSchema,
-              expectedErrorMessages: [
-                "Invalid 'params.0.schemaRevisionId': Must be hexadecimal",
-                "Invalid 'params.0.metadata': Must be a JSON object encoded in hexadecimal",
-              ],
-            });
-
-            testSetup.push({
-              params: {
-                from: signer.address,
-                schemaRevisionId: "0x",
-                metadata: serializedMetadataBuffer.toString("hex"),
-              } satisfies UpdateMetadataSchema,
-              expectedErrorMessages: [
-                "Invalid 'params.0.schemaRevisionId': Must be hexadecimal",
-                "Invalid 'params.0.metadata': Must start with 0x",
-              ],
-            });
+            break;
+          }
+          case "updateSchema": {
+            testSetup.push(
+              // `schema` param is not valid JSON encoded in hex
+              {
+                expectedErrorMessages: [
+                  "Invalid 'params.0.schema': Must be a JSON object encoded in hexadecimal",
+                ],
+                params: {
+                  from: signer.address,
+                  metadata: `0x${serializedMetadataBuffer.toString("hex")}`,
+                  schema: "0x1234",
+                  schemaId,
+                } satisfies UpdateSchemaSchema,
+              },
+              // `metadata` param is not valid JSON encoded in hex
+              {
+                expectedErrorMessages: [
+                  "Invalid 'params.0.metadata': Must be a JSON object encoded in hexadecimal",
+                ],
+                params: {
+                  from: signer.address,
+                  metadata: "0x1234",
+                  schema: `0x${serializedUpdatedSchemaBuffer.toString("hex")}`,
+                  schemaId,
+                } satisfies UpdateSchemaSchema,
+              },
+              // `schemaId` is not an hex string
+              {
+                expectedErrorMessages: [
+                  "Invalid 'params.0.schemaId': Must start with 0x",
+                ],
+                params: {
+                  from: signer.address,
+                  metadata: `0x${serializedMetadataBuffer.toString("hex")}`,
+                  schema: `0x${serializedUpdatedSchemaBuffer.toString("hex")}`,
+                  schemaId: "11.11.2011",
+                } satisfies UpdateSchemaSchema,
+              },
+              {
+                expectedErrorMessages: [
+                  "Invalid 'params.0.schemaId': Must start with 0x",
+                  "Invalid 'params.0.schema': Length must be even",
+                  "Invalid 'params.0.metadata': Must be a JSON object encoded in hexadecimal",
+                ],
+                params: {
+                  from: signer.address,
+                  metadata: "0x1234",
+                  schema: "0x123",
+                  schemaId: "42",
+                } satisfies UpdateSchemaSchema,
+              },
+              // the user tries to insert breaking changes (update schema1 with schema2)
+              {
+                expectedErrorMessages: [
+                  `Invalid 'params.0.schemaId': "${schemaId}" is different from the actual schema ID "${schema2Id}"`,
+                ],
+                params: {
+                  from: signer.address,
+                  metadata: `0x${serializedMetadataBuffer2.toString("hex")}`,
+                  schema: `0x${serializedSchema2Buffer.toString("hex")}`,
+                  schemaId,
+                } satisfies UpdateSchemaSchema,
+              },
+            );
 
             break;
           }
@@ -1045,28 +1050,26 @@ describe("JsonRpc Module", () => {
 
         expect.assertions(testSetup.length * 3);
 
-        // eslint-disable-next-line no-restricted-syntax
         for (const setup of testSetup) {
-          // eslint-disable-next-line no-await-in-loop
           const response = await request(server)
             .post("/jsonrpc")
             .auth(defaultSignerSiopAccessToken, {
               type: "bearer",
             })
             .send({
+              id: 231,
               jsonrpc: "2.0",
               method,
               params: [setup.params],
-              id: 231,
             });
 
           expect(response.body).toStrictEqual({
-            jsonrpc: "2.0",
-            id: 231,
             error: {
-              code: -32600,
+              code: -32_600,
               message: expect.any(String),
             },
+            id: 231,
+            jsonrpc: "2.0",
           });
           expect(
             (
@@ -1093,53 +1096,53 @@ describe("JsonRpc Module", () => {
           case "insertSchema": {
             param1 = {
               from: signer.address,
-              schemaId,
-              schema: `0x${serializedSchemaBuffer.toString("hex")}`,
               metadata: `0x${serializedMetadataBuffer.toString("hex")}`,
+              schema: `0x${serializedSchemaBuffer.toString("hex")}`,
+              schemaId,
             } satisfies InsertSchemaSchema;
 
             param2 = {
               from: signer.address,
-              schemaId,
+              metadata: `0x${Buffer.from(JSON.stringify(metadata2)).toString(
+                "hex",
+              )}`,
               schema: `0x${serializedSchemaBuffer.toString("hex")}`,
-              metadata: `0x${Buffer.from(JSON.stringify(metadata2)).toString(
-                "hex",
-              )}`,
+              schemaId,
             } satisfies InsertSchemaSchema;
-
-            break;
-          }
-          case "updateSchema": {
-            param1 = {
-              from: signer.address,
-              schemaId,
-              schema: `0x${serializedUpdatedSchemaBuffer.toString("hex")}`,
-              metadata: `0x${serializedMetadataBuffer.toString("hex")}`,
-            } satisfies UpdateSchemaSchema;
-
-            param2 = {
-              from: signer.address,
-              schemaId,
-              schema: `0x${serializedUpdatedSchemaBuffer.toString("hex")}`,
-              metadata: `0x${Buffer.from(JSON.stringify(metadata2)).toString(
-                "hex",
-              )}`,
-            } satisfies UpdateSchemaSchema;
 
             break;
           }
           case "updateMetadata": {
             param1 = {
               from: signer.address,
-              schemaRevisionId: ethers.utils.sha256(serializedSchemaBuffer),
               metadata: `0x${serializedMetadataBuffer2.toString("hex")}`,
+              schemaRevisionId: ethers.utils.sha256(serializedSchemaBuffer),
             } satisfies UpdateMetadataSchema;
 
             param2 = {
               from: signer.address,
-              schemaRevisionId: ethers.utils.sha256(serializedSchemaBuffer),
               metadata: `0x${serializedMetadataBuffer.toString("hex")}`,
+              schemaRevisionId: ethers.utils.sha256(serializedSchemaBuffer),
             } satisfies UpdateMetadataSchema;
+            break;
+          }
+          case "updateSchema": {
+            param1 = {
+              from: signer.address,
+              metadata: `0x${serializedMetadataBuffer.toString("hex")}`,
+              schema: `0x${serializedUpdatedSchemaBuffer.toString("hex")}`,
+              schemaId,
+            } satisfies UpdateSchemaSchema;
+
+            param2 = {
+              from: signer.address,
+              metadata: `0x${Buffer.from(JSON.stringify(metadata2)).toString(
+                "hex",
+              )}`,
+              schema: `0x${serializedUpdatedSchemaBuffer.toString("hex")}`,
+              schemaId,
+            } satisfies UpdateSchemaSchema;
+
             break;
           }
           default: {
@@ -1151,10 +1154,10 @@ describe("JsonRpc Module", () => {
           .post("/jsonrpc")
           .auth(defaultSignerSiopAccessToken, { type: "bearer" })
           .send({
+            id: 231,
             jsonrpc: "2.0",
             method,
             params: [param1],
-            id: 231,
           });
 
         expect(responseBuild1.status).toBe(200);
@@ -1165,10 +1168,10 @@ describe("JsonRpc Module", () => {
           .post("/jsonrpc")
           .auth(defaultSignerSiopAccessToken, { type: "bearer" })
           .send({
+            id: 232,
             jsonrpc: "2.0",
             method,
             params: [param2],
-            id: 232,
           });
 
         expect(responseBuild2.status).toBe(200);
@@ -1177,6 +1180,7 @@ describe("JsonRpc Module", () => {
         const randomSigner = ethers.Wallet.createRandom();
 
         const uTx = formatEthersUnsignedTransaction(
+          // eslint-disable-next-line unicorn/prefer-structured-clone
           JSON.parse(
             JSON.stringify(transaction1),
           ) as unknown as UnsignedTransaction,
@@ -1190,30 +1194,30 @@ describe("JsonRpc Module", () => {
           .post("/jsonrpc")
           .auth(defaultSignerSiopAccessToken, { type: "bearer" })
           .send({
+            id: "45",
             jsonrpc: "2.0",
             method: "sendSignedTransaction",
             params: [
               {
                 protocol: "eth",
-                unsignedTransaction: transaction2,
                 r,
                 s,
-                v: `0x${Number(v).toString(16)}`,
                 signedRawTransaction: sgnTx1,
+                unsignedTransaction: transaction2,
+                v: `0x${Number(v).toString(16)}`,
               },
             ],
-            id: "45",
           });
 
         expect(responseSend1.body).toStrictEqual({
-          jsonrpc: "2.0",
-          id: "45",
           error: {
-            code: -32600,
+            code: -32_600,
             message: expect.stringContaining(
               "does not match with the signedRawTransaction",
             ),
           },
+          id: "45",
+          jsonrpc: "2.0",
         });
         expect(responseSend1.status).toBe(400);
 
@@ -1223,30 +1227,30 @@ describe("JsonRpc Module", () => {
           .post("/jsonrpc")
           .auth(defaultSignerSiopAccessToken, { type: "bearer" })
           .send({
+            id: "46",
             jsonrpc: "2.0",
             method: "sendSignedTransaction",
             params: [
               {
                 protocol: "eth",
-                unsignedTransaction: transaction1,
                 r,
                 s,
-                v: `0x${Number(v).toString(16)}`,
                 signedRawTransaction: sgnTx1,
+                unsignedTransaction: transaction1,
+                v: `0x${Number(v).toString(16)}`,
               },
             ],
-            id: "46",
           });
 
         expect(responseSend2.body).toStrictEqual({
-          jsonrpc: "2.0",
-          id: "46",
           error: {
-            code: -32600,
+            code: -32_600,
             message: expect.stringContaining(
               "does not match with unsignedTransaction.from",
             ),
           },
+          id: "46",
+          jsonrpc: "2.0",
         });
         expect(responseSend1.status).toBe(400);
       });

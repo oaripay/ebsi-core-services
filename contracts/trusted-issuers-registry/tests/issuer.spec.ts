@@ -1,11 +1,13 @@
+import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+
+import { expect } from "chai";
 import { ethers, network } from "hardhat";
 import crypto from "node:crypto";
-import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { expect } from "chai";
-import { testDidrAddress, testTprAddress } from "./testAddress";
+
 import type { DidRegistryMock, PolicyRegistryMock, Tir } from "../src/types";
 
-const num = ethers.BigNumber.from;
+import { testDidrAddress, testTprAddress } from "./testAddress";
+
 enum IssuerType {
   Undefined,
   RootTAO,
@@ -14,28 +16,17 @@ enum IssuerType {
   Revoked,
 }
 function getEthObject(o: unknown): Record<string, unknown> {
-  const obj = o as string[] & Record<string, unknown>;
+  const obj = o as Record<string, unknown> & string[];
   const keys = Object.keys(obj);
   const result: Record<string, unknown> = {};
-  keys.forEach((k, i) => {
+  for (const [i, k] of keys.entries()) {
     if (i >= keys.length / 2) result[k] = obj[k];
-  });
+  }
   return result;
 }
 
 function randomAttribute(): string {
   return `0x${crypto.randomBytes(10).toString("hex")}`;
-}
-
-function randomProxy(): string {
-  return Buffer.from(
-    JSON.stringify({
-      prefix: "https://localhost/my-provider/revocation/",
-      headers: { Authorization: "Bearer ABC" },
-      testSuffix: "/credentials/status/1",
-    }),
-    "utf-8",
-  ).toString("hex");
 }
 
 function randomDid(): string {
@@ -44,6 +35,17 @@ function randomDid(): string {
 
 function randomHash(): string {
   return `0x${crypto.randomBytes(32).toString("hex")}`;
+}
+
+function randomProxy(): string {
+  return Buffer.from(
+    JSON.stringify({
+      headers: { Authorization: "Bearer ABC" },
+      prefix: "https://localhost/my-provider/revocation/",
+      testSuffix: "/credentials/status/1",
+    }),
+    "utf8",
+  ).toString("hex");
 }
 
 describe("Issuers", () => {
@@ -203,8 +205,8 @@ describe("Issuers", () => {
       // get attribute
       let issuerAttr = await tir.getIssuerAttributeByHash(issuerHashes[0]);
       expect(getEthObject(issuerAttr)).to.eql({
-        did: didIssuer,
         attribData: attributeData1,
+        did: didIssuer,
         issuerType: IssuerType.RootTAO,
         rootTao: didIssuer,
         tao: didIssuer,
@@ -228,8 +230,8 @@ describe("Issuers", () => {
       // get attributes
       issuerAttr = await tir.getIssuerAttributeByHash(issuerHashes[0]);
       expect(getEthObject(issuerAttr)).to.eql({
-        did: didIssuer,
         attribData: attributeData1,
+        did: didIssuer,
         issuerType: IssuerType.RootTAO,
         rootTao: didIssuer,
         tao: didIssuer,
@@ -237,8 +239,8 @@ describe("Issuers", () => {
 
       issuerAttr = await tir.getIssuerAttributeByHash(issuerHashes[1]);
       expect(getEthObject(issuerAttr)).to.eql({
-        did: didIssuer,
         attribData: attributeData2,
+        did: didIssuer,
         issuerType: IssuerType.RootTAO,
         rootTao: didIssuer,
         tao: didIssuer,
@@ -263,8 +265,8 @@ describe("Issuers", () => {
       // get attributes
       issuerAttr = await tir.getIssuerAttributeByHash(issuerHashes[0]);
       expect(getEthObject(issuerAttr)).to.eql({
-        did: didIssuer,
         attribData: attributeData1,
+        did: didIssuer,
         issuerType: IssuerType.RootTAO,
         rootTao: didIssuer,
         tao: didIssuer,
@@ -272,8 +274,8 @@ describe("Issuers", () => {
 
       issuerAttr = await tir.getIssuerAttributeByHash(issuerHashes[1]);
       expect(getEthObject(issuerAttr)).to.eql({
-        did: didIssuer,
         attribData: attributeData3,
+        did: didIssuer,
         issuerType: IssuerType.RootTAO,
         rootTao: didIssuer,
         tao: didIssuer,
@@ -286,11 +288,11 @@ describe("Issuers", () => {
         10,
       );
       expect(getEthObject(attrRevisions)).to.eql({
+        howMany: ethers.BigNumber.from(2),
         items: revisionsSecondHash,
-        total: num(2),
-        howMany: num(2),
-        prev: num(1),
-        next: num(1),
+        next: ethers.BigNumber.from(1),
+        prev: ethers.BigNumber.from(1),
+        total: ethers.BigNumber.from(2),
       });
     });
 
@@ -384,7 +386,7 @@ describe("Issuers", () => {
       const issuers: string[] = [];
       for (let i = 0; i < 18; i += 1) {
         issuers[i] = randomDid();
-        // eslint-disable-next-line no-await-in-loop
+
         await tir.insertIssuer(
           issuers[i],
           randomAttribute(),
@@ -397,41 +399,41 @@ describe("Issuers", () => {
       // get issuers: page 1
       let issPagination = await tir.getIssuers(1, 5);
       expect(getEthObject(issPagination)).to.eql({
+        howMany: ethers.BigNumber.from(5),
         items: issuers.slice(0, 5),
-        total: num(18),
-        howMany: num(5),
-        prev: num(1),
-        next: num(2),
+        next: ethers.BigNumber.from(2),
+        prev: ethers.BigNumber.from(1),
+        total: ethers.BigNumber.from(18),
       });
 
       // get issuers: page 2
       issPagination = await tir.getIssuers(2, 5);
       expect(getEthObject(issPagination)).to.eql({
+        howMany: ethers.BigNumber.from(5),
         items: issuers.slice(5, 10),
-        total: num(18),
-        howMany: num(5),
-        prev: num(1),
-        next: num(3),
+        next: ethers.BigNumber.from(3),
+        prev: ethers.BigNumber.from(1),
+        total: ethers.BigNumber.from(18),
       });
 
       // get issuers: page 3
       issPagination = await tir.getIssuers(3, 5);
       expect(getEthObject(issPagination)).to.eql({
+        howMany: ethers.BigNumber.from(5),
         items: issuers.slice(10, 15),
-        total: num(18),
-        howMany: num(5),
-        prev: num(2),
-        next: num(4),
+        next: ethers.BigNumber.from(4),
+        prev: ethers.BigNumber.from(2),
+        total: ethers.BigNumber.from(18),
       });
 
       // get issuers: page 4
       issPagination = await tir.getIssuers(4, 5);
       expect(getEthObject(issPagination)).to.eql({
+        howMany: ethers.BigNumber.from(3),
         items: issuers.slice(15, 20),
-        total: num(18),
-        howMany: num(3),
-        prev: num(3),
-        next: num(4),
+        next: ethers.BigNumber.from(4),
+        prev: ethers.BigNumber.from(3),
+        total: ethers.BigNumber.from(18),
       });
     });
 
@@ -523,8 +525,8 @@ describe("Issuers", () => {
       // get the second attribute
       const issuerAttr = await tir.getIssuerAttributeByHash(issuerHashes[1]);
       expect(getEthObject(issuerAttr)).to.eql({
-        did: didIssuer,
         attribData: `0x${attributeData.toString("hex")}`,
+        did: didIssuer,
         issuerType: IssuerType.Revoked,
         rootTao: didIssuer,
         tao: didIssuer,
@@ -537,8 +539,8 @@ describe("Issuers", () => {
 
       // create rootTAO
       const rootTAO = {
-        did: "did:ebsi:rootTAO",
         attributeId: crypto.randomBytes(32),
+        did: "did:ebsi:rootTAO",
       };
       await tir.setAttributeMetadata(
         rootTAO.did,
@@ -553,12 +555,12 @@ describe("Issuers", () => {
       // create TAO
       const taoAttributeData = crypto.randomBytes(100);
       const TAO = {
-        did: "did:ebsi:TAO",
         attribute: {
-          firstId: crypto.randomBytes(32),
           data: taoAttributeData,
+          firstId: crypto.randomBytes(32),
           revisionId2: ethers.utils.sha256(taoAttributeData),
         },
+        did: "did:ebsi:TAO",
       };
 
       // preregister the TAO (attributeId = firstId)
@@ -605,10 +607,10 @@ describe("Issuers", () => {
       // expect 3 revisions: firstId, revisionId2, and third update
       delete revisions.items;
       expect(revisions).to.eql({
-        total: num(3),
-        howMany: num(3),
-        prev: num(1),
-        next: num(1),
+        howMany: ethers.BigNumber.from(3),
+        next: ethers.BigNumber.from(1),
+        prev: ethers.BigNumber.from(1),
+        total: ethers.BigNumber.from(3),
       });
     });
 
@@ -646,8 +648,8 @@ describe("Issuers", () => {
       // get the attribute
       let issuerAttr = await tir.getIssuerAttributeByHash(issuerHashes[0]);
       expect(getEthObject(issuerAttr)).to.eql({
-        did: didIssuer,
         attribData: "0x",
+        did: didIssuer,
         issuerType: IssuerType.RootTAO,
         // the rootTao is the issuer itself
         rootTao: didIssuer,
@@ -671,8 +673,8 @@ describe("Issuers", () => {
       // get the attribute
       issuerAttr = await tir.getIssuerAttributeByHash(issuerHashes[0]);
       expect(getEthObject(issuerAttr)).to.eql({
-        did: didIssuer,
         attribData: "0x",
+        did: didIssuer,
         issuerType: IssuerType.Revoked,
         // here the rootTao and tao is reassigned to support office
         rootTao: didSupportOffice,
@@ -836,7 +838,7 @@ describe("Issuers", () => {
         didIssuer,
         proxyId,
       );
-      expect(proxyDataReturned).to.not.eq(undefined);
+      expect(proxyDataReturned).to.eq(proxyData1);
     });
 
     it("updateIssuerProxy: update a specific proxy record", async () => {

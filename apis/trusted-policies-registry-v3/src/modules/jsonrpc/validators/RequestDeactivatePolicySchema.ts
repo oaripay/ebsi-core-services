@@ -1,11 +1,11 @@
-import { z } from "zod";
 import {
-  isBigNumberish,
   type BigNumberish,
-  // eslint-disable-next-line import/extensions
+  isBigNumberish,
 } from "@ethersproject/bignumber/lib/bignumber.js";
-import { jsonRpcSchema } from "./JsonRpcSchema.js";
+import { z } from "zod";
+
 import { baseParamSchema } from "./BaseParamSchema.js";
+import { jsonRpcSchema } from "./JsonRpcSchema.js";
 
 export const deactivatePolicySchema = baseParamSchema.merge(
   z.object({

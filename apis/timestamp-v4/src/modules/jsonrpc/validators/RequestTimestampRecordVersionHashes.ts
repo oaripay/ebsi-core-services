@@ -1,19 +1,18 @@
-import { z } from "zod";
 import {
   BigNumber,
-  isBigNumberish,
   type BigNumberish,
-  // eslint-disable-next-line import/extensions
+  isBigNumberish,
 } from "@ethersproject/bignumber/lib/bignumber.js";
-import { jsonRpcSchema } from "./JsonRpcSchema.js";
+import { z } from "zod";
+
 import { baseParamSchema } from "./BaseParamSchema.js";
+import { jsonRpcSchema } from "./JsonRpcSchema.js";
 import { refinements } from "./utils.js";
 
 const { isHexadecimal, isHexadecimalJSON } = refinements;
 
 export const timestampRecordVersionHashesSchema = baseParamSchema.merge(
   z.object({
-    recordId: z.string().superRefine(isHexadecimal),
     hashAlgorithmIds: z.array(
       z
         .custom<BigNumberish>((val) => isBigNumberish(val))
@@ -22,6 +21,7 @@ export const timestampRecordVersionHashesSchema = baseParamSchema.merge(
         }),
     ),
     hashValues: z.array(z.string().superRefine(isHexadecimal)),
+    recordId: z.string().superRefine(isHexadecimal),
     timestampData: z
       .array(z.string().superRefine(isHexadecimalJSON))
       .optional(),

@@ -1,13 +1,13 @@
 import { isDidV1 } from "@ebsiint-api/shared";
-import { z } from "zod";
 import {
   BigNumber,
-  isBigNumberish,
   type BigNumberish,
-  // eslint-disable-next-line import/extensions
+  isBigNumberish,
 } from "@ethersproject/bignumber/lib/bignumber.js";
-import { jsonRpcSchema } from "./JsonRpcSchema.js";
+import { z } from "zod";
+
 import { baseParamSchema } from "./BaseParamSchema.js";
+import { jsonRpcSchema } from "./JsonRpcSchema.js";
 
 export const expireVerificationMethodSchema = baseParamSchema.merge(
   z.object({
@@ -20,12 +20,12 @@ export const expireVerificationMethodSchema = baseParamSchema.merge(
         });
       }
     }),
-    vMethodId: z.string(),
     notAfter: z
       .custom<BigNumberish>((val) => isBigNumberish(val))
       .refine((val) => BigNumber.from(val).gte(0), {
         message: "Number must be greater than or equal to 0",
       }),
+    vMethodId: z.string(),
   }),
 );
 

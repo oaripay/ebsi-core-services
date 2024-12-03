@@ -1,8 +1,9 @@
-import { z } from "zod";
 import { isDidV1 } from "@ebsiint-api/shared";
 import validator from "validator";
-import { jsonRpcSchema } from "./JsonRpcSchema.js";
+import { z } from "zod";
+
 import { baseParamSchema } from "./BaseParamSchema.js";
+import { jsonRpcSchema } from "./JsonRpcSchema.js";
 
 const { isHexadecimal } = validator.default;
 

@@ -1,12 +1,13 @@
+import { BigInt, Bytes } from "@graphprotocol/graph-ts";
 import {
+  afterAll,
   assert,
+  beforeAll,
+  clearStore,
   describe,
   test,
-  clearStore,
-  beforeAll,
-  afterAll,
 } from "matchstick-as/assembly/index";
-import { Bytes, BigInt } from "@graphprotocol/graph-ts";
+
 import {
   handleBaseDocumentUpdated,
   handleControllerAdded,
@@ -16,6 +17,7 @@ import {
   handleVerificationRelationshipAdded,
   handleVerificationRelationshipUpdated,
 } from "../src/did-registry";
+import { computeEventId } from "../utils/utils";
 import {
   createBaseDocumentUpdatedEvent,
   createControllerAddedEvent,
@@ -25,7 +27,6 @@ import {
   createVerificationRelationshipAddedEvent,
   createVerificationRelationshipUpdatedEvent,
 } from "./did-registry-utils";
-import { computeEventId } from "../utils/utils";
 
 describe("DID Registry - entity assertions", () => {
   const did = "did:ebsi:zZeKyEJfUTGwajhNyNX928z";

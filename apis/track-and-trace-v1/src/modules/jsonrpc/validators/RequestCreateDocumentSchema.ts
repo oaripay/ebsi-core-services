@@ -1,21 +1,19 @@
 import { isDidV1 } from "@ebsiint-api/shared";
-import { z } from "zod";
 import {
   BigNumber,
-  isBigNumberish,
   type BigNumberish,
-  // eslint-disable-next-line import/extensions
+  isBigNumberish,
 } from "@ethersproject/bignumber/lib/bignumber.js";
-import { jsonRpcSchema } from "./JsonRpcSchema.js";
+import { z } from "zod";
+
 import { baseParamSchema } from "./BaseParamSchema.js";
+import { jsonRpcSchema } from "./JsonRpcSchema.js";
 import { refinements } from "./utils.js";
 
 const { isHexadecimal } = refinements;
 
 export const createDocumentSchema = baseParamSchema.merge(
   z.object({
-    documentHash: z.string().superRefine(isHexadecimal),
-    documentMetadata: z.string(),
     didEbsiCreator: z.string().superRefine((val, ctx) => {
       const didValidation = isDidV1(val);
       if (!didValidation.success) {
@@ -25,6 +23,8 @@ export const createDocumentSchema = baseParamSchema.merge(
         });
       }
     }),
+    documentHash: z.string().superRefine(isHexadecimal),
+    documentMetadata: z.string(),
     timestamp: z.optional(
       z
         .custom<BigNumberish>((val) => isBigNumberish(val))

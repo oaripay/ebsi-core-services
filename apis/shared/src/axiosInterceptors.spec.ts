@@ -1,16 +1,18 @@
-import {
-  vi,
-  describe,
-  afterEach,
-  afterAll,
-  it,
-  expect,
-  beforeAll,
-} from "vitest";
 import type { LoggerService } from "@nestjs/common";
+
 import axios from "axios";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
+
 import { setupInterceptors } from "./axiosInterceptors.js";
 
 axios.defaults.adapter = "http";
@@ -78,7 +80,7 @@ describe("setupInterceptors", () => {
     mockServer.use(
       http.get(
         "http://api.local/trusted-apps-registry/v3/apps",
-        () => new HttpResponse(null, { status: 401 }),
+        () => new HttpResponse(undefined, { status: 401 }),
       ),
       http.get("https://api-test.ebsi.eu/trusted-apps-registry/v3/apps", () =>
         HttpResponse.text("remote"),
@@ -109,7 +111,7 @@ describe("setupInterceptors", () => {
     mockServer.use(
       http.get(
         "http://api.local/trusted-apps-registry/v3/apps",
-        () => new HttpResponse(null, { status: 500 }),
+        () => new HttpResponse(undefined, { status: 500 }),
       ),
       http.get("https://api-test.ebsi.eu/trusted-apps-registry/v3/apps", () =>
         HttpResponse.text("remote"),
@@ -202,8 +204,8 @@ describe("setupInterceptors", () => {
       http.get("http://api.local/trusted-apps-registry/v3/apps", () =>
         HttpResponse.json(
           {
-            title: "Not Found",
             status: 404,
+            title: "Not Found",
           },
           { status: 404 },
         ),

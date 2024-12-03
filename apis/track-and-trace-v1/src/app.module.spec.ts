@@ -1,62 +1,66 @@
-import { randomBytes } from "node:crypto";
-import {
-  describe,
-  beforeAll,
-  afterAll,
-  it,
-  expect,
-  afterEach,
-  vi,
-} from "vitest";
-import request from "supertest";
-import { Test } from "@nestjs/testing";
-import { ValidationPipe, Logger } from "@nestjs/common";
+import hre from "hardhat";
+
+import { util } from "@cef-ebsi/key-did-resolver";
+import { EbsiWallet } from "@cef-ebsi/wallet-lib";
+import { encode, frameworkErrors, methodNotAllowed } from "@ebsiint-api/shared";
+import { TrackAndTrace__factory } from "@ebsiint-sc/track-and-trace";
+import { fastifyAccepts } from "@fastify/accepts";
+import { fastifyHelmet } from "@fastify/helmet";
+import { Logger, ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import {
   FastifyAdapter,
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
+import { Test } from "@nestjs/testing";
 import { ethers } from "ethers";
-import { http, HttpResponse } from "msw";
-import { setupServer } from "msw/node";
-import { TrackAndTrace__factory } from "@ebsiint-sc/track-and-trace";
 import {
-  SignJWT,
   calculateJwkThumbprint,
   exportJWK,
   generateKeyPair,
   type JWK,
+  SignJWT,
 } from "jose";
-import { EbsiWallet } from "@cef-ebsi/wallet-lib";
-import { encode, frameworkErrors, methodNotAllowed } from "@ebsiint-api/shared";
-import { util } from "@cef-ebsi/key-did-resolver";
-import hre from "hardhat";
-import { fastifyHelmet } from "@fastify/helmet";
-import { fastifyAccepts } from "@fastify/accepts";
-import { AppModule } from "./app.module.js";
-import { AllExceptionsFilter } from "./filters/http-exception.filter.js";
-import { DEPENDENCIES, type ApiConfig } from "./config/configuration.js";
-import { setupTestEnv } from "../tests/utils/trackAndTrace.js";
-import { LedgerService } from "./modules/ledger/ledger.service.js";
-import type { JsonRpcResponseObject } from "./modules/jsonrpc/jsonrpc.interface.js";
-import { formatEthersUnsignedTransaction } from "./modules/jsonrpc/jsonrpc.utils.js";
+import { http, HttpResponse } from "msw";
+import { setupServer } from "msw/node";
+import { randomBytes } from "node:crypto";
+import request from "supertest";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
+
 import type {
+  Access,
   Document,
   DocumentAccesses,
   Event,
 } from "./modules/documents/documents.interface.js";
+import type { JsonRpcResponseObject } from "./modules/jsonrpc/jsonrpc.interface.js";
 import type {
   AuthoriseDidSchema,
   CreateDocumentSchema,
-  WriteEventSchema,
-  UnsignedTransaction,
-  RemoveDocumentSchema,
   GrantAccessSchema,
+  RemoveDocumentSchema,
   RevokeAccessSchema,
+  UnsignedTransaction,
+  WriteEventSchema,
 } from "./modules/jsonrpc/validators/index.js";
-import { didToHex } from "./shared/utils.js";
-import { Permission, AccountType } from "./shared/constants.js";
+
+import { setupTestEnv } from "../tests/utils/trackAndTrace.js";
+import { AppModule } from "./app.module.js";
+import { type ApiConfig, DEPENDENCIES } from "./config/configuration.js";
+import { AllExceptionsFilter } from "./filters/http-exception.filter.js";
 import { createLogger } from "./logger/logger.js";
+import { formatEthersUnsignedTransaction } from "./modules/jsonrpc/jsonrpc.utils.js";
+import { LedgerService } from "./modules/ledger/ledger.service.js";
+import { AccountType, Permission } from "./shared/constants.js";
+import { didToHex } from "./shared/utils.js";
 
 interface Actor {
   did: string;
@@ -64,8 +68,8 @@ interface Actor {
 }
 
 interface SupertestJsonRpcResponse {
-  status: number;
   body: JsonRpcResponseObject;
+  status: number;
 }
 
 /**
@@ -73,7 +77,7 @@ interface SupertestJsonRpcResponse {
  * @see https://github.com/mswjs/msw/discussions/739#discussioncomment-2524732
  */
 function escapeDid(url: string) {
-  return url.replace("did:ebsi:", "did\\:ebsi\\:");
+  return url.replace("did:ebsi:", String.raw`did\:ebsi\:`);
 }
 
 describe("App Module", () => {
@@ -168,9 +172,9 @@ describe("App Module", () => {
       );
 
       const mockedLogger = {
+        error: vi.fn(),
         log: vi.fn(),
         warn: vi.fn(),
-        error: vi.fn(),
       };
       Logger.overrideLogger(mockedLogger);
 
@@ -221,9 +225,9 @@ describe("App Module", () => {
       );
 
       const mockedLogger = {
+        error: vi.fn(),
         log: vi.fn(),
         warn: vi.fn(),
-        error: vi.fn(),
       };
       Logger.overrideLogger(mockedLogger);
 
@@ -276,9 +280,9 @@ describe("App Module", () => {
 
   describe("Generic tests", () => {
     const mockedLogger = {
+      error: vi.fn(),
       log: vi.fn(),
       warn: vi.fn(),
-      error: vi.fn(),
     };
 
     async function startApp() {
@@ -386,9 +390,9 @@ describe("App Module", () => {
         const response = await request(server).get("/%91").send();
 
         expect(response.body).toStrictEqual({
-          title: "Bad Request",
           detail: "/%91 is not a valid url component",
           status: 400,
+          title: "Bad Request",
           type: "about:blank",
         });
         expect(response.status).toBe(400);
@@ -397,7 +401,7 @@ describe("App Module", () => {
       });
 
       it("should return an error 405 if called with a method different from GET", async () => {
-        expect.assertions(17);
+        expect.assertions(16);
 
         const app = await startApp();
         const server = app.getHttpServer();
@@ -406,12 +410,12 @@ describe("App Module", () => {
         let response = await request(server).post("/");
 
         expect(response.body).toStrictEqual({
-          detail: "Cannot POST /. Allowed HTTP methods: GET",
+          detail: "Cannot POST /. Allowed HTTP methods: GET, HEAD",
           status: 405,
           title: "Method Not Allowed",
           type: "about:blank",
         });
-        expect(response.headers["allow"]).toStrictEqual("GET");
+        expect(response.headers["allow"]).toStrictEqual("GET, HEAD");
         expect(response.headers["content-type"]).toStrictEqual(
           "application/problem+json; charset=utf-8",
         );
@@ -421,22 +425,21 @@ describe("App Module", () => {
         response = await request(server).head("/");
 
         expect(response.body).toStrictEqual({}); // HEAD response body is empty
-        expect(response.headers["allow"]).toStrictEqual("GET");
         expect(response.headers["content-type"]).toStrictEqual(
-          "application/problem+json; charset=utf-8",
+          "text/plain; charset=utf-8",
         );
-        expect(response.status).toBe(405);
+        expect(response.status).toBe(200);
 
         // PUT
         response = await request(server).put("/");
 
         expect(response.body).toStrictEqual({
-          detail: "Cannot PUT /. Allowed HTTP methods: GET",
+          detail: "Cannot PUT /. Allowed HTTP methods: GET, HEAD",
           status: 405,
           title: "Method Not Allowed",
           type: "about:blank",
         });
-        expect(response.headers["allow"]).toStrictEqual("GET");
+        expect(response.headers["allow"]).toStrictEqual("GET, HEAD");
         expect(response.headers["content-type"]).toStrictEqual(
           "application/problem+json; charset=utf-8",
         );
@@ -446,12 +449,12 @@ describe("App Module", () => {
         response = await request(server).patch("/");
 
         expect(response.body).toStrictEqual({
-          detail: "Cannot PATCH /. Allowed HTTP methods: GET",
+          detail: "Cannot PATCH /. Allowed HTTP methods: GET, HEAD",
           status: 405,
           title: "Method Not Allowed",
           type: "about:blank",
         });
-        expect(response.headers["allow"]).toStrictEqual("GET");
+        expect(response.headers["allow"]).toStrictEqual("GET, HEAD");
         expect(response.headers["content-type"]).toStrictEqual(
           "application/problem+json; charset=utf-8",
         );
@@ -460,28 +463,21 @@ describe("App Module", () => {
         // Check logs
         expect(mockedLogger.error.mock.calls).toStrictEqual([
           [
-            "Cannot POST /. Allowed HTTP methods: GET",
+            "Cannot POST /. Allowed HTTP methods: GET, HEAD",
             expect.stringContaining(
               "MethodNotAllowedError: Method Not Allowed",
             ),
             "AllExceptionsFilter",
           ],
           [
-            "Cannot HEAD /. Allowed HTTP methods: GET",
+            "Cannot PUT /. Allowed HTTP methods: GET, HEAD",
             expect.stringContaining(
               "MethodNotAllowedError: Method Not Allowed",
             ),
             "AllExceptionsFilter",
           ],
           [
-            "Cannot PUT /. Allowed HTTP methods: GET",
-            expect.stringContaining(
-              "MethodNotAllowedError: Method Not Allowed",
-            ),
-            "AllExceptionsFilter",
-          ],
-          [
-            "Cannot PATCH /. Allowed HTTP methods: GET",
+            "Cannot PATCH /. Allowed HTTP methods: GET, HEAD",
             expect.stringContaining(
               "MethodNotAllowedError: Method Not Allowed",
             ),
@@ -844,11 +840,11 @@ describe("App Module", () => {
     );
 
     const createAccessToken = (sub: string, scp: string) => {
-      return new SignJWT({ sub, scp })
+      return new SignJWT({ scp, sub })
         .setProtectedHeader({
-          typ: "JWT",
           alg: "ES256",
           kid: authApiKid,
+          typ: "JWT",
         })
         .sign(authApiKeyPair.privateKey);
     };
@@ -900,32 +896,33 @@ describe("App Module", () => {
 
     // Helper functions to avoid code repetition
     async function buildTransaction({
+      accessToken,
       method,
       params,
-      accessToken,
     }: {
+      accessToken: string;
       method: string;
       params: unknown[];
-      accessToken: string;
     }) {
       const responseBuild: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")
         .auth(accessToken, { type: "bearer" })
-        .send({ jsonrpc: "2.0", method, params, id: 231 });
+        .send({ id: 231, jsonrpc: "2.0", method, params });
 
       return responseBuild;
     }
 
     async function signAndSendTransaction({
-      unsignedTransaction,
-      signer,
       accessToken,
+      signer,
+      unsignedTransaction,
     }: {
-      unsignedTransaction: unknown;
-      signer: ethers.Wallet;
       accessToken: string;
+      signer: ethers.Wallet;
+      unsignedTransaction: unknown;
     }) {
       const uTx = formatEthersUnsignedTransaction(
+        // eslint-disable-next-line unicorn/prefer-structured-clone
         JSON.parse(JSON.stringify(unsignedTransaction)) as UnsignedTransaction,
       );
       uTx.chainId = Number(uTx.chainId);
@@ -936,19 +933,19 @@ describe("App Module", () => {
         .post("/jsonrpc")
         .auth(accessToken, { type: "bearer" })
         .send({
+          id: "45",
           jsonrpc: "2.0",
           method: "sendSignedTransaction",
           params: [
             {
               protocol: "eth",
-              unsignedTransaction,
               r,
               s,
-              v: `0x${Number(v).toString(16)}`,
               signedRawTransaction: sgnTx,
+              unsignedTransaction,
+              v: `0x${Number(v).toString(16)}`,
             },
           ],
-          id: "45",
         });
 
       return responseSend;
@@ -963,24 +960,24 @@ describe("App Module", () => {
     );
 
     let responseBuild = await buildTransaction({
+      accessToken: authoriserAccessToken,
       method: "authoriseDid",
       params: [
         {
+          authorisedDid: documentCreator.did,
           from: authoriser.wallet.address,
           senderDid: authoriser.did,
-          authorisedDid: documentCreator.did,
           whiteList: true,
         } satisfies AuthoriseDidSchema,
       ],
-      accessToken: authoriserAccessToken,
     });
 
     expect(responseBuild.status).toBe(200);
 
     let responseSend = await signAndSendTransaction({
-      unsignedTransaction: responseBuild.body.result,
-      signer: authoriser.wallet,
       accessToken: authoriserAccessToken,
+      signer: authoriser.wallet,
+      unsignedTransaction: responseBuild.body.result,
     });
 
     expect(responseSend.status).toBe(200);
@@ -999,9 +996,9 @@ describe("App Module", () => {
     );
 
     const document1 = {
+      creator: documentCreator.did,
       hash: `0x${randomBytes(32).toString("hex")}`,
       metadata: "test metadata",
-      creator: documentCreator.did,
       timestamp: {
         datetime: "",
         proof: "",
@@ -1009,24 +1006,24 @@ describe("App Module", () => {
     };
 
     responseBuild = await buildTransaction({
+      accessToken: documentCreatorCreateAccessToken,
       method: "createDocument",
       params: [
         {
-          from: documentCreator.wallet.address,
+          didEbsiCreator: document1.creator,
           documentHash: document1.hash,
           documentMetadata: document1.metadata,
-          didEbsiCreator: document1.creator,
+          from: documentCreator.wallet.address,
         } satisfies CreateDocumentSchema,
       ],
-      accessToken: documentCreatorCreateAccessToken,
     });
 
     expect(responseBuild.status).toBe(200);
 
     responseSend = await signAndSendTransaction({
-      unsignedTransaction: responseBuild.body.result,
-      signer: documentCreator.wallet,
       accessToken: documentCreatorCreateAccessToken,
+      signer: documentCreator.wallet,
+      unsignedTransaction: responseBuild.body.result,
     });
 
     expect(responseSend.status).toBe(200);
@@ -1045,14 +1042,14 @@ describe("App Module", () => {
     response = await request(server).get(`/documents/${document1.hash}`);
 
     expect(response.body).toStrictEqual({
+      creator: document1.creator,
+      events: [],
       metadata: document1.metadata,
       timestamp: {
-        source: "block",
         datetime: document1.timestamp.datetime,
         proof: document1.timestamp.proof,
+        source: "block",
       },
-      events: [],
-      creator: document1.creator,
     } satisfies Document);
 
     // "documentCreator" adds a new event to the document
@@ -1063,10 +1060,10 @@ describe("App Module", () => {
 
     const document1Event1 = {
       externalHash: `0x${randomBytes(32).toString("hex")}`,
-      sender: documentCreator.did,
-      origin: "",
-      metadata: "test event metadata",
       hash: "",
+      metadata: "test event metadata",
+      origin: "",
+      sender: documentCreator.did,
       timestamp: {
         datetime: "",
         proof: "",
@@ -1074,28 +1071,28 @@ describe("App Module", () => {
     };
 
     responseBuild = await buildTransaction({
+      accessToken: documentCreatorWriteAccessToken,
       method: "writeEvent",
       params: [
         {
-          from: documentCreator.wallet.address,
           eventParams: {
             documentHash: document1.hash,
             externalHash: document1Event1.externalHash,
-            sender: await didToHex(document1Event1.sender),
-            origin: document1Event1.origin,
             metadata: document1Event1.metadata,
+            origin: document1Event1.origin,
+            sender: await didToHex(document1Event1.sender),
           },
+          from: documentCreator.wallet.address,
         } satisfies WriteEventSchema,
       ],
-      accessToken: documentCreatorWriteAccessToken,
     });
 
     expect(responseBuild.status).toBe(200);
 
     responseSend = await signAndSendTransaction({
-      unsignedTransaction: responseBuild.body.result,
-      signer: documentCreator.wallet,
       accessToken: documentCreatorWriteAccessToken,
+      signer: documentCreator.wallet,
+      unsignedTransaction: responseBuild.body.result,
     });
 
     expect(responseSend.status).toBe(200);
@@ -1112,21 +1109,21 @@ describe("App Module", () => {
 
     // Event hash is `keccak256(bytes(eventParams.externalHash))`
     document1Event1.hash = ethers.utils.keccak256(
-      Buffer.from(document1Event1.externalHash, "utf-8"), // Note: externalHash is treated as an UTF-8 string
+      Buffer.from(document1Event1.externalHash, "utf8"), // Note: externalHash is treated as an UTF-8 string
     );
 
     // Check document
     response = await request(server).get(`/documents/${document1.hash}`);
 
     expect(response.body).toStrictEqual({
+      creator: document1.creator,
+      events: [document1Event1.hash],
       metadata: document1.metadata,
       timestamp: {
-        source: "block",
         datetime: document1.timestamp.datetime,
         proof: document1.timestamp.proof,
+        source: "block",
       },
-      events: [document1Event1.hash],
-      creator: document1.creator,
     } satisfies Document);
 
     // Check event
@@ -1135,41 +1132,41 @@ describe("App Module", () => {
     );
 
     expect(response.body).toStrictEqual({
-      metadata: document1Event1.metadata,
-      timestamp: {
-        source: "block",
-        datetime: document1Event1.timestamp.datetime,
-        proof: document1Event1.timestamp.proof,
-      },
       externalHash: document1Event1.externalHash,
       hash: document1Event1.hash,
+      metadata: document1Event1.metadata,
       origin: document1Event1.origin,
       sender: document1Event1.sender,
+      timestamp: {
+        datetime: document1Event1.timestamp.datetime,
+        proof: document1Event1.timestamp.proof,
+        source: "block",
+      },
     } satisfies Event);
 
     // "documentCreator" grants "write" permission to "didEbsiEventsCreator" for the document
     responseBuild = await buildTransaction({
+      accessToken: documentCreatorWriteAccessToken,
       method: "grantAccess",
       params: [
         {
-          from: documentCreator.wallet.address,
           documentHash: document1.hash,
+          from: documentCreator.wallet.address,
           grantedByAccount: await didToHex(documentCreator.did),
           grantedByAccType: AccountType.DID_EBSI,
+          permission: Permission.WRITE,
           subjectAccount: await didToHex(didEbsiEventsCreator.did),
           subjectAccType: AccountType.DID_EBSI,
-          permission: Permission.WRITE,
         } satisfies GrantAccessSchema,
       ],
-      accessToken: documentCreatorWriteAccessToken,
     });
 
     expect(responseBuild.status).toBe(200);
 
     responseSend = await signAndSendTransaction({
-      unsignedTransaction: responseBuild.body.result,
-      signer: documentCreator.wallet,
       accessToken: documentCreatorWriteAccessToken,
+      signer: documentCreator.wallet,
+      unsignedTransaction: responseBuild.body.result,
     });
 
     expect(responseSend.status).toBe(200);
@@ -1180,9 +1177,6 @@ describe("App Module", () => {
     );
 
     expect(response.body).toStrictEqual({
-      self: expect.stringContaining(
-        `/documents/${document1.hash}/accesses?page[after]=1&page[size]=10`,
-      ),
       items: [
         {
           documentId: document1.hash,
@@ -1197,22 +1191,25 @@ describe("App Module", () => {
           subject: didEbsiEventsCreator.did,
         },
       ] satisfies DocumentAccesses,
-      total: 2,
-      pageSize: 10,
       links: {
         first: expect.stringContaining(
-          `/documents/${document1.hash}/accesses?page[after]=1&page[size]=10`,
-        ),
-        prev: expect.stringContaining(
-          `/documents/${document1.hash}/accesses?page[after]=1&page[size]=10`,
-        ),
-        next: expect.stringContaining(
           `/documents/${document1.hash}/accesses?page[after]=1&page[size]=10`,
         ),
         last: expect.stringContaining(
           `/documents/${document1.hash}/accesses?page[after]=1&page[size]=10`,
         ),
+        next: expect.stringContaining(
+          `/documents/${document1.hash}/accesses?page[after]=1&page[size]=10`,
+        ),
+        prev: expect.stringContaining(
+          `/documents/${document1.hash}/accesses?page[after]=1&page[size]=10`,
+        ),
       },
+      pageSize: 10,
+      self: expect.stringContaining(
+        `/documents/${document1.hash}/accesses?page[after]=1&page[size]=10`,
+      ),
+      total: 2,
     });
 
     // "didEbsiEventsCreator" adds a new event (external timestamp) to the document
@@ -1223,10 +1220,10 @@ describe("App Module", () => {
 
     const document1Event2 = {
       externalHash: `0x${randomBytes(32).toString("hex")}`,
-      sender: didEbsiEventsCreator.did,
-      origin: "",
-      metadata: "test event metadata",
       hash: "",
+      metadata: "test event metadata",
+      origin: "",
+      sender: didEbsiEventsCreator.did,
       timestamp: {
         datetime: Math.floor(Date.now() / 1000),
         proof: `0x${randomBytes(32).toString("hex")}`,
@@ -1234,51 +1231,51 @@ describe("App Module", () => {
     };
 
     responseBuild = await buildTransaction({
+      accessToken: didEbsiEventsCreatorWriteAccessToken,
       method: "writeEvent",
       params: [
         {
-          from: didEbsiEventsCreator.wallet.address,
           eventParams: {
             documentHash: document1.hash,
             externalHash: document1Event2.externalHash,
-            sender: await didToHex(document1Event2.sender),
-            origin: document1Event2.origin,
             metadata: document1Event2.metadata,
+            origin: document1Event2.origin,
+            sender: await didToHex(document1Event2.sender),
           },
+          from: didEbsiEventsCreator.wallet.address,
           timestamp: document1Event2.timestamp.datetime,
           timestampProof: document1Event2.timestamp.proof,
         } satisfies WriteEventSchema,
       ],
-      accessToken: didEbsiEventsCreatorWriteAccessToken,
     });
 
     expect(responseBuild.status).toBe(200);
 
     responseSend = await signAndSendTransaction({
-      unsignedTransaction: responseBuild.body.result,
-      signer: didEbsiEventsCreator.wallet,
       accessToken: didEbsiEventsCreatorWriteAccessToken,
+      signer: didEbsiEventsCreator.wallet,
+      unsignedTransaction: responseBuild.body.result,
     });
 
     expect(responseSend.status).toBe(200);
 
     // Event hash is `keccak256(bytes(eventParams.externalHash))`
     document1Event2.hash = ethers.utils.keccak256(
-      Buffer.from(document1Event2.externalHash, "utf-8"), // Note: externalHash is treated as an UTF-8 string
+      Buffer.from(document1Event2.externalHash, "utf8"), // Note: externalHash is treated as an UTF-8 string
     );
 
     // Check document
     response = await request(server).get(`/documents/${document1.hash}`);
 
     expect(response.body).toStrictEqual({
+      creator: document1.creator,
+      events: [document1Event1.hash, document1Event2.hash],
       metadata: document1.metadata,
       timestamp: {
-        source: "block",
         datetime: document1.timestamp.datetime,
         proof: document1.timestamp.proof,
+        source: "block",
       },
-      events: [document1Event1.hash, document1Event2.hash],
-      creator: document1.creator,
     } satisfies Document);
 
     // Check event
@@ -1287,41 +1284,41 @@ describe("App Module", () => {
     );
 
     expect(response.body).toStrictEqual({
-      metadata: document1Event2.metadata,
-      timestamp: {
-        source: "external",
-        datetime: `0x${document1Event2.timestamp.datetime.toString(16)}`,
-        proof: document1Event2.timestamp.proof,
-      },
       externalHash: document1Event2.externalHash,
       hash: document1Event2.hash,
+      metadata: document1Event2.metadata,
       origin: document1Event2.origin,
       sender: document1Event2.sender,
+      timestamp: {
+        datetime: `0x${document1Event2.timestamp.datetime.toString(16)}`,
+        proof: document1Event2.timestamp.proof,
+        source: "external",
+      },
     } satisfies Event);
 
     // "documentCreator" grants "delegate" permission to "didEbsiEventsCreator" for the document
     responseBuild = await buildTransaction({
+      accessToken: documentCreatorWriteAccessToken,
       method: "grantAccess",
       params: [
         {
-          from: documentCreator.wallet.address,
           documentHash: document1.hash,
+          from: documentCreator.wallet.address,
           grantedByAccount: await didToHex(documentCreator.did),
           grantedByAccType: AccountType.DID_EBSI,
+          permission: Permission.DELEGATE,
           subjectAccount: await didToHex(didEbsiEventsCreator.did),
           subjectAccType: AccountType.DID_EBSI,
-          permission: Permission.DELEGATE,
         } satisfies GrantAccessSchema,
       ],
-      accessToken: documentCreatorWriteAccessToken,
     });
 
     expect(responseBuild.status).toBe(200);
 
     responseSend = await signAndSendTransaction({
-      unsignedTransaction: responseBuild.body.result,
-      signer: documentCreator.wallet,
       accessToken: documentCreatorWriteAccessToken,
+      signer: documentCreator.wallet,
+      unsignedTransaction: responseBuild.body.result,
     });
 
     expect(responseSend.status).toBe(200);
@@ -1332,9 +1329,6 @@ describe("App Module", () => {
     );
 
     expect(response.body).toStrictEqual({
-      self: expect.stringContaining(
-        `/documents/${document1.hash}/accesses?page[after]=1&page[size]=10`,
-      ),
       items: [
         {
           documentId: document1.hash,
@@ -1355,47 +1349,50 @@ describe("App Module", () => {
           subject: didEbsiEventsCreator.did,
         },
       ] satisfies DocumentAccesses,
-      total: 3,
-      pageSize: 10,
       links: {
         first: expect.stringContaining(
-          `/documents/${document1.hash}/accesses?page[after]=1&page[size]=10`,
-        ),
-        prev: expect.stringContaining(
-          `/documents/${document1.hash}/accesses?page[after]=1&page[size]=10`,
-        ),
-        next: expect.stringContaining(
           `/documents/${document1.hash}/accesses?page[after]=1&page[size]=10`,
         ),
         last: expect.stringContaining(
           `/documents/${document1.hash}/accesses?page[after]=1&page[size]=10`,
         ),
+        next: expect.stringContaining(
+          `/documents/${document1.hash}/accesses?page[after]=1&page[size]=10`,
+        ),
+        prev: expect.stringContaining(
+          `/documents/${document1.hash}/accesses?page[after]=1&page[size]=10`,
+        ),
       },
+      pageSize: 10,
+      self: expect.stringContaining(
+        `/documents/${document1.hash}/accesses?page[after]=1&page[size]=10`,
+      ),
+      total: 3,
     });
 
     // "didEbsiEventsCreator" grants "write" permission to "didKeyEventsCreator" for the document
     responseBuild = await buildTransaction({
+      accessToken: didEbsiEventsCreatorWriteAccessToken,
       method: "grantAccess",
       params: [
         {
-          from: didEbsiEventsCreator.wallet.address,
           documentHash: document1.hash,
+          from: didEbsiEventsCreator.wallet.address,
           grantedByAccount: await didToHex(didEbsiEventsCreator.did),
           grantedByAccType: AccountType.DID_EBSI,
+          permission: Permission.WRITE,
           subjectAccount: await didToHex(didKeyEventsCreator.did),
           subjectAccType: AccountType.DID_KEY,
-          permission: Permission.WRITE,
         } satisfies GrantAccessSchema,
       ],
-      accessToken: didEbsiEventsCreatorWriteAccessToken,
     });
 
     expect(responseBuild.status).toBe(200);
 
     responseSend = await signAndSendTransaction({
-      unsignedTransaction: responseBuild.body.result,
-      signer: didEbsiEventsCreator.wallet,
       accessToken: didEbsiEventsCreatorWriteAccessToken,
+      signer: didEbsiEventsCreator.wallet,
+      unsignedTransaction: responseBuild.body.result,
     });
 
     expect(responseSend.status).toBe(200);
@@ -1406,9 +1403,6 @@ describe("App Module", () => {
     );
 
     expect(response.body).toStrictEqual({
-      self: expect.stringContaining(
-        `/documents/${document1.hash}/accesses?page[after]=1&page[size]=10`,
-      ),
       items: [
         {
           documentId: document1.hash,
@@ -1435,22 +1429,25 @@ describe("App Module", () => {
           subject: didKeyEventsCreator.did,
         },
       ] satisfies DocumentAccesses,
-      total: 4,
-      pageSize: 10,
       links: {
         first: expect.stringContaining(
-          `/documents/${document1.hash}/accesses?page[after]=1&page[size]=10`,
-        ),
-        prev: expect.stringContaining(
-          `/documents/${document1.hash}/accesses?page[after]=1&page[size]=10`,
-        ),
-        next: expect.stringContaining(
           `/documents/${document1.hash}/accesses?page[after]=1&page[size]=10`,
         ),
         last: expect.stringContaining(
           `/documents/${document1.hash}/accesses?page[after]=1&page[size]=10`,
         ),
+        next: expect.stringContaining(
+          `/documents/${document1.hash}/accesses?page[after]=1&page[size]=10`,
+        ),
+        prev: expect.stringContaining(
+          `/documents/${document1.hash}/accesses?page[after]=1&page[size]=10`,
+        ),
       },
+      pageSize: 10,
+      self: expect.stringContaining(
+        `/documents/${document1.hash}/accesses?page[after]=1&page[size]=10`,
+      ),
+      total: 4,
     });
 
     // "didKeyEventsCreator" adds a new event (external timestamp) to the document
@@ -1461,10 +1458,10 @@ describe("App Module", () => {
 
     const document1Event3 = {
       externalHash: `0x${randomBytes(32).toString("hex")}`,
-      sender: didKeyEventsCreator.did,
-      origin: "",
-      metadata: "test event metadata",
       hash: "",
+      metadata: "test event metadata",
+      origin: "",
+      sender: didKeyEventsCreator.did,
       timestamp: {
         datetime: Math.floor(Date.now() / 1000),
         proof: `0x${randomBytes(32).toString("hex")}`,
@@ -1472,55 +1469,55 @@ describe("App Module", () => {
     };
 
     responseBuild = await buildTransaction({
+      accessToken: didKeyEventsCreatorWriteAccessToken,
       method: "writeEvent",
       params: [
         {
-          from: didKeyEventsCreator.wallet.address,
           eventParams: {
             documentHash: document1.hash,
             externalHash: document1Event3.externalHash,
-            sender: await didToHex(document1Event3.sender),
-            origin: document1Event3.origin,
             metadata: document1Event3.metadata,
+            origin: document1Event3.origin,
+            sender: await didToHex(document1Event3.sender),
           },
+          from: didKeyEventsCreator.wallet.address,
           timestamp: document1Event3.timestamp.datetime,
           timestampProof: document1Event3.timestamp.proof,
         } satisfies WriteEventSchema,
       ],
-      accessToken: didKeyEventsCreatorWriteAccessToken,
     });
 
     expect(responseBuild.status).toBe(200);
 
     responseSend = await signAndSendTransaction({
-      unsignedTransaction: responseBuild.body.result,
-      signer: didKeyEventsCreator.wallet,
       accessToken: didKeyEventsCreatorWriteAccessToken,
+      signer: didKeyEventsCreator.wallet,
+      unsignedTransaction: responseBuild.body.result,
     });
 
     expect(responseSend.status).toBe(200);
 
     // Event hash is `keccak256(bytes(eventParams.externalHash))`
     document1Event3.hash = ethers.utils.keccak256(
-      Buffer.from(document1Event3.externalHash, "utf-8"), // Note: externalHash is treated as an UTF-8 string
+      Buffer.from(document1Event3.externalHash, "utf8"), // Note: externalHash is treated as an UTF-8 string
     );
 
     // Check document
     response = await request(server).get(`/documents/${document1.hash}`);
 
     expect(response.body).toStrictEqual({
-      metadata: document1.metadata,
-      timestamp: {
-        source: "block",
-        datetime: document1.timestamp.datetime,
-        proof: document1.timestamp.proof,
-      },
+      creator: document1.creator,
       events: [
         document1Event1.hash,
         document1Event2.hash,
         document1Event3.hash,
       ],
-      creator: document1.creator,
+      metadata: document1.metadata,
+      timestamp: {
+        datetime: document1.timestamp.datetime,
+        proof: document1.timestamp.proof,
+        source: "block",
+      },
     } satisfies Document);
 
     // Check event
@@ -1529,39 +1526,39 @@ describe("App Module", () => {
     );
 
     expect(response.body).toStrictEqual({
-      metadata: document1Event3.metadata,
-      timestamp: {
-        source: "external",
-        datetime: `0x${document1Event3.timestamp.datetime.toString(16)}`,
-        proof: document1Event3.timestamp.proof,
-      },
       externalHash: document1Event3.externalHash,
       hash: document1Event3.hash,
+      metadata: document1Event3.metadata,
       origin: document1Event3.origin,
       sender: document1Event3.sender,
+      timestamp: {
+        datetime: `0x${document1Event3.timestamp.datetime.toString(16)}`,
+        proof: document1Event3.timestamp.proof,
+        source: "external",
+      },
     } satisfies Event);
 
     // "didEbsiEventsCreator" revokes "write" permission to "didKeyEventsCreator" for the document
     responseBuild = await buildTransaction({
+      accessToken: didEbsiEventsCreatorWriteAccessToken,
       method: "revokeAccess",
       params: [
         {
-          from: didEbsiEventsCreator.wallet.address,
           documentHash: document1.hash,
+          from: didEbsiEventsCreator.wallet.address,
+          permission: Permission.WRITE,
           revokedByAccount: await didToHex(didEbsiEventsCreator.did),
           subjectAccount: await didToHex(didKeyEventsCreator.did),
-          permission: Permission.WRITE,
         } satisfies RevokeAccessSchema,
       ],
-      accessToken: didEbsiEventsCreatorWriteAccessToken,
     });
 
     expect(responseBuild.status).toBe(200);
 
     responseSend = await signAndSendTransaction({
-      unsignedTransaction: responseBuild.body.result,
-      signer: didEbsiEventsCreator.wallet,
       accessToken: didEbsiEventsCreatorWriteAccessToken,
+      signer: didEbsiEventsCreator.wallet,
+      unsignedTransaction: responseBuild.body.result,
     });
 
     expect(responseSend.status).toBe(200);
@@ -1572,9 +1569,6 @@ describe("App Module", () => {
     );
 
     expect(response.body).toStrictEqual({
-      self: expect.stringContaining(
-        `/documents/${document1.hash}/accesses?page[after]=1&page[size]=10`,
-      ),
       items: [
         {
           documentId: document1.hash,
@@ -1595,45 +1589,48 @@ describe("App Module", () => {
           subject: didEbsiEventsCreator.did,
         },
       ] satisfies DocumentAccesses,
-      total: 3,
-      pageSize: 10,
       links: {
         first: expect.stringContaining(
-          `/documents/${document1.hash}/accesses?page[after]=1&page[size]=10`,
-        ),
-        prev: expect.stringContaining(
-          `/documents/${document1.hash}/accesses?page[after]=1&page[size]=10`,
-        ),
-        next: expect.stringContaining(
           `/documents/${document1.hash}/accesses?page[after]=1&page[size]=10`,
         ),
         last: expect.stringContaining(
           `/documents/${document1.hash}/accesses?page[after]=1&page[size]=10`,
         ),
+        next: expect.stringContaining(
+          `/documents/${document1.hash}/accesses?page[after]=1&page[size]=10`,
+        ),
+        prev: expect.stringContaining(
+          `/documents/${document1.hash}/accesses?page[after]=1&page[size]=10`,
+        ),
       },
+      pageSize: 10,
+      self: expect.stringContaining(
+        `/documents/${document1.hash}/accesses?page[after]=1&page[size]=10`,
+      ),
+      total: 3,
     });
 
     // "documentCreator" revokes "delegate" permission to "didEbsiEventsCreator" for the document
     responseBuild = await buildTransaction({
+      accessToken: documentCreatorWriteAccessToken,
       method: "revokeAccess",
       params: [
         {
-          from: documentCreator.wallet.address,
           documentHash: document1.hash,
+          from: documentCreator.wallet.address,
+          permission: Permission.DELEGATE,
           revokedByAccount: await didToHex(documentCreator.did),
           subjectAccount: await didToHex(didEbsiEventsCreator.did),
-          permission: Permission.DELEGATE,
         } satisfies RevokeAccessSchema,
       ],
-      accessToken: documentCreatorWriteAccessToken,
     });
 
     expect(responseBuild.status).toBe(200);
 
     responseSend = await signAndSendTransaction({
-      unsignedTransaction: responseBuild.body.result,
-      signer: documentCreator.wallet,
       accessToken: documentCreatorWriteAccessToken,
+      signer: documentCreator.wallet,
+      unsignedTransaction: responseBuild.body.result,
     });
 
     expect(responseSend.status).toBe(200);
@@ -1644,9 +1641,6 @@ describe("App Module", () => {
     );
 
     expect(response.body).toStrictEqual({
-      self: expect.stringContaining(
-        `/documents/${document1.hash}/accesses?page[after]=1&page[size]=10`,
-      ),
       items: [
         {
           documentId: document1.hash,
@@ -1661,42 +1655,45 @@ describe("App Module", () => {
           subject: didEbsiEventsCreator.did,
         },
       ] satisfies DocumentAccesses,
-      total: 2,
-      pageSize: 10,
       links: {
         first: expect.stringContaining(
-          `/documents/${document1.hash}/accesses?page[after]=1&page[size]=10`,
-        ),
-        prev: expect.stringContaining(
-          `/documents/${document1.hash}/accesses?page[after]=1&page[size]=10`,
-        ),
-        next: expect.stringContaining(
           `/documents/${document1.hash}/accesses?page[after]=1&page[size]=10`,
         ),
         last: expect.stringContaining(
           `/documents/${document1.hash}/accesses?page[after]=1&page[size]=10`,
         ),
+        next: expect.stringContaining(
+          `/documents/${document1.hash}/accesses?page[after]=1&page[size]=10`,
+        ),
+        prev: expect.stringContaining(
+          `/documents/${document1.hash}/accesses?page[after]=1&page[size]=10`,
+        ),
       },
+      pageSize: 10,
+      self: expect.stringContaining(
+        `/documents/${document1.hash}/accesses?page[after]=1&page[size]=10`,
+      ),
+      total: 2,
     });
 
     // "documentCreator" removes document1
     responseBuild = await buildTransaction({
+      accessToken: documentCreatorWriteAccessToken,
       method: "removeDocument",
       params: [
         {
-          from: documentCreator.wallet.address,
           documentHash: document1.hash,
+          from: documentCreator.wallet.address,
         } satisfies RemoveDocumentSchema,
       ],
-      accessToken: documentCreatorWriteAccessToken,
     });
 
     expect(responseBuild.status).toBe(200);
 
     responseSend = await signAndSendTransaction({
-      unsignedTransaction: responseBuild.body.result,
-      signer: documentCreator.wallet,
       accessToken: documentCreatorWriteAccessToken,
+      signer: documentCreator.wallet,
+      unsignedTransaction: responseBuild.body.result,
     });
 
     expect(responseSend.status).toBe(200);
@@ -1721,9 +1718,9 @@ describe("App Module", () => {
 
     // "documentCreator" creates a new document
     const document2 = {
+      creator: documentCreator.did,
       hash: `0x${randomBytes(32).toString("hex")}`,
       metadata: "test metadata",
-      creator: documentCreator.did,
       timestamp: {
         datetime: "",
         proof: "",
@@ -1731,83 +1728,81 @@ describe("App Module", () => {
     };
 
     responseBuild = await buildTransaction({
+      accessToken: documentCreatorCreateAccessToken,
       method: "createDocument",
       params: [
         {
-          from: documentCreator.wallet.address,
+          didEbsiCreator: document2.creator,
           documentHash: document2.hash,
           documentMetadata: document2.metadata,
-          didEbsiCreator: document2.creator,
+          from: documentCreator.wallet.address,
         } satisfies CreateDocumentSchema,
       ],
-      accessToken: documentCreatorCreateAccessToken,
     });
 
     expect(responseBuild.status).toBe(200);
 
     responseSend = await signAndSendTransaction({
-      unsignedTransaction: responseBuild.body.result,
-      signer: documentCreator.wallet,
       accessToken: documentCreatorCreateAccessToken,
+      signer: documentCreator.wallet,
+      unsignedTransaction: responseBuild.body.result,
     });
 
     expect(responseSend.status).toBe(200);
 
     // "documentCreator" grants "delegate" permission to "didEbsiEventsCreator" for the document
     responseBuild = await buildTransaction({
+      accessToken: documentCreatorWriteAccessToken,
       method: "grantAccess",
       params: [
         {
-          from: documentCreator.wallet.address,
           documentHash: document2.hash,
+          from: documentCreator.wallet.address,
           grantedByAccount: await didToHex(documentCreator.did),
           grantedByAccType: AccountType.DID_EBSI,
+          permission: Permission.DELEGATE,
           subjectAccount: await didToHex(didEbsiEventsCreator.did),
           subjectAccType: AccountType.DID_EBSI,
-          permission: Permission.DELEGATE,
         } satisfies GrantAccessSchema,
       ],
-      accessToken: documentCreatorWriteAccessToken,
     });
 
     expect(responseBuild.status).toBe(200);
 
     responseSend = await signAndSendTransaction({
-      unsignedTransaction: responseBuild.body.result,
-      signer: documentCreator.wallet,
       accessToken: documentCreatorWriteAccessToken,
+      signer: documentCreator.wallet,
+      unsignedTransaction: responseBuild.body.result,
     });
 
     expect(responseSend.status).toBe(200);
 
     // "didEbsiEventsCreator" grants "write" permission to multiple accounts
     for (let i = 0; i < 10; i += 1) {
-      // eslint-disable-next-line no-await-in-loop
       responseBuild = await buildTransaction({
+        accessToken: didEbsiEventsCreatorWriteAccessToken,
         method: "grantAccess",
         params: [
           {
-            from: didEbsiEventsCreator.wallet.address,
             documentHash: document2.hash,
-            // eslint-disable-next-line no-await-in-loop
+            from: didEbsiEventsCreator.wallet.address,
+
             grantedByAccount: await didToHex(didEbsiEventsCreator.did),
             grantedByAccType: AccountType.DID_EBSI,
-            // eslint-disable-next-line no-await-in-loop
+            permission: Permission.WRITE,
+
             subjectAccount: await didToHex(EbsiWallet.createDid()),
             subjectAccType: AccountType.DID_EBSI,
-            permission: Permission.WRITE,
           } satisfies GrantAccessSchema,
         ],
-        accessToken: didEbsiEventsCreatorWriteAccessToken,
       });
 
       expect(responseBuild.status).toBe(200);
 
-      // eslint-disable-next-line no-await-in-loop
       responseSend = await signAndSendTransaction({
-        unsignedTransaction: responseBuild.body.result,
-        signer: didEbsiEventsCreator.wallet,
         accessToken: didEbsiEventsCreatorWriteAccessToken,
+        signer: didEbsiEventsCreator.wallet,
+        unsignedTransaction: responseBuild.body.result,
       });
 
       expect(responseSend.status).toBe(200);
@@ -1819,9 +1814,6 @@ describe("App Module", () => {
     );
 
     expect(response.body).toStrictEqual({
-      self: expect.stringContaining(
-        `/documents/${document2.hash}/accesses?page[after]=1&page[size]=20`,
-      ),
       items: [
         {
           documentId: document2.hash,
@@ -1835,52 +1827,55 @@ describe("App Module", () => {
           permission: "delegate",
           subject: didEbsiEventsCreator.did,
         },
-        ...new Array(10).fill({
+        ...Array.from<Access>({ length: 10 }).fill({
           documentId: document2.hash,
           grantedBy: didEbsiEventsCreator.did,
           permission: "write",
           subject: expect.any(String),
         }),
       ] satisfies DocumentAccesses,
-      total: 12,
-      pageSize: 20,
       links: {
         first: expect.stringContaining(
-          `/documents/${document2.hash}/accesses?page[after]=1&page[size]=20`,
-        ),
-        prev: expect.stringContaining(
-          `/documents/${document2.hash}/accesses?page[after]=1&page[size]=20`,
-        ),
-        next: expect.stringContaining(
           `/documents/${document2.hash}/accesses?page[after]=1&page[size]=20`,
         ),
         last: expect.stringContaining(
           `/documents/${document2.hash}/accesses?page[after]=1&page[size]=20`,
         ),
+        next: expect.stringContaining(
+          `/documents/${document2.hash}/accesses?page[after]=1&page[size]=20`,
+        ),
+        prev: expect.stringContaining(
+          `/documents/${document2.hash}/accesses?page[after]=1&page[size]=20`,
+        ),
       },
+      pageSize: 20,
+      self: expect.stringContaining(
+        `/documents/${document2.hash}/accesses?page[after]=1&page[size]=20`,
+      ),
+      total: 12,
     });
 
     // "documentCreator" revokes "delegate" permission to "didEbsiEventsCreator" for the document
     responseBuild = await buildTransaction({
+      accessToken: documentCreatorWriteAccessToken,
       method: "revokeAccess",
       params: [
         {
-          from: documentCreator.wallet.address,
           documentHash: document2.hash,
+          from: documentCreator.wallet.address,
+          permission: Permission.DELEGATE,
           revokedByAccount: await didToHex(documentCreator.did),
           subjectAccount: await didToHex(didEbsiEventsCreator.did),
-          permission: Permission.DELEGATE,
         } satisfies RevokeAccessSchema,
       ],
-      accessToken: documentCreatorWriteAccessToken,
     });
 
     expect(responseBuild.status).toBe(200);
 
     responseSend = await signAndSendTransaction({
-      unsignedTransaction: responseBuild.body.result,
-      signer: documentCreator.wallet,
       accessToken: documentCreatorWriteAccessToken,
+      signer: documentCreator.wallet,
+      unsignedTransaction: responseBuild.body.result,
     });
 
     expect(responseSend.status).toBe(200);
@@ -1891,9 +1886,6 @@ describe("App Module", () => {
     );
 
     expect(response.body).toStrictEqual({
-      self: expect.stringContaining(
-        `/documents/${document2.hash}/accesses?page[after]=1&page[size]=20`,
-      ),
       items: [
         {
           documentId: document2.hash,
@@ -1903,22 +1895,25 @@ describe("App Module", () => {
         },
         // the other accounts (didEbsiEventsCreator and its children) are revoked
       ] satisfies DocumentAccesses,
-      total: 1,
-      pageSize: 20,
       links: {
         first: expect.stringContaining(
-          `/documents/${document2.hash}/accesses?page[after]=1&page[size]=20`,
-        ),
-        prev: expect.stringContaining(
-          `/documents/${document2.hash}/accesses?page[after]=1&page[size]=20`,
-        ),
-        next: expect.stringContaining(
           `/documents/${document2.hash}/accesses?page[after]=1&page[size]=20`,
         ),
         last: expect.stringContaining(
           `/documents/${document2.hash}/accesses?page[after]=1&page[size]=20`,
         ),
+        next: expect.stringContaining(
+          `/documents/${document2.hash}/accesses?page[after]=1&page[size]=20`,
+        ),
+        prev: expect.stringContaining(
+          `/documents/${document2.hash}/accesses?page[after]=1&page[size]=20`,
+        ),
       },
+      pageSize: 20,
+      self: expect.stringContaining(
+        `/documents/${document2.hash}/accesses?page[after]=1&page[size]=20`,
+      ),
+      total: 1,
     });
 
     // End of the test, close server

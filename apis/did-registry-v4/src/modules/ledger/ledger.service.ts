@@ -1,34 +1,36 @@
-import { Injectable, Logger, OnModuleDestroy } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
-import { ethers } from "ethers";
 import type WebSocket from "ws";
-import { DidRegistry, DidRegistry__factory } from "@ebsiint-sc/did-registry-v2";
+
+import { InternalServerError } from "@ebsiint-api/shared";
 import {
   DidRegistry as DidRegistryV1,
   DidRegistry__factory as DidRegistryV1__factory,
 } from "@ebsiint-sc/did-registry";
-import { InternalServerError } from "@ebsiint-api/shared";
+import { DidRegistry, DidRegistry__factory } from "@ebsiint-sc/did-registry-v2";
+import { Injectable, Logger, OnModuleDestroy } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { ethers } from "ethers";
 import { stringify } from "safe-stable-stringify";
+
 import type { ApiConfig } from "../../config/configuration.js";
 
-const EXPECTED_PONG_BACK = 15000;
+const EXPECTED_PONG_BACK = 15_000;
 const KEEP_ALIVE_CHECK_INTERVAL = 7500;
 
 @Injectable()
 export class LedgerService implements OnModuleDestroy {
-  private readonly logger = new Logger(LedgerService.name);
-
-  private ethersProvider: ethers.providers.JsonRpcProvider | undefined;
-
-  private reconnectWebSocket = true;
+  private didRegistryAddress: string;
 
   private didRegistryContract: DidRegistry | undefined;
 
   private didRegistryContractV1: DidRegistryV1 | undefined;
 
-  private didRegistryAddress: string;
-
   private didRegistryV1Address: string;
+
+  private ethersProvider: ethers.providers.JsonRpcProvider | undefined;
+
+  private readonly logger = new Logger(LedgerService.name);
+
+  private reconnectWebSocket = true;
 
   private timeout: number;
 
@@ -37,6 +39,58 @@ export class LedgerService implements OnModuleDestroy {
     this.didRegistryV1Address =
       this.configService.get<string>("contractAddrV1");
     this.timeout = configService.get<number>("requestTimeout");
+  }
+
+  getContract() {
+    if (this.didRegistryContract) {
+      return this.didRegistryContract;
+    }
+
+    const provider = this.getEthersProvider();
+
+    this.didRegistryContract = DidRegistry__factory.connect(
+      this.didRegistryAddress,
+      provider,
+    );
+
+    return this.didRegistryContract;
+  }
+
+  getContractAddress() {
+    return this.didRegistryAddress;
+  }
+
+  getContractV1(): DidRegistryV1 {
+    if (this.didRegistryContractV1) {
+      return this.didRegistryContractV1;
+    }
+
+    const provider = this.getEthersProvider();
+
+    this.didRegistryContractV1 = DidRegistryV1__factory.connect(
+      this.didRegistryV1Address,
+      provider,
+    );
+
+    return this.didRegistryContractV1;
+  }
+
+  async onModuleDestroy() {
+    if (
+      this.ethersProvider &&
+      this.ethersProvider instanceof ethers.providers.WebSocketProvider &&
+      this.ethersProvider.destroy
+    ) {
+      this.reconnectWebSocket = false;
+      await this.ethersProvider.destroy();
+    }
+  }
+
+  private getEthersProvider() {
+    if (!this.ethersProvider) {
+      this.initBesuProvider();
+    }
+    return this.ethersProvider!;
   }
 
   private initBesuProvider(): void {
@@ -48,14 +102,14 @@ export class LedgerService implements OnModuleDestroy {
 
     // Useful for local testing
     if (besuRpcNode.startsWith("http")) {
-      const { origin, pathname, username, password } = new URL(besuRpcNode);
+      const { origin, password, pathname, username } = new URL(besuRpcNode);
       this.ethersProvider = new ethers.providers.JsonRpcProvider({
-        url: `${origin}${pathname}`,
         timeout: this.timeout,
+        url: `${origin}${pathname}`,
         ...(username &&
           password && {
-            user: username,
             password,
+            user: username,
           }),
       });
       return;
@@ -64,13 +118,12 @@ export class LedgerService implements OnModuleDestroy {
     this.ethersProvider = new ethers.providers.WebSocketProvider(besuRpcNode);
 
     /* global NodeJS */
-    let pingTimeout: NodeJS.Timeout | null = null;
-    let keepAliveInterval: NodeJS.Timeout | null = null;
+    let pingTimeout: NodeJS.Timeout;
+    let keepAliveInterval: NodeJS.Timeout;
 
     // Reconnect WS on accidental close
     // Inspired by https://github.com/ethers-io/ethers.js/issues/1053#issuecomment-808736570
 
-    // eslint-disable-next-line no-underscore-dangle
     const websocket = (
       this.ethersProvider as ethers.providers.WebSocketProvider
     )._websocket as WebSocket;
@@ -96,7 +149,7 @@ export class LedgerService implements OnModuleDestroy {
 
     websocket.on("close", (err: unknown) => {
       this.logger.warn(
-        `The ws connection was closed: ${stringify(err, null, 2)}`,
+        `The ws connection was closed: ${stringify(err, undefined, 2)}`,
       );
 
       if (keepAliveInterval) clearInterval(keepAliveInterval);
@@ -111,58 +164,6 @@ export class LedgerService implements OnModuleDestroy {
     websocket.on("pong", () => {
       if (pingTimeout) clearInterval(pingTimeout);
     });
-  }
-
-  private getEthersProvider() {
-    if (!this.ethersProvider) {
-      this.initBesuProvider();
-    }
-    return this.ethersProvider!;
-  }
-
-  getContract() {
-    if (this.didRegistryContract) {
-      return this.didRegistryContract;
-    }
-
-    const provider = this.getEthersProvider();
-
-    this.didRegistryContract = DidRegistry__factory.connect(
-      this.didRegistryAddress,
-      provider,
-    );
-
-    return this.didRegistryContract;
-  }
-
-  getContractV1(): DidRegistryV1 {
-    if (this.didRegistryContractV1) {
-      return this.didRegistryContractV1;
-    }
-
-    const provider = this.getEthersProvider();
-
-    this.didRegistryContractV1 = DidRegistryV1__factory.connect(
-      this.didRegistryV1Address,
-      provider,
-    );
-
-    return this.didRegistryContractV1;
-  }
-
-  getContractAddress() {
-    return this.didRegistryAddress;
-  }
-
-  async onModuleDestroy() {
-    if (
-      this.ethersProvider &&
-      this.ethersProvider instanceof ethers.providers.WebSocketProvider &&
-      this.ethersProvider.destroy
-    ) {
-      this.reconnectWebSocket = false;
-      await this.ethersProvider.destroy();
-    }
   }
 }
 

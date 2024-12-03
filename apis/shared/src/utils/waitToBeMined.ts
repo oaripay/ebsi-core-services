@@ -1,5 +1,7 @@
-import axios from "axios";
 import type { TransactionReceipt } from "@ethersproject/abstract-provider";
+
+import axios from "axios";
+
 import { parseRevertReason } from "./parseRevertReason.js";
 
 export interface TransactionReceiptBesu extends TransactionReceipt {
@@ -13,10 +15,11 @@ async function getTransactionReceipt(
   const { data } = await axios.post<{
     result: TransactionReceiptBesu;
   }>(url, {
+    // eslint-disable-next-line unicorn/no-null
+    id: null,
     jsonrpc: "2.0",
     method: "eth_getTransactionReceipt",
     params: [txId],
-    id: null,
   });
   if (data.result) data.result.status = Number(data.result.status);
   return data.result;
@@ -29,7 +32,6 @@ export const waitToBeMined = async (
   let mined = false;
   let receipt: TransactionReceiptBesu;
 
-  /* eslint-disable no-await-in-loop */
   do {
     await new Promise((resolve) => {
       setTimeout(resolve, 500);

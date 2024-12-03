@@ -1,4 +1,5 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
+
 import { formatHashAlgorithms } from "./hash-algorithms.formatter.js";
 
 describe("formatHashAlgorithms", () => {

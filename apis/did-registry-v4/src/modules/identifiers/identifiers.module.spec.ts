@@ -1,22 +1,24 @@
-import { vi, describe, beforeAll, afterAll, it, expect } from "vitest";
-import request from "supertest";
-import { Test } from "@nestjs/testing";
-import { ValidationPipe, Logger } from "@nestjs/common";
+import type { RawServerDefault } from "fastify";
+
+import { EbsiWallet } from "@cef-ebsi/wallet-lib";
+import { encode, methodNotAllowed } from "@ebsiint-api/shared";
+import { DidRegistry__factory } from "@ebsiint-sc/did-registry-v2";
+import { fastifyAccepts } from "@fastify/accepts";
+import { Logger, ValidationPipe } from "@nestjs/common";
 import {
   FastifyAdapter,
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import type { RawServerDefault } from "fastify";
-import { fastifyAccepts } from "@fastify/accepts";
+import { Test } from "@nestjs/testing";
 import { ethers } from "ethers";
-import { EbsiWallet } from "@cef-ebsi/wallet-lib";
-import { DidRegistry__factory } from "@ebsiint-sc/did-registry-v2";
-import { encode, methodNotAllowed } from "@ebsiint-api/shared";
-import { IdentifiersModule } from "./identifiers.module.js";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
-import { setupTestEnv } from "../../../tests/utils/didRegistry.js";
-import { LedgerService } from "../ledger/ledger.service.js";
+import request from "supertest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+
 import { createUser, UserDetails } from "../../../tests/utils/data.js";
+import { setupTestEnv } from "../../../tests/utils/didRegistry.js";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
+import { LedgerService } from "../ledger/ledger.service.js";
+import { IdentifiersModule } from "./identifiers.module.js";
 
 const DID_DOCUMENTS = 3;
 
@@ -59,9 +61,9 @@ describe(
       app.useGlobalFilters(new AllExceptionsFilter());
       app.useGlobalPipes(
         new ValidationPipe({
+          forbidNonWhitelisted: true,
           transform: true,
           whitelist: true,
-          forbidNonWhitelisted: true,
         }),
       );
 
@@ -92,31 +94,31 @@ describe(
 
         const response = await request(server).get("/identifiers");
         expect(response.body).toStrictEqual({
-          self: expect.stringContaining(
-            "/identifiers?page[after]=1&page[size]=10",
-          ),
           items: expect.arrayContaining(
             users.map((user) => ({
               did: user.did,
               href: expect.stringContaining(`/identifiers/${user.did}`),
             })),
           ),
-          total: DID_DOCUMENTS,
-          pageSize: 10,
           links: {
             first: expect.stringContaining(
-              "/identifiers?page[after]=1&page[size]=10",
-            ),
-            prev: expect.stringContaining(
-              "/identifiers?page[after]=1&page[size]=10",
-            ),
-            next: expect.stringContaining(
               "/identifiers?page[after]=1&page[size]=10",
             ),
             last: expect.stringContaining(
               "/identifiers?page[after]=1&page[size]=10",
             ),
+            next: expect.stringContaining(
+              "/identifiers?page[after]=1&page[size]=10",
+            ),
+            prev: expect.stringContaining(
+              "/identifiers?page[after]=1&page[size]=10",
+            ),
           },
+          pageSize: 10,
+          self: expect.stringContaining(
+            "/identifiers?page[after]=1&page[size]=10",
+          ),
+          total: DID_DOCUMENTS,
         });
         expect((response.body as { items: string }).items).toHaveLength(
           DID_DOCUMENTS,
@@ -132,9 +134,9 @@ describe(
         );
 
         expect(response.body).toStrictEqual({
-          title: "Bad Request",
-          status: 400,
           detail: '["property invalid-query should not exist"]',
+          status: 400,
+          title: "Bad Request",
           type: "about:blank",
         });
         expect(response.status).toBe(400);
@@ -149,9 +151,9 @@ describe(
           `/identifiers?controller=${controller}`,
         );
         expect(response.body).toStrictEqual({
-          title: "Not Found",
           detail: `Controller ${controller} not found`,
           status: 404,
+          title: "Not Found",
           type: "about:blank",
         });
         expect(response.status).toBe(404);
@@ -166,31 +168,31 @@ describe(
           `/identifiers?controller=${controller}`,
         );
         expect(response.body).toStrictEqual({
-          self: expect.stringContaining(
-            `/identifiers?page[after]=1&page[size]=10&controller=${controller}`,
-          ),
           items: [
             {
               did: controller,
               href: expect.any(String),
             },
           ],
-          total: 1,
-          pageSize: 10,
           links: {
             first: expect.stringContaining(
-              `/identifiers?page[after]=1&page[size]=10&controller=${controller}`,
-            ),
-            prev: expect.stringContaining(
-              `/identifiers?page[after]=1&page[size]=10&controller=${controller}`,
-            ),
-            next: expect.stringContaining(
               `/identifiers?page[after]=1&page[size]=10&controller=${controller}`,
             ),
             last: expect.stringContaining(
               `/identifiers?page[after]=1&page[size]=10&controller=${controller}`,
             ),
+            next: expect.stringContaining(
+              `/identifiers?page[after]=1&page[size]=10&controller=${controller}`,
+            ),
+            prev: expect.stringContaining(
+              `/identifiers?page[after]=1&page[size]=10&controller=${controller}`,
+            ),
           },
+          pageSize: 10,
+          self: expect.stringContaining(
+            `/identifiers?page[after]=1&page[size]=10&controller=${controller}`,
+          ),
+          total: 1,
         });
         expect(response.status).toBe(200);
       });
@@ -205,31 +207,31 @@ describe(
           `/identifiers?${extraQuery}`,
         );
         expect(response.body).toStrictEqual({
-          self: expect.stringContaining(
-            `/identifiers?page[after]=1&page[size]=10&${extraQuery}`,
-          ),
           items: [
             {
               did: users[0]!.did,
               href: expect.any(String),
             },
           ],
-          total: 1,
-          pageSize: 10,
           links: {
             first: expect.stringContaining(
-              `/identifiers?page[after]=1&page[size]=10&${extraQuery}`,
-            ),
-            prev: expect.stringContaining(
-              `/identifiers?page[after]=1&page[size]=10&${extraQuery}`,
-            ),
-            next: expect.stringContaining(
               `/identifiers?page[after]=1&page[size]=10&${extraQuery}`,
             ),
             last: expect.stringContaining(
               `/identifiers?page[after]=1&page[size]=10&${extraQuery}`,
             ),
+            next: expect.stringContaining(
+              `/identifiers?page[after]=1&page[size]=10&${extraQuery}`,
+            ),
+            prev: expect.stringContaining(
+              `/identifiers?page[after]=1&page[size]=10&${extraQuery}`,
+            ),
           },
+          pageSize: 10,
+          self: expect.stringContaining(
+            `/identifiers?page[after]=1&page[size]=10&${extraQuery}`,
+          ),
+          total: 1,
         });
         expect(response.status).toBe(200);
       });
@@ -241,26 +243,26 @@ describe(
           "/identifiers?page[size]=2",
         );
         expect(response1.body).toStrictEqual({
-          self: expect.stringContaining(
-            "/identifiers?page[after]=1&page[size]=2",
-          ),
           items: expect.arrayContaining([]),
-          total: DID_DOCUMENTS,
-          pageSize: 2,
           links: {
             first: expect.stringContaining(
               "/identifiers?page[after]=1&page[size]=2",
             ),
-            prev: expect.stringContaining(
-              "/identifiers?page[after]=1&page[size]=2",
+            last: expect.stringContaining(
+              "/identifiers?page[after]=2&page[size]=2",
             ),
             next: expect.stringContaining(
               "/identifiers?page[after]=2&page[size]=2",
             ),
-            last: expect.stringContaining(
-              "/identifiers?page[after]=2&page[size]=2",
+            prev: expect.stringContaining(
+              "/identifiers?page[after]=1&page[size]=2",
             ),
           },
+          pageSize: 2,
+          self: expect.stringContaining(
+            "/identifiers?page[after]=1&page[size]=2",
+          ),
+          total: DID_DOCUMENTS,
         });
         expect((response1.body as { items: string }).items).toHaveLength(2);
         expect(response1.status).toBe(200);
@@ -270,26 +272,26 @@ describe(
           "/identifiers?page[after]=2&page[size]=2",
         );
         expect(response2.body).toStrictEqual({
-          self: expect.stringContaining(
-            "/identifiers?page[after]=2&page[size]=2",
-          ),
           items: expect.arrayContaining([]),
-          total: DID_DOCUMENTS,
-          pageSize: 2,
           links: {
             first: expect.stringContaining(
               "/identifiers?page[after]=1&page[size]=2",
             ),
-            prev: expect.stringContaining(
-              "/identifiers?page[after]=1&page[size]=2",
+            last: expect.stringContaining(
+              "/identifiers?page[after]=2&page[size]=2",
             ),
             next: expect.stringContaining(
               "/identifiers?page[after]=2&page[size]=2",
             ),
-            last: expect.stringContaining(
-              "/identifiers?page[after]=2&page[size]=2",
+            prev: expect.stringContaining(
+              "/identifiers?page[after]=1&page[size]=2",
             ),
           },
+          pageSize: 2,
+          self: expect.stringContaining(
+            "/identifiers?page[after]=2&page[size]=2",
+          ),
+          total: DID_DOCUMENTS,
         });
         expect((response2.body as { items: string }).items).toHaveLength(1);
         expect(response2.status).toBe(200);
@@ -299,26 +301,26 @@ describe(
           "/identifiers?page[after]=100&page[size]=2",
         );
         expect(response3.body).toStrictEqual({
-          self: expect.stringContaining(
-            "/identifiers?page[after]=100&page[size]=2",
-          ),
           items: expect.arrayContaining([]),
-          total: DID_DOCUMENTS,
-          pageSize: 2,
           links: {
             first: expect.stringContaining(
               "/identifiers?page[after]=1&page[size]=2",
             ),
-            prev: expect.stringContaining(
+            last: expect.stringContaining(
               "/identifiers?page[after]=2&page[size]=2",
             ),
             next: expect.stringContaining(
               "/identifiers?page[after]=2&page[size]=2",
             ),
-            last: expect.stringContaining(
+            prev: expect.stringContaining(
               "/identifiers?page[after]=2&page[size]=2",
             ),
           },
+          pageSize: 2,
+          self: expect.stringContaining(
+            "/identifiers?page[after]=100&page[size]=2",
+          ),
+          total: DID_DOCUMENTS,
         });
         expect((response3.body as { items: string }).items).toHaveLength(0);
         expect(response3.status).toBe(200);
@@ -328,26 +330,26 @@ describe(
           "/identifiers?page[after]=1",
         );
         expect(response4.body).toStrictEqual({
-          self: expect.stringContaining(
-            "/identifiers?page[after]=1&page[size]=10",
-          ),
           items: expect.arrayContaining([]),
-          total: DID_DOCUMENTS,
-          pageSize: 10,
           links: {
             first: expect.stringContaining(
-              "/identifiers?page[after]=1&page[size]=10",
-            ),
-            prev: expect.stringContaining(
-              "/identifiers?page[after]=1&page[size]=10",
-            ),
-            next: expect.stringContaining(
               "/identifiers?page[after]=1&page[size]=10",
             ),
             last: expect.stringContaining(
               "/identifiers?page[after]=1&page[size]=10",
             ),
+            next: expect.stringContaining(
+              "/identifiers?page[after]=1&page[size]=10",
+            ),
+            prev: expect.stringContaining(
+              "/identifiers?page[after]=1&page[size]=10",
+            ),
           },
+          pageSize: 10,
+          self: expect.stringContaining(
+            "/identifiers?page[after]=1&page[size]=10",
+          ),
+          total: DID_DOCUMENTS,
         });
         expect((response4.body as { items: string }).items).toHaveLength(3);
         expect(response4.status).toBe(200);
@@ -360,9 +362,9 @@ describe(
           "/identifiers?page[size]=100",
         );
         expect(response1.body).toStrictEqual({
-          title: "Bad Request",
-          status: 400,
           detail: '["page[size] must not be greater than 50"]',
+          status: 400,
+          title: "Bad Request",
           type: "about:blank",
         });
         expect(response1.status).toBe(400);
@@ -371,9 +373,9 @@ describe(
           "/identifiers?page[size]=0",
         );
         expect(response2.body).toStrictEqual({
-          title: "Bad Request",
-          status: 400,
           detail: '["page[size] must not be less than 1"]',
+          status: 400,
+          title: "Bad Request",
           type: "about:blank",
         });
         expect(response2.status).toBe(400);
@@ -382,9 +384,9 @@ describe(
           "/identifiers?page[after]=0",
         );
         expect(response3.body).toStrictEqual({
-          title: "Bad Request",
-          status: 400,
           detail: '["page[after] must not be less than 1"]',
+          status: 400,
+          title: "Bad Request",
           type: "about:blank",
         });
         expect(response3.status).toBe(400);
@@ -393,10 +395,10 @@ describe(
           "/identifiers?page[after]=abc",
         );
         expect(response4.body).toStrictEqual({
-          title: "Bad Request",
-          status: 400,
           detail:
             '["page[after] must not be less than 1","page[after] must be a number conforming to the specified constraints"]',
+          status: 400,
+          title: "Bad Request",
           type: "about:blank",
         });
         expect(response4.status).toBe(400);
@@ -463,73 +465,68 @@ describe(
         );
         const thumbprint1 = user.thumbprint;
         const publicKeyJwk2 = {
-          kty: "EC",
           crv: "P-256",
+          kty: "EC",
           x: "S72xRvIMPce-tPHJOaB8km4mPkcz2brMxtAQ8GDfAVg",
           y: "6szYD97Mp2BQnIwAVg2axxJSY3JsG8LQknyR7WH09Pc",
         };
         const thumbprint2 = "2hyKWiLemt60cgMhW7RZOFjXN7nBjAml3bjk4IAYQtQ";
         const publicKeyJwk3 = {
-          kty: "OKP",
           crv: "Ed25519",
+          kty: "OKP",
           x: "AHjO0ivGIlmGBoqeVGEs4OA7Am9tmG-qpcGoz_wf58Y",
         };
         const thumbprint3 = "jjgyWrlP1LJR1q2cGNrPEj_7wnwafmQoij4wBHbj_iY";
 
         // creation of a new did document
-        await (
-          await testEnv.didRegistryContract.insertDidDocument(
-            user.did,
-            JSON.stringify({ "@context": user.didDocument["@context"] }),
-            thumbprint1,
-            user.wallet.publicKey,
-            true,
-            new Date("2022-01-01").getTime() / 1000,
-            new Date("2030-01-01").getTime() / 1000,
-          )
-        ).wait();
+        let tx = await testEnv.didRegistryContract.insertDidDocument(
+          user.did,
+          JSON.stringify({ "@context": user.didDocument["@context"] }),
+          thumbprint1,
+          user.wallet.publicKey,
+          true,
+          new Date("2022-01-01").getTime() / 1000,
+          new Date("2030-01-01").getTime() / 1000,
+        );
+        await tx.wait();
 
         // new key and relationship added later
-        await (
-          await testEnv.didRegistryContract.addVerificationMethod(
-            user.did,
-            thumbprint2,
-            Buffer.from(JSON.stringify(publicKeyJwk2)),
-            false,
-          )
-        ).wait();
+        tx = await testEnv.didRegistryContract.addVerificationMethod(
+          user.did,
+          thumbprint2,
+          Buffer.from(JSON.stringify(publicKeyJwk2)),
+          false,
+        );
+        await tx.wait();
 
-        await (
-          await testEnv.didRegistryContract.addVerificationRelationship(
-            user.did,
-            "authentication",
-            thumbprint2,
-            new Date("2024-01-01").getTime() / 1000,
-            new Date("2029-01-01").getTime() / 1000,
-          )
-        ).wait();
+        tx = await testEnv.didRegistryContract.addVerificationRelationship(
+          user.did,
+          "authentication",
+          thumbprint2,
+          new Date("2024-01-01").getTime() / 1000,
+          new Date("2029-01-01").getTime() / 1000,
+        );
+        await tx.wait();
 
         // the first key is rolled
-        await (
-          await testEnv.didRegistryContract.rollVerificationMethod(
-            user.did,
-            thumbprint3,
-            Buffer.from(JSON.stringify(publicKeyJwk3)),
-            false,
-            new Date("2027-01-01").getTime() / 1000,
-            new Date("2040-01-01").getTime() / 1000,
-            thumbprint1,
-            3 * 30 * 24 * 3600, // 3 months of transition
-          )
-        ).wait();
+        tx = await testEnv.didRegistryContract.rollVerificationMethod(
+          user.did,
+          thumbprint3,
+          Buffer.from(JSON.stringify(publicKeyJwk3)),
+          false,
+          new Date("2027-01-01").getTime() / 1000,
+          new Date("2040-01-01").getTime() / 1000,
+          thumbprint1,
+          3 * 30 * 24 * 3600, // 3 months of transition
+        );
+        await tx.wait();
 
         // new controller added
-        await (
-          await testEnv.didRegistryContract.addController(
-            user.did,
-            users[0]!.did,
-          )
-        ).wait();
+        tx = await testEnv.didRegistryContract.addController(
+          user.did,
+          users[0]!.did,
+        );
+        await tx.wait();
 
         // controllers are the same for the whole history
         const controllers = [user.did, users[0]!.did];
@@ -540,18 +537,18 @@ describe(
         );
         expect(response.body).toStrictEqual({
           "@context": user.didDocument["@context"],
-          id: user.did,
+          authentication: [`${user.did}#${thumbprint1}`],
+          capabilityInvocation: [`${user.did}#${thumbprint1}`],
           controller: controllers,
+          id: user.did,
           verificationMethod: [
             {
-              id: `${user.did}#${thumbprint1}`,
-              type: "JsonWebKey2020",
               controller: user.did,
+              id: `${user.did}#${thumbprint1}`,
               publicKeyJwk: publicKeyJwk1,
+              type: "JsonWebKey2020",
             },
           ],
-          capabilityInvocation: [`${user.did}#${thumbprint1}`],
-          authentication: [`${user.did}#${thumbprint1}`],
         });
         expect(response.status).toBe(200);
 
@@ -561,26 +558,26 @@ describe(
         );
         expect(response.body).toStrictEqual({
           "@context": user.didDocument["@context"],
-          id: user.did,
-          controller: controllers,
-          verificationMethod: [
-            {
-              id: `${user.did}#${thumbprint1}`,
-              type: "JsonWebKey2020",
-              controller: user.did,
-              publicKeyJwk: publicKeyJwk1,
-            },
-            {
-              id: `${user.did}#${thumbprint2}`,
-              type: "JsonWebKey2020",
-              controller: user.did,
-              publicKeyJwk: publicKeyJwk2,
-            },
-          ],
-          capabilityInvocation: [`${user.did}#${thumbprint1}`],
           authentication: [
             `${user.did}#${thumbprint1}`,
             `${user.did}#${thumbprint2}`,
+          ],
+          capabilityInvocation: [`${user.did}#${thumbprint1}`],
+          controller: controllers,
+          id: user.did,
+          verificationMethod: [
+            {
+              controller: user.did,
+              id: `${user.did}#${thumbprint1}`,
+              publicKeyJwk: publicKeyJwk1,
+              type: "JsonWebKey2020",
+            },
+            {
+              controller: user.did,
+              id: `${user.did}#${thumbprint2}`,
+              publicKeyJwk: publicKeyJwk2,
+              type: "JsonWebKey2020",
+            },
           ],
         });
         expect(response.status).toBe(200);
@@ -591,36 +588,36 @@ describe(
         );
         expect(response.body).toStrictEqual({
           "@context": user.didDocument["@context"],
-          id: user.did,
-          controller: controllers,
-          verificationMethod: [
-            {
-              id: `${user.did}#${thumbprint1}`,
-              type: "JsonWebKey2020",
-              controller: user.did,
-              publicKeyJwk: publicKeyJwk1,
-            },
-            {
-              id: `${user.did}#${thumbprint2}`,
-              type: "JsonWebKey2020",
-              controller: user.did,
-              publicKeyJwk: publicKeyJwk2,
-            },
-            {
-              id: `${user.did}#${thumbprint3}`,
-              type: "JsonWebKey2020",
-              controller: user.did,
-              publicKeyJwk: publicKeyJwk3,
-            },
+          authentication: [
+            `${user.did}#${thumbprint1}`,
+            `${user.did}#${thumbprint2}`,
+            `${user.did}#${thumbprint3}`,
           ],
           capabilityInvocation: [
             `${user.did}#${thumbprint1}`,
             `${user.did}#${thumbprint3}`,
           ],
-          authentication: [
-            `${user.did}#${thumbprint1}`,
-            `${user.did}#${thumbprint2}`,
-            `${user.did}#${thumbprint3}`,
+          controller: controllers,
+          id: user.did,
+          verificationMethod: [
+            {
+              controller: user.did,
+              id: `${user.did}#${thumbprint1}`,
+              publicKeyJwk: publicKeyJwk1,
+              type: "JsonWebKey2020",
+            },
+            {
+              controller: user.did,
+              id: `${user.did}#${thumbprint2}`,
+              publicKeyJwk: publicKeyJwk2,
+              type: "JsonWebKey2020",
+            },
+            {
+              controller: user.did,
+              id: `${user.did}#${thumbprint3}`,
+              publicKeyJwk: publicKeyJwk3,
+              type: "JsonWebKey2020",
+            },
           ],
         });
         expect(response.status).toBe(200);
@@ -631,26 +628,26 @@ describe(
         );
         expect(response.body).toStrictEqual({
           "@context": user.didDocument["@context"],
-          id: user.did,
-          controller: controllers,
-          verificationMethod: [
-            {
-              id: `${user.did}#${thumbprint2}`,
-              type: "JsonWebKey2020",
-              controller: user.did,
-              publicKeyJwk: publicKeyJwk2,
-            },
-            {
-              id: `${user.did}#${thumbprint3}`,
-              type: "JsonWebKey2020",
-              controller: user.did,
-              publicKeyJwk: publicKeyJwk3,
-            },
-          ],
-          capabilityInvocation: [`${user.did}#${thumbprint3}`],
           authentication: [
             `${user.did}#${thumbprint2}`,
             `${user.did}#${thumbprint3}`,
+          ],
+          capabilityInvocation: [`${user.did}#${thumbprint3}`],
+          controller: controllers,
+          id: user.did,
+          verificationMethod: [
+            {
+              controller: user.did,
+              id: `${user.did}#${thumbprint2}`,
+              publicKeyJwk: publicKeyJwk2,
+              type: "JsonWebKey2020",
+            },
+            {
+              controller: user.did,
+              id: `${user.did}#${thumbprint3}`,
+              publicKeyJwk: publicKeyJwk3,
+              type: "JsonWebKey2020",
+            },
           ],
         });
         expect(response.status).toBe(200);
@@ -661,18 +658,18 @@ describe(
         );
         expect(response.body).toStrictEqual({
           "@context": user.didDocument["@context"],
-          id: user.did,
+          authentication: [`${user.did}#${thumbprint3}`],
+          capabilityInvocation: [`${user.did}#${thumbprint3}`],
           controller: controllers,
+          id: user.did,
           verificationMethod: [
             {
-              id: `${user.did}#${thumbprint3}`,
-              type: "JsonWebKey2020",
               controller: user.did,
+              id: `${user.did}#${thumbprint3}`,
               publicKeyJwk: publicKeyJwk3,
+              type: "JsonWebKey2020",
             },
           ],
-          capabilityInvocation: [`${user.did}#${thumbprint3}`],
-          authentication: [`${user.did}#${thumbprint3}`],
         });
         expect(response.status).toBe(200);
       });
@@ -683,9 +680,9 @@ describe(
         const response = await request(server).get("/identifiers/invalid");
 
         expect(response.body).toStrictEqual({
-          title: "Bad Request",
-          status: 400,
           detail: '["did must be a valid DID v1"]',
+          status: 400,
+          title: "Bad Request",
           type: "about:blank",
         });
         expect(response.status).toBe(400);
@@ -698,9 +695,9 @@ describe(
         const response = await request(server).get(`/identifiers/${randomDid}`);
 
         expect(response.body).toStrictEqual({
-          title: "Identifier Not Found",
-          status: 404,
           detail: `Identifier ${randomDid} not found`,
+          status: 404,
+          title: "Identifier Not Found",
           type: "about:blank",
         });
         expect(response.status).toBe(404);
@@ -711,47 +708,45 @@ describe(
 
         let user = await createUser();
         const now = Math.floor(Date.now() / 1000);
-        await (
-          await testEnv.didRegistryContract.insertDidDocument(
-            user.did,
-            "bad base document",
-            user.thumbprint,
-            user.wallet.publicKey,
-            true,
-            now,
-            now + 3600,
-          )
-        ).wait();
+        let tx = await testEnv.didRegistryContract.insertDidDocument(
+          user.did,
+          "bad base document",
+          user.thumbprint,
+          user.wallet.publicKey,
+          true,
+          now,
+          now + 3600,
+        );
+        await tx.wait();
 
         let response = await request(server).get(`/identifiers/${user.did}`);
 
         expect(response.body).toStrictEqual({
-          title: "Bad Request",
-          status: 400,
           detail: `Identifier ${user.did} contains an invalid base document. Unexpected token 'b', "bad base document" is not valid JSON`,
+          status: 400,
+          title: "Bad Request",
           type: "about:blank",
         });
         expect(response.status).toBe(400);
 
         user = await createUser();
-        await (
-          await testEnv.didRegistryContract.insertDidDocument(
-            user.did,
-            JSON.stringify(user.didDocument["@context"]),
-            user.thumbprint,
-            "0x1234567890", // bad public key
-            true,
-            now,
-            now + 3600,
-          )
-        ).wait();
+        tx = await testEnv.didRegistryContract.insertDidDocument(
+          user.did,
+          JSON.stringify(user.didDocument["@context"]),
+          user.thumbprint,
+          "0x1234567890", // bad public key
+          true,
+          now,
+          now + 3600,
+        );
+        await tx.wait();
 
         response = await request(server).get(`/identifiers/${user.did}`);
 
         expect(response.body).toStrictEqual({
-          title: "Bad Request",
-          status: 400,
           detail: `Identifier ${user.did} contains an invalid public key in a verification method. Unknown point format`,
+          status: 400,
+          title: "Bad Request",
           type: "about:blank",
         });
         expect(response.status).toBe(400);
@@ -766,15 +761,15 @@ describe(
         let response = await request(server)
           .post(`/identifiers/${did}/actions`)
           .send({
+            id: 123,
             jsonrpc: "2.0",
             method: "checkController",
             params: [wallet.address],
-            id: 123,
           });
 
         expect(response.body).toStrictEqual({
-          jsonrpc: "2.0",
           id: 123,
+          jsonrpc: "2.0",
           result: true,
         });
         expect(response.status).toBe(200);
@@ -783,15 +778,15 @@ describe(
         response = await request(server)
           .post(`/identifiers/${did}/actions`)
           .send({
+            id: 123,
             jsonrpc: "2.0",
             method: "checkController",
             params: [randomAddress],
-            id: 123,
           });
 
         expect(response.body).toStrictEqual({
-          jsonrpc: "2.0",
           id: 123,
+          jsonrpc: "2.0",
           result: false,
         });
         expect(response.status).toBe(200);
@@ -801,20 +796,20 @@ describe(
         expect.assertions(2);
 
         const [didDocumentV1] = testEnv.setupV1.didDocuments;
-        const { did, controller } = didDocumentV1!;
+        const { controller, did } = didDocumentV1!;
 
         const response = await request(server)
           .post(`/identifiers/${did}/actions`)
           .send({
+            id: 123,
             jsonrpc: "2.0",
             method: "checkController",
             params: [controller.address],
-            id: 123,
           });
 
         expect(response.body).toStrictEqual({
-          jsonrpc: "2.0",
           id: 123,
+          jsonrpc: "2.0",
           result: true,
         });
         expect(response.status).toBe(200);
@@ -848,12 +843,13 @@ describe(
           });
 
         expect(response.body).toStrictEqual({
-          jsonrpc: "2.0",
           error: {
-            code: -32600,
+            code: -32_600,
             message: "The method 'bad method' is invalid",
           },
+          // eslint-disable-next-line unicorn/no-null
           id: null,
+          jsonrpc: "2.0",
         });
         expect(response.status).toBe(400);
 
@@ -866,13 +862,14 @@ describe(
           });
 
         expect(response.body).toStrictEqual({
-          jsonrpc: "2.0",
           error: {
-            code: -32600,
+            code: -32_600,
             message:
               "Validation error: each value in params must be an Ethereum address",
           },
+          // eslint-disable-next-line unicorn/no-null
           id: null,
+          jsonrpc: "2.0",
         });
         expect(response.status).toBe(400);
 
@@ -886,12 +883,13 @@ describe(
           });
 
         expect(response.body).toStrictEqual({
-          jsonrpc: "2.0",
           error: {
-            code: -32600,
+            code: -32_600,
             message: "record unknown",
           },
+          // eslint-disable-next-line unicorn/no-null
           id: null,
+          jsonrpc: "2.0",
         });
         expect(response.status).toBe(400);
       });

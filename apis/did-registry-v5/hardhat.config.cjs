@@ -14,19 +14,19 @@ const didrScPath = path.resolve(
 const config = {
   defaultNetwork: "hardhat",
   networks: {
-    hardhat: { hardfork: "berlin", allowUnlimitedContractSize: true },
+    hardhat: { allowUnlimitedContractSize: true, hardfork: "berlin" },
+  },
+  paths: {
+    artifacts: path.resolve(didrScPath, "./artifacts"),
   },
   solidity: {
-    version: "0.8.12",
     settings: {
       optimizer: {
         enabled: true,
         runs: 10,
       },
     },
-  },
-  paths: {
-    artifacts: path.resolve(didrScPath, "./artifacts"),
+    version: "0.8.12",
   },
 };
 

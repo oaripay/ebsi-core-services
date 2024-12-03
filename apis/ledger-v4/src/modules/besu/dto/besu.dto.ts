@@ -1,4 +1,4 @@
-import { IsArray, Equals, IsOptional, IsString } from "class-validator";
+import { Equals, IsArray, IsOptional, IsString } from "class-validator";
 
 export class BesuDto {
   @Equals("2.0")

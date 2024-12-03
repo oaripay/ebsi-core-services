@@ -5,9 +5,9 @@ import type {
 
 interface PaginationLinks {
   firstPage: number;
-  prevPage: number;
-  nextPage: number;
   lastPage: number;
+  nextPage: number;
+  prevPage: number;
 }
 
 export function compute1BasedPaginationLinks(
@@ -20,7 +20,7 @@ export function compute1BasedPaginationLinks(
   const prevPage = Math.max(Math.min(currentPage - 1, lastPage), firstPage);
   const nextPage = Math.max(Math.min(currentPage + 1, lastPage), firstPage);
 
-  return { firstPage, prevPage, nextPage, lastPage };
+  return { firstPage, lastPage, nextPage, prevPage };
 }
 
 export function paginate<T>(
@@ -31,20 +31,20 @@ export function paginate<T>(
   pageSize: number,
   extraQuery = "",
 ): PaginatedList<T> {
-  const { firstPage, prevPage, nextPage, lastPage } =
+  const { firstPage, lastPage, nextPage, prevPage } =
     compute1BasedPaginationLinks(total, page, pageSize);
 
   return {
-    self: `${baseUrl}?page[after]=${page}&page[size]=${pageSize}${extraQuery}`,
     items,
-    total,
-    pageSize,
     links: {
       first: `${baseUrl}?page[after]=${firstPage}&page[size]=${pageSize}${extraQuery}`,
-      prev: `${baseUrl}?page[after]=${prevPage}&page[size]=${pageSize}${extraQuery}`,
-      next: `${baseUrl}?page[after]=${nextPage}&page[size]=${pageSize}${extraQuery}`,
       last: `${baseUrl}?page[after]=${lastPage}&page[size]=${pageSize}${extraQuery}`,
+      next: `${baseUrl}?page[after]=${nextPage}&page[size]=${pageSize}${extraQuery}`,
+      prev: `${baseUrl}?page[after]=${prevPage}&page[size]=${pageSize}${extraQuery}`,
     },
+    pageSize,
+    self: `${baseUrl}?page[after]=${page}&page[size]=${pageSize}${extraQuery}`,
+    total,
   };
 }
 
@@ -67,16 +67,16 @@ export function paginateWithoutTotal<T>(
   const nextPage = currentPageIsLastPage ? page : page + 1;
 
   return {
-    self: `${baseUrl}?page[after]=${page}&page[size]=${pageSize}${extraQuery}`,
     items: items.slice(0, pageSize),
-    pageSize,
     links: {
       first: `${baseUrl}?page[after]=${firstPage}&page[size]=${pageSize}${extraQuery}`,
-      prev: `${baseUrl}?page[after]=${prevPage}&page[size]=${pageSize}${extraQuery}`,
       next: `${baseUrl}?page[after]=${nextPage}&page[size]=${pageSize}${extraQuery}`,
+      prev: `${baseUrl}?page[after]=${prevPage}&page[size]=${pageSize}${extraQuery}`,
       ...(currentPageIsLastPage && {
         last: `${baseUrl}?page[after]=${page}&page[size]=${pageSize}${extraQuery}`,
       }),
     },
+    pageSize,
+    self: `${baseUrl}?page[after]=${page}&page[size]=${pageSize}${extraQuery}`,
   };
 }

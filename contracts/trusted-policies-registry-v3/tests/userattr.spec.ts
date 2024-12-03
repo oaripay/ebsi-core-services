@@ -1,7 +1,9 @@
-import { ethers } from "hardhat";
+import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+
 import { expect } from "chai";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { PolicyRegistry } from "../src/types";
+import { ethers } from "hardhat";
+
+import type { PolicyRegistry } from "../src/types";
 
 describe("UserAttributesManagement", () => {
   let snapshotId: string;
@@ -16,7 +18,7 @@ describe("UserAttributesManagement", () => {
       "PolicyRegistry",
       {},
     );
-    policyContract = (await policyRegistryFactory.deploy()) as PolicyRegistry;
+    policyContract = await policyRegistryFactory.deploy();
     await policyContract.deployed();
 
     await policyContract.initialize(10);
@@ -31,7 +33,7 @@ describe("UserAttributesManagement", () => {
   });
 
   beforeEach(async () => {
-    snapshotId = await ethers.provider.send("evm_snapshot", []);
+    snapshotId = (await ethers.provider.send("evm_snapshot", [])) as string;
   });
 
   afterEach(async () => {
@@ -48,6 +50,7 @@ describe("UserAttributesManagement", () => {
         `AccessControl: account ${user2.address.toLowerCase()} is missing role 0x97667070c54ef182b0f5858b034beac1b6f3089aa2d3188bb1e8929f4fa9b929`,
       );
     });
+
     it("Should fail for empty user", async () => {
       await expect(
         policyContract.insertUserAttributes(ethers.constants.AddressZero, [
@@ -96,6 +99,7 @@ describe("UserAttributesManagement", () => {
         `AccessControl: account ${user2.address.toLowerCase()} is missing role 0x97667070c54ef182b0f5858b034beac1b6f3089aa2d3188bb1e8929f4fa9b929`,
       );
     });
+
     it("Should fail for invalid user address", async () => {
       await expect(
         policyContract.deleteUserAttribute(
@@ -143,7 +147,7 @@ describe("UserAttributesManagement", () => {
     });
   });
 
-  describe("PolicyEngine", async () => {
+  describe("PolicyEngine", () => {
     it("should check user has access", async () => {
       await policyContract.insertPolicy(
         "test-policy-against-user",

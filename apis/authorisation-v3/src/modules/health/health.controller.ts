@@ -1,14 +1,15 @@
+import { Accepts } from "@ebsiint-api/shared";
 // For more info, read https://docs.nestjs.com/recipes/terminus
 import { Controller, Get } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { Accepts } from "@ebsiint-api/shared";
 import {
   HealthCheck,
+  HealthCheckResult,
   HealthCheckService,
   HttpHealthIndicator,
-  HealthCheckResult,
 } from "@nestjs/terminus";
-import { DEPENDENCIES, type ApiConfig } from "../../config/configuration.js";
+
+import { type ApiConfig, DEPENDENCIES } from "../../config/configuration.js";
 
 @Controller("/health")
 export class HealthController {
@@ -18,8 +19,8 @@ export class HealthController {
     private http: HttpHealthIndicator,
   ) {}
 
-  @Get()
   @Accepts("application/json")
+  @Get()
   @HealthCheck()
   check(): Promise<HealthCheckResult> {
     return this.health.check(

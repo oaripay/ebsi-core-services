@@ -1,25 +1,26 @@
+import type { FastifyReply } from "fastify";
+
 import {
-  ExceptionFilter,
-  Catch,
+  BadRequestError,
+  ForbiddenError,
+  InternalServerError,
+  InvalidRequestJsonRpcError,
+  logAxiosError,
+  MethodNotAllowedError,
+  NotFoundError,
+  ProblemDetailsError,
+} from "@ebsiint-api/shared";
+import {
   type ArgumentsHost,
+  BadRequestException,
+  Catch,
+  ExceptionFilter,
+  ForbiddenException,
   Logger,
   NotFoundException,
-  BadRequestException,
   ServiceUnavailableException,
-  ForbiddenException,
 } from "@nestjs/common";
-import type { FastifyReply } from "fastify";
-import axios from "axios";
-import {
-  logAxiosError,
-  ProblemDetailsError,
-  InternalServerError,
-  NotFoundError,
-  BadRequestError,
-  InvalidRequestJsonRpcError,
-  ForbiddenError,
-  MethodNotAllowedError,
-} from "@ebsiint-api/shared";
+import { isAxiosError } from "axios";
 import { stringify } from "safe-stable-stringify";
 
 function getProblemDetailsError(
@@ -63,8 +64,10 @@ function getProblemDetailsError(
     let detail = error.message;
     const resp = error.getResponse();
     if (typeof resp === "object" && "message" in resp && resp.message) {
-      if (typeof resp.message === "string") detail = resp.message;
-      else detail = stringify(resp.message);
+      detail =
+        typeof resp.message === "string"
+          ? resp.message
+          : stringify(resp.message);
     }
 
     // Map to Problem Details error
@@ -74,7 +77,7 @@ function getProblemDetailsError(
   }
 
   // Log unhandled error
-  if (axios.isAxiosError(error)) {
+  if (isAxiosError(error)) {
     logAxiosError(error, logger);
   } else if (error instanceof Error) {
     logger.error(error.message, error.stack);

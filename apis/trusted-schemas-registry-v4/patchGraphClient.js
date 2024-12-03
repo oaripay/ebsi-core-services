@@ -12,7 +12,7 @@
  * 2. update the "endpoint" to take it from process.env.GRAPHQL_ENDPOINT
  */
 
-import fs from "fs";
+import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 

@@ -1,38 +1,41 @@
-import { Inject, Injectable, Logger } from "@nestjs/common";
-import { CACHE_MANAGER } from "@nestjs/cache-manager";
-import { ConfigService } from "@nestjs/config";
+import type { Cache } from "cache-manager";
+
 import {
   InternalServerError,
-  UnauthorizedError,
   logAxiosError,
+  UnauthorizedError,
 } from "@ebsiint-api/shared";
-import type { Cache } from "cache-manager";
+import { CACHE_MANAGER } from "@nestjs/cache-manager";
+import { Inject, Injectable, Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import axios, { type AxiosResponse, isAxiosError } from "axios";
 import {
-  type JSONWebKeySet,
-  type ProtectedHeaderParameters,
-  type JWTPayload,
   decodeJwt,
   decodeProtectedHeader,
-  jwtVerify,
   importJWK,
+  type JSONWebKeySet,
+  type JWTPayload,
+  jwtVerify,
+  type ProtectedHeaderParameters,
 } from "jose";
-import axios, { type AxiosResponse } from "axios";
+
 import type { ApiConfig } from "../../config/configuration.js";
 import type { SubjectInfo } from "./auth.interface.js";
-import { openidConfigurationSchema } from "./validators/openid-configuration.validator.js";
-import { jwksSchema } from "./validators/jwks.validator.js";
+
 import TIMESTAMP_WRITE_SCOPE from "./auth.constants.js";
+import { jwksSchema } from "./validators/jwks.validator.js";
+import { openidConfigurationSchema } from "./validators/openid-configuration.validator.js";
 
 const CACHE_KEY = "jwks";
 const CACHE_TTL = 300_000; // 5 minutes
 
 @Injectable()
 export class AuthService {
+  private readonly authorisationApiUrl: string;
+
   private readonly logger = new Logger(AuthService.name);
 
   private readonly timeout: number;
-
-  private readonly authorisationApiUrl: string;
 
   constructor(
     configService: ConfigService<ApiConfig, true>,
@@ -40,82 +43,6 @@ export class AuthService {
   ) {
     this.timeout = configService.get<number>("requestTimeout");
     this.authorisationApiUrl = configService.get<string>("authorisationApiUrl");
-  }
-
-  private async getAuthorisationApiJwk(kid: string) {
-    let jwks = await this.cacheManager.get<JSONWebKeySet>(CACHE_KEY);
-
-    if (!jwks) {
-      let rawAuthApiOpenIdConfig: AxiosResponse<unknown>;
-      try {
-        rawAuthApiOpenIdConfig = await axios.get<unknown>(
-          `${this.authorisationApiUrl}/.well-known/openid-configuration`,
-          {
-            timeout: this.timeout,
-          },
-        );
-      } catch (err) {
-        if (axios.isAxiosError(err)) {
-          logAxiosError(err, this.logger);
-        } else if (err instanceof Error) {
-          this.logger.error(err.message, err.stack);
-        } else {
-          this.logger.error(err);
-        }
-
-        throw new InternalServerError(InternalServerError.defaultTitle, {
-          detail: "Couldn't get Authorisation API OpenID Configuration",
-        });
-      }
-
-      const parsedAuthApiOpenIdConfig = openidConfigurationSchema.safeParse(
-        rawAuthApiOpenIdConfig.data,
-      );
-
-      if (!parsedAuthApiOpenIdConfig.success) {
-        throw new InternalServerError(InternalServerError.defaultTitle, {
-          detail:
-            "Authorisation API didn't respond as expected (invalid OpenID Configuration)",
-        });
-      }
-
-      const { jwks_uri: jwksUri } = parsedAuthApiOpenIdConfig.data;
-
-      let rawAuthApiJwks: AxiosResponse<unknown>;
-
-      try {
-        rawAuthApiJwks = await axios.get<unknown>(jwksUri, {
-          timeout: this.timeout,
-        });
-      } catch (err) {
-        if (axios.isAxiosError(err)) {
-          logAxiosError(err, this.logger);
-        } else if (err instanceof Error) {
-          this.logger.error(err.message, err.stack);
-        } else {
-          this.logger.error(err);
-        }
-
-        throw new InternalServerError(InternalServerError.defaultTitle, {
-          detail: "Couldn't get Authorisation API JWKS",
-        });
-      }
-
-      const parsedAuthApiJwks = jwksSchema.safeParse(rawAuthApiJwks.data);
-
-      if (!parsedAuthApiJwks.success) {
-        throw new InternalServerError(InternalServerError.defaultTitle, {
-          detail: "Authorisation API didn't respond as expected (invalid JWKS)",
-        });
-      }
-
-      jwks = parsedAuthApiJwks.data as JSONWebKeySet;
-
-      // Store result in cache
-      await this.cacheManager.set(CACHE_KEY, jwks, CACHE_TTL);
-    }
-
-    return jwks.keys.find((key) => key.kid === kid);
   }
 
   async validateToken(bearerToken: string): Promise<SubjectInfo> {
@@ -155,7 +82,7 @@ export class AuthService {
     }
 
     // We only validate "sub" and "scp" (the only properties we need later)
-    const { sub, scp } = payload;
+    const { scp, sub } = payload;
 
     if (!sub) {
       throw new UnauthorizedError(UnauthorizedError.defaultTitle, {
@@ -177,7 +104,83 @@ export class AuthService {
       });
     }
 
-    return { sub, scp };
+    return { scp, sub };
+  }
+
+  private async getAuthorisationApiJwk(kid: string) {
+    let jwks = await this.cacheManager.get<JSONWebKeySet>(CACHE_KEY);
+
+    if (!jwks) {
+      let rawAuthApiOpenIdConfig: AxiosResponse<unknown>;
+      try {
+        rawAuthApiOpenIdConfig = await axios.get<unknown>(
+          `${this.authorisationApiUrl}/.well-known/openid-configuration`,
+          {
+            timeout: this.timeout,
+          },
+        );
+      } catch (error) {
+        if (isAxiosError(error)) {
+          logAxiosError(error, this.logger);
+        } else if (error instanceof Error) {
+          this.logger.error(error.message, error.stack);
+        } else {
+          this.logger.error(error);
+        }
+
+        throw new InternalServerError(InternalServerError.defaultTitle, {
+          detail: "Couldn't get Authorisation API OpenID Configuration",
+        });
+      }
+
+      const parsedAuthApiOpenIdConfig = openidConfigurationSchema.safeParse(
+        rawAuthApiOpenIdConfig.data,
+      );
+
+      if (!parsedAuthApiOpenIdConfig.success) {
+        throw new InternalServerError(InternalServerError.defaultTitle, {
+          detail:
+            "Authorisation API didn't respond as expected (invalid OpenID Configuration)",
+        });
+      }
+
+      const { jwks_uri: jwksUri } = parsedAuthApiOpenIdConfig.data;
+
+      let rawAuthApiJwks: AxiosResponse<unknown>;
+
+      try {
+        rawAuthApiJwks = await axios.get<unknown>(jwksUri, {
+          timeout: this.timeout,
+        });
+      } catch (error) {
+        if (isAxiosError(error)) {
+          logAxiosError(error, this.logger);
+        } else if (error instanceof Error) {
+          this.logger.error(error.message, error.stack);
+        } else {
+          this.logger.error(error);
+        }
+
+        throw new InternalServerError(InternalServerError.defaultTitle, {
+          detail: "Couldn't get Authorisation API JWKS",
+        });
+      }
+
+      const parsedAuthApiJwks = jwksSchema.safeParse(rawAuthApiJwks.data);
+
+      if (!parsedAuthApiJwks.success) {
+        throw new InternalServerError(InternalServerError.defaultTitle, {
+          detail: "Authorisation API didn't respond as expected (invalid JWKS)",
+        });
+      }
+
+      jwks = parsedAuthApiJwks.data as JSONWebKeySet;
+
+      // Store result in cache
+      await this.cacheManager.set(CACHE_KEY, jwks, CACHE_TTL);
+    }
+
+    return jwks.keys.find((key) => key.kid === kid);
   }
 }
 

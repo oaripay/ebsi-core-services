@@ -19,29 +19,30 @@ if (fs.existsSync(mnemonicPath)) {
 }
 
 const config: HardhatUserConfig = {
+  abiExporter: {
+    clear: true,
+    flat: true,
+    path: "./src/abi",
+  },
   defaultNetwork: "hardhat",
   networks: {
     hardhat: {},
     local: {
-      url: "http://localhost:8545",
       accounts: { mnemonic },
+      url: "http://localhost:8545",
     },
     mainnet: {
-      url: "https://api-test.ebsi.eu/ledger/v3/blockchains/besu",
       accounts: { mnemonic },
+      url: "https://api-test.ebsi.eu/ledger/v3/blockchains/besu",
     },
   },
-  typechain: {
-    outDir: "src/types",
-    target: "ethers-v5",
-  },
-  abiExporter: {
-    path: "./src/abi",
-    clear: true,
-    flat: true,
+  paths: {
+    artifacts: "./artifacts",
+    cache: "./cache",
+    sources: "./contracts",
+    tests: "./tests",
   },
   solidity: {
-    version: "0.8.12",
     settings: {
       optimizer: {
         enabled: true,
@@ -49,12 +50,11 @@ const config: HardhatUserConfig = {
       },
       viaIR: true,
     },
+    version: "0.8.12",
   },
-  paths: {
-    sources: "./contracts",
-    tests: "./tests",
-    cache: "./cache",
-    artifacts: "./artifacts",
+  typechain: {
+    outDir: "src/types",
+    target: "ethers-v5",
   },
 };
 

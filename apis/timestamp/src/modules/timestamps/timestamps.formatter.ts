@@ -1,10 +1,11 @@
-import { Timestamp } from "@ebsiint-sc/timestamp";
 import {
-  paginate,
   multibase,
   multihashEncode,
+  paginate,
   PaginatedList,
 } from "@ebsiint-api/shared";
+import { Timestamp } from "@ebsiint-sc/timestamp";
+
 import { TimestampLink } from "./timestamps.interface.js";
 
 export function formatTimestamps(
@@ -22,8 +23,8 @@ export function formatTimestamps(
     );
 
     return {
-      timestampId: multibaseBase64urlTimestampId,
       href: `${baseUrl}/${multibaseBase64urlTimestampId}`,
+      timestampId: multibaseBase64urlTimestampId,
     };
   });
 

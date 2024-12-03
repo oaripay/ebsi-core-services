@@ -1,95 +1,88 @@
+import { ClassConstructor, ClassTransformer } from "class-transformer";
 import * as ClassValidator from "class-validator";
-import { ClassTransformer, ClassConstructor } from "class-transformer";
 import { ethers } from "ethers";
+
 import {
-  RequestSendSignedTransactionDto,
-  UnsignedTransaction,
-  ArgsInsertDidDocument,
-  RequestInsertDidDocumentDto,
-  ArgsUpdateBaseDocument,
-  RequestUpdateBaseDocumentDto,
   ArgsAddController,
-  RequestAddControllerDto,
-  ArgsRevokeController,
-  RequestRevokeControllerDto,
   ArgsAddVerificationMethod,
-  RequestAddVerificationMethodDto,
   ArgsAddVerificationRelationship,
-  RequestAddVerificationRelationshipDto,
-  ArgsRevokeVerificationMethod,
-  RequestRevokeVerificationMethodDto,
   ArgsExpireVerificationMethod,
-  RequestExpireVerificationMethodDto,
+  ArgsInsertDidDocument,
+  ArgsRevokeController,
+  ArgsRevokeVerificationMethod,
   ArgsRollVerificationMethod,
+  ArgsUpdateBaseDocument,
+  RequestAddControllerDto,
+  RequestAddVerificationMethodDto,
+  RequestAddVerificationRelationshipDto,
+  RequestExpireVerificationMethodDto,
+  RequestInsertDidDocumentDto,
+  RequestRevokeControllerDto,
+  RequestRevokeVerificationMethodDto,
   RequestRollVerificationMethodDto,
+  RequestSendSignedTransactionDto,
+  RequestUpdateBaseDocumentDto,
+  UnsignedTransaction,
 } from "./dto/index.js";
+
+type JsonRpcDtos =
+  | ArgsAddController
+  | ArgsAddVerificationMethod
+  | ArgsAddVerificationRelationship
+  | ArgsExpireVerificationMethod
+  | ArgsInsertDidDocument
+  | ArgsRevokeController
+  | ArgsRevokeVerificationMethod
+  | ArgsRollVerificationMethod
+  | ArgsUpdateBaseDocument
+  | RequestAddControllerDto
+  | RequestAddVerificationMethodDto
+  | RequestAddVerificationRelationshipDto
+  | RequestExpireVerificationMethodDto
+  | RequestInsertDidDocumentDto
+  | RequestRevokeControllerDto
+  | RequestRevokeVerificationMethodDto
+  | RequestRollVerificationMethodDto
+  | RequestSendSignedTransactionDto
+  | RequestUpdateBaseDocumentDto;
+
+export function formatEthersSignature(r: string, s: string, v: string) {
+  return {
+    r,
+    s,
+    v: Number(v),
+  } satisfies Partial<ethers.Signature>;
+}
 
 export function formatEthersUnsignedTransaction(
   unsignedTransaction: UnsignedTransaction,
 ) {
   return {
-    to: unsignedTransaction.to,
-    data: unsignedTransaction.data,
-    value: unsignedTransaction.value,
-    nonce: Number(unsignedTransaction.nonce),
     chainId: Number(unsignedTransaction.chainId),
+    data: unsignedTransaction.data,
     gasLimit: unsignedTransaction.gasLimit,
     gasPrice: unsignedTransaction.gasPrice,
+    nonce: Number(unsignedTransaction.nonce),
+    to: unsignedTransaction.to,
+    value: unsignedTransaction.value,
   } satisfies ethers.UnsignedTransaction;
 }
-
-export function formatEthersSignature(
-  r: string,
-  s: string,
-  v: string,
-): ethers.Signature {
-  return {
-    r,
-    s,
-    v: Number(v),
-    recoveryParam: null,
-    _vs: null,
-  } as unknown as ethers.Signature;
-}
-
-type JsonRpcDtos =
-  | RequestSendSignedTransactionDto
-  | ArgsInsertDidDocument
-  | RequestInsertDidDocumentDto
-  | ArgsUpdateBaseDocument
-  | RequestUpdateBaseDocumentDto
-  | ArgsAddController
-  | RequestAddControllerDto
-  | ArgsRevokeController
-  | RequestRevokeControllerDto
-  | ArgsAddVerificationMethod
-  | RequestAddVerificationMethodDto
-  | ArgsAddVerificationRelationship
-  | RequestAddVerificationRelationshipDto
-  | ArgsRevokeVerificationMethod
-  | RequestRevokeVerificationMethodDto
-  | ArgsExpireVerificationMethod
-  | RequestExpireVerificationMethodDto
-  | ArgsRollVerificationMethod
-  | RequestRollVerificationMethodDto;
 
 const getErrorMessages = (
   errors: ClassValidator.ValidationError[],
 ): string[] => {
-  return errors
-    .map((err) => {
-      const errorMessages: string[] = [];
-      if (err.constraints) {
-        errorMessages.push(...Object.values(err.constraints));
-      }
+  return errors.flatMap((err) => {
+    const errorMessages: string[] = [];
+    if (err.constraints) {
+      errorMessages.push(...Object.values(err.constraints));
+    }
 
-      if (err.children) {
-        errorMessages.push(...getErrorMessages(err.children));
-      }
+    if (err.children) {
+      errorMessages.push(...getErrorMessages(err.children));
+    }
 
-      return errorMessages;
-    })
-    .flat();
+    return errorMessages;
+  });
 };
 
 export const validateClass = async (
@@ -110,7 +103,7 @@ export const validateClass = async (
     }
 
     throw new Error(
-      `Validation errors:${errorMessages.map((err) => `\n- ${err}`).join()}`,
+      `Validation errors:${errorMessages.map((err) => `\n- ${err}`).join(",")}`,
     );
   }
 };

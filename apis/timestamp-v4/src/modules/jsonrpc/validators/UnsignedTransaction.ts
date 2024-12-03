@@ -1,16 +1,17 @@
 import { z } from "zod";
-import { jsonRpcSchema } from "./JsonRpcSchema.js";
+
 import { baseParamSchema } from "./BaseParamSchema.js";
+import { jsonRpcSchema } from "./JsonRpcSchema.js";
 
 export const unsignedTransactionSchema = baseParamSchema.merge(
   z.object({
-    from: z.string(),
-    to: z.string(),
-    data: z.string(),
-    nonce: z.string(),
     chainId: z.string(),
+    data: z.string(),
+    from: z.string(),
     gasLimit: z.string(),
     gasPrice: z.string(),
+    nonce: z.string(),
+    to: z.string(),
     value: z.string(),
   }),
 );

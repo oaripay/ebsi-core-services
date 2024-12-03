@@ -1,17 +1,20 @@
-import { describe, beforeAll, afterAll, it, expect } from "vitest";
-import request from "supertest";
-import { Test } from "@nestjs/testing";
-import { ValidationPipe, Logger } from "@nestjs/common";
+import type { RawServerDefault } from "fastify";
+
+import { methodNotAllowed } from "@ebsiint-api/shared";
+import { fastifyAccepts } from "@fastify/accepts";
+import { fastifyHelmet } from "@fastify/helmet";
+import { Logger, ValidationPipe } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import {
   FastifyAdapter,
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import type { RawServerDefault } from "fastify";
-import { fastifyAccepts } from "@fastify/accepts";
-import { fastifyHelmet } from "@fastify/helmet";
-import { ConfigService } from "@nestjs/config";
-import { methodNotAllowed } from "@ebsiint-api/shared";
+import { Test } from "@nestjs/testing";
+import request from "supertest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
+
 import type { ApiConfig } from "../../src/config/configuration.js";
+
 import { AppModule } from "../../src/app.module.js";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
 import { getServer } from "../utils/getServer.js";
@@ -102,16 +105,16 @@ describe("Ledger API v3 - POST /ledger/v3/blockchains/besu", () => {
     expect.assertions(2);
 
     const response = await request(server).post("/blockchains/besu").send({
+      id: "42",
       jsonrpc: "2.0",
       method: "eth_chainId",
       params: [],
-      id: "42",
     });
 
     expect(response.body).toStrictEqual({
+      id: "42",
       jsonrpc: "2.0",
       result: expect.any(String),
-      id: "42",
     });
     expect(response.status).toBe(200);
   });
@@ -120,10 +123,10 @@ describe("Ledger API v3 - POST /ledger/v3/blockchains/besu", () => {
     expect.assertions(2);
 
     const response = await request(server).post("/blockchains/besu").send({
+      id: "42",
       jsonrpc: "2.0",
       method: "eth_sendRawTransaction",
       params: [],
-      id: "42",
     });
 
     expect(response.body).toStrictEqual({

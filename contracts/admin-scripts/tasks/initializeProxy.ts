@@ -1,6 +1,7 @@
-import { task } from "hardhat/config";
-import "@nomiclabs/hardhat-waffle";
 import { BigNumber } from "ethers";
+import "@nomiclabs/hardhat-waffle";
+import { task } from "hardhat/config";
+
 import { OwnedUpgradeabilityProxy } from "../src/types";
 import { getDiamondStorage } from "../utils/getDiamondStorage";
 
@@ -11,11 +12,11 @@ task("initProxy", "init proxy with implementation")
   .setAction(
     async (
       taskArgs: {
-        proxy: string;
         implementation: string;
+        proxy: string;
         scversion: string;
       },
-      { ethers, deployments },
+      { deployments, ethers },
     ) => {
       const proxyDeployedAddr = taskArgs.proxy;
       const storage = getDiamondStorage(taskArgs.implementation);
@@ -43,7 +44,7 @@ task("initProxy", "init proxy with implementation")
         ).toHexString();
         console.log("ASD3");
         // eslint-disable-next-line no-empty
-      } catch (e) {}
+      } catch {}
       console.log(`Proxy admin address: ${adminAddr}`);
       // the implementation is in the next storage slot as it is part of the same struct
       let implementationAddr = "0x0";
@@ -55,7 +56,7 @@ task("initProxy", "init proxy with implementation")
           ),
         ).toHexString();
         // eslint-disable-next-line no-empty
-      } catch (e) {}
+      } catch {}
       console.log(
         `Proxy current implementation address: ${implementationAddr}`,
       );
@@ -68,7 +69,7 @@ task("initProxy", "init proxy with implementation")
           ),
         ).toHexString();
         // eslint-disable-next-line no-empty
-      } catch (e) {}
+      } catch {}
       console.log(`current version : ${version}`);
 
       await deployments.run(taskArgs.implementation);

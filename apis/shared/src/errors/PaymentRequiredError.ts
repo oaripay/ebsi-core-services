@@ -5,9 +5,9 @@ import { ProblemDetailsError } from "./ProblemDetailsError.js";
  */
 
 export class PaymentRequiredError extends ProblemDetailsError {
-  static statusCode = 402;
-
   static defaultTitle = "Payment Required";
+
+  static statusCode = 402;
 
   /**
    * @param title A short, human-readable summary of the problem type. It SHOULD NOT change from occurrence to occurrence of the problem, except for purposes of localization.
@@ -20,10 +20,10 @@ export class PaymentRequiredError extends ProblemDetailsError {
   constructor(
     title: string = PaymentRequiredError.defaultTitle,
     options?: {
-      type?: string;
       detail?: string;
-      instance?: string;
       extensions?: Record<string, unknown>;
+      instance?: string;
+      type?: string;
     },
   ) {
     super(PaymentRequiredError.statusCode, title, options);

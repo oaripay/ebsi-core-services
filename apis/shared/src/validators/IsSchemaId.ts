@@ -21,11 +21,11 @@ export const isSchemaId = (value: unknown) => {
 
     // Check if the value is 32 bytes long (length of a sha256)
     if (decoded.byteLength !== 32) {
-      throw Error();
+      throw new Error("Invalid length");
     }
 
     return true;
-  } catch (e) {
+  } catch {
     return false;
   }
 };
@@ -37,11 +37,11 @@ export function IsSchemaId(
     {
       name: IS_SCHEMA_ID,
       validator: {
-        validate: isSchemaId,
         defaultMessage: buildMessage(
           (eachPrefix) => `${eachPrefix}$property must be a valid schema ID`,
           validationOptions,
         ),
+        validate: isSchemaId,
       },
     },
     validationOptions,

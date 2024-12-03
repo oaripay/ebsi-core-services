@@ -1,6 +1,7 @@
-import { Injectable, Logger } from "@nestjs/common";
-import { Timestamp } from "@ebsiint-sc/timestamp";
 import { isEthersError, NotFoundError } from "@ebsiint-api/shared";
+import { Timestamp } from "@ebsiint-sc/timestamp";
+import { Injectable, Logger } from "@nestjs/common";
+
 import { LedgerService } from "../ledger/ledger.service.js";
 import { HashAlgorithmResponseObject } from "./hash-algorithms.interface.js";
 
@@ -9,24 +10,6 @@ export class HashAlgorithmsService {
   private readonly logger = new Logger(HashAlgorithmsService.name);
 
   constructor(private ledgerService: LedgerService) {}
-
-  async getHashAlgorithms(
-    page: number,
-    pageSize: number,
-  ): Promise<ReturnType<Timestamp["getHashAlgorithms"]>> {
-    try {
-      return await this.ledgerService
-        .getContract()
-        .getHashAlgorithms(page, pageSize);
-    } catch (error) {
-      if (isEthersError(error)) {
-        this.logger.error(error, error.stack);
-      }
-      throw new NotFoundError("Failed to get hash algorithms", {
-        detail: "Failed to get hash algorithms",
-      });
-    }
-  }
 
   async getHashAlgorithm(
     hashAlgorithmId: string,
@@ -46,16 +29,34 @@ export class HashAlgorithmsService {
       });
     }
 
-    const { outputLength, ianaName, oid, status, multiHash } = hashAlgorithm;
+    const { ianaName, multiHash, oid, outputLength, status } = hashAlgorithm;
 
     return {
-      outputLengthBits: outputLength.toNumber(),
       ianaName,
+      multihash: multiHash,
       oid,
+      outputLengthBits: outputLength.toNumber(),
       // 1: active - 2: revoked
       status: status === 1 ? "active" : "revoked",
-      multihash: multiHash,
     };
+  }
+
+  async getHashAlgorithms(
+    page: number,
+    pageSize: number,
+  ): Promise<ReturnType<Timestamp["getHashAlgorithms"]>> {
+    try {
+      return await this.ledgerService
+        .getContract()
+        .getHashAlgorithms(page, pageSize);
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error, error.stack);
+      }
+      throw new NotFoundError("Failed to get hash algorithms", {
+        detail: "Failed to get hash algorithms",
+      });
+    }
   }
 }
 

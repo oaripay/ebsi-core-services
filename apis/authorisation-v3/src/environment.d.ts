@@ -4,23 +4,23 @@ import type { Network } from "@cef-ebsi/ebsi-uri";
 declare global {
   namespace NodeJS {
     interface ProcessEnv {
-      NODE_ENV: "development" | "production" | "test";
       API_ES256_PRIVATE_KEY: string;
       API_PORT?: string;
       API_URL_PREFIX?: string;
-      LOG_LEVEL?: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
       DOCKER_TAG?: string;
       DOMAIN: string;
       LOCAL_ORIGIN?: string;
+      LOG_LEVEL?: "debug" | "error" | "info" | "silent" | "verbose" | "warn";
       NETWORK: Network;
-      TRUSTED_HOSTNAMES?: string;
+      NODE_ENV: "development" | "production" | "test";
       TEST_ENV?: string;
-      TEST_ISSUER_KID?: string;
-      TEST_ISSUER_PRIVATE_KEY?: string;
       TEST_ISSUER_ALG?: string;
       TEST_ISSUER_ATTRIBUTE?: string;
+      TEST_ISSUER_KID?: string;
+      TEST_ISSUER_PRIVATE_KEY?: string;
       TEST_OID_SCHEMA_PATTERN?: string;
       TEST_SPECIFIC_NODE_DOMAIN?: string;
+      TRUSTED_HOSTNAMES?: string;
     }
   }
 }

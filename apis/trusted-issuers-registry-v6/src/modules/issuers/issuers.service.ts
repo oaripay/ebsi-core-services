@@ -1,52 +1,53 @@
-import { Injectable, Logger } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
+import { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
 import {
   BadRequestError,
+  checkStatusList2021Credential,
   InternalServerError,
   NotFoundError,
   prefixWith0x,
   remove0xPrefix,
-  checkStatusList2021Credential,
 } from "@ebsiint-api/shared";
-import { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
+import { Injectable, Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import axios, { type AxiosResponse } from "axios";
+
+import type { ApiConfig } from "../../config/configuration.js";
+
+import {
+  Attribute_filter,
+  GetAttributeQuery,
+  GetAttributesQuery,
+  getBuiltGraphSDK,
+  GetIssuerQuery,
+  GetIssuersQuery,
+  GetProxiesQuery,
+  GetProxyQuery,
+  GetRevisionsQuery,
+  Issuer_filter,
+} from "../../../.graphclient/index.js";
 import {
   AttributeObject,
   IssuerProxyResponseObject,
   IssuerResponseObject,
 } from "./issuers.interface.js";
-import type { ApiConfig } from "../../config/configuration.js";
-import {
-  getBuiltGraphSDK,
-  GetIssuersQuery,
-  GetIssuerQuery,
-  GetAttributesQuery,
-  GetAttributeQuery,
-  GetRevisionsQuery,
-  GetProxiesQuery,
-  GetProxyQuery,
-  Issuer_filter,
-  Attribute_filter,
-  // eslint-disable-next-line import/extensions, import/no-relative-packages
-} from "../../../.graphclient/index.js";
 
 const sdk = getBuiltGraphSDK();
 
 @Injectable()
 export class IssuersService {
+  private ebsiEnvConfig: EbsiEnvConfiguration;
+
   private readonly logger = new Logger(IssuersService.name);
 
   private timeout: number;
-
-  private ebsiEnvConfig: EbsiEnvConfiguration;
 
   constructor(configService: ConfigService<ApiConfig, true>) {
     const domain = configService.get("domain", { infer: true });
     const ebsiAuthority = domain.replace(/^https?:\/\//, ""); // remove http protocol scheme
     const trustedHostnames = configService.get<string[]>("trustedHostnames");
     this.ebsiEnvConfig = {
-      network: configService.get("network", { infer: true }),
       hosts: [ebsiAuthority, ...trustedHostnames],
+      network: configService.get("network", { infer: true }),
       services: {
         "did-registry": "v6",
         "trusted-issuers-registry": "v6",
@@ -57,94 +58,6 @@ export class IssuersService {
     this.timeout = configService.get<number>("requestTimeout");
   }
 
-  async getIssuers(
-    page: number,
-    pagesize: number,
-    where: Issuer_filter,
-  ): Promise<{ items: string[] }> {
-    const skip = (page - 1) * pagesize;
-    let res: GetIssuersQuery;
-    try {
-      // get one more item to clarify next pages in pagination
-      const queryPageSize = pagesize + 1;
-      res = await sdk.GetIssuers({ skip, pagesize: queryPageSize, where });
-    } catch (error) {
-      this.logger.error(
-        error,
-        error instanceof Error ? error.stack : undefined,
-      );
-      throw new InternalServerError();
-    }
-
-    const dids = res.issuers.map((i) => i.id);
-    return { items: dids };
-  }
-
-  async getIssuer(did: string): Promise<IssuerResponseObject> {
-    let res: GetIssuerQuery;
-    try {
-      res = await sdk.GetIssuer({ did });
-    } catch (error) {
-      this.logger.error(
-        error,
-        error instanceof Error ? error.stack : undefined,
-      );
-      throw new InternalServerError();
-    }
-
-    if (!res.issuer) {
-      throw new NotFoundError("Issuer Not Found", {
-        detail: `Issuer ${did} not found`,
-      });
-    }
-
-    return {
-      did,
-      attributes: res.issuer.attributes.map((a) => ({
-        hash: remove0xPrefix(a.lastRevision.id),
-        body: a.lastRevision.data,
-        issuerType: a.lastRevision.issuerType,
-        tao: a.lastRevision.tao,
-        rootTao: a.lastRevision.rootTao,
-      })),
-    };
-  }
-
-  async getAttributes(
-    did: string,
-    page: number,
-    pagesize: number,
-    where: Attribute_filter,
-  ): Promise<{ items: string[] }> {
-    const skip = (page - 1) * pagesize;
-    let res: GetAttributesQuery;
-    try {
-      // get one more item to clarify next pages in pagination
-      const queryPageSize = pagesize + 1;
-      res = await sdk.GetAttributes({
-        skip,
-        pagesize: queryPageSize,
-        did,
-        where,
-      });
-    } catch (error) {
-      this.logger.error(
-        error,
-        error instanceof Error ? error.stack : undefined,
-      );
-      throw new InternalServerError();
-    }
-
-    if (!res.issuer) {
-      throw new NotFoundError("Issuer Not Found", {
-        detail: `Issuer ${did} not found`,
-      });
-    }
-
-    const attributes = res.issuer.attributes.map((i) => remove0xPrefix(i.id));
-    return { items: attributes };
-  }
-
   async getAttribute(
     did: string,
     attributeId: string,
@@ -152,8 +65,8 @@ export class IssuersService {
     let res: GetAttributeQuery;
     try {
       res = await sdk.GetAttribute({
-        did,
         attributeId: prefixWith0x(attributeId),
+        did,
       });
     } catch (error) {
       this.logger.error(
@@ -180,30 +93,30 @@ export class IssuersService {
     }
 
     return {
-      hash: remove0xPrefix(res.issuer.attributes[0]!.lastRevision.id),
       body: res.issuer.attributes[0]!.lastRevision.data,
+      hash: remove0xPrefix(res.issuer.attributes[0]!.lastRevision.id),
       issuerType: res.issuer.attributes[0]!.lastRevision.issuerType,
-      tao: res.issuer.attributes[0]!.lastRevision.tao,
       rootTao: res.issuer.attributes[0]!.lastRevision.rootTao,
+      tao: res.issuer.attributes[0]!.lastRevision.tao,
     };
   }
 
-  async getRevisions(
+  async getAttributes(
     did: string,
-    attributeId: string,
     page: number,
     pagesize: number,
-  ): Promise<{ items: AttributeObject[] }> {
+    where: Attribute_filter,
+  ): Promise<{ items: string[] }> {
     const skip = (page - 1) * pagesize;
-    let res: GetRevisionsQuery;
+    let res: GetAttributesQuery;
     try {
       // get one more item to clarify next pages in pagination
       const queryPageSize = pagesize + 1;
-      res = await sdk.GetRevisions({
-        skip,
-        pagesize: queryPageSize,
+      res = await sdk.GetAttributes({
         did,
-        attributeId: prefixWith0x(attributeId),
+        pagesize: queryPageSize,
+        skip,
+        where,
       });
     } catch (error) {
       this.logger.error(
@@ -219,24 +132,38 @@ export class IssuersService {
       });
     }
 
-    if (
-      !res.issuer.attributes ||
-      res.issuer.attributes.length === 0 ||
-      !res.issuer.attributes[0]!.revisions
-    ) {
-      throw new NotFoundError("Attribute Not Found", {
-        detail: `Attribute ${attributeId} not found`,
+    const attributes = res.issuer.attributes.map((i) => remove0xPrefix(i.id));
+    return { items: attributes };
+  }
+
+  async getIssuer(did: string): Promise<IssuerResponseObject> {
+    let res: GetIssuerQuery;
+    try {
+      res = await sdk.GetIssuer({ did });
+    } catch (error) {
+      this.logger.error(
+        error,
+        error instanceof Error ? error.stack : undefined,
+      );
+      throw new InternalServerError();
+    }
+
+    if (!res.issuer) {
+      throw new NotFoundError("Issuer Not Found", {
+        detail: `Issuer ${did} not found`,
       });
     }
 
-    const revisions = res.issuer.attributes[0]!.revisions.map((r) => ({
-      hash: remove0xPrefix(r.id),
-      body: r.data,
-      issuerType: r.issuerType,
-      tao: r.tao,
-      rootTao: r.rootTao,
-    }));
-    return { items: revisions };
+    return {
+      attributes: res.issuer.attributes.map((a) => ({
+        body: a.lastRevision.data,
+        hash: remove0xPrefix(a.lastRevision.id),
+        issuerType: a.lastRevision.issuerType,
+        rootTao: a.lastRevision.rootTao,
+        tao: a.lastRevision.tao,
+      })),
+      did,
+    };
   }
 
   async getIssuerProxies(
@@ -249,7 +176,7 @@ export class IssuersService {
     try {
       // get one more item to clarify next pages in pagination
       const queryPageSize = pagesize + 1;
-      res = await sdk.GetProxies({ skip, pagesize: queryPageSize, did });
+      res = await sdk.GetProxies({ did, pagesize: queryPageSize, skip });
     } catch (error) {
       this.logger.error(
         error,
@@ -310,12 +237,86 @@ export class IssuersService {
     }
   }
 
+  async getIssuers(
+    page: number,
+    pagesize: number,
+    where: Issuer_filter,
+  ): Promise<{ items: string[] }> {
+    const skip = (page - 1) * pagesize;
+    let res: GetIssuersQuery;
+    try {
+      // get one more item to clarify next pages in pagination
+      const queryPageSize = pagesize + 1;
+      res = await sdk.GetIssuers({ pagesize: queryPageSize, skip, where });
+    } catch (error) {
+      this.logger.error(
+        error,
+        error instanceof Error ? error.stack : undefined,
+      );
+      throw new InternalServerError();
+    }
+
+    const dids = res.issuers.map((i) => i.id);
+    return { items: dids };
+  }
+
+  async getRevisions(
+    did: string,
+    attributeId: string,
+    page: number,
+    pagesize: number,
+  ): Promise<{ items: AttributeObject[] }> {
+    const skip = (page - 1) * pagesize;
+    let res: GetRevisionsQuery;
+    try {
+      // get one more item to clarify next pages in pagination
+      const queryPageSize = pagesize + 1;
+      res = await sdk.GetRevisions({
+        attributeId: prefixWith0x(attributeId),
+        did,
+        pagesize: queryPageSize,
+        skip,
+      });
+    } catch (error) {
+      this.logger.error(
+        error,
+        error instanceof Error ? error.stack : undefined,
+      );
+      throw new InternalServerError();
+    }
+
+    if (!res.issuer) {
+      throw new NotFoundError("Issuer Not Found", {
+        detail: `Issuer ${did} not found`,
+      });
+    }
+
+    if (
+      !res.issuer.attributes ||
+      res.issuer.attributes.length === 0 ||
+      !res.issuer.attributes[0]!.revisions
+    ) {
+      throw new NotFoundError("Attribute Not Found", {
+        detail: `Attribute ${attributeId} not found`,
+      });
+    }
+
+    const revisions = res.issuer.attributes[0]!.revisions.map((r) => ({
+      body: r.data,
+      hash: remove0xPrefix(r.id),
+      issuerType: r.issuerType,
+      rootTao: r.rootTao,
+      tao: r.tao,
+    }));
+    return { items: revisions };
+  }
+
   async proxyRequest(did: string, proxyId: string, url: string) {
     const proxy = await this.getIssuerProxy(did, proxyId);
 
     // Extract subpath from request URL
-    const found = url.match(/\/issuers\/.*\/proxies\/\w*\/(.*)$/);
-    if (!found || !found[1]) {
+    const found = /\/issuers\/.*\/proxies\/\w*\/(.*)$/.exec(url);
+    if (!found?.[1]) {
       throw new BadRequestError("Invalid Proxy", {
         detail: "The server was unable to parse the requested proxy",
       });
@@ -330,10 +331,10 @@ export class IssuersService {
         headers: proxy.headers,
         timeout: this.timeout,
       });
-    } catch (e) {
-      if (e instanceof Error) {
+    } catch (error) {
+      if (error instanceof Error) {
         this.logger.error(
-          `Status List Credential ${credRequestUrl} unreachable - ${e.message}`,
+          `Status List Credential ${credRequestUrl} unreachable - ${error.message}`,
         );
       }
 

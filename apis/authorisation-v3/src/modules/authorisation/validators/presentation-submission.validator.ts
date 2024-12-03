@@ -1,9 +1,9 @@
 import { z } from "zod";
 
 const basePexDescriptorSchema = z.object({
+  format: z.string(),
   id: z.string(),
   path: z.string(),
-  format: z.string(),
 });
 
 type Descriptor = z.infer<typeof basePexDescriptorSchema> & {
@@ -16,9 +16,9 @@ const pexDescriptorSchema: z.ZodType<Descriptor> =
   });
 
 export const presentationSubmissionSchema = z.object({
-  id: z.string(),
   definition_id: z.string(),
   descriptor_map: z.array(pexDescriptorSchema),
+  id: z.string(),
 });
 
 export default presentationSubmissionSchema;

@@ -1,33 +1,24 @@
-import { Injectable, Logger } from "@nestjs/common";
-import { NotFoundError, isEthersError } from "@ebsiint-api/shared";
 import type { TrackAndTrace } from "@ebsiint-sc/track-and-trace";
+
+import {
+  InternalServerError,
+  isEthersError,
+  NotFoundError,
+} from "@ebsiint-api/shared";
+import { Injectable, Logger } from "@nestjs/common";
 import { utils } from "ethers";
-import { LedgerService } from "../ledger/ledger.service.js";
+
 import type { Access } from "./accesses.interface.js";
-import { hexToDid, didToHex, permissionToString } from "../../shared/utils.js";
+
 import { Permission } from "../../shared/constants.js";
+import { didToHex, hexToDid, permissionToString } from "../../shared/utils.js";
+import { LedgerService } from "../ledger/ledger.service.js";
 
 @Injectable()
 export default class AccessesService {
   private readonly logger = new Logger(AccessesService.name);
 
   constructor(private ledgerService: LedgerService) {}
-
-  async isCreator(did: string): Promise<void> {
-    try {
-      const res = await this.ledgerService
-        .getContract()
-        .isCreator(utils.toUtf8Bytes(did));
-      if (!res) throw new Error();
-    } catch (error) {
-      if (isEthersError(error)) {
-        this.logger.error(error, error.stack);
-      }
-      throw new NotFoundError("Creator Not Found", {
-        detail: `${did} is not allowlisted as a creator`,
-      });
-    }
-  }
 
   async getAccessesBySubject(subject: string): Promise<Access[]> {
     const pageSize = 50;
@@ -38,7 +29,7 @@ export default class AccessesService {
     let accessesBySubject: Awaited<
       ReturnType<TrackAndTrace["getAccessesBySubject"]>
     >;
-    /* eslint-disable no-await-in-loop */
+
     do {
       try {
         accessesBySubject = await contract.getAccessesBySubject(
@@ -53,7 +44,6 @@ export default class AccessesService {
         break;
       }
     } while (accessesBySubject.total.gt((currentPage - 1) * pageSize));
-    /* eslint-enable no-await-in-loop */
 
     const accesses: Access[] = [];
     await Promise.all(
@@ -64,24 +54,46 @@ export default class AccessesService {
             subjectBuffer,
             [Permission.DELEGATE, Permission.WRITE, Permission.CREATOR],
           );
-          grantedByAccounts.forEach((grantedByAccount, i) => {
-            if (!grantedByAccount || grantedByAccount === "0x") return;
-            if (!access[i]) return;
+          for (const [i, grantedByAccount] of grantedByAccounts.entries()) {
+            if (!grantedByAccount || grantedByAccount === "0x") continue;
+            if (!access[i]) continue;
             const grantedBy = hexToDid(grantedByAccount);
             const permission = permissionToString(i);
 
             accesses.push({
               documentId,
-              subject,
               grantedBy,
               permission,
+              subject,
             });
-          });
+          }
         } catch {
           // do not update accesses
         }
       }),
     );
     return accesses;
+  }
+
+  async isCreator(did: string): Promise<void> {
+    let res;
+    try {
+      res = await this.ledgerService
+        .getContract()
+        .isCreator(utils.toUtf8Bytes(did));
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error, error.stack);
+      }
+
+      this.logger.error(error);
+      throw new InternalServerError(InternalServerError.defaultTitle);
+    }
+
+    if (!res) {
+      throw new NotFoundError("Creator Not Found", {
+        detail: `${did} is not allowlisted as a creator`,
+      });
+    }
   }
 }

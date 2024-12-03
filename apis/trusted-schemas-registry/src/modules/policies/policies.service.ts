@@ -1,11 +1,12 @@
-import { Injectable, Logger } from "@nestjs/common";
-import { SchemaSCRegistry } from "@ebsiint-sc/trusted-schemas-registry";
 import {
   generateMultihash,
-  NotFoundError,
   isEthersError,
+  NotFoundError,
   remove0xPrefix,
 } from "@ebsiint-api/shared";
+import { SchemaSCRegistry } from "@ebsiint-sc/trusted-schemas-registry";
+import { Injectable, Logger } from "@nestjs/common";
+
 import { LedgerService } from "../ledger/ledger.service.js";
 import { PolicyRevisions } from "./policies.interface.js";
 
@@ -37,9 +38,9 @@ export class PoliciesService {
     try {
       // Preserve case! Don't lowercase the policyId
       policy = await this.ledgerService.getContract().getPolicy(policyId);
-    } catch (e) {
-      if (isEthersError(e)) {
-        this.logger.error(e, e.stack);
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error, error.stack);
       }
       throw new NotFoundError("Policy Not Found", {
         detail: `Policy ${policyId} not found`,
@@ -68,9 +69,9 @@ export class PoliciesService {
       revisions = await this.ledgerService
         .getContract()
         .getPolicyRevisions(policyId, page, pageSize);
-    } catch (e) {
-      if (isEthersError(e)) {
-        this.logger.error(e, e.stack);
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error, error.stack);
       }
       throw new NotFoundError("Policy Not Found", {
         detail: `Policy ${policyId} not found`,
@@ -86,9 +87,9 @@ export class PoliciesService {
 
     try {
       policies = await Promise.all(getPoliciesByRevisions);
-    } catch (e) {
-      if (isEthersError(e)) {
-        this.logger.error(e, e.stack);
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error, error.stack);
       }
       throw new NotFoundError("Revisions not found", {
         detail: `Revisions for ${policyId} not found`,
@@ -97,9 +98,9 @@ export class PoliciesService {
 
     return {
       items: revisions.items.map((hash, index) => ({
-        policyId,
-        policy: policies[index]!,
         hash,
+        policy: policies[index]!,
+        policyId,
       })),
       total: revisions.total.toNumber(),
     };

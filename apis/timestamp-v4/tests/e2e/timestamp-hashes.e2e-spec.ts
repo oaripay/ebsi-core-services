@@ -1,54 +1,56 @@
-import { describe, beforeAll, it, expect, afterAll } from "vitest";
-import crypto from "node:crypto";
-import { ethers } from "ethers";
-import request from "supertest";
-import { Test } from "@nestjs/testing";
-import { ValidationPipe, Logger } from "@nestjs/common";
-import {
-  FastifyAdapter,
-  type NestFastifyApplication,
-} from "@nestjs/platform-fastify";
-import { ConfigService } from "@nestjs/config";
-import type { RawServerDefault } from "fastify";
-import { fastifyAccepts } from "@fastify/accepts";
-import { fastifyHelmet } from "@fastify/helmet";
-import {
-  prefixWith0x,
-  multibase,
-  multihashEncode,
-  waitToBeMined,
-  methodNotAllowed,
-} from "@ebsiint-api/shared";
-import type { TransactionRequest } from "@ethersproject/abstract-provider";
 import type {
   EbsiEnvConfiguration,
   EbsiIssuer,
 } from "@cef-ebsi/verifiable-credential";
-import { AppModule } from "../../src/app.module.js";
-import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
-import type { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface.js";
-import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils.js";
-import type { ApiConfig } from "../../src/config/configuration.js";
-import { describeWriteOps, writeOps } from "../utils/writeOps.js";
-import { getServer } from "../utils/getServer.js";
-import { getTimestampWriteAccessToken } from "../utils/getAccessToken.js";
-import { getEbsiIssuer } from "../utils/getEbsiIssuer.js";
+import type { TransactionRequest } from "@ethersproject/abstract-provider";
+import type { RawServerDefault } from "fastify";
 
+import {
+  methodNotAllowed,
+  multibase,
+  multihashEncode,
+  prefixWith0x,
+  waitToBeMined,
+} from "@ebsiint-api/shared";
+import { fastifyAccepts } from "@fastify/accepts";
+import { fastifyHelmet } from "@fastify/helmet";
+import { Logger, ValidationPipe } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import {
+  FastifyAdapter,
+  type NestFastifyApplication,
+} from "@nestjs/platform-fastify";
+import { Test } from "@nestjs/testing";
+import { ethers } from "ethers";
+import crypto from "node:crypto";
+import request from "supertest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
+
+import type { ApiConfig } from "../../src/config/configuration.js";
+import type { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface.js";
 import type { InsertHashAlgorithmSchema } from "../../src/modules/jsonrpc/validators/RequestInsertHashAlgorithm.js";
 import type { TimestampHashesSchema } from "../../src/modules/jsonrpc/validators/RequestTimestampHashes.js";
 import type { UpdateHashAlgorithmSchema } from "../../src/modules/jsonrpc/validators/RequestUpdateHashAlgorithm.js";
 import type { UnsignedTransactionSchema } from "../../src/modules/jsonrpc/validators/UnsignedTransaction.js";
 
-interface SupertestJsonRpcResponse {
-  status: number;
-  body: JsonRpcResponseObject;
-}
+import { AppModule } from "../../src/app.module.js";
+import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
+import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils.js";
+import { getTimestampWriteAccessToken } from "../utils/getAccessToken.js";
+import { getEbsiIssuer } from "../utils/getEbsiIssuer.js";
+import { getServer } from "../utils/getServer.js";
+import { describeWriteOps, writeOps } from "../utils/writeOps.js";
 
 type JsonRpcParams =
   | InsertHashAlgorithmSchema
-  | UpdateHashAlgorithmSchema
   | TimestampHashesSchema
-  | UnsignedTransactionSchema;
+  | UnsignedTransactionSchema
+  | UpdateHashAlgorithmSchema;
+
+interface SupertestJsonRpcResponse {
+  body: JsonRpcResponseObject;
+  status: number;
+}
 
 interface TestUser {
   info: EbsiIssuer;
@@ -80,8 +82,8 @@ describe("Timestamp API v4 - Timestamp (e2e)", () => {
   let testUser: TestUser;
 
   let blockscout: {
-    url: string;
     bearerToken: string;
+    url: string;
   };
 
   beforeAll(async () => {
@@ -126,8 +128,8 @@ describe("Timestamp API v4 - Timestamp (e2e)", () => {
     server = getServer(app, configService);
 
     const configBlockscout = configService.get<{
-      url: string;
       bearerToken: string;
+      url: string;
     }>("blockscout");
 
     authorisationApiUrl = configService.get<string>("authorisationApiUrl");
@@ -153,8 +155,8 @@ describe("Timestamp API v4 - Timestamp (e2e)", () => {
         .replace(/^https?:\/\//, "");
       ledgerApi = `${configService.get<string>("ledgerApiUrl")}/blockchains/besu`;
       const ebsiEnvConfig = {
-        network: configService.get("network", { infer: true }),
         hosts: [ebsiAuthority, ...trustedHostnames],
+        network: configService.get("network", { infer: true }),
         services: {
           "did-registry": "v5",
           "trusted-issuers-registry": "v5",
@@ -173,10 +175,9 @@ describe("Timestamp API v4 - Timestamp (e2e)", () => {
           ),
           wallet: adminWallet,
         };
-      } catch (e) {
-        // eslint-disable-next-line no-console
-        console.error(e);
-        throw e;
+      } catch (error) {
+        console.error(error);
+        throw error;
       }
 
       const configTestUser = configService.get<{
@@ -199,10 +200,9 @@ describe("Timestamp API v4 - Timestamp (e2e)", () => {
           ),
           wallet: userWallet,
         };
-      } catch (e) {
-        // eslint-disable-next-line no-console
-        console.error(e);
-        throw e;
+      } catch (error) {
+        console.error(error);
+        throw error;
       }
     }
 
@@ -250,7 +250,7 @@ describe("Timestamp API v4 - Timestamp (e2e)", () => {
       it("should work", async () => {
         expect.assertions(5);
 
-        let param: JsonRpcParams | null = null;
+        let param: JsonRpcParams;
 
         switch (method) {
           case "timestampHashes": {
@@ -271,23 +271,24 @@ describe("Timestamp API v4 - Timestamp (e2e)", () => {
             } satisfies TimestampHashesSchema;
             break;
           }
-          default:
+          default: {
             throw new Error(`Test Error: Invalid method ${method}`);
+          }
         }
 
         const responseBuild: SupertestJsonRpcResponse = await request(server)
           .post("/jsonrpc")
           .auth(testUser.token, { type: "bearer" })
           .send({
+            id: 231,
             jsonrpc: "2.0",
             method,
             params: [param],
-            id: 231,
           });
 
         expect(responseBuild.body).toStrictEqual({
-          jsonrpc: "2.0",
           id: 231,
+          jsonrpc: "2.0",
           result: {
             chainId: expect.any(String),
             data: expect.any(String),
@@ -303,6 +304,7 @@ describe("Timestamp API v4 - Timestamp (e2e)", () => {
 
         const unsignedTransaction = responseBuild.body.result;
         const uTx = formatEthersUnsignedTransaction(
+          // eslint-disable-next-line unicorn/prefer-structured-clone
           JSON.parse(
             JSON.stringify(unsignedTransaction),
           ) as unknown as UnsignedTransactionSchema,
@@ -317,24 +319,24 @@ describe("Timestamp API v4 - Timestamp (e2e)", () => {
           .post("/jsonrpc")
           .auth(testUser.token, { type: "bearer" })
           .send({
+            id: "45",
             jsonrpc: "2.0",
             method: "sendSignedTransaction",
             params: [
               {
                 protocol: "eth",
-                unsignedTransaction,
                 r,
                 s,
-                v: `0x${Number(v).toString(16)}`,
                 signedRawTransaction: sgnTx,
+                unsignedTransaction,
+                v: `0x${Number(v).toString(16)}`,
               },
             ],
-            id: "45",
           });
 
         expect(responseSend.body).toStrictEqual({
-          jsonrpc: "2.0",
           id: "45",
+          jsonrpc: "2.0",
           result: expect.any(String),
         });
         expect(responseSend.status).toBe(200);
@@ -351,7 +353,7 @@ describe("Timestamp API v4 - Timestamp (e2e)", () => {
       it("should work with empty data", async () => {
         expect.assertions(5);
 
-        let param: JsonRpcParams | null = null;
+        let param: JsonRpcParams;
 
         switch (method) {
           case "timestampHashes": {
@@ -362,23 +364,24 @@ describe("Timestamp API v4 - Timestamp (e2e)", () => {
             } satisfies TimestampHashesSchema;
             break;
           }
-          default:
+          default: {
             throw new Error(`Test Error: Invalid method ${method}`);
+          }
         }
 
         const responseBuild: SupertestJsonRpcResponse = await request(server)
           .post("/jsonrpc")
           .auth(testUser.token, { type: "bearer" })
           .send({
+            id: 231,
             jsonrpc: "2.0",
             method,
             params: [param],
-            id: 231,
           });
 
         expect(responseBuild.body).toStrictEqual({
-          jsonrpc: "2.0",
           id: 231,
+          jsonrpc: "2.0",
           result: {
             chainId: expect.any(String),
             data: expect.any(String),
@@ -394,6 +397,7 @@ describe("Timestamp API v4 - Timestamp (e2e)", () => {
 
         const unsignedTransaction = responseBuild.body.result;
         const uTx = formatEthersUnsignedTransaction(
+          // eslint-disable-next-line unicorn/prefer-structured-clone
           JSON.parse(
             JSON.stringify(unsignedTransaction),
           ) as unknown as UnsignedTransactionSchema,
@@ -408,24 +412,24 @@ describe("Timestamp API v4 - Timestamp (e2e)", () => {
           .post("/jsonrpc")
           .auth(testUser.token, { type: "bearer" })
           .send({
+            id: "45",
             jsonrpc: "2.0",
             method: "sendSignedTransaction",
             params: [
               {
                 protocol: "eth",
-                unsignedTransaction,
                 r,
                 s,
-                v: `0x${Number(v).toString(16)}`,
                 signedRawTransaction: sgnTx,
+                unsignedTransaction,
+                v: `0x${Number(v).toString(16)}`,
               },
             ],
-            id: "45",
           });
 
         expect(responseSend.body).toStrictEqual({
-          jsonrpc: "2.0",
           id: "45",
+          jsonrpc: "2.0",
           result: expect.any(String),
         });
         expect(responseSend.status).toBe(200);
@@ -441,7 +445,7 @@ describe("Timestamp API v4 - Timestamp (e2e)", () => {
       it("should reject impersonating transactions: admin wallet using jwt from user", async () => {
         expect.assertions(2);
 
-        let param: JsonRpcParams | null = null;
+        let param: JsonRpcParams;
 
         switch (method) {
           case "timestampHashes": {
@@ -462,22 +466,24 @@ describe("Timestamp API v4 - Timestamp (e2e)", () => {
             } satisfies TimestampHashesSchema;
             break;
           }
-          default:
+          default: {
             throw new Error(`Test Error: Invalid method ${method}`);
+          }
         }
 
         const responseBuild: SupertestJsonRpcResponse = await request(server)
           .post("/jsonrpc")
           .auth(testUser.token, { type: "bearer" })
           .send({
+            id: 231,
             jsonrpc: "2.0",
             method,
             params: [param],
-            id: 231,
           });
 
         const unsignedTransaction = responseBuild.body.result;
         const uTx = formatEthersUnsignedTransaction(
+          // eslint-disable-next-line unicorn/prefer-structured-clone
           JSON.parse(
             JSON.stringify(unsignedTransaction),
           ) as unknown as UnsignedTransactionSchema,
@@ -492,30 +498,30 @@ describe("Timestamp API v4 - Timestamp (e2e)", () => {
           .post("/jsonrpc")
           .auth(testUser.token, { type: "bearer" })
           .send({
+            id: "45",
             jsonrpc: "2.0",
             method: "sendSignedTransaction",
             params: [
               {
                 protocol: "eth",
-                unsignedTransaction,
                 r,
                 s,
-                v: `0x${Number(v).toString(16)}`,
                 signedRawTransaction: sgnTx,
+                unsignedTransaction,
+                v: `0x${Number(v).toString(16)}`,
               },
             ],
-            id: "45",
           });
 
         expect(responseSend.body).toStrictEqual({
-          jsonrpc: "2.0",
-          id: "45",
           error: {
-            code: -32600,
+            code: -32_600,
             message: `The DID ${
               testUser.info.did
             } is not controlled by the address ${adminUser.wallet.address.toLowerCase()}`,
           },
+          id: "45",
+          jsonrpc: "2.0",
         });
         expect(responseSend.status).toBe(400);
       });
@@ -545,22 +551,22 @@ describe("Timestamp API v4 - Timestamp (e2e)", () => {
 
       const response = await request(server).get("/timestamps");
       expect(response.body).toStrictEqual({
-        self: expect.stringContaining(
-          "/timestamps?page[after]=1&page[size]=10",
-        ),
         items: expect.arrayContaining([]),
-        total: expect.any(Number),
-        pageSize: 10,
         links: {
           first: expect.stringContaining(
             "/timestamps?page[after]=1&page[size]=10",
           ),
+          last: expect.stringContaining("/timestamps?page[after]="),
+          next: expect.stringContaining("/timestamps?page[after]="),
           prev: expect.stringContaining(
             "/timestamps?page[after]=1&page[size]=10",
           ),
-          next: expect.stringContaining("/timestamps?page[after]="),
-          last: expect.stringContaining("/timestamps?page[after]="),
         },
+        pageSize: 10,
+        self: expect.stringContaining(
+          "/timestamps?page[after]=1&page[size]=10",
+        ),
+        total: expect.any(Number),
       });
       expect(response.status).toBe(200);
     });
@@ -585,9 +591,9 @@ describe("Timestamp API v4 - Timestamp (e2e)", () => {
 
         expect(response.body).toStrictEqual({
           blockNumber: expect.any(Number),
-          timestamp: expect.any(String),
           data: expect.stringContaining("0x"),
           hash: expect.any(String),
+          timestamp: expect.any(String),
           timestampedBy: expect.stringContaining("0x"),
           transactionHash: expect.stringContaining("0x"),
         });
@@ -605,9 +611,9 @@ describe("Timestamp API v4 - Timestamp (e2e)", () => {
       const response = await request(server).get(`/timestamps/${timestampId}`);
 
       expect(response.body).toStrictEqual({
-        title: "Timestamp Not Found",
-        status: 404,
         detail: `Timestamp ${timestampId} not found`,
+        status: 404,
+        title: "Timestamp Not Found",
         type: "about:blank",
       });
       expect(response.status).toBe(404);

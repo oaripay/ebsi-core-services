@@ -1,49 +1,146 @@
-// eslint-disable-next-line @typescript-eslint/triple-slash-reference
-/// <reference path="../../../../contracts/trusted-issuers-registry-v4/src/types/hardhat.d.ts" />
+import "../../../../contracts/trusted-issuers-registry-v4/src/types/hardhat.d.ts";
+
 import hre from "hardhat";
+
 import "@nomiclabs/hardhat-ethers";
-import crypto from "node:crypto";
-import { Contract, ethers } from "ethers";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
-import { TrustedIssuersRegistry } from "@ebsiint-sc/trusted-issuers-registry-v4";
 import { StatusList2021Credential } from "@ebsiint-api/shared";
+import { TrustedIssuersRegistry } from "@ebsiint-sc/trusted-issuers-registry-v4";
+import { Contract, ethers } from "ethers";
+import crypto from "node:crypto";
+
 import {
   IssuerType,
   IssuerTypeNames,
 } from "../../src/modules/issuers/issuers.constants.js";
 import { dummyIssuers, IssuerGraphObject } from "./data.js";
 
-export interface IssuerProxyObject {
-  prefix: string;
-  headers: Record<string, string | number | boolean>;
-  testSuffix: string;
-}
-
 export interface IssuerObject {
-  did: string;
-  issuerType: IssuerType;
   attribute: {
+    buffer: Buffer;
+    hex: string;
     id: string;
     lastRevisionId: string;
-    hex: string;
-    buffer: Buffer;
+    utf8: string;
+  };
+  attributeIdTao: string;
+  did: string;
+  issuerType: IssuerType;
+  proxy: {
+    id: string;
+    obj: IssuerProxyObject;
+    statusList2021Credential: StatusList2021Credential;
     utf8: string;
   };
   rootTao: string;
   tao: string;
-  attributeIdTao: string;
-  proxy: {
-    id: string;
-    obj: IssuerProxyObject;
-    utf8: string;
-    statusList2021Credential: StatusList2021Credential;
+}
+
+export interface IssuerProxyObject {
+  headers: Record<string, boolean | number | string>;
+  prefix: string;
+  testSuffix: string;
+}
+
+export function createIssuer(
+  issuerType: IssuerType,
+  inputTaoDid?: string,
+  inputTaoAttributeId?: string,
+  inputRootTaoDid?: string,
+): IssuerObject {
+  const issuerDid = EbsiWallet.createDid();
+  const attributeUtf8 = JSON.stringify({
+    "@context": {
+      description: "http://tir-api-test.org/description",
+      name: { "@id": "http://tir-api-test.org/name", "@type": "@id" },
+    },
+    name: `test-${issuerDid}`,
+  });
+  const attributeBuffer = Buffer.from(attributeUtf8);
+  const attributeHex = `0x${attributeBuffer.toString("hex")}`;
+  const attributeId = ethers.utils.sha256(attributeBuffer);
+  const attribute = {
+    buffer: attributeBuffer,
+    hex: attributeHex,
+    id: attributeId,
+    lastRevisionId: attributeId,
+    utf8: attributeUtf8,
+  };
+
+  let taoDid: string;
+  let rootTao: string;
+  let attributeIdTao: string;
+
+  if (issuerType === IssuerType.RootTAO) {
+    rootTao = issuerDid;
+    taoDid = issuerDid;
+    attributeIdTao = `0x${"0".repeat(64)}`;
+  } else {
+    rootTao = inputRootTaoDid!;
+    taoDid = inputTaoDid!;
+    attributeIdTao = inputTaoAttributeId!;
+  }
+
+  // create proxy
+  const proxyObject: IssuerProxyObject = {
+    headers: {
+      Authorization: `Bearer ${crypto.randomBytes(16).toString("hex")}`,
+    },
+    prefix: "https://example.net",
+    testSuffix: "/cred/1",
+  };
+  const proxyUtf8 = JSON.stringify(proxyObject);
+  const proxyId = ethers.utils.sha256(Buffer.from(proxyUtf8));
+  const statusList2021Credential: StatusList2021Credential = {
+    "@context": [
+      "https://www.w3.org/2018/credentials/v1",
+      "https://w3id.org/vc/status-list/2021/v1",
+    ],
+    credentialSchema: {
+      id: "https://example.net",
+      type: "FullJsonSchemaValidator2021",
+    },
+    credentialSubject: {
+      encodedList:
+        "H4sIAAAAAAAAA-3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAAAAAAIC3AYbSVKsAQAAA",
+      id: `${proxyObject.prefix}${proxyObject.testSuffix}#list`,
+      statusPurpose: "revocation",
+      type: "StatusList2021",
+    },
+    id: `${proxyObject.prefix}${proxyObject.testSuffix}`,
+    issuanceDate: "2021-04-05T14:27:40Z",
+    issued: "2021-04-05T14:27:40Z",
+    issuer: issuerDid,
+    type: [
+      "VerifiableCredential",
+      "VerifiableAttestation",
+      "StatusList2021Credential",
+    ],
+    validFrom: "2021-04-05T14:27:40Z",
+  };
+
+  const proxy = {
+    id: proxyId,
+    obj: proxyObject,
+    statusList2021Credential,
+    utf8: proxyUtf8,
+  };
+
+  return {
+    attribute,
+    attributeIdTao,
+    did: issuerDid,
+    issuerType,
+    proxy,
+    rootTao,
+    tao: taoDid,
   };
 }
 
 export async function deployTirContract(): Promise<{
-  tirContract: TrustedIssuersRegistry;
-  policyContractMock: Contract;
   didContractMock: Contract;
+  policyContractMock: Contract;
+  tirContract: TrustedIssuersRegistry;
 }> {
   const [upgrader] = await hre.ethers.getSigners();
 
@@ -89,104 +186,9 @@ export async function deployTirContract(): Promise<{
   )) as unknown as TrustedIssuersRegistry;
 
   return {
-    tirContract,
     didContractMock,
     policyContractMock,
-  };
-}
-
-export function createIssuer(
-  issuerType: IssuerType,
-  inputTaoDid?: string,
-  inputTaoAttributeId?: string,
-  inputRootTaoDid?: string,
-): IssuerObject {
-  const issuerDid = EbsiWallet.createDid();
-  const attributeUtf8 = JSON.stringify({
-    "@context": {
-      name: { "@id": "http://tir-api-test.org/name", "@type": "@id" },
-      description: "http://tir-api-test.org/description",
-    },
-    name: `test-${issuerDid}`,
-  });
-  const attributeBuffer = Buffer.from(attributeUtf8);
-  const attributeHex = `0x${attributeBuffer.toString("hex")}`;
-  const attributeId = ethers.utils.sha256(attributeBuffer);
-  const attribute = {
-    hex: attributeHex,
-    buffer: attributeBuffer,
-    utf8: attributeUtf8,
-    id: attributeId,
-    lastRevisionId: attributeId,
-  };
-
-  let taoDid: string;
-  let rootTao: string;
-  let attributeIdTao: string;
-
-  if (issuerType === IssuerType.RootTAO) {
-    rootTao = issuerDid;
-    taoDid = issuerDid;
-    attributeIdTao = `0x${"0".repeat(64)}`;
-  } else {
-    rootTao = inputRootTaoDid as string;
-    taoDid = inputTaoDid as string;
-    attributeIdTao = inputTaoAttributeId as string;
-  }
-
-  // create proxy
-  const proxyObject: IssuerProxyObject = {
-    prefix: "https://example.net",
-    headers: {
-      Authorization: `Bearer ${crypto.randomBytes(16).toString("hex")}`,
-    },
-    testSuffix: "/cred/1",
-  };
-  const proxyUtf8 = JSON.stringify(proxyObject);
-  const proxyId = ethers.utils.sha256(Buffer.from(proxyUtf8));
-  const statusList2021Credential: StatusList2021Credential = {
-    "@context": [
-      "https://www.w3.org/2018/credentials/v1",
-      "https://w3id.org/vc/status-list/2021/v1",
-    ],
-    id: `${proxyObject.prefix}${proxyObject.testSuffix}`,
-    type: [
-      "VerifiableCredential",
-      "VerifiableAttestation",
-      "StatusList2021Credential",
-    ],
-    issuer: issuerDid,
-    issued: "2021-04-05T14:27:40Z",
-    issuanceDate: "2021-04-05T14:27:40Z",
-    validFrom: "2021-04-05T14:27:40Z",
-    credentialSubject: {
-      id: `${proxyObject.prefix}${proxyObject.testSuffix}#list`,
-      type: "StatusList2021",
-      statusPurpose: "revocation",
-      encodedList:
-        "H4sIAAAAAAAAA-3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAAAAAAIC3AYbSVKsAQAAA",
-    },
-    credentialSchema: {
-      id: "https://example.net",
-      type: "FullJsonSchemaValidator2021",
-    },
-  };
-
-  const proxy = {
-    obj: proxyObject,
-    utf8: proxyUtf8,
-    id: proxyId,
-    statusList2021Credential,
-  };
-
-  return {
-    did: issuerDid,
-    issuerType,
-    attribute,
-    rootTao,
-    tao: taoDid,
-    attributeIdTao,
-    proxy,
+    tirContract,
   };
 }
 
@@ -198,9 +200,7 @@ export async function insertIssuer(
   await contract.setAttributeMetadata(
     issuer.id,
     issuer.attributes[0]!.id,
-    IssuerTypeNames.findIndex(
-      (t) => t === issuer.attributes[0]!.lastRevision.issuerType,
-    ),
+    IssuerTypeNames.indexOf(issuer.attributes[0]!.lastRevision.issuerType),
     issuer.attributes[0]!.lastRevision.tao,
     inputTaoAttributeId,
   );
@@ -215,15 +215,15 @@ export async function insertIssuer(
 }
 
 export async function setupTestEnv(): Promise<{
-  provider: ethers.providers.JsonRpcProvider;
-  tirContract: TrustedIssuersRegistry;
   didContractMock: Contract;
   issuers: IssuerObject[];
+  provider: ethers.providers.JsonRpcProvider;
+  tirContract: TrustedIssuersRegistry;
 }> {
   const ethersProvider = hre.ethers.provider;
 
   // Deploy contract
-  const { tirContract, didContractMock } = await deployTirContract();
+  const { didContractMock, tirContract } = await deployTirContract();
 
   // create a Root TAO
   const rootTao = dummyIssuers[0]!;
@@ -235,8 +235,6 @@ export async function setupTestEnv(): Promise<{
 
   // Return test env variables
   return {
-    provider: ethersProvider,
-    tirContract,
     didContractMock,
     issuers: dummyIssuers.map((i) => {
       const proxyObject = JSON.parse(i.proxies[0]!.data) as IssuerProxyObject;
@@ -245,58 +243,58 @@ export async function setupTestEnv(): Promise<{
           "https://www.w3.org/2018/credentials/v1",
           "https://w3id.org/vc/status-list/2021/v1",
         ],
+        credentialSchema: {
+          id: "https://example.net",
+          type: "FullJsonSchemaValidator2021",
+        },
+        credentialSubject: {
+          encodedList:
+            "H4sIAAAAAAAAA-3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAAAAAAIC3AYbSVKsAQAAA",
+          id: `${proxyObject.prefix}${proxyObject.testSuffix}#list`,
+          statusPurpose: "revocation",
+          type: "StatusList2021",
+        },
         id: `${proxyObject.prefix}${proxyObject.testSuffix}`,
+        issuanceDate: "2021-04-05T14:27:40Z",
+        issued: "2021-04-05T14:27:40Z",
+        issuer: i.id,
         type: [
           "VerifiableCredential",
           "VerifiableAttestation",
           "StatusList2021Credential",
         ],
-        issuer: i.id,
-        issued: "2021-04-05T14:27:40Z",
-        issuanceDate: "2021-04-05T14:27:40Z",
         validFrom: "2021-04-05T14:27:40Z",
-        credentialSubject: {
-          id: `${proxyObject.prefix}${proxyObject.testSuffix}#list`,
-          type: "StatusList2021",
-          statusPurpose: "revocation",
-          encodedList:
-            "H4sIAAAAAAAAA-3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAAAAAAIC3AYbSVKsAQAAA",
-        },
-        credentialSchema: {
-          id: "https://example.net",
-          type: "FullJsonSchemaValidator2021",
-        },
       };
 
-      let attributeIdTao: string;
-      if (i.id === rootTao.id || i.id === tao.id) {
-        attributeIdTao = rootTao.attributes[0]!.id;
-      } else {
-        attributeIdTao = tao.attributes[0]!.id;
-      }
+      const attributeIdTao =
+        i.id === rootTao.id || i.id === tao.id
+          ? rootTao.attributes[0]!.id
+          : tao.attributes[0]!.id;
 
       return {
-        did: i.id,
-        issuerType: IssuerTypeNames.findIndex(
-          (n) => n === i.attributes[0]!.lastRevision.issuerType,
-        ),
         attribute: {
+          buffer: Buffer.from(i.attributes[0]!.lastRevision.data),
+          hex: `0x${Buffer.from(i.attributes[0]!.lastRevision.data).toString("hex")}`,
           id: i.attributes[0]!.id,
           lastRevisionId: i.attributes[0]!.lastRevision.id,
-          hex: `0x${Buffer.from(i.attributes[0]!.lastRevision.data).toString("hex")}`,
-          buffer: Buffer.from(i.attributes[0]!.lastRevision.data),
           utf8: i.attributes[0]!.lastRevision.data,
         },
-        rootTao: i.attributes[0]!.lastRevision.rootTao,
-        tao: i.attributes[0]!.lastRevision.tao,
         attributeIdTao,
+        did: i.id,
+        issuerType: IssuerTypeNames.indexOf(
+          i.attributes[0]!.lastRevision.issuerType,
+        ),
         proxy: {
           id: i.proxies[0]!.id,
           obj: proxyObject,
-          utf8: i.proxies[0]!.data,
           statusList2021Credential,
+          utf8: i.proxies[0]!.data,
         },
+        rootTao: i.attributes[0]!.lastRevision.rootTao,
+        tao: i.attributes[0]!.lastRevision.tao,
       };
     }),
+    provider: ethersProvider,
+    tirContract,
   };
 }

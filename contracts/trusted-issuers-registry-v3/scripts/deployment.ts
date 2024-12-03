@@ -1,6 +1,6 @@
+import type { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry-v2";
+
 import { ethers } from "hardhat";
-import { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry-v2";
-import { Tir } from "../src/types";
 
 async function main() {
   const paginationFactory = await ethers.getContractFactory("Pagination", {});
@@ -13,6 +13,7 @@ async function main() {
       },
     },
   );
+
   const policyContract =
     (await policyRegistryFactory.deploy()) as PolicyRegistry;
   await policyContract.deployed();
@@ -22,13 +23,15 @@ async function main() {
   await policyContract.initialize(ethers.BigNumber.from(1));
 
   const tirFactory = await ethers.getContractFactory("Tir", {});
-  const tir = (await tirFactory.deploy()) as Tir;
+
+  // FIXME
+  // @ts-expect-error DIDR address is missing
+  const tir = await tirFactory.deploy(policyContract.address);
 
   await tir.initialize(25);
-  await tir.setRegistryAddresses();
 
   console.log("Trusted Issuers Registry deployed at :", tir.address);
-  console.log(`Contract version set to: ${await tir.version()}`);
+  console.log(`Contract version set to: ${(await tir.version()).toString()}`);
 }
 
 main()

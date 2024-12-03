@@ -1,27 +1,13 @@
-import crypto from "node:crypto";
-import { importJWK } from "jose";
 import elliptic from "elliptic";
 import { ethers } from "hardhat";
-
-export function hex2base64url(dataHex: string): string {
-  const buffer = Buffer.from(dataHex, "hex");
-  const base64 = buffer.toString("base64");
-  const base64url = base64
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=/g, "");
-  return base64url;
-}
-
-export function getPublicKeyId(publicKeyPem: string): string {
-  return ethers.utils.sha256(Buffer.from(publicKeyPem, "utf8"));
-}
+import { importJWK } from "jose";
+import crypto from "node:crypto";
 
 export async function getPublicKey(_privateKey: string): Promise<{
-  publicKeyObject: crypto.KeyObject;
-  publicKeyPem: string;
   publicKeyHex: string;
   publicKeyId: string;
+  publicKeyObject: crypto.KeyObject;
+  publicKeyPem: string;
 }> {
   let privateKey = _privateKey;
   if (privateKey.startsWith("0x")) privateKey = privateKey.slice(2);
@@ -31,8 +17,8 @@ export async function getPublicKey(_privateKey: string): Promise<{
   const pubPoint = privKey.getPublic();
   const publicKey = await importJWK(
     {
-      kty: "EC",
       crv: "secp256k1",
+      kty: "EC",
       x: hex2base64url(pubPoint.getX().toString("hex")),
       y: hex2base64url(pubPoint.getY().toString("hex")),
     },
@@ -41,16 +27,31 @@ export async function getPublicKey(_privateKey: string): Promise<{
   const publicKeyObject = publicKey as crypto.KeyObject;
   const publicKeyPem = publicKeyObject
     .export({
-      type: "spki",
       format: "pem",
+      type: "spki",
     })
     .toString();
   const publicKeyHex = `0x${Buffer.from(publicKeyPem, "utf8").toString("hex")}`;
   const publicKeyId = getPublicKeyId(publicKeyPem);
   return {
-    publicKeyObject,
-    publicKeyPem,
     publicKeyHex,
     publicKeyId,
+    publicKeyObject,
+    publicKeyPem,
   };
+}
+
+export function getPublicKeyId(publicKeyPem: string): string {
+  return ethers.utils.sha256(Buffer.from(publicKeyPem, "utf8"));
+}
+
+export function hex2base64url(dataHex: string): string {
+  const buffer = Buffer.from(dataHex, "hex");
+  const base64 = buffer.toString("base64");
+  const base64url = base64
+    .replaceAll("+", "-")
+    .replaceAll("/", "_")
+    .replaceAll("=", "");
+
+  return base64url;
 }

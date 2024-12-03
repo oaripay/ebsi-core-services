@@ -1,13 +1,17 @@
-import { ethers, network, config } from "hardhat";
 import { expect } from "chai";
+import { config, ethers, network } from "hardhat";
+
 import type {
   DidRegistry,
-  PolicyRegistryMock,
   DidRegistryMock,
+  PolicyRegistryMock,
 } from "../src/types";
-import { testTprAddress, testDidV3Address } from "./testAddress";
+
+import { testDidV3Address, testTprAddress } from "./testAddress";
 import { getEthObject } from "./utils";
 
+type AddVerificationMethodArgs = [string, string, string, boolean];
+type AddVerificationRelationshipArgs = [string, string, string, number, number];
 type InsertDidDocumentArgs = [
   string,
   string,
@@ -17,8 +21,6 @@ type InsertDidDocumentArgs = [
   number,
   number,
 ];
-type AddVerificationMethodArgs = [string, string, string, boolean];
-type AddVerificationRelationshipArgs = [string, string, string, number, number];
 
 describe("Did Documents", () => {
   let reg: DidRegistry;
@@ -104,8 +106,8 @@ describe("Did Documents", () => {
 
     const contractFactory = await ethers.getContractFactory("DidRegistry", {
       libraries: {
-        DidDocumentLib: didDocumentLib.address,
         ControllersLib: controllersLib.address,
+        DidDocumentLib: didDocumentLib.address,
         VRelationshipsLib: vRelationshipsLib.address,
       },
     });
@@ -371,25 +373,25 @@ describe("Did Documents", () => {
       vMethodIds: [vMethodId],
       vMethods: [
         {
-          publicKey: user.publicKey,
           isSecp256k1: true,
+          publicKey: user.publicKey,
           revoked: false,
         },
       ],
       vRelationships: [
         {
-          name: "authentication",
-          vMethodId,
-          notBefore: Number(notBefore).toString(),
-          notAfter: Number(notAfter).toString(),
           indexDid: "0",
+          name: "authentication",
+          notAfter: Number(notAfter).toString(),
+          notBefore: Number(notBefore).toString(),
+          vMethodId,
         },
         {
-          name: "capabilityInvocation",
-          vMethodId,
-          notBefore: Number(notBefore).toString(),
-          notAfter: Number(notAfter).toString(),
           indexDid: "0",
+          name: "capabilityInvocation",
+          notAfter: Number(notAfter).toString(),
+          notBefore: Number(notBefore).toString(),
+          vMethodId,
         },
       ],
     });
@@ -780,25 +782,25 @@ describe("Did Documents", () => {
       vMethodIds: [vMethodId],
       vMethods: [
         {
-          publicKey: user.publicKey,
           isSecp256k1: true,
+          publicKey: user.publicKey,
           revoked: false,
         },
       ],
       vRelationships: [
         {
-          name: "authentication",
-          vMethodId,
-          notBefore: Number(notBefore).toString(),
-          notAfter: Number(notAfter + 3000).toString(),
           indexDid: "0",
+          name: "authentication",
+          notAfter: Number(notAfter + 3000).toString(),
+          notBefore: Number(notBefore).toString(),
+          vMethodId,
         },
         {
-          name: "capabilityInvocation",
-          vMethodId,
-          notBefore: Number(notBefore).toString(),
-          notAfter: Number(notAfter + 3000).toString(),
           indexDid: "0",
+          name: "capabilityInvocation",
+          notAfter: Number(notAfter + 3000).toString(),
+          notBefore: Number(notBefore).toString(),
+          vMethodId,
         },
       ],
     });
@@ -899,25 +901,25 @@ describe("Did Documents", () => {
       vMethodIds: [vMethodId2],
       vMethods: [
         {
-          publicKey: `0x${publicKey2.toString("hex")}`,
           isSecp256k1: false,
+          publicKey: `0x${publicKey2.toString("hex")}`,
           revoked: false,
         },
       ],
       vRelationships: [
         {
-          name: "authentication",
-          vMethodId: vMethodId2,
-          notBefore: Number(newNotBefore).toString(),
-          notAfter: Number(newNotAfter).toString(),
           indexDid: "0",
+          name: "authentication",
+          notAfter: Number(newNotAfter).toString(),
+          notBefore: Number(newNotBefore).toString(),
+          vMethodId: vMethodId2,
         },
         {
-          name: "capabilityInvocation",
-          vMethodId: vMethodId2,
-          notBefore: Number(newNotBefore).toString(),
-          notAfter: Number(newNotAfter).toString(),
           indexDid: "0",
+          name: "capabilityInvocation",
+          notAfter: Number(newNotAfter).toString(),
+          notBefore: Number(newNotBefore).toString(),
+          vMethodId: vMethodId2,
         },
       ],
     });
@@ -961,44 +963,44 @@ describe("Did Documents", () => {
       vMethodIds: [vMethodId, vMethodId2],
       vMethods: [
         {
-          publicKey: user.publicKey,
           isSecp256k1: true,
+          publicKey: user.publicKey,
           revoked: false,
         },
         {
-          publicKey: `0x${publicKey2.toString("hex")}`,
           isSecp256k1: false,
+          publicKey: `0x${publicKey2.toString("hex")}`,
           revoked: false,
         },
       ],
       vRelationships: [
         {
+          indexDid: "0",
           name: "authentication",
-          vMethodId,
-          notBefore: Number(notBefore).toString(),
           notAfter: Number(newNotBefore + 1234).toString(),
-          indexDid: "0",
+          notBefore: Number(notBefore).toString(),
+          vMethodId,
         },
         {
+          indexDid: "0",
           name: "authentication",
-          vMethodId: vMethodId2,
-          notBefore: Number(newNotBefore).toString(),
           notAfter: Number(newNotAfter).toString(),
-          indexDid: "0",
+          notBefore: Number(newNotBefore).toString(),
+          vMethodId: vMethodId2,
         },
         {
+          indexDid: "0",
           name: "capabilityInvocation",
-          vMethodId,
-          notBefore: Number(notBefore).toString(),
           notAfter: Number(newNotBefore + 1234).toString(),
-          indexDid: "0",
+          notBefore: Number(notBefore).toString(),
+          vMethodId,
         },
         {
-          name: "capabilityInvocation",
-          vMethodId: vMethodId2,
-          notBefore: Number(newNotBefore).toString(),
-          notAfter: Number(newNotAfter).toString(),
           indexDid: "0",
+          name: "capabilityInvocation",
+          notAfter: Number(newNotAfter).toString(),
+          notBefore: Number(newNotBefore).toString(),
+          vMethodId: vMethodId2,
         },
       ],
     });
@@ -1166,11 +1168,11 @@ describe("Did Documents", () => {
 
     const dids = await reg.getDids(3, 2);
     expect(getEthObject(dids)).to.eql({
-      items: ["did:ebsi:test5", "did:ebsi:test6"],
-      total: "7",
       howMany: "2",
-      prev: "2",
+      items: ["did:ebsi:test5", "did:ebsi:test6"],
       next: "4",
+      prev: "2",
+      total: "7",
     });
 
     await expect(reg.getDids(1, 51)).to.be.revertedWith(
@@ -1205,47 +1207,47 @@ describe("Did Documents", () => {
 
     let dids = await reg.getDidsByController("did:ebsi:1", 1, 10);
     expect(getEthObject(dids)).to.eql({
-      items: ["did:ebsi:1", "did:ebsi:3"],
-      total: "2",
       howMany: "2",
-      prev: "1",
+      items: ["did:ebsi:1", "did:ebsi:3"],
       next: "1",
+      prev: "1",
+      total: "2",
     });
 
     dids = await reg.getDidsByController("did:ebsi:2", 1, 10);
     expect(getEthObject(dids)).to.eql({
-      items: ["did:ebsi:2", "did:ebsi:3", "did:ebsi:4"],
-      total: "3",
       howMany: "3",
-      prev: "1",
+      items: ["did:ebsi:2", "did:ebsi:3", "did:ebsi:4"],
       next: "1",
+      prev: "1",
+      total: "3",
     });
 
     dids = await reg.getDidsByController("did:ebsi:3", 1, 10);
     expect(getEthObject(dids)).to.eql({
-      items: ["did:ebsi:3"],
-      total: "1",
       howMany: "1",
-      prev: "1",
+      items: ["did:ebsi:3"],
       next: "1",
+      prev: "1",
+      total: "1",
     });
 
     dids = await reg.getDidsByController("did:ebsi:4", 1, 10);
     expect(getEthObject(dids)).to.eql({
-      items: ["did:ebsi:4"],
-      total: "1",
       howMany: "1",
-      prev: "1",
+      items: ["did:ebsi:4"],
       next: "1",
+      prev: "1",
+      total: "1",
     });
 
     dids = await reg.getDidsByController("did:ebsi:5", 1, 10);
     expect(getEthObject(dids)).to.eql({
-      items: ["did:ebsi:5"],
-      total: "1",
       howMany: "1",
-      prev: "1",
+      items: ["did:ebsi:5"],
       next: "1",
+      prev: "1",
+      total: "1",
     });
 
     await expect(
@@ -1308,22 +1310,22 @@ describe("Did Documents", () => {
       2,
     );
     expect(getEthObject(didsWithPeriod)).to.eql({
+      howMany: "2",
       items: [
         {
           did: "did:ebsi:test5",
-          notBefore: Number(notBefore).toString(),
           notAfter: Number(notAfter).toString(),
+          notBefore: Number(notBefore).toString(),
         },
         {
           did: "did:ebsi:test6",
-          notBefore: Number(notBefore).toString(),
           notAfter: Number(notAfter).toString(),
+          notBefore: Number(notBefore).toString(),
         },
       ],
-      total: "7",
-      howMany: "2",
-      prev: "2",
       next: "4",
+      prev: "2",
+      total: "7",
     });
   });
 
@@ -1356,25 +1358,25 @@ describe("Did Documents", () => {
       vMethodIds: [vMethodId],
       vMethods: [
         {
-          publicKey: user.publicKey,
           isSecp256k1: true,
+          publicKey: user.publicKey,
           revoked: false,
         },
       ],
       vRelationships: [
         {
-          name: "authentication",
-          vMethodId,
-          notBefore: "1000",
-          notAfter: "2000",
           indexDid: "0",
+          name: "authentication",
+          notAfter: "2000",
+          notBefore: "1000",
+          vMethodId,
         },
         {
-          name: "capabilityInvocation",
-          vMethodId,
-          notBefore: "1000",
-          notAfter: "2000",
           indexDid: "0",
+          name: "capabilityInvocation",
+          notAfter: "2000",
+          notBefore: "1000",
+          vMethodId,
         },
       ],
     });
@@ -1386,18 +1388,18 @@ describe("Did Documents", () => {
       vMethodIds: [vMethodId2],
       vMethods: [
         {
-          publicKey: publicKey2,
           isSecp256k1: true,
+          publicKey: publicKey2,
           revoked: false,
         },
       ],
       vRelationships: [
         {
-          name: "capabilityInvocation",
-          vMethodId: vMethodId2,
-          notBefore: Number(notBefore).toString(),
-          notAfter: Number(notAfter).toString(),
           indexDid: "0",
+          name: "capabilityInvocation",
+          notAfter: Number(notAfter).toString(),
+          notBefore: Number(notBefore).toString(),
+          vMethodId: vMethodId2,
         },
       ],
     });
@@ -1526,44 +1528,44 @@ describe("Did Documents", () => {
       vMethodIds: [vMethodId, vMethodId2],
       vMethods: [
         {
-          publicKey: user.publicKey,
           isSecp256k1: true,
+          publicKey: user.publicKey,
           revoked: false,
         },
         {
-          publicKey: `0x${publicKey2.toString("hex")}`,
           isSecp256k1: false,
+          publicKey: `0x${publicKey2.toString("hex")}`,
           revoked: false,
         },
       ],
       vRelationships: [
         {
+          indexDid: "0",
           name: "authentication",
-          vMethodId,
-          notBefore: Number(notBefore).toString(),
           notAfter: Number(notAfter).toString(),
-          indexDid: "0",
+          notBefore: Number(notBefore).toString(),
+          vMethodId,
         },
         {
-          name: "assertionMethod",
-          vMethodId,
-          notBefore: Number(notBefore).toString(),
-          notAfter: Number(notAfter).toString(),
           indexDid: "0",
+          name: "assertionMethod",
+          notAfter: Number(notAfter).toString(),
+          notBefore: Number(notBefore).toString(),
+          vMethodId,
         },
         {
+          indexDid: "0",
           name: "assertionMethod",
+          notAfter: Number(notAfter).toString(),
+          notBefore: Number(notBefore).toString(),
           vMethodId: vMethodId2,
-          notBefore: Number(notBefore).toString(),
-          notAfter: Number(notAfter).toString(),
-          indexDid: "0",
         },
         {
-          name: "capabilityInvocation",
-          vMethodId,
-          notBefore: Number(notBefore).toString(),
-          notAfter: Number(notAfter).toString(),
           indexDid: "0",
+          name: "capabilityInvocation",
+          notAfter: Number(notAfter).toString(),
+          notBefore: Number(notBefore).toString(),
+          vMethodId,
         },
       ],
     });
@@ -1587,56 +1589,56 @@ describe("Did Documents", () => {
       vMethodIds: [vMethodId, vMethodId2, vMethodId3],
       vMethods: [
         {
-          publicKey: user.publicKey,
           isSecp256k1: true,
+          publicKey: user.publicKey,
           revoked: false,
         },
         {
+          isSecp256k1: false,
           publicKey: `0x${publicKey2.toString("hex")}`,
-          isSecp256k1: false,
           revoked: false,
         },
         {
-          publicKey: `0x${publicKey3.toString("hex")}`,
           isSecp256k1: false,
+          publicKey: `0x${publicKey3.toString("hex")}`,
           revoked: false,
         },
       ],
       vRelationships: [
         {
+          indexDid: "0",
           name: "authentication",
-          vMethodId,
-          notBefore: Number(notBefore).toString(),
           notAfter: Number(notAfter).toString(),
-          indexDid: "0",
+          notBefore: Number(notBefore).toString(),
+          vMethodId,
         },
         {
-          name: "assertionMethod",
-          vMethodId,
-          notBefore: Number(notBefore).toString(),
-          notAfter: Number(notAfter).toString(),
           indexDid: "0",
+          name: "assertionMethod",
+          notAfter: Number(notAfter).toString(),
+          notBefore: Number(notBefore).toString(),
+          vMethodId,
         },
         {
+          indexDid: "0",
           name: "assertionMethod",
+          notAfter: Number(notAfter).toString(),
+          notBefore: Number(notBefore).toString(),
           vMethodId: vMethodId2,
-          notBefore: Number(notBefore).toString(),
-          notAfter: Number(notAfter).toString(),
-          indexDid: "0",
         },
         {
+          indexDid: "0",
           name: "authentication",
-          vMethodId: vMethodId3,
-          notBefore: Number(notBefore3).toString(),
           notAfter: Number(notAfter3).toString(),
-          indexDid: "0",
+          notBefore: Number(notBefore3).toString(),
+          vMethodId: vMethodId3,
         },
         {
-          name: "capabilityInvocation",
-          vMethodId,
-          notBefore: Number(notBefore).toString(),
-          notAfter: Number(notAfter).toString(),
           indexDid: "0",
+          name: "capabilityInvocation",
+          notAfter: Number(notAfter).toString(),
+          notBefore: Number(notBefore).toString(),
+          vMethodId,
         },
       ],
     });
@@ -1650,44 +1652,44 @@ describe("Did Documents", () => {
       vMethodIds: [vMethodId, vMethodId3],
       vMethods: [
         {
-          publicKey: user.publicKey,
           isSecp256k1: true,
+          publicKey: user.publicKey,
           revoked: false,
         },
         {
-          publicKey: `0x${publicKey3.toString("hex")}`,
           isSecp256k1: false,
+          publicKey: `0x${publicKey3.toString("hex")}`,
           revoked: false,
         },
       ],
       vRelationships: [
         {
-          name: "authentication",
-          vMethodId,
-          notBefore: Number(notBefore).toString(),
-          notAfter: Number(notAfter).toString(),
           indexDid: "0",
+          name: "authentication",
+          notAfter: Number(notAfter).toString(),
+          notBefore: Number(notBefore).toString(),
+          vMethodId,
         },
         {
+          indexDid: "0",
           name: "assertionMethod",
-          vMethodId,
-          notBefore: Number(notBefore).toString(),
           notAfter: Number(notAfter).toString(),
-          indexDid: "0",
+          notBefore: Number(notBefore).toString(),
+          vMethodId,
         },
         {
+          indexDid: "0",
           name: "authentication",
-          vMethodId: vMethodId3,
-          notBefore: Number(notBefore3).toString(),
           notAfter: Number(notAfter3).toString(),
-          indexDid: "0",
+          notBefore: Number(notBefore3).toString(),
+          vMethodId: vMethodId3,
         },
         {
-          name: "capabilityInvocation",
-          vMethodId,
-          notBefore: Number(notBefore).toString(),
-          notAfter: Number(notAfter).toString(),
           indexDid: "0",
+          name: "capabilityInvocation",
+          notAfter: Number(notAfter).toString(),
+          notBefore: Number(notBefore).toString(),
+          vMethodId,
         },
       ],
     });
@@ -1714,44 +1716,44 @@ describe("Did Documents", () => {
       vMethodIds: [vMethodId3, vMethodId4],
       vMethods: [
         {
-          publicKey: `0x${publicKey3.toString("hex")}`,
           isSecp256k1: false,
+          publicKey: `0x${publicKey3.toString("hex")}`,
           revoked: false,
         },
         {
-          publicKey: publicKey4,
           isSecp256k1: true,
+          publicKey: publicKey4,
           revoked: false,
         },
       ],
       vRelationships: [
         {
+          indexDid: "0",
           name: "authentication",
-          vMethodId: vMethodId3,
-          notBefore: Number(notBefore3).toString(),
           notAfter: Number(notAfter3).toString(),
-          indexDid: "0",
+          notBefore: Number(notBefore3).toString(),
+          vMethodId: vMethodId3,
         },
         {
+          indexDid: "0",
           name: "authentication",
-          vMethodId: vMethodId4,
-          notBefore: Number(notBefore4).toString(),
           notAfter: Number(notAfter4).toString(),
-          indexDid: "0",
+          notBefore: Number(notBefore4).toString(),
+          vMethodId: vMethodId4,
         },
         {
+          indexDid: "0",
           name: "assertionMethod",
-          vMethodId: vMethodId4,
-          notBefore: Number(notBefore4).toString(),
           notAfter: Number(notAfter4).toString(),
-          indexDid: "0",
+          notBefore: Number(notBefore4).toString(),
+          vMethodId: vMethodId4,
         },
         {
-          name: "capabilityInvocation",
-          vMethodId: vMethodId4,
-          notBefore: Number(notBefore4).toString(),
-          notAfter: Number(notAfter4).toString(),
           indexDid: "0",
+          name: "capabilityInvocation",
+          notAfter: Number(notAfter4).toString(),
+          notBefore: Number(notBefore4).toString(),
+          vMethodId: vMethodId4,
         },
       ],
     });

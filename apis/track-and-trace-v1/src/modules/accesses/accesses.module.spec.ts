@@ -1,21 +1,24 @@
-import { vi, describe, beforeAll, afterAll, it, expect } from "vitest";
-import request from "supertest";
-import { Test } from "@nestjs/testing";
-import { ValidationPipe, Logger } from "@nestjs/common";
+import type { RawServerDefault } from "fastify";
+
+import { EbsiWallet } from "@cef-ebsi/wallet-lib";
+import { methodNotAllowed } from "@ebsiint-api/shared";
+import { TrackAndTrace__factory } from "@ebsiint-sc/track-and-trace";
+import { fastifyAccepts } from "@fastify/accepts";
+import { Logger, ValidationPipe } from "@nestjs/common";
 import {
   FastifyAdapter,
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import type { RawServerDefault } from "fastify";
-import { fastifyAccepts } from "@fastify/accepts";
-import { TrackAndTrace__factory } from "@ebsiint-sc/track-and-trace";
-import { EbsiWallet } from "@cef-ebsi/wallet-lib";
-import { methodNotAllowed } from "@ebsiint-api/shared";
-import { AccessesModule } from "./accesses.module.js";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
-import { setupTestEnv } from "../../../tests/utils/trackAndTrace.js";
-import { LedgerService } from "../ledger/ledger.service.js";
+import { Test } from "@nestjs/testing";
+import request from "supertest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+
 import type { Access } from "./accesses.interface.js";
+
+import { setupTestEnv } from "../../../tests/utils/trackAndTrace.js";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
+import { LedgerService } from "../ledger/ledger.service.js";
+import { AccessesModule } from "./accesses.module.js";
 
 describe("Accesses Module", () => {
   let app: NestFastifyApplication;
@@ -145,26 +148,26 @@ describe("Accesses Module", () => {
       );
 
       expect(response.body).toStrictEqual({
-        self: expect.stringContaining(
-          `/accesses?page[after]=1&page[size]=10&subject=${randomDid}`,
-        ),
         items: [],
-        total: 0,
-        pageSize: 10,
         links: {
           first: expect.stringContaining(
-            `/accesses?page[after]=1&page[size]=10&subject=${randomDid}`,
-          ),
-          prev: expect.stringContaining(
-            `/accesses?page[after]=1&page[size]=10&subject=${randomDid}`,
-          ),
-          next: expect.stringContaining(
             `/accesses?page[after]=1&page[size]=10&subject=${randomDid}`,
           ),
           last: expect.stringContaining(
             `/accesses?page[after]=1&page[size]=10&subject=${randomDid}`,
           ),
+          next: expect.stringContaining(
+            `/accesses?page[after]=1&page[size]=10&subject=${randomDid}`,
+          ),
+          prev: expect.stringContaining(
+            `/accesses?page[after]=1&page[size]=10&subject=${randomDid}`,
+          ),
         },
+        pageSize: 10,
+        self: expect.stringContaining(
+          `/accesses?page[after]=1&page[size]=10&subject=${randomDid}`,
+        ),
+        total: 0,
       });
       expect(response.status).toBe(200);
     });
@@ -174,8 +177,8 @@ describe("Accesses Module", () => {
 
       const {
         creatorAccount,
-        grantedDidEbsiAccount,
         documentsWithBlockSource,
+        grantedDidEbsiAccount,
       } = testEnv;
 
       const response = await request(server).get(
@@ -183,42 +186,44 @@ describe("Accesses Module", () => {
       );
 
       const items: Access[] = [];
-      documentsWithBlockSource.forEach((doc) => {
-        items.push({
-          subject: grantedDidEbsiAccount,
-          documentId: doc.documentHash,
-          grantedBy: creatorAccount,
-          permission: "delegate",
-        });
-        items.push({
-          subject: grantedDidEbsiAccount,
-          documentId: doc.documentHash,
-          grantedBy: creatorAccount,
-          permission: "write",
-        });
-      });
+      for (const doc of documentsWithBlockSource) {
+        items.push(
+          {
+            documentId: doc.documentHash,
+            grantedBy: creatorAccount,
+            permission: "delegate",
+            subject: grantedDidEbsiAccount,
+          },
+          {
+            documentId: doc.documentHash,
+            grantedBy: creatorAccount,
+            permission: "write",
+            subject: grantedDidEbsiAccount,
+          },
+        );
+      }
 
       expect(response.body).toStrictEqual({
-        self: expect.stringContaining(
-          `/accesses?page[after]=1&page[size]=10&subject=${grantedDidEbsiAccount}`,
-        ),
         items,
-        total: documentsWithBlockSource.length * 2,
-        pageSize: 10,
         links: {
           first: expect.stringContaining(
-            `/accesses?page[after]=1&page[size]=10&subject=${grantedDidEbsiAccount}`,
-          ),
-          prev: expect.stringContaining(
-            `/accesses?page[after]=1&page[size]=10&subject=${grantedDidEbsiAccount}`,
-          ),
-          next: expect.stringContaining(
             `/accesses?page[after]=1&page[size]=10&subject=${grantedDidEbsiAccount}`,
           ),
           last: expect.stringContaining(
             `/accesses?page[after]=1&page[size]=10&subject=${grantedDidEbsiAccount}`,
           ),
+          next: expect.stringContaining(
+            `/accesses?page[after]=1&page[size]=10&subject=${grantedDidEbsiAccount}`,
+          ),
+          prev: expect.stringContaining(
+            `/accesses?page[after]=1&page[size]=10&subject=${grantedDidEbsiAccount}`,
+          ),
         },
+        pageSize: 10,
+        self: expect.stringContaining(
+          `/accesses?page[after]=1&page[size]=10&subject=${grantedDidEbsiAccount}`,
+        ),
+        total: documentsWithBlockSource.length * 2,
       });
       expect(response.status).toBe(200);
     });
@@ -226,7 +231,7 @@ describe("Accesses Module", () => {
     it("should return the list of accesses given a DID (did:key)", async () => {
       expect.assertions(2);
 
-      const { creatorAccount, grantedDidKeyAccount, documentsWithBlockSource } =
+      const { creatorAccount, documentsWithBlockSource, grantedDidKeyAccount } =
         testEnv;
 
       const response = await request(server).get(
@@ -234,42 +239,44 @@ describe("Accesses Module", () => {
       );
 
       const items: Access[] = [];
-      documentsWithBlockSource.forEach((doc) => {
-        items.push({
-          subject: grantedDidKeyAccount,
-          documentId: doc.documentHash,
-          grantedBy: creatorAccount,
-          permission: "delegate",
-        });
-        items.push({
-          subject: grantedDidKeyAccount,
-          documentId: doc.documentHash,
-          grantedBy: creatorAccount,
-          permission: "write",
-        });
-      });
+      for (const doc of documentsWithBlockSource) {
+        items.push(
+          {
+            documentId: doc.documentHash,
+            grantedBy: creatorAccount,
+            permission: "delegate",
+            subject: grantedDidKeyAccount,
+          },
+          {
+            documentId: doc.documentHash,
+            grantedBy: creatorAccount,
+            permission: "write",
+            subject: grantedDidKeyAccount,
+          },
+        );
+      }
 
       expect(response.body).toStrictEqual({
-        self: expect.stringContaining(
-          `/accesses?page[after]=1&page[size]=10&subject=${grantedDidKeyAccount}`,
-        ),
         items,
-        total: documentsWithBlockSource.length * 2,
-        pageSize: 10,
         links: {
           first: expect.stringContaining(
-            `/accesses?page[after]=1&page[size]=10&subject=${grantedDidKeyAccount}`,
-          ),
-          prev: expect.stringContaining(
-            `/accesses?page[after]=1&page[size]=10&subject=${grantedDidKeyAccount}`,
-          ),
-          next: expect.stringContaining(
             `/accesses?page[after]=1&page[size]=10&subject=${grantedDidKeyAccount}`,
           ),
           last: expect.stringContaining(
             `/accesses?page[after]=1&page[size]=10&subject=${grantedDidKeyAccount}`,
           ),
+          next: expect.stringContaining(
+            `/accesses?page[after]=1&page[size]=10&subject=${grantedDidKeyAccount}`,
+          ),
+          prev: expect.stringContaining(
+            `/accesses?page[after]=1&page[size]=10&subject=${grantedDidKeyAccount}`,
+          ),
         },
+        pageSize: 10,
+        self: expect.stringContaining(
+          `/accesses?page[after]=1&page[size]=10&subject=${grantedDidKeyAccount}`,
+        ),
+        total: documentsWithBlockSource.length * 2,
       });
       expect(response.status).toBe(200);
     });

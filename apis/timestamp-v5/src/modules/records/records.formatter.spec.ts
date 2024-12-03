@@ -1,6 +1,7 @@
-import { describe, it, expect } from "vitest";
-import crypto from "node:crypto";
 import { multibase } from "@ebsiint-api/shared";
+import crypto from "node:crypto";
+import { describe, expect, it } from "vitest";
+
 import { formatRecords, formatRecordVersions } from "./records.formatter.js";
 
 describe("formatRecords", () => {
@@ -32,12 +33,12 @@ describe("formatRecords", () => {
     ).toStrictEqual({
       items: [
         {
-          recordId: recordIds[0],
           href: `/${recordIds[0]}`,
+          recordId: recordIds[0],
         },
         {
-          recordId: recordIds[1],
           href: `/${recordIds[1]}`,
+          recordId: recordIds[1],
         },
       ],
       links: {
@@ -65,12 +66,12 @@ describe("formatRecordVersions", () => {
     ).toStrictEqual({
       items: [
         {
-          versionId: 4,
           href: "/4",
+          versionId: 4,
         },
         {
-          versionId: 5,
           href: "/5",
+          versionId: 5,
         },
       ],
       links: {

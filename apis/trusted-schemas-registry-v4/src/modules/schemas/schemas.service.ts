@@ -1,6 +1,6 @@
-import { Injectable, Logger } from "@nestjs/common";
 import { InternalServerError, NotFoundError } from "@ebsiint-api/shared";
-import { schemaIdToHex } from "./schemas.utils.js";
+import { Injectable, Logger } from "@nestjs/common";
+
 import {
   GetAllRevisionsWithMetadataQuery,
   getBuiltGraphSDK,
@@ -10,39 +10,16 @@ import {
   GetRevisionsQuery,
   GetSchemaQuery,
   GetSchemasQuery,
-  Schema_filter,
   Revision_filter,
-  // eslint-disable-next-line import/extensions, import/no-relative-packages
+  Schema_filter,
 } from "../../../.graphclient/index.js";
+import { schemaIdToHex } from "./schemas.utils.js";
 
 const sdk = getBuiltGraphSDK();
 
 @Injectable()
 export class SchemasService {
   private readonly logger = new Logger(SchemasService.name);
-
-  async getSchemas(
-    page = 1,
-    pagesize = 10,
-    where: Schema_filter = {},
-  ): Promise<{ items: string[] }> {
-    const skip = (page - 1) * pagesize;
-    let res: GetSchemasQuery;
-    try {
-      // get one more item to clarify next pages in pagination
-      const queryPageSize = pagesize + 1;
-      res = await sdk.GetSchemas({ skip, pagesize: queryPageSize, where });
-    } catch (error) {
-      this.logger.error(
-        error,
-        error instanceof Error ? error.stack : undefined,
-      );
-      throw new InternalServerError();
-    }
-
-    const schemasIds = res.schemas.map((s) => s.id);
-    return { items: schemasIds };
-  }
 
   async getSchema(schemaId: string): Promise<unknown> {
     let res: GetSchemaQuery;
@@ -75,6 +52,137 @@ export class SchemasService {
     }
 
     return schema;
+  }
+
+  async getSchemaRevision(
+    schemaId: string,
+    schemaRevisionId: string,
+  ): Promise<unknown> {
+    const hexSchemaId = schemaIdToHex(schemaId);
+
+    // Make sure the schema exists
+    let res: GetRevisionQuery;
+    try {
+      res = await sdk.GetRevision({
+        revisionId: schemaRevisionId,
+        schemaId: hexSchemaId,
+      });
+    } catch (error) {
+      this.logger.error(
+        error,
+        error instanceof Error ? error.stack : undefined,
+      );
+      throw new InternalServerError();
+    }
+
+    if (!res.schema) {
+      throw new NotFoundError("Schema Not Found", {
+        detail: `Schema ${schemaId} not found`,
+      });
+    }
+
+    if (
+      !res.schema.revisions ||
+      res.schema.revisions.length === 0 ||
+      !res.schema.revisions[0]!.content
+    ) {
+      throw new NotFoundError("Revision Not Found", {
+        detail: `Revision ${schemaRevisionId} not found`,
+      });
+    }
+
+    return JSON.parse(res.schema.revisions[0]!.content) as unknown;
+  }
+
+  async getSchemaRevisionMetadata(
+    schemaId: string,
+    schemaRevisionId: string,
+    metadataId: string,
+  ): Promise<unknown> {
+    const hexSchemaId = schemaIdToHex(schemaId);
+    let res: GetMetadataQuery;
+
+    try {
+      res = await sdk.GetMetadata({
+        metadataId,
+        revisionId: schemaRevisionId,
+        schemaId: hexSchemaId,
+      });
+    } catch (error) {
+      this.logger.error(
+        error,
+        error instanceof Error ? error.stack : undefined,
+      );
+      throw new InternalServerError();
+    }
+
+    if (!res.schema) {
+      throw new NotFoundError("Schema Not Found", {
+        detail: `Schema ${schemaId} not found`,
+      });
+    }
+
+    if (!res.schema.revisions || res.schema.revisions.length === 0) {
+      throw new NotFoundError("Revision Not Found", {
+        detail: `Revision ${schemaRevisionId} not found`,
+      });
+    }
+
+    if (
+      !res.schema.revisions[0]!.metadata ||
+      res.schema.revisions[0]!.metadata.length === 0
+    ) {
+      throw new NotFoundError("Metadata Not Found", {
+        detail: `Metadata ${metadataId} not found`,
+      });
+    }
+
+    return JSON.parse(res.schema.revisions[0]!.metadata[0]!.content) as unknown;
+  }
+
+  async getSchemaRevisionMetadataList(
+    schemaId: string,
+    schemaRevisionId: string,
+    page = 1,
+    pagesize = 10,
+  ): Promise<{ items: string[] }> {
+    const hexSchemaId = schemaIdToHex(schemaId);
+    const skip = (page - 1) * pagesize;
+    // get one more item to clarify next pages in pagination
+    const queryPageSize = pagesize + 1;
+
+    // Make sure the schema exists
+    let res: GetMetadatasQuery;
+    try {
+      res = await sdk.GetMetadatas({
+        pagesize: queryPageSize,
+        revisionId: schemaRevisionId,
+        schemaId: hexSchemaId,
+        skip,
+      });
+    } catch (error) {
+      this.logger.error(
+        error,
+        error instanceof Error ? error.stack : undefined,
+      );
+      throw new InternalServerError();
+    }
+
+    if (!res.schema) {
+      throw new NotFoundError("Schema Not Found", {
+        detail: `Schema ${schemaId} not found`,
+      });
+    }
+
+    if (!res.schema.revisions || res.schema.revisions.length === 0) {
+      throw new NotFoundError("Revision Not Found", {
+        detail: `Revision ${schemaRevisionId} not found`,
+      });
+    }
+
+    return {
+      items: res.schema.revisions[0]!.metadata.map((m) => m.id),
+    };
   }
 
   async getSchemaRevisions(
@@ -111,8 +219,8 @@ export class SchemasService {
       try {
         const validAtDate = new Date(validAt);
         const validRevisionsIds: string[] = [];
-        res.schema.revisions.forEach((revision) => {
-          revision.metadata.forEach((metadata) => {
+        for (const revision of res.schema.revisions) {
+          for (const metadata of revision.metadata) {
             try {
               const decodedMetadata = JSON.parse(metadata.content) as Record<
                 string,
@@ -123,7 +231,7 @@ export class SchemasService {
                 decodedMetadata["validFrom"] &&
                 new Date(decodedMetadata["validFrom"] as string) > validAtDate
               ) {
-                return;
+                continue;
               }
 
               // If validTo < validAt, ignore
@@ -131,15 +239,15 @@ export class SchemasService {
                 decodedMetadata["validTo"] &&
                 new Date(decodedMetadata["validTo"] as string) < validAtDate
               ) {
-                return;
+                continue;
               }
 
               validRevisionsIds.push(revision.id);
-            } catch (e) {
+            } catch {
               // Ignore
             }
-          });
-        });
+          }
+        }
 
         return {
           items: validRevisionsIds.slice(
@@ -160,9 +268,9 @@ export class SchemasService {
       // get one more item to clarify next pages in pagination
       const queryPageSize = pagesize + 1;
       res = await sdk.GetRevisions({
+        pagesize: queryPageSize,
         schemaId: hexSchemaId,
         skip,
-        pagesize: queryPageSize,
         where,
       });
     } catch (error) {
@@ -184,66 +292,17 @@ export class SchemasService {
     };
   }
 
-  async getSchemaRevision(
-    schemaId: string,
-    schemaRevisionId: string,
-  ): Promise<unknown> {
-    const hexSchemaId = schemaIdToHex(schemaId);
-
-    // Make sure the schema exists
-    let res: GetRevisionQuery;
-    try {
-      res = await sdk.GetRevision({
-        schemaId: hexSchemaId,
-        revisionId: schemaRevisionId,
-      });
-    } catch (error) {
-      this.logger.error(
-        error,
-        error instanceof Error ? error.stack : undefined,
-      );
-      throw new InternalServerError();
-    }
-
-    if (!res.schema) {
-      throw new NotFoundError("Schema Not Found", {
-        detail: `Schema ${schemaId} not found`,
-      });
-    }
-
-    if (
-      !res.schema.revisions ||
-      res.schema.revisions.length === 0 ||
-      !res.schema.revisions[0]!.content
-    ) {
-      throw new NotFoundError("Revision Not Found", {
-        detail: `Revision ${schemaRevisionId} not found`,
-      });
-    }
-
-    return JSON.parse(res.schema.revisions[0]!.content) as unknown;
-  }
-
-  async getSchemaRevisionMetadataList(
-    schemaId: string,
-    schemaRevisionId: string,
+  async getSchemas(
     page = 1,
     pagesize = 10,
+    where: Schema_filter = {},
   ): Promise<{ items: string[] }> {
-    const hexSchemaId = schemaIdToHex(schemaId);
     const skip = (page - 1) * pagesize;
-    // get one more item to clarify next pages in pagination
-    const queryPageSize = pagesize + 1;
-
-    // Make sure the schema exists
-    let res: GetMetadatasQuery;
+    let res: GetSchemasQuery;
     try {
-      res = await sdk.GetMetadatas({
-        schemaId: hexSchemaId,
-        revisionId: schemaRevisionId,
-        skip,
-        pagesize: queryPageSize,
-      });
+      // get one more item to clarify next pages in pagination
+      const queryPageSize = pagesize + 1;
+      res = await sdk.GetSchemas({ pagesize: queryPageSize, skip, where });
     } catch (error) {
       this.logger.error(
         error,
@@ -252,67 +311,8 @@ export class SchemasService {
       throw new InternalServerError();
     }
 
-    if (!res.schema) {
-      throw new NotFoundError("Schema Not Found", {
-        detail: `Schema ${schemaId} not found`,
-      });
-    }
-
-    if (!res.schema.revisions || res.schema.revisions.length === 0) {
-      throw new NotFoundError("Revision Not Found", {
-        detail: `Revision ${schemaRevisionId} not found`,
-      });
-    }
-
-    return {
-      items: res.schema.revisions[0]!.metadata.map((m) => m.id),
-    };
-  }
-
-  async getSchemaRevisionMetadata(
-    schemaId: string,
-    schemaRevisionId: string,
-    metadataId: string,
-  ): Promise<unknown> {
-    const hexSchemaId = schemaIdToHex(schemaId);
-    let res: GetMetadataQuery;
-
-    try {
-      res = await sdk.GetMetadata({
-        schemaId: hexSchemaId,
-        revisionId: schemaRevisionId,
-        metadataId,
-      });
-    } catch (error) {
-      this.logger.error(
-        error,
-        error instanceof Error ? error.stack : undefined,
-      );
-      throw new InternalServerError();
-    }
-
-    if (!res.schema) {
-      throw new NotFoundError("Schema Not Found", {
-        detail: `Schema ${schemaId} not found`,
-      });
-    }
-
-    if (!res.schema.revisions || res.schema.revisions.length === 0) {
-      throw new NotFoundError("Revision Not Found", {
-        detail: `Revision ${schemaRevisionId} not found`,
-      });
-    }
-
-    if (
-      !res.schema.revisions[0]!.metadata ||
-      res.schema.revisions[0]!.metadata.length === 0
-    ) {
-      throw new NotFoundError("Metadata Not Found", {
-        detail: `Metadata ${metadataId} not found`,
-      });
-    }
-
-    return JSON.parse(res.schema.revisions[0]!.metadata[0]!.content) as unknown;
+    const schemasIds = res.schemas.map((s) => s.id);
+    return { items: schemasIds };
   }
 }
 

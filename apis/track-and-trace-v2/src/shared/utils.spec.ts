@@ -1,7 +1,8 @@
-import { describe, expect, it } from "vitest";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { encode } from "@ebsiint-api/shared";
 import { exportJWK, generateKeyPair, type JWK } from "jose";
+import { describe, expect, it } from "vitest";
+
 import { didToHex, hexToDid } from "./utils.js";
 
 describe("hexToDid", () => {

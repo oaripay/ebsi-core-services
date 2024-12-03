@@ -32,12 +32,12 @@ export function Is32BytesHex(
     {
       name: IS_32_BYTES_HEX,
       validator: {
-        validate: is32BytesHex,
         defaultMessage: buildMessage(
           (eachPrefix) =>
             `${eachPrefix}$property must be 32 bytes encoded in hexadecimal and start with 0x`,
           validationOptions,
         ),
+        validate: is32BytesHex,
       },
     },
     validationOptions,

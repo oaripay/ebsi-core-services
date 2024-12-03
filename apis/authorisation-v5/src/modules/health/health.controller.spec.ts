@@ -1,25 +1,27 @@
-import {
-  vi,
-  describe,
-  beforeAll,
-  it,
-  expect,
-  afterEach,
-  afterAll,
-} from "vitest";
-import request from "supertest";
-import { Test } from "@nestjs/testing";
-import { Logger } from "@nestjs/common";
-import { HealthIndicatorResult } from "@nestjs/terminus";
-import { HttpService } from "@nestjs/axios";
-import { ConfigService } from "@nestjs/config";
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
+
+import { HttpService } from "@nestjs/axios";
+import { Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { HealthIndicatorResult } from "@nestjs/terminus";
+import { Test } from "@nestjs/testing";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
-import { HealthModule } from "./health.module.js";
-import { DEPENDENCIES, type ApiConfig } from "../../config/configuration.js";
+import request from "supertest";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
+
 import { configureApp } from "../../../tests/utils/app.js";
+import { type ApiConfig, DEPENDENCIES } from "../../config/configuration.js";
+import { HealthModule } from "./health.module.js";
 
 describe("HealthController", () => {
   let app: NestFastifyApplication;
@@ -94,11 +96,11 @@ describe("HealthController", () => {
       const response = await request(server).get("/health").send();
 
       // Expect httpService.request to have been called for every dependency
-      dependencies.forEach((dependency) => {
+      for (const dependency of dependencies) {
         expect(spy).toHaveBeenCalledWith({
           url: `${localOrigin}${DEPENDENCIES[dependency]}`,
         });
-      });
+      }
 
       // Expect all the dependencies to be up
       const expectedStatuses = dependencies
@@ -135,11 +137,11 @@ describe("HealthController", () => {
       const response = await request(server).get("/health").send();
 
       // Expect httpService.request to have been called for every dependency
-      dependencies.forEach((dependency) => {
+      for (const dependency of dependencies) {
         expect(spy).toHaveBeenCalledWith({
           url: `${localOrigin}${DEPENDENCIES[dependency]}`,
         });
-      });
+      }
 
       // Expect all the dependencies to be up except DIDR API v6
       const expectedStatuses = dependencies

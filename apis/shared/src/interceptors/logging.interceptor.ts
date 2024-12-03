@@ -1,3 +1,6 @@
+import type { FastifyReply, FastifyRequest } from "fastify";
+import type { Observable } from "rxjs";
+
 // Copied from https://github.com/algoan/nestjs-components/blob/master/packages/logging-interceptor/src/logging.interceptor.ts
 import {
   type CallHandler,
@@ -8,12 +11,11 @@ import {
   Logger,
   NestInterceptor,
 } from "@nestjs/common";
-import type { FastifyRequest, FastifyReply } from "fastify";
-import type { Observable } from "rxjs";
 import { tap } from "rxjs/operators";
+
 import {
-  METHOD_LOG_METADATA,
   type LogOptions,
+  METHOD_LOG_METADATA,
 } from "../decorators/log.decorator.js";
 
 /**
@@ -27,12 +29,12 @@ export class LoggingInterceptor implements NestInterceptor {
 
   constructor(
     private logLevel:
-      | "silent"
+      | "debug"
       | "error"
-      | "warn"
       | "info"
+      | "silent"
       | "verbose"
-      | "debug",
+      | "warn",
   ) {}
 
   /**
@@ -45,7 +47,7 @@ export class LoggingInterceptor implements NestInterceptor {
     call$: CallHandler,
   ): Observable<unknown> {
     const req = context.switchToHttp().getRequest<FastifyRequest>();
-    const { method, url, body, headers } = req;
+    const { body, headers, method, url } = req;
 
     // Global condition: "ebsi-healthcheck" should not be present in the request headers. If it's the case, the request and response are not logged.
     let logRequest = !(headers && "ebsi-healthcheck" in headers);
@@ -56,12 +58,11 @@ export class LoggingInterceptor implements NestInterceptor {
       context.getHandler(),
     ) as LogOptions | undefined;
 
-    if (logRequest && options && options.logRequest !== undefined) {
-      if (typeof options.logRequest === "function") {
-        logRequest = options.logRequest(req);
-      } else {
-        logRequest = options.logRequest;
-      }
+    if (logRequest && options?.logRequest !== undefined) {
+      logRequest =
+        typeof options.logRequest === "function"
+          ? options.logRequest(req)
+          : options.logRequest;
     }
 
     // Log request if logRequest is still true at this point
@@ -71,10 +72,10 @@ export class LoggingInterceptor implements NestInterceptor {
 
       this.logger.log(
         {
-          message,
-          method,
           body,
           headers,
+          message,
+          method,
         },
         ctx,
       );
@@ -92,6 +93,44 @@ export class LoggingInterceptor implements NestInterceptor {
         },
       }),
     );
+  }
+
+  /**
+   * Logs the request in error cases
+   * @param error Error object
+   * @param context details about the current request
+   */
+  private logError(error: Error, context: ExecutionContext): void {
+    const req = context.switchToHttp().getRequest<FastifyRequest>();
+    const { body, method, url } = req;
+
+    if (error instanceof HttpException) {
+      const statusCode = error.getStatus();
+      const ctx = `${this.ctxPrefix} - ${statusCode} - ${method} - ${url}`;
+      const message = `Outgoing response - ${statusCode} - ${method} - ${url}`;
+      const jsonLog = {
+        body,
+        error,
+        message,
+        method,
+        url,
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
+      if (statusCode >= HttpStatus.INTERNAL_SERVER_ERROR) {
+        this.logger.error(jsonLog, error.stack, ctx);
+      } else {
+        this.logger.warn(jsonLog, ctx);
+      }
+    } else {
+      this.logger.error(
+        {
+          message: `Outgoing response - ${method} - ${url}`,
+        },
+        error.stack,
+        `${this.ctxPrefix} - ${method} - ${url}`,
+      );
+    }
   }
 
   /**
@@ -114,44 +153,6 @@ export class LoggingInterceptor implements NestInterceptor {
       },
       ctx,
     );
-  }
-
-  /**
-   * Logs the request in error cases
-   * @param error Error object
-   * @param context details about the current request
-   */
-  private logError(error: Error, context: ExecutionContext): void {
-    const req = context.switchToHttp().getRequest<FastifyRequest>();
-    const { method, url, body } = req;
-
-    if (error instanceof HttpException) {
-      const statusCode = error.getStatus();
-      const ctx = `${this.ctxPrefix} - ${statusCode} - ${method} - ${url}`;
-      const message = `Outgoing response - ${statusCode} - ${method} - ${url}`;
-      const jsonLog = {
-        method,
-        url,
-        body,
-        message,
-        error,
-      };
-
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
-      if (statusCode >= HttpStatus.INTERNAL_SERVER_ERROR) {
-        this.logger.error(jsonLog, error.stack, ctx);
-      } else {
-        this.logger.warn(jsonLog, ctx);
-      }
-    } else {
-      this.logger.error(
-        {
-          message: `Outgoing response - ${method} - ${url}`,
-        },
-        error.stack,
-        `${this.ctxPrefix} - ${method} - ${url}`,
-      );
-    }
   }
 }
 

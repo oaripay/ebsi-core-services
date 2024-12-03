@@ -1,37 +1,37 @@
+import { type Network, NETWORKS } from "@cef-ebsi/ebsi-uri";
 import { ConfigModule } from "@nestjs/config";
 import Joi from "joi";
-import { NETWORKS, type Network } from "@cef-ebsi/ebsi-uri";
 
 // List here all the values that will be returned by the config factory
 export interface ApiConfig {
   apiPort: number;
   apiUrlPrefix: string;
-  domain: string;
-  localOrigin: string;
-  network: Network;
-  trustedHostnames: string[];
-  logLevel: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
-  requestTimeout: number;
-  axiosRetryDelay: number;
-  // Ledger & SC
-  besuRpcNode: string;
-  besuReadinessEndpoint: string;
-  ledgerApiUrl: string;
-  contractAddr: string;
   // Authorisation API
   authorisationApiUrl: string;
+  axiosRetryDelay: number;
+  besuReadinessEndpoint: string;
+  // Ledger & SC
+  besuRpcNode: string;
+  blockscout: {
+    bearerToken: string | undefined;
+    url: string | undefined;
+  };
+  contractAddr: string;
   // DID Registry API
   didRegistryApiUrl: string;
+  dockerContainerTag: string;
+  domain: string;
+  ledgerApiUrl: string;
+  localOrigin: string;
+  logLevel: "debug" | "error" | "info" | "silent" | "verbose" | "warn";
+  network: Network;
+  requestTimeout: number;
   // Test variables
   testAdminKid: string | undefined;
   testAdminPrivateKey: string | undefined;
-  testVaSchemaUrl: string;
   testSpecificNodeDomain: string | undefined;
-  dockerContainerTag: string;
-  blockscout: {
-    url: string | undefined;
-    bearerToken: string | undefined;
-  };
+  testVaSchemaUrl: string;
+  trustedHostnames: string[];
 }
 
 const AUTH_API_PATH = "/authorisation/v4";
@@ -53,36 +53,39 @@ export const loadConfig = (): ApiConfig => {
   const { DOMAIN } = process.env;
 
   return {
-    apiPort: parseInt(process.env.API_PORT || "3000", 10),
-    apiUrlPrefix: process.env.API_URL_PREFIX || "/trusted-schemas-registry/v3",
-    domain: DOMAIN,
-    localOrigin: process.env.LOCAL_ORIGIN || "",
-    network: process.env.NETWORK,
-    trustedHostnames: (process.env.TRUSTED_HOSTNAMES || "")
-      .split(",")
-      .filter(Boolean),
-    logLevel: process.env.LOG_LEVEL || "warn",
-    requestTimeout: parseInt(process.env.REQUEST_TIMEOUT || "15000", 10),
-    axiosRetryDelay: parseInt(process.env.AXIOS_RETRY_DELAY || "10000", 10),
-    // Ledger & SC
-    besuRpcNode: process.env.BESU_RPC_NODE,
-    besuReadinessEndpoint: process.env.BESU_READINESS_ENDPOINT,
-    ledgerApiUrl: DOMAIN + LEDGER_API_PATH,
-    contractAddr: process.env.CONTRACT_ADDR,
+    apiPort: Number.parseInt(process.env.API_PORT ?? "3000", 10),
+    apiUrlPrefix: process.env.API_URL_PREFIX ?? "/trusted-schemas-registry/v3",
     // Authorisation API
     authorisationApiUrl: DOMAIN + AUTH_API_PATH,
+    axiosRetryDelay: Number.parseInt(
+      process.env.AXIOS_RETRY_DELAY ?? "10000",
+      10,
+    ),
+    besuReadinessEndpoint: process.env.BESU_READINESS_ENDPOINT,
+    // Ledger & SC
+    besuRpcNode: process.env.BESU_RPC_NODE,
+    blockscout: {
+      bearerToken: process.env.BLOCKSCOUT_BEARER_TOKEN,
+      url: process.env.BLOCKSCOUT_URL,
+    },
+    contractAddr: process.env.CONTRACT_ADDR,
     // DID Registry API
     didRegistryApiUrl: DOMAIN + DIDR_API_PATH,
+    dockerContainerTag: process.env.DOCKER_TAG ?? "",
+    domain: DOMAIN,
+    ledgerApiUrl: DOMAIN + LEDGER_API_PATH,
+    localOrigin: process.env.LOCAL_ORIGIN ?? "",
+    logLevel: process.env.LOG_LEVEL ?? "warn",
+    network: process.env.NETWORK,
+    requestTimeout: Number.parseInt(process.env.REQUEST_TIMEOUT ?? "15000", 10),
     // Test vars
     testAdminKid: process.env.TEST_ADMIN_KID,
     testAdminPrivateKey: process.env.TEST_ADMIN_PRIVATE_KEY,
-    testVaSchemaUrl: `${DOMAIN}${TSR_API_PATH}/schemas/${process.env.TEST_VA_SCHEMA}`,
     testSpecificNodeDomain: process.env.TEST_SPECIFIC_NODE_DOMAIN,
-    dockerContainerTag: process.env.DOCKER_TAG || "",
-    blockscout: {
-      url: process.env.BLOCKSCOUT_URL,
-      bearerToken: process.env.BLOCKSCOUT_BEARER_TOKEN,
-    },
+    testVaSchemaUrl: `${DOMAIN}${TSR_API_PATH}/schemas/${process.env.TEST_VA_SCHEMA}`,
+    trustedHostnames: (process.env.TRUSTED_HOSTNAMES ?? "")
+      .split(",")
+      .filter(Boolean),
   };
 };
 
@@ -95,12 +98,18 @@ export const ApiConfigModule = ConfigModule.forRoot({
   ],
   load: [loadConfig],
   validationSchema: Joi.object<typeof process.env, true>({
-    // Common API variables
-    NODE_ENV: Joi.string()
-      .valid("development", "production", "test")
-      .default("development"),
     API_PORT: Joi.string().default("3000"),
     API_URL_PREFIX: Joi.string(),
+    AXIOS_RETRY_DELAY: Joi.string(),
+    BESU_READINESS_ENDPOINT: Joi.string().uri().required(),
+    // Ledger & SC
+    BESU_RPC_NODE: Joi.string().uri().required(),
+    BLOCKSCOUT_BEARER_TOKEN: Joi.string(),
+    BLOCKSCOUT_URL: Joi.string(),
+    CONTRACT_ADDR: Joi.string().required(),
+    DOCKER_TAG: Joi.string(),
+    DOMAIN: Joi.string().uri().required(),
+    LOCAL_ORIGIN: Joi.string().uri(),
     LOG_LEVEL: Joi.string().valid(
       "silent",
       "error",
@@ -109,28 +118,22 @@ export const ApiConfigModule = ConfigModule.forRoot({
       "verbose",
       "debug",
     ),
-    DOCKER_TAG: Joi.string(),
-    DOMAIN: Joi.string().uri().required(),
-    LOCAL_ORIGIN: Joi.string().uri(),
     NETWORK: Joi.string()
       .valid(...NETWORKS)
       .required(),
-    TRUSTED_HOSTNAMES: Joi.string(),
+    // Common API variables
+    NODE_ENV: Joi.string()
+      .valid("development", "production", "test")
+      .default("development"),
     REQUEST_TIMEOUT: Joi.string(),
-    AXIOS_RETRY_DELAY: Joi.string(),
-    // Ledger & SC
-    BESU_RPC_NODE: Joi.string().uri().required(),
-    BESU_READINESS_ENDPOINT: Joi.string().uri().required(),
-    CONTRACT_ADDR: Joi.string().required(),
     // Test vars
     TEST_ADMIN_KID: Joi.string(),
     TEST_ADMIN_PRIVATE_KEY: Joi.string(),
-    TEST_VA_SCHEMA: Joi.string(),
-    TEST_ENV: Joi.string(),
     TEST_ENABLE_WRITE_OPS: Joi.string(),
+    TEST_ENV: Joi.string(),
     TEST_SPECIFIC_NODE_DOMAIN: Joi.string().uri(),
-    BLOCKSCOUT_URL: Joi.string(),
-    BLOCKSCOUT_BEARER_TOKEN: Joi.string(),
+    TEST_VA_SCHEMA: Joi.string(),
+    TRUSTED_HOSTNAMES: Joi.string(),
     // Generic variables
     TZ: Joi.string(),
   }),

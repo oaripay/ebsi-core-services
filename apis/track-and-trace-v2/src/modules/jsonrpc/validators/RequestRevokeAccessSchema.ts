@@ -1,12 +1,12 @@
-import { z } from "zod";
 import {
   BigNumber,
-  isBigNumberish,
   type BigNumberish,
-  // eslint-disable-next-line import/extensions
+  isBigNumberish,
 } from "@ethersproject/bignumber/lib/bignumber.js";
-import { jsonRpcSchema } from "./JsonRpcSchema.js";
+import { z } from "zod";
+
 import { baseParamSchema } from "./BaseParamSchema.js";
+import { jsonRpcSchema } from "./JsonRpcSchema.js";
 import { refinements } from "./utils.js";
 
 const { isHexadecimal, isSender } = refinements;
@@ -14,8 +14,6 @@ const { isHexadecimal, isSender } = refinements;
 export const revokeAccessSchema = baseParamSchema.merge(
   z.object({
     documentHash: z.string().superRefine(isHexadecimal),
-    revokedByAccount: z.string().superRefine(isSender),
-    subjectAccount: z.string().superRefine(isSender),
     permission: z
       .custom<BigNumberish>((val) => isBigNumberish(val))
       .refine(
@@ -24,6 +22,8 @@ export const revokeAccessSchema = baseParamSchema.merge(
           message: "Number must be 0 (delegate) or 1 (write)",
         },
       ),
+    revokedByAccount: z.string().superRefine(isSender),
+    subjectAccount: z.string().superRefine(isSender),
   }),
 );
 

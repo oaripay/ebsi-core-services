@@ -1,17 +1,17 @@
+import { Accepts } from "@ebsiint-api/shared";
 // For more info, read https://docs.nestjs.com/recipes/terminus
 import { Controller, Get } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { Accepts } from "@ebsiint-api/shared";
 import {
   HealthCheck,
+  HealthCheckError,
+  HealthCheckResult,
   HealthCheckService,
   HttpHealthIndicator,
-  HealthCheckResult,
-  HealthCheckError,
 } from "@nestjs/terminus";
-import { DEPENDENCIES, type ApiConfig } from "../../config/configuration.js";
-// eslint-disable-next-line import/extensions, import/no-relative-packages
+
 import { getBuiltGraphSDK } from "../../../.graphclient/index.js";
+import { type ApiConfig, DEPENDENCIES } from "../../config/configuration.js";
 
 const sdk = getBuiltGraphSDK();
 
@@ -23,8 +23,8 @@ export class HealthController {
     private http: HttpHealthIndicator,
   ) {}
 
-  @Get()
   @Accepts("application/json")
+  @Get()
   @HealthCheck()
   check(): Promise<HealthCheckResult> {
     return this.health.check([
@@ -48,7 +48,7 @@ export class HealthController {
         try {
           const res = await sdk.GetBlockTimestamp();
           const now = Date.now();
-          // eslint-disable-next-line no-underscore-dangle
+
           const blockTimestamp = res._meta.block.timestamp * 1000;
           if (now - blockTimestamp <= 300_000) {
             return {
@@ -64,8 +64,8 @@ export class HealthController {
         }
         throw new HealthCheckError("health check error TSR", {
           "Timestamp Subgraph": {
-            status: "down",
             message,
+            status: "down",
           },
         });
       },

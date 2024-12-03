@@ -132,7 +132,16 @@ export function handleVerificationMethodRevoked(
     "capabilityDelegation",
   ];
 
-  // eslint-disable-next-line @typescript-eslint/prefer-for-of
+  for (let i = 0; i < relationships.length; i += 1) {
+    const verificationRelationship = VerificationRelationship.load(
+      `${event.params.did} ${relationships[i]} ${event.params.vMethodId}`,
+    );
+    if (verificationRelationship) {
+      verificationRelationship.notAfter = event.params.notAfter;
+      verificationRelationship.save();
+    }
+  }
+
   for (let i = 0; i < relationships.length; i += 1) {
     const verificationRelationship = VerificationRelationship.load(
       `${event.params.did} ${relationships[i]} ${event.params.vMethodId}`,

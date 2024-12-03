@@ -1,31 +1,30 @@
-import { z } from "zod";
 import {
   BigNumber,
-  isBigNumberish,
   type BigNumberish,
-  // eslint-disable-next-line import/extensions
+  isBigNumberish,
 } from "@ethersproject/bignumber/lib/bignumber.js";
-import { jsonRpcSchema } from "./JsonRpcSchema.js";
-import { baseParamSchema } from "./BaseParamSchema.js";
+import { z } from "zod";
 
+import { baseParamSchema } from "./BaseParamSchema.js";
+import { jsonRpcSchema } from "./JsonRpcSchema.js";
 import { refinements } from "./utils.js";
 
-const { isHexadecimal, isEthereumAddress } = refinements;
+const { isEthereumAddress, isHexadecimal } = refinements;
 
 export const insertRecordOwnerSchema = baseParamSchema.merge(
   z.object({
-    recordId: z.string().superRefine(isHexadecimal),
-    ownerId: z.string().superRefine(isEthereumAddress),
-    notBefore: z
-      .custom<BigNumberish>((val) => isBigNumberish(val))
-      .refine((val) => BigNumber.from(val).gte(0), {
-        message: "Number must be greater than or equal to 0",
-      }),
     notAfter: z
       .custom<BigNumberish>((val) => isBigNumberish(val))
       .refine((val) => BigNumber.from(val).gte(0), {
         message: "Number must be greater than or equal to 0",
       }),
+    notBefore: z
+      .custom<BigNumberish>((val) => isBigNumberish(val))
+      .refine((val) => BigNumber.from(val).gte(0), {
+        message: "Number must be greater than or equal to 0",
+      }),
+    ownerId: z.string().superRefine(isEthereumAddress),
+    recordId: z.string().superRefine(isHexadecimal),
   }),
 );
 

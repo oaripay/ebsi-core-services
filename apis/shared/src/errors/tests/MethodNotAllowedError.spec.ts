@@ -1,4 +1,5 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
+
 import { MethodNotAllowedError, ProblemDetailsError } from "../index.js";
 
 describe("error MethodNotAllowedError", () => {
@@ -14,10 +15,10 @@ describe("error MethodNotAllowedError", () => {
     expect.assertions(8);
 
     const error = new MethodNotAllowedError("Test Error", ["GET"], {
-      type: "test",
       extensions: {
         custom: "value",
       },
+      type: "test",
     });
 
     expect(error.name).toBe("MethodNotAllowedError");
@@ -34,14 +35,15 @@ describe("error MethodNotAllowedError", () => {
     expect.assertions(2);
 
     const error = new MethodNotAllowedError("Test Error", ["GET"], {
-      type: "test",
       extensions: {
         custom: "value",
       },
+      type: "test",
     });
     const jsonError = error.toJSON();
 
     // JSON.stringify should call toJSON
+    // eslint-disable-next-line unicorn/prefer-structured-clone
     expect(JSON.parse(JSON.stringify(error))).toStrictEqual(jsonError);
     expect(jsonError).toStrictEqual({
       custom: "value",
@@ -55,10 +57,10 @@ describe("error MethodNotAllowedError", () => {
     expect.assertions(1);
 
     const error = new MethodNotAllowedError("Test Error", ["GET"], {
-      type: "test",
       extensions: {
         custom: "value",
       },
+      type: "test",
     });
 
     expect(error.toString()).toBe(

@@ -5,9 +5,9 @@ import { ProblemDetailsError } from "./ProblemDetailsError.js";
  */
 
 export class UnsupportedMediaTypeError extends ProblemDetailsError {
-  static statusCode = 415;
-
   static defaultTitle = "Unsupported Media Type";
+
+  static statusCode = 415;
 
   /**
    * @param title A short, human-readable summary of the problem type. It SHOULD NOT change from occurrence to occurrence of the problem, except for purposes of localization.
@@ -20,10 +20,10 @@ export class UnsupportedMediaTypeError extends ProblemDetailsError {
   constructor(
     title: string = UnsupportedMediaTypeError.defaultTitle,
     options?: {
-      type?: string;
       detail?: string;
-      instance?: string;
       extensions?: Record<string, unknown>;
+      instance?: string;
+      type?: string;
     },
   ) {
     super(UnsupportedMediaTypeError.statusCode, title, options);

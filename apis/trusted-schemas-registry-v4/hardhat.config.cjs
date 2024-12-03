@@ -17,18 +17,18 @@ const config = {
   networks: {
     hardhat: { hardfork: "berlin" },
   },
+  paths: {
+    artifacts: path.resolve(tsrScPath, "./artifacts"),
+    cache: path.resolve(tsrScPath, "./cache"),
+  },
   solidity: {
-    version: "0.8.12",
     settings: {
       optimizer: {
         enabled: true,
         runs: 10,
       },
     },
-  },
-  paths: {
-    artifacts: path.resolve(tsrScPath, "./artifacts"),
-    cache: path.resolve(tsrScPath, "./cache"),
+    version: "0.8.12",
   },
 };
 

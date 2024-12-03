@@ -1,5 +1,5 @@
-import { IsIn, IsOptional, IsString } from "class-validator";
 import { IsDid, PaginationQuery } from "@ebsiint-api/shared";
+import { IsIn, IsOptional, IsString } from "class-validator";
 
 export class SubjectAccessesDto extends PaginationQuery {
   @IsDid()
@@ -7,7 +7,7 @@ export class SubjectAccessesDto extends PaginationQuery {
 
   @IsOptional()
   @IsIn(["delegate", "write", "creator"])
-  permission?: "delegate" | "write" | "creator";
+  permission?: "creator" | "delegate" | "write";
 
   @IsOptional()
   @IsString()

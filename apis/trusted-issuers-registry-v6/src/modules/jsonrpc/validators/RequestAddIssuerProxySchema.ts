@@ -1,9 +1,11 @@
+import type { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
+
 import { isDidV1 } from "@ebsiint-api/shared";
 import { z } from "zod";
-import type { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
-import { jsonRpcSchema } from "./JsonRpcSchema.js";
-import { baseParamSchema } from "./BaseParamSchema.js";
+
 import { isIssuerProxy } from "../../../shared/validators/isIssuerProxy.js";
+import { baseParamSchema } from "./BaseParamSchema.js";
+import { jsonRpcSchema } from "./JsonRpcSchema.js";
 
 export const createAddIssuerProxySchema = (
   ebsiEnvConfig: EbsiEnvConfiguration,

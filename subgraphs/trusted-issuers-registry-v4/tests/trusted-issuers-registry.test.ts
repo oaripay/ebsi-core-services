@@ -1,23 +1,24 @@
-import {
-  assert,
-  describe,
-  test,
-  clearStore,
-  beforeAll,
-  afterAll,
-} from "matchstick-as/assembly/index";
 import { Bytes } from "@graphprotocol/graph-ts";
 import {
-  handleAttributeMetadataUpdated,
+  afterAll,
+  assert,
+  beforeAll,
+  clearStore,
+  describe,
+  test,
+} from "matchstick-as/assembly/index";
+
+import {
   handleAttributeDataUpdated,
-  handleProxyUpdated,
+  handleAttributeMetadataUpdated,
   handleProxyRemoved,
+  handleProxyUpdated,
 } from "../src/trusted-issuers-registry";
 import {
-  createAttributeMetadataUpdated,
   createAttributeDataUpdated,
-  createProxyUpdated,
+  createAttributeMetadataUpdated,
   createProxyRemoved,
+  createProxyUpdated,
 } from "./trusted-issuers-registry-utils";
 
 describe("Trusted Issuers Registry - entity assertions", () => {

@@ -1,7 +1,9 @@
-import { ethers, network } from "hardhat";
 import { expect } from "chai";
-import { testTprAddress } from "./testAddress";
+import { ethers, network } from "hardhat";
+
 import type { PolicyRegistryMock, SchemaSCRegistry } from "../src/types";
+
+import { testTprAddress } from "./testAddress";
 
 describe("Schema", () => {
   let ts: SchemaSCRegistry;
@@ -31,8 +33,8 @@ describe("Schema", () => {
       "SchemaSCRegistry",
       {
         libraries: {
-          SchemaLib: schemaLib.address,
           Pagination: pagination.address,
+          SchemaLib: schemaLib.address,
         },
       },
     );
@@ -144,7 +146,7 @@ describe("Schema", () => {
     for (let i = 1; i <= 10; i += 1) {
       const schemaId = ethers.utils.toUtf8Bytes(`schemaId-${i}`);
       const schemaRevision = ethers.utils.toUtf8Bytes(`schema-${i}`);
-      // eslint-disable-next-line no-await-in-loop
+
       await ts.insertSchema(schemaId, schemaRevision, metadata);
       schemaIds.push(ethers.utils.hexlify(schemaId));
     }
@@ -193,13 +195,9 @@ describe("Schema", () => {
     const schemaId = ethers.utils.toUtf8Bytes("schemaId");
     for (let i = 1; i <= 3; i += 1) {
       const schemaRevision = ethers.utils.toUtf8Bytes(`schema-${i}`);
-      if (i > 1) {
-        // eslint-disable-next-line no-await-in-loop
-        await ts.updateSchema(schemaId, schemaRevision, metadata);
-      } else {
-        // eslint-disable-next-line no-await-in-loop
-        await ts.insertSchema(schemaId, schemaRevision, metadata);
-      }
+      await (i > 1
+        ? ts.updateSchema(schemaId, schemaRevision, metadata)
+        : ts.insertSchema(schemaId, schemaRevision, metadata));
     }
     const result = await ts.getLatestSchemaRevision(schemaId);
     expect(result).to.be.equal(
@@ -232,13 +230,9 @@ describe("Schema", () => {
     const revisionsIds: string[] = [];
     for (let i = 1; i <= 10; i += 1) {
       const schemaRevision = ethers.utils.toUtf8Bytes(`schema-${i}`);
-      if (i > 1) {
-        // eslint-disable-next-line no-await-in-loop
-        await ts.updateSchema(schemaId, schemaRevision, metadata);
-      } else {
-        // eslint-disable-next-line no-await-in-loop
-        await ts.insertSchema(schemaId, schemaRevision, metadata);
-      }
+      await (i > 1
+        ? ts.updateSchema(schemaId, schemaRevision, metadata)
+        : ts.insertSchema(schemaId, schemaRevision, metadata));
       revisionsIds.push(ethers.utils.sha256(schemaRevision));
     }
 
@@ -456,7 +450,7 @@ describe("Schema", () => {
 
     for (let i = 1; i <= 10; i += 1) {
       const m = ethers.utils.toUtf8Bytes(`metadata+${i}`);
-      // eslint-disable-next-line no-await-in-loop
+
       await ts.updateMetadata(schemaRevisionId, m);
 
       metadataIds.push(ethers.utils.sha256(m));

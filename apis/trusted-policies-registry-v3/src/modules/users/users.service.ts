@@ -1,7 +1,8 @@
+import { isEthersError, NotFoundError } from "@ebsiint-api/shared";
+import { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry-v2";
 import { Injectable, Logger } from "@nestjs/common";
 import { ethers } from "ethers";
-import { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry-v2";
-import { isEthersError, NotFoundError } from "@ebsiint-api/shared";
+
 import { LedgerService } from "../ledger/ledger.service.js";
 import { UserResponseObject } from "./users.interface.js";
 
@@ -10,22 +11,6 @@ export class UsersService {
   private readonly logger = new Logger(UsersService.name);
 
   constructor(private ledgerService: LedgerService) {}
-
-  async getUsers(
-    page: number,
-    pageSize: number,
-  ): ReturnType<PolicyRegistry["getUsers"]> {
-    try {
-      return await this.ledgerService.getContract().getUsers(page, pageSize);
-    } catch (error) {
-      if (isEthersError(error)) {
-        this.logger.error(error, error.stack);
-      }
-      throw new NotFoundError("Users Not Found", {
-        detail: "Users Not Found",
-      });
-    }
-  }
 
   async getAllUserAttributes(address: string, page = 1): Promise<string[]> {
     try {
@@ -55,15 +40,31 @@ export class UsersService {
   async getUser(user: string): Promise<UserResponseObject> {
     try {
       return {
-        user,
         attributes: await this.getAllUserAttributes(user),
+        user,
       };
-    } catch (e) {
-      if (isEthersError(e)) {
-        this.logger.error(e, e.stack);
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error, error.stack);
       }
       throw new NotFoundError("User Not Found", {
         detail: `User ${user} not found:`,
+      });
+    }
+  }
+
+  async getUsers(
+    page: number,
+    pageSize: number,
+  ): ReturnType<PolicyRegistry["getUsers"]> {
+    try {
+      return await this.ledgerService.getContract().getUsers(page, pageSize);
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error, error.stack);
+      }
+      throw new NotFoundError("Users Not Found", {
+        detail: "Users Not Found",
       });
     }
   }

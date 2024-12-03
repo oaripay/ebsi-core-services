@@ -1,37 +1,28 @@
-import {
-  Controller,
-  Get,
-  Query,
-  Param,
-  Req,
-  Header,
-  ValidationPipe,
-  UsePipes,
-} from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
+import type { FastifyRequest } from "fastify";
+
 import {
   Accepts,
   PaginatedListWithoutTotal,
   PaginationQuery,
 } from "@ebsiint-api/shared";
-import type { FastifyRequest } from "fastify";
-import { IssuersService } from "./issuers.service.js";
 import {
-  formatIssuers,
-  formatAttributes,
-  formatRevisions,
-  formatProxies,
-} from "./issuers.formatter.js";
-import {
-  IdLink,
-  IssuerResponseObject,
-  AttributeObject,
-  AttributeDetailsObject,
-  DidLink,
-  IssuerProxyResponseObject,
-  ProxyLink,
-} from "./issuers.interface.js";
+  Controller,
+  Get,
+  Header,
+  Param,
+  Query,
+  Req,
+  UsePipes,
+  ValidationPipe,
+} from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+
 import type { ApiConfig } from "../../config/configuration.js";
+
+import {
+  Attribute_filter,
+  Issuer_filter,
+} from "../../../.graphclient/index.js";
 import {
   GetIssuerAttributeParamsDto,
   GetIssuerAttributesQueryDto,
@@ -40,15 +31,26 @@ import {
   GetIssuersQueryDto,
 } from "./dto/index.js";
 import {
-  Attribute_filter,
-  Issuer_filter,
-  // eslint-disable-next-line import/extensions, import/no-relative-packages
-} from "../../../.graphclient/index.js";
+  formatAttributes,
+  formatIssuers,
+  formatProxies,
+  formatRevisions,
+} from "./issuers.formatter.js";
+import {
+  AttributeDetailsObject,
+  AttributeObject,
+  DidLink,
+  IdLink,
+  IssuerProxyResponseObject,
+  IssuerResponseObject,
+  ProxyLink,
+} from "./issuers.interface.js";
+import { IssuersService } from "./issuers.service.js";
 
 const validationPipe = new ValidationPipe({
+  forbidNonWhitelisted: true,
   transform: true,
   whitelist: true,
-  forbidNonWhitelisted: true,
 });
 
 @Controller("/issuers")
@@ -58,58 +60,8 @@ export class IssuersController {
     private configService: ConfigService<ApiConfig, true>,
   ) {}
 
-  @Get("")
   @Accepts("application/json")
-  @UsePipes(validationPipe)
-  async issuers(
-    @Query() query: GetIssuersQueryDto,
-  ): Promise<PaginatedListWithoutTotal<DidLink>> {
-    const where: Issuer_filter = {
-      ...(query["attribute-id"] && {
-        attributes_: {
-          id: query["attribute-id"],
-        },
-      }),
-      ...(query["proxy-id"] && {
-        proxies_: {
-          id: query["proxy-id"],
-        },
-      }),
-    };
-
-    const issuers = await this.issuersService.getIssuers(
-      query["page[after]"],
-      query["page[size]"],
-      where,
-    );
-    const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
-    const domain = this.configService.get<string>("domain");
-    const baseUrl = `${domain}${apiUrlPrefix}/issuers`;
-
-    const searchParams = new URLSearchParams();
-    Object.keys(query).forEach((k) => {
-      const key = k as keyof GetIssuersQueryDto;
-      if (
-        query[key] !== undefined &&
-        key !== "page[after]" &&
-        key !== "page[size]"
-      ) {
-        searchParams.append(key, query[key]!);
-      }
-    });
-    const extraQuery = searchParams.size ? `&${searchParams.toString()}` : "";
-
-    return formatIssuers(
-      issuers,
-      query["page[after]"],
-      query["page[size]"],
-      baseUrl,
-      extraQuery,
-    );
-  }
-
   @Get("/:did")
-  @Accepts("application/json")
   @UsePipes(validationPipe)
   async getIssuer(
     @Param() params: GetIssuerParamsDto,
@@ -118,8 +70,8 @@ export class IssuersController {
     return this.issuersService.getIssuer(did);
   }
 
-  @Get("/:did/attributes")
   @Accepts("application/json")
+  @Get("/:did/attributes")
   @UsePipes(validationPipe)
   async getIssuerAttributes(
     @Param() params: GetIssuerParamsDto,
@@ -158,52 +110,8 @@ export class IssuersController {
     );
   }
 
-  @Get("/:did/attributes/:attributeId")
   @Accepts("application/json")
-  @UsePipes(validationPipe)
-  async issuerAttributeId(
-    @Param() params: GetIssuerAttributeParamsDto,
-  ): Promise<AttributeDetailsObject> {
-    const { did, attributeId } = params;
-
-    const attribute = await this.issuersService.getAttribute(did, attributeId);
-
-    return {
-      did,
-      attribute,
-    };
-  }
-
-  @Get("/:did/attributes/:attributeId/revisions")
-  @Accepts("application/json")
-  @UsePipes(validationPipe)
-  async issuerAttributeIdRevisions(
-    @Param() params: GetIssuerAttributeParamsDto,
-    @Query() query: PaginationQuery,
-  ): Promise<PaginatedListWithoutTotal<AttributeObject>> {
-    const { did, attributeId } = params;
-
-    const revisions = await this.issuersService.getRevisions(
-      did,
-      attributeId,
-      query["page[after]"],
-      query["page[size]"],
-    );
-
-    const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
-    const domain = this.configService.get<string>("domain");
-    const baseUrl = `${domain}${apiUrlPrefix}/issuers/${did}/attributes/${attributeId}/revisions`;
-
-    return formatRevisions(
-      revisions,
-      query["page[after]"],
-      query["page[size]"],
-      baseUrl,
-    );
-  }
-
   @Get("/:did/proxies")
-  @Accepts("application/json")
   @UsePipes(validationPipe)
   async getIssuerProxies(
     @Param() params: GetIssuerParamsDto,
@@ -229,8 +137,8 @@ export class IssuersController {
     );
   }
 
-  @Get("/:did/proxies/:proxyId")
   @Accepts("application/json")
+  @Get("/:did/proxies/:proxyId")
   @UsePipes(validationPipe)
   async getIssuerProxy(
     @Param() params: GetIssuerProxyParamsDto,
@@ -240,8 +148,104 @@ export class IssuersController {
     return this.issuersService.getIssuerProxy(did, proxyId);
   }
 
-  @Get("/:did/proxies/:proxyId/*")
+  @Accepts("application/json")
+  @Get("/:did/attributes/:attributeId")
+  @UsePipes(validationPipe)
+  async issuerAttributeId(
+    @Param() params: GetIssuerAttributeParamsDto,
+  ): Promise<AttributeDetailsObject> {
+    const { attributeId, did } = params;
+
+    const attribute = await this.issuersService.getAttribute(did, attributeId);
+
+    return {
+      attribute,
+      did,
+    };
+  }
+
+  @Accepts("application/json")
+  @Get("/:did/attributes/:attributeId/revisions")
+  @UsePipes(validationPipe)
+  async issuerAttributeIdRevisions(
+    @Param() params: GetIssuerAttributeParamsDto,
+    @Query() query: PaginationQuery,
+  ): Promise<PaginatedListWithoutTotal<AttributeObject>> {
+    const { attributeId, did } = params;
+
+    const revisions = await this.issuersService.getRevisions(
+      did,
+      attributeId,
+      query["page[after]"],
+      query["page[size]"],
+    );
+
+    const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
+    const domain = this.configService.get<string>("domain");
+    const baseUrl = `${domain}${apiUrlPrefix}/issuers/${did}/attributes/${attributeId}/revisions`;
+
+    return formatRevisions(
+      revisions,
+      query["page[after]"],
+      query["page[size]"],
+      baseUrl,
+    );
+  }
+
+  @Accepts("application/json")
+  @Get("")
+  @UsePipes(validationPipe)
+  async issuers(
+    @Query() query: GetIssuersQueryDto,
+  ): Promise<PaginatedListWithoutTotal<DidLink>> {
+    const where: Issuer_filter = {
+      ...(query["attribute-id"] && {
+        attributes_: {
+          id: query["attribute-id"],
+        },
+      }),
+      ...(query["proxy-id"] && {
+        proxies_: {
+          id: query["proxy-id"],
+        },
+      }),
+    };
+
+    const issuers = await this.issuersService.getIssuers(
+      query["page[after]"],
+      query["page[size]"],
+      where,
+    );
+    const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
+    const domain = this.configService.get<string>("domain");
+    const baseUrl = `${domain}${apiUrlPrefix}/issuers`;
+
+    const searchParams = new URLSearchParams();
+    for (const k of Object.keys(query)) {
+      const key = k as keyof GetIssuersQueryDto;
+      if (
+        query[key] !== undefined &&
+        key !== "page[after]" &&
+        key !== "page[size]"
+      ) {
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+        searchParams.append(key, query[key]!);
+      }
+    }
+    const extraQuery =
+      searchParams.size > 0 ? `&${searchParams.toString()}` : "";
+
+    return formatIssuers(
+      issuers,
+      query["page[after]"],
+      query["page[size]"],
+      baseUrl,
+      extraQuery,
+    );
+  }
+
   @Accepts("text/plain")
+  @Get("/:did/proxies/:proxyId/*")
   // it does not use the restrictive validation pipe because
   // it accepts all routes (*)
   @Header("content-type", "text/plain; charset=utf-8")

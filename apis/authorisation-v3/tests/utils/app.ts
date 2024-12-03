@@ -1,12 +1,14 @@
-import { TestingModule } from "@nestjs/testing";
-import { FastifyAdapter } from "@nestjs/platform-fastify";
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
-import { ValidationPipe } from "@nestjs/common";
-import { fastifyHelmet } from "@fastify/helmet";
+
+import { frameworkErrors, methodNotAllowed } from "@ebsiint-api/shared";
 import { fastifyAccepts } from "@fastify/accepts";
 import { fastifyFormbody } from "@fastify/formbody";
-import { frameworkErrors, methodNotAllowed } from "@ebsiint-api/shared";
+import { fastifyHelmet } from "@fastify/helmet";
+import { ValidationPipe } from "@nestjs/common";
+import { FastifyAdapter } from "@nestjs/platform-fastify";
+import { TestingModule } from "@nestjs/testing";
 import qs from "qs";
+
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
 import { createLogger } from "../../src/logger/logger.js";
 
@@ -58,7 +60,7 @@ export async function configureApp(moduleFixture: TestingModule) {
 
   app.useGlobalFilters(new AllExceptionsFilter());
   app.useGlobalPipes(
-    new ValidationPipe({ transform: true, stopAtFirstError: true }),
+    new ValidationPipe({ stopAtFirstError: true, transform: true }),
   );
 
   const fastifyInstance = fastifyAdapter.getInstance();

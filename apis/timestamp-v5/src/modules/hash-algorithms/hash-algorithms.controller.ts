@@ -1,16 +1,17 @@
-import { Controller, Get, Query, Param } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
 import { Accepts, PaginatedListWithoutTotal } from "@ebsiint-api/shared";
-import { HashAlgorithmsService } from "./hash-algorithms.service.js";
+import { Controller, Get, Param, Query } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+
+import type { ApiConfig } from "../../config/configuration.js";
+
+import { HashAlgo_filter } from "../../../.graphclient/index.js";
+import { GetHashAlgorithmDto, GetHashAlgorithmsDto } from "./dto/index.js";
 import { formatHashAlgorithms } from "./hash-algorithms.formatter.js";
 import {
   HashAlgorithmLink,
   HashAlgorithmResponseObject,
 } from "./hash-algorithms.interface.js";
-import type { ApiConfig } from "../../config/configuration.js";
-import { GetHashAlgorithmDto, GetHashAlgorithmsDto } from "./dto/index.js";
-// eslint-disable-next-line import/extensions, import/no-relative-packages
-import { HashAlgo_filter } from "../../../.graphclient/index.js";
+import { HashAlgorithmsService } from "./hash-algorithms.service.js";
 
 @Controller("/hash-algorithms")
 export class HashAlgorithmsController {
@@ -19,8 +20,8 @@ export class HashAlgorithmsController {
     private configService: ConfigService<ApiConfig, true>,
   ) {}
 
-  @Get("")
   @Accepts("application/json")
+  @Get("")
   async getHahsAlgorithms(
     @Query() query: GetHashAlgorithmsDto,
   ): Promise<PaginatedListWithoutTotal<HashAlgorithmLink>> {
@@ -46,17 +47,19 @@ export class HashAlgorithmsController {
     const baseUrl = `${domain}${apiUrlPrefix}/hash-algorithms`;
 
     const searchParams = new URLSearchParams();
-    Object.keys(query).forEach((k) => {
+    for (const k of Object.keys(query)) {
       const key = k as keyof GetHashAlgorithmsDto;
       if (
         query[key] !== undefined &&
         key !== "page[after]" &&
         key !== "page[size]"
       ) {
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
         searchParams.append(key, query[key]!);
       }
-    });
-    const extraQuery = searchParams.size ? `&${searchParams.toString()}` : "";
+    }
+    const extraQuery =
+      searchParams.size > 0 ? `&${searchParams.toString()}` : "";
 
     return formatHashAlgorithms(
       hashAlgorithms,
@@ -67,8 +70,8 @@ export class HashAlgorithmsController {
     );
   }
 
-  @Get("/:hashAlgorithmId")
   @Accepts("application/json")
+  @Get("/:hashAlgorithmId")
   async getHashAlgorithm(
     @Param() params: GetHashAlgorithmDto,
   ): Promise<HashAlgorithmResponseObject> {

@@ -1,4 +1,5 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
+
 import { ExpectationFailedError, ProblemDetailsError } from "../index.js";
 
 describe("error ExpectationFailedError", () => {
@@ -22,10 +23,10 @@ describe("error ExpectationFailedError", () => {
     expect.assertions(7);
 
     const error = new ExpectationFailedError("Test Error", {
-      type: "test",
       extensions: {
         custom: "value",
       },
+      type: "test",
     });
 
     expect(error.name).toBe("ExpectationFailedError");
@@ -41,14 +42,15 @@ describe("error ExpectationFailedError", () => {
     expect.assertions(2);
 
     const error = new ExpectationFailedError("Test Error", {
-      type: "test",
       extensions: {
         custom: "value",
       },
+      type: "test",
     });
     const jsonError = error.toJSON();
 
     // JSON.stringify should call toJSON
+    // eslint-disable-next-line unicorn/prefer-structured-clone
     expect(JSON.parse(JSON.stringify(error))).toStrictEqual(jsonError);
     expect(jsonError).toStrictEqual({
       custom: "value",
@@ -62,10 +64,10 @@ describe("error ExpectationFailedError", () => {
     expect.assertions(1);
 
     const error = new ExpectationFailedError("Test Error", {
-      type: "test",
       extensions: {
         custom: "value",
       },
+      type: "test",
     });
 
     expect(error.toString()).toBe(

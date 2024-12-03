@@ -6,6 +6,7 @@ import "solidity-coverage";
 import "@openzeppelin/hardhat-upgrades";
 import { HardhatUserConfig, task } from "hardhat/config";
 import * as fs from "node:fs";
+
 import "./tasks/index";
 
 // The solhint plugin overrides the check task, runs solhint
@@ -20,54 +21,54 @@ if (fs.existsSync(mnemonicPath)) {
   mnemonic = fs.readFileSync(mnemonicPath).toString().trim();
 }
 
-task("accounts", "Prints the list of accounts", async (args, hre) => {
+task("accounts", "Prints the list of accounts", async (_, hre) => {
   const accounts = await hre.ethers.getSigners();
-  accounts.forEach((account) => console.log(account.address));
+  for (const account of accounts) console.log(account.address);
 });
 
 const config: HardhatUserConfig = {
+  abiExporter: {
+    clear: true,
+    flat: true,
+    path: "./src/abi",
+    runOnCompile: true,
+  },
   defaultNetwork: "hardhat",
   networks: {
     hardhat: {
-      gasPrice: 0,
-      minGasPrice: 0,
-      hardfork: "istanbul",
       allowUnlimitedContractSize: true,
+      gasPrice: 0,
+      hardfork: "istanbul",
+      minGasPrice: 0,
     },
     local: {
-      url: "http://localhost:8545",
       accounts: { mnemonic },
+      url: "http://localhost:8545",
     },
     mainnet: {
-      url: "https://api-test.ebsi.eu/ledger/v3/blockchains/besu",
       accounts: { mnemonic },
+      url: "https://api-test.ebsi.eu/ledger/v3/blockchains/besu",
     },
   },
-  typechain: {
-    outDir: "src/types",
-    target: "ethers-v5",
-    alwaysGenerateOverloads: true,
-  },
-  abiExporter: {
-    path: "./src/abi",
-    clear: true,
-    flat: true,
-    runOnCompile: true,
+  paths: {
+    artifacts: "./artifacts",
+    cache: "./cache",
+    sources: "./contracts",
+    tests: "./tests",
   },
   solidity: {
-    version: "0.8.12",
     settings: {
       optimizer: {
         enabled: true,
         runs: 200,
       },
     },
+    version: "0.8.12",
   },
-  paths: {
-    sources: "./contracts",
-    tests: "./tests",
-    cache: "./cache",
-    artifacts: "./artifacts",
+  typechain: {
+    alwaysGenerateOverloads: true,
+    outDir: "src/types",
+    target: "ethers-v5",
   },
 };
 

@@ -1,4 +1,4 @@
-import { expect, assert } from "chai";
+import { assert, expect } from "chai";
 import { ethers } from "hardhat";
 
 const { formatBytes32String, parseBytes32String } = ethers.utils;

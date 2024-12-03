@@ -1,40 +1,47 @@
-import { Injectable, Logger } from "@nestjs/common";
-import { ethers } from "ethers";
 import {
+  getErrorMessage,
   InvalidRequestJsonRpcError,
   isEthersError,
-  getErrorMessage,
 } from "@ebsiint-api/shared";
+import { Injectable, Logger } from "@nestjs/common";
+import { ethers } from "ethers";
+
+import { DIDR_INVITE_SCOPE, DIDR_WRITE_SCOPE } from "../auth/auth.constants.js";
+import { LedgerService } from "../ledger/ledger.service.js";
 import {
-  RequestSendSignedTransactionDto,
-  UnsignedTransaction,
-  SignedTransactionParam,
-  RequestInsertDidDocumentDto,
+  ArgsAddController,
+  ArgsAddVerificationMethod,
+  ArgsAddVerificationRelationship,
+  ArgsExpireVerificationMethod,
   ArgsInsertDidDocument,
-  RequestUpdateBaseDocumentDto,
+  ArgsRevokeController,
+  ArgsRevokeVerificationMethod,
+  ArgsRollVerificationMethod,
   ArgsUpdateBaseDocument,
   RequestAddControllerDto,
-  ArgsAddController,
-  RequestRevokeControllerDto,
-  ArgsRevokeController,
   RequestAddVerificationMethodDto,
-  ArgsAddVerificationMethod,
   RequestAddVerificationRelationshipDto,
-  ArgsAddVerificationRelationship,
-  RequestRevokeVerificationMethodDto,
-  ArgsRevokeVerificationMethod,
   RequestExpireVerificationMethodDto,
-  ArgsExpireVerificationMethod,
+  RequestInsertDidDocumentDto,
+  RequestRevokeControllerDto,
+  RequestRevokeVerificationMethodDto,
   RequestRollVerificationMethodDto,
-  ArgsRollVerificationMethod,
+  RequestSendSignedTransactionDto,
+  RequestUpdateBaseDocumentDto,
+  SignedTransactionParam,
+  UnsignedTransaction,
 } from "./dto/index.js";
 import {
-  formatEthersUnsignedTransaction,
   formatEthersSignature,
+  formatEthersUnsignedTransaction,
   validateClass,
 } from "./jsonrpc.utils.js";
-import { LedgerService } from "../ledger/ledger.service.js";
-import { DIDR_INVITE_SCOPE, DIDR_WRITE_SCOPE } from "../auth/auth.constants.js";
+
+function assertDidMatchesSub(did: string, sub: string) {
+  if (did !== sub) {
+    throw new Error("Access token sub doesn't match the DID from the payload");
+  }
+}
 
 function assertScopeContains(
   scope: string,
@@ -54,22 +61,457 @@ function assertScopeContains(
   }
 }
 
-function assertDidMatchesSub(did: string, sub: string) {
-  if (did !== sub) {
-    throw new Error("Access token sub doesn't match the DID from the payload");
-  }
-}
-
 @Injectable()
 export class JsonRpcService {
-  private readonly logger = new Logger(JsonRpcService.name);
-
   private chainId?: string;
 
   private readonly contractAddress: string;
 
+  private readonly logger = new Logger(JsonRpcService.name);
+
   constructor(private ledgerService: LedgerService) {
     this.contractAddress = ledgerService.getContractAddress();
+  }
+
+  async buildTransaction(
+    from: string,
+    params: string,
+  ): Promise<UnsignedTransaction> {
+    try {
+      const nonceInt = await this.ledgerService
+        .getContract()
+        .provider.getTransactionCount(from);
+
+      const unsignedTransaction: UnsignedTransaction = {
+        chainId: await this.getChainId(),
+        data: params,
+        from,
+        gasLimit: "0x1000000",
+        gasPrice: "0x0",
+        nonce: ethers.BigNumber.from(nonceInt).toHexString(),
+        to: this.contractAddress,
+        value: "0x0",
+      };
+
+      let gasEstimation: ethers.BigNumber | string = "unset";
+
+      try {
+        gasEstimation = await this.estimateGas(unsignedTransaction);
+        // Multiply by 1.4
+        unsignedTransaction.gasLimit = gasEstimation
+          .mul(14)
+          .div(10)
+          .toHexString();
+      } catch {
+        this.logger.warn(
+          `Gas could not be estimated.${
+            gasEstimation === "unset"
+              ? ""
+              : `Received ${gasEstimation.toString()}.`
+          } Using 0x1000000`,
+        );
+        unsignedTransaction.gasLimit = "0x1000000";
+      }
+
+      return unsignedTransaction;
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error, error.stack);
+      }
+      throw new Error("Could not build transaction.");
+    }
+  }
+
+  async buildTransactionAddController(
+    body: RequestAddControllerDto,
+    id: null | number | string | undefined,
+    scope: string,
+  ): Promise<UnsignedTransaction> {
+    try {
+      // Access Token must contain DIDR_WRITE_SCOPE scope
+      assertScopeContains(scope, DIDR_WRITE_SCOPE, "addController");
+
+      await validateClass(RequestAddControllerDto, body);
+
+      const { controller, did, from } = body.params[0]!;
+
+      const data = this.ledgerService
+        .getContract()
+        .interface.encodeFunctionData("addController", [did, controller]);
+
+      return await this.buildTransaction(from, data);
+    } catch (error_) {
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(error_), id);
+      if (error_ instanceof Error && error_.stack) {
+        error.stack = error_.stack;
+      }
+      throw error;
+    }
+  }
+
+  async buildTransactionAddVerificationMethod(
+    body: RequestAddVerificationMethodDto,
+    id: null | number | string | undefined,
+    scope: string,
+  ): Promise<UnsignedTransaction> {
+    try {
+      // Access Token must contain DIDR_WRITE_SCOPE scope
+      assertScopeContains(scope, DIDR_WRITE_SCOPE, "addVerificationMethod");
+
+      await validateClass(RequestAddVerificationMethodDto, body);
+
+      const { did, from, isSecp256k1, publicKey, vMethodId } = body.params[0]!;
+
+      const data = this.ledgerService
+        .getContract()
+        .interface.encodeFunctionData("addVerificationMethod", [
+          did,
+          vMethodId,
+          publicKey,
+          isSecp256k1,
+        ]);
+
+      return await this.buildTransaction(from, data);
+    } catch (error_) {
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(error_), id);
+      if (error_ instanceof Error && error_.stack) {
+        error.stack = error_.stack;
+      }
+      throw error;
+    }
+  }
+
+  async buildTransactionAddVerificationRelationship(
+    body: RequestAddVerificationRelationshipDto,
+    id: null | number | string | undefined,
+    scope: string,
+  ): Promise<UnsignedTransaction> {
+    try {
+      // Access Token must contain DIDR_WRITE_SCOPE scope
+      assertScopeContains(
+        scope,
+        DIDR_WRITE_SCOPE,
+        "addVerificationRelationship",
+      );
+
+      await validateClass(RequestAddVerificationRelationshipDto, body);
+
+      const { did, from, name, notAfter, notBefore, vMethodId } =
+        body.params[0]!;
+
+      const data = this.ledgerService
+        .getContract()
+        .interface.encodeFunctionData("addVerificationRelationship", [
+          did,
+          name,
+          vMethodId,
+          notBefore,
+          notAfter,
+        ]);
+
+      return await this.buildTransaction(from, data);
+    } catch (error_) {
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(error_), id);
+      if (error_ instanceof Error && error_.stack) {
+        error.stack = error_.stack;
+      }
+      throw error;
+    }
+  }
+
+  async buildTransactionExpireVerificationMethod(
+    body: RequestExpireVerificationMethodDto,
+    id: null | number | string | undefined,
+    scope: string,
+  ): Promise<UnsignedTransaction> {
+    try {
+      // Access Token must contain DIDR_WRITE_SCOPE scope
+      assertScopeContains(scope, DIDR_WRITE_SCOPE, "expireVerificationMethod");
+
+      await validateClass(RequestExpireVerificationMethodDto, body);
+
+      const { did, from, notAfter, vMethodId } = body.params[0]!;
+
+      const data = this.ledgerService
+        .getContract()
+        .interface.encodeFunctionData("expireVerificationMethod", [
+          did,
+          vMethodId,
+          notAfter,
+        ]);
+
+      return await this.buildTransaction(from, data);
+    } catch (error_) {
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(error_), id);
+      if (error_ instanceof Error && error_.stack) {
+        error.stack = error_.stack;
+      }
+      throw error;
+    }
+  }
+
+  async buildTransactionInsertDidDocument(
+    body: RequestInsertDidDocumentDto,
+    id: null | number | string | undefined,
+    sub: string,
+    scope: string,
+  ): Promise<UnsignedTransaction> {
+    try {
+      // Access Token must contain DIDR_INVITE_SCOPE or DIDR_WRITE_SCOPE scope
+      assertScopeContains(
+        scope,
+        [DIDR_INVITE_SCOPE, DIDR_WRITE_SCOPE],
+        "insertDidDocument",
+      );
+
+      await validateClass(RequestInsertDidDocumentDto, body);
+
+      const {
+        baseDocument,
+        did,
+        from,
+        isSecp256k1,
+        notAfter,
+        notBefore,
+        publicKey,
+        vMethodId,
+      } = body.params[0]!;
+
+      if (scope.includes(DIDR_INVITE_SCOPE)) {
+        // Verify that the Access Token sub and the payload DID match
+        assertDidMatchesSub(did, sub);
+      }
+
+      await this.validateControllerOnV3(did, from);
+
+      const data = this.ledgerService
+        .getContract()
+        .interface.encodeFunctionData("insertDidDocument", [
+          did,
+          baseDocument,
+          vMethodId,
+          publicKey,
+          isSecp256k1,
+          notBefore,
+          notAfter,
+        ]);
+
+      return await this.buildTransaction(from, data);
+    } catch (error_) {
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(error_), id);
+      if (error_ instanceof Error && error_.stack) {
+        error.stack = error_.stack;
+      }
+      throw error;
+    }
+  }
+
+  async buildTransactionRevokeController(
+    body: RequestRevokeControllerDto,
+    id: null | number | string | undefined,
+    scope: string,
+  ): Promise<UnsignedTransaction> {
+    try {
+      // Access Token must contain DIDR_WRITE_SCOPE scope
+      assertScopeContains(scope, DIDR_WRITE_SCOPE, "revokeController");
+
+      await validateClass(RequestRevokeControllerDto, body);
+
+      const { controller, did, from } = body.params[0]!;
+
+      const data = this.ledgerService
+        .getContract()
+        .interface.encodeFunctionData("revokeController", [did, controller]);
+
+      return await this.buildTransaction(from, data);
+    } catch (error_) {
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(error_), id);
+      if (error_ instanceof Error && error_.stack) {
+        error.stack = error_.stack;
+      }
+      throw error;
+    }
+  }
+
+  async buildTransactionRevokeVerificationMethod(
+    body: RequestRevokeVerificationMethodDto,
+    id: null | number | string | undefined,
+    scope: string,
+  ): Promise<UnsignedTransaction> {
+    try {
+      // Access Token must contain DIDR_WRITE_SCOPE scope
+      assertScopeContains(scope, DIDR_WRITE_SCOPE, "revokeVerificationMethod");
+
+      await validateClass(RequestRevokeVerificationMethodDto, body);
+
+      const { did, from, notAfter, vMethodId } = body.params[0]!;
+
+      const data = this.ledgerService
+        .getContract()
+        .interface.encodeFunctionData("revokeVerificationMethod", [
+          did,
+          vMethodId,
+          notAfter,
+        ]);
+
+      return await this.buildTransaction(from, data);
+    } catch (error_) {
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(error_), id);
+      if (error_ instanceof Error && error_.stack) {
+        error.stack = error_.stack;
+      }
+      throw error;
+    }
+  }
+
+  async buildTransactionRollVerificationMethod(
+    body: RequestRollVerificationMethodDto,
+    id: null | number | string | undefined,
+    scope: string,
+  ): Promise<UnsignedTransaction> {
+    try {
+      // Access Token must contain DIDR_WRITE_SCOPE scope
+      assertScopeContains(scope, DIDR_WRITE_SCOPE, "rollVerificationMethod");
+
+      await validateClass(RequestRollVerificationMethodDto, body);
+
+      const {
+        did,
+        duration,
+        from,
+        isSecp256k1,
+        notAfter,
+        notBefore,
+        oldVMethodId,
+        publicKey,
+        vMethodId,
+      } = body.params[0]!;
+
+      const data = this.ledgerService
+        .getContract()
+        .interface.encodeFunctionData("rollVerificationMethod", [
+          did,
+          vMethodId,
+          publicKey,
+          isSecp256k1,
+          notBefore,
+          notAfter,
+          oldVMethodId,
+          duration,
+        ]);
+
+      return await this.buildTransaction(from, data);
+    } catch (error_) {
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(error_), id);
+      if (error_ instanceof Error && error_.stack) {
+        error.stack = error_.stack;
+      }
+      throw error;
+    }
+  }
+
+  async buildTransactionUpdateBaseDocument(
+    body: RequestUpdateBaseDocumentDto,
+    id: null | number | string | undefined,
+    scope: string,
+  ): Promise<UnsignedTransaction> {
+    try {
+      // Access Token must contain DIDR_WRITE_SCOPE scope
+      assertScopeContains(scope, DIDR_WRITE_SCOPE, "updateBaseDocument");
+
+      await validateClass(RequestUpdateBaseDocumentDto, body);
+
+      const { baseDocument, did, from } = body.params[0]!;
+
+      const data = this.ledgerService
+        .getContract()
+        .interface.encodeFunctionData("updateBaseDocument", [
+          did,
+          baseDocument,
+        ]);
+
+      return await this.buildTransaction(from, data);
+    } catch (error_) {
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(error_), id);
+      if (error_ instanceof Error && error_.stack) {
+        error.stack = error_.stack;
+      }
+      throw error;
+    }
+  }
+
+  async estimateGas(
+    transaction: UnsignedTransaction,
+  ): Promise<ethers.BigNumber> {
+    const { data, from, to, value } = transaction;
+
+    try {
+      return await this.ledgerService.getContract().provider.estimateGas({
+        data,
+        from,
+        to,
+        value,
+      });
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error, error.stack);
+      }
+      throw new Error(getErrorMessage(error));
+    }
+  }
+
+  async getChainId(): Promise<string> {
+    if (!this.chainId) {
+      try {
+        const { chainId } = await this.ledgerService
+          .getContract()
+          .provider.getNetwork();
+        this.chainId = ethers.BigNumber.from(chainId).toHexString();
+      } catch (error) {
+        if (isEthersError(error)) {
+          this.logger.error(error, error.stack);
+        }
+        throw new Error(getErrorMessage(error));
+      }
+    }
+    return this.chainId;
+  }
+
+  async sendTransaction(
+    body: RequestSendSignedTransactionDto,
+    id: null | number | string | undefined,
+    sub: string,
+    scope: string,
+  ): Promise<string> {
+    try {
+      await validateClass(RequestSendSignedTransactionDto, body);
+
+      const request = body.params[0]!;
+
+      await this.verifyTransaction(sub, request, scope);
+
+      const tx = await this.ledgerService
+        .getContract()
+        .provider.sendTransaction(request.signedRawTransaction);
+
+      return tx.hash;
+    } catch (error_) {
+      if (isEthersError(error_)) {
+        this.logger.error(error_, error_.stack); // Log the original error with all ethers.js details for internal debugging
+        throw new InvalidRequestJsonRpcError(error_.reason, id); // throw simplified ethers error to the user
+      }
+      if (error_ instanceof Error) {
+        const error = new InvalidRequestJsonRpcError(
+          getErrorMessage(error_),
+          id,
+        );
+        if (error_ instanceof Error && error_.stack) {
+          error.stack = error_.stack;
+        }
+        throw error;
+      }
+      throw error_;
+    }
   }
 
   /**
@@ -94,49 +536,12 @@ export class JsonRpcService {
     }
   }
 
-  async getChainId(): Promise<string> {
-    if (!this.chainId) {
-      try {
-        const { chainId } = await this.ledgerService
-          .getContract()
-          .provider.getNetwork();
-        this.chainId = ethers.BigNumber.from(chainId).toHexString();
-      } catch (error) {
-        if (isEthersError(error)) {
-          this.logger.error(error, error.stack);
-        }
-        throw new Error(getErrorMessage(error));
-      }
-    }
-    return this.chainId;
-  }
-
-  async estimateGas(
-    transaction: UnsignedTransaction,
-  ): Promise<ethers.BigNumber> {
-    const { from, to, data, value } = transaction;
-
-    try {
-      return await this.ledgerService.getContract().provider.estimateGas({
-        from,
-        to,
-        data,
-        value,
-      });
-    } catch (error) {
-      if (isEthersError(error)) {
-        this.logger.error(error, error.stack);
-      }
-      throw new Error(getErrorMessage(error));
-    }
-  }
-
   async verifyTransaction(
     clientId: string,
     param: SignedTransactionParam,
     scope: string,
-  ): Promise<{ signer: string; functionName: string }> {
-    const { unsignedTransaction, r, s, v, signedRawTransaction } = param;
+  ): Promise<{ functionName: string; signer: string }> {
+    const { r, s, signedRawTransaction, unsignedTransaction, v } = param;
 
     const unsignedTx = formatEthersUnsignedTransaction(unsignedTransaction);
     const signature = formatEthersSignature(r, s, v);
@@ -183,36 +588,10 @@ export class JsonRpcService {
       .interface.parseTransaction(unsignedTransaction);
 
     switch (functionFragment.name) {
-      case "insertDidDocument": {
-        assertScopeContains(
-          scope,
-          [DIDR_INVITE_SCOPE, DIDR_WRITE_SCOPE],
-          functionFragment.name,
-        );
-        const castArgs = args as unknown as ArgsInsertDidDocument;
-        await validateClass(ArgsInsertDidDocument, castArgs);
-        if (scope.includes(DIDR_INVITE_SCOPE)) {
-          assertDidMatchesSub(castArgs.did, clientId);
-        }
-        await this.validateControllerOnV3(castArgs.did, signer);
-        break;
-      }
-      case "updateBaseDocument": {
-        assertScopeContains(scope, DIDR_WRITE_SCOPE, functionFragment.name);
-        const castArgs = args as unknown as ArgsUpdateBaseDocument;
-        await validateClass(ArgsUpdateBaseDocument, castArgs);
-        break;
-      }
       case "addController": {
         assertScopeContains(scope, DIDR_WRITE_SCOPE, functionFragment.name);
         const castArgs = args as unknown as ArgsAddController;
         await validateClass(ArgsAddController, castArgs);
-        break;
-      }
-      case "revokeController": {
-        assertScopeContains(scope, DIDR_WRITE_SCOPE, functionFragment.name);
-        const castArgs = args as unknown as ArgsRevokeController;
-        await validateClass(ArgsRevokeController, castArgs);
         break;
       }
       case "addVerificationMethod": {
@@ -227,16 +606,36 @@ export class JsonRpcService {
         await validateClass(ArgsAddVerificationRelationship, castArgs);
         break;
       }
-      case "revokeVerificationMethod": {
-        assertScopeContains(scope, DIDR_WRITE_SCOPE, functionFragment.name);
-        const castArgs = args as unknown as ArgsRevokeVerificationMethod;
-        await validateClass(ArgsRevokeVerificationMethod, castArgs);
-        break;
-      }
       case "expireVerificationMethod": {
         assertScopeContains(scope, DIDR_WRITE_SCOPE, functionFragment.name);
         const castArgs = args as unknown as ArgsExpireVerificationMethod;
         await validateClass(ArgsExpireVerificationMethod, castArgs);
+        break;
+      }
+      case "insertDidDocument": {
+        assertScopeContains(
+          scope,
+          [DIDR_INVITE_SCOPE, DIDR_WRITE_SCOPE],
+          functionFragment.name,
+        );
+        const castArgs = args as unknown as ArgsInsertDidDocument;
+        await validateClass(ArgsInsertDidDocument, castArgs);
+        if (scope.includes(DIDR_INVITE_SCOPE)) {
+          assertDidMatchesSub(castArgs.did, clientId);
+        }
+        await this.validateControllerOnV3(castArgs.did, signer);
+        break;
+      }
+      case "revokeController": {
+        assertScopeContains(scope, DIDR_WRITE_SCOPE, functionFragment.name);
+        const castArgs = args as unknown as ArgsRevokeController;
+        await validateClass(ArgsRevokeController, castArgs);
+        break;
+      }
+      case "revokeVerificationMethod": {
+        assertScopeContains(scope, DIDR_WRITE_SCOPE, functionFragment.name);
+        const castArgs = args as unknown as ArgsRevokeVerificationMethod;
+        await validateClass(ArgsRevokeVerificationMethod, castArgs);
         break;
       }
       case "rollVerificationMethod": {
@@ -245,417 +644,23 @@ export class JsonRpcService {
         await validateClass(ArgsRollVerificationMethod, castArgs);
         break;
       }
-      default:
+      case "updateBaseDocument": {
+        assertScopeContains(scope, DIDR_WRITE_SCOPE, functionFragment.name);
+        const castArgs = args as unknown as ArgsUpdateBaseDocument;
+        await validateClass(ArgsUpdateBaseDocument, castArgs);
+        break;
+      }
+      default: {
         throw new Error(
           `The function name ${functionFragment.name} can not be used in this context`,
         );
+      }
     }
 
     return {
-      signer,
       functionName: functionFragment.name,
+      signer,
     };
-  }
-
-  async buildTransaction(
-    from: string,
-    params: string,
-  ): Promise<UnsignedTransaction> {
-    try {
-      const nonceInt = await this.ledgerService
-        .getContract()
-        .provider.getTransactionCount(from);
-
-      const unsignedTransaction: UnsignedTransaction = {
-        from,
-        to: this.contractAddress,
-        data: params,
-        value: "0x0",
-        nonce: ethers.BigNumber.from(nonceInt).toHexString(),
-        chainId: await this.getChainId(),
-        gasLimit: "0x1000000",
-        gasPrice: "0x0",
-      };
-
-      let gasEstimation: string | ethers.BigNumber = "unset";
-
-      try {
-        gasEstimation = await this.estimateGas(unsignedTransaction);
-        // Multiply by 1.4
-        unsignedTransaction.gasLimit = gasEstimation
-          .mul(14)
-          .div(10)
-          .toHexString();
-      } catch (error) {
-        this.logger.warn(
-          `Gas could not be estimated.${
-            gasEstimation === "unset"
-              ? ""
-              : `Received ${gasEstimation.toString()}.`
-          } Using 0x1000000`,
-        );
-        unsignedTransaction.gasLimit = "0x1000000";
-      }
-
-      return unsignedTransaction;
-    } catch (error) {
-      if (isEthersError(error)) {
-        this.logger.error(error, error.stack);
-      }
-      throw new Error("Could not build transaction.");
-    }
-  }
-
-  async buildTransactionInsertDidDocument(
-    body: RequestInsertDidDocumentDto,
-    id: number | string | null | undefined,
-    sub: string,
-    scope: string,
-  ): Promise<UnsignedTransaction> {
-    try {
-      // Access Token must contain DIDR_INVITE_SCOPE or DIDR_WRITE_SCOPE scope
-      assertScopeContains(
-        scope,
-        [DIDR_INVITE_SCOPE, DIDR_WRITE_SCOPE],
-        "insertDidDocument",
-      );
-
-      await validateClass(RequestInsertDidDocumentDto, body);
-
-      const {
-        from,
-        did,
-        baseDocument,
-        vMethodId,
-        publicKey,
-        isSecp256k1,
-        notBefore,
-        notAfter,
-      } = body.params[0]!;
-
-      if (scope.includes(DIDR_INVITE_SCOPE)) {
-        // Verify that the Access Token sub and the payload DID match
-        assertDidMatchesSub(did, sub);
-      }
-
-      await this.validateControllerOnV3(did, from);
-
-      const data = this.ledgerService
-        .getContract()
-        .interface.encodeFunctionData("insertDidDocument", [
-          did,
-          baseDocument,
-          vMethodId,
-          publicKey,
-          isSecp256k1,
-          notBefore,
-          notAfter,
-        ]);
-
-      return await this.buildTransaction(from, data);
-    } catch (err) {
-      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      if (err instanceof Error && err.stack) {
-        error.stack = err.stack;
-      }
-      throw error;
-    }
-  }
-
-  async buildTransactionUpdateBaseDocument(
-    body: RequestUpdateBaseDocumentDto,
-    id: number | string | null | undefined,
-    scope: string,
-  ): Promise<UnsignedTransaction> {
-    try {
-      // Access Token must contain DIDR_WRITE_SCOPE scope
-      assertScopeContains(scope, DIDR_WRITE_SCOPE, "updateBaseDocument");
-
-      await validateClass(RequestUpdateBaseDocumentDto, body);
-
-      const { from, did, baseDocument } = body.params[0]!;
-
-      const data = this.ledgerService
-        .getContract()
-        .interface.encodeFunctionData("updateBaseDocument", [
-          did,
-          baseDocument,
-        ]);
-
-      return await this.buildTransaction(from, data);
-    } catch (err) {
-      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      if (err instanceof Error && err.stack) {
-        error.stack = err.stack;
-      }
-      throw error;
-    }
-  }
-
-  async buildTransactionAddController(
-    body: RequestAddControllerDto,
-    id: number | string | null | undefined,
-    scope: string,
-  ): Promise<UnsignedTransaction> {
-    try {
-      // Access Token must contain DIDR_WRITE_SCOPE scope
-      assertScopeContains(scope, DIDR_WRITE_SCOPE, "addController");
-
-      await validateClass(RequestAddControllerDto, body);
-
-      const { from, did, controller } = body.params[0]!;
-
-      const data = this.ledgerService
-        .getContract()
-        .interface.encodeFunctionData("addController", [did, controller]);
-
-      return await this.buildTransaction(from, data);
-    } catch (err) {
-      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      if (err instanceof Error && err.stack) {
-        error.stack = err.stack;
-      }
-      throw error;
-    }
-  }
-
-  async buildTransactionRevokeController(
-    body: RequestRevokeControllerDto,
-    id: number | string | null | undefined,
-    scope: string,
-  ): Promise<UnsignedTransaction> {
-    try {
-      // Access Token must contain DIDR_WRITE_SCOPE scope
-      assertScopeContains(scope, DIDR_WRITE_SCOPE, "revokeController");
-
-      await validateClass(RequestRevokeControllerDto, body);
-
-      const { from, did, controller } = body.params[0]!;
-
-      const data = this.ledgerService
-        .getContract()
-        .interface.encodeFunctionData("revokeController", [did, controller]);
-
-      return await this.buildTransaction(from, data);
-    } catch (err) {
-      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      if (err instanceof Error && err.stack) {
-        error.stack = err.stack;
-      }
-      throw error;
-    }
-  }
-
-  async buildTransactionAddVerificationMethod(
-    body: RequestAddVerificationMethodDto,
-    id: number | string | null | undefined,
-    scope: string,
-  ): Promise<UnsignedTransaction> {
-    try {
-      // Access Token must contain DIDR_WRITE_SCOPE scope
-      assertScopeContains(scope, DIDR_WRITE_SCOPE, "addVerificationMethod");
-
-      await validateClass(RequestAddVerificationMethodDto, body);
-
-      const { from, did, vMethodId, publicKey, isSecp256k1 } = body.params[0]!;
-
-      const data = this.ledgerService
-        .getContract()
-        .interface.encodeFunctionData("addVerificationMethod", [
-          did,
-          vMethodId,
-          publicKey,
-          isSecp256k1,
-        ]);
-
-      return await this.buildTransaction(from, data);
-    } catch (err) {
-      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      if (err instanceof Error && err.stack) {
-        error.stack = err.stack;
-      }
-      throw error;
-    }
-  }
-
-  async buildTransactionAddVerificationRelationship(
-    body: RequestAddVerificationRelationshipDto,
-    id: number | string | null | undefined,
-    scope: string,
-  ): Promise<UnsignedTransaction> {
-    try {
-      // Access Token must contain DIDR_WRITE_SCOPE scope
-      assertScopeContains(
-        scope,
-        DIDR_WRITE_SCOPE,
-        "addVerificationRelationship",
-      );
-
-      await validateClass(RequestAddVerificationRelationshipDto, body);
-
-      const { from, did, name, vMethodId, notBefore, notAfter } =
-        body.params[0]!;
-
-      const data = this.ledgerService
-        .getContract()
-        .interface.encodeFunctionData("addVerificationRelationship", [
-          did,
-          name,
-          vMethodId,
-          notBefore,
-          notAfter,
-        ]);
-
-      return await this.buildTransaction(from, data);
-    } catch (err) {
-      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      if (err instanceof Error && err.stack) {
-        error.stack = err.stack;
-      }
-      throw error;
-    }
-  }
-
-  async buildTransactionRevokeVerificationMethod(
-    body: RequestRevokeVerificationMethodDto,
-    id: number | string | null | undefined,
-    scope: string,
-  ): Promise<UnsignedTransaction> {
-    try {
-      // Access Token must contain DIDR_WRITE_SCOPE scope
-      assertScopeContains(scope, DIDR_WRITE_SCOPE, "revokeVerificationMethod");
-
-      await validateClass(RequestRevokeVerificationMethodDto, body);
-
-      const { from, did, vMethodId, notAfter } = body.params[0]!;
-
-      const data = this.ledgerService
-        .getContract()
-        .interface.encodeFunctionData("revokeVerificationMethod", [
-          did,
-          vMethodId,
-          notAfter,
-        ]);
-
-      return await this.buildTransaction(from, data);
-    } catch (err) {
-      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      if (err instanceof Error && err.stack) {
-        error.stack = err.stack;
-      }
-      throw error;
-    }
-  }
-
-  async buildTransactionExpireVerificationMethod(
-    body: RequestExpireVerificationMethodDto,
-    id: number | string | null | undefined,
-    scope: string,
-  ): Promise<UnsignedTransaction> {
-    try {
-      // Access Token must contain DIDR_WRITE_SCOPE scope
-      assertScopeContains(scope, DIDR_WRITE_SCOPE, "expireVerificationMethod");
-
-      await validateClass(RequestExpireVerificationMethodDto, body);
-
-      const { from, did, vMethodId, notAfter } = body.params[0]!;
-
-      const data = this.ledgerService
-        .getContract()
-        .interface.encodeFunctionData("expireVerificationMethod", [
-          did,
-          vMethodId,
-          notAfter,
-        ]);
-
-      return await this.buildTransaction(from, data);
-    } catch (err) {
-      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      if (err instanceof Error && err.stack) {
-        error.stack = err.stack;
-      }
-      throw error;
-    }
-  }
-
-  async buildTransactionRollVerificationMethod(
-    body: RequestRollVerificationMethodDto,
-    id: number | string | null | undefined,
-    scope: string,
-  ): Promise<UnsignedTransaction> {
-    try {
-      // Access Token must contain DIDR_WRITE_SCOPE scope
-      assertScopeContains(scope, DIDR_WRITE_SCOPE, "rollVerificationMethod");
-
-      await validateClass(RequestRollVerificationMethodDto, body);
-
-      const {
-        from,
-        did,
-        vMethodId,
-        publicKey,
-        isSecp256k1,
-        notBefore,
-        notAfter,
-        oldVMethodId,
-        duration,
-      } = body.params[0]!;
-
-      const data = this.ledgerService
-        .getContract()
-        .interface.encodeFunctionData("rollVerificationMethod", [
-          did,
-          vMethodId,
-          publicKey,
-          isSecp256k1,
-          notBefore,
-          notAfter,
-          oldVMethodId,
-          duration,
-        ]);
-
-      return await this.buildTransaction(from, data);
-    } catch (err) {
-      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      if (err instanceof Error && err.stack) {
-        error.stack = err.stack;
-      }
-      throw error;
-    }
-  }
-
-  async sendTransaction(
-    body: RequestSendSignedTransactionDto,
-    id: number | string | null | undefined,
-    sub: string,
-    scope: string,
-  ): Promise<string> {
-    try {
-      await validateClass(RequestSendSignedTransactionDto, body);
-
-      const request = body.params[0]!;
-
-      await this.verifyTransaction(sub, request, scope);
-
-      const tx = await this.ledgerService
-        .getContract()
-        .provider.sendTransaction(request.signedRawTransaction);
-
-      return tx.hash;
-    } catch (err) {
-      if (isEthersError(err)) {
-        this.logger.error(err, err.stack); // Log the original error with all ethers.js details for internal debugging
-        throw new InvalidRequestJsonRpcError(err.reason, id); // throw simplified ethers error to the user
-      }
-      if (err instanceof Error) {
-        const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-        if (err instanceof Error && err.stack) {
-          error.stack = err.stack;
-        }
-        throw error;
-      }
-      throw err;
-    }
   }
 }
 

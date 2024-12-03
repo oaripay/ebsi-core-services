@@ -11,16 +11,16 @@ import type { JSONSchema7 } from "json-schema";
  * Fix PEX models
  */
 
-// Extend "FilterV2" type with JSONSchema7
-export type Filter = FilterV2 & JSONSchema7;
+export interface Constraints extends ConstraintsV2 {
+  fields?: Field[];
+}
 
 export interface Field extends FieldV2 {
   filter?: Filter;
 }
 
-export interface Constraints extends ConstraintsV2 {
-  fields?: Field[];
-}
+// Extend "FilterV2" type with JSONSchema7
+export type Filter = FilterV2 & JSONSchema7;
 
 export interface InputDescriptor extends InputDescriptorV2 {
   constraints?: Constraints;

@@ -1,5 +1,7 @@
 import type { TrackAndTrace } from "@ebsiint-sc/track-and-trace";
+
 import { paginate, type PaginatedList } from "@ebsiint-api/shared";
+
 import type {
   Access,
   DocumentAccesses,
@@ -7,23 +9,17 @@ import type {
   DocumentsLink,
 } from "./documents.interface.js";
 
-export function formatDocuments(
-  documents: Awaited<ReturnType<TrackAndTrace["getDocuments"]>>,
+export function formatDocumentAccesses(
+  accesses: DocumentAccesses,
   page: number,
   pageSize: number,
   baseUrl: string,
-): PaginatedList<DocumentsLink> {
-  const total = documents.total.toNumber();
+): PaginatedList<Access> {
+  const total = accesses.length;
 
-  // Reshape items
-  const items = documents.items.map((documentId) => {
-    return {
-      documentId,
-      href: `${baseUrl}/${documentId}`,
-    };
-  });
+  const items = accesses.slice((page - 1) * pageSize, page * pageSize);
 
-  return paginate<DocumentsLink>(items, baseUrl, total, page, pageSize);
+  return paginate<Access>(items, baseUrl, total, page, pageSize);
 }
 
 export function formatDocumentEvents(
@@ -45,15 +41,21 @@ export function formatDocumentEvents(
   return paginate<DocumentEventsLink>(items, baseUrl, total, page, pageSize);
 }
 
-export function formatDocumentAccesses(
-  accesses: DocumentAccesses,
+export function formatDocuments(
+  documents: Awaited<ReturnType<TrackAndTrace["getDocuments"]>>,
   page: number,
   pageSize: number,
   baseUrl: string,
-): PaginatedList<Access> {
-  const total = accesses.length;
+): PaginatedList<DocumentsLink> {
+  const total = documents.total.toNumber();
 
-  const items = accesses.slice((page - 1) * pageSize, page * pageSize);
+  // Reshape items
+  const items = documents.items.map((documentId) => {
+    return {
+      documentId,
+      href: `${baseUrl}/${documentId}`,
+    };
+  });
 
-  return paginate<Access>(items, baseUrl, total, page, pageSize);
+  return paginate<DocumentsLink>(items, baseUrl, total, page, pageSize);
 }

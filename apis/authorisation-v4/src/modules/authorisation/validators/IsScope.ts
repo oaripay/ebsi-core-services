@@ -1,8 +1,9 @@
 import {
+  buildMessage,
   ValidateBy,
   type ValidationOptions,
-  buildMessage,
 } from "class-validator";
+
 import { CUSTOM_SCOPES, OPENID_SCOPE } from "../authorisation.constants.js";
 
 export const IS_SCOPE = "isScope";
@@ -35,7 +36,6 @@ export function IsScope(
     {
       name: IS_SCOPE,
       validator: {
-        validate: (value) => isScope(value),
         defaultMessage: buildMessage(
           (eachPrefix) =>
             `${eachPrefix}$property must be a combination of '${OPENID_SCOPE}' and one of the supported scopes ('${CUSTOM_SCOPES.join(
@@ -43,6 +43,7 @@ export function IsScope(
             )}')`,
           validationOptions,
         ),
+        validate: (value) => isScope(value),
       },
     },
     validationOptions,

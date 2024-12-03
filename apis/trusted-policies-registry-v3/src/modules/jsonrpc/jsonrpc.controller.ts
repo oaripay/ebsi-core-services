@@ -1,28 +1,23 @@
-import { Controller, Body, Post, HttpCode, UseGuards } from "@nestjs/common";
 import {
   Accepts,
-  InvalidRequestJsonRpcError,
   getErrorMessage,
+  InvalidRequestJsonRpcError,
 } from "@ebsiint-api/shared";
-import { JsonRpcService } from "./jsonrpc.service.js";
-import type { JsonRpcResponseObject } from "./jsonrpc.interface.js";
-import { jsonRpcSchema } from "./validators/index.js";
-import { BearerJwtAuthGuard } from "../auth/guards/index.js";
-import { Subject, type SubjectInfo } from "../auth/decorators/index.js";
-import { TPR_WRITE_SCOPE } from "../auth/auth.constants.js";
+import { Body, Controller, HttpCode, Post, UseGuards } from "@nestjs/common";
 
-function formatJsonRpcResponse(
-  result: unknown,
-  id: string | number | null,
-): JsonRpcResponseObject {
-  return { jsonrpc: "2.0", id: id ?? null, result };
-}
+import type { JsonRpcResponseObject } from "./jsonrpc.interface.js";
+
+import { TPR_WRITE_SCOPE } from "../auth/auth.constants.js";
+import { Subject, type SubjectInfo } from "../auth/decorators/index.js";
+import { BearerJwtAuthGuard } from "../auth/guards/index.js";
+import { JsonRpcService } from "./jsonrpc.service.js";
+import { jsonRpcSchema } from "./validators/index.js";
 
 function assertScopeContains(
   scope: string,
   validScopes: string | string[],
   methodName: string,
-  id: number | string | null | undefined,
+  id: null | number | string | undefined,
 ) {
   const expectedScopes = Array.isArray(validScopes)
     ? validScopes
@@ -38,13 +33,25 @@ function assertScopeContains(
   }
 }
 
+function formatJsonRpcResponse(
+  result: unknown,
+  id: null | number | string | undefined,
+) {
+  return {
+    // eslint-disable-next-line unicorn/no-null
+    id: id ?? null,
+    jsonrpc: "2.0",
+    result,
+  } satisfies JsonRpcResponseObject;
+}
+
 @Controller("/jsonrpc")
 export default class AppController {
   constructor(private jsonRpcService: JsonRpcService) {}
 
-  @Post()
   @Accepts("application/json")
   @HttpCode(200)
+  @Post()
   @UseGuards(BearerJwtAuthGuard)
   async jsonRPC(
     @Body() unsafeBody: unknown,
@@ -53,6 +60,7 @@ export default class AppController {
     if (!unsafeBody || typeof unsafeBody !== "object") {
       throw new InvalidRequestJsonRpcError(
         "JSON-RPC payload must be an object",
+        // eslint-disable-next-line unicorn/no-null
         null,
       );
     }
@@ -62,12 +70,16 @@ export default class AppController {
     if (!parsedBody.success) {
       throw new InvalidRequestJsonRpcError(
         getErrorMessage(parsedBody.error),
+        // eslint-disable-next-line unicorn/no-null
         null,
       );
     }
 
     const body = parsedBody.data;
-    const { method, id: requestId } = body;
+    const { id: requestId, method } = body;
+    // "id": An identifier established by the Client that MUST contain a String, Number, or NULL value if included. If it is not included it is assumed to be a notification.
+    // See https://www.jsonrpc.org/specification#request_object
+    // eslint-disable-next-line unicorn/no-null
     const id = requestId ?? null;
     const { scp: scope, sub } = subject;
 
@@ -77,20 +89,6 @@ export default class AppController {
     // See: https://www.jsonrpc.org/specification#notification
 
     switch (method) {
-      case "insertPolicy": {
-        const result = await this.jsonRpcService.buildTransactionInsertPolicy(
-          body,
-          id,
-        );
-        return formatJsonRpcResponse(result, id);
-      }
-      case "updatePolicy": {
-        const result = await this.jsonRpcService.buildTransactionUpdatePolicy(
-          body,
-          id,
-        );
-        return formatJsonRpcResponse(result, id);
-      }
       case "activatePolicy": {
         const result = await this.jsonRpcService.buildTransactionActivatePolicy(
           body,
@@ -103,17 +101,24 @@ export default class AppController {
           await this.jsonRpcService.buildTransactionDeactivatePolicy(body, id);
         return formatJsonRpcResponse(result, id);
       }
-      case "insertUserAttributes": {
+      case "deleteUserAttribute": {
         const result =
-          await this.jsonRpcService.buildTransactionInsertUserAttributes(
+          await this.jsonRpcService.buildTransactionDeleteUserAttribute(
             body,
             id,
           );
         return formatJsonRpcResponse(result, id);
       }
-      case "deleteUserAttribute": {
+      case "insertPolicy": {
+        const result = await this.jsonRpcService.buildTransactionInsertPolicy(
+          body,
+          id,
+        );
+        return formatJsonRpcResponse(result, id);
+      }
+      case "insertUserAttributes": {
         const result =
-          await this.jsonRpcService.buildTransactionDeleteUserAttribute(
+          await this.jsonRpcService.buildTransactionInsertUserAttributes(
             body,
             id,
           );
@@ -123,11 +128,19 @@ export default class AppController {
         const result = await this.jsonRpcService.sendTransaction(sub, body, id);
         return formatJsonRpcResponse(result, id);
       }
-      default:
+      case "updatePolicy": {
+        const result = await this.jsonRpcService.buildTransactionUpdatePolicy(
+          body,
+          id,
+        );
+        return formatJsonRpcResponse(result, id);
+      }
+      default: {
         throw new InvalidRequestJsonRpcError(
           `The method '${method}' is invalid`,
           id,
         );
+      }
     }
   }
 }

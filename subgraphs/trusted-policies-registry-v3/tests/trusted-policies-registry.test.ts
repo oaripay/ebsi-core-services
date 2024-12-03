@@ -1,27 +1,28 @@
+import { Address, BigInt, Bytes } from "@graphprotocol/graph-ts";
 import {
+  afterAll,
   assert,
+  beforeAll,
+  clearStore,
   describe,
   test,
-  clearStore,
-  beforeAll,
-  afterAll,
 } from "matchstick-as/assembly/index";
-import { BigInt, Address, Bytes } from "@graphprotocol/graph-ts";
+
 import {
-  handlePolicyInserted,
-  handlePolicyUpdated,
   handlePolicyActivated,
   handlePolicyDeactivated,
-  handleUserAttributeInserted,
+  handlePolicyInserted,
+  handlePolicyUpdated,
   handleUserAttributeDeleted,
+  handleUserAttributeInserted,
 } from "../src/trusted-policies-registry";
 import {
-  createPolicyInsertedEvent,
-  createPolicyUpdatedEvent,
   createPolicyActivatedEvent,
   createPolicyDeactivatedEvent,
-  createUserAttributeInsertedEvent,
+  createPolicyInsertedEvent,
+  createPolicyUpdatedEvent,
   createUserAttributeDeletedEvent,
+  createUserAttributeInsertedEvent,
 } from "./trusted-policies-registry-utils";
 
 describe("Trusted Policies Registry - entity assertions", () => {

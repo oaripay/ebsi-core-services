@@ -1,12 +1,12 @@
+import { IsDidV1, IsPublicKeyHex } from "@ebsiint-api/shared";
 import {
-  IsString,
+  IsBoolean,
   IsHexadecimal,
   IsInt,
-  Min,
-  IsBoolean,
+  IsString,
   Matches,
+  Min,
 } from "class-validator";
-import { IsDidV1, IsPublicKeyHex } from "@ebsiint-api/shared";
 
 export class ArgsRollVerificationMethod {
   @IsDidV1()

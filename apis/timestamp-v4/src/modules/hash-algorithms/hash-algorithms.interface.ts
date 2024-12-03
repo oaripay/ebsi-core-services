@@ -4,9 +4,9 @@ export interface HashAlgorithmLink {
 }
 
 export interface HashAlgorithmResponseObject {
-  outputLengthBits: number;
   ianaName: string;
-  oid: string;
-  status: "active" | "revoked";
   multihash: string;
+  oid: string;
+  outputLengthBits: number;
+  status: "active" | "revoked";
 }

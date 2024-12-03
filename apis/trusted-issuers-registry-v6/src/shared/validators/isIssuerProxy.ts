@@ -1,69 +1,72 @@
-import axios, { type AxiosResponse } from "axios";
-import { checkStatusList2021Credential } from "@ebsiint-api/shared";
 import type { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
+
+import { checkStatusList2021Credential } from "@ebsiint-api/shared";
+import axios, { type AxiosResponse, isAxiosError } from "axios";
 import validator from "validator";
 
 const validators = validator.default;
 
-const allowedRequestHeaders = [
-  /**
-   * Authentication
-   * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers#authentication
-   */
-  "Authorization",
-  /**
-   * Caching
-   * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers#caching
-   */
-  "Cache-Control",
-].map((i) => i.toLowerCase());
+const allowedRequestHeaders = new Set(
+  [
+    /**
+     * Authentication
+     * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers#authentication
+     */
+    "Authorization",
+    /**
+     * Caching
+     * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers#caching
+     */
+    "Cache-Control",
+  ].map((i) => i.toLowerCase()),
+);
 
 export async function isIssuerProxy(
   value: string,
   ebsiEnvConfig: EbsiEnvConfiguration,
   timeout: number,
-): Promise<{ success: true } | { success: false; error: string }> {
+): Promise<{ error: string; success: false } | { success: true }> {
   let proxyAsObject: unknown;
 
   try {
     proxyAsObject = JSON.parse(value) as unknown;
   } catch {
-    return { success: false, error: "Not a JSON object" };
+    return { error: "Not a JSON object", success: false };
   }
 
   if (!proxyAsObject || typeof proxyAsObject !== "object") {
-    return { success: false, error: "Proxy must be an object" };
+    return { error: "Proxy must be an object", success: false };
   }
 
-  const { prefix, headers, testSuffix } = proxyAsObject as Record<
+  const { headers, prefix, testSuffix } = proxyAsObject as Record<
     string,
     unknown
   >;
 
   // Validate prefix
   if (!prefix || typeof prefix !== "string") {
-    return { success: false, error: "Missing prefix" };
+    return { error: "Missing prefix", success: false };
   }
 
   if (
     // Only allow URLs with https protocol and without query components or fragments
     !validators.isURL(prefix, {
-      protocols: ["https"],
-      require_protocol: true,
       allow_fragments: false,
       allow_query_components: false,
+      protocols: ["https"],
+      require_protocol: true,
     })
   ) {
     return {
-      success: false,
       error:
         "Invalid prefix: it must be a valid URL starting with https:// and without query components or fragments",
+      success: false,
     };
   }
 
   // Validate headers
   if (!headers || typeof headers !== "object") {
-    return { success: false, error: "Missing headers" };
+    return { error: "Missing headers", success: false };
   }
 
   if (
@@ -75,40 +78,40 @@ export async function isIssuerProxy(
     )
   ) {
     return {
-      success: false,
       error: "Some headers contain invalid values",
+      success: false,
     };
   }
 
   const invalidHeaders = Object.keys(headers).filter(
-    (key) => !allowedRequestHeaders.includes(key.toLowerCase()),
+    (key) => !allowedRequestHeaders.has(key.toLowerCase()),
   );
   if (invalidHeaders.length > 0) {
     return {
-      success: false,
       error: `The following headers are not allowed: "${invalidHeaders.join('", "')}"`,
+      success: false,
     };
   }
 
   // Validate prefix + testSuffix
   if (!testSuffix || typeof testSuffix !== "string") {
     return {
-      success: false,
       error: "Missing testSuffix",
+      success: false,
     };
   }
 
   if (
     !validators.isURL(prefix + testSuffix, {
-      protocols: ["https"],
-      require_protocol: true,
       allow_fragments: false, // do not allow fragments in testSuffix
       allow_query_components: true, // allow query components in testSuffix
+      protocols: ["https"],
+      require_protocol: true,
     })
   ) {
     return {
-      success: false,
       error: "Invalid testSuffix",
+      success: false,
     };
   }
 
@@ -120,19 +123,19 @@ export async function isIssuerProxy(
       headers,
       timeout,
     });
-  } catch (e) {
+  } catch (error) {
     return {
+      error: `Error while loading ${prefix + testSuffix}${isAxiosError(error) ? `: ${error.message}` : ""}`,
       success: false,
-      error: `Error while loading ${prefix + testSuffix}${axios.isAxiosError(e) ? `: ${e.message}` : ""}`,
     };
   }
 
   if (testResponse.status !== 200) {
     return {
-      success: false,
       error: `Error while loading ${
         prefix + testSuffix
       }: response status must be 200`,
+      success: false,
     };
   }
 

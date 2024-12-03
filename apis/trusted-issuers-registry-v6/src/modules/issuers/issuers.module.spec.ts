@@ -1,25 +1,27 @@
-import { randomBytes } from "node:crypto";
-import { vi, describe, beforeAll, afterAll, it, expect } from "vitest";
-import request from "supertest";
-import { Test } from "@nestjs/testing";
-import { ValidationPipe, Logger } from "@nestjs/common";
+import type { RawServerDefault } from "fastify";
+
+import * as vcLib from "@cef-ebsi/verifiable-credential";
+import { EbsiWallet } from "@cef-ebsi/wallet-lib";
+import { methodNotAllowed, remove0xPrefix } from "@ebsiint-api/shared";
+import { fastifyAccepts } from "@fastify/accepts";
+import { Logger, ValidationPipe } from "@nestjs/common";
 import {
   FastifyAdapter,
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import type { RawServerDefault } from "fastify";
-import { fastifyAccepts } from "@fastify/accepts";
-import { EbsiWallet } from "@cef-ebsi/wallet-lib";
+import { Test } from "@nestjs/testing";
 import axios, { AxiosError, AxiosResponse } from "axios";
-import * as vcLib from "@cef-ebsi/verifiable-credential";
-import { methodNotAllowed, remove0xPrefix } from "@ebsiint-api/shared";
-import { IssuersModule } from "./issuers.module.js";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
-import { IssuerObject, setupTestEnv } from "../../../tests/utils/tir.js";
-import { LedgerService } from "../ledger/ledger.service.js";
-import { graphServer } from "../../../tests/utils/graphServer.js";
+import { randomBytes } from "node:crypto";
+import request from "supertest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+
 import { ROOTTAO } from "../../../tests/utils/data.js";
+import { graphServer } from "../../../tests/utils/graphServer.js";
+import { IssuerObject, setupTestEnv } from "../../../tests/utils/tir.js";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
+import { LedgerService } from "../ledger/ledger.service.js";
 import { IssuerTypeNames } from "./issuers.constants.js";
+import { IssuersModule } from "./issuers.module.js";
 
 vi.mock("@cef-ebsi/verifiable-credential", async () => {
   const mod = await vi.importActual<
@@ -43,8 +45,8 @@ describe("Issuers Module", () => {
     // Spin up test blockchain (ganache)
     testEnv = await setupTestEnv();
     const { tirContract } = testEnv;
-    issuer = testEnv.issuers[testEnv.issuers.length - 1]!;
-    issuer2 = testEnv.issuers[testEnv.issuers.length - 2]!;
+    issuer = testEnv.issuers.at(-1)!;
+    issuer2 = testEnv.issuers.at(-2)!;
 
     const moduleFixture = await Test.createTestingModule({
       imports: [IssuersModule],
@@ -94,16 +96,16 @@ describe("Issuers Module", () => {
 
       const response = await request(server).get("/issuers");
       expect(response.body).toStrictEqual({
-        self: expect.stringContaining("/issuers?page[after]=1&page[size]=10"),
         items: expect.arrayContaining([]),
-        pageSize: 10,
         links: {
           first: expect.stringContaining(
             `/issuers?page[after]=1&page[size]=10`,
           ),
-          prev: expect.stringContaining(`/issuers?page[after]=1&page[size]=10`),
           next: expect.stringContaining(`/issuers?page[after]=2&page[size]=10`),
+          prev: expect.stringContaining(`/issuers?page[after]=1&page[size]=10`),
         },
+        pageSize: 10,
+        self: expect.stringContaining("/issuers?page[after]=1&page[size]=10"),
       });
       expect((response.body as { items: string }).items).toHaveLength(10);
       expect(response.status).toBe(200);
@@ -117,20 +119,20 @@ describe("Issuers Module", () => {
       );
       const selfLink = `/issuers?page[after]=1&page[size]=10&attribute-id=${issuer.attribute.id}`;
       expect(response.body).toStrictEqual({
-        self: expect.stringContaining(selfLink),
         items: [
           {
             did: issuer.did,
             href: expect.stringContaining(`/issuers/${issuer.did}`),
           },
         ],
-        pageSize: 10,
         links: {
           first: expect.stringContaining(selfLink),
-          prev: expect.stringContaining(selfLink),
-          next: expect.stringContaining(selfLink),
           last: expect.stringContaining(selfLink),
+          next: expect.stringContaining(selfLink),
+          prev: expect.stringContaining(selfLink),
         },
+        pageSize: 10,
+        self: expect.stringContaining(selfLink),
       });
       expect(response.status).toBe(200);
     });
@@ -143,20 +145,20 @@ describe("Issuers Module", () => {
       );
       const selfLink = `/issuers?page[after]=1&page[size]=10&proxy-id=${issuer.proxy.id}`;
       expect(response.body).toStrictEqual({
-        self: expect.stringContaining(selfLink),
         items: [
           {
             did: issuer.did,
             href: expect.stringContaining(`/issuers/${issuer.did}`),
           },
         ],
-        pageSize: 10,
         links: {
           first: expect.stringContaining(selfLink),
-          prev: expect.stringContaining(selfLink),
-          next: expect.stringContaining(selfLink),
           last: expect.stringContaining(selfLink),
+          next: expect.stringContaining(selfLink),
+          prev: expect.stringContaining(selfLink),
         },
+        pageSize: 10,
+        self: expect.stringContaining(selfLink),
       });
       expect(response.status).toBe(200);
     });
@@ -166,14 +168,14 @@ describe("Issuers Module", () => {
 
       const response1 = await request(server).get("/issuers?page[size]=3");
       expect(response1.body).toStrictEqual({
-        self: expect.stringContaining(`/issuers?page[after]=1&page[size]=3`),
         items: expect.arrayContaining([]),
-        pageSize: 3,
         links: {
           first: expect.stringContaining(`/issuers?page[after]=1&page[size]=3`),
-          prev: expect.stringContaining(`/issuers?page[after]=1&page[size]=3`),
           next: expect.stringContaining(`/issuers?page[after]=2&page[size]=3`),
+          prev: expect.stringContaining(`/issuers?page[after]=1&page[size]=3`),
         },
+        pageSize: 3,
+        self: expect.stringContaining(`/issuers?page[after]=1&page[size]=3`),
       });
       expect((response1.body as { items: string }).items).toHaveLength(3);
       expect(response1.status).toBe(200);
@@ -183,14 +185,14 @@ describe("Issuers Module", () => {
         "/issuers?page[after]=2&page[size]=3",
       );
       expect(response2.body).toStrictEqual({
-        self: expect.stringContaining(`/issuers?page[after]=2&page[size]=3`),
         items: expect.arrayContaining([]),
-        pageSize: 3,
         links: {
           first: expect.stringContaining(`/issuers?page[after]=1&page[size]=3`),
-          prev: expect.stringContaining(`/issuers?page[after]=1&page[size]=3`),
           next: expect.stringContaining(`/issuers?page[after]=3&page[size]=3`),
+          prev: expect.stringContaining(`/issuers?page[after]=1&page[size]=3`),
         },
+        pageSize: 3,
+        self: expect.stringContaining(`/issuers?page[after]=2&page[size]=3`),
       });
       expect((response2.body as { items: string }).items).toHaveLength(3);
       expect(response2.status).toBe(200);
@@ -200,19 +202,19 @@ describe("Issuers Module", () => {
         "/issuers?page[after]=100&page[size]=3",
       );
       expect(response3.body).toStrictEqual({
-        self: expect.stringContaining(`/issuers?page[after]=100&page[size]=3`),
         items: expect.arrayContaining([]),
-        pageSize: 3,
         links: {
           first: expect.stringContaining(`/issuers?page[after]=1&page[size]=3`),
-          prev: expect.stringContaining(`/issuers?page[after]=99&page[size]=3`),
-          next: expect.stringContaining(
-            `/issuers?page[after]=100&page[size]=3`,
-          ),
           last: expect.stringContaining(
             `/issuers?page[after]=100&page[size]=3`,
           ),
+          next: expect.stringContaining(
+            `/issuers?page[after]=100&page[size]=3`,
+          ),
+          prev: expect.stringContaining(`/issuers?page[after]=99&page[size]=3`),
         },
+        pageSize: 3,
+        self: expect.stringContaining(`/issuers?page[after]=100&page[size]=3`),
       });
       expect((response3.body as { items: string }).items).toHaveLength(0);
       expect(response3.status).toBe(200);
@@ -220,16 +222,16 @@ describe("Issuers Module", () => {
       // page after defined but page size undefined
       const response4 = await request(server).get("/issuers?page[after]=1");
       expect(response4.body).toStrictEqual({
-        self: expect.stringContaining(`/issuers?page[after]=1&page[size]=10`),
         items: expect.arrayContaining([]),
-        pageSize: 10,
         links: {
           first: expect.stringContaining(
             `/issuers?page[after]=1&page[size]=10`,
           ),
-          prev: expect.stringContaining(`/issuers?page[after]=1&page[size]=10`),
           next: expect.stringContaining(`/issuers?page[after]=2&page[size]=10`),
+          prev: expect.stringContaining(`/issuers?page[after]=1&page[size]=10`),
         },
+        pageSize: 10,
+        self: expect.stringContaining(`/issuers?page[after]=1&page[size]=10`),
       });
       expect((response4.body as { items: string }).items).toHaveLength(10);
       expect(response4.status).toBe(200);
@@ -240,37 +242,37 @@ describe("Issuers Module", () => {
 
       const response1 = await request(server).get("/issuers?page[size]=100");
       expect(response1.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
         detail: '["page[size] must not be greater than 50"]',
+        status: 400,
+        title: "Bad Request",
         type: "about:blank",
       });
       expect(response1.status).toBe(400);
 
       const response2 = await request(server).get("/issuers?page[size]=0");
       expect(response2.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
         detail: '["page[size] must not be less than 1"]',
+        status: 400,
+        title: "Bad Request",
         type: "about:blank",
       });
       expect(response2.status).toBe(400);
 
       const response3 = await request(server).get("/issuers?page[after]=0");
       expect(response3.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
         detail: '["page[after] must not be less than 1"]',
+        status: 400,
+        title: "Bad Request",
         type: "about:blank",
       });
       expect(response3.status).toBe(400);
 
       const response4 = await request(server).get("/issuers?page[after]=abc");
       expect(response4.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
         detail:
           '["page[after] must not be less than 1","page[after] must be a number conforming to the specified constraints"]',
+        status: 400,
+        title: "Bad Request",
         type: "about:blank",
       });
       expect(response4.status).toBe(400);
@@ -282,9 +284,9 @@ describe("Issuers Module", () => {
       const response = await request(server).get("/issuers?invalid-query=abc");
 
       expect(response.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
         detail: '["property invalid-query should not exist"]',
+        status: 400,
+        title: "Bad Request",
         type: "about:blank",
       });
       expect(response.status).toBe(400);
@@ -298,16 +300,16 @@ describe("Issuers Module", () => {
       const response = await request(server).get(`/issuers/${issuer.did}`);
 
       expect(response.body).toStrictEqual({
-        did: issuer.did,
         attributes: [
           {
             body: issuer.attribute.utf8,
             hash: remove0xPrefix(issuer.attribute.lastRevisionId),
             issuerType: IssuerTypeNames[issuer.issuerType],
-            tao: issuer.tao,
             rootTao: ROOTTAO,
+            tao: issuer.tao,
           },
         ],
+        did: issuer.did,
       });
       expect(response.status).toBe(200);
     });
@@ -346,9 +348,9 @@ describe("Issuers Module", () => {
       const response = await request(server).get(`/issuers/${randomDid}`);
 
       expect(response.body).toStrictEqual({
-        title: "Issuer Not Found",
-        status: 404,
         detail: `Issuer ${randomDid} not found`,
+        status: 404,
+        title: "Issuer Not Found",
         type: "about:blank",
       });
       expect(response.status).toBe(404);
@@ -365,20 +367,20 @@ describe("Issuers Module", () => {
       const response = await request(server).get(url);
 
       expect(response.body).toStrictEqual({
-        self: expect.stringContaining(url),
         items: [
           {
             href: expect.stringContaining(`${url}/${attributeId}`),
             id: attributeId,
           },
         ],
-        pageSize: expect.any(Number),
         links: {
           first: expect.stringContaining(`${url}?page[after]=1&page[size]=10`),
-          prev: expect.stringContaining(`${url}?page[after]=1&page[size]=10`),
-          next: expect.stringContaining(`${url}?page[after]=1&page[size]=10`),
           last: expect.stringContaining(`${url}?page[after]=1&page[size]=10`),
+          next: expect.stringContaining(`${url}?page[after]=1&page[size]=10`),
+          prev: expect.stringContaining(`${url}?page[after]=1&page[size]=10`),
         },
+        pageSize: expect.any(Number),
+        self: expect.stringContaining(url),
       });
       expect(response.status).toBe(200);
     });
@@ -393,7 +395,6 @@ describe("Issuers Module", () => {
 
       const selfLink = `/issuers/${issuer.did}/attributes?page[after]=1&page[size]=10&issuer-type=TI`;
       expect(response.body).toStrictEqual({
-        self: expect.stringContaining(selfLink),
         items: [
           {
             href: expect.stringContaining(
@@ -402,13 +403,14 @@ describe("Issuers Module", () => {
             id: attributeId,
           },
         ],
-        pageSize: expect.any(Number),
         links: {
           first: expect.stringContaining(selfLink),
-          prev: expect.stringContaining(selfLink),
-          next: expect.stringContaining(selfLink),
           last: expect.stringContaining(selfLink),
+          next: expect.stringContaining(selfLink),
+          prev: expect.stringContaining(selfLink),
         },
+        pageSize: expect.any(Number),
+        self: expect.stringContaining(selfLink),
       });
       expect(response.status).toBe(200);
     });
@@ -453,9 +455,9 @@ describe("Issuers Module", () => {
       );
 
       expect(response.body).toStrictEqual({
-        title: "Issuer Not Found",
-        status: 404,
         detail: `Issuer ${randomDid} not found`,
+        status: 404,
+        title: "Issuer Not Found",
         type: "about:blank",
       });
       expect(response.status).toBe(404);
@@ -472,7 +474,6 @@ describe("Issuers Module", () => {
       const response = await request(server).get(url);
 
       expect(response.body).toStrictEqual({
-        did: issuer.did,
         attribute: {
           body: issuer.attribute.utf8,
           hash: remove0xPrefix(issuer.attribute.lastRevisionId),
@@ -480,6 +481,7 @@ describe("Issuers Module", () => {
           rootTao: ROOTTAO,
           tao: issuer.tao,
         },
+        did: issuer.did,
       });
       expect(response.status).toBe(200);
     });
@@ -524,9 +526,9 @@ describe("Issuers Module", () => {
       );
 
       expect(response.body).toStrictEqual({
-        title: "Issuer Not Found",
-        status: 404,
         detail: `Issuer ${randomDid} not found`,
+        status: 404,
+        title: "Issuer Not Found",
         type: "about:blank",
       });
       expect(response.status).toBe(404);
@@ -581,15 +583,15 @@ describe("Issuers Module", () => {
       const response = await request(server).get(url);
 
       expect(response.body).toStrictEqual({
-        self: expect.stringContaining(`${url}?page[after]=1&page[size]=10`),
         items: expect.arrayContaining([]),
-        pageSize: 10,
         links: {
           first: expect.stringContaining(`${url}?page[after]=1&page[size]=10`),
-          prev: expect.stringContaining(`${url}?page[after]=1&page[size]=10`),
-          next: expect.stringContaining(`${url}?page[after]=1&page[size]=10`),
           last: expect.stringContaining(`${url}?page[after]=1&page[size]=10`),
+          next: expect.stringContaining(`${url}?page[after]=1&page[size]=10`),
+          prev: expect.stringContaining(`${url}?page[after]=1&page[size]=10`),
         },
+        pageSize: 10,
+        self: expect.stringContaining(`${url}?page[after]=1&page[size]=10`),
       });
 
       expect((response.body as { items: string }).items).toHaveLength(2);
@@ -605,15 +607,15 @@ describe("Issuers Module", () => {
       const response1 = await request(server).get(`${url}?page[size]=3`);
 
       expect(response1.body).toStrictEqual({
-        self: expect.stringContaining(`${url}?page[after]=1&page[size]=3`),
         items: expect.arrayContaining([]),
-        pageSize: 3,
         links: {
           first: expect.stringContaining(`${url}?page[after]=1&page[size]=3`),
-          prev: expect.stringContaining(`${url}?page[after]=1&page[size]=3`),
-          next: expect.stringContaining(`${url}?page[after]=1&page[size]=3`),
           last: expect.stringContaining(`${url}?page[after]=1&page[size]=3`),
+          next: expect.stringContaining(`${url}?page[after]=1&page[size]=3`),
+          prev: expect.stringContaining(`${url}?page[after]=1&page[size]=3`),
         },
+        pageSize: 3,
+        self: expect.stringContaining(`${url}?page[after]=1&page[size]=3`),
       });
       expect((response1.body as { items: string }).items).toHaveLength(2);
       expect(response1.status).toBe(200);
@@ -623,15 +625,15 @@ describe("Issuers Module", () => {
         `${url}?page[after]=2&page[size]=3`,
       );
       expect(response2.body).toStrictEqual({
-        self: expect.stringContaining(`${url}?page[after]=2&page[size]=3`),
         items: expect.arrayContaining([]),
-        pageSize: 3,
         links: {
           first: expect.stringContaining(`${url}?page[after]=1&page[size]=3`),
-          prev: expect.stringContaining(`${url}?page[after]=1&page[size]=3`),
-          next: expect.stringContaining(`${url}?page[after]=2&page[size]=3`),
           last: expect.stringContaining(`${url}?page[after]=2&page[size]=3`),
+          next: expect.stringContaining(`${url}?page[after]=2&page[size]=3`),
+          prev: expect.stringContaining(`${url}?page[after]=1&page[size]=3`),
         },
+        pageSize: 3,
+        self: expect.stringContaining(`${url}?page[after]=2&page[size]=3`),
       });
       expect((response2.body as { items: string }).items).toHaveLength(0);
       expect(response2.status).toBe(200);
@@ -639,15 +641,15 @@ describe("Issuers Module", () => {
       // page after defined but page size undefined
       const response4 = await request(server).get(`${url}?page[after]=1`);
       expect(response4.body).toStrictEqual({
-        self: expect.stringContaining(`${url}?page[after]=1&page[size]=10`),
         items: expect.arrayContaining([]),
-        pageSize: 10,
         links: {
           first: expect.stringContaining(`${url}?page[after]=1&page[size]=10`),
-          prev: expect.stringContaining(`${url}?page[after]=1&page[size]=10`),
-          next: expect.stringContaining(`${url}?page[after]=1&page[size]=10`),
           last: expect.stringContaining(`${url}?page[after]=1&page[size]=10`),
+          next: expect.stringContaining(`${url}?page[after]=1&page[size]=10`),
+          prev: expect.stringContaining(`${url}?page[after]=1&page[size]=10`),
         },
+        pageSize: 10,
+        self: expect.stringContaining(`${url}?page[after]=1&page[size]=10`),
       });
       expect((response4.body as { items: string }).items).toHaveLength(2);
       expect(response4.status).toBe(200);
@@ -696,9 +698,9 @@ describe("Issuers Module", () => {
       );
 
       expect(response.body).toStrictEqual({
-        title: "Issuer Not Found",
-        status: 404,
         detail: `Issuer ${randomDid} not found`,
+        status: 404,
+        title: "Issuer Not Found",
         type: "about:blank",
       });
       expect(response.status).toBe(404);
@@ -713,9 +715,9 @@ describe("Issuers Module", () => {
       const response = await request(server).get(url);
 
       expect(response.body).toStrictEqual({
-        title: "Attribute Not Found",
-        status: 404,
         detail: `Attribute ${wrongDataHash} not found`,
+        status: 404,
+        title: "Attribute Not Found",
         type: "about:blank",
       });
       expect(response.status).toBe(404);
@@ -730,18 +732,18 @@ describe("Issuers Module", () => {
       const response1 = await request(server).get(`${url}?page[size]=100`);
 
       expect(response1.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
         detail: '["page[size] must not be greater than 50"]',
+        status: 400,
+        title: "Bad Request",
         type: "about:blank",
       });
       expect(response1.status).toBe(400);
 
       const response2 = await request(server).get(`${url}?page[size]=0`);
       expect(response2.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
         detail: '["page[size] must not be less than 1"]',
+        status: 400,
+        title: "Bad Request",
         type: "about:blank",
       });
       expect(response2.status).toBe(400);
@@ -757,30 +759,30 @@ describe("Issuers Module", () => {
       const response = await request(server).get(url);
 
       expect(response.body).toStrictEqual({
-        self: expect.stringContaining(
-          `/issuers/${issuer.did}/proxies?page[after]=1&page[size]=10`,
-        ),
         items: [
           {
             href: expect.stringContaining(`${url}/${issuer.proxy.id}`),
             proxyId: issuer.proxy.id,
           },
         ],
-        pageSize: 10,
         links: {
           first: expect.stringContaining(
-            `/issuers/${issuer.did}/proxies?page[after]=1&page[size]=10`,
-          ),
-          prev: expect.stringContaining(
-            `/issuers/${issuer.did}/proxies?page[after]=1&page[size]=10`,
-          ),
-          next: expect.stringContaining(
             `/issuers/${issuer.did}/proxies?page[after]=1&page[size]=10`,
           ),
           last: expect.stringContaining(
             `/issuers/${issuer.did}/proxies?page[after]=1&page[size]=10`,
           ),
+          next: expect.stringContaining(
+            `/issuers/${issuer.did}/proxies?page[after]=1&page[size]=10`,
+          ),
+          prev: expect.stringContaining(
+            `/issuers/${issuer.did}/proxies?page[after]=1&page[size]=10`,
+          ),
         },
+        pageSize: 10,
+        self: expect.stringContaining(
+          `/issuers/${issuer.did}/proxies?page[after]=1&page[size]=10`,
+        ),
       });
       expect(response.status).toBe(200);
     });
@@ -823,9 +825,9 @@ describe("Issuers Module", () => {
       );
 
       expect(response.body).toStrictEqual({
-        title: "Issuer Not Found",
-        status: 404,
         detail: `Issuer ${randomDid} not found`,
+        status: 404,
+        title: "Issuer Not Found",
         type: "about:blank",
       });
       expect(response.status).toBe(404);
@@ -884,9 +886,9 @@ describe("Issuers Module", () => {
       );
 
       expect(response.body).toStrictEqual({
-        title: "Issuer Not Found",
-        status: 404,
         detail: `Issuer ${randomDid} not found`,
+        status: 404,
+        title: "Issuer Not Found",
         type: "about:blank",
       });
       expect(response.status).toBe(404);
@@ -944,8 +946,8 @@ describe("Issuers Module", () => {
       vi.spyOn(axios, "get").mockImplementation((requestUrl: string) => {
         if (requestUrl === `${issuer.proxy.obj.prefix}${subpath}`) {
           return Promise.resolve({
-            status: 200,
             data: "jwt",
+            status: 200,
           });
         }
 
@@ -954,37 +956,37 @@ describe("Issuers Module", () => {
 
       // Mock VC Lib validation
       vi.spyOn(vcLib, "verifyCredentialJwt").mockImplementation(
-        async (jwt: string) => {
+        (jwt: string) => {
           if (jwt === "jwt")
             return Promise.resolve({
               "@context": [
                 "https://www.w3.org/2018/credentials/v1",
                 "https://w3id.org/vc/status-list/2021/v1",
               ],
+              credentialSchema: {
+                id: "https://example.net",
+                type: "FullJsonSchemaValidator2021",
+              },
+              credentialSubject: {
+                encodedList:
+                  "H4sIAAAAAAAAA-3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAAAAAAIC3AYbSVKsAQAAA",
+                id: `${issuer.proxy.obj.prefix}${issuer.proxy.obj.testSuffix}#list`,
+                statusPurpose: "revocation",
+                type: "StatusList2021",
+              },
               id: `${issuer.proxy.obj.prefix}${issuer.proxy.obj.testSuffix}`,
+              issuanceDate: "2021-04-05T14:27:40Z",
+              issued: "2021-04-05T14:27:40Z",
+              issuer: issuer.did,
               type: [
                 "VerifiableCredential",
                 "VerifiableAttestation",
                 "StatusList2021Credential",
               ],
-              issuer: issuer.did,
-              issued: "2021-04-05T14:27:40Z",
-              issuanceDate: "2021-04-05T14:27:40Z",
               validFrom: "2021-04-05T14:27:40Z",
-              credentialSubject: {
-                id: `${issuer.proxy.obj.prefix}${issuer.proxy.obj.testSuffix}#list`,
-                type: "StatusList2021",
-                statusPurpose: "revocation",
-                encodedList:
-                  "H4sIAAAAAAAAA-3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAAAAAAIC3AYbSVKsAQAAA",
-              },
-              credentialSchema: {
-                id: "https://example.net",
-                type: "FullJsonSchemaValidator2021",
-              },
             });
 
-          return Promise.reject(new Error("Invalid JWT"));
+          throw new Error("Invalid JWT");
         },
       );
 
@@ -1002,11 +1004,12 @@ describe("Issuers Module", () => {
       // Mock issuer's endpoint response
       vi.spyOn(axios, "get").mockImplementation((requestUrl: string) => {
         if (requestUrl === `${issuer.proxy.obj.prefix}${subpath}`) {
+          // eslint-disable-next-line unicorn/error-message
           const error = new Error() as AxiosError<string>;
           error.status = 500;
           error.response = {
-            status: 500,
             data: "Internal Server Error",
+            status: 500,
           } as AxiosResponse<string>;
 
           return Promise.reject(error);
@@ -1034,26 +1037,26 @@ describe("Issuers Module", () => {
       vi.spyOn(axios, "get").mockImplementation((requestUrl: string) => {
         if (requestUrl === `${issuer.proxy.obj.prefix}${subpath}`) {
           return Promise.resolve({
-            status: 200,
             data: "jwt",
+            status: 200,
           });
         }
 
         return Promise.reject(new Error("Invalid url"));
       });
 
-      vi.spyOn(vcLib, "verifyCredentialJwt").mockImplementation(async () => {
-        return Promise.reject(new Error("Invalid JWT"));
+      vi.spyOn(vcLib, "verifyCredentialJwt").mockImplementation(() => {
+        throw new Error("Invalid JWT");
       });
 
       const response = await request(server).get(url);
 
       expect(response.body).toStrictEqual({
-        title: "Invalid Status List Credential",
-        status: 500,
-        type: "about:blank",
         detail:
           "The Status List Credential returned by the Issuer's proxy is invalid",
+        status: 500,
+        title: "Invalid Status List Credential",
+        type: "about:blank",
       });
       expect(response.status).toBe(500);
     });
@@ -1098,9 +1101,9 @@ describe("Issuers Module", () => {
       const response = await request(server).get(url);
 
       expect(response.body).toStrictEqual({
-        title: "Issuer Not Found",
-        status: 404,
         detail: `Issuer ${randomDid} not found`,
+        status: 404,
+        title: "Issuer Not Found",
         type: "about:blank",
       });
       expect(response.status).toBe(404);

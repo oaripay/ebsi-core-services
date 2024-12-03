@@ -1,11 +1,12 @@
-import { randomUUID } from "node:crypto";
-import { URLSearchParams } from "node:url";
 import type { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
+
 import {
   createVerifiablePresentationJwt,
   type EbsiIssuer,
 } from "@cef-ebsi/verifiable-presentation";
-import axios from "axios";
+import axios, { isAxiosError } from "axios";
+import { randomUUID } from "node:crypto";
+import { URLSearchParams } from "node:url";
 
 /**
  * Get an actual "tsr_write" access token from Authorisation API v4.
@@ -18,9 +19,9 @@ export async function getTsrWriteAccessToken(
   const nonce = randomUUID();
   const vpPayload = {
     "@context": ["https://www.w3.org/2018/credentials/v1"],
+    holder: subject.did,
     type: ["VerifiablePresentation"],
     verifiableCredential: [],
-    holder: subject.did,
   };
 
   const vpJwt = await createVerifiablePresentationJwt(
@@ -29,18 +30,18 @@ export async function getTsrWriteAccessToken(
     authorisationApiUrl,
     {
       ...ebsiEnvConfig,
-      skipValidation: true,
-      nonce,
       // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
       exp: Math.floor(Date.now() / 1000) + 100,
       nbf: Math.floor(Date.now() / 1000) - 100,
+      nonce,
+      skipValidation: true,
     },
   );
 
   const presentationSubmission = {
-    id: randomUUID(),
     definition_id: "tsr_write_presentation",
     descriptor_map: [],
+    id: randomUUID(),
   };
 
   try {
@@ -48,9 +49,9 @@ export async function getTsrWriteAccessToken(
       `${authorisationApiUrl}/token`,
       new URLSearchParams({
         grant_type: "vp_token",
+        presentation_submission: JSON.stringify(presentationSubmission),
         scope: "openid tsr_write",
         vp_token: vpJwt,
-        presentation_submission: JSON.stringify(presentationSubmission),
       }).toString(),
       {
         headers: {
@@ -65,13 +66,11 @@ export async function getTsrWriteAccessToken(
     };
 
     return accessToken;
-  } catch (e) {
-    if (axios.isAxiosError(e)) {
-      // eslint-disable-next-line no-console
-      console.error(e.response?.data);
+  } catch (error) {
+    if (isAxiosError(error)) {
+      console.error(error.response?.data);
     } else {
-      // eslint-disable-next-line no-console
-      console.error(e);
+      console.error(error);
     }
     throw new Error("Failed to get access token");
   }

@@ -1,23 +1,26 @@
-import { describe, beforeAll, it, expect, afterAll } from "vitest";
-import request from "supertest";
-import { Test } from "@nestjs/testing";
-import { ValidationPipe, Logger } from "@nestjs/common";
+import type { RawServerDefault } from "fastify";
+
+import { EbsiWallet } from "@cef-ebsi/wallet-lib";
+import { methodNotAllowed } from "@ebsiint-api/shared";
+import { fastifyAccepts } from "@fastify/accepts";
+import { fastifyHelmet } from "@fastify/helmet";
+import { Logger, ValidationPipe } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import {
   FastifyAdapter,
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import type { RawServerDefault } from "fastify";
-import { fastifyAccepts } from "@fastify/accepts";
-import { fastifyHelmet } from "@fastify/helmet";
-import { ConfigService } from "@nestjs/config";
-import { EbsiWallet } from "@cef-ebsi/wallet-lib";
-import { ethers } from "ethers";
-import { DIDDocument } from "did-resolver";
+import { Test } from "@nestjs/testing";
 import { useContainer } from "class-validator";
-import { methodNotAllowed } from "@ebsiint-api/shared";
+import { DIDDocument } from "did-resolver";
+import { ethers } from "ethers";
+import request from "supertest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
+
+import type { ApiConfig } from "../../src/config/configuration.js";
+
 import { AppModule } from "../../src/app.module.js";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
-import type { ApiConfig } from "../../src/config/configuration.js";
 import { getServer } from "../utils/getServer.js";
 
 describe("DID Registry API v4 (e2e)", () => {
@@ -106,31 +109,31 @@ describe("DID Registry API v4 (e2e)", () => {
         ((response.body as Record<string, unknown>)?.["total"] as number) ?? 0;
 
       expect(response.body).toStrictEqual({
-        self: expect.stringContaining(
-          "/identifiers?page[after]=1&page[size]=10",
-        ),
         items: expect.arrayContaining([
           {
             did: expect.stringContaining("did:"),
             href: expect.stringContaining("/identifiers/"),
           },
         ]),
-        total: expect.any(Number),
-        pageSize: 10,
         links: {
           first: expect.stringContaining(
             "/identifiers?page[after]=1&page[size]=10",
           ),
-          prev: expect.stringContaining(
-            "/identifiers?page[after]=1&page[size]=10",
+          last: expect.stringContaining(
+            `/identifiers?page[after]=${Math.ceil(total / 10)}&page[size]=10`,
           ),
           next: expect.stringContaining(
             `/identifiers?page[after]=${total > 10 ? 2 : 1}&page[size]=10`,
           ),
-          last: expect.stringContaining(
-            `/identifiers?page[after]=${Math.ceil(total / 10)}&page[size]=10`,
+          prev: expect.stringContaining(
+            "/identifiers?page[after]=1&page[size]=10",
           ),
         },
+        pageSize: 10,
+        self: expect.stringContaining(
+          "/identifiers?page[after]=1&page[size]=10",
+        ),
+        total: expect.any(Number),
       });
       expect(response.status).toBe(200);
     });
@@ -151,9 +154,7 @@ describe("DID Registry API v4 (e2e)", () => {
       let vMethodId = "";
       let vRelationship = "";
 
-      // eslint-disable-next-line no-restricted-syntax
       for (const identifier of lastIdentifiers) {
-        // eslint-disable-next-line no-await-in-loop
         const resp = await request(server).get(
           `/identifiers/${identifier.did}`,
         );
@@ -189,9 +190,6 @@ describe("DID Registry API v4 (e2e)", () => {
         ((response.body as Record<string, unknown>)?.["total"] as number) ?? 0;
 
       expect(response.body).toStrictEqual({
-        self: expect.stringContaining(
-          `/identifiers?page[after]=1&page[size]=10&${extraQuery}`,
-        ),
         items: expect.arrayContaining([
           // the list of items should contain at least the DID obtained above
           {
@@ -199,26 +197,29 @@ describe("DID Registry API v4 (e2e)", () => {
             href: expect.stringContaining("/identifiers/"),
           },
         ]),
-        total: expect.any(Number),
-        pageSize: 10,
         links: {
           first: expect.stringContaining(
             `/identifiers?page[after]=1&page[size]=10&${extraQuery}`,
-          ),
-          prev: expect.stringContaining(
-            `/identifiers?page[after]=1&page[size]=10&${extraQuery}`,
-          ),
-          next: expect.stringContaining(
-            `/identifiers?page[after]=${
-              total > 10 ? 2 : 1
-            }&page[size]=10&${extraQuery}`,
           ),
           last: expect.stringContaining(
             `/identifiers?page[after]=${Math.ceil(
               total / 10,
             )}&page[size]=10&${extraQuery}`,
           ),
+          next: expect.stringContaining(
+            `/identifiers?page[after]=${
+              total > 10 ? 2 : 1
+            }&page[size]=10&${extraQuery}`,
+          ),
+          prev: expect.stringContaining(
+            `/identifiers?page[after]=1&page[size]=10&${extraQuery}`,
+          ),
         },
+        pageSize: 10,
+        self: expect.stringContaining(
+          `/identifiers?page[after]=1&page[size]=10&${extraQuery}`,
+        ),
+        total: expect.any(Number),
       });
       expect(response.status).toBe(200);
     });
@@ -230,27 +231,27 @@ describe("DID Registry API v4 (e2e)", () => {
         "/identifiers?page[size]=100",
       );
       expect(response1.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
         detail: '["page[size] must not be greater than 50"]',
+        status: 400,
+        title: "Bad Request",
         type: "about:blank",
       });
       expect(response1.status).toBe(400);
 
       const response2 = await request(server).get("/identifiers?page[size]=0");
       expect(response2.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
         detail: '["page[size] must not be less than 1"]',
+        status: 400,
+        title: "Bad Request",
         type: "about:blank",
       });
       expect(response2.status).toBe(400);
 
       const response3 = await request(server).get("/identifiers?page[after]=0");
       expect(response3.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
         detail: '["page[after] must not be less than 1"]',
+        status: 400,
+        title: "Bad Request",
         type: "about:blank",
       });
       expect(response3.status).toBe(400);
@@ -259,10 +260,10 @@ describe("DID Registry API v4 (e2e)", () => {
         "/identifiers?page[after]=abc",
       );
       expect(response4.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
         detail:
           '["page[after] must not be less than 1","page[after] must be a number conforming to the specified constraints"]',
+        status: 400,
+        title: "Bad Request",
         type: "about:blank",
       });
       expect(response4.status).toBe(400);
@@ -279,8 +280,8 @@ describe("DID Registry API v4 (e2e)", () => {
 
       expect(response.body).toStrictEqual(
         expect.objectContaining({
-          id: expect.stringContaining("did:"),
           controller: expect.arrayContaining([]),
+          id: expect.stringContaining("did:"),
           verificationMethod: expect.arrayContaining([]),
         }),
       );
@@ -302,8 +303,8 @@ describe("DID Registry API v4 (e2e)", () => {
 
       expect(response.body).toStrictEqual(
         expect.objectContaining({
-          id: expect.stringContaining("did:"),
           controller: expect.arrayContaining([]),
+          id: expect.stringContaining("did:"),
           verificationMethod: [], // no keys in 1970
         }),
       );
@@ -322,8 +323,8 @@ describe("DID Registry API v4 (e2e)", () => {
 
       expect(response.body).toStrictEqual(
         expect.objectContaining({
-          id: expect.stringContaining("did:"),
           controller: expect.arrayContaining([]),
+          id: expect.stringContaining("did:"),
           verificationMethod: expect.arrayContaining([]),
         }),
       );
@@ -339,9 +340,9 @@ describe("DID Registry API v4 (e2e)", () => {
       const response = await request(server).get("/identifiers/invalid");
 
       expect(response.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
         detail: '["did must be a valid DID v1"]',
+        status: 400,
+        title: "Bad Request",
         type: "about:blank",
       });
       expect(response.status).toBe(400);
@@ -354,9 +355,9 @@ describe("DID Registry API v4 (e2e)", () => {
       const response = await request(server).get(`/identifiers/${randomDid}`);
 
       expect(response.body).toStrictEqual({
-        title: "Identifier Not Found",
-        status: 404,
         detail: `Identifier ${randomDid} not found`,
+        status: 404,
+        title: "Identifier Not Found",
         type: "about:blank",
       });
       expect(response.status).toBe(404);
@@ -371,15 +372,15 @@ describe("DID Registry API v4 (e2e)", () => {
       const response = await request(server)
         .post(`/identifiers/${lastIdentifiers[0]!.did}/actions`)
         .send({
+          id: 123,
           jsonrpc: "2.0",
           method: "checkController",
           params: [randomAddress],
-          id: 123,
         });
 
       expect(response.body).toStrictEqual({
-        jsonrpc: "2.0",
         id: 123,
+        jsonrpc: "2.0",
         result: false,
       });
       expect(response.status).toBe(200);

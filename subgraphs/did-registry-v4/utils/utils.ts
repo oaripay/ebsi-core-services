@@ -1,5 +1,5 @@
-/* eslint-disable @typescript-eslint/ban-types */
 import { ethereum } from "@graphprotocol/graph-ts";
+
 import { Event } from "../generated/schema";
 
 export const computeEventId = (event: ethereum.Event): string => {

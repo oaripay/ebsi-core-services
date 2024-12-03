@@ -1,6 +1,7 @@
-import { task } from "hardhat/config";
-import "@nomiclabs/hardhat-waffle";
 import { BigNumber } from "ethers";
+import "@nomiclabs/hardhat-waffle";
+import { task } from "hardhat/config";
+
 import { OwnedUpgradeabilityProxy } from "../src/types";
 import { getDiamondStorage } from "../utils/getDiamondStorage";
 
@@ -10,10 +11,10 @@ task("changeImplementation", "change proxy implementation")
   .setAction(
     async (
       taskArgs: {
-        proxy: string;
         implementation: string;
+        proxy: string;
       },
-      { ethers, deployments },
+      { deployments, ethers },
     ) => {
       const proxyDeployedAddr = taskArgs.proxy;
       const storage = getDiamondStorage(taskArgs.implementation);
@@ -39,7 +40,7 @@ task("changeImplementation", "change proxy implementation")
         ),
       ).toHexString();
       console.log(`Proxy admin address: ${adminAddr}`);
-      const signers = (await ethers.getSigners())[0];
+      const [signers] = await ethers.getSigners();
       console.log(`Deployer address: ${signers.address}`);
       if (signers.address.toLowerCase() !== adminAddr.toLowerCase()) {
         console.log(`Transaction will fail because not the correct admin`);

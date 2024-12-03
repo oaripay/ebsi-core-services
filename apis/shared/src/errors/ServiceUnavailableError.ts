@@ -5,9 +5,9 @@ import { ProblemDetailsError } from "./ProblemDetailsError.js";
  */
 
 export class ServiceUnavailableError extends ProblemDetailsError {
-  static statusCode = 503;
-
   static defaultTitle = "Service Unavailable";
+
+  static statusCode = 503;
 
   /**
    * @param title A short, human-readable summary of the problem type. It SHOULD NOT change from occurrence to occurrence of the problem, except for purposes of localization.
@@ -20,10 +20,10 @@ export class ServiceUnavailableError extends ProblemDetailsError {
   constructor(
     title: string = ServiceUnavailableError.defaultTitle,
     options?: {
-      type?: string;
       detail?: string;
-      instance?: string;
       extensions?: Record<string, unknown>;
+      instance?: string;
+      type?: string;
     },
   ) {
     super(ServiceUnavailableError.statusCode, title, options);

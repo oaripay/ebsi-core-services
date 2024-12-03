@@ -1,14 +1,15 @@
 import type { JSONSchema } from "@apidevtools/json-schema-ref-parser/dist/lib/types";
-import { z, type RefinementCtx } from "zod";
+
+import { computeId, prefixWith0x, remove0xPrefix } from "@ebsiint-api/shared";
 import validator from "validator";
-import { remove0xPrefix, computeId, prefixWith0x } from "@ebsiint-api/shared";
+import { type RefinementCtx, z } from "zod";
 
 const validators = validator.default;
 
 const validateSchemaId = async (
   hexJsonSchema: string,
   expectedSchemaId: string,
-): Promise<{ success: true } | { success: false; error: string }> => {
+): Promise<{ error: string; success: false } | { success: true }> => {
   // 1. Hex JSON -> JSON
   const jsonSchema = JSON.parse(
     Buffer.from(remove0xPrefix(hexJsonSchema), "hex").toString("utf8"),
@@ -21,8 +22,8 @@ const validateSchemaId = async (
   // 3. Compare
   if (actualSchemaId !== expectedSchemaId) {
     return {
-      success: false,
       error: `"${expectedSchemaId}" is different from the actual schema ID "${actualSchemaId}"`,
+      success: false,
     };
   }
 
@@ -31,18 +32,18 @@ const validateSchemaId = async (
 
 function isHexadecimal(
   value: string,
-): { success: true } | { success: false; error: string } {
+): { error: string; success: false } | { success: true } {
   if (!value.startsWith("0x")) {
     return {
-      success: false,
       error: "Must start with 0x",
+      success: false,
     };
   }
 
   if (!validators.isHexadecimal(value)) {
     return {
-      success: false,
       error: "Must be hexadecimal",
+      success: false,
     };
   }
 
@@ -51,7 +52,7 @@ function isHexadecimal(
 
 function isHexadecimalJSON(
   value: string,
-): { success: true } | { success: false; error: string } {
+): { error: string; success: false } | { success: true } {
   const isValidHexadecimal = isHexadecimal(value);
 
   if (!isValidHexadecimal.success) {
@@ -61,8 +62,8 @@ function isHexadecimalJSON(
   // Length must be even
   if (value.length % 2 !== 0) {
     return {
-      success: false,
       error: "Length must be even",
+      success: false,
     };
   }
 
@@ -72,8 +73,8 @@ function isHexadecimalJSON(
     )
   ) {
     return {
-      success: false,
       error: "Must be a JSON object encoded in hexadecimal",
+      success: false,
     };
   }
 
@@ -81,28 +82,6 @@ function isHexadecimalJSON(
 }
 
 export const refinements = {
-  isHexadecimal: (val: string, ctx: RefinementCtx) => {
-    const isValid = isHexadecimal(val);
-
-    if (!isValid.success) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: isValid.error,
-        fatal: true,
-      });
-    }
-  },
-  isHexadecimalJSON: (val: string, ctx: RefinementCtx) => {
-    const isValid = isHexadecimalJSON(val);
-
-    if (!isValid.success) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: isValid.error,
-        fatal: true,
-      });
-    }
-  },
   hasValidSchemaId: async (
     val: { schema: string; schemaId: string },
     ctx: RefinementCtx,
@@ -113,6 +92,28 @@ export const refinements = {
         code: z.ZodIssueCode.custom,
         message: isValid.error,
         path: ["schemaId"],
+      });
+    }
+  },
+  isHexadecimal: (val: string, ctx: RefinementCtx) => {
+    const isValid = isHexadecimal(val);
+
+    if (!isValid.success) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        fatal: true,
+        message: isValid.error,
+      });
+    }
+  },
+  isHexadecimalJSON: (val: string, ctx: RefinementCtx) => {
+    const isValid = isHexadecimalJSON(val);
+
+    if (!isValid.success) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        fatal: true,
+        message: isValid.error,
       });
     }
   },

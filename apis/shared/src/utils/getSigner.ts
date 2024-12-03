@@ -1,8 +1,8 @@
-import { ES256KSigner, ES256Signer, EdDSASigner } from "did-jwt";
+import { EdDSASigner, ES256KSigner, ES256Signer } from "did-jwt";
 
 export function getSigner(
   privateKey: Uint8Array,
-  alg: "ES256K" | "ES256" | "EdDSA",
+  alg: "EdDSA" | "ES256" | "ES256K",
 ) {
   if (alg === "ES256K") {
     return ES256KSigner(privateKey);

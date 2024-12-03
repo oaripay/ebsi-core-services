@@ -3,10 +3,10 @@ import { Controller, Get, HttpCode } from "@nestjs/common";
 
 @Controller()
 export class AppController {
-  @Log({ logRequest: false })
   @Accepts("text/plain")
   @Get()
   @HttpCode(200)
+  @Log({ logRequest: false })
   root(): string {
     return "ok";
   }

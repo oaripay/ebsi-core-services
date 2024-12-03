@@ -1,72 +1,78 @@
-// eslint-disable-next-line import/extensions, import/no-relative-packages
 import type { Event as GraphClientEvent } from "../../../.graphclient/index.js";
 
-export interface DidLink {
-  did: string;
-  href: string;
-}
-
-export type Event = Pick<
-  GraphClientEvent,
-  "id" | "event" | "signer" | "timestamp" | "txId" | "blockNumber"
->;
-
-export interface DidDocumentData {
-  didDocument: DidDocument;
-}
-
-export interface DidDocumentEventsData {
-  didDocument: DidDocumentEvents;
-}
-
-export interface DidDocument {
-  baseDocument: string;
-  id: string;
-  isSecp256k1: boolean;
-  notAfter: string;
-  notBefore: string;
-  publicKey: string;
-  vMethodId: string;
-  controllers: Controller[];
-  verificationRelationships: VerificationRelationship[];
-  verificationMethods: VerificationMethod[];
-}
-
-export type DidDocumentResponse = {
-  "@context": string | string[];
-  id: string;
-  controller: string[];
-  verificationMethod: VerificationMethod[];
-  publicKey: VerificationMethod[];
-} & {
-  [x in KeyCapabilitySection]?: (string | VerificationMethod)[];
-};
-
-export type KeyCapabilitySection =
-  | "authentication"
-  | "assertionMethod"
-  | "keyAgreement"
-  | "capabilityInvocation"
-  | "capabilityDelegation";
-
-export interface DidDocumentEvents {
-  id: string;
-  events: Event[];
-}
-
-export interface ControllersArray {
-  controllers: Controller[];
-}
 export interface Controller {
-  id: string;
-  controller: ControllerData;
   controlledDocument: ControllerData;
+  controller: ControllerData;
+  id: string;
   status: string;
 }
 
 export interface ControllerData {
   id: string;
 }
+
+export interface ControllersArray {
+  controllers: Controller[];
+}
+
+export interface DidDocument {
+  baseDocument: string;
+  controllers: Controller[];
+  id: string;
+  isSecp256k1: boolean;
+  notAfter: string;
+  notBefore: string;
+  publicKey: string;
+  verificationMethods: VerificationMethod[];
+  verificationRelationships: VerificationRelationship[];
+  vMethodId: string;
+}
+
+export interface DidDocumentData {
+  didDocument: DidDocument;
+}
+
+export interface DidDocumentEvents {
+  events: Event[];
+  id: string;
+}
+
+export interface DidDocumentEventsData {
+  didDocument: DidDocumentEvents;
+}
+
+export type DidDocumentResponse = Partial<
+  Record<KeyCapabilitySection, (string | VerificationMethod)[]>
+> & {
+  "@context": string | string[];
+  controller: string[];
+  id: string;
+  publicKey: VerificationMethod[];
+  verificationMethod: VerificationMethod[];
+};
+
+export interface DidLink {
+  did: string;
+  href: string;
+}
+export type Event = Pick<
+  GraphClientEvent,
+  "blockNumber" | "event" | "id" | "signer" | "timestamp" | "txId"
+>;
+
+export interface JsonRpcResponseObject {
+  error?: unknown;
+  id: null | number | string;
+  jsonrpc: string;
+  result: unknown;
+}
+
+export type KeyCapabilitySection =
+  | "assertionMethod"
+  | "authentication"
+  | "capabilityDelegation"
+  | "capabilityInvocation"
+  | "keyAgreement";
 
 export interface VerificationMethod {
   did?: string;
@@ -87,11 +93,4 @@ export interface VerificationRelationship {
 
 export interface VerificationRelationshipsArray {
   verificationRelationships: VerificationRelationship[];
-}
-
-export interface JsonRpcResponseObject {
-  jsonrpc: string;
-  id: string | number | null;
-  result: unknown;
-  error?: unknown;
 }

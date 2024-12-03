@@ -1,21 +1,41 @@
-import type { HardhatRuntimeEnvironment } from "hardhat/types";
 import type { DeployFunction } from "hardhat-deploy/types";
+import type { HardhatRuntimeEnvironment } from "hardhat/types";
+
 import { ethers } from "hardhat";
+
 import dependencies from "./dependencies.json";
+
+function validateChainId(
+  chainId: string,
+): asserts chainId is keyof typeof dependencies {
+  if (!(chainId in dependencies)) throw new Error(`Invalid chainId ${chainId}`);
+}
 
 const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   const { deployments, getNamedAccounts } = hre;
 
   const { deployer } = await getNamedAccounts();
+
   const opts = {
     from: deployer,
     log: true,
   };
 
   // get Proxy of TPR
-  const { chainId } = await ethers.provider.getNetwork();
+  const chainId = `${(await ethers.provider.getNetwork()).chainId}`;
+
+  validateChainId(chainId);
+
   console.log(`chain id ${chainId}`);
-  let tprAddress = dependencies[chainId]?.tprV1Address;
+
+  const deps = dependencies[chainId];
+
+  if (!("tprV1Address" in deps)) {
+    throw new Error("tprV1Address does not exist");
+  }
+
+  let tprAddress = deps.tprV1Address;
+
   if (!ethers.utils.isAddress(tprAddress)) {
     console.log(`Deploying TPR for testnet`);
     // deploy for testnet
@@ -30,10 +50,10 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   });
   const optsPagination = {
     from: deployer,
-    log: true,
     libraries: {
       Pagination: pagination.address,
     },
+    log: true,
   };
   const didTimestampLib = await deployments.deploy("DidTimestampLib", {
     ...optsPagination,
@@ -41,14 +61,14 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
       "contracts/did-registry/did-registry/DidTimestampLib.sol:DidTimestampLib",
   });
   const didRecordLib = await deployments.deploy("DidRecordLib", {
-    from: deployer,
-    log: true,
     contract:
       "contracts/did-registry/did-registry/DidRecordLib.sol/DidRecordLib",
+    from: deployer,
     libraries: {
-      Pagination: pagination.address,
       DidTimestampLib: didTimestampLib.address,
+      Pagination: pagination.address,
     },
+    log: true,
   });
 
   const hashAlgoLib = await deployments.deploy("HashAlgoLib", {
@@ -57,13 +77,13 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   });
 
   const ts = await deployments.deploy("DidRegistry", {
-    from: deployer,
-    contract: "contracts/did-registry/did-registry/DidRegistry.sol:DidRegistry",
     args: [tprAddress],
+    contract: "contracts/did-registry/did-registry/DidRegistry.sol:DidRegistry",
+    from: deployer,
     libraries: {
       DidRecordLib: didRecordLib.address,
-      HashAlgoLib: hashAlgoLib.address,
       DidTimestampLib: didTimestampLib.address,
+      HashAlgoLib: hashAlgoLib.address,
       Pagination: pagination.address,
     },
     log: true,

@@ -1,17 +1,21 @@
-import { Injectable, Logger } from "@nestjs/common";
-import axios from "axios";
-import { ethers } from "ethers";
-import { ConfigService } from "@nestjs/config";
 import {
+  extractNamedAttributes,
   getErrorMessage,
   InvalidRequestJsonRpcError,
   isEthersError,
-  extractNamedAttributes,
   logAxiosError,
 } from "@ebsiint-api/shared";
+import { Injectable, Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import axios, { isAxiosError } from "axios";
+import { ethers } from "ethers";
+
+import type { ApiConfig } from "../../config/configuration.js";
+
+import { LedgerService } from "../ledger/ledger.service.js";
 import {
-  formatEthersUnsignedTransaction,
   formatEthersSignature,
+  formatEthersUnsignedTransaction,
 } from "./jsonrpc.utils.js";
 import {
   activatePolicySchema,
@@ -19,30 +23,28 @@ import {
   deleteUserAttributeSchema,
   insertPolicySchema,
   insertUserAttributesSchema,
-  updatePolicySchema,
+  type JsonRpcSchema,
   requestActivatePolicyDtoSchema,
   requestDeactivatePolicyDtoSchema,
   requestDeleteUserAttributeDtoSchema,
   requestInsertPolicyDtoSchema,
   requestInsertUserAttributesDtoSchema,
-  requestUpdatePolicyDtoSchema,
   requestSendSignedTransactionDtoSchema,
+  requestUpdatePolicyDtoSchema,
   type SendSignedTransactionParamsSchema,
   type UnsignedTransaction,
-  type JsonRpcSchema,
+  updatePolicySchema,
 } from "./validators/index.js";
-import { LedgerService } from "../ledger/ledger.service.js";
-import type { ApiConfig } from "../../config/configuration.js";
 
 @Injectable()
 export class JsonRpcService {
-  private readonly logger = new Logger(JsonRpcService.name);
-
   private chainId = "";
+
+  private contractAddress: string;
 
   private didRegistry: string;
 
-  private contractAddress: string;
+  private readonly logger = new Logger(JsonRpcService.name);
 
   private timeout: number;
 
@@ -53,6 +55,269 @@ export class JsonRpcService {
     this.didRegistry = configService.get<string>("didRegistryApiUrl");
     this.contractAddress = ledgerService.getContractAddress();
     this.timeout = configService.get<number>("requestTimeout");
+  }
+
+  async buildTransaction(
+    from: string,
+    params: string,
+  ): Promise<UnsignedTransaction> {
+    const nonceInt = await this.ledgerService
+      .getContract()
+      .provider.getTransactionCount(from);
+
+    const unsignedTransaction: UnsignedTransaction = {
+      chainId: await this.getChainId(),
+      data: params,
+      from,
+      gasLimit: "0x1000000",
+      gasPrice: "0x0",
+      nonce: ethers.BigNumber.from(nonceInt).toHexString(),
+      to: this.contractAddress,
+      value: "0x0",
+    };
+
+    let gasEstimation: ethers.BigNumber | string = "unset";
+
+    try {
+      gasEstimation = await this.estimateGas(unsignedTransaction);
+      // Multiply by 1.4
+      unsignedTransaction.gasLimit = gasEstimation
+        .mul(14)
+        .div(10)
+        .toHexString();
+    } catch {
+      this.logger.warn(
+        `Gas could not be estimated.${
+          gasEstimation === "unset"
+            ? ""
+            : `Received ${gasEstimation.toString()}.`
+        } Using 0x1000000`,
+      );
+      unsignedTransaction.gasLimit = "0x1000000";
+    }
+
+    return unsignedTransaction;
+  }
+
+  async buildTransactionActivatePolicy(
+    body: JsonRpcSchema,
+    id: null | number | string | undefined,
+  ): Promise<UnsignedTransaction> {
+    try {
+      const parsedBody = await requestActivatePolicyDtoSchema.parseAsync(body);
+      const { from, policyId, policyName } = parsedBody.params[0]!;
+
+      let data: string;
+
+      if (policyName) {
+        data = this.ledgerService
+          .getContract()
+          .interface.encodeFunctionData("activatePolicy(string)", [policyName]);
+      } else if (policyId) {
+        data = this.ledgerService
+          .getContract()
+          .interface.encodeFunctionData("activatePolicy(uint256)", [policyId]);
+      } else {
+        throw new Error("Either policyId or policyName must be provided");
+      }
+
+      return await this.buildTransaction(from, data);
+    } catch (error_) {
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(error_), id);
+      if (error_ instanceof Error && error_.stack) {
+        error.stack = error_.stack;
+      }
+      throw error;
+    }
+  }
+
+  async buildTransactionDeactivatePolicy(
+    body: JsonRpcSchema,
+    id: null | number | string | undefined,
+  ): Promise<UnsignedTransaction> {
+    try {
+      const parsedBody =
+        await requestDeactivatePolicyDtoSchema.parseAsync(body);
+      const { from, policyId, policyName } = parsedBody.params[0]!;
+
+      let data: string;
+
+      if (policyName) {
+        data = this.ledgerService
+          .getContract()
+          .interface.encodeFunctionData("deactivatePolicy(string)", [
+            policyName,
+          ]);
+      } else if (policyId) {
+        data = this.ledgerService
+          .getContract()
+          .interface.encodeFunctionData("deactivatePolicy(uint256)", [
+            policyId,
+          ]);
+      } else {
+        throw new Error("Either policyId or policyName must be provided");
+      }
+
+      return await this.buildTransaction(from, data);
+    } catch (error_) {
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(error_), id);
+      if (error_ instanceof Error && error_.stack) {
+        error.stack = error_.stack;
+      }
+      throw error;
+    }
+  }
+
+  async buildTransactionDeleteUserAttribute(
+    body: JsonRpcSchema,
+    id: null | number | string | undefined,
+  ): Promise<UnsignedTransaction> {
+    try {
+      const parsedBody =
+        await requestDeleteUserAttributeDtoSchema.parseAsync(body);
+      const { attribute, from, user } = parsedBody.params[0]!;
+
+      const data = this.ledgerService
+        .getContract()
+        .interface.encodeFunctionData("deleteUserAttribute", [user, attribute]);
+
+      return await this.buildTransaction(from, data);
+    } catch (error_) {
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(error_), id);
+      if (error_ instanceof Error && error_.stack) {
+        error.stack = error_.stack;
+      }
+      throw error;
+    }
+  }
+
+  async buildTransactionInsertPolicy(
+    body: JsonRpcSchema,
+    id: null | number | string | undefined,
+  ): Promise<UnsignedTransaction> {
+    try {
+      const parsedBody = await requestInsertPolicyDtoSchema.parseAsync(body);
+      const { description, from, policyName } = parsedBody.params[0]!;
+
+      const data = this.ledgerService
+        .getContract()
+        .interface.encodeFunctionData("insertPolicy", [
+          policyName,
+          description,
+        ]);
+
+      return await this.buildTransaction(from, data);
+    } catch (error_) {
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(error_), id);
+      if (error_ instanceof Error && error_.stack) {
+        error.stack = error_.stack;
+      }
+      throw error;
+    }
+  }
+
+  async buildTransactionInsertUserAttributes(
+    body: JsonRpcSchema,
+    id: null | number | string | undefined,
+  ): Promise<UnsignedTransaction> {
+    try {
+      const parsedBody =
+        await requestInsertUserAttributesDtoSchema.parseAsync(body);
+      const { attributes, from, user } = parsedBody.params[0]!;
+
+      const data = this.ledgerService
+        .getContract()
+        .interface.encodeFunctionData("insertUserAttributes", [
+          user,
+          attributes,
+        ]);
+
+      return await this.buildTransaction(from, data);
+    } catch (error_) {
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(error_), id);
+      if (error_ instanceof Error && error_.stack) {
+        error.stack = error_.stack;
+      }
+      throw error;
+    }
+  }
+
+  async buildTransactionUpdatePolicy(
+    body: JsonRpcSchema,
+    id: null | number | string | undefined,
+  ): Promise<UnsignedTransaction> {
+    try {
+      const parsedBody = await requestUpdatePolicyDtoSchema.parseAsync(body);
+      const { description, from, policyId, policyName } = parsedBody.params[0]!;
+
+      let data: string;
+
+      if (policyName) {
+        data = this.ledgerService
+          .getContract()
+          .interface.encodeFunctionData("updatePolicy(string,string)", [
+            policyName,
+            description,
+          ]);
+      } else if (policyId) {
+        data = this.ledgerService
+          .getContract()
+          .interface.encodeFunctionData("updatePolicy(uint256,string)", [
+            policyId,
+            description,
+          ]);
+      } else {
+        throw new Error("Either policyId or policyName must be provided");
+      }
+
+      return await this.buildTransaction(from, data);
+    } catch (error_) {
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(error_), id);
+      if (error_ instanceof Error && error_.stack) {
+        error.stack = error_.stack;
+      }
+      throw error;
+    }
+  }
+
+  async checkDidOwnership(address: string, clientId: string): Promise<void> {
+    // Check DID Registry
+    if (!(await this.isDidControlledByAddress(clientId, address))) {
+      throw new Error(
+        `The DID ${clientId} is not controlled by the address ${address}`,
+      );
+    }
+  }
+
+  async estimateGas(
+    transaction: UnsignedTransaction,
+  ): Promise<ethers.BigNumber> {
+    const { data, from, to, value } = transaction;
+
+    try {
+      return await this.ledgerService.getContract().provider.estimateGas({
+        data,
+        from,
+        to,
+        value,
+      });
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error, error.stack);
+      }
+      throw new Error(getErrorMessage(error));
+    }
+  }
+
+  async getBlockNumber(): Promise<number> {
+    try {
+      return await this.ledgerService.getContract().provider.getBlockNumber();
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error, error.stack);
+      }
+      throw new Error(getErrorMessage(error));
+    }
   }
 
   async getChainId(): Promise<string> {
@@ -72,44 +337,13 @@ export class JsonRpcService {
     return this.chainId;
   }
 
-  async getBlockNumber(): Promise<number> {
-    try {
-      return await this.ledgerService.getContract().provider.getBlockNumber();
-    } catch (error) {
-      if (isEthersError(error)) {
-        this.logger.error(error, error.stack);
-      }
-      throw new Error(getErrorMessage(error));
-    }
-  }
-
-  async estimateGas(
-    transaction: UnsignedTransaction,
-  ): Promise<ethers.BigNumber> {
-    const { from, to, data, value } = transaction;
-
-    try {
-      return await this.ledgerService.getContract().provider.estimateGas({
-        from,
-        to,
-        data,
-        value,
-      });
-    } catch (error) {
-      if (isEthersError(error)) {
-        this.logger.error(error, error.stack);
-      }
-      throw new Error(getErrorMessage(error));
-    }
-  }
-
   async isDidControlledByAddress(
     did: string,
     controllerAddress: string,
   ): Promise<boolean> {
     const { data } = await axios.post<{
-      result: boolean;
       error?: { message: string };
+      result: boolean;
     }>(
       `${this.didRegistry}/identifiers/${did}/actions`,
       {
@@ -127,19 +361,58 @@ export class JsonRpcService {
     return data.result;
   }
 
-  async checkDidOwnership(address: string, clientId: string): Promise<void> {
-    // Check DID Registry
-    if (!(await this.isDidControlledByAddress(clientId, address))) {
-      throw new Error(
-        `The DID ${clientId} is not controlled by the address ${address}`,
-      );
+  async sendTransaction(
+    clientId: string,
+    body: JsonRpcSchema,
+    id: null | number | string | undefined,
+  ): Promise<string> {
+    try {
+      const parsedBody =
+        await requestSendSignedTransactionDtoSchema.parseAsync(body);
+
+      const request = parsedBody.params[0]!;
+      const { signer } = await this.verifyTransaction(request);
+
+      await this.checkDidOwnership(signer, clientId);
+
+      const tx = await this.ledgerService
+        .getContract()
+        .provider.sendTransaction(request.signedRawTransaction);
+      return tx.hash;
+    } catch (error_) {
+      if (isEthersError(error_)) {
+        this.logger.error(error_, error_.stack); // Log the original error with all ethers.js details for internal debugging
+        throw new InvalidRequestJsonRpcError(error_.reason, id); // throw simplified ethers error to the user
+      }
+
+      if (error_ instanceof Error) {
+        if (isAxiosError(error_)) {
+          logAxiosError(error_, this.logger);
+        } else {
+          this.logger.error(error_.message, error_.stack);
+        }
+
+        const error = new InvalidRequestJsonRpcError(
+          getErrorMessage(error_),
+          id,
+        );
+
+        if (error_.stack) {
+          error.stack = error_.stack;
+        }
+
+        throw error;
+      }
+
+      this.logger.error(error_);
+      throw error_;
     }
   }
 
   async verifyTransaction(
     param: SendSignedTransactionParamsSchema,
-  ): Promise<{ signer: string; functionName: string }> {
-    const { unsignedTransaction, r, s, v, signedRawTransaction } = param;
+  ): Promise<{ functionName: string; signer: string }> {
+    const { r, s, signedRawTransaction, unsignedTransaction, v } = param;
 
     const unsignedTx = formatEthersUnsignedTransaction(unsignedTransaction);
     const signature = formatEthersSignature(r, s, v);
@@ -188,14 +461,6 @@ export class JsonRpcService {
     };
 
     switch (functionFragment.name) {
-      case "insertPolicy": {
-        await insertPolicySchema.parseAsync(argsObject);
-        break;
-      }
-      case "updatePolicy": {
-        await updatePolicySchema.parseAsync(argsObject);
-        break;
-      }
       case "activatePolicy": {
         await activatePolicySchema.parseAsync(argsObject);
         break;
@@ -204,292 +469,33 @@ export class JsonRpcService {
         await deactivatePolicySchema.parseAsync(argsObject);
         break;
       }
-      case "insertUserAttributes": {
-        await insertUserAttributesSchema.parseAsync(argsObject);
-        break;
-      }
       case "deleteUserAttribute": {
         await deleteUserAttributeSchema.parseAsync(argsObject);
         break;
       }
-      default:
+      case "insertPolicy": {
+        await insertPolicySchema.parseAsync(argsObject);
+        break;
+      }
+      case "insertUserAttributes": {
+        await insertUserAttributesSchema.parseAsync(argsObject);
+        break;
+      }
+      case "updatePolicy": {
+        await updatePolicySchema.parseAsync(argsObject);
+        break;
+      }
+      default: {
         throw new Error(
           `The function name ${functionFragment.name} can not be used in this context`,
         );
+      }
     }
 
     return {
-      signer,
       functionName: functionFragment.name,
+      signer,
     };
-  }
-
-  async buildTransaction(
-    from: string,
-    params: string,
-  ): Promise<UnsignedTransaction> {
-    const nonceInt = await this.ledgerService
-      .getContract()
-      .provider.getTransactionCount(from);
-
-    const unsignedTransaction: UnsignedTransaction = {
-      from,
-      to: this.contractAddress,
-      data: params,
-      value: "0x0",
-      nonce: ethers.BigNumber.from(nonceInt).toHexString(),
-      chainId: await this.getChainId(),
-      gasLimit: "0x1000000",
-      gasPrice: "0x0",
-    };
-
-    let gasEstimation: string | ethers.BigNumber = "unset";
-
-    try {
-      gasEstimation = await this.estimateGas(unsignedTransaction);
-      // Multiply by 1.4
-      unsignedTransaction.gasLimit = gasEstimation
-        .mul(14)
-        .div(10)
-        .toHexString();
-    } catch (error) {
-      this.logger.warn(
-        `Gas could not be estimated.${
-          gasEstimation === "unset"
-            ? ""
-            : `Received ${gasEstimation.toString()}.`
-        } Using 0x1000000`,
-      );
-      unsignedTransaction.gasLimit = "0x1000000";
-    }
-
-    return unsignedTransaction;
-  }
-
-  async buildTransactionInsertPolicy(
-    body: JsonRpcSchema,
-    id: number | string | null | undefined,
-  ): Promise<UnsignedTransaction> {
-    try {
-      const parsedBody = await requestInsertPolicyDtoSchema.parseAsync(body);
-      const { from, policyName, description } = parsedBody.params[0]!;
-
-      const data = this.ledgerService
-        .getContract()
-        .interface.encodeFunctionData("insertPolicy", [
-          policyName,
-          description,
-        ]);
-
-      return await this.buildTransaction(from, data);
-    } catch (err) {
-      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      if (err instanceof Error && err.stack) {
-        error.stack = err.stack;
-      }
-      throw error;
-    }
-  }
-
-  async buildTransactionUpdatePolicy(
-    body: JsonRpcSchema,
-    id: number | string | null | undefined,
-  ): Promise<UnsignedTransaction> {
-    try {
-      const parsedBody = await requestUpdatePolicyDtoSchema.parseAsync(body);
-      const { from, policyId, policyName, description } = parsedBody.params[0]!;
-
-      let data: string;
-
-      if (policyName) {
-        data = this.ledgerService
-          .getContract()
-          .interface.encodeFunctionData("updatePolicy(string,string)", [
-            policyName,
-            description,
-          ]);
-      } else if (policyId) {
-        data = this.ledgerService
-          .getContract()
-          .interface.encodeFunctionData("updatePolicy(uint256,string)", [
-            policyId,
-            description,
-          ]);
-      } else {
-        throw new Error("Either policyId or policyName must be provided");
-      }
-
-      return await this.buildTransaction(from, data);
-    } catch (err) {
-      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      if (err instanceof Error && err.stack) {
-        error.stack = err.stack;
-      }
-      throw error;
-    }
-  }
-
-  async buildTransactionActivatePolicy(
-    body: JsonRpcSchema,
-    id: number | string | null | undefined,
-  ): Promise<UnsignedTransaction> {
-    try {
-      const parsedBody = await requestActivatePolicyDtoSchema.parseAsync(body);
-      const { from, policyId, policyName } = parsedBody.params[0]!;
-
-      let data: string;
-
-      if (policyName) {
-        data = this.ledgerService
-          .getContract()
-          .interface.encodeFunctionData("activatePolicy(string)", [policyName]);
-      } else if (policyId) {
-        data = this.ledgerService
-          .getContract()
-          .interface.encodeFunctionData("activatePolicy(uint256)", [policyId]);
-      } else {
-        throw new Error("Either policyId or policyName must be provided");
-      }
-
-      return await this.buildTransaction(from, data);
-    } catch (err) {
-      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      if (err instanceof Error && err.stack) {
-        error.stack = err.stack;
-      }
-      throw error;
-    }
-  }
-
-  async buildTransactionDeactivatePolicy(
-    body: JsonRpcSchema,
-    id: number | string | null | undefined,
-  ): Promise<UnsignedTransaction> {
-    try {
-      const parsedBody =
-        await requestDeactivatePolicyDtoSchema.parseAsync(body);
-      const { from, policyId, policyName } = parsedBody.params[0]!;
-
-      let data: string;
-
-      if (policyName) {
-        data = this.ledgerService
-          .getContract()
-          .interface.encodeFunctionData("deactivatePolicy(string)", [
-            policyName,
-          ]);
-      } else if (policyId) {
-        data = this.ledgerService
-          .getContract()
-          .interface.encodeFunctionData("deactivatePolicy(uint256)", [
-            policyId,
-          ]);
-      } else {
-        throw new Error("Either policyId or policyName must be provided");
-      }
-
-      return await this.buildTransaction(from, data);
-    } catch (err) {
-      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      if (err instanceof Error && err.stack) {
-        error.stack = err.stack;
-      }
-      throw error;
-    }
-  }
-
-  async buildTransactionInsertUserAttributes(
-    body: JsonRpcSchema,
-    id: number | string | null | undefined,
-  ): Promise<UnsignedTransaction> {
-    try {
-      const parsedBody =
-        await requestInsertUserAttributesDtoSchema.parseAsync(body);
-      const { from, user, attributes } = parsedBody.params[0]!;
-
-      const data = this.ledgerService
-        .getContract()
-        .interface.encodeFunctionData("insertUserAttributes", [
-          user,
-          attributes,
-        ]);
-
-      return await this.buildTransaction(from, data);
-    } catch (err) {
-      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      if (err instanceof Error && err.stack) {
-        error.stack = err.stack;
-      }
-      throw error;
-    }
-  }
-
-  async buildTransactionDeleteUserAttribute(
-    body: JsonRpcSchema,
-    id: number | string | null | undefined,
-  ): Promise<UnsignedTransaction> {
-    try {
-      const parsedBody =
-        await requestDeleteUserAttributeDtoSchema.parseAsync(body);
-      const { from, user, attribute } = parsedBody.params[0]!;
-
-      const data = this.ledgerService
-        .getContract()
-        .interface.encodeFunctionData("deleteUserAttribute", [user, attribute]);
-
-      return await this.buildTransaction(from, data);
-    } catch (err) {
-      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      if (err instanceof Error && err.stack) {
-        error.stack = err.stack;
-      }
-      throw error;
-    }
-  }
-
-  async sendTransaction(
-    clientId: string,
-    body: JsonRpcSchema,
-    id: number | string | null | undefined,
-  ): Promise<string> {
-    try {
-      const parsedBody =
-        await requestSendSignedTransactionDtoSchema.parseAsync(body);
-
-      const request = parsedBody.params[0]!;
-      const { signer } = await this.verifyTransaction(request);
-
-      await this.checkDidOwnership(signer, clientId);
-
-      const tx = await this.ledgerService
-        .getContract()
-        .provider.sendTransaction(request.signedRawTransaction);
-      return tx.hash;
-    } catch (err) {
-      if (isEthersError(err)) {
-        this.logger.error(err, err.stack); // Log the original error with all ethers.js details for internal debugging
-        throw new InvalidRequestJsonRpcError(err.reason, id); // throw simplified ethers error to the user
-      }
-
-      if (err instanceof Error) {
-        if (axios.isAxiosError(err)) {
-          logAxiosError(err, this.logger);
-        } else {
-          this.logger.error(err.message, err.stack);
-        }
-
-        const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-
-        if (err.stack) {
-          error.stack = err.stack;
-        }
-
-        throw error;
-      }
-
-      this.logger.error(err);
-      throw err;
-    }
   }
 }
 

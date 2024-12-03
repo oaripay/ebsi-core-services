@@ -1,5 +1,5 @@
-import { IsHexadecimal, IsNumber, Matches, Max, Min } from "class-validator";
 import { IsDidV1 } from "@ebsiint-api/shared";
+import { IsHexadecimal, IsNumber, Matches, Max, Min } from "class-validator";
 
 export class ArgsSetAttributeMetadata {
   @IsDidV1()

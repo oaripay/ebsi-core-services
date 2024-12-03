@@ -1,15 +1,16 @@
 import { z } from "zod";
-import { jsonRpcSchema } from "./JsonRpcSchema.js";
+
 import { baseParamSchema } from "./BaseParamSchema.js";
+import { jsonRpcSchema } from "./JsonRpcSchema.js";
 import { refinements } from "./utils.js";
 
 const { isHexadecimal, isHexadecimalJSON } = refinements;
 
 export const updateMetadataSchema = baseParamSchema.merge(
   z.object({
-    schemaRevisionId: z.string().superRefine(isHexadecimal),
-
     metadata: z.string().superRefine(isHexadecimalJSON),
+
+    schemaRevisionId: z.string().superRefine(isHexadecimal),
   }),
 );
 

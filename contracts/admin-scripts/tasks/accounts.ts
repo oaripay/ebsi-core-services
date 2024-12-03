@@ -7,6 +7,6 @@ import "@nomiclabs/hardhat-waffle";
 task("accounts", "prints the first few accounts of a mnemonic").setAction(
   async (_taskArgs, { ethers }) => {
     const accounts = await ethers.getSigners();
-    accounts.forEach((account) => console.log(account.address));
+    for (const account of accounts) console.log(account.address);
   },
 );

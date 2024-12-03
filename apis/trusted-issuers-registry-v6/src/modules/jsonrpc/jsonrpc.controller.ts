@@ -1,30 +1,37 @@
-import { Controller, Body, Post, HttpCode, UseGuards } from "@nestjs/common";
 import {
   Accepts,
-  InvalidRequestJsonRpcError,
   getErrorMessage,
+  InvalidRequestJsonRpcError,
 } from "@ebsiint-api/shared";
-import { JsonRpcService } from "./jsonrpc.service.js";
+import { Body, Controller, HttpCode, Post, UseGuards } from "@nestjs/common";
+
 import type { JsonRpcResponseObject } from "./jsonrpc.interface.js";
-import { BearerJwtAuthGuard } from "../auth/guards/index.js";
+
 import { Subject, type SubjectInfo } from "../auth/decorators/index.js";
+import { BearerJwtAuthGuard } from "../auth/guards/index.js";
+import { JsonRpcService } from "./jsonrpc.service.js";
 import { jsonRpcSchema } from "./validators/JsonRpcSchema.js";
 
 function formatJsonRpcResponse(
   result: unknown,
-  id: string | number | null | undefined,
-): JsonRpcResponseObject {
-  return { jsonrpc: "2.0", id: id ?? null, result };
+  id: null | number | string | undefined,
+) {
+  return {
+    // eslint-disable-next-line unicorn/no-null
+    id: id ?? null,
+    jsonrpc: "2.0",
+    result,
+  } satisfies JsonRpcResponseObject;
 }
 
-@UseGuards(BearerJwtAuthGuard)
 @Controller("/jsonrpc")
+@UseGuards(BearerJwtAuthGuard)
 export class JsonRpcController {
   constructor(private jsonRpcService: JsonRpcService) {}
 
-  @Post()
   @Accepts("application/json")
   @HttpCode(200)
+  @Post()
   async jsonRPC(
     @Body() unsafeBody: unknown,
     @Subject() subject: SubjectInfo,
@@ -32,6 +39,7 @@ export class JsonRpcController {
     if (!unsafeBody || typeof unsafeBody !== "object") {
       throw new InvalidRequestJsonRpcError(
         "JSON-RPC payload must be an object",
+        // eslint-disable-next-line unicorn/no-null
         null,
       );
     }
@@ -41,47 +49,23 @@ export class JsonRpcController {
     if (!parsedBody.success) {
       throw new InvalidRequestJsonRpcError(
         getErrorMessage(parsedBody.error),
+        // eslint-disable-next-line unicorn/no-null
         null,
       );
     }
 
     const body = parsedBody.data;
-    const { method, id: requestId } = body;
+    const { id: requestId, method } = body;
+    // "id": An identifier established by the Client that MUST contain a String, Number, or NULL value if included. If it is not included it is assumed to be a notification.
+    // See https://www.jsonrpc.org/specification#request_object
+    // eslint-disable-next-line unicorn/no-null
     const id = requestId ?? null;
     const { scp: scope, sub } = subject;
 
     switch (method) {
-      case "setAttributeMetadata": {
-        const transaction =
-          await this.jsonRpcService.buildTransactionSetAttributeMetadata(
-            body,
-            id,
-            scope,
-          );
-        return formatJsonRpcResponse(transaction, id);
-      }
-      case "setAttributeData": {
-        const transaction =
-          await this.jsonRpcService.buildTransactionSetAttributeData(
-            body,
-            id,
-            sub,
-            scope,
-          );
-        return formatJsonRpcResponse(transaction, id);
-      }
       case "addIssuerProxy": {
         const transaction =
           await this.jsonRpcService.buildTransactionAddIssuerProxy(
-            body,
-            id,
-            scope,
-          );
-        return formatJsonRpcResponse(transaction, id);
-      }
-      case "updateIssuerProxy": {
-        const transaction =
-          await this.jsonRpcService.buildTransactionUpdateIssuerProxy(
             body,
             id,
             scope,
@@ -106,11 +90,40 @@ export class JsonRpcController {
         );
         return formatJsonRpcResponse(result, id);
       }
-      default:
+      case "setAttributeData": {
+        const transaction =
+          await this.jsonRpcService.buildTransactionSetAttributeData(
+            body,
+            id,
+            sub,
+            scope,
+          );
+        return formatJsonRpcResponse(transaction, id);
+      }
+      case "setAttributeMetadata": {
+        const transaction =
+          await this.jsonRpcService.buildTransactionSetAttributeMetadata(
+            body,
+            id,
+            scope,
+          );
+        return formatJsonRpcResponse(transaction, id);
+      }
+      case "updateIssuerProxy": {
+        const transaction =
+          await this.jsonRpcService.buildTransactionUpdateIssuerProxy(
+            body,
+            id,
+            scope,
+          );
+        return formatJsonRpcResponse(transaction, id);
+      }
+      default: {
         throw new InvalidRequestJsonRpcError(
           `The method '${method}' is invalid`,
           id,
         );
+      }
     }
   }
 }

@@ -4,9 +4,9 @@ export function createPolicy(policyId: number, policyName: string) {
   const description = crypto.randomBytes(16).toString("hex");
 
   return {
+    description,
     policyId,
     policyName,
-    description,
     status: true,
   };
 }

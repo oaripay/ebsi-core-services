@@ -3,7 +3,8 @@
 //
 // When running the script with `hardhat run <script>` you'll find the Hardhat
 // Runtime Environment's members available in the global scope.
-import { ethers, deployments } from "hardhat";
+import { deployments, ethers } from "hardhat";
+
 import type { OwnedUpgradeabilityProxy } from "../../src/types";
 
 async function main() {
@@ -12,11 +13,11 @@ async function main() {
   // We get contracts already deployed
   const dProxy = await deployments.get("OwnedUpgradeabilityProxy");
   console.log(`dProxy ${dProxy.address} `);
-  const proxyfactory = await ethers.getContractFactory(
+  const proxyFactory = await ethers.getContractFactory(
     "OwnedUpgradeabilityProxy",
   );
 
-  const proxy = proxyfactory.attach(dProxy.address) as OwnedUpgradeabilityProxy;
+  const proxy = proxyFactory.attach(dProxy.address) as OwnedUpgradeabilityProxy;
 
   const res = await (await proxy.changeAdmin(multiSig.address)).wait(1);
   console.log(

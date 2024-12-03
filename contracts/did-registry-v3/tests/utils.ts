@@ -9,16 +9,16 @@ export function getEthObject(o: unknown): unknown {
     return o;
   }
 
-  const obj = o as string[] & Record<string, unknown>;
+  const obj = o as Record<string, unknown> & string[];
   const keys = Object.keys(obj);
   if (keys.some((k) => Number.isNaN(Number(k)))) {
     // is an object
     const result: Record<string, unknown> = {};
-    keys.forEach((k, i) => {
+    for (const [i, k] of keys.entries()) {
       if (i >= keys.length / 2) {
         result[k] = getEthObject(obj[k]);
       }
-    });
+    }
     return result;
   }
 
@@ -27,24 +27,24 @@ export function getEthObject(o: unknown): unknown {
 }
 
 export function rollArgs(
-  did,
-  vMethodId,
-  publicKey,
-  isSecp256k1,
-  notBefore,
-  notAfter,
-  oldVMethodId,
-  duration,
+  did: string,
+  vMethodId: string,
+  publicKey: Buffer | string,
+  isSecp256k1: boolean,
+  notBefore: number,
+  notAfter: number,
+  oldVMethodId: string,
+  duration: number,
 ) {
   return {
     did,
-    vMethodId,
-    publicKey,
-    isSecp256k1,
-    notBefore,
-    notAfter,
-    oldVMethodId,
     duration,
+    isSecp256k1,
+    notAfter,
+    notBefore,
+    oldVMethodId,
+    publicKey,
+    vMethodId,
   };
 }
 

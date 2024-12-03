@@ -1,20 +1,20 @@
-/* eslint-disable no-await-in-loop */
+import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+
+import { expect } from "chai";
 import { ethers } from "hardhat";
 import crypto from "node:crypto";
-import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { expect } from "chai";
-import { testDidrAddress, testTprAddress } from "./testAddress";
+
 import type { Tir } from "../src/types";
 
-const num = ethers.BigNumber.from;
+import { testDidrAddress, testTprAddress } from "./testAddress";
 
 function getEthObject(o: unknown): Record<string, unknown> {
-  const obj = o as string[] & Record<string, unknown>;
+  const obj = o as Record<string, unknown> & string[];
   const keys = Object.keys(obj);
   const result: Record<string, unknown> = {};
-  keys.forEach((k, i) => {
+  for (const [i, k] of keys.entries()) {
     if (i >= keys.length / 2) result[k] = obj[k];
-  });
+  }
   return result;
 }
 
@@ -85,11 +85,11 @@ describe("Policies", () => {
     // the policy should have 2 revisions
     const policyRevisions = await tsUser.getPolicyRevisions(policyName, 1, 10);
     expect(getEthObject(policyRevisions)).to.eql({
+      howMany: ethers.BigNumber.from(2),
       items: [policyHash1, policyHash2],
-      total: num(2),
-      howMany: num(2),
-      prev: num(1),
-      next: num(1),
+      next: ethers.BigNumber.from(1),
+      prev: ethers.BigNumber.from(1),
+      total: ethers.BigNumber.from(2),
     });
   });
 
@@ -105,41 +105,41 @@ describe("Policies", () => {
     // get policies: page 1
     let issPagination = await ts.getPolicies(1, 5);
     expect(getEthObject(issPagination)).to.eql({
+      howMany: ethers.BigNumber.from(5),
       items: policies.slice(0, 5),
-      total: num(18),
-      howMany: num(5),
-      prev: num(1),
-      next: num(2),
+      next: ethers.BigNumber.from(2),
+      prev: ethers.BigNumber.from(1),
+      total: ethers.BigNumber.from(18),
     });
 
     // get policies: page 2
     issPagination = await ts.getPolicies(2, 5);
     expect(getEthObject(issPagination)).to.eql({
+      howMany: ethers.BigNumber.from(5),
       items: policies.slice(5, 10),
-      total: num(18),
-      howMany: num(5),
-      prev: num(1),
-      next: num(3),
+      next: ethers.BigNumber.from(3),
+      prev: ethers.BigNumber.from(1),
+      total: ethers.BigNumber.from(18),
     });
 
     // get policies: page 3
     issPagination = await ts.getPolicies(3, 5);
     expect(getEthObject(issPagination)).to.eql({
+      howMany: ethers.BigNumber.from(5),
       items: policies.slice(10, 15),
-      total: num(18),
-      howMany: num(5),
-      prev: num(2),
-      next: num(4),
+      next: ethers.BigNumber.from(4),
+      prev: ethers.BigNumber.from(2),
+      total: ethers.BigNumber.from(18),
     });
 
     // get policies: page 4
     issPagination = await ts.getPolicies(4, 5);
     expect(getEthObject(issPagination)).to.eql({
+      howMany: ethers.BigNumber.from(3),
       items: policies.slice(15, 20),
-      total: num(18),
-      howMany: num(3),
-      prev: num(3),
-      next: num(4),
+      next: ethers.BigNumber.from(4),
+      prev: ethers.BigNumber.from(3),
+      total: ethers.BigNumber.from(18),
     });
   });
 

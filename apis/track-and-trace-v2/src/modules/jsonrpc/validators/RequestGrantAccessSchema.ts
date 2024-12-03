@@ -1,15 +1,15 @@
-import { z } from "zod";
 import {
   BigNumber,
-  isBigNumberish,
   type BigNumberish,
-  // eslint-disable-next-line import/extensions
+  isBigNumberish,
 } from "@ethersproject/bignumber/lib/bignumber.js";
-import { jsonRpcSchema } from "./JsonRpcSchema.js";
-import { baseParamSchema } from "./BaseParamSchema.js";
-import { refinements } from "./utils.js";
-import { hexToDid } from "../../../shared/utils.js";
+import { z } from "zod";
+
 import { AccountType } from "../../../shared/constants.js";
+import { hexToDid } from "../../../shared/utils.js";
+import { baseParamSchema } from "./BaseParamSchema.js";
+import { jsonRpcSchema } from "./JsonRpcSchema.js";
+import { refinements } from "./utils.js";
 
 const { isHexadecimal, isSender } = refinements;
 
@@ -18,16 +18,7 @@ export const grantAccessSchema = baseParamSchema
     z.object({
       documentHash: z.string().superRefine(isHexadecimal),
       grantedByAccount: z.string().superRefine(isSender),
-      subjectAccount: z.string().superRefine(isSender),
       grantedByAccType: z
-        .custom<BigNumberish>((val) => isBigNumberish(val))
-        .refine(
-          (val) => BigNumber.from(val).gte(0) && BigNumber.from(val).lte(1),
-          {
-            message: "Number must be 0 (did:ebsi) or 1 (did:key)",
-          },
-        ),
-      subjectAccType: z
         .custom<BigNumberish>((val) => isBigNumberish(val))
         .refine(
           (val) => BigNumber.from(val).gte(0) && BigNumber.from(val).lte(1),
@@ -41,6 +32,15 @@ export const grantAccessSchema = baseParamSchema
           (val) => BigNumber.from(val).gte(0) && BigNumber.from(val).lte(1),
           {
             message: "Number must be 0 (delegate) or 1 (write)",
+          },
+        ),
+      subjectAccount: z.string().superRefine(isSender),
+      subjectAccType: z
+        .custom<BigNumberish>((val) => isBigNumberish(val))
+        .refine(
+          (val) => BigNumber.from(val).gte(0) && BigNumber.from(val).lte(1),
+          {
+            message: "Number must be 0 (did:ebsi) or 1 (did:key)",
           },
         ),
     }),

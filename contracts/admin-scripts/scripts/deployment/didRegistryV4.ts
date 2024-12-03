@@ -1,7 +1,15 @@
-import type { HardhatRuntimeEnvironment } from "hardhat/types";
 import type { DeployFunction } from "hardhat-deploy/types";
+import type { HardhatRuntimeEnvironment } from "hardhat/types";
+
 import { ethers } from "hardhat";
+
 import dependencies from "./dependencies.json";
+
+function validateChainId(
+  chainId: string,
+): asserts chainId is keyof typeof dependencies {
+  if (!(chainId in dependencies)) throw new Error(`Invalid chainId ${chainId}`);
+}
 
 const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   const { deployments, getNamedAccounts } = hre;
@@ -9,15 +17,27 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   const { deployer } = await getNamedAccounts();
 
   // get Proxy of TPR
-  const { chainId } = await ethers.provider.getNetwork();
+  const chainId = `${(await ethers.provider.getNetwork()).chainId}`;
+
+  validateChainId(chainId);
+
   console.log(`chain id ${chainId}`);
-  let tprAddress = dependencies[chainId]?.tprV3Address;
+
+  const deps = dependencies[chainId];
+
+  if (!("tprV3Address" in deps)) {
+    throw new Error("tprV3Address does not exist");
+  }
+
+  let tprAddress = deps.tprV3Address;
+
   if (!ethers.utils.isAddress(tprAddress)) {
     console.log(`Deploying TPR for testnet`);
     // deploy for testnet
     await deployments.run("PolicyRegistryV2");
     tprAddress = (await deployments.get("PolicyRegistryV2")).address;
   }
+
   console.log(`Trusted Policy Registry Address is ${tprAddress}`);
 
   const optsController = {
@@ -44,10 +64,10 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   console.log(`VRelationships lib deployed`);
   const optsVrel = {
     from: deployer,
-    log: true,
     libraries: {
       VRelationshipsLib: vRelation.address,
     },
+    log: true,
   };
   const didDocument = await deployments.deploy("DidDocumentLib", {
     ...optsVrel,
@@ -58,10 +78,10 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   console.log(`Did Document deployed;`);
 
   const ts = await deployments.deploy("DidRegistryV4", {
-    from: deployer,
+    args: [tprAddress],
     contract:
       "contracts/did-registry-v4/did-registry/DidRegistry.sol:DidRegistry",
-    args: [tprAddress],
+    from: deployer,
     libraries: {
       ControllersLib: controller.address,
       DidDocumentLib: didDocument.address,

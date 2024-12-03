@@ -1,9 +1,23 @@
+import { Metadata, Revision, Schema } from "../generated/schema";
 import {
+  MetadataUpdated,
   SchemaInserted,
   SchemaUpdated,
-  MetadataUpdated,
 } from "../generated/TrustedSchemasRegistry/TrustedSchemasRegistry";
-import { Schema, Revision, Metadata } from "../generated/schema";
+
+export function handleMetadataUpdated(event: MetadataUpdated): void {
+  const revision = Revision.load(event.params.schemaRevisionId);
+  if (!revision) return;
+  const metadata = new Metadata(event.params.metadataId);
+
+  const revisionMetadata = revision.metadata;
+  revisionMetadata.push(metadata.id);
+  revision.metadata = revisionMetadata;
+  revision.save();
+
+  metadata.content = event.params.metadata.toString();
+  metadata.save();
+}
 
 export function handleSchemaInserted(event: SchemaInserted): void {
   const schema = new Schema(event.params.schemaId);
@@ -36,20 +50,6 @@ export function handleSchemaUpdated(event: SchemaUpdated): void {
 
   revision.content = event.params.schema.toString();
   revision.metadata = [metadata.id];
-  revision.save();
-
-  metadata.content = event.params.metadata.toString();
-  metadata.save();
-}
-
-export function handleMetadataUpdated(event: MetadataUpdated): void {
-  const revision = Revision.load(event.params.schemaRevisionId);
-  if (!revision) return;
-  const metadata = new Metadata(event.params.metadataId);
-
-  const revisionMetadata = revision.metadata;
-  revisionMetadata.push(metadata.id);
-  revision.metadata = revisionMetadata;
   revision.save();
 
   metadata.content = event.params.metadata.toString();

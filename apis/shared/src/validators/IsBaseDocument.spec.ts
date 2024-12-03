@@ -1,38 +1,39 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
+
 import { isBaseDocument } from "./IsBaseDocument.js";
 
 describe("IsBaseDocument", () => {
   it("should validate if it is a valid base document", () => {
     // bad context
     expect(isBaseDocument("")).toStrictEqual({
-      success: false,
       error: "baseDocument must be a stringified JSON document",
+      success: false,
     });
     expect(isBaseDocument("bad-context")).toStrictEqual({
-      success: false,
       error: "baseDocument must be a stringified JSON document",
+      success: false,
     });
     expect(isBaseDocument("{}")).toStrictEqual({
-      success: false,
       error: "'@context' attribute is missing",
+      success: false,
     });
     expect(isBaseDocument('{"noContext":"bad"}')).toStrictEqual({
-      success: false,
       error: "'@context' attribute is missing",
+      success: false,
     });
     expect(isBaseDocument('{"@context":""}')).toStrictEqual({
-      success: false,
       error: "'@context' attribute is missing",
+      success: false,
     });
     expect(isBaseDocument('{"@context":[]}')).toStrictEqual({
-      success: false,
       error:
         "'@context' attribute must be 'https://www.w3.org/ns/did/v1' or an array with 'https://www.w3.org/ns/did/v1' as first element",
+      success: false,
     });
     expect(isBaseDocument('{"@context":["bad-context"]}')).toStrictEqual({
-      success: false,
       error:
         "'@context' attribute must be 'https://www.w3.org/ns/did/v1' or an array with 'https://www.w3.org/ns/did/v1' as first element",
+      success: false,
     });
 
     // good context
@@ -54,8 +55,8 @@ describe("IsBaseDocument", () => {
         '{"@context":["https://www.w3.org/ns/did/v1"],"controller":"did:ebsi:z25jWQYxVzeL2z2fiYesZj9M"}',
       ),
     ).toStrictEqual({
-      success: false,
       error: "attribute 'controller' is not allowed",
+      success: false,
     });
 
     // no restricted fields (plural)
@@ -64,8 +65,8 @@ describe("IsBaseDocument", () => {
         '{"@context":["https://www.w3.org/ns/did/v1"],"controller":"did:ebsi:z25jWQYxVzeL2z2fiYesZj9M", "id": "0x00"}',
       ),
     ).toStrictEqual({
-      success: false,
       error: "attributes 'id', 'controller' are not allowed",
+      success: false,
     });
   });
 });

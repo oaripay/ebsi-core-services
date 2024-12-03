@@ -1,38 +1,23 @@
-import { Injectable, Logger } from "@nestjs/common";
-import { NotFoundError, isEthersError } from "@ebsiint-api/shared";
 import type { TrackAndTrace } from "@ebsiint-sc/track-and-trace";
-import { LedgerService } from "../ledger/ledger.service.js";
+
+import { isEthersError, NotFoundError } from "@ebsiint-api/shared";
+import { Injectable, Logger } from "@nestjs/common";
+
 import type {
   Document,
   DocumentAccesses,
   Event,
 } from "./documents.interface.js";
-import { hexToDid, permissionToString } from "../../shared/utils.js";
+
 import { Permission } from "../../shared/constants.js";
+import { hexToDid, permissionToString } from "../../shared/utils.js";
+import { LedgerService } from "../ledger/ledger.service.js";
 
 @Injectable()
 export default class DocumentsService {
   private readonly logger = new Logger(DocumentsService.name);
 
   constructor(private ledgerService: LedgerService) {}
-
-  async getDocuments(
-    page: number,
-    pageSize: number,
-  ): ReturnType<TrackAndTrace["getDocuments"]> {
-    try {
-      return await this.ledgerService
-        .getContract()
-        .getDocuments(page, pageSize);
-    } catch (error) {
-      if (isEthersError(error)) {
-        this.logger.error(error, error.stack);
-      }
-      throw new NotFoundError("No documents found", {
-        detail: "No documents found",
-      });
-    }
-  }
 
   async getDocument(documentId: string): Promise<Document> {
     let document: Awaited<ReturnType<TrackAndTrace["getDocument"]>>;
@@ -49,34 +34,77 @@ export default class DocumentsService {
     }
 
     return {
+      creator: document.creator,
+      events: document.eventHashes,
       metadata: document.documentMetadata,
       timestamp: {
         datetime: document.documentTimestamp.timestamp.toHexString(),
-        source: document.documentTimestamp.source === 0 ? "block" : "external",
         proof: document.documentTimestamp.proof,
+        source: document.documentTimestamp.source === 0 ? "block" : "external",
       },
-      events: document.eventHashes,
-      creator: document.creator,
     } satisfies Document;
   }
 
-  async getDocumentEvents(
-    documentId: string,
-    page: number,
-    pageSize: number,
-  ): ReturnType<TrackAndTrace["getEvents"]> {
-    try {
-      return await this.ledgerService
-        .getContract()
-        .getEvents(documentId, page, pageSize);
-    } catch (error) {
-      if (isEthersError(error)) {
-        this.logger.error(error, error.stack);
+  async getDocumentAccesses(documentId: string): Promise<DocumentAccesses> {
+    const pageSize = 50;
+    let currentPage = 1;
+    const documentAccesses: DocumentAccesses = [];
+
+    let invitedUsers: Awaited<
+      ReturnType<TrackAndTrace["getAccessesByDocument"]>
+    >;
+
+    do {
+      try {
+        invitedUsers = await this.ledgerService
+          .getContract()
+          .getAccessesByDocument(documentId, currentPage, pageSize);
+      } catch (error) {
+        if (isEthersError(error)) {
+          this.logger.error(error, error.stack);
+        }
+        throw new NotFoundError("Document Not Found", {
+          detail: `Document ${documentId} not found`,
+        });
       }
-      throw new NotFoundError("Document Not Found", {
-        detail: `Document ${documentId} not found`,
-      });
-    }
+
+      const fetchedDocumentAccesses = await Promise.all(
+        invitedUsers.items.map(async (did) => {
+          const [grantedByAccounts, , access] = await this.ledgerService
+            .getContract()
+            .getGrantedBy(documentId, did, [
+              Permission.DELEGATE,
+              Permission.WRITE,
+              Permission.CREATOR,
+            ]);
+
+          const accesses: DocumentAccesses = [];
+
+          for (const [
+            permission,
+            grantedByAccount,
+          ] of grantedByAccounts.entries()) {
+            if (!grantedByAccount || grantedByAccount === "0x") continue;
+            if (!access[permission]) continue;
+
+            accesses.push({
+              documentId,
+              grantedBy: hexToDid(grantedByAccount),
+              permission: permissionToString(permission),
+              subject: hexToDid(did),
+            });
+          }
+
+          return accesses;
+        }),
+      );
+
+      documentAccesses.push(...fetchedDocumentAccesses.flat());
+
+      currentPage += 1;
+    } while (invitedUsers.total.gt((currentPage - 1) * pageSize));
+
+    return documentAccesses;
   }
 
   async getDocumentEvent(documentId: string, eventId: string): Promise<Event> {
@@ -108,77 +136,51 @@ export default class DocumentsService {
     return {
       externalHash: event.externalHash,
       hash: event.hash,
+      metadata: event.eventMetadata,
+      origin: event.origin,
+      sender: hexToDid(event.sender),
       timestamp: {
         datetime: event.eventTimestamp.timestamp.toHexString(),
-        source: event.eventTimestamp.source === 0 ? "block" : "external",
         proof: event.eventTimestamp.proof,
+        source: event.eventTimestamp.source === 0 ? "block" : "external",
       },
-      sender: hexToDid(event.sender),
-      origin: event.origin,
-      metadata: event.eventMetadata,
     } satisfies Event;
   }
 
-  async getDocumentAccesses(documentId: string): Promise<DocumentAccesses> {
-    const pageSize = 50;
-    let currentPage = 1;
-    const documentAccesses: DocumentAccesses = [];
-
-    let invitedUsers: Awaited<
-      ReturnType<TrackAndTrace["getAccessesByDocument"]>
-    >;
-
-    /* eslint-disable no-await-in-loop */
-    do {
-      try {
-        invitedUsers = await this.ledgerService
-          .getContract()
-          .getAccessesByDocument(documentId, currentPage, pageSize);
-      } catch (error) {
-        if (isEthersError(error)) {
-          this.logger.error(error, error.stack);
-        }
-        throw new NotFoundError("Document Not Found", {
-          detail: `Document ${documentId} not found`,
-        });
+  async getDocumentEvents(
+    documentId: string,
+    page: number,
+    pageSize: number,
+  ): ReturnType<TrackAndTrace["getEvents"]> {
+    try {
+      return await this.ledgerService
+        .getContract()
+        .getEvents(documentId, page, pageSize);
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error, error.stack);
       }
+      throw new NotFoundError("Document Not Found", {
+        detail: `Document ${documentId} not found`,
+      });
+    }
+  }
 
-      documentAccesses.push(
-        ...(
-          await Promise.all(
-            invitedUsers.items.map(async (did) => {
-              const [grantedByAccounts, , access] = await this.ledgerService
-                .getContract()
-                .getGrantedBy(documentId, did, [
-                  Permission.DELEGATE,
-                  Permission.WRITE,
-                  Permission.CREATOR,
-                ]);
-
-              const accesses: DocumentAccesses = [];
-
-              grantedByAccounts.forEach((grantedByAccount, permission) => {
-                if (!grantedByAccount || grantedByAccount === "0x") return;
-                if (!access[permission]) return;
-
-                accesses.push({
-                  subject: hexToDid(did),
-                  grantedBy: hexToDid(grantedByAccount),
-                  permission: permissionToString(permission),
-                  documentId,
-                });
-              });
-
-              return accesses;
-            }),
-          )
-        ).flat(),
-      );
-
-      currentPage += 1;
-    } while (invitedUsers.total.gt((currentPage - 1) * pageSize));
-    /* eslint-enable no-await-in-loop */
-
-    return documentAccesses;
+  async getDocuments(
+    page: number,
+    pageSize: number,
+  ): ReturnType<TrackAndTrace["getDocuments"]> {
+    try {
+      return await this.ledgerService
+        .getContract()
+        .getDocuments(page, pageSize);
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error, error.stack);
+      }
+      throw new NotFoundError("No documents found", {
+        detail: "No documents found",
+      });
+    }
   }
 }

@@ -1,12 +1,26 @@
+import { Policy, User } from "../generated/schema";
 import {
+  PolicyActivated,
+  PolicyDeactivated,
   PolicyInserted,
   PolicyUpdated,
-  PolicyDeactivated,
-  PolicyActivated,
-  UserAttributeInserted,
   UserAttributeDeleted,
+  UserAttributeInserted,
 } from "../generated/TrustedPoliciesRegistry/TrustedPoliciesRegistry";
-import { Policy, User } from "../generated/schema";
+
+export function handlePolicyActivated(event: PolicyActivated): void {
+  const policy = Policy.load(event.params.policyId.toString());
+  if (!policy) return;
+  policy.status = true;
+  policy.save();
+}
+
+export function handlePolicyDeactivated(event: PolicyDeactivated): void {
+  const policy = Policy.load(event.params.policyId.toString());
+  if (!policy) return;
+  policy.status = false;
+  policy.save();
+}
 
 export function handlePolicyInserted(event: PolicyInserted): void {
   const policy = new Policy(event.params.policyId.toString());
@@ -23,18 +37,18 @@ export function handlePolicyUpdated(event: PolicyUpdated): void {
   policy.save();
 }
 
-export function handlePolicyDeactivated(event: PolicyDeactivated): void {
-  const policy = Policy.load(event.params.policyId.toString());
-  if (!policy) return;
-  policy.status = false;
-  policy.save();
-}
-
-export function handlePolicyActivated(event: PolicyActivated): void {
-  const policy = Policy.load(event.params.policyId.toString());
-  if (!policy) return;
-  policy.status = true;
-  policy.save();
+export function handleUserAttributeDeleted(event: UserAttributeDeleted): void {
+  const user = User.load(event.params.user);
+  if (!user) return;
+  const attributes: string[] = user.attributes;
+  for (let i = 0; i < attributes.length; i += 1) {
+    if (attributes[i] == event.params.attribute) {
+      attributes.splice(i, 1);
+      break;
+    }
+  }
+  user.attributes = attributes;
+  user.save();
 }
 
 export function handleUserAttributeInserted(
@@ -48,20 +62,6 @@ export function handleUserAttributeInserted(
     user = new User(event.params.user);
   }
   attributes.push(event.params.attribute);
-  user.attributes = attributes;
-  user.save();
-}
-
-export function handleUserAttributeDeleted(event: UserAttributeDeleted): void {
-  const user = User.load(event.params.user);
-  if (!user) return;
-  const attributes: string[] = user.attributes;
-  for (let i = 0; i < attributes.length; i += 1) {
-    if (attributes[i] == event.params.attribute) {
-      attributes.splice(i, 1);
-      break;
-    }
-  }
   user.attributes = attributes;
   user.save();
 }

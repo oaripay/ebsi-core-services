@@ -1,4 +1,4 @@
-import { registerDecorator, buildMessage } from "class-validator";
+import { buildMessage, registerDecorator } from "class-validator";
 
 // Commented methods are private
 // Methods that are not listed here are not available through Ledger API
@@ -30,17 +30,17 @@ export function IsValidMethod() {
   return (object: object, propertyName: string): void => {
     registerDecorator({
       name: "isValidMethod",
-      target: object.constructor,
       propertyName,
+      target: object.constructor,
       validator: {
+        defaultMessage: buildMessage(
+          (eachPrefix) => `${eachPrefix}$property must be a valid method`,
+        ),
         validate(value: unknown) {
           return (
             typeof value === "string" && PUBLIC_BESU_METHODS.includes(value)
           );
         },
-        defaultMessage: buildMessage(
-          (eachPrefix) => `${eachPrefix}$property must be a valid method`,
-        ),
       },
     });
   };

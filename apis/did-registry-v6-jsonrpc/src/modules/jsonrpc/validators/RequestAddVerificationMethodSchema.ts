@@ -1,7 +1,8 @@
 import { isDidV1, isPublicKeyHex } from "@ebsiint-api/shared";
 import { z } from "zod";
-import { jsonRpcSchema } from "./JsonRpcSchema.js";
+
 import { baseParamSchema } from "./BaseParamSchema.js";
+import { jsonRpcSchema } from "./JsonRpcSchema.js";
 
 export const addVerificationMethodSchema = baseParamSchema
   .merge(
@@ -15,21 +16,21 @@ export const addVerificationMethodSchema = baseParamSchema
           });
         }
       }),
+      isSecp256k1: z.boolean(),
       publicKey: z.string(),
       vMethodId: z.string(),
-      isSecp256k1: z.boolean(),
     }),
   )
   .superRefine(async (val, ctx) => {
-    const { publicKey, isSecp256k1 } = val;
+    const { isSecp256k1, publicKey } = val;
 
     const publicKeyHexValidation = await isPublicKeyHex(publicKey, isSecp256k1);
     if (!publicKeyHexValidation.success) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        path: ["publicKey"],
-        message: publicKeyHexValidation.error,
         fatal: true,
+        message: publicKeyHexValidation.error,
+        path: ["publicKey"],
       });
     }
 

@@ -31,11 +31,12 @@ async function main() {
   const contractFactory = await ethers.getContractFactory("Timestamp", {
     libraries: {
       HashAlgoLib: haLib.address,
-      TimestampLib: tsLib.address,
       RecordLib: rsLib.address,
+      TimestampLib: tsLib.address,
     },
   });
 
+  // @ts-expect-error TPR address is missing...
   const ts = await contractFactory.deploy();
 
   console.log(

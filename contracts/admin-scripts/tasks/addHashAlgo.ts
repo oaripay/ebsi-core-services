@@ -1,19 +1,22 @@
 import { task } from "hardhat/config";
 import "@nomiclabs/hardhat-waffle";
 
+import "../src/types/index.js";
+import type { Timestamp } from "../src/types/index.js";
+
 // follows ETH/BTC's BIP 39 protocol
 // https://iancoleman.io/bip39/
 // and matches the one hardhat uses when using { accounts: { mnemonic }}
 task(
   "addHashAlgo",
   "Add alg hash",
-  async (taskArgs: { proxy: string; contract: string }, { ethers }) => {
+  async (taskArgs: { contract: string; proxy: string }, { ethers }) => {
     const [deployer, admin] = await ethers.getSigners();
-    const ts = await ethers.getContractAt(
+    const ts = (await ethers.getContractAt(
       taskArgs.contract,
       taskArgs.proxy,
       admin,
-    );
+    )) as Timestamp;
 
     console.log(
       `deployer:${deployer.address}
@@ -64,7 +67,7 @@ task(
           "sha2-256",
         )
       ).wait(1);
-    } catch (e) {
+    } catch {
       console.log("inserting");
       await (
         await ts.insertHashAlgorithm(
@@ -90,7 +93,7 @@ task(
           "",
         )
       ).wait(1);
-    } catch (e) {
+    } catch {
       console.log("inserting");
       await (
         await ts.insertHashAlgorithm(
@@ -116,7 +119,7 @@ task(
           "sha2-512",
         )
       ).wait(1);
-    } catch (e) {
+    } catch {
       console.log("inserting");
       await (
         await ts.insertHashAlgorithm(
@@ -142,7 +145,7 @@ task(
           "sha3-224",
         )
       ).wait(1);
-    } catch (e) {
+    } catch {
       console.log("inserting");
       await (
         await ts.insertHashAlgorithm(
@@ -168,7 +171,7 @@ task(
           "sha3-256",
         )
       ).wait(1);
-    } catch (e) {
+    } catch {
       console.log("inserting");
       await (
         await ts.insertHashAlgorithm(
@@ -194,7 +197,7 @@ task(
           "sha3-384",
         )
       ).wait(1);
-    } catch (e) {
+    } catch {
       console.log("inserting");
       await (
         await ts.insertHashAlgorithm(
@@ -220,7 +223,7 @@ task(
           "sha3-512",
         )
       ).wait(1);
-    } catch (e) {
+    } catch {
       console.log("inserting");
       await (
         await ts.insertHashAlgorithm(
@@ -234,12 +237,11 @@ task(
     }
 
     for (let i = 1; i <= 7; i += 1) {
-      // eslint-disable-next-line no-await-in-loop
-      const halgo = await ts.getHashAlgorithmById(i);
+      const algo = await ts.getHashAlgorithmById(i);
       console.log(
-        `halgorithm ${halgo.ianaName} oid:${
-          halgo.oid
-        } length:${halgo.outputLength.toString()} status:${halgo.status}`,
+        `algorithm ${algo.ianaName} oid:${
+          algo.oid
+        } length:${algo.outputLength.toString()} status:${algo.status}`,
       );
     }
   },

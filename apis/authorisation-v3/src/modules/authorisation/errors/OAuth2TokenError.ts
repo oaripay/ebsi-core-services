@@ -9,7 +9,6 @@ import {
  * https://www.rfc-editor.org/rfc/rfc6749.html#section-5.2
  */
 export type OAuth2TokenErrorCode =
-  | OAuth2ErrorCode
   /**
    * Client authentication failed (e.g., unknown client, no client authentication included, or
    * unsupported authentication method).  The authorization server MAY return an HTTP 401
@@ -27,6 +26,11 @@ export type OAuth2TokenErrorCode =
    */
   | "invalid_grant"
   /**
+   * The requested scope is invalid, unknown, malformed, or exceeds the scope granted by the
+   * resource owner.
+   */
+  | "invalid_scope"
+  /**
    * The authenticated client is not authorized to use this authorization grant type.
    */
   | "unauthorized_client"
@@ -35,10 +39,9 @@ export type OAuth2TokenErrorCode =
    */
   | "unsupported_grant_type"
   /**
-   * The requested scope is invalid, unknown, malformed, or exceeds the scope granted by the
-   * resource owner.
+   * Other OAuth2 errors
    */
-  | "invalid_scope";
+  | OAuth2ErrorCode;
 
 export class OAuth2TokenError extends OAuth2Error<OAuth2TokenErrorCode> {
   constructor(errorCode: OAuth2TokenErrorCode, options?: OAuth2ErrorOptions) {

@@ -1,14 +1,22 @@
-import Joi from "joi";
 import type {
   DIDDocument,
-  VerificationMethod,
   ServiceEndpoint,
+  VerificationMethod,
 } from "did-resolver";
 
+import Joi from "joi";
+
 export const verificationMethodSchema = Joi.object<VerificationMethod>({
-  id: Joi.string().required(),
-  type: Joi.string().required(),
+  blockchainAccountId: Joi.string(),
   controller: Joi.string().required(),
+  ethereumAddress: Joi.string(),
+  id: Joi.string().required(),
+  /**
+   * @deprecated
+   */
+  publicKeyBase58: Joi.string(),
+
+  publicKeyHex: Joi.string(),
   publicKeyJwk: Joi.object<VerificationMethod["publicKeyJwk"]>({
     alg: Joi.string(),
     crv: Joi.string(),
@@ -23,14 +31,7 @@ export const verificationMethodSchema = Joi.object<VerificationMethod>({
     y: Joi.string(),
   }),
   publicKeyMultibase: Joi.string(),
-
-  /**
-   * @deprecated
-   */
-  publicKeyBase58: Joi.string(),
-  publicKeyHex: Joi.string(),
-  blockchainAccountId: Joi.string(),
-  ethereumAddress: Joi.string(),
+  type: Joi.string().required(),
 }).required();
 
 export const contextSchema = Joi.alternatives()
@@ -46,26 +47,12 @@ export const contextSchema = Joi.alternatives()
 
 export const didDocumentSchema = Joi.object<DIDDocument>({
   "@context": contextSchema,
-  id: Joi.string().required(),
   alsoKnownAs: Joi.array().items(Joi.string()),
-  controller: Joi.alternatives().try(
-    Joi.array().items(Joi.string()),
-    Joi.string(),
-  ),
-  verificationMethod: Joi.array().items(verificationMethodSchema),
-  authentication: Joi.alternatives().try(
-    Joi.array().items(Joi.string()),
-    Joi.array().items(verificationMethodSchema),
-  ),
   assertionMethod: Joi.alternatives().try(
     Joi.array().items(Joi.string()),
     Joi.array().items(verificationMethodSchema),
   ),
-  keyAgreement: Joi.alternatives().try(
-    Joi.array().items(Joi.string()),
-    Joi.array().items(verificationMethodSchema),
-  ),
-  capabilityInvocation: Joi.alternatives().try(
+  authentication: Joi.alternatives().try(
     Joi.array().items(Joi.string()),
     Joi.array().items(verificationMethodSchema),
   ),
@@ -73,18 +60,32 @@ export const didDocumentSchema = Joi.object<DIDDocument>({
     Joi.array().items(Joi.string()),
     Joi.array().items(verificationMethodSchema),
   ),
-  service: Joi.array().items(
-    Joi.object<ServiceEndpoint>({
-      id: Joi.string().required(),
-      type: Joi.string().required(),
-      serviceEndpoint: Joi.string().required(),
-      description: Joi.string(),
-    }),
+  capabilityInvocation: Joi.alternatives().try(
+    Joi.array().items(Joi.string()),
+    Joi.array().items(verificationMethodSchema),
+  ),
+  controller: Joi.alternatives().try(
+    Joi.array().items(Joi.string()),
+    Joi.string(),
+  ),
+  id: Joi.string().required(),
+  keyAgreement: Joi.alternatives().try(
+    Joi.array().items(Joi.string()),
+    Joi.array().items(verificationMethodSchema),
   ),
   /**
    * @deprecated
    */
   publicKey: Joi.array().items(verificationMethodSchema),
+  service: Joi.array().items(
+    Joi.object<ServiceEndpoint>({
+      description: Joi.string(),
+      id: Joi.string().required(),
+      serviceEndpoint: Joi.string().required(),
+      type: Joi.string().required(),
+    }),
+  ),
+  verificationMethod: Joi.array().items(verificationMethodSchema),
 }).unknown();
 
 export const isDidDocument = (input: unknown): input is DIDDocument => {

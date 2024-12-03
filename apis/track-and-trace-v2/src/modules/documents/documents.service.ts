@@ -1,50 +1,27 @@
+import { InternalServerError, NotFoundError } from "@ebsiint-api/shared";
 import { Injectable, Logger } from "@nestjs/common";
-import { NotFoundError, InternalServerError } from "@ebsiint-api/shared";
+
+import type { Access } from "../accesses/accesses.interface.js";
 import type { Document, Event } from "./documents.interface.js";
-import { hexToDid } from "../../shared/utils.js";
 
 import {
-  getBuiltGraphSDK,
-  GetDocumentsQuery,
-  GetDocumentQuery,
-  GetDocumentEventsQuery,
-  GetDocumentEventQuery,
-  GetDocumentInvitationsQuery,
   Document_filter,
-  Invitation_filter,
   Event_filter,
-  // eslint-disable-next-line import/extensions, import/no-relative-packages
+  getBuiltGraphSDK,
+  GetDocumentEventQuery,
+  GetDocumentEventsQuery,
+  GetDocumentInvitationsQuery,
+  GetDocumentQuery,
+  GetDocumentsQuery,
+  Invitation_filter,
 } from "../../../.graphclient/index.js";
-import Access from "../accesses/accesses.interface.js";
+import { hexToDid } from "../../shared/utils.js";
 
 const sdk = getBuiltGraphSDK();
 
 @Injectable()
 export default class DocumentsService {
   private readonly logger = new Logger(DocumentsService.name);
-
-  async getDocuments(
-    page: number,
-    pagesize: number,
-    where: Document_filter = {},
-  ): Promise<{ items: string[] }> {
-    const skip = (page - 1) * pagesize;
-    let res: GetDocumentsQuery;
-    try {
-      // get one more item to clarify next pages in pagination
-      const queryPageSize = pagesize + 1;
-      res = await sdk.GetDocuments({ skip, pagesize: queryPageSize, where });
-    } catch (error) {
-      this.logger.error(
-        error,
-        error instanceof Error ? error.stack : undefined,
-      );
-      throw new InternalServerError();
-    }
-
-    const items = res.documents.map((d) => d.id);
-    return { items };
-  }
 
   async getDocument(documentId: string): Promise<Document> {
     let res: GetDocumentQuery;
@@ -65,42 +42,42 @@ export default class DocumentsService {
     }
 
     const {
-      metadata,
-      timestamp,
-      source,
-      proof,
-      events: ev,
       creator,
+      events: ev,
+      metadata,
+      proof,
+      source,
+      timestamp,
     } = res.document;
     const events = ev.map((e) => e.id);
 
     return {
+      creator,
+      events,
       metadata,
       timestamp: {
         datetime: `0x${Number(timestamp).toString(16)}`,
-        source,
         proof,
+        source,
       },
-      events,
-      creator,
     } satisfies Document;
   }
 
-  async getDocumentEvents(
+  async getDocumentAccesses(
     documentId: string,
     page: number,
     pagesize: number,
-    where: Event_filter,
-  ): Promise<{ items: string[] }> {
+    where: Invitation_filter,
+  ): Promise<{ items: Access[] }> {
     const skip = (page - 1) * pagesize;
-    let res: GetDocumentEventsQuery;
+    let res: GetDocumentInvitationsQuery;
     try {
       // get one more item to clarify next pages in pagination
       const queryPageSize = pagesize + 1;
-      res = await sdk.GetDocumentEvents({
+      res = await sdk.GetDocumentInvitations({
         documentId,
-        skip,
         pagesize: queryPageSize,
+        skip,
         where,
       });
     } catch (error) {
@@ -117,7 +94,16 @@ export default class DocumentsService {
       });
     }
 
-    const items = res.document.events.map((e) => e.id);
+    const items = res.document.invitations.map((inv) => {
+      const { grantedBy, subject, type: permission } = inv;
+      return {
+        documentId,
+        grantedBy: hexToDid(grantedBy),
+        permission,
+        subject: hexToDid(subject),
+      };
+    });
+
     return { items };
   }
 
@@ -150,43 +136,43 @@ export default class DocumentsService {
     const {
       externalHash,
       hash,
-      timestamp,
-      source,
+      metadata,
+      origin,
       proof,
       sender,
-      origin,
-      metadata,
+      source,
+      timestamp,
     } = event!;
 
     return {
       externalHash,
       hash,
+      metadata,
+      origin,
+      sender: hexToDid(sender),
       timestamp: {
         datetime: `0x${Number(timestamp).toString(16)}`,
-        source,
         proof,
+        source,
       },
-      sender: hexToDid(sender),
-      origin,
-      metadata,
     } satisfies Event;
   }
 
-  async getDocumentAccesses(
+  async getDocumentEvents(
     documentId: string,
     page: number,
     pagesize: number,
-    where: Invitation_filter,
-  ): Promise<{ items: Access[] }> {
+    where: Event_filter,
+  ): Promise<{ items: string[] }> {
     const skip = (page - 1) * pagesize;
-    let res: GetDocumentInvitationsQuery;
+    let res: GetDocumentEventsQuery;
     try {
       // get one more item to clarify next pages in pagination
       const queryPageSize = pagesize + 1;
-      res = await sdk.GetDocumentInvitations({
+      res = await sdk.GetDocumentEvents({
         documentId,
-        skip,
         pagesize: queryPageSize,
+        skip,
         where,
       });
     } catch (error) {
@@ -203,16 +189,30 @@ export default class DocumentsService {
       });
     }
 
-    const items = res.document.invitations.map((inv) => {
-      const { subject, type: permission, grantedBy } = inv;
-      return {
-        subject: hexToDid(subject),
-        permission,
-        documentId,
-        grantedBy: hexToDid(grantedBy),
-      };
-    });
+    const items = res.document.events.map((e) => e.id);
+    return { items };
+  }
 
+  async getDocuments(
+    page: number,
+    pagesize: number,
+    where: Document_filter = {},
+  ): Promise<{ items: string[] }> {
+    const skip = (page - 1) * pagesize;
+    let res: GetDocumentsQuery;
+    try {
+      // get one more item to clarify next pages in pagination
+      const queryPageSize = pagesize + 1;
+      res = await sdk.GetDocuments({ pagesize: queryPageSize, skip, where });
+    } catch (error) {
+      this.logger.error(
+        error,
+        error instanceof Error ? error.stack : undefined,
+      );
+      throw new InternalServerError();
+    }
+
+    const items = res.documents.map((d) => d.id);
     return { items };
   }
 }

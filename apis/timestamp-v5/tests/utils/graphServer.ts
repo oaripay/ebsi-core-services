@@ -1,36 +1,30 @@
-import { setupServer } from "msw/node";
 import { graphql, HttpResponse } from "msw";
-import { dummyData } from "./data.js";
+import { setupServer } from "msw/node";
+
 import {
-  TimestampSet_filter,
   HashAlgo_filter,
-  // eslint-disable-next-line import/extensions, import/no-relative-packages
+  TimestampSet_filter,
 } from "../../.graphclient/index.js";
+import { dummyData } from "./data.js";
 
 export const graphServer = setupServer(
   graphql.query("GetHashAlgorithms", ({ variables }) => {
-    const { skip, pagesize, where } = variables as {
-      skip: number;
+    const { pagesize, skip, where } = variables as {
       pagesize: number;
+      skip: number;
       where: HashAlgo_filter;
     };
     return HttpResponse.json({
       data: {
         hashAlgos: dummyData.hashAlgos
           .filter((h) => {
-            if (where && where.ianaName && h.ianaName !== where.ianaName)
+            if (where?.ianaName && h.ianaName !== where.ianaName) return false;
+            if (where?.multiHash && h.multiHash !== where.multiHash)
               return false;
-            if (where && where.multiHash && h.multiHash !== where.multiHash)
+            if (where?.oid && h.oid !== where.oid) return false;
+            if (where?.outputLength && h.outputLength !== where.outputLength)
               return false;
-            if (where && where.oid && h.oid !== where.oid) return false;
-            if (
-              where &&
-              where.outputLength &&
-              h.outputLength !== where.outputLength
-            )
-              return false;
-            if (where && where.status && h.status !== where.outputLength)
-              return false;
+            if (where?.status && h.status !== where.outputLength) return false;
             return true;
           })
           .slice(skip, skip + pagesize)
@@ -45,6 +39,7 @@ export const graphServer = setupServer(
     if (!hashAlgo) {
       return HttpResponse.json({
         data: {
+          // eslint-disable-next-line unicorn/no-null
           hashAlgorithm: null,
         },
       });
@@ -58,20 +53,18 @@ export const graphServer = setupServer(
   }),
 
   graphql.query("GetTimestamps", ({ variables }) => {
-    const { skip, pagesize, where } = variables as {
-      skip: number;
+    const { pagesize, skip, where } = variables as {
       pagesize: number;
+      skip: number;
       where: TimestampSet_filter;
     };
     return HttpResponse.json({
       data: {
         timestampSets: dummyData.timestampSets
           .filter((t) => {
-            if (where && where.creator && t.creator !== where.creator)
-              return false;
+            if (where?.creator && t.creator !== where.creator) return false;
             if (
-              where &&
-              where.hashAlgorithmId &&
+              where?.hashAlgorithmId &&
               t.hashAlgorithmId !== where.hashAlgorithmId
             )
               return false;
@@ -91,36 +84,37 @@ export const graphServer = setupServer(
     if (!timestampSet) {
       return HttpResponse.json({
         data: {
+          // eslint-disable-next-line unicorn/no-null
           timestampSet: null,
         },
       });
     }
     const {
-      creator,
       blockNumber,
-      transactionHash,
-      timestamp: time,
+      creator,
       hashAlgorithmId,
-      timestampData,
       hashValue,
+      timestamp: time,
+      timestampData,
+      transactionHash,
     } = timestampSet;
     return HttpResponse.json({
       data: {
         timestampSet: {
-          creator,
           blockNumber,
-          transactionHash,
-          timestamp: time,
+          creator,
           hashAlgorithmId,
-          timestampData,
           hashValue,
+          timestamp: time,
+          timestampData,
+          transactionHash,
         },
       },
     });
   }),
 
   graphql.query("GetRecords", ({ variables }) => {
-    const { skip, pagesize } = variables as { skip: number; pagesize: number };
+    const { pagesize, skip } = variables as { pagesize: number; skip: number };
     return HttpResponse.json({
       data: {
         records: dummyData.records
@@ -136,14 +130,15 @@ export const graphServer = setupServer(
     if (!record) {
       return HttpResponse.json({
         data: {
+          // eslint-disable-next-line unicorn/no-null
           record: null,
         },
       });
     }
     const { owners, versions } = record;
     const ow = owners.map((o) => {
-      const { id, notBefore, notAfter } = o;
-      return { id, notBefore, notAfter };
+      const { id, notAfter, notBefore } = o;
+      return { id, notAfter, notBefore };
     });
     const ve = versions.map((v) => {
       const { timestamps } = v;
@@ -164,15 +159,16 @@ export const graphServer = setupServer(
   }),
 
   graphql.query("GetRecordVersions", ({ variables }) => {
-    const { recordId, skip, pagesize } = variables as {
+    const { pagesize, recordId, skip } = variables as {
+      pagesize: number;
       recordId: string;
       skip: number;
-      pagesize: number;
     };
     const record = dummyData.records.find((r) => r.id === recordId);
     if (!record) {
       return HttpResponse.json({
         data: {
+          // eslint-disable-next-line unicorn/no-null
           record: null,
         },
       });
@@ -199,6 +195,7 @@ export const graphServer = setupServer(
     if (!record) {
       return HttpResponse.json({
         data: {
+          // eslint-disable-next-line unicorn/no-null
           record: null,
         },
       });
@@ -215,7 +212,7 @@ export const graphServer = setupServer(
         },
       });
     }
-    const { timestamps, infos } = version;
+    const { infos, timestamps } = version;
     const ti = timestamps.map((t) => {
       const { hashValue } = t;
       return { hashValue };
@@ -230,8 +227,8 @@ export const graphServer = setupServer(
         record: {
           versions: [
             {
-              timestamps: ti,
               infos: inf,
+              timestamps: ti,
             },
           ],
         },
@@ -240,10 +237,10 @@ export const graphServer = setupServer(
   }),
 
   graphql.query("GetTimestampRecordIdsFirstVersion", ({ variables }) => {
-    const { timestampId, skip, pagesize } = variables as {
-      timestampId: string;
-      skip: number;
+    const { pagesize, skip, timestampId } = variables as {
       pagesize: number;
+      skip: number;
+      timestampId: string;
     };
     const timestampSet = dummyData.timestampSets.find(
       (t) => t.id === timestampId,
@@ -251,6 +248,7 @@ export const graphServer = setupServer(
     if (!timestampSet) {
       return HttpResponse.json({
         data: {
+          // eslint-disable-next-line unicorn/no-null
           timestamp: null,
         },
       });
@@ -271,15 +269,16 @@ export const graphServer = setupServer(
   }),
 
   graphql.query("GetOwner", ({ variables }) => {
-    const { id, skip, pagesize } = variables as {
+    const { id, pagesize, skip } = variables as {
       id: string;
-      skip: number;
       pagesize: number;
+      skip: number;
     };
     const owner = dummyData.owners.find((o) => o.id === id);
     if (!owner) {
       return HttpResponse.json({
         data: {
+          // eslint-disable-next-line unicorn/no-null
           owner: null,
         },
       });

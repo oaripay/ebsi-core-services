@@ -1,6 +1,7 @@
-import { ethers, network } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect } from "chai";
+import { ethers, network } from "hardhat";
+
 import { DidRegistry } from "../src/types";
 import { testTprAddress } from "./testAddress";
 
@@ -41,13 +42,13 @@ describe("Record Hashes", () => {
 
     const contractFactory = await ethers.getContractFactory("DidRegistry", {
       libraries: {
-        HashAlgoLib: hashAlgoLib.address,
-        DidTimestampLib: didTimestampLib.address,
         DidRecordLib: didRecordLib.address,
+        DidTimestampLib: didTimestampLib.address,
+        HashAlgoLib: hashAlgoLib.address,
       },
     });
 
-    ts = (await contractFactory.deploy(testTprAddress)) as DidRegistry;
+    ts = await contractFactory.deploy(testTprAddress);
 
     await ts.initialize(42);
     await ts.setTrustedPoliciesRegistryAddress();
@@ -86,7 +87,7 @@ describe("Record Hashes", () => {
       ),
     ).to.be.revertedWith("identifier empty");
 
-    ts.insertDidDocument(
+    await ts.insertDidDocument(
       ethers.utils.toUtf8Bytes("did"),
       0,
       hashValue,
@@ -221,7 +222,7 @@ describe("Record Hashes", () => {
       ),
     ).to.be.revertedWith("identifier empty");
 
-    ts.updateDidDocument(
+    await ts.updateDidDocument(
       ethers.utils.toUtf8Bytes("did"),
       0,
       ethers.utils.sha256(ethers.utils.toUtf8Bytes("aae406s05e6")),
@@ -229,6 +230,7 @@ describe("Record Hashes", () => {
       ethers.utils.toUtf8Bytes("timestampData"),
       ethers.utils.toUtf8Bytes("didVersionMetadata"),
     );
+
     await expect(
       ts.insertDidDocument(
         ethers.utils.toUtf8Bytes("did"),
@@ -354,8 +356,8 @@ describe("Record Hashes", () => {
     const didVersionMetadata = ethers.utils.toUtf8Bytes("didVersionMetadata");
     const did = ethers.utils.toUtf8Bytes("did");
 
-    await expect(
-      ts.insertDidDocument(
+    expect(
+      await ts.insertDidDocument(
         did,
         0,
         hashValue,
@@ -432,8 +434,8 @@ describe("Record Hashes", () => {
     const didVersionMetadata = ethers.utils.toUtf8Bytes("didVersionMetadata");
     const did = ethers.utils.toUtf8Bytes("did");
 
-    await expect(
-      ts.insertDidDocument(
+    expect(
+      await ts.insertDidDocument(
         did,
         0,
         hashValue,
@@ -502,8 +504,8 @@ describe("Record Hashes", () => {
     const didVersionMetadata = ethers.utils.toUtf8Bytes("didVersionMetadata");
     const did = ethers.utils.toUtf8Bytes("did");
 
-    await expect(
-      ts.insertDidDocument(
+    expect(
+      await ts.insertDidDocument(
         did,
         0,
         hashValue,
@@ -1104,7 +1106,7 @@ describe("Record Hashes", () => {
       const tsId = ethers.utils.sha256(hashValue);
 
       // INSERT SHOULD BE DONE IN ORDER !!!
-      // eslint-disable-next-line no-await-in-loop
+
       await ts.insertDidDocument(
         did,
         0,
@@ -1157,7 +1159,7 @@ describe("Record Hashes", () => {
       didVersionMetadata,
     );
 
-    ts.insertDidController(did, ctrlId, 1, 2);
+    await ts.insertDidController(did, ctrlId, 1, 2);
 
     // pagesize = 0 should revert
     await expect(
@@ -1185,7 +1187,7 @@ describe("Record Hashes", () => {
       const timestampData = ethers.utils.toUtf8Bytes(`timestampData-${i}`);
 
       const did = ethers.utils.toUtf8Bytes(`did-${i}`);
-      // eslint-disable-next-line no-await-in-loop
+
       await ts.insertDidDocument(
         did,
         0,
@@ -1238,7 +1240,7 @@ describe("Record Hashes", () => {
       didVersionMetadata,
     );
 
-    ts.insertDidController(did, ctrlId, 1, 2);
+    await ts.insertDidController(did, ctrlId, 1, 2);
 
     // pagesize = 0 should revert
     await expect(
@@ -1266,7 +1268,7 @@ describe("Record Hashes", () => {
       const timestampData = ethers.utils.toUtf8Bytes(`timestampData-${i}`);
 
       const did = ethers.utils.toUtf8Bytes(`did-${i}`);
-      // eslint-disable-next-line no-await-in-loop
+
       await ts.insertDidDocument(
         did,
         0,
@@ -1350,9 +1352,9 @@ describe("Record Hashes", () => {
         ethers.utils.toUtf8Bytes(`hashPrime-${i}`),
       );
       // INSERT SHOULD BE DONE IN ORDER !!!
-      // eslint-disable-next-line no-await-in-loop
+
       await ts.updateDidDocument(did, 0, hash1Prime, didVersionInfo, [], []);
-      // eslint-disable-next-line no-await-in-loop
+
       const r = await ts.getLatestDidDocumentVersion(did);
       expect(r).to.equal(ethers.utils.hexlify(didVersionInfo));
       didVersionInfos.push(ethers.utils.hexlify(didVersionInfo));
@@ -1511,7 +1513,7 @@ describe("Record Hashes", () => {
       );
       const didVersionInfoId = ethers.utils.sha256(didVersionInfo);
       // INSERT SHOULD BE DONE IN ORDER !!!
-      // eslint-disable-next-line no-await-in-loop
+
       await ts.updateDidDocument(did, 0, hash1Prime, didVersionInfo, [], []);
 
       didVersionInfoIds.push(didVersionInfoId);
@@ -1567,16 +1569,17 @@ describe("Record Hashes", () => {
       );
       const didVersionInfoId = ethers.utils.sha256(didVersionInfo);
       // INSERT SHOULD BE DONE IN ORDER !!!
-      // eslint-disable-next-line no-await-in-loop
+
       await ts.updateDidDocument(did, 0, hash1Prime, didVersionInfo, [], []);
 
       didVersionInfoIds.push(didVersionInfoId);
       didVersionInfos.push(ethers.utils.hexlify(didVersionInfo));
     }
-    didVersionInfoIds.forEach(async (el, id) => {
+
+    for (const [id, el] of didVersionInfoIds.entries()) {
       const rlast = await ts.getDidDocumentVersionInfo(el);
       expect(rlast).to.equal(didVersionInfos[id]);
-    });
+    }
   });
 
   it("getDidDocumentVersionMetadata should succeed", async () => {
@@ -1605,7 +1608,7 @@ describe("Record Hashes", () => {
 
       const didVersionMetadataId = ethers.utils.sha256(didVersionMdata);
       // INSERT SHOULD BE DONE IN ORDER !!!
-      // eslint-disable-next-line no-await-in-loop
+
       await ts.appendDidDocumentVersionMetadata(
         did,
         didVersionInfo1,
@@ -1614,10 +1617,11 @@ describe("Record Hashes", () => {
       didVersionMetadatas.push(ethers.utils.hexlify(didVersionMdata));
       didVersionMetadataIds.push(didVersionMetadataId);
     }
-    didVersionMetadataIds.forEach(async (el, id) => {
+
+    for (const [id, el] of didVersionMetadataIds.entries()) {
       const rlast = await ts.getDidDocumentVersionMetadata(el);
       expect(rlast).to.equal(didVersionMetadatas[id]);
-    });
+    }
   });
 
   it("getDidDocumentVersionMetadataIds should fail with wrong page and pageSize", async () => {
@@ -1697,7 +1701,7 @@ describe("Record Hashes", () => {
 
       const didVersionMetadataId = ethers.utils.sha256(didVersionMetadata);
       // INSERT SHOULD BE DONE IN ORDER !!!
-      // eslint-disable-next-line no-await-in-loop
+
       await ts.appendDidDocumentVersionMetadata(
         did,
         didVersionInfo1,
@@ -1867,7 +1871,7 @@ describe("Record Hashes", () => {
 
       const didVersionMetadataId = ethers.utils.sha256(didVersionMetadata);
       // INSERT SHOULD BE DONE IN ORDER !!!
-      // eslint-disable-next-line no-await-in-loop
+
       await ts.appendDidDocumentVersionMetadata(
         did,
         didVersionInfo1,

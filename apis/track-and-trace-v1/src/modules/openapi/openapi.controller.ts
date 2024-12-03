@@ -1,8 +1,8 @@
-import { join } from "node:path";
-import { readFileSync } from "node:fs";
-import { parse } from "yaml";
-import { Controller, Get, Header } from "@nestjs/common";
 import { Accepts } from "@ebsiint-api/shared";
+import { Controller, Get, Header } from "@nestjs/common";
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { parse } from "yaml";
 
 @Controller()
 export class OpenApiController {
@@ -10,23 +10,23 @@ export class OpenApiController {
 
   constructor() {
     this.spec = readFileSync(
-      join(import.meta.dirname, "../../../api/openapi.yaml"),
+      path.join(import.meta.dirname, "../../../api/openapi.yaml"),
       "utf8",
     );
   }
 
-  @Get("openapi.yaml")
-  @Accepts("application/openapi+yaml")
-  @Header("Content-Type", "application/openapi+yaml")
-  getYaml() {
-    return this.spec;
-  }
-
-  @Get("openapi.json")
   @Accepts("application/openapi+json")
+  @Get("openapi.json")
   @Header("Content-Type", "application/openapi+json")
   getJson() {
     return parse(this.spec) as JSON;
+  }
+
+  @Accepts("application/openapi+yaml")
+  @Get("openapi.yaml")
+  @Header("Content-Type", "application/openapi+yaml")
+  getYaml() {
+    return this.spec;
   }
 }
 

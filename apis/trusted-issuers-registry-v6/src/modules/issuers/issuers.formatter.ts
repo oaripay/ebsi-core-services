@@ -1,13 +1,35 @@
 import {
-  paginateWithoutTotal,
   PaginatedListWithoutTotal,
+  paginateWithoutTotal,
 } from "@ebsiint-api/shared";
+
 import {
   AttributeObject,
-  IdLink,
   DidLink,
+  IdLink,
   ProxyLink,
 } from "./issuers.interface.js";
+
+export function formatAttributes(
+  attributes: { items: string[] },
+  page: number,
+  pageSize: number,
+  baseUrl: string,
+  extraQuery?: string,
+): PaginatedListWithoutTotal<IdLink> {
+  const items = attributes.items.map((id) => ({
+    href: `${baseUrl}/${id}`,
+    id,
+  }));
+
+  return paginateWithoutTotal<IdLink>(
+    items,
+    baseUrl,
+    page,
+    pageSize,
+    extraQuery,
+  );
+}
 
 export function formatIssuers(
   issuers: { items: string[] },
@@ -31,25 +53,17 @@ export function formatIssuers(
   );
 }
 
-export function formatAttributes(
-  attributes: { items: string[] },
+export function formatProxies(
+  issuerProxies: { items: string[] },
   page: number,
   pageSize: number,
   baseUrl: string,
-  extraQuery?: string,
-): PaginatedListWithoutTotal<IdLink> {
-  const items = attributes.items.map((id) => ({
-    id,
-    href: `${baseUrl}/${id}`,
+): PaginatedListWithoutTotal<ProxyLink> {
+  const items: ProxyLink[] = issuerProxies.items.map((proxy) => ({
+    href: `${baseUrl}/${proxy}`,
+    proxyId: proxy,
   }));
-
-  return paginateWithoutTotal<IdLink>(
-    items,
-    baseUrl,
-    page,
-    pageSize,
-    extraQuery,
-  );
+  return paginateWithoutTotal<ProxyLink>(items, baseUrl, page, pageSize);
 }
 
 export function formatRevisions(
@@ -60,17 +74,4 @@ export function formatRevisions(
 ): PaginatedListWithoutTotal<AttributeObject> {
   const { items } = revisions;
   return paginateWithoutTotal<AttributeObject>(items, baseUrl, page, pageSize);
-}
-
-export function formatProxies(
-  issuerProxies: { items: string[] },
-  page: number,
-  pageSize: number,
-  baseUrl: string,
-): PaginatedListWithoutTotal<ProxyLink> {
-  const items: ProxyLink[] = issuerProxies.items.map((proxy) => ({
-    proxyId: proxy,
-    href: `${baseUrl}/${proxy}`,
-  }));
-  return paginateWithoutTotal<ProxyLink>(items, baseUrl, page, pageSize);
 }

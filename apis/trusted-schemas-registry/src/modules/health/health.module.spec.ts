@@ -1,29 +1,31 @@
-import {
-  vi,
-  describe,
-  beforeAll,
-  it,
-  expect,
-  afterEach,
-  afterAll,
-} from "vitest";
-import request from "supertest";
-import { Test } from "@nestjs/testing";
-import { ValidationPipe, Logger } from "@nestjs/common";
-import { HealthIndicatorResult } from "@nestjs/terminus";
+import type { RawServerDefault } from "fastify";
+
+import { methodNotAllowed } from "@ebsiint-api/shared";
+import { fastifyAccepts } from "@fastify/accepts";
 import { HttpService } from "@nestjs/axios";
+import { Logger, ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import {
   FastifyAdapter,
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import type { RawServerDefault } from "fastify";
-import { fastifyAccepts } from "@fastify/accepts";
+import { HealthIndicatorResult } from "@nestjs/terminus";
+import { Test } from "@nestjs/testing";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
-import { methodNotAllowed } from "@ebsiint-api/shared";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
+import request from "supertest";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
+
 import { type ApiConfig } from "../../config/configuration.js";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
 import { HealthModule } from "./health.module.js";
 
 describe("Health Module", () => {

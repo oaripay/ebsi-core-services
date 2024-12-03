@@ -1,30 +1,38 @@
-import { randomBytes, randomUUID } from "node:crypto";
-import { URLSearchParams } from "node:url";
-import { describe, beforeAll, it, expect, beforeEach, afterAll } from "vitest";
-import request from "supertest";
-import { Test } from "@nestjs/testing";
-import { Logger } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
 import type {
   EbsiEnvConfiguration,
   EbsiIssuer,
   EbsiVerifiableAttestation,
 } from "@cef-ebsi/verifiable-credential";
+import type { EbsiVerifiablePresentation } from "@cef-ebsi/verifiable-presentation";
+import type { NestFastifyApplication } from "@nestjs/platform-fastify";
+import type { PresentationSubmission } from "@sphereon/pex-models";
+import type { RawServerDefault } from "fastify";
+import type { JWK } from "jose";
+
+import { fromUrl } from "@cef-ebsi/ebsi-uri";
 import { createVerifiableCredentialJwt } from "@cef-ebsi/verifiable-credential";
 import { createVerifiablePresentationJwt } from "@cef-ebsi/verifiable-presentation";
-import type { EbsiVerifiablePresentation } from "@cef-ebsi/verifiable-presentation";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
-import type { PresentationSubmission } from "@sphereon/pex-models";
-import qs from "qs";
-import type { NestFastifyApplication } from "@nestjs/platform-fastify";
-import type { RawServerDefault } from "fastify";
+import { getSigner } from "@ebsiint-api/shared";
+import { Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { Test } from "@nestjs/testing";
 import { createJWT, decodeJWT, ES256KSigner, hexToBytes } from "did-jwt";
 import { calculateJwkThumbprint, importJWK, jwtVerify } from "jose";
-import type { JWK } from "jose";
-import { fromUrl } from "@cef-ebsi/ebsi-uri";
-import { getSigner } from "@ebsiint-api/shared";
-import { AppModule } from "../../src/app.module.js";
+import { randomBytes, randomUUID } from "node:crypto";
+import { URLSearchParams } from "node:url";
+import qs from "qs";
+import request from "supertest";
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
+
 import type { ApiConfig } from "../../src/config/configuration.js";
+import type {
+  JsonWebKeySet,
+  Scope,
+  TokenResponse,
+} from "../../src/modules/authorisation/authorisation.interfaces.js";
+
+import { AppModule } from "../../src/app.module.js";
 import {
   CUSTOM_SCOPES,
   DIDR_INVITE_PRESENTATION_DEFINITION,
@@ -36,18 +44,13 @@ import {
   TIR_WRITE_PRESENTATION_DEFINITION,
   TIR_WRITE_SCOPE,
 } from "../../src/modules/authorisation/authorisation.constants.js";
-import type {
-  JsonWebKeySet,
-  Scope,
-  TokenResponse,
-} from "../../src/modules/authorisation/authorisation.interfaces.js";
-import { getServer } from "../utils/getServer.js";
+import { CreateAccessTokenDto } from "../../src/modules/authorisation/dto/index.js";
 import { configureApp } from "../utils/app.js";
 import {
   createLegalEntity,
   createPresentationSubmission,
 } from "../utils/data.js";
-import { CreateAccessTokenDto } from "../../src/modules/authorisation/dto/index.js";
+import { getServer } from "../utils/getServer.js";
 
 describe("Authorisation API v3 (e2e)", () => {
   let app: NestFastifyApplication;
@@ -82,8 +85,8 @@ describe("Authorisation API v3 (e2e)", () => {
       infer: true,
     });
     ebsiEnvConfig = {
-      network: process.env.NETWORK,
       hosts: [ebsiAuthority, ...trustedHostnames],
+      network: process.env.NETWORK,
       services: {
         "did-registry": "v5",
         "trusted-issuers-registry": "v5",
@@ -109,35 +112,35 @@ describe("Authorisation API v3 (e2e)", () => {
       );
 
       expect(response.body).toStrictEqual({
-        issuer: expect.any(String),
         authorization_endpoint: `${authorisationApiV3Url}/authorize`,
-        token_endpoint: `${authorisationApiV3Url}/token`,
-        presentation_definition_endpoint: `${authorisationApiV3Url}/presentation-definitions`,
-        jwks_uri: `${authorisationApiV3Url}/jwks`,
-        scopes_supported: expect.arrayContaining(["openid"]),
-        response_types_supported: expect.arrayContaining(["token"]),
-        subject_types_supported: expect.arrayContaining(["public"]),
+        grant_types_supported: expect.arrayContaining(["vp_token"]),
         id_token_signing_alg_values_supported: expect.arrayContaining(["none"]),
+        id_token_types_supported: expect.arrayContaining([
+          "subject_signed_id_token",
+        ]),
+        issuer: expect.any(String),
+        jwks_uri: `${authorisationApiV3Url}/jwks`,
+        presentation_definition_endpoint: `${authorisationApiV3Url}/presentation-definitions`,
+        response_types_supported: expect.arrayContaining(["token"]),
+        scopes_supported: expect.arrayContaining(["openid"]),
         subject_syntax_types_supported: expect.arrayContaining([
           "did:ebsi",
           "did:key",
         ]),
+        subject_trust_frameworks_supported: expect.arrayContaining(["ebsi"]),
+        subject_types_supported: expect.arrayContaining(["public"]),
+        token_endpoint: `${authorisationApiV3Url}/token`,
         token_endpoint_auth_methods_supported: expect.arrayContaining([
           "private_key_jwt",
         ]),
         vp_formats_supported: expect.objectContaining({
-          jwt_vp: expect.objectContaining({
-            alg_values_supported: expect.arrayContaining(["ES256"]),
-          }),
           jwt_vc: expect.objectContaining({
             alg_values_supported: expect.arrayContaining(["ES256"]),
           }),
+          jwt_vp: expect.objectContaining({
+            alg_values_supported: expect.arrayContaining(["ES256"]),
+          }),
         }),
-        grant_types_supported: expect.arrayContaining(["vp_token"]),
-        subject_trust_frameworks_supported: expect.arrayContaining(["ebsi"]),
-        id_token_types_supported: expect.arrayContaining([
-          "subject_signed_id_token",
-        ]),
       });
 
       expect(response.status).toBe(200);
@@ -153,12 +156,12 @@ describe("Authorisation API v3 (e2e)", () => {
       expect(response.body).toStrictEqual({
         keys: expect.arrayContaining([
           {
-            kty: "EC",
-            crv: "P-256",
             alg: "ES256",
+            crv: "P-256",
+            kid: expect.any(String),
+            kty: "EC",
             x: expect.any(String),
             y: expect.any(String),
-            kid: expect.any(String),
           },
         ]),
       });
@@ -357,21 +360,18 @@ describe("Authorisation API v3 (e2e)", () => {
               }
 
               issuer = {
-                kid: issuerKid,
-                did: issuerKid.split("#")[0]!,
-                signer: getSigner(hexToBytes(issuerPrivateKey), issuerAlg),
                 alg: issuerAlg,
+                did: issuerKid.split("#")[0]!,
+                kid: issuerKid,
+                signer: getSigner(hexToBytes(issuerPrivateKey), issuerAlg),
               };
 
-              if (
+              client =
                 customScope.includes(DIDR_INVITE_SCOPE) ||
                 customScope.includes(TIR_INVITE_SCOPE)
-              ) {
-                // client is a new LE
-                client = await createLegalEntity("ES256K");
-              } else {
-                client = issuer;
-              }
+                  ? // client is a new LE
+                    await createLegalEntity("ES256K")
+                  : issuer;
 
               issuanceDate = new Date();
               // JWT access token must have 2 hours expiration time and there are no Refresh Tokens.
@@ -393,14 +393,6 @@ describe("Authorisation API v3 (e2e)", () => {
               // Note: in this test, the VC issuer is also the VC subject and the VP holder
               vcPayload = {
                 "@context": ["https://www.w3.org/2018/credentials/v1"],
-                id: `urn:uuid:${randomUUID()}`,
-                type: ["VerifiableCredential", "VerifiableAttestation"],
-                issuer: issuer.did,
-                issuanceDate: `${issuanceDate.toISOString().slice(0, -5)}Z`,
-                issued: `${issuanceDate.toISOString().slice(0, -5)}Z`,
-                validFrom: `${issuanceDate.toISOString().slice(0, -5)}Z`,
-                expirationDate: `${expirationDate.toISOString().slice(0, -5)}Z`,
-                credentialSubject: { id: client.did, type: "same-device" },
                 credentialSchema: {
                   id:
                     uriType === "EBSI URI"
@@ -408,6 +400,12 @@ describe("Authorisation API v3 (e2e)", () => {
                       : credentialSchemaUrl,
                   type: "FullJsonSchemaValidator2021",
                 },
+                credentialSubject: { id: client.did, type: "same-device" },
+                expirationDate: `${expirationDate.toISOString().slice(0, -5)}Z`,
+                id: `urn:uuid:${randomUUID()}`,
+                issuanceDate: `${issuanceDate.toISOString().slice(0, -5)}Z`,
+                issued: `${issuanceDate.toISOString().slice(0, -5)}Z`,
+                issuer: issuer.did,
                 termsOfUse: {
                   id:
                     uriType === "EBSI URI"
@@ -415,6 +413,8 @@ describe("Authorisation API v3 (e2e)", () => {
                       : issuerAttribute,
                   type: "IssuanceCertificate",
                 },
+                type: ["VerifiableCredential", "VerifiableAttestation"],
+                validFrom: `${issuanceDate.toISOString().slice(0, -5)}Z`,
               };
 
               if (customScope === TIR_INVITE_SCOPE) {
@@ -425,9 +425,9 @@ describe("Authorisation API v3 (e2e)", () => {
 
               vpPayload = {
                 "@context": ["https://www.w3.org/2018/credentials/v1"],
+                holder: client.did,
                 type: ["VerifiablePresentation"],
                 verifiableCredential: [],
-                holder: client.did,
               };
             });
 
@@ -469,8 +469,8 @@ describe("Authorisation API v3 (e2e)", () => {
                   "authentication-service-v3",
                   {
                     ...ebsiEnvConfig,
-                    skipValidation: true,
                     nonce: randomUUID(),
+                    skipValidation: true,
                     ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(
                       customScope,
                     )
@@ -489,11 +489,11 @@ describe("Authorisation API v3 (e2e)", () => {
                   .send(
                     new URLSearchParams({
                       grant_type: "vp_token",
-                      scope,
-                      vp_token: vpJwt,
                       presentation_submission: JSON.stringify(
                         presentationSubmission,
                       ),
+                      scope,
+                      vp_token: vpJwt,
                     } satisfies CreateAccessTokenDto).toString(),
                   );
 
@@ -529,8 +529,8 @@ describe("Authorisation API v3 (e2e)", () => {
                   authorisationApiV3Url,
                   {
                     ...ebsiEnvConfig,
-                    skipValidation: true,
                     nonce: randomUUID(),
+                    skipValidation: true,
                     ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(
                       customScope,
                     )
@@ -550,7 +550,7 @@ describe("Authorisation API v3 (e2e)", () => {
                 const vpTokenTampered = await createJWT(
                   vpJwtDecoded.payload,
                   {
-                    issuer: vpJwtDecoded.payload.iss as string,
+                    issuer: vpJwtDecoded.payload.iss!,
                     signer: ES256KSigner(randomBytes(32)),
                   },
                   {
@@ -564,11 +564,11 @@ describe("Authorisation API v3 (e2e)", () => {
                   .send(
                     new URLSearchParams({
                       grant_type: "vp_token",
-                      scope,
-                      vp_token: vpTokenTampered,
                       presentation_submission: JSON.stringify(
                         presentationSubmission,
                       ),
+                      scope,
+                      vp_token: vpTokenTampered,
                     } satisfies CreateAccessTokenDto).toString(),
                   );
 
@@ -604,12 +604,12 @@ describe("Authorisation API v3 (e2e)", () => {
                   authorisationApiV3Url,
                   {
                     ...ebsiEnvConfig,
-                    skipValidation: true,
-                    nonce: randomUUID(),
-
                     // Override "exp" and "nbf"
                     exp: Math.floor(Date.now() / 1000) - 100,
                     nbf: Math.floor(Date.now() / 1000) - 1000,
+
+                    nonce: randomUUID(),
+                    skipValidation: true,
                   },
                 );
 
@@ -619,11 +619,11 @@ describe("Authorisation API v3 (e2e)", () => {
                   .send(
                     new URLSearchParams({
                       grant_type: "vp_token",
-                      scope,
-                      vp_token: vpJwt,
                       presentation_submission: JSON.stringify(
                         presentationSubmission,
                       ),
+                      scope,
+                      vp_token: vpJwt,
                     } satisfies CreateAccessTokenDto).toString(),
                   );
 
@@ -660,12 +660,12 @@ describe("Authorisation API v3 (e2e)", () => {
                   authorisationApiV3Url,
                   {
                     ...ebsiEnvConfig,
-                    skipValidation: true,
-                    nonce: randomUUID(),
-
                     // Override "exp" and "nbf"
                     exp: Math.floor(Date.now() / 1000) + 1000,
                     nbf: Math.floor(Date.now() / 1000) + 100,
+
+                    nonce: randomUUID(),
+                    skipValidation: true,
                   },
                 );
 
@@ -675,11 +675,11 @@ describe("Authorisation API v3 (e2e)", () => {
                   .send(
                     new URLSearchParams({
                       grant_type: "vp_token",
-                      scope,
-                      vp_token: vpJwt,
                       presentation_submission: JSON.stringify(
                         presentationSubmission,
                       ),
+                      scope,
+                      vp_token: vpJwt,
                     } satisfies CreateAccessTokenDto).toString(),
                   );
 
@@ -738,11 +738,11 @@ describe("Authorisation API v3 (e2e)", () => {
                   .send(
                     new URLSearchParams({
                       grant_type: "vp_token",
-                      scope,
-                      vp_token: vpJwt,
                       presentation_submission: JSON.stringify(
                         presentationSubmission,
                       ),
+                      scope,
+                      vp_token: vpJwt,
                     } satisfies CreateAccessTokenDto).toString(),
                   );
 
@@ -777,13 +777,13 @@ describe("Authorisation API v3 (e2e)", () => {
                 const vpJwt = await createJWT(
                   {
                     aud: authorisationApiV3Url,
-                    sub: client.did,
-                    iat: Math.floor(issuanceDate.getTime() / 1000),
-                    nbf: Math.floor(issuanceDate.getTime() / 1000),
                     exp: Math.floor(expirationDate.getTime() / 1000),
-                    vp: vpPayload,
-                    nonce: randomUUID(),
+                    iat: Math.floor(issuanceDate.getTime() / 1000),
                     iss: client.did,
+                    nbf: Math.floor(issuanceDate.getTime() / 1000),
+                    nonce: randomUUID(),
+                    sub: client.did,
+                    vp: vpPayload,
                   },
                   {
                     issuer: client.did,
@@ -791,8 +791,8 @@ describe("Authorisation API v3 (e2e)", () => {
                   },
                   {
                     alg: client.alg,
-                    typ: "JWT",
                     kid: client.kid,
+                    typ: "JWT",
                   },
                 );
 
@@ -802,11 +802,11 @@ describe("Authorisation API v3 (e2e)", () => {
                   .send(
                     new URLSearchParams({
                       grant_type: "vp_token",
-                      scope,
-                      vp_token: vpJwt,
                       presentation_submission: JSON.stringify(
                         presentationSubmission,
                       ),
+                      scope,
+                      vp_token: vpJwt,
                     } satisfies CreateAccessTokenDto).toString(),
                   );
 
@@ -817,11 +817,11 @@ describe("Authorisation API v3 (e2e)", () => {
                   .send(
                     new URLSearchParams({
                       grant_type: "vp_token",
-                      scope,
-                      vp_token: vpJwt,
                       presentation_submission: JSON.stringify(
                         presentationSubmission,
                       ),
+                      scope,
+                      vp_token: vpJwt,
                     } satisfies CreateAccessTokenDto).toString(),
                   );
 
@@ -836,20 +836,20 @@ describe("Authorisation API v3 (e2e)", () => {
 
             it("should return an error if the presentation submission is invalid (including error details)", async () => {
               presentationSubmission = {
-                id: randomUUID(),
                 definition_id: "openid_presentation",
                 descriptor_map: [
                   {
+                    format: "jwt_vp",
                     id: "same-device-in-time-credential",
                     path: "$",
-                    format: "jwt_vp",
                     path_nested: {
-                      id: randomUUID(),
                       format: "jwt_vc",
+                      id: randomUUID(),
                       path: "$vp.verifiableCredential[0]", // wrong path
                     },
                   },
                 ],
+                id: randomUUID(),
               };
 
               if ([DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE].includes(customScope)) {
@@ -871,8 +871,8 @@ describe("Authorisation API v3 (e2e)", () => {
                 authorisationApiV3Url,
                 {
                   ...ebsiEnvConfig,
-                  skipValidation: true,
                   nonce: randomUUID(),
+                  skipValidation: true,
 
                   ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
                     ? {
@@ -890,11 +890,11 @@ describe("Authorisation API v3 (e2e)", () => {
                 .send(
                   new URLSearchParams({
                     grant_type: "vp_token",
-                    scope,
-                    vp_token: vpJwt,
                     presentation_submission: JSON.stringify(
                       presentationSubmission,
                     ),
+                    scope,
+                    vp_token: vpJwt,
                   } satisfies CreateAccessTokenDto).toString(),
                 );
 
@@ -910,20 +910,20 @@ describe("Authorisation API v3 (e2e)", () => {
               ).toBe("application/json; charset=utf-8");
 
               presentationSubmission = {
-                id: randomUUID(),
                 definition_id: "openid_presentation",
                 descriptor_map: [
                   {
+                    format: "jwt_vp",
                     id: "same-device-in-time-credential",
                     path: "$",
-                    format: "jwt_vp",
                     path_nested: {
-                      id: randomUUID(),
                       format: "jwt_vc",
+                      id: randomUUID(),
                       path: "$.verifiableCredential[1]", // no credential at this index
                     },
                   },
                 ],
+                id: randomUUID(),
               };
 
               vpJwt = await createVerifiablePresentationJwt(
@@ -932,8 +932,8 @@ describe("Authorisation API v3 (e2e)", () => {
                 authorisationApiV3Url,
                 {
                   ...ebsiEnvConfig,
-                  skipValidation: true,
                   nonce: randomUUID(),
+                  skipValidation: true,
 
                   ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
                     ? {
@@ -951,11 +951,11 @@ describe("Authorisation API v3 (e2e)", () => {
                 .send(
                   new URLSearchParams({
                     grant_type: "vp_token",
-                    scope,
-                    vp_token: vpJwt,
                     presentation_submission: JSON.stringify(
                       presentationSubmission,
                     ),
+                    scope,
+                    vp_token: vpJwt,
                   } satisfies CreateAccessTokenDto).toString(),
                 );
 
@@ -970,20 +970,20 @@ describe("Authorisation API v3 (e2e)", () => {
               ).toBe("application/json; charset=utf-8");
 
               presentationSubmission = {
-                id: randomUUID(),
                 definition_id: "openid_presentation",
                 descriptor_map: [
                   {
+                    format: "jwt_vp",
                     id: "same-device-in-time-credential",
                     path: "$.vp", // wrong path
-                    format: "jwt_vp",
                     path_nested: {
-                      id: randomUUID(),
                       format: "jwt_vc",
+                      id: randomUUID(),
                       path: "$.vc.verifiableCredential[0]", // wrong path
                     },
                   },
                 ],
+                id: randomUUID(),
               };
 
               vpJwt = await createVerifiablePresentationJwt(
@@ -992,8 +992,8 @@ describe("Authorisation API v3 (e2e)", () => {
                 authorisationApiV3Url,
                 {
                   ...ebsiEnvConfig,
-                  skipValidation: true,
                   nonce: randomUUID(),
+                  skipValidation: true,
 
                   ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
                     ? {
@@ -1011,11 +1011,11 @@ describe("Authorisation API v3 (e2e)", () => {
                 .send(
                   new URLSearchParams({
                     grant_type: "vp_token",
-                    scope,
-                    vp_token: vpJwt,
                     presentation_submission: JSON.stringify(
                       presentationSubmission,
                     ),
+                    scope,
+                    vp_token: vpJwt,
                   } satisfies CreateAccessTokenDto).toString(),
                 );
 
@@ -1035,8 +1035,8 @@ describe("Authorisation API v3 (e2e)", () => {
                 authorisationApiV3Url,
                 {
                   ...ebsiEnvConfig,
-                  skipValidation: true,
                   nonce: randomUUID(),
+                  skipValidation: true,
 
                   ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
                     ? {
@@ -1054,9 +1054,9 @@ describe("Authorisation API v3 (e2e)", () => {
                 .send(
                   qs.stringify({
                     grant_type: "vp_token",
+                    presentation_submission: presentationSubmission,
                     scope,
                     vp_token: vpJwt,
-                    presentation_submission: presentationSubmission,
                   }),
                 );
 
@@ -1076,8 +1076,8 @@ describe("Authorisation API v3 (e2e)", () => {
                 authorisationApiV3Url,
                 {
                   ...ebsiEnvConfig,
-                  skipValidation: true,
                   nonce: randomUUID(),
+                  skipValidation: true,
 
                   ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
                     ? {
@@ -1095,18 +1095,18 @@ describe("Authorisation API v3 (e2e)", () => {
                 .send(
                   new URLSearchParams({
                     grant_type: "vp_token",
+                    presentation_submission: JSON.stringify({ foo: "bar" }), // invalid json
                     scope,
                     vp_token: vpJwt,
-                    presentation_submission: JSON.stringify({ foo: "bar" }), // invalid json
                   } satisfies CreateAccessTokenDto).toString(),
                 );
 
               expect(response.body).toStrictEqual({
                 error: "invalid_request",
                 error_description: `Invalid Presentation Submission:
-- Validation error. Path: 'presentation_submission.id'. Reason: Required
 - Validation error. Path: 'presentation_submission.definition_id'. Reason: Required
-- Validation error. Path: 'presentation_submission.descriptor_map'. Reason: Required`,
+- Validation error. Path: 'presentation_submission.descriptor_map'. Reason: Required
+- Validation error. Path: 'presentation_submission.id'. Reason: Required`,
               });
               expect(response.status).toBe(400);
               expect(
@@ -1136,8 +1136,8 @@ describe("Authorisation API v3 (e2e)", () => {
                 authorisationApiV3Url,
                 {
                   ...ebsiEnvConfig,
-                  skipValidation: true,
                   nonce,
+                  skipValidation: true,
 
                   ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
                     ? {
@@ -1154,9 +1154,9 @@ describe("Authorisation API v3 (e2e)", () => {
                 .set("Content-Type", "application/json")
                 .send({
                   grant_type: "vp_token",
+                  presentation_submission: presentationSubmission,
                   scope,
                   vp_token: vpJwt,
-                  presentation_submission: presentationSubmission,
                 });
 
               expect(response.body).toStrictEqual({
@@ -1202,8 +1202,8 @@ describe("Authorisation API v3 (e2e)", () => {
                 authorisationApiV3Url,
                 {
                   ...ebsiEnvConfig,
-                  skipValidation: true,
                   nonce,
+                  skipValidation: true,
 
                   ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
                     ? {
@@ -1221,11 +1221,11 @@ describe("Authorisation API v3 (e2e)", () => {
                 .send(
                   new URLSearchParams({
                     grant_type: "vp_token",
-                    scope,
-                    vp_token: vpJwt,
                     presentation_submission: JSON.stringify(
                       presentationSubmission,
                     ),
+                    scope,
+                    vp_token: vpJwt,
                   } satisfies CreateAccessTokenDto).toString(),
                 );
 
@@ -1296,8 +1296,8 @@ describe("Authorisation API v3 (e2e)", () => {
                 iat: expect.any(Number),
                 iss: authorisationApiV3Url,
                 jti: expect.any(String),
-                sub: client.did,
                 nonce,
+                sub: client.did,
               });
 
               await expect(

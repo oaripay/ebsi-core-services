@@ -1,59 +1,37 @@
+import type { PresentationDefinitionV2 } from "@sphereon/pex-models";
+
+import { Accepts } from "@ebsiint-api/shared";
 import {
+  Body,
   Controller,
   Get,
+  Header,
+  Headers,
   HttpCode,
   Post,
   Query,
-  Body,
-  Headers,
-  Header,
 } from "@nestjs/common";
-import type { PresentationDefinitionV2 } from "@sphereon/pex-models";
-import { Accepts } from "@ebsiint-api/shared";
-import { AuthorisationService } from "./authorisation.service.js";
+
 import type {
   JsonWebKeySet,
   OPMetadata,
   TokenResponse,
 } from "./authorisation.interfaces.js";
+
+import { CUSTOM_SCOPES } from "./authorisation.constants.js";
+import { AuthorisationService } from "./authorisation.service.js";
 import { GetPresentationDefinitionsDto } from "./dto/index.js";
 import { OAuth2TokenError } from "./errors/index.js";
-import { CUSTOM_SCOPES } from "./authorisation.constants.js";
 
 @Controller("/")
 export class AuthorisationController {
   constructor(private authorisationService: AuthorisationService) {}
 
-  @Get("/.well-known/openid-configuration")
   @Accepts("application/json")
-  @HttpCode(200)
-  getOPMetadata(): OPMetadata {
-    return this.authorisationService.getOPMetadata();
-  }
-
-  @Get("/jwks")
-  @Accepts("application/jwk-set+json")
-  @HttpCode(200)
-  @Header("Content-type", "application/jwk-set+json")
-  getJwks(): Promise<JsonWebKeySet> {
-    return this.authorisationService.getJwks();
-  }
-
-  @Get("/presentation-definitions")
-  @Accepts("application/json")
-  @HttpCode(200)
-  getPresentationDefinitions(
-    @Query() { scope }: GetPresentationDefinitionsDto,
-  ): PresentationDefinitionV2 {
-    const customScope = scope.split(" ")[1] as (typeof CUSTOM_SCOPES)[number];
-    return this.authorisationService.getPresentationDefinitions(customScope);
-  }
-
-  @Post("/token")
-  @Accepts("application/json")
-  @HttpCode(200)
   @Header("Cache-Control", "no-store")
   @Header("Pragma", "no-cache")
+  @HttpCode(200)
+  @Post("/token")
   createAccessToken(
     @Headers("content-type") contentType: string | undefined,
     @Body() body: unknown, // Validate DTO within the service method so we can properly handle the error response
@@ -61,8 +39,7 @@ export class AuthorisationController {
     // Only accept application/x-www-form-urlencoded
     // https://openid.net/specs/openid-connect-core-1_0.html#TokenRequest
     if (
-      !contentType ||
-      !contentType.toLowerCase().includes("application/x-www-form-urlencoded")
+      !contentType?.toLowerCase().includes("application/x-www-form-urlencoded")
     ) {
       throw new OAuth2TokenError("invalid_request", {
         errorDescription:
@@ -71,6 +48,31 @@ export class AuthorisationController {
     }
 
     return this.authorisationService.createAccessToken(body);
+  }
+
+  @Accepts("application/jwk-set+json")
+  @Get("/jwks")
+  @Header("Content-type", "application/jwk-set+json")
+  @HttpCode(200)
+  getJwks(): Promise<JsonWebKeySet> {
+    return this.authorisationService.getJwks();
+  }
+
+  @Accepts("application/json")
+  @Get("/.well-known/openid-configuration")
+  @HttpCode(200)
+  getOPMetadata(): OPMetadata {
+    return this.authorisationService.getOPMetadata();
+  }
+
+  @Accepts("application/json")
+  @Get("/presentation-definitions")
+  @HttpCode(200)
+  getPresentationDefinitions(
+    @Query() { scope }: GetPresentationDefinitionsDto,
+  ): PresentationDefinitionV2 {
+    const customScope = scope.split(" ")[1] as (typeof CUSTOM_SCOPES)[number];
+    return this.authorisationService.getPresentationDefinitions(customScope);
   }
 }
 

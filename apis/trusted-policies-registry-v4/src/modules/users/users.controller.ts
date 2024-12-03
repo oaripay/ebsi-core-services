@@ -1,13 +1,14 @@
+import { Accepts, PaginatedListWithoutTotal } from "@ebsiint-api/shared";
 import { Controller, Get, Param, Query } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { Accepts, PaginatedListWithoutTotal } from "@ebsiint-api/shared";
-import { UsersService } from "./users.service.js";
+
+import type { ApiConfig } from "../../config/configuration.js";
+
+import { User_filter } from "../../../.graphclient/index.js";
+import { GetUserParams, GetUsersQuery } from "./dto/index.js";
 import { formatUsers } from "./users.formatter.js";
 import { UserLink, UserResponseObject } from "./users.interface.js";
-import type { ApiConfig } from "../../config/configuration.js";
-import { GetUserParams, GetUsersQuery } from "./dto/index.js";
-// eslint-disable-next-line import/extensions, import/no-relative-packages
-import { User_filter } from "../../../.graphclient/index.js";
+import { UsersService } from "./users.service.js";
 
 @Controller("/users")
 export class UsersController {
@@ -16,8 +17,14 @@ export class UsersController {
     private configService: ConfigService<ApiConfig, true>,
   ) {}
 
-  @Get("")
   @Accepts("application/json")
+  @Get("/:user")
+  async getUser(@Param() params: GetUserParams): Promise<UserResponseObject> {
+    return this.usersService.getUser(params.user);
+  }
+
+  @Accepts("application/json")
+  @Get("")
   async getUsers(
     @Query() query: GetUsersQuery,
   ): Promise<PaginatedListWithoutTotal<UserLink>> {
@@ -38,7 +45,7 @@ export class UsersController {
     const baseUrl = `${domain}${apiUrlPrefix}/users`;
 
     const searchParams = new URLSearchParams();
-    Object.keys(query).forEach((k) => {
+    for (const k of Object.keys(query)) {
       const key = k as keyof GetUsersQuery;
       if (
         query[key] !== undefined &&
@@ -47,8 +54,9 @@ export class UsersController {
       ) {
         searchParams.append(key, query[key]);
       }
-    });
-    const extraQuery = searchParams.size ? `&${searchParams.toString()}` : "";
+    }
+    const extraQuery =
+      searchParams.size > 0 ? `&${searchParams.toString()}` : "";
 
     return formatUsers(
       users,
@@ -57,12 +65,6 @@ export class UsersController {
       baseUrl,
       extraQuery,
     );
-  }
-
-  @Get("/:user")
-  @Accepts("application/json")
-  async getUser(@Param() params: GetUserParams): Promise<UserResponseObject> {
-    return this.usersService.getUser(params.user);
   }
 }
 

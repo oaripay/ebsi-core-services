@@ -1,12 +1,14 @@
+import type { FastifyRequest } from "fastify";
+
 import {
-  Injectable,
   CanActivate,
   ExecutionContext,
+  Injectable,
   Logger,
 } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
-import type { FastifyRequest } from "fastify";
 import "@fastify/accepts"; // Required to have proper types on `request.accepts()`.
+
 import { NotAcceptableError } from "../errors/NotAcceptableError.js";
 
 @Injectable()

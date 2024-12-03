@@ -1,22 +1,22 @@
-import {
-  IsOptional,
-  IsISO8601,
-  Matches,
-  IsHexadecimal,
-  Length,
-} from "class-validator";
 import { PaginationQuery } from "@ebsiint-api/shared";
+import {
+  IsHexadecimal,
+  IsISO8601,
+  IsOptional,
+  Length,
+  Matches,
+} from "class-validator";
 
 export class GetSchemaRevisionsQuery extends PaginationQuery {
-  @IsOptional()
-  @IsISO8601()
-  "valid-at"?: string;
-
-  @IsOptional()
-  @Matches(/^0x/, { message: "metadata-id must start with 0x" })
   @IsHexadecimal()
+  @IsOptional()
   @Length(66, 66)
+  @Matches(/^0x/, { message: "metadata-id must start with 0x" })
   "metadata-id": string;
+
+  @IsISO8601()
+  @IsOptional()
+  "valid-at"?: string;
 }
 
 export default GetSchemaRevisionsQuery;

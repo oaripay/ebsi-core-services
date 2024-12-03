@@ -9,7 +9,7 @@ task("deploy", "Deploy contract Track And Trace")
         admin: string;
         upgrader: string;
       },
-      { ethers, upgrades, run },
+      { ethers, run, upgrades },
     ) => {
       // compile
       await run("compile", { quiet: true });

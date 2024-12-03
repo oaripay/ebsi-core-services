@@ -1,16 +1,18 @@
+import type { PolicyRegistry__factory } from "@ebsiint-sc/trusted-policies-registry";
+
 import { ethers } from "hardhat";
 
 async function main() {
   const paginationFactory = await ethers.getContractFactory("Pagination", {});
   const pagination = await paginationFactory.deploy();
-  const policyRegistryFactory = await ethers.getContractFactory(
+  const policyRegistryFactory = (await ethers.getContractFactory(
     "PolicyRegistry",
     {
       libraries: {
         Pagination: pagination.address,
       },
     },
-  );
+  )) as PolicyRegistry__factory;
   const policyContract = await policyRegistryFactory.deploy();
   await policyContract.deployed();
 
@@ -41,9 +43,9 @@ async function main() {
 
   const contractFactory = await ethers.getContractFactory("DidRegistry", {
     libraries: {
-      HashAlgoLib: hashAlgoLib.address,
-      DidTimestampLib: didTimestampLib.address,
       DidRecordLib: didRecordLib.address,
+      DidTimestampLib: didTimestampLib.address,
+      HashAlgoLib: hashAlgoLib.address,
       PolicyLib: policyLib.address,
     },
   });
@@ -52,7 +54,9 @@ async function main() {
   await didContract.setTrustedPoliciesRegistryAddress();
 
   console.log("DID Registry deployed at :", didContract.address);
-  console.log(`Contract version set to: ${await didContract.version()}`);
+  console.log(
+    `Contract version set to: ${(await didContract.version()).toString()}`,
+  );
 }
 
 main()

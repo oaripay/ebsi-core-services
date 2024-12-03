@@ -1,9 +1,15 @@
-import { randomBytes } from "node:crypto";
-import { ethers, network, upgrades } from "hardhat";
-import { Contract, ContractFactory } from "ethers";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+
 import { expect } from "chai";
-import { TrustedSchemasRegistry } from "../src/types";
+import { ethers, network, upgrades } from "hardhat";
+import { randomBytes } from "node:crypto";
+
+import type {
+  TrustedPoliciesRegistryMock,
+  TrustedSchemasRegistry,
+  TrustedSchemasRegistry__factory,
+} from "../src/types";
+
 import { testTprAddress } from "./testAddress";
 
 function randomBytesHex(length: number) {
@@ -11,14 +17,14 @@ function randomBytesHex(length: number) {
 }
 
 describe("Trusted Schemas Registry", () => {
-  let tsr: Contract;
-  let tprMock: Contract;
-  let contractFactory: ContractFactory;
+  let tsr: TrustedSchemasRegistry;
+  let tprMock: TrustedPoliciesRegistryMock;
+  let contractFactory: TrustedSchemasRegistry__factory;
   let upgrader: SignerWithAddress;
   let admin: SignerWithAddress;
 
   before(async () => {
-    [upgrader, admin] = (await ethers.getSigners()) as SignerWithAddress[];
+    [upgrader, admin] = await ethers.getSigners();
     const policyRegistryFactory = await ethers.getContractFactory(
       "TrustedPoliciesRegistryMock",
     );

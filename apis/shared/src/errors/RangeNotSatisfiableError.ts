@@ -5,9 +5,9 @@ import { ProblemDetailsError } from "./ProblemDetailsError.js";
  */
 
 export class RangeNotSatisfiableError extends ProblemDetailsError {
-  static statusCode = 416;
-
   static defaultTitle = "Range Not Satisfiable";
+
+  static statusCode = 416;
 
   /**
    * @param title A short, human-readable summary of the problem type. It SHOULD NOT change from occurrence to occurrence of the problem, except for purposes of localization.
@@ -20,10 +20,10 @@ export class RangeNotSatisfiableError extends ProblemDetailsError {
   constructor(
     title: string = RangeNotSatisfiableError.defaultTitle,
     options?: {
-      type?: string;
       detail?: string;
-      instance?: string;
       extensions?: Record<string, unknown>;
+      instance?: string;
+      type?: string;
     },
   ) {
     super(RangeNotSatisfiableError.statusCode, title, options);

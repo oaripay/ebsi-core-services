@@ -1,14 +1,16 @@
-import { Controller, Get, Query, Param } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
 import { Accepts, PaginatedList } from "@ebsiint-api/shared";
-import TimestampsService from "./timestamps.service.js";
+import { Controller, Get, Param, Query } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+
+import type { ApiConfig } from "../../config/configuration.js";
+
+import { GetTimestampDto, GetTimestampsDto } from "./dto/index.js";
 import { formatTimestamps } from "./timestamps.formatter.js";
 import {
   TimestampLink,
   TimestampResponseObject,
 } from "./timestamps.interface.js";
-import type { ApiConfig } from "../../config/configuration.js";
-import { GetTimestampsDto, GetTimestampDto } from "./dto/index.js";
+import TimestampsService from "./timestamps.service.js";
 
 @Controller("/timestamps")
 export default class TimestampsController {
@@ -17,8 +19,17 @@ export default class TimestampsController {
     private configService: ConfigService<ApiConfig, true>,
   ) {}
 
-  @Get("")
   @Accepts("application/json")
+  @Get("/:timestampId")
+  async getTimestamp(
+    @Param() params: GetTimestampDto,
+  ): Promise<TimestampResponseObject> {
+    const { timestampId } = params;
+    return this.timestampsService.getTimestamp(timestampId);
+  }
+
+  @Accepts("application/json")
+  @Get("")
   async getTimestamps(
     @Query() query: GetTimestampsDto,
   ): Promise<PaginatedList<TimestampLink>> {
@@ -35,14 +46,5 @@ export default class TimestampsController {
     const baseUrl = `${domain}${apiUrlPrefix}/timestamps`;
 
     return formatTimestamps(timestamps, pageAfter, pageSize, baseUrl);
-  }
-
-  @Get("/:timestampId")
-  @Accepts("application/json")
-  async getTimestamp(
-    @Param() params: GetTimestampDto,
-  ): Promise<TimestampResponseObject> {
-    const { timestampId } = params;
-    return this.timestampsService.getTimestamp(timestampId);
   }
 }

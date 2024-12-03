@@ -1,36 +1,39 @@
-import {
-  Controller,
-  Get,
-  Query,
-  Param,
-  Headers,
-  Res,
-  Post,
-  Body,
-  HttpCode,
-} from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
 import type { FastifyReply } from "fastify";
+
 import {
   Accepts,
+  getErrorMessage,
   InvalidRequestJsonRpcError,
   PaginatedListWithoutTotal,
-  getErrorMessage,
 } from "@ebsiint-api/shared";
-import IdentifiersService from "./identifiers.service.js";
+import {
+  Body,
+  Controller,
+  Get,
+  Headers,
+  HttpCode,
+  Param,
+  Post,
+  Query,
+  Res,
+} from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+
+import type { ApiConfig } from "../../config/configuration.js";
+
+import {
+  GetIdentifierParamsDto,
+  GetIdentifierQueryDto,
+  GetIdentifiersDto,
+} from "./dto/index.js";
 import { formatEvents, formatIdentifiers } from "./identifiers.formatter.js";
 import {
   DidLink,
   Event,
   JsonRpcResponseObject,
 } from "./identifiers.interface.js";
-import {
-  GetIdentifierParamsDto,
-  GetIdentifierQueryDto,
-  GetIdentifiersDto,
-} from "./dto/index.js";
-import type { ApiConfig } from "../../config/configuration.js";
-import jsonRpcSchema from "./validators/JsonRpcSchema.js";
+import IdentifiersService from "./identifiers.service.js";
+import { jsonRpcSchema } from "./validators/JsonRpcSchema.js";
 
 @Controller("/identifiers")
 export default class IdentifiersController {
@@ -39,47 +42,8 @@ export default class IdentifiersController {
     private configService: ConfigService<ApiConfig, true>,
   ) {}
 
-  @Get("")
-  @Accepts("application/json")
-  async getIdentifiers(
-    @Query() query: GetIdentifiersDto,
-  ): Promise<PaginatedListWithoutTotal<DidLink>> {
-    const identifiers = await this.identifiersService.getIdentifiers(
-      query["page[after]"],
-      query["page[size]"],
-      query.controller,
-      query["verification-method-id"],
-      query["verification-relationship"],
-    );
-
-    const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
-    const domain = this.configService.get<string>("domain");
-    const baseUrl = `${domain}${apiUrlPrefix}/identifiers`;
-
-    const searchParams = new URLSearchParams();
-    Object.keys(query).forEach((k) => {
-      const key = k as keyof GetIdentifiersDto;
-      if (
-        query[key] !== undefined &&
-        key !== "page[after]" &&
-        key !== "page[size]"
-      ) {
-        searchParams.append(key, query[key]!);
-      }
-    });
-    const extraQuery = searchParams.size ? `&${searchParams.toString()}` : "";
-
-    return formatIdentifiers(
-      identifiers,
-      query["page[after]"],
-      query["page[size]"],
-      baseUrl,
-      extraQuery,
-    );
-  }
-
-  @Get("/:did")
   @Accepts("application/did+ld+json", "application/did+json")
+  @Get("/:did")
   async getDidDocument(
     @Param() params: GetIdentifierParamsDto,
     @Query() query: GetIdentifierQueryDto,
@@ -101,8 +65,8 @@ export default class IdentifiersController {
     return res.type("application/did+ld+json").send(didDocument);
   }
 
-  @Get("/:did/events")
   @Accepts("application/json")
+  @Get("/:did/events")
   async getDidDocumentEvents(
     @Param() params: GetIdentifierParamsDto,
     @Query() query: GetIdentifiersDto,
@@ -127,8 +91,49 @@ export default class IdentifiersController {
     );
   }
 
-  @HttpCode(200)
   @Accepts("application/json")
+  @Get("")
+  async getIdentifiers(
+    @Query() query: GetIdentifiersDto,
+  ): Promise<PaginatedListWithoutTotal<DidLink>> {
+    const identifiers = await this.identifiersService.getIdentifiers(
+      query["page[after]"],
+      query["page[size]"],
+      query.controller,
+      query["verification-method-id"],
+      query["verification-relationship"],
+    );
+
+    const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
+    const domain = this.configService.get<string>("domain");
+    const baseUrl = `${domain}${apiUrlPrefix}/identifiers`;
+
+    const searchParams = new URLSearchParams();
+    for (const k of Object.keys(query)) {
+      const key = k as keyof GetIdentifiersDto;
+      if (
+        query[key] !== undefined &&
+        key !== "page[after]" &&
+        key !== "page[size]"
+      ) {
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+        searchParams.append(key, query[key]!);
+      }
+    }
+    const extraQuery =
+      searchParams.size > 0 ? `&${searchParams.toString()}` : "";
+
+    return formatIdentifiers(
+      identifiers,
+      query["page[after]"],
+      query["page[size]"],
+      baseUrl,
+      extraQuery,
+    );
+  }
+
+  @Accepts("application/json")
+  @HttpCode(200)
   @Post("/:did/actions")
   async processAction(
     @Param() params: GetIdentifierParamsDto,
@@ -137,6 +142,7 @@ export default class IdentifiersController {
     if (!unsafeBody || typeof unsafeBody !== "object") {
       throw new InvalidRequestJsonRpcError(
         "JSON-RPC payload must be an object",
+        // eslint-disable-next-line unicorn/no-null
         null,
       );
     }
@@ -146,6 +152,7 @@ export default class IdentifiersController {
     if (!parsedBody.success) {
       throw new InvalidRequestJsonRpcError(
         getErrorMessage(parsedBody.error),
+        // eslint-disable-next-line unicorn/no-null
         null,
       );
     }
@@ -153,7 +160,10 @@ export default class IdentifiersController {
     const body = parsedBody.data;
 
     const { did } = params;
-    const { method, id: requestId } = body;
+    const { id: requestId, method } = body;
+    // "id": An identifier established by the Client that MUST contain a String, Number, or NULL value if included. If it is not included it is assumed to be a notification.
+    // See https://www.jsonrpc.org/specification#request_object
+    // eslint-disable-next-line unicorn/no-null
     const id = requestId ?? null;
 
     switch (method) {
@@ -163,14 +173,15 @@ export default class IdentifiersController {
           body,
           id,
         );
-        return { jsonrpc: "2.0", id, result };
+        return { id, jsonrpc: "2.0", result };
       }
 
-      default:
+      default: {
         throw new InvalidRequestJsonRpcError(
           `The method '${method}' is invalid`,
           id,
         );
+      }
     }
   }
 }

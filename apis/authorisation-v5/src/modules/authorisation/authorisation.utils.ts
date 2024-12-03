@@ -1,5 +1,6 @@
-import { validateSync } from "class-validator";
 import { type ClassConstructor, ClassTransformer } from "class-transformer";
+import { validateSync } from "class-validator";
+
 import { ClassValidatorError } from "./errors/index.js";
 
 /**

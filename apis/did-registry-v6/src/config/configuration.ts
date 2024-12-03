@@ -5,13 +5,13 @@ import Joi from "joi";
 export interface ApiConfig {
   apiPort: number;
   apiUrlPrefix: string;
+  axiosRetryDelay: number;
+  dockerContainerTag: string;
   domain: string;
   localOrigin: string;
-  logLevel: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
-  axiosRetryDelay: number;
-  testUserDid: string;
+  logLevel: "debug" | "error" | "info" | "silent" | "verbose" | "warn";
   testSpecificNodeDomain: string | undefined;
-  dockerContainerTag: string;
+  testUserDid: string;
 }
 
 export const DEPENDENCIES = {} as const;
@@ -23,15 +23,18 @@ export const loadConfig = (): ApiConfig => {
   const { DOMAIN } = process.env;
 
   return {
-    apiPort: parseInt(process.env.API_PORT || "3000", 10),
-    apiUrlPrefix: process.env.API_URL_PREFIX || "/did-registry/v6",
+    apiPort: Number.parseInt(process.env.API_PORT ?? "3000", 10),
+    apiUrlPrefix: process.env.API_URL_PREFIX ?? "/did-registry/v6",
+    axiosRetryDelay: Number.parseInt(
+      process.env.AXIOS_RETRY_DELAY ?? "10000",
+      10,
+    ),
+    dockerContainerTag: process.env.DOCKER_TAG ?? "",
     domain: DOMAIN,
-    localOrigin: process.env.LOCAL_ORIGIN || "",
-    logLevel: process.env.LOG_LEVEL || "warn",
-    axiosRetryDelay: parseInt(process.env.AXIOS_RETRY_DELAY || "10000", 10),
-    testUserDid: process.env.TEST_USER_DID || "",
+    localOrigin: process.env.LOCAL_ORIGIN ?? "",
+    logLevel: process.env.LOG_LEVEL ?? "warn",
     testSpecificNodeDomain: process.env.TEST_SPECIFIC_NODE_DOMAIN,
-    dockerContainerTag: process.env.DOCKER_TAG || "",
+    testUserDid: process.env.TEST_USER_DID ?? "",
   };
 };
 
@@ -44,12 +47,14 @@ export const ApiConfigModule = ConfigModule.forRoot({
   ],
   load: [loadConfig],
   validationSchema: Joi.object<typeof process.env, true>({
-    // Common API variables
-    NODE_ENV: Joi.string()
-      .valid("development", "production", "test")
-      .default("development"),
     API_PORT: Joi.string().default("3000"),
     API_URL_PREFIX: Joi.string(),
+    AXIOS_RETRY_DELAY: Joi.string(),
+    DOCKER_TAG: Joi.string(),
+    // DID Registry specific variables
+    DOMAIN: Joi.string().uri().required(),
+    GRAPHQL_ENDPOINT: Joi.string().uri().required(),
+    LOCAL_ORIGIN: Joi.string().uri(),
     LOG_LEVEL: Joi.string().valid(
       "silent",
       "error",
@@ -58,15 +63,13 @@ export const ApiConfigModule = ConfigModule.forRoot({
       "verbose",
       "debug",
     ),
-    DOCKER_TAG: Joi.string(),
-    GRAPHQL_ENDPOINT: Joi.string().uri().required(),
-    // DID Registry specific variables
-    DOMAIN: Joi.string().uri().required(),
-    LOCAL_ORIGIN: Joi.string().uri(),
-    AXIOS_RETRY_DELAY: Joi.string(),
-    TEST_USER_DID: Joi.string(),
+    // Common API variables
+    NODE_ENV: Joi.string()
+      .valid("development", "production", "test")
+      .default("development"),
     TEST_ENV: Joi.string(),
     TEST_SPECIFIC_NODE_DOMAIN: Joi.string().uri(),
+    TEST_USER_DID: Joi.string(),
     // Generic variables
     TZ: Joi.string(),
   }),

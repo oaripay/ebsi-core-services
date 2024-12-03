@@ -1,10 +1,12 @@
-import { z } from "zod";
-import { isDidV1 } from "@ebsiint-api/shared";
 import type { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
+
+import { isDidV1 } from "@ebsiint-api/shared";
 import validator from "validator";
-import { jsonRpcSchema } from "./JsonRpcSchema.js";
-import { baseParamSchema } from "./BaseParamSchema.js";
+import { z } from "zod";
+
 import { isIssuerProxy } from "../../../shared/validators/isIssuerProxy.js";
+import { baseParamSchema } from "./BaseParamSchema.js";
+import { jsonRpcSchema } from "./JsonRpcSchema.js";
 
 const { isHexadecimal } = validator.default;
 
@@ -26,12 +28,6 @@ export const createUpdateIssuerProxySchema = (
         }
       }),
 
-      proxyId: z
-        .string()
-        .startsWith("0x", "Must be prefixed with 0x")
-        .length(66) // 2 -> "0x" + 64 -> sha256
-        .refine(isHexadecimal, { message: "Must be hexadecimal" }),
-
       proxyData: z.string().superRefine(async (val, ctx) => {
         const proxyValidation = await isIssuerProxy(
           val,
@@ -46,6 +42,12 @@ export const createUpdateIssuerProxySchema = (
           });
         }
       }),
+
+      proxyId: z
+        .string()
+        .startsWith("0x", "Must be prefixed with 0x")
+        .length(66) // 2 -> "0x" + 64 -> sha256
+        .refine(isHexadecimal, { message: "Must be hexadecimal" }),
     }),
   );
 

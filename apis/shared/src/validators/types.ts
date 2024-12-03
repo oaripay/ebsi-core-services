@@ -1,8 +1,8 @@
 export type ValidationResult =
   | {
-      success: true;
+      error: string;
+      success: false;
     }
   | {
-      success: false;
-      error: string;
+      success: true;
     };

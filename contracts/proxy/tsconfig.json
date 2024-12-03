@@ -7,7 +7,7 @@
     "removeComments": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "target": "es2018",
+    "target": "es2021",
     "sourceMap": true,
     "outDir": "./dist",
     "baseUrl": "./",
@@ -16,7 +16,5 @@
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true
-  },
-  "include": ["./scripts", "./test", "src/types"],
-  "exclude": ["node_modules", "artifacts", "cache", "dist"]
+  }
 }

@@ -1,10 +1,12 @@
-import { Controller, Head, Get, HttpCode, Query } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
 import { Accepts, paginate } from "@ebsiint-api/shared";
-import AccessesService from "./accesses.service.js";
-import { HeadAccessesDto, SubjectAccessesDto } from "./dto/index.js";
+import { Controller, Get, Head, HttpCode, Query } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+
 import type { ApiConfig } from "../../config/configuration.js";
 import type { Access } from "./accesses.interface.js";
+
+import AccessesService from "./accesses.service.js";
+import { HeadAccessesDto, SubjectAccessesDto } from "./dto/index.js";
 
 @Controller("/accesses")
 export default class AccessesController {
@@ -13,18 +15,10 @@ export default class AccessesController {
     private configService: ConfigService<ApiConfig, true>,
   ) {}
 
-  @Head("")
-  @HttpCode(204)
-  async isCreator(@Query() query: HeadAccessesDto): Promise<void> {
-    const { creator } = query;
-
-    await this.accessesService.isCreator(creator);
-  }
-
-  @Get("")
   @Accepts("application/json")
+  @Get("")
   async getAccessesBySubject(@Query() query: SubjectAccessesDto) {
-    const { subject, "page[after]": pageAfter, "page[size]": pageSize } = query;
+    const { "page[after]": pageAfter, "page[size]": pageSize, subject } = query;
     const allItems = await this.accessesService.getAccessesBySubject(subject);
     const total = allItems.length;
     const items = allItems.slice(
@@ -44,5 +38,13 @@ export default class AccessesController {
       pageSize,
       `&subject=${query.subject}`,
     );
+  }
+
+  @Head("")
+  @HttpCode(204)
+  async isCreator(@Query() query: HeadAccessesDto): Promise<void> {
+    const { creator } = query;
+
+    await this.accessesService.isCreator(creator);
   }
 }

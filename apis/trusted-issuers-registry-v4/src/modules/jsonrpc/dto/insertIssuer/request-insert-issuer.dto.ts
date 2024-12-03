@@ -1,11 +1,12 @@
-import {
-  IsArray,
-  Equals,
-  ValidateNested,
-  ArrayMinSize,
-  ArrayMaxSize,
-} from "class-validator";
 import { Type } from "class-transformer";
+import {
+  ArrayMaxSize,
+  ArrayMinSize,
+  Equals,
+  IsArray,
+  ValidateNested,
+} from "class-validator";
+
 import { JsonRpcDto } from "../jsonrpc.dto.js";
 import { InsertIssuerParam } from "./insert-issuer-param.dto.js";
 

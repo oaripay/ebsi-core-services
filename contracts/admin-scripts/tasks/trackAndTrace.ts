@@ -1,4 +1,7 @@
 import { task } from "hardhat/config";
+
+import type { TrackAndTrace } from "../src/types/contracts/track-and-trace";
+
 import { Settings } from "../utils/settings";
 
 task("trackAndTrace", "Deploy contract Track And Trace")
@@ -10,11 +13,11 @@ task("trackAndTrace", "Deploy contract Track And Trace")
     async (
       taskArgs: {
         admin: string;
-        upgrader: string;
-        tpr: string;
         registry: string;
+        tpr: string;
+        upgrader: string;
       },
-      { ethers, upgrades, run },
+      { ethers, run, upgrades },
     ) => {
       // compile
       await run("compile", { quiet: true });
@@ -53,7 +56,7 @@ task("trackAndTrace", "Deploy contract Track And Trace")
   );
 
 task("trackAndTraceUpgrade", "Deploy contract Track And Trace").setAction(
-  async (taskArgs: NonNullable<unknown>, { ethers, upgrades, run }) => {
+  async (_, { ethers, run, upgrades }) => {
     // compile
     await run("compile", { force: true });
 
@@ -80,11 +83,11 @@ task("trackAndTraceUpgrade", "Deploy contract Track And Trace").setAction(
     console.log(`factory loaded`);
 
     // deploy
-    const trackAndTrace = await upgrades.upgradeProxy(
+    const trackAndTrace = (await upgrades.upgradeProxy(
       proxyAddress,
       trackAndTraceFactory,
-      { unsafeAllowLinkedLibraries: true, redeployImplementation: "always" },
-    );
+      { redeployImplementation: "always", unsafeAllowLinkedLibraries: true },
+    )) as TrackAndTrace;
 
     console.log(
       `TrackAndTrace contract upgraded to ${await trackAndTrace.getImplementation()}`,
@@ -97,7 +100,7 @@ task(
   "Deploy contract Track And Trace and reinitialize with v2",
 )
   .addParam("tpr", "Tpr Proxy Address")
-  .setAction(async (taskArgs: { tpr: string }, { ethers, upgrades, run }) => {
+  .setAction(async (taskArgs: { tpr: string }, { ethers, run, upgrades }) => {
     // compile
     await run("compile", { force: true });
 
@@ -125,14 +128,14 @@ task(
     console.log(`factory loaded`);
 
     // deploy
-    const trackAndTrace = await upgrades.upgradeProxy(
+    const trackAndTrace = (await upgrades.upgradeProxy(
       proxyAddress,
       trackAndTraceFactory,
       {
-        unsafeAllowLinkedLibraries: true,
         redeployImplementation: "always",
+        unsafeAllowLinkedLibraries: true,
       },
-    );
+    )) as TrackAndTrace;
     console.log(
       `new contract deployed, beginning reinit with tpr address ${taskArgs.tpr}`,
     );

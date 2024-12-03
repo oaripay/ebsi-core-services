@@ -4,30 +4,30 @@ import type { Network } from "@cef-ebsi/ebsi-uri";
 declare global {
   namespace NodeJS {
     interface ProcessEnv {
-      NODE_ENV: "development" | "production" | "test";
       API_PORT?: string;
       API_URL_PREFIX?: string;
-      LOG_LEVEL?: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
+      AXIOS_RETRY_DELAY?: string;
+      BESU_READINESS_ENDPOINT: string;
+      BESU_RPC_NODE: string;
+      BLOCKSCOUT_BEARER_TOKEN?: string;
+      BLOCKSCOUT_URL?: string;
+      CONTRACT_ADDR: string;
       DOCKER_TAG?: string;
       DOMAIN: string;
       LOCAL_ORIGIN?: string;
+      LOG_LEVEL?: "debug" | "error" | "info" | "silent" | "verbose" | "warn";
       NETWORK: Network;
-      TRUSTED_HOSTNAMES?: string;
+      NODE_ENV: "development" | "production" | "test";
       REQUEST_TIMEOUT?: string;
-      AXIOS_RETRY_DELAY?: string;
-      BESU_RPC_NODE: string;
-      BESU_READINESS_ENDPOINT: string;
-      CONTRACT_ADDR: string;
       // Tests
       TEST_ADMIN_KID: string;
       TEST_ADMIN_PRIVATE_KEY: string;
+      TEST_ENABLE_WRITE_OPS?: string;
+      TEST_ENV?: string;
+      TEST_SPECIFIC_NODE_DOMAIN?: string;
       TEST_USER_KID: string;
       TEST_USER_PRIVATE_KEY: string;
-      TEST_ENV?: string;
-      TEST_ENABLE_WRITE_OPS?: string;
-      TEST_SPECIFIC_NODE_DOMAIN?: string;
-      BLOCKSCOUT_URL?: string;
-      BLOCKSCOUT_BEARER_TOKEN?: string;
+      TRUSTED_HOSTNAMES?: string;
     }
   }
 

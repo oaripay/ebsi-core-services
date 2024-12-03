@@ -1,7 +1,8 @@
-import { task } from "hardhat/config";
-import "@nomiclabs/hardhat-waffle";
 import canonicalize from "canonicalize";
-import { readdir, readFile } from "fs/promises";
+import "@nomiclabs/hardhat-waffle";
+import { task } from "hardhat/config";
+import { readdir, readFile } from "node:fs/promises";
+
 import type { SchemaSCRegistry } from "../src/types";
 
 // follows ETH/BTC's BIP 39 protocol
@@ -31,30 +32,26 @@ task(
 
     const network = await ethers.provider.getNetwork();
 
-    // eslint-disable-next-line no-restricted-syntax
     for (const file of files) {
-      // eslint-disable-next-line no-continue
       if (file === ".git") continue;
-      // eslint-disable-next-line no-await-in-loop
+
       const jsonFile = await readFile(
         `${__dirname}/../schemas/json-schemas/${file}`,
       );
       const json = canonicalize(JSON.parse(jsonFile.toString()));
 
-      const schema = ethers.utils.toUtf8Bytes(json);
+      const schema = ethers.utils.toUtf8Bytes(json!);
       const schemaId = ethers.utils.sha256(schema);
-      const schemaHex = `0x${Buffer.from(
-        JSON.stringify(json),
-        "utf-8",
-      ).toString("hex")}`;
+      const schemaHex = `0x${Buffer.from(JSON.stringify(json), "utf8").toString(
+        "hex",
+      )}`;
 
       try {
-        // eslint-disable-next-line no-await-in-loop
         await (await tsr.insertSchema(schemaId, schemaHex, schema)).wait(1);
         console.log(
           `Schema ${file} registered on networkId ${network.chainId} at id: ${schemaId}`,
         );
-      } catch (e) {
+      } catch {
         console.log(
           `Schema ${file} already registered on networkId ${network.chainId} at id: ${schemaId}`,
         );

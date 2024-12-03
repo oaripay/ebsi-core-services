@@ -1,13 +1,14 @@
-import { randomUUID } from "node:crypto";
-import { URLSearchParams } from "node:url";
 import type { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
+
 import {
   createVerifiablePresentationJwt,
   type EbsiIssuer,
 } from "@cef-ebsi/verifiable-presentation";
-import axios from "axios";
 import { getPublicKeyJwk, getSigner } from "@ebsiint-api/shared";
+import axios from "axios";
 import { createJWT, hexToBytes } from "did-jwt";
+import { randomUUID } from "node:crypto";
+import { URLSearchParams } from "node:url";
 
 /**
  * Sign a "didr_invite" access token as the Authorisation API.
@@ -31,8 +32,8 @@ export async function getDidrInviteAccessToken(
     },
     {
       alg: "ES256",
-      typ: "JWT",
       kid: authApiKid,
+      typ: "JWT",
     },
   );
 
@@ -50,9 +51,9 @@ export async function getDidrWriteAccessToken(
   const nonce = randomUUID();
   const vpPayload = {
     "@context": ["https://www.w3.org/2018/credentials/v1"],
+    holder: issuer.did,
     type: ["VerifiablePresentation"],
     verifiableCredential: [],
-    holder: issuer.did,
   };
 
   const vpJwt = await createVerifiablePresentationJwt(
@@ -61,27 +62,27 @@ export async function getDidrWriteAccessToken(
     authorisationApiUrl,
     {
       ...ebsiEnvConfig,
-      skipValidation: true,
-      nonce,
       // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
       exp: Math.floor(Date.now() / 1000) + 100,
       nbf: Math.floor(Date.now() / 1000) - 100,
+      nonce,
+      skipValidation: true,
     },
   );
 
   const presentationSubmission = {
-    id: randomUUID(),
     definition_id: "didr_write_presentation",
     descriptor_map: [],
+    id: randomUUID(),
   };
 
   const response = await axios.post(
     `${authorisationApiUrl}/token`,
     new URLSearchParams({
       grant_type: "vp_token",
+      presentation_submission: JSON.stringify(presentationSubmission),
       scope: "openid didr_write",
       vp_token: vpJwt,
-      presentation_submission: JSON.stringify(presentationSubmission),
     }).toString(),
     {
       headers: {

@@ -1,14 +1,14 @@
-export interface GetSchemasResponse {
-  schemaId: string;
+export interface GetSchemaRevisionMetadataListResponse {
   href: string;
+  metadataId: string;
 }
 
 export interface GetSchemaRevisionsResponse {
-  schemaRevisionId: string;
   href: string;
+  schemaRevisionId: string;
 }
 
-export interface GetSchemaRevisionMetadataListResponse {
-  metadataId: string;
+export interface GetSchemasResponse {
   href: string;
+  schemaId: string;
 }

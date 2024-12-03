@@ -3,6 +3,8 @@
 //
 // When running the script with `hardhat run <script>` you'll find the Hardhat
 // Runtime Environment's members available in the global scope.
+import type { PolicyRegistry__factory } from "@ebsiint-sc/trusted-policies-registry";
+
 import { ethers } from "hardhat";
 
 async function main() {
@@ -15,14 +17,14 @@ async function main() {
 
   const paginationFactory = await ethers.getContractFactory("Pagination", {});
   const pagination = await paginationFactory.deploy();
-  const policyRegistryFactory = await ethers.getContractFactory(
+  const policyRegistryFactory = (await ethers.getContractFactory(
     "PolicyRegistry",
     {
       libraries: {
         Pagination: pagination.address,
       },
     },
-  );
+  )) as PolicyRegistry__factory;
   const policyContract = await policyRegistryFactory.deploy();
   await policyContract.deployed();
 
@@ -48,8 +50,8 @@ async function main() {
   const contractFactory = await ethers.getContractFactory("Timestamp", {
     libraries: {
       HashAlgoLib: haLib.address,
-      TimestampLib: tsLib.address,
       RecordLib: rsLib.address,
+      TimestampLib: tsLib.address,
     },
   });
 

@@ -1,21 +1,22 @@
-import {
-  assert,
-  describe,
-  test,
-  clearStore,
-  beforeAll,
-  afterAll,
-} from "matchstick-as/assembly/index";
 import { Bytes } from "@graphprotocol/graph-ts";
 import {
+  afterAll,
+  assert,
+  beforeAll,
+  clearStore,
+  describe,
+  test,
+} from "matchstick-as/assembly/index";
+
+import {
+  handleMetadataUpdated,
   handleSchemaInserted,
   handleSchemaUpdated,
-  handleMetadataUpdated,
 } from "../src/trusted-schemas-registry";
 import {
+  createMetadataUpdatedvent,
   createSchemaInsertedEvent,
   createSchemaUpdatedEvent,
-  createMetadataUpdatedvent,
 } from "./trusted-schemas-registry-utils";
 
 describe("Trusted Schemas Registry - entity assertions", () => {

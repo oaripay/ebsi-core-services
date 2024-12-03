@@ -1,9 +1,11 @@
-import { isDidV1 } from "@ebsiint-api/shared";
-import { z } from "zod";
-import validator from "validator";
 import type { Tir } from "@ebsiint-sc/trusted-issuers-registry-v3";
-import { jsonRpcSchema } from "./JsonRpcSchema.js";
+
+import { isDidV1 } from "@ebsiint-api/shared";
+import validator from "validator";
+import { z } from "zod";
+
 import { baseParamSchema } from "./BaseParamSchema.js";
+import { jsonRpcSchema } from "./JsonRpcSchema.js";
 
 const { isHexadecimal } = validator.default;
 
@@ -11,6 +13,17 @@ export const setAttributeDataSchema = (tir: Tir) =>
   baseParamSchema
     .merge(
       z.object({
+        attributeData: z
+          .string()
+          .startsWith("0x", "Must be prefixed with 0x")
+          .refine(isHexadecimal, { message: "Must be hexadecimal" }),
+
+        attributeId: z
+          .string()
+          .startsWith("0x", "Must be prefixed with 0x")
+          .length(66) // 2 -> "0x" + 64 -> sha256
+          .refine(isHexadecimal, { message: "Must be hexadecimal" }),
+
         did: z.string().superRefine((val, ctx) => {
           const didValidation = isDidV1(val);
           if (!didValidation.success) {
@@ -20,20 +33,9 @@ export const setAttributeDataSchema = (tir: Tir) =>
             });
           }
         }),
-
-        attributeId: z
-          .string()
-          .startsWith("0x", "Must be prefixed with 0x")
-          .length(66) // 2 -> "0x" + 64 -> sha256
-          .refine(isHexadecimal, { message: "Must be hexadecimal" }),
-
-        attributeData: z
-          .string()
-          .startsWith("0x", "Must be prefixed with 0x")
-          .refine(isHexadecimal, { message: "Must be hexadecimal" }),
       }),
     )
-    .superRefine(async ({ did, attributeId }, ctx) => {
+    .superRefine(async ({ attributeId, did }, ctx) => {
       try {
         const attr = await tir.getIssuerAttributeByHash(attributeId);
 

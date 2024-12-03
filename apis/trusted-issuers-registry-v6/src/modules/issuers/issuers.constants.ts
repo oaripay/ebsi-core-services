@@ -1,15 +1,17 @@
 export enum IssuerType {
-  Undefined = 0,
+  Revoked = 4,
   RootTAO = 1,
   TAO = 2,
   TI = 3,
-  Revoked = 4,
+  Undefined = 0,
 }
 
 export const IssuerTypeNames = [
-  "undefined",
+  "Undefined",
   "RootTAO",
   "TAO",
   "TI",
   "Revoked",
 ] as const;
+
+export type IssuerTypeValue = (typeof IssuerTypeNames)[number];

@@ -1,13 +1,13 @@
+import { Accepts } from "@ebsiint-api/shared";
 // For more info, read https://docs.nestjs.com/recipes/terminus
 import { Controller, Get } from "@nestjs/common";
-import { Accepts } from "@ebsiint-api/shared";
 import {
   HealthCheck,
-  HealthCheckService,
-  HealthCheckResult,
   HealthCheckError,
+  HealthCheckResult,
+  HealthCheckService,
 } from "@nestjs/terminus";
-// eslint-disable-next-line import/extensions, import/no-relative-packages
+
 import { getBuiltGraphSDK } from "../../../.graphclient/index.js";
 
 const sdk = getBuiltGraphSDK();
@@ -16,8 +16,8 @@ const sdk = getBuiltGraphSDK();
 export class HealthController {
   constructor(private health: HealthCheckService) {}
 
-  @Get()
   @Accepts("application/json")
+  @Get()
   @HealthCheck()
   check(): Promise<HealthCheckResult> {
     return this.health.check([
@@ -26,7 +26,7 @@ export class HealthController {
         try {
           const res = await sdk.GetBlockTimestamp();
           const now = Date.now();
-          // eslint-disable-next-line no-underscore-dangle
+
           const blockTimestamp = res._meta!.block.timestamp! * 1000;
           if (now - blockTimestamp <= 300_000) {
             return {
@@ -42,8 +42,8 @@ export class HealthController {
         }
         throw new HealthCheckError("health check error TSR", {
           "DIDR Subgraph": {
-            status: "down",
             message,
+            status: "down",
           },
         });
       },

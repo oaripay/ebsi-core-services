@@ -1,13 +1,13 @@
 export const Permission = {
+  CREATOR: 2,
   DELEGATE: 0,
   WRITE: 1,
-  CREATOR: 2,
 } as const;
 
 export const PermissionLabel = {
+  [Permission.CREATOR]: "creator",
   [Permission.DELEGATE]: "delegate",
   [Permission.WRITE]: "write",
-  [Permission.CREATOR]: "creator",
 } as const satisfies Record<
   (typeof Permission)[keyof typeof Permission],
   string

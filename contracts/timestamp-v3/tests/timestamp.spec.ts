@@ -1,17 +1,18 @@
-import { ethers, network, upgrades } from "hardhat";
-import { Contract } from "ethers";
-import { expect } from "chai";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
 import StringManipArtifact from "@ebsiint-sc/bootstrap-v2/artifacts/contracts/utils/StringManip.sol/StringManip.json";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
+import { expect } from "chai";
+import { ethers, network, upgrades, waffle } from "hardhat";
+
+import type { PolicyRegistryMock, Timestamp } from "../src/types";
 
 import { testTprAddress } from "./testAddress";
 
 const { deployContract } = waffle;
 
 describe("Timestamp Hashes", () => {
-  let ts: Contract;
+  let ts: Timestamp;
   let admin: SignerWithAddress;
-  let policyContractMock: Contract;
+  let policyContractMock: PolicyRegistryMock;
 
   before(async () => {
     const policyRegistryFactory =
@@ -43,15 +44,16 @@ describe("Timestamp Hashes", () => {
     const contractFactory = await ethers.getContractFactory("Timestamp", {
       libraries: {
         HashAlgoLib: haLib.address,
-        TimestampLib: tsLib.address,
         RecordLib: rsLib.address,
+        TimestampLib: tsLib.address,
       },
     });
-    ts = await upgrades.deployProxy(
+
+    ts = (await upgrades.deployProxy(
       contractFactory,
       [admin.address, testTprAddress],
       { unsafeAllowLinkedLibraries: true },
-    );
+    )) as Timestamp;
 
     // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     expect(ts.address).to.properAddress;
@@ -60,6 +62,7 @@ describe("Timestamp Hashes", () => {
     await ts.insertHashAlgorithm(512, "SHA512", "oid2", 1, "");
     await ts.insertHashAlgorithm(256, "SHA3-256", "oid3", 1, "");
   });
+
   it("getTimestamp should succeed", async () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
     const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
@@ -91,6 +94,7 @@ describe("Timestamp Hashes", () => {
     );
     expect(r3.blockNumber).to.equal(blockNumber + 1);
   });
+
   it("getTimestamp should succeed with empty data", async () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
     const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
@@ -118,14 +122,17 @@ describe("Timestamp Hashes", () => {
     expect(ethers.utils.hexlify(r3.data)).to.equal(ethers.utils.hexlify([]));
     expect(r3.blockNumber).to.equal(blockNumber + 1);
   });
+
   it("getTimestamp should revert if hash is unknown", async () => {
     await expect(
       ts.getTimestamp(ethers.utils.toUtf8Bytes("unknow?")),
     ).to.be.revertedWith("timestamp unknown");
   });
+
   it("getTimestamp should revert if hash is empty", async () => {
     await expect(ts.getTimestamp([])).to.be.revertedWith("hash empty");
   });
+
   it("getTimestampById should succeed with empty data", async () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
     const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
@@ -146,6 +153,7 @@ describe("Timestamp Hashes", () => {
     expect(ethers.utils.hexlify(r3.data)).to.equal(ethers.utils.hexlify([]));
     expect(r3.blockNumber).to.equal(blockNumber + 1);
   });
+
   it("getTimestampById should succeed", async () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
     const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
@@ -177,6 +185,7 @@ describe("Timestamp Hashes", () => {
     );
     expect(r3.blockNumber).to.equal(blockNumber + 1);
   });
+
   it("getTimestampById should revert if timestampID is unknown", async () => {
     await expect(
       ts.getTimestampById(
@@ -184,11 +193,13 @@ describe("Timestamp Hashes", () => {
       ),
     ).to.be.revertedWith("timestamp unknown");
   });
+
   it("getTimestgetTimestampByIdamp should revert if timestampId is empty", async () => {
     await expect(
       ts.getTimestampById(ethers.constants.HashZero),
     ).to.be.revertedWith("tsId empty");
   });
+
   it("timestampHashes should failed if > 3", async () => {
     await expect(
       ts.timestampHashes(
@@ -258,6 +269,7 @@ describe("Timestamp Hashes", () => {
       ),
     ).to.be.revertedWith("timestampData>3");
   });
+
   it("timestampHashes should failed for unknown hash algo", async () => {
     await expect(
       ts.timestampHashes(
@@ -275,6 +287,7 @@ describe("Timestamp Hashes", () => {
       ),
     ).to.be.revertedWith("hashAlgo unknown");
   });
+
   it("timestampHashes should failed for empty value and hash", async () => {
     await expect(ts.insertHashAlgorithm(256, "SHA2561", "oid", 1, "")).to.emit(
       ts,
@@ -313,6 +326,7 @@ describe("Timestamp Hashes", () => {
       [],
     );
   });
+
   it("timestampHashes should succeed", async () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
     const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
@@ -329,6 +343,7 @@ describe("Timestamp Hashes", () => {
       ),
     ).to.emit(ts, "TimestampedHashes");
   });
+
   it("timestampHashes should succeed even with empty data", async () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
     const hash2 = ethers.utils.toUtf8Bytes("aa54def9");

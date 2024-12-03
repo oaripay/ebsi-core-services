@@ -1,15 +1,14 @@
-/* eslint-disable no-underscore-dangle */
-import { setupServer } from "msw/node";
 import { graphql, HttpResponse } from "msw";
-import { dummyIssuers } from "./data.js";
-// eslint-disable-next-line import/extensions, import/no-relative-packages
+import { setupServer } from "msw/node";
+
 import { Attribute_filter, Issuer_filter } from "../../.graphclient/index.js";
+import { dummyIssuers } from "./data.js";
 
 export const graphServer = setupServer(
   graphql.query("GetIssuers", ({ variables }) => {
-    const { skip, pagesize, where } = variables as {
-      skip: number;
+    const { pagesize, skip, where } = variables as {
       pagesize: number;
+      skip: number;
       where?: Issuer_filter;
     };
     return HttpResponse.json({
@@ -17,17 +16,13 @@ export const graphServer = setupServer(
         issuers: dummyIssuers
           .filter((i) => {
             if (
-              where &&
-              where.attributes_ &&
-              where.attributes_.id &&
-              !i.attributes.find((a) => a.id === where.attributes_!.id)
+              where?.attributes_?.id &&
+              !i.attributes.some((a) => a.id === where.attributes_!.id)
             )
               return false;
             if (
-              where &&
-              where.proxies_ &&
-              where.proxies_.id &&
-              !i.proxies.find((p) => p.id === where.proxies_!.id)
+              where?.proxies_?.id &&
+              !i.proxies.some((p) => p.id === where.proxies_!.id)
             )
               return false;
             return true;
@@ -44,6 +39,7 @@ export const graphServer = setupServer(
     if (!issuer)
       return HttpResponse.json({
         data: {
+          // eslint-disable-next-line unicorn/no-null
           issuer: null,
         },
       });
@@ -59,16 +55,17 @@ export const graphServer = setupServer(
   }),
 
   graphql.query("GetAttributes", ({ variables }) => {
-    const { did, skip, pagesize, where } = variables as {
+    const { did, pagesize, skip, where } = variables as {
       did: string;
-      skip: number;
       pagesize: number;
+      skip: number;
       where?: Attribute_filter;
     };
     const issuer = dummyIssuers.find((i) => i.id === did);
     if (!issuer)
       return HttpResponse.json({
         data: {
+          // eslint-disable-next-line unicorn/no-null
           issuer: null,
         },
       });
@@ -78,8 +75,7 @@ export const graphServer = setupServer(
           attributes: issuer.attributes
             .filter((a) => {
               if (
-                where &&
-                where.lastRevision_ &&
+                where?.lastRevision_ &&
                 a.lastRevision.issuerType !== where.lastRevision_.issuerType
               )
                 return false;
@@ -93,14 +89,15 @@ export const graphServer = setupServer(
   }),
 
   graphql.query("GetAttribute", ({ variables }) => {
-    const { did, attributeId } = variables as {
-      did: string;
+    const { attributeId, did } = variables as {
       attributeId: string;
+      did: string;
     };
     const issuer = dummyIssuers.find((i) => i.id === did);
     if (!issuer)
       return HttpResponse.json({
         data: {
+          // eslint-disable-next-line unicorn/no-null
           issuer: null,
         },
       });
@@ -116,16 +113,17 @@ export const graphServer = setupServer(
   }),
 
   graphql.query("GetRevisions", ({ variables }) => {
-    const { did, attributeId, skip, pagesize } = variables as {
-      did: string;
+    const { attributeId, did, pagesize, skip } = variables as {
       attributeId: string;
-      skip: number;
+      did: string;
       pagesize: number;
+      skip: number;
     };
     const issuer = dummyIssuers.find((i) => i.id === did);
     if (!issuer)
       return HttpResponse.json({
         data: {
+          // eslint-disable-next-line unicorn/no-null
           issuer: null,
         },
       });
@@ -143,15 +141,16 @@ export const graphServer = setupServer(
   }),
 
   graphql.query("GetProxies", ({ variables }) => {
-    const { did, skip, pagesize } = variables as {
+    const { did, pagesize, skip } = variables as {
       did: string;
-      skip: number;
       pagesize: number;
+      skip: number;
     };
     const issuer = dummyIssuers.find((i) => i.id === did);
     if (!issuer)
       return HttpResponse.json({
         data: {
+          // eslint-disable-next-line unicorn/no-null
           issuer: null,
         },
       });
@@ -172,6 +171,7 @@ export const graphServer = setupServer(
     if (!issuer)
       return HttpResponse.json({
         data: {
+          // eslint-disable-next-line unicorn/no-null
           issuer: null,
         },
       });
@@ -186,4 +186,5 @@ export const graphServer = setupServer(
     });
   }),
 );
+
 export default graphServer;

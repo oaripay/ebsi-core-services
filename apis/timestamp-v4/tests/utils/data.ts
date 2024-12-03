@@ -2,24 +2,25 @@
  * Collection of functions for generating fake data to be used in the tests.
  */
 import type { DIDDocument, JsonWebKey } from "did-resolver";
-import { calculateJwkThumbprint } from "jose";
-import { ethers } from "ethers";
+
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { encode } from "@ebsiint-api/shared";
+import { ethers } from "ethers";
+import { calculateJwkThumbprint } from "jose";
 
 export interface UserDetails {
-  kid: string;
   did: string;
   didDocument: DIDDocument;
-  thumbprint: string;
-  wallet: ethers.Wallet;
+  kid: string;
   privateKeyJwk: JsonWebKey;
   publicKeyJwk: JsonWebKey;
+  thumbprint: string;
+  wallet: ethers.Wallet;
 }
 
 export async function createUser(wallet?: ethers.Wallet): Promise<UserDetails> {
   const did = EbsiWallet.createDid();
-  const w = wallet || ethers.Wallet.createRandom();
+  const w = wallet ?? ethers.Wallet.createRandom();
   const privateKeyJwk = encode.privateKey.fromHexToJWK(
     w.privateKey,
   ) as unknown as JsonWebKey;
@@ -34,28 +35,28 @@ export async function createUser(wallet?: ethers.Wallet): Promise<UserDetails> {
       "https://www.w3.org/ns/did/v1",
       "https://w3id.org/security/suites/jws-2020/v1",
     ],
-    id: did,
+    assertionMethod: [kid],
+    authentication: [kid],
+    capabilityInvocation: [kid],
     controller: [did],
+    id: did,
     verificationMethod: [
       {
-        id: kid,
-        type: "JsonWebKey2020",
         controller: did,
+        id: kid,
         publicKeyJwk,
+        type: "JsonWebKey2020",
       },
     ],
-    authentication: [kid],
-    assertionMethod: [kid],
-    capabilityInvocation: [kid],
   };
 
   return {
-    kid,
     did,
     didDocument,
-    thumbprint,
-    wallet: w,
+    kid,
     privateKeyJwk,
     publicKeyJwk,
+    thumbprint,
+    wallet: w,
   };
 }

@@ -4,38 +4,37 @@ import "@typechain/hardhat";
 import "hardhat-deploy";
 import "hardhat-deploy-ethers";
 import "hardhat-abi-exporter";
-import type { HardhatUserConfig } from "hardhat/config";
+
 import type { TypechainUserConfig } from "@typechain/hardhat/dist/types";
 import type { AbiExporterUserConfig } from "hardhat-abi-exporter";
+import type { HardhatUserConfig } from "hardhat/config";
 
 // The solhint plugin overrides the check task, runs solhint
 // on the project's sources and prints the report to the console
 // when running yarn test
 
 const config: HardhatUserConfig & {
-  typechain: TypechainUserConfig;
   abiExporter: AbiExporterUserConfig;
-  namedAccounts?: {
-    [name: string]:
-      | string
-      | number
-      | { [network: string]: null | number | string };
-  };
+  namedAccounts?: Record<
+    string,
+    number | Record<string, null | number | string> | string
+  >;
+  typechain: TypechainUserConfig;
 } = {
-  defaultNetwork: "hardhat",
-  typechain: {
-    outDir: "src/types",
-    target: "ethers-v5",
-  },
   abiExporter: {
-    path: "./src/abi",
     clear: true,
     flat: true,
+    path: "./src/abi",
+  },
+  defaultNetwork: "hardhat",
+  paths: {
+    artifacts: "src/artifacts",
+    cache: "./cache",
+    sources: "./contracts",
   },
   solidity: {
     compilers: [
       {
-        version: "0.8.12",
         settings: {
           optimizer: {
             enabled: true,
@@ -44,13 +43,13 @@ const config: HardhatUserConfig & {
           // remove viaIR when legacy contract are deprecated
           viaIR: true,
         },
+        version: "0.8.12",
       },
     ],
   },
-  paths: {
-    sources: "./contracts",
-    cache: "./cache",
-    artifacts: "src/artifacts",
+  typechain: {
+    outDir: "src/types",
+    target: "ethers-v5",
   },
 };
 

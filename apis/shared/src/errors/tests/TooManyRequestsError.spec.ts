@@ -1,5 +1,6 @@
-import { describe, it, expect } from "vitest";
-import { TooManyRequestsError, ProblemDetailsError } from "../index.js";
+import { describe, expect, it } from "vitest";
+
+import { ProblemDetailsError, TooManyRequestsError } from "../index.js";
 
 describe("error TooManyRequestsError", () => {
   it("should extend ProblemDetailsError", () => {
@@ -22,10 +23,10 @@ describe("error TooManyRequestsError", () => {
     expect.assertions(7);
 
     const error = new TooManyRequestsError("Test Error", {
-      type: "test",
       extensions: {
         custom: "value",
       },
+      type: "test",
     });
 
     expect(error.name).toBe("TooManyRequestsError");
@@ -41,14 +42,15 @@ describe("error TooManyRequestsError", () => {
     expect.assertions(2);
 
     const error = new TooManyRequestsError("Test Error", {
-      type: "test",
       extensions: {
         custom: "value",
       },
+      type: "test",
     });
     const jsonError = error.toJSON();
 
     // JSON.stringify should call toJSON
+    // eslint-disable-next-line unicorn/prefer-structured-clone
     expect(JSON.parse(JSON.stringify(error))).toStrictEqual(jsonError);
     expect(jsonError).toStrictEqual({
       custom: "value",
@@ -62,10 +64,10 @@ describe("error TooManyRequestsError", () => {
     expect.assertions(1);
 
     const error = new TooManyRequestsError("Test Error", {
-      type: "test",
       extensions: {
         custom: "value",
       },
+      type: "test",
     });
 
     expect(error.toString()).toBe(

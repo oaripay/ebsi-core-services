@@ -1,5 +1,7 @@
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
+
 import { ConfigService } from "@nestjs/config";
+
 import type { ApiConfig } from "../../src/config/configuration.js";
 
 export const getServer = (
@@ -10,7 +12,7 @@ export const getServer = (
 
   if (testEnv === "remote") {
     const domain =
-      configService.get("testSpecificNodeDomain", { infer: true }) ||
+      configService.get("testSpecificNodeDomain", { infer: true }) ??
       configService.get("domain", { infer: true });
     const apiUrlPrefix = configService.get("apiUrlPrefix", { infer: true });
     return `${domain}${apiUrlPrefix}`;

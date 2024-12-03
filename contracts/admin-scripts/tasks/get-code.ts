@@ -1,5 +1,5 @@
-import * as fs from "node:fs";
 import { task } from "hardhat/config";
+import * as fs from "node:fs";
 import "@nomiclabs/hardhat-waffle";
 
 task("get-code", "gets the code of an address")

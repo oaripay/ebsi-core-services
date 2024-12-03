@@ -2,12 +2,11 @@ import { Injectable, Logger, OnApplicationBootstrap } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import axios, { type AxiosInstance } from "axios";
 import axiosRetry from "axios-retry";
+
 import type { ApiConfig } from "./config/configuration.js";
 
 @Injectable()
 export class AppService implements OnApplicationBootstrap {
-  private readonly logger = new Logger(AppService.name);
-
   private readonly authorisationApiUrl: string;
 
   private readonly axiosClient: AxiosInstance;
@@ -15,6 +14,8 @@ export class AppService implements OnApplicationBootstrap {
   private readonly domain: string;
 
   private readonly localOrigin: string;
+
+  private readonly logger = new Logger(AppService.name);
 
   constructor(configService: ConfigService<ApiConfig, true>) {
     this.authorisationApiUrl = configService.get<string>("authorisationApiUrl");
@@ -26,22 +27,22 @@ export class AppService implements OnApplicationBootstrap {
     this.axiosClient = axios.create();
 
     axiosRetry(this.axiosClient, {
-      retries: 30, // Retry 30 times (with a delay of 10s -> ~5 minutes)
-      retryDelay: () => axiosRetryDelay, // Default: every 10 seconds
-      retryCondition: () => true, // Ignore error response, retry anyway
       onRetry: (_, error, requestConfig) => {
         if (error.response) {
           // The request was made and the server responded with a status code that falls out of the range of 2xx
           this.logger.error({
-            url: requestConfig.url,
-            status: error.response.status,
             data: error.response.data,
+            status: error.response.status,
+            url: requestConfig.url,
           });
         } else {
           // Something happened in setting up the request that triggered an Error
-          this.logger.error({ url: requestConfig.url, message: error.message });
+          this.logger.error({ message: error.message, url: requestConfig.url });
         }
       },
+      retries: 30, // Retry 30 times (with a delay of 10s -> ~5 minutes)
+      retryCondition: () => true, // Ignore error response, retry anyway
+      retryDelay: () => axiosRetryDelay, // Default: every 10 seconds
     });
   }
 

@@ -1,19 +1,19 @@
-export interface JsonRpcResponseObject {
-  jsonrpc: string;
-  id: string | number | null;
-  result: unknown;
-  error?: unknown;
-}
-
-export interface AxiosResponseJsonRpc {
-  status: number;
-  data: JsonRpcResponseObject;
-}
-
 export interface AxiosErrorResponse {
   message: string;
   response: {
-    status: number;
     data: unknown;
+    status: number;
   };
+}
+
+export interface AxiosResponseJsonRpc {
+  data: JsonRpcResponseObject;
+  status: number;
+}
+
+export interface JsonRpcResponseObject {
+  error?: unknown;
+  id: null | number | string;
+  jsonrpc: string;
+  result: unknown;
 }

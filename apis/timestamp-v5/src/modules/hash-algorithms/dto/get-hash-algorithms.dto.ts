@@ -20,7 +20,7 @@ export class GetHashAlgorithmsDto extends PaginationQuery {
 
   @IsOptional()
   @IsString()
-  status?: "undefined" | "active" | "revoked";
+  status?: "active" | "revoked" | "undefined";
 }
 
 export default GetHashAlgorithmsDto;

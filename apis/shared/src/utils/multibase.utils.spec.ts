@@ -1,73 +1,74 @@
-import { describe, it, expect } from "vitest";
 import { TextDecoder } from "node:util";
+import { describe, expect, it } from "vitest";
+
 import { multibase } from "./multibase.utils.js";
 
 const bases: Record<
   keyof typeof multibase,
   {
-    inputString: string;
     /* global BufferEncoding */
     encoding: BufferEncoding;
+    inputString: string;
     multibaseString: string;
   }[]
 > = {
   base16: [
     {
-      inputString: new TextDecoder().decode(Uint8Array.from([0x01, 0x02])),
       encoding: "utf8",
+      inputString: new TextDecoder().decode(Uint8Array.from([0x01, 0x02])),
       multibaseString: "f0102",
     },
     {
-      inputString: "8a173fd3e32c0fa78b90fe42d305f202244e2739",
       encoding: "hex",
+      inputString: "8a173fd3e32c0fa78b90fe42d305f202244e2739",
       multibaseString: "f8a173fd3e32c0fa78b90fe42d305f202244e2739",
     },
     {
-      inputString: "÷ïÿ",
       encoding: "utf8",
+      inputString: "÷ïÿ",
       multibaseString: "fc3b7c3afc3bf",
     },
     {
-      inputString: "÷ïÿ🥰÷ïÿ😎🥶🤯",
       encoding: "utf8",
+      inputString: "÷ïÿ🥰÷ïÿ😎🥶🤯",
       multibaseString:
         "fc3b7c3afc3bff09fa5b0c3b7c3afc3bff09f988ef09fa5b6f09fa4af",
     },
   ],
+  base58btc: [
+    {
+      encoding: "utf8",
+      inputString: "÷ïÿ",
+      multibaseString: "z2gTnNVSBg",
+    },
+    {
+      encoding: "utf8",
+      inputString: "÷ïÿ🥰÷ïÿ😎🥶🤯",
+      multibaseString: "z31kmCPVCi3zGReVrkbcUbPSXtMTxWfNUkQFLgSJ",
+    },
+  ],
   base64: [
     {
-      inputString: "÷ïÿ",
       encoding: "utf8",
+      inputString: "÷ïÿ",
       multibaseString: "mw7fDr8O/",
     },
     {
-      inputString: "÷ïÿ🥰÷ïÿ😎🥶🤯",
       encoding: "utf8",
+      inputString: "÷ïÿ🥰÷ïÿ😎🥶🤯",
       multibaseString: "mw7fDr8O/8J+lsMO3w6/Dv/CfmI7wn6W28J+krw",
     },
   ],
   base64url: [
     {
-      inputString: "÷ïÿ",
       encoding: "utf8",
+      inputString: "÷ïÿ",
       multibaseString: "uw7fDr8O_",
     },
     {
-      inputString: "÷ïÿ🥰÷ïÿ😎🥶🤯",
       encoding: "utf8",
+      inputString: "÷ïÿ🥰÷ïÿ😎🥶🤯",
       multibaseString: "uw7fDr8O_8J-lsMO3w6_Dv_CfmI7wn6W28J-krw",
-    },
-  ],
-  base58btc: [
-    {
-      inputString: "÷ïÿ",
-      encoding: "utf8",
-      multibaseString: "z2gTnNVSBg",
-    },
-    {
-      inputString: "÷ïÿ🥰÷ïÿ😎🥶🤯",
-      encoding: "utf8",
-      multibaseString: "z31kmCPVCi3zGReVrkbcUbPSXtMTxWfNUkQFLgSJ",
     },
   ],
 };
@@ -89,7 +90,7 @@ describe("multibase", () => {
     const dataset = bases[base];
 
     describe.each(Object.keys(dataset))("Test case #%i", (i) => {
-      const data = dataset[parseInt(i, 10)]!;
+      const data = dataset[Number.parseInt(i, 10)]!;
 
       describe("encode", () => {
         it("should produce the expected result", () => {

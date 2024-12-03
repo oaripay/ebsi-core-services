@@ -1,20 +1,39 @@
-import type { HardhatRuntimeEnvironment } from "hardhat/types";
 import type { DeployFunction } from "hardhat-deploy/types";
+import type { HardhatRuntimeEnvironment } from "hardhat/types";
+
 import { ethers } from "hardhat";
+
 import dependencies from "./dependencies.json";
+
+function validateChainId(
+  chainId: string,
+): asserts chainId is keyof typeof dependencies {
+  if (!(chainId in dependencies)) throw new Error(`Invalid chainId ${chainId}`);
+}
 
 const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   const { deployments, getNamedAccounts } = hre;
 
   // get chain Id
-  const { chainId } = await ethers.provider.getNetwork();
-  let tprAddress = dependencies[chainId]?.tprV1Address;
+  const chainId = `${(await ethers.provider.getNetwork()).chainId}`;
 
-  if (!tprAddress) {
+  validateChainId(chainId);
+
+  console.log(`chain id ${chainId}`);
+
+  const deps = dependencies[chainId];
+
+  if (!("tprV1Address" in deps)) {
+    throw new Error("tprV1Address does not exist");
+  }
+
+  let tprAddress = deps.tprV1Address;
+
+  if (tprAddress) {
+    console.log(`re-using tpr address ${tprAddress}`);
+  } else {
     await deployments.run("PolicyRegistry");
     tprAddress = (await deployments.get("PolicyRegistry")).address;
-  } else {
-    console.log(`re-using tpr address ${tprAddress}`);
   }
 
   const { deployer } = await getNamedAccounts();
@@ -34,19 +53,19 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   });
   const recordLib = await deployments.deploy("RecordLib", {
     from: deployer,
-    log: true,
     libraries: {
       StringManip: stringManip.address,
     },
+    log: true,
   });
 
   const ts = await deployments.deploy("Timestamp", {
-    from: deployer,
     args: [tprAddress],
+    from: deployer,
     libraries: {
       HashAlgoLib: hashAlgoLib.address,
-      TimestampLib: timestampLib.address,
       RecordLib: recordLib.address,
+      TimestampLib: timestampLib.address,
     },
     log: true,
   });

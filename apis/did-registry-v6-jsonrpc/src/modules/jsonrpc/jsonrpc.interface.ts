@@ -1,6 +1,6 @@
 export interface JsonRpcResponseObject {
-  jsonrpc: string;
-  id: string | number | null;
-  result: unknown;
   error?: unknown;
+  id: null | number | string;
+  jsonrpc: string;
+  result: unknown;
 }

@@ -2,18 +2,18 @@
 declare global {
   namespace NodeJS {
     interface ProcessEnv {
-      NODE_ENV: "development" | "production" | "test";
       API_PORT?: string;
       API_URL_PREFIX?: string;
-      LOG_LEVEL?: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
-      DOCKER_TAG?: string;
-      GRAPHQL_ENDPOINT: string;
-      DOMAIN: string;
-      LOCAL_ORIGIN?: string;
       AXIOS_RETRY_DELAY?: string;
-      TEST_USER_DID?: string;
+      DOCKER_TAG?: string;
+      DOMAIN: string;
+      GRAPHQL_ENDPOINT: string;
+      LOCAL_ORIGIN?: string;
+      LOG_LEVEL?: "debug" | "error" | "info" | "silent" | "verbose" | "warn";
+      NODE_ENV: "development" | "production" | "test";
       TEST_ENV?: string;
       TEST_SPECIFIC_NODE_DOMAIN?: string;
+      TEST_USER_DID?: string;
     }
   }
 

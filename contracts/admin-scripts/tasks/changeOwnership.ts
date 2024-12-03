@@ -1,6 +1,7 @@
-import { task, types } from "hardhat/config";
-import "@nomiclabs/hardhat-waffle";
 import { BigNumber } from "ethers";
+import "@nomiclabs/hardhat-waffle";
+import { task, types } from "hardhat/config";
+
 import { OwnedUpgradeabilityProxy } from "../src/types";
 
 task("changeOwnership", "change proxy implementation")
@@ -19,7 +20,7 @@ task("changeOwnership", "change proxy implementation")
   )
   .setAction(
     async (
-      taskArgs: { proxy: string; from?: number; admin?: string },
+      taskArgs: { admin: string; from: number; proxy: string },
       { ethers },
     ) => {
       const proxyDeployedAddr = taskArgs.proxy;

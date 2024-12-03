@@ -1,17 +1,17 @@
 import { graphql, HttpResponse } from "msw";
-import { dummyData } from "./data.js";
+
 import {
-  Event_filter,
   Document_filter,
+  Event_filter,
   Invitation_filter,
-  // eslint-disable-next-line import/extensions, import/no-relative-packages
 } from "../../.graphclient/index.js";
+import { dummyData } from "./data.js";
 
 export const handlers = [
   graphql.query("GetDocuments", ({ variables }) => {
-    const { skip, pagesize, where } = variables as {
-      skip: number;
+    const { pagesize, skip, where } = variables as {
       pagesize: number;
+      skip: number;
       where: Document_filter;
     };
     return HttpResponse.json({
@@ -38,17 +38,18 @@ export const handlers = [
     if (!document) {
       return HttpResponse.json({
         data: {
+          // eslint-disable-next-line unicorn/no-null
           document: null,
         },
       });
     }
     const {
       creator,
-      timestamp,
-      source,
-      proof,
-      metadata,
       events: ev,
+      metadata,
+      proof,
+      source,
+      timestamp,
     } = document;
     const events = ev.map((e) => {
       const { id } = e;
@@ -56,22 +57,23 @@ export const handlers = [
     });
     return HttpResponse.json({
       data: {
-        document: { creator, timestamp, source, proof, metadata, events },
+        document: { creator, events, metadata, proof, source, timestamp },
       },
     });
   }),
 
   graphql.query("GetDocumentEvents", ({ variables }) => {
-    const { documentId, skip, pagesize, where } = variables as {
+    const { documentId, pagesize, skip, where } = variables as {
       documentId: string;
-      skip: number;
       pagesize: number;
+      skip: number;
       where: Event_filter;
     };
     const document = dummyData.documents.find((h) => h.id === documentId);
     if (!document) {
       return HttpResponse.json({
         data: {
+          // eslint-disable-next-line unicorn/no-null
           document: null,
         },
       });
@@ -109,6 +111,7 @@ export const handlers = [
     if (!document) {
       return HttpResponse.json({
         data: {
+          // eslint-disable-next-line unicorn/no-null
           document: null,
         },
       });
@@ -122,28 +125,28 @@ export const handlers = [
       });
     }
     const {
-      sender,
-      hash,
       externalHash,
-      timestamp,
-      source,
-      proof,
+      hash,
       metadata,
       origin,
+      proof,
+      sender,
+      source,
+      timestamp,
     } = event;
     return HttpResponse.json({
       data: {
         document: {
           events: [
             {
-              sender,
-              hash,
               externalHash,
-              timestamp,
-              source,
-              proof,
+              hash,
               metadata,
               origin,
+              proof,
+              sender,
+              source,
+              timestamp,
             },
           ],
         },
@@ -152,16 +155,17 @@ export const handlers = [
   }),
 
   graphql.query("GetDocumentInvitations", ({ variables }) => {
-    const { documentId, skip, pagesize, where } = variables as {
+    const { documentId, pagesize, skip, where } = variables as {
       documentId: string;
-      skip: number;
       pagesize: number;
+      skip: number;
       where: Invitation_filter;
     };
     const document = dummyData.documents.find((h) => h.id === documentId);
     if (!document) {
       return HttpResponse.json({
         data: {
+          // eslint-disable-next-line unicorn/no-null
           document: null,
         },
       });
@@ -180,8 +184,8 @@ export const handlers = [
       })
       .slice(skip, skip + pagesize)
       .map((i) => {
-        const { subject, grantedBy, type } = i;
-        return { subject, grantedBy, type };
+        const { grantedBy, subject, type } = i;
+        return { grantedBy, subject, type };
       });
     return HttpResponse.json({
       data: {
@@ -199,6 +203,7 @@ export const handlers = [
     if (!creator) {
       return HttpResponse.json({
         data: {
+          // eslint-disable-next-line unicorn/no-null
           creator: null,
         },
       });
@@ -214,16 +219,17 @@ export const handlers = [
   }),
 
   graphql.query("GetOperator", ({ variables }) => {
-    const { subject, skip, pagesize, where } = variables as {
-      subject: string;
-      skip: number;
+    const { pagesize, skip, subject, where } = variables as {
       pagesize: number;
+      skip: number;
+      subject: string;
       where: Invitation_filter;
     };
     const operator = dummyData.operators.find((h) => h.id === subject);
     if (!operator) {
       return HttpResponse.json({
         data: {
+          // eslint-disable-next-line unicorn/no-null
           operator: null,
         },
       });
@@ -241,8 +247,8 @@ export const handlers = [
       })
       .slice(skip, skip + pagesize)
       .map((i) => {
-        const { subject: sub, grantedBy, type, document } = i;
-        return { subject: sub, grantedBy, type, document: { id: document.id } };
+        const { document, grantedBy, subject: sub, type } = i;
+        return { document: { id: document.id }, grantedBy, subject: sub, type };
       });
     return HttpResponse.json({
       data: {

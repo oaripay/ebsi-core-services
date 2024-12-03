@@ -1,10 +1,12 @@
-import { KeyObject } from "node:crypto";
 import { ValidateBy, ValidationOptions } from "class-validator";
-import { z } from "zod";
-import validator from "validator";
 import { importJWK } from "jose";
-import { encode } from "../utils/encode.utils.js";
+import { KeyObject } from "node:crypto";
+import validator from "validator";
+import { z } from "zod";
+
 import type { ValidationResult } from "./types.js";
+
+import { encode } from "../utils/encode.utils.js";
 import { getErrorMessage } from "../utils/getErrorMessages.utils.js";
 
 const validators = validator.default;
@@ -36,17 +38,6 @@ export const jwkSchema = z
     z
       .object({
         /**
-         * "kty" (Key Type) Parameter
-         *
-         * The "kty" (key type) parameter identifies the cryptographic algorithm family used with the
-         * key.
-         *
-         * @see https://www.rfc-editor.org/rfc/rfc7517#section-4.1
-         * @see https://www.rfc-editor.org/rfc/rfc7518#section-6.1
-         */
-        kty: z.literal("EC"),
-
-        /**
          * "crv" (Curve) Parameter
          *
          * The "crv" (curve) parameter identifies the cryptographic curve used with the key.
@@ -60,6 +51,17 @@ export const jwkSchema = z
           z.literal("P-521"),
           z.literal("secp256k1"),
         ]),
+
+        /**
+         * "kty" (Key Type) Parameter
+         *
+         * The "kty" (key type) parameter identifies the cryptographic algorithm family used with the
+         * key.
+         *
+         * @see https://www.rfc-editor.org/rfc/rfc7517#section-4.1
+         * @see https://www.rfc-editor.org/rfc/rfc7518#section-6.1
+         */
+        kty: z.literal("EC"),
 
         /**
          * "x" (X Coordinate) Parameter
@@ -91,6 +93,16 @@ export const jwkSchema = z
     z
       .object({
         /**
+         * "e" (Exponent) Parameter
+         *
+         * The "e" (exponent) parameter contains the exponent value for the RSA public key. It is
+         * represented as a Base64urlUInt-encoded value.
+         *
+         * @see https://www.rfc-editor.org/rfc/rfc7518#section-6.3.1.2
+         */
+        e: z.string().refine(isBase64url),
+
+        /**
          * "kty" (Key Type) Parameter
          *
          * The "kty" (key type) parameter identifies the cryptographic algorithm family used with the
@@ -110,16 +122,6 @@ export const jwkSchema = z
          * @see https://www.rfc-editor.org/rfc/rfc7518#section-6.3.1.1
          */
         n: z.string().refine(isBase64url),
-
-        /**
-         * "e" (Exponent) Parameter
-         *
-         * The "e" (exponent) parameter contains the exponent value for the RSA public key. It is
-         * represented as a Base64urlUInt-encoded value.
-         *
-         * @see https://www.rfc-editor.org/rfc/rfc7518#section-6.3.1.2
-         */
-        e: z.string().refine(isBase64url),
       })
       .passthrough(), // Allow extra properties
 
@@ -131,18 +133,6 @@ export const jwkSchema = z
      */
     z
       .object({
-        /**
-         * "kty" (Key Type) Parameter
-         *
-         * The "kty" (key type) parameter identifies the cryptographic algorithm family used with the
-         * key.
-         *
-         * @see https://www.rfc-editor.org/rfc/rfc7517#section-4.1
-         * @see https://www.rfc-editor.org/rfc/rfc7518#section-6.1
-         * @see https://www.rfc-editor.org/rfc/rfc8037#section-2
-         */
-        kty: z.literal("OKP"),
-
         /**
          * "crv" (Curve) Parameter
          *
@@ -157,6 +147,18 @@ export const jwkSchema = z
           z.literal("X25519"),
           z.literal("X448"),
         ]),
+
+        /**
+         * "kty" (Key Type) Parameter
+         *
+         * The "kty" (key type) parameter identifies the cryptographic algorithm family used with the
+         * key.
+         *
+         * @see https://www.rfc-editor.org/rfc/rfc7517#section-4.1
+         * @see https://www.rfc-editor.org/rfc/rfc7518#section-6.1
+         * @see https://www.rfc-editor.org/rfc/rfc8037#section-2
+         */
+        kty: z.literal("OKP"),
 
         /**
          * "x" (Public Key) Parameter
@@ -174,27 +176,113 @@ export const jwkSchema = z
     if (key.kty === "EC" && "d" in key) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "ECC Private Key 'd' is not allowed",
         fatal: true,
+        message: "ECC Private Key 'd' is not allowed",
       });
     } else if (key.kty === "RSA" && "d" in key) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "Private Exponent 'd' is not allowed",
         fatal: true,
+        message: "Private Exponent 'd' is not allowed",
       });
     } else if (key.kty === "OKP" && "d" in key) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "EdDSA Private Key 'd' is not allowed",
         fatal: true,
+        message: "EdDSA Private Key 'd' is not allowed",
       });
     }
   });
 
+export async function isPublicKeyHex(
+  value: unknown,
+  isSecp256k1: boolean,
+): Promise<ValidationResult> {
+  let jwk: ReturnType<typeof getPublicKeyJwk>;
+  try {
+    jwk = getPublicKeyJwk(value, isSecp256k1);
+  } catch (error) {
+    return {
+      error: getErrorMessage(error),
+      success: false,
+    };
+  }
+
+  if (isSecp256k1) {
+    // No need to validate the JWK in case of secp256k1
+    return { success: true };
+  }
+
+  let key;
+  try {
+    key = await importJWK(jwk, undefined, true);
+  } catch (error) {
+    return {
+      error: getErrorMessage(error, "The public key is not a valid JWK"),
+      success: false,
+    };
+  }
+
+  if (!(key instanceof KeyObject)) {
+    return {
+      error: "The public key is not a valid JWK",
+      success: false,
+    };
+  }
+
+  if (key.type !== "public") {
+    return {
+      error: "The key is not a public key",
+      success: false,
+    };
+  }
+
+  return { success: true };
+}
+
+export function IsPublicKeyHex(
+  validationOptions?: ValidationOptions,
+): PropertyDecorator {
+  return ValidateBy(
+    {
+      name: IS_PUBLIC_KEY_HEX,
+      validator: {
+        validate: async (value, args) => {
+          if (
+            !args ||
+            !("isSecp256k1" in args.object) ||
+            typeof args.object.isSecp256k1 !== "boolean"
+          ) {
+            return false;
+          }
+
+          const { success } = await isPublicKeyHex(
+            value,
+            args.object.isSecp256k1,
+          );
+
+          return success;
+        },
+      },
+    },
+    {
+      message: (args) => {
+        try {
+          const { isSecp256k1 } = args.object as { isSecp256k1: boolean };
+          getPublicKeyJwk(args.value, isSecp256k1);
+          return "Invalid public key";
+        } catch (error) {
+          return `Invalid public key. ${getErrorMessage(error)}`;
+        }
+      },
+      ...validationOptions,
+    },
+  );
+}
+
 function getPublicKeyJwk(value: unknown, isSecp256k1: boolean) {
   if (typeof value !== "string") {
-    throw new Error("The public key must be a string");
+    throw new TypeError("The public key must be a string");
   }
 
   if (!/^0x[0-9A-F]+$/i.test(value)) {
@@ -227,7 +315,7 @@ function getPublicKeyJwk(value: unknown, isSecp256k1: boolean) {
 
   try {
     parsedObject = JSON.parse(Buffer.from(publicKey, "hex").toString());
-  } catch (error) {
+  } catch {
     throw new Error("The public key must be valid JSON object");
   }
 
@@ -243,78 +331,4 @@ function getPublicKeyJwk(value: unknown, isSecp256k1: boolean) {
   const jwk = parsingResult.data;
 
   return jwk;
-}
-
-export async function isPublicKeyHex(
-  value: unknown,
-  isSecp256k1: boolean,
-): Promise<ValidationResult> {
-  let jwk: ReturnType<typeof getPublicKeyJwk>;
-  try {
-    jwk = getPublicKeyJwk(value, isSecp256k1);
-  } catch (error) {
-    return {
-      success: false,
-      error: getErrorMessage(error),
-    };
-  }
-
-  if (isSecp256k1) {
-    // No need to validate the JWK in case of secp256k1
-    return { success: true };
-  }
-
-  try {
-    const key = await importJWK(jwk, undefined, true);
-
-    if (!(key instanceof KeyObject)) {
-      throw new Error();
-    }
-
-    if (key.type !== "public") {
-      throw new Error("The key is not a public key");
-    }
-  } catch (e) {
-    return {
-      success: false,
-      error: getErrorMessage(e, "The public key is not a valid JWK"),
-    };
-  }
-
-  return { success: true };
-}
-
-export function IsPublicKeyHex(
-  validationOptions?: ValidationOptions,
-): PropertyDecorator {
-  return ValidateBy(
-    {
-      name: IS_PUBLIC_KEY_HEX,
-      validator: {
-        validate: async (value, args) => {
-          if (
-            !args ||
-            !("isSecp256k1" in args.object) ||
-            typeof args.object.isSecp256k1 !== "boolean"
-          ) {
-            return false;
-          }
-
-          return (await isPublicKeyHex(value, args.object.isSecp256k1)).success;
-        },
-      },
-    },
-    {
-      message: (args) => {
-        try {
-          const { isSecp256k1 } = args.object as { isSecp256k1: boolean };
-          getPublicKeyJwk(args.value, isSecp256k1);
-          return "Invalid public key";
-        } catch (error) {
-          return `Invalid public key. ${getErrorMessage(error)}`;
-        }
-      },
-      ...validationOptions,
-    },
-  );
 }

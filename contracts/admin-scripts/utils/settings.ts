@@ -1,35 +1,31 @@
+import hre from "hardhat";
 import * as fs from "node:fs";
 
-type Options = {
+interface Options {
   basePath?: string;
-};
+}
 
-// eslint-disable-next-line import/prefer-default-export
 export class Settings {
   #basePath: string;
+
+  #data: Record<string, string>;
+
+  #didRead = false;
+
+  #fileName = "";
 
   #network: string;
 
   #tag: string | undefined;
 
-  #fileName: string = "";
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  #data: Record<string, any>;
-
-  #didRead: boolean = false;
-
-  constructor(
-    fileName: string,
-    tag: string | undefined = undefined,
-    options: Options = {
+  constructor(fileName: string, tag?: string, options?: Options) {
+    const { basePath } = {
       basePath: "./settings",
-    },
-  ) {
-    this.#basePath = options.basePath || "./settings";
+      ...options,
+    };
 
-    // eslint-disable-next-line global-require,@typescript-eslint/no-var-requires
-    const hre = require("hardhat");
+    this.#basePath = basePath;
+
     this.#network = hre.network.name;
 
     this.#tag = tag;
@@ -37,8 +33,7 @@ export class Settings {
     this.#data = {};
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  get(key: string, defaultValue: any = undefined) {
+  get(key: string, defaultValue?: string) {
     if (!this.#didRead) {
       this.#readJSON();
     }
@@ -61,8 +56,7 @@ export class Settings {
     return value;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  set(key: string, value: any) {
+  set(key: string, value: string) {
     if (!this.#didRead) {
       this.#readJSON();
     }
@@ -72,8 +66,12 @@ export class Settings {
     this.#writeJSON();
   }
 
-  #getPath() {
-    return `${this.#getDirectoryPath()}/${this.#fileName}.json`;
+  #ensureDirectoryExistence() {
+    const path = this.#getDirectoryPath();
+
+    if (!fs.existsSync(path)) {
+      fs.mkdirSync(path, { recursive: true });
+    }
   }
 
   #getDirectoryPath() {
@@ -82,6 +80,10 @@ export class Settings {
     }
 
     return `./${this.#basePath}/${this.#network}/${this.#tag}`;
+  }
+
+  #getPath() {
+    return `${this.#getDirectoryPath()}/${this.#fileName}.json`;
   }
 
   #readJSON() {
@@ -94,7 +96,10 @@ export class Settings {
       return;
     }
 
-    this.#data = JSON.parse(fs.readFileSync(path, "utf8"));
+    this.#data = JSON.parse(fs.readFileSync(path, "utf8")) as Record<
+      string,
+      string
+    >;
     this.#didRead = true;
   }
 
@@ -105,18 +110,10 @@ export class Settings {
 
     this.#ensureDirectoryExistence();
 
-    const data = JSON.stringify(this.#data, null, 4);
+    const data = JSON.stringify(this.#data, undefined, 4);
 
     fs.writeFileSync(this.#getPath(), data, {
       flag: "w",
     });
-  }
-
-  #ensureDirectoryExistence() {
-    const path = this.#getDirectoryPath();
-
-    if (!fs.existsSync(path)) {
-      fs.mkdirSync(path, { recursive: true });
-    }
   }
 }

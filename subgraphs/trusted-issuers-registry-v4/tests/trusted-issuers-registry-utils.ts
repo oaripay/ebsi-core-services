@@ -1,41 +1,12 @@
-/* eslint-disable @typescript-eslint/ban-types */
+import { Bytes, ethereum } from "@graphprotocol/graph-ts";
 import { newMockEvent } from "matchstick-as";
-import { ethereum, Bytes } from "@graphprotocol/graph-ts";
+
 import {
-  AttributeMetadataUpdated,
   AttributeDataUpdated,
-  ProxyUpdated,
+  AttributeMetadataUpdated,
   ProxyRemoved,
+  ProxyUpdated,
 } from "../generated/TrustedIssuersRegistry/TrustedIssuersRegistry";
-
-export function createAttributeMetadataUpdated(
-  did: string,
-  attributeId: Bytes,
-  issuerType: i32,
-  taoDid: string,
-  rootTaoDid: string,
-  newRevisionId: Bytes,
-): AttributeMetadataUpdated {
-  const event = changetype<AttributeMetadataUpdated>(newMockEvent());
-  const tuple = new ethereum.Tuple();
-  tuple.push(ethereum.Value.fromString(did));
-  tuple.push(ethereum.Value.fromBytes(attributeId));
-  tuple.push(ethereum.Value.fromI32(issuerType));
-  tuple.push(ethereum.Value.fromString(taoDid));
-  tuple.push(ethereum.Value.fromString(rootTaoDid));
-
-  event.parameters = [
-    new ethereum.EventParam(
-      "attributeMetadata",
-      ethereum.Value.fromTuple(tuple),
-    ),
-    new ethereum.EventParam(
-      "newRevisionId",
-      ethereum.Value.fromBytes(newRevisionId),
-    ),
-  ];
-  return event;
-}
 
 export function createAttributeDataUpdated(
   did: string,
@@ -71,6 +42,44 @@ export function createAttributeDataUpdated(
   return event;
 }
 
+export function createAttributeMetadataUpdated(
+  did: string,
+  attributeId: Bytes,
+  issuerType: i32,
+  taoDid: string,
+  rootTaoDid: string,
+  newRevisionId: Bytes,
+): AttributeMetadataUpdated {
+  const event = changetype<AttributeMetadataUpdated>(newMockEvent());
+  const tuple = new ethereum.Tuple();
+  tuple.push(ethereum.Value.fromString(did));
+  tuple.push(ethereum.Value.fromBytes(attributeId));
+  tuple.push(ethereum.Value.fromI32(issuerType));
+  tuple.push(ethereum.Value.fromString(taoDid));
+  tuple.push(ethereum.Value.fromString(rootTaoDid));
+
+  event.parameters = [
+    new ethereum.EventParam(
+      "attributeMetadata",
+      ethereum.Value.fromTuple(tuple),
+    ),
+    new ethereum.EventParam(
+      "newRevisionId",
+      ethereum.Value.fromBytes(newRevisionId),
+    ),
+  ];
+  return event;
+}
+
+export function createProxyRemoved(did: string, proxyId: Bytes): ProxyRemoved {
+  const event = changetype<ProxyRemoved>(newMockEvent());
+  event.parameters = [
+    new ethereum.EventParam("did", ethereum.Value.fromString(did)),
+    new ethereum.EventParam("proxyId", ethereum.Value.fromBytes(proxyId)),
+  ];
+  return event;
+}
+
 export function createProxyUpdated(
   did: string,
   proxyId: Bytes,
@@ -81,15 +90,6 @@ export function createProxyUpdated(
     new ethereum.EventParam("did", ethereum.Value.fromString(did)),
     new ethereum.EventParam("proxyId", ethereum.Value.fromBytes(proxyId)),
     new ethereum.EventParam("proxyData", ethereum.Value.fromString(proxyData)),
-  ];
-  return event;
-}
-
-export function createProxyRemoved(did: string, proxyId: Bytes): ProxyRemoved {
-  const event = changetype<ProxyRemoved>(newMockEvent());
-  event.parameters = [
-    new ethereum.EventParam("did", ethereum.Value.fromString(did)),
-    new ethereum.EventParam("proxyId", ethereum.Value.fromBytes(proxyId)),
   ];
   return event;
 }

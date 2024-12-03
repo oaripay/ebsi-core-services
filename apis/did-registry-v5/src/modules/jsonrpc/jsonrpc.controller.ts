@@ -1,29 +1,36 @@
-import { Controller, Body, Post, HttpCode, UseGuards } from "@nestjs/common";
 import {
   Accepts,
-  InvalidRequestJsonRpcError,
   getErrorMessage,
+  InvalidRequestJsonRpcError,
 } from "@ebsiint-api/shared";
-import { JsonRpcService } from "./jsonrpc.service.js";
+import { Body, Controller, HttpCode, Post, UseGuards } from "@nestjs/common";
+
 import type { JsonRpcResponseObject } from "./jsonrpc.interface.js";
-import { BearerJwtAuthGuard } from "../auth/guards/index.js";
+
 import { Subject, type SubjectInfo } from "../auth/decorators/index.js";
+import { BearerJwtAuthGuard } from "../auth/guards/index.js";
+import { JsonRpcService } from "./jsonrpc.service.js";
 import { jsonRpcSchema } from "./validators/JsonRpcSchema.js";
 
 function formatJsonRpcResponse(
   result: unknown,
-  id: string | number | null | undefined,
-): JsonRpcResponseObject {
-  return { jsonrpc: "2.0", id: id ?? null, result };
+  id: null | number | string | undefined,
+) {
+  return {
+    // eslint-disable-next-line unicorn/no-null
+    id: id ?? null,
+    jsonrpc: "2.0",
+    result,
+  } satisfies JsonRpcResponseObject;
 }
 
 @Controller("/jsonrpc")
 export default class AppController {
   constructor(private jsonRpcService: JsonRpcService) {}
 
-  @Post()
   @Accepts("application/json")
   @HttpCode(200)
+  @Post()
   @UseGuards(BearerJwtAuthGuard)
   async jsonRPC(
     @Body() unsafeBody: unknown,
@@ -32,6 +39,7 @@ export default class AppController {
     if (!unsafeBody || typeof unsafeBody !== "object") {
       throw new InvalidRequestJsonRpcError(
         "JSON-RPC payload must be an object",
+        // eslint-disable-next-line unicorn/no-null
         null,
       );
     }
@@ -41,12 +49,16 @@ export default class AppController {
     if (!parsedBody.success) {
       throw new InvalidRequestJsonRpcError(
         getErrorMessage(parsedBody.error),
+        // eslint-disable-next-line unicorn/no-null
         null,
       );
     }
 
     const body = parsedBody.data;
-    const { method, id: requestId } = body;
+    const { id: requestId, method } = body;
+    // "id": An identifier established by the Client that MUST contain a String, Number, or NULL value if included. If it is not included it is assumed to be a notification.
+    // See https://www.jsonrpc.org/specification#request_object
+    // eslint-disable-next-line unicorn/no-null
     const id = requestId ?? null;
     const { scp: scope, sub } = subject;
 
@@ -54,39 +66,6 @@ export default class AppController {
     // See: https://www.jsonrpc.org/specification#notification
 
     switch (method) {
-      case "insertDidDocument": {
-        const transaction =
-          await this.jsonRpcService.buildTransactionInsertDidDocument(
-            body,
-            id,
-            sub,
-            scope,
-          );
-        return formatJsonRpcResponse(transaction, id);
-      }
-      case "updateBaseDocument": {
-        const transaction =
-          await this.jsonRpcService.buildTransactionUpdateBaseDocument(
-            body,
-            id,
-            scope,
-          );
-        return formatJsonRpcResponse(transaction, id);
-      }
-      case "addService": {
-        const transaction =
-          await this.jsonRpcService.buildTransactionAddService(body, id, scope);
-        return formatJsonRpcResponse(transaction, id);
-      }
-      case "revokeService": {
-        const transaction =
-          await this.jsonRpcService.buildTransactionRevokeService(
-            body,
-            id,
-            scope,
-          );
-        return formatJsonRpcResponse(transaction, id);
-      }
       case "addController": {
         const transaction =
           await this.jsonRpcService.buildTransactionAddController(
@@ -96,13 +75,9 @@ export default class AppController {
           );
         return formatJsonRpcResponse(transaction, id);
       }
-      case "revokeController": {
+      case "addService": {
         const transaction =
-          await this.jsonRpcService.buildTransactionRevokeController(
-            body,
-            id,
-            scope,
-          );
+          await this.jsonRpcService.buildTransactionAddService(body, id, scope);
         return formatJsonRpcResponse(transaction, id);
       }
       case "addVerificationMethod": {
@@ -123,18 +98,46 @@ export default class AppController {
           );
         return formatJsonRpcResponse(transaction, id);
       }
-      case "revokeVerificationMethod": {
+      case "expireVerificationMethod": {
         const transaction =
-          await this.jsonRpcService.buildTransactionRevokeVerificationMethod(
+          await this.jsonRpcService.buildTransactionExpireVerificationMethod(
             body,
             id,
             scope,
           );
         return formatJsonRpcResponse(transaction, id);
       }
-      case "expireVerificationMethod": {
+      case "insertDidDocument": {
         const transaction =
-          await this.jsonRpcService.buildTransactionExpireVerificationMethod(
+          await this.jsonRpcService.buildTransactionInsertDidDocument(
+            body,
+            id,
+            sub,
+            scope,
+          );
+        return formatJsonRpcResponse(transaction, id);
+      }
+      case "revokeController": {
+        const transaction =
+          await this.jsonRpcService.buildTransactionRevokeController(
+            body,
+            id,
+            scope,
+          );
+        return formatJsonRpcResponse(transaction, id);
+      }
+      case "revokeService": {
+        const transaction =
+          await this.jsonRpcService.buildTransactionRevokeService(
+            body,
+            id,
+            scope,
+          );
+        return formatJsonRpcResponse(transaction, id);
+      }
+      case "revokeVerificationMethod": {
+        const transaction =
+          await this.jsonRpcService.buildTransactionRevokeVerificationMethod(
             body,
             id,
             scope,
@@ -159,11 +162,21 @@ export default class AppController {
         );
         return formatJsonRpcResponse(result, id);
       }
-      default:
+      case "updateBaseDocument": {
+        const transaction =
+          await this.jsonRpcService.buildTransactionUpdateBaseDocument(
+            body,
+            id,
+            scope,
+          );
+        return formatJsonRpcResponse(transaction, id);
+      }
+      default: {
         throw new InvalidRequestJsonRpcError(
           `The method '${method}' is invalid`,
           id,
         );
+      }
     }
   }
 }

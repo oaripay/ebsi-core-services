@@ -1,12 +1,13 @@
-import { Controller, Head, Get, HttpCode, Query } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
 import { Accepts, paginateWithoutTotal } from "@ebsiint-api/shared";
-import AccessesService from "./accesses.service.js";
-import { HeadAccessesDto, SubjectAccessesDto } from "./dto/index.js";
+import { Controller, Get, Head, HttpCode, Query } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+
 import type { ApiConfig } from "../../config/configuration.js";
 import type { Access } from "./accesses.interface.js";
-// eslint-disable-next-line import/extensions, import/no-relative-packages
+
 import { Invitation_filter } from "../../../.graphclient/index.js";
+import AccessesService from "./accesses.service.js";
+import { HeadAccessesDto, SubjectAccessesDto } from "./dto/index.js";
 
 @Controller("/accesses")
 export default class AccessesController {
@@ -15,18 +16,10 @@ export default class AccessesController {
     private configService: ConfigService<ApiConfig, true>,
   ) {}
 
-  @Head("")
-  @HttpCode(204)
-  async isCreator(@Query() query: HeadAccessesDto): Promise<void> {
-    const { creator } = query;
-
-    await this.accessesService.isCreator(creator);
-  }
-
-  @Get("")
   @Accepts("application/json")
+  @Get("")
   async getAccessesBySubject(@Query() query: SubjectAccessesDto) {
-    const { subject, "page[after]": pageAfter, "page[size]": pageSize } = query;
+    const { "page[after]": pageAfter, "page[size]": pageSize, subject } = query;
 
     const where: Invitation_filter = {
       ...(query.permission && { type: query.permission }),
@@ -45,17 +38,19 @@ export default class AccessesController {
     const baseUrl = `${domain}${apiUrlPrefix}/accesses`;
 
     const searchParams = new URLSearchParams();
-    Object.keys(query).forEach((k) => {
+    for (const k of Object.keys(query)) {
       const key = k as keyof SubjectAccessesDto;
       if (
         query[key] !== undefined &&
         key !== "page[after]" &&
         key !== "page[size]"
       ) {
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
         searchParams.append(key, query[key]!);
       }
-    });
-    const extraQuery = searchParams.size ? `&${searchParams.toString()}` : "";
+    }
+    const extraQuery =
+      searchParams.size > 0 ? `&${searchParams.toString()}` : "";
 
     return paginateWithoutTotal<Access>(
       accesses.items,
@@ -64,5 +59,13 @@ export default class AccessesController {
       pageSize,
       extraQuery,
     );
+  }
+
+  @Head("")
+  @HttpCode(204)
+  async isCreator(@Query() query: HeadAccessesDto): Promise<void> {
+    const { creator } = query;
+
+    await this.accessesService.isCreator(creator);
   }
 }

@@ -1,26 +1,28 @@
-import { Controller, Get, Query, Param, Header } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
 import { Accepts, PaginatedList } from "@ebsiint-api/shared";
-import { SchemasService } from "./schemas.service.js";
+import { Controller, Get, Header, Param, Query } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+
+import type { ApiConfig } from "../../config/configuration.js";
+
 import {
-  formatSchemas,
-  formatSchemaRevisions,
+  GetSchemaParams,
+  GetSchemaRevisionMetadataParams,
+  GetSchemaRevisionMetadataQuery,
+  GetSchemaRevisionParams,
+  GetSchemaRevisionsQuery,
+  GetSchemasQuery,
+} from "./dto/index.js";
+import {
   formatSchemaRevisionMetadataList,
+  formatSchemaRevisions,
+  formatSchemas,
 } from "./schemas.formatter.js";
 import {
   GetSchemaRevisionMetadataListResponse,
   GetSchemaRevisionsResponse,
   GetSchemasResponse,
 } from "./schemas.interface.js";
-import {
-  GetSchemaParams,
-  GetSchemaRevisionParams,
-  GetSchemaRevisionMetadataParams,
-  GetSchemasQuery,
-  GetSchemaRevisionsQuery,
-  GetSchemaRevisionMetadataQuery,
-} from "./dto/index.js";
-import type { ApiConfig } from "../../config/configuration.js";
+import { SchemasService } from "./schemas.service.js";
 
 @Controller("/schemas")
 export class SchemasController {
@@ -29,37 +31,66 @@ export class SchemasController {
     private configService: ConfigService<ApiConfig, true>,
   ) {}
 
-  @Get("")
   @Accepts("application/json")
-  async getSchemas(
-    @Query() query: GetSchemasQuery,
-  ): Promise<PaginatedList<GetSchemasResponse>> {
-    const schemas = await this.schemasService.getSchemas(
+  @Get("/:schemaId")
+  async getSchema(@Param() params: GetSchemaParams): Promise<unknown> {
+    const { schemaId } = params;
+    return this.schemasService.getSchema(schemaId);
+  }
+
+  @Accepts("application/json")
+  @Get("/:schemaId/revisions/:schemaRevisionId")
+  async getSchemaRevision(
+    @Param() params: GetSchemaRevisionParams,
+  ): Promise<unknown> {
+    const { schemaId, schemaRevisionId } = params;
+    return this.schemasService.getSchemaRevision(schemaId, schemaRevisionId);
+  }
+
+  @Accepts("application/ld+json")
+  @Get("/:schemaId/revisions/:schemaRevisionId/metadata/:metadataId")
+  @Header("Content-type", "application/ld+json")
+  async getSchemaRevisionMetadata(
+    @Param() params: GetSchemaRevisionMetadataParams,
+  ): Promise<unknown> {
+    const { metadataId, schemaId, schemaRevisionId } = params;
+
+    return this.schemasService.getSchemaRevisionMetadata(
+      schemaId,
+      schemaRevisionId,
+      metadataId,
+    );
+  }
+
+  @Accepts("application/json")
+  @Get("/:schemaId/revisions/:schemaRevisionId/metadata")
+  async getSchemaRevisionMetadataList(
+    @Param() params: GetSchemaRevisionParams,
+    @Query() query: GetSchemaRevisionMetadataQuery,
+  ): Promise<PaginatedList<GetSchemaRevisionMetadataListResponse>> {
+    const { schemaId, schemaRevisionId } = params;
+
+    const metadata = await this.schemasService.getSchemaRevisionMetadataList(
+      schemaId,
+      schemaRevisionId,
       query["page[after]"],
       query["page[size]"],
     );
 
     const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
     const domain = this.configService.get<string>("domain");
-    const baseUrl = `${domain}${apiUrlPrefix}/schemas`;
+    const baseUrl = `${domain}${apiUrlPrefix}/schemas/${schemaId}/revisions/${schemaRevisionId}/metadata`;
 
-    return formatSchemas(
-      schemas,
+    return formatSchemaRevisionMetadataList(
+      metadata,
       query["page[after]"],
       query["page[size]"],
       baseUrl,
     );
   }
 
-  @Get("/:schemaId")
   @Accepts("application/json")
-  async getSchema(@Param() params: GetSchemaParams): Promise<unknown> {
-    const { schemaId } = params;
-    return this.schemasService.getSchema(schemaId);
-  }
-
   @Get("/:schemaId/revisions")
-  @Accepts("application/json")
   async getSchemaRevisions(
     @Param() params: GetSchemaParams,
     @Query() query: GetSchemaRevisionsQuery,
@@ -86,54 +117,25 @@ export class SchemasController {
     );
   }
 
-  @Get("/:schemaId/revisions/:schemaRevisionId")
   @Accepts("application/json")
-  async getSchemaRevision(
-    @Param() params: GetSchemaRevisionParams,
-  ): Promise<unknown> {
-    const { schemaId, schemaRevisionId } = params;
-    return this.schemasService.getSchemaRevision(schemaId, schemaRevisionId);
-  }
-
-  @Get("/:schemaId/revisions/:schemaRevisionId/metadata")
-  @Accepts("application/json")
-  async getSchemaRevisionMetadataList(
-    @Param() params: GetSchemaRevisionParams,
-    @Query() query: GetSchemaRevisionMetadataQuery,
-  ): Promise<PaginatedList<GetSchemaRevisionMetadataListResponse>> {
-    const { schemaId, schemaRevisionId } = params;
-
-    const metadata = await this.schemasService.getSchemaRevisionMetadataList(
-      schemaId,
-      schemaRevisionId,
+  @Get("")
+  async getSchemas(
+    @Query() query: GetSchemasQuery,
+  ): Promise<PaginatedList<GetSchemasResponse>> {
+    const schemas = await this.schemasService.getSchemas(
       query["page[after]"],
       query["page[size]"],
     );
 
     const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
     const domain = this.configService.get<string>("domain");
-    const baseUrl = `${domain}${apiUrlPrefix}/schemas/${schemaId}/revisions/${schemaRevisionId}/metadata`;
+    const baseUrl = `${domain}${apiUrlPrefix}/schemas`;
 
-    return formatSchemaRevisionMetadataList(
-      metadata,
+    return formatSchemas(
+      schemas,
       query["page[after]"],
       query["page[size]"],
       baseUrl,
-    );
-  }
-
-  @Get("/:schemaId/revisions/:schemaRevisionId/metadata/:metadataId")
-  @Accepts("application/ld+json")
-  @Header("Content-type", "application/ld+json")
-  async getSchemaRevisionMetadata(
-    @Param() params: GetSchemaRevisionMetadataParams,
-  ): Promise<unknown> {
-    const { schemaId, schemaRevisionId, metadataId } = params;
-
-    return this.schemasService.getSchemaRevisionMetadata(
-      schemaId,
-      schemaRevisionId,
-      metadataId,
     );
   }
 }

@@ -1,7 +1,8 @@
+import type { LoggerService } from "@nestjs/common";
+
+import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 import http from "node:http";
 import https from "node:https";
-import type { LoggerService } from "@nestjs/common";
-import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 
 interface AxiosResponseError {
   config?: AxiosRequestConfig;
@@ -48,8 +49,7 @@ export function setupInterceptors(
   axios.interceptors.request.use((config) => {
     if (
       validateRequestConfigHeaders(config) &&
-      config.url &&
-      config.url.startsWith(domain)
+      config.url?.startsWith(domain)
     ) {
       const localUrl = config.url.replace(domain, localOrigin);
 
@@ -60,16 +60,15 @@ export function setupInterceptors(
         );
       }
 
-      // eslint-disable-next-line no-param-reassign
       config.url = localUrl;
     }
 
     return config;
-  }, null);
+  });
 
   // Response interceptor
   axios.interceptors.response.use(
-    null,
+    undefined,
     // This function is triggered whenever an axios request doesn't return a 2xx
     (error: AxiosResponseError) => {
       if (
@@ -98,6 +97,7 @@ export function setupInterceptors(
         return axios.request(config);
       }
 
+      // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
       return Promise.reject(error);
     },
   );

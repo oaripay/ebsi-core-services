@@ -1,7 +1,8 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
+
 import {
-  ProxyAuthenticationRequiredError,
   ProblemDetailsError,
+  ProxyAuthenticationRequiredError,
 } from "../index.js";
 
 describe("error ProxyAuthenticationRequiredError", () => {
@@ -25,10 +26,10 @@ describe("error ProxyAuthenticationRequiredError", () => {
     expect.assertions(7);
 
     const error = new ProxyAuthenticationRequiredError("Test Error", {
-      type: "test",
       extensions: {
         custom: "value",
       },
+      type: "test",
     });
 
     expect(error.name).toBe("ProxyAuthenticationRequiredError");
@@ -46,14 +47,15 @@ describe("error ProxyAuthenticationRequiredError", () => {
     expect.assertions(2);
 
     const error = new ProxyAuthenticationRequiredError("Test Error", {
-      type: "test",
       extensions: {
         custom: "value",
       },
+      type: "test",
     });
     const jsonError = error.toJSON();
 
     // JSON.stringify should call toJSON
+    // eslint-disable-next-line unicorn/prefer-structured-clone
     expect(JSON.parse(JSON.stringify(error))).toStrictEqual(jsonError);
     expect(jsonError).toStrictEqual({
       custom: "value",
@@ -67,10 +69,10 @@ describe("error ProxyAuthenticationRequiredError", () => {
     expect.assertions(1);
 
     const error = new ProxyAuthenticationRequiredError("Test Error", {
-      type: "test",
       extensions: {
         custom: "value",
       },
+      type: "test",
     });
 
     expect(error.toString()).toBe(

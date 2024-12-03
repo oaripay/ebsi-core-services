@@ -1,6 +1,9 @@
-import fs from "node:fs";
-import path from "path";
+import type { PolicyRegistry__factory } from "@ebsiint-sc/trusted-policies-registry";
+import type { Artifact } from "hardhat/types";
+
 import { ethers } from "hardhat";
+import fs from "node:fs";
+import path from "node:path";
 
 const didRegistryV1Address = "0x0000000000000000000000000000000000000000";
 
@@ -19,15 +22,15 @@ async function main() {
       ),
       { encoding: "utf8" },
     ),
-  );
-  const policyRegistryFactory = await ethers.getContractFactoryFromArtifact(
+  ) as unknown as Artifact;
+  const policyRegistryFactory = (await ethers.getContractFactoryFromArtifact(
     artifact,
     {
       libraries: {
         Pagination: pagination.address,
       },
     },
-  );
+  )) as PolicyRegistry__factory;
   const policyContract = await policyRegistryFactory.deploy();
   await policyContract.deployed();
 
@@ -56,8 +59,8 @@ async function main() {
 
   const contractFactory = await ethers.getContractFactory("DidRegistry", {
     libraries: {
-      DidDocumentLib: didDocumentLib.address,
       ControllersLib: controllersLib.address,
+      DidDocumentLib: didDocumentLib.address,
       VRelationshipsLib: vRelationshipsLib.address,
     },
   });
@@ -69,7 +72,7 @@ async function main() {
   await ts.setRegistryAddresses();
 
   console.log("DID Registry deployed at :", ts.address);
-  console.log(`Contract version set to: ${await ts.version()}`);
+  console.log(`Contract version set to: ${(await ts.version()).toString()}`);
 }
 
 main()

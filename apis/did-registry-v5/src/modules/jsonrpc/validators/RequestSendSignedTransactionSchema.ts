@@ -1,15 +1,16 @@
 import { z } from "zod";
+
+import { baseParamSchema } from "./BaseParamSchema.js";
 import { jsonRpcSchema } from "./JsonRpcSchema.js";
-import baseParamSchema from "./BaseParamSchema.js";
 
 const unsignedTransactionSchema = baseParamSchema.merge(
   z.object({
-    to: z.string(),
-    data: z.string(),
-    nonce: z.string(),
     chainId: z.string(),
+    data: z.string(),
     gasLimit: z.string(),
     gasPrice: z.string(),
+    nonce: z.string(),
+    to: z.string(),
     value: z.string(),
   }),
 );
@@ -18,11 +19,11 @@ export type UnsignedTransaction = z.infer<typeof unsignedTransactionSchema>;
 
 const sendSignedTransactionSchema = z.object({
   protocol: z.literal("eth"),
-  unsignedTransaction: unsignedTransactionSchema,
   r: z.string().regex(/^0x/),
   s: z.string().regex(/^0x/),
-  v: z.string().regex(/^0x/),
   signedRawTransaction: z.string().regex(/^0x/),
+  unsignedTransaction: unsignedTransactionSchema,
+  v: z.string().regex(/^0x/),
 });
 
 export type SendSignedTransactionParamsSchema = z.infer<

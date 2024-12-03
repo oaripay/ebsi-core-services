@@ -1,3 +1,4 @@
+import { IsDidV1 } from "@ebsiint-api/shared";
 import {
   IsHexadecimal,
   IsNumber,
@@ -6,7 +7,6 @@ import {
   Max,
   Min,
 } from "class-validator";
-import { IsDidV1 } from "@ebsiint-api/shared";
 
 export class ArgsUpdateIssuer {
   @IsDidV1()

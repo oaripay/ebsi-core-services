@@ -1,13 +1,13 @@
+import { ethers } from "ethers";
 /**
  * Collection of functions for generating fake data to be used in the tests.
  */
 import { randomBytes } from "node:crypto";
-import { ethers } from "ethers";
 
 export interface TestDocument {
+  didEbsiCreator: string;
   documentHash: string;
   documentMetadata: string;
-  didEbsiCreator: string;
   events: TestDocumentEvent[];
   timestamp: {
     datetime: string;
@@ -19,9 +19,9 @@ export interface TestDocumentEvent {
   documentHash: string;
   eventHash: string;
   externalHash: string;
-  sender: string;
-  origin: string;
   metadata: string;
+  origin: string;
+  sender: string;
   timestamp: {
     datetime: string;
     proof: string;
@@ -36,9 +36,9 @@ export function createDocument(
   const documentMetadata = "metadata";
 
   return {
+    didEbsiCreator,
     documentHash,
     documentMetadata,
-    didEbsiCreator,
     events: [],
     ...(externalSource
       ? {
@@ -72,9 +72,9 @@ export function createEvent(
     documentHash,
     eventHash,
     externalHash,
-    sender,
-    origin,
     metadata,
+    origin,
+    sender,
     timestamp: {
       datetime: "0x00",
       proof: "0x00",

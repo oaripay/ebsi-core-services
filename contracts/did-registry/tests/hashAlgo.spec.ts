@@ -1,6 +1,8 @@
-import { ethers, network } from "hardhat";
 import { expect } from "chai";
+import { ethers, network } from "hardhat";
+
 import type { DidRegistry, PolicyRegistryMock } from "../src/types";
+
 import { testTprAddress } from "./testAddress";
 
 describe("Hash Algorithm", () => {
@@ -36,9 +38,9 @@ describe("Hash Algorithm", () => {
 
     const contractFactory = await ethers.getContractFactory("DidRegistry", {
       libraries: {
-        HashAlgoLib: hashAlgoLib.address,
-        DidTimestampLib: didTimestampLib.address,
         DidRecordLib: didRecordLib.address,
+        DidTimestampLib: didTimestampLib.address,
+        HashAlgoLib: hashAlgoLib.address,
       },
     });
     ts = await contractFactory.deploy(testTprAddress);
@@ -167,7 +169,7 @@ describe("Hash Algorithm", () => {
       // Id starts from zero
       resHashIds.push(i - 1);
       // INSERT SHOULD BE DONE IN ORDER !!!
-      // eslint-disable-next-line no-await-in-loop
+
       await expect(ts.insertHashAlgorithm(i, name, oid, 1, multihash)).to.emit(
         ts,
         "AddNewHashAlgo",
@@ -194,7 +196,7 @@ describe("Hash Algorithm", () => {
       // Id starts from zero
       resHashIds.push(i - 1);
       // INSERT SHOULD BE DONE IN ORDER !!!
-      // eslint-disable-next-line no-await-in-loop
+
       await expect(ts.insertHashAlgorithm(i, name, oid, 1, multihash)).to.emit(
         ts,
         "AddNewHashAlgo",
@@ -203,9 +205,9 @@ describe("Hash Algorithm", () => {
 
     const r0 = await ts.getHashAlgorithms(1, 1);
     expect(r0.items).to.have.length(1);
-    r0.items.forEach((el: unknown, id: number) => {
+    for (const [id, el] of r0.items.entries()) {
       expect(el).to.equal(resHashIds.slice(0, 1)[id]);
-    });
+    }
 
     expect(r0.total).to.equal(11);
     expect(r0.howMany).to.equal(1);
@@ -214,9 +216,9 @@ describe("Hash Algorithm", () => {
 
     const r = await ts.getHashAlgorithms(1, 11);
     expect(r.items).to.have.length(11);
-    r.items.forEach((el: unknown, id: number) => {
+    for (const [id, el] of r.items.entries()) {
       expect(el).to.equal(resHashIds[id]);
-    });
+    }
     expect(r.total).to.equal(11);
     expect(r.howMany).to.equal(11);
     expect(r.prev).to.equal(1);

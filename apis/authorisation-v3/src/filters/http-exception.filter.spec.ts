@@ -1,20 +1,22 @@
-import { vi, describe, beforeAll, afterAll, it, expect } from "vitest";
-import { Test } from "@nestjs/testing";
-import {
-  Logger,
-  NotFoundException,
-  BadRequestException,
-  type ArgumentsHost,
-} from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
-import type { AxiosError } from "axios";
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
+import type { AxiosError } from "axios";
+
 import {
   MethodNotAllowedError,
   ProblemDetailsError,
 } from "@ebsiint-api/shared";
-import { AllExceptionsFilter } from "./http-exception.filter.js";
+import {
+  type ArgumentsHost,
+  BadRequestException,
+  Logger,
+  NotFoundException,
+} from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { Test } from "@nestjs/testing";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+
 import { configureApp } from "../../tests/utils/app.js";
+import { AllExceptionsFilter } from "./http-exception.filter.js";
 
 const mockGetResponse = vi.fn().mockImplementation(() => ({
   code: vi.fn().mockImplementation((code: unknown) => ({
@@ -22,9 +24,9 @@ const mockGetResponse = vi.fn().mockImplementation(() => ({
       headers: vi.fn().mockImplementation((headers: unknown) => ({
         send: vi.fn().mockImplementation((send: unknown) => ({
           code,
-          type,
           headers,
           send,
+          type,
         })),
       })),
     })),
@@ -32,16 +34,16 @@ const mockGetResponse = vi.fn().mockImplementation(() => ({
 }));
 
 const mockHttpArgumentsHost = vi.fn().mockImplementation(() => ({
-  getResponse: mockGetResponse,
-  getRequest: vi.fn(),
   getNext: vi.fn(),
+  getRequest: vi.fn(),
+  getResponse: mockGetResponse,
 })) as ArgumentsHost["switchToHttp"];
 
 const mockArgumentsHost: ArgumentsHost = {
-  switchToHttp: mockHttpArgumentsHost,
   getArgByIndex: vi.fn() as ArgumentsHost["getArgByIndex"],
   getArgs: vi.fn() as ArgumentsHost["getArgs"],
   getType: vi.fn() as ArgumentsHost["getType"],
+  switchToHttp: mockHttpArgumentsHost,
   switchToRpc: vi.fn() as ArgumentsHost["switchToRpc"],
   switchToWs: vi.fn() as ArgumentsHost["switchToWs"],
 };
@@ -82,14 +84,14 @@ describe("All exception filter tests", () => {
     const response = service.catch(problem, mockArgumentsHost);
     expect(response).toStrictEqual({
       code: 403,
-      type: "application/problem+json",
       headers: {},
       send: {
-        title: "Custom Error",
         detail: "Custom detail",
         status: 403,
+        title: "Custom Error",
         type: "about:blank",
       },
+      type: "application/problem+json",
     });
   });
 
@@ -100,16 +102,16 @@ describe("All exception filter tests", () => {
     const response = service.catch(problem, mockArgumentsHost);
     expect(response).toStrictEqual({
       code: MethodNotAllowedError.statusCode,
-      type: "application/problem+json",
       headers: {
         Allow: "POST, PUT",
       },
       send: {
-        title: "Custom Error",
-        status: MethodNotAllowedError.statusCode,
         detail: "Custom detail",
+        status: MethodNotAllowedError.statusCode,
+        title: "Custom Error",
         type: "about:blank",
       },
+      type: "application/problem+json",
     });
   });
 
@@ -119,14 +121,14 @@ describe("All exception filter tests", () => {
     const response = service.catch(exception, mockArgumentsHost);
     expect(response).toStrictEqual({
       code: 404,
-      type: "application/problem+json",
       headers: {},
       send: {
-        title: "Not Found",
         detail,
         status: 404,
+        title: "Not Found",
         type: "about:blank",
       },
+      type: "application/problem+json",
     });
   });
 
@@ -136,36 +138,36 @@ describe("All exception filter tests", () => {
     const response = service.catch(exception, mockArgumentsHost);
     expect(response).toStrictEqual({
       code: 400,
-      type: "application/problem+json",
       headers: {},
       send: {
-        title: "Bad Request",
         detail,
         status: 400,
+        title: "Bad Request",
         type: "about:blank",
       },
+      type: "application/problem+json",
     });
   });
 
   describe("Axios errors", () => {
     const axiosError: AxiosError = {
       isAxiosError: true,
-      toJSON: () => ({}),
-      name: "Error",
       message: "error",
+      name: "Error",
+      toJSON: () => ({}),
     };
 
     const expectedError = {
       code: 500,
-      type: "application/problem+json",
       headers: {},
       send: {
-        title: "Internal Server Error",
         detail:
           "The server encountered an internal error and was unable to complete your request",
         status: 500,
+        title: "Internal Server Error",
         type: "about:blank",
       },
+      type: "application/problem+json",
     };
 
     it("should handle error", () => {
@@ -177,11 +179,11 @@ describe("All exception filter tests", () => {
       const error = {
         ...axiosError,
         response: {
+          config: undefined,
           data: "error",
+          headers: undefined,
           status: 400,
-          headers: null,
           statusText: "Error 400",
-          config: null,
         },
       };
       const response = service.catch(error, mockArgumentsHost);

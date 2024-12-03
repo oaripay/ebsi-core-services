@@ -1,19 +1,20 @@
+import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+
+import { expect } from "chai";
 import { ethers } from "hardhat";
 import crypto from "node:crypto";
-import { expect } from "chai";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { SchemaSCRegistry } from "../src/types";
+
+import type { SchemaSCRegistry } from "../src/types";
+
 import { testTprAddress } from "./testAddress";
 
-const num = ethers.BigNumber.from;
-
 function getEthObject(o: unknown): Record<string, unknown> {
-  const obj = o as string[] & Record<string, unknown>;
+  const obj = o as Record<string, unknown> & string[];
   const keys = Object.keys(obj);
   const result: Record<string, unknown> = {};
-  keys.forEach((k, i) => {
+  for (const [i, k] of keys.entries()) {
     if (i >= keys.length / 2) result[k] = obj[k];
-  });
+  }
   return result;
 }
 
@@ -57,8 +58,8 @@ describe("SchemaPolicies", () => {
       "SchemaSCRegistry",
       {
         libraries: {
-          SchemaLib: schemaLib.address,
           Pagination: pagination.address,
+          SchemaLib: schemaLib.address,
         },
       },
     );
@@ -96,11 +97,11 @@ describe("SchemaPolicies", () => {
         // get all policies
         const issPagination = await ts.getPolicies(1, 20);
         expect(getEthObject(issPagination)).to.eql({
+          howMany: ethers.BigNumber.from(2),
           items: [policyName1, policyName2],
-          total: num(2),
-          howMany: num(2),
-          prev: num(1),
-          next: num(1),
+          next: ethers.BigNumber.from(1),
+          prev: ethers.BigNumber.from(1),
+          total: ethers.BigNumber.from(2),
         });
         const updatedPolicyData1 = randomPolicyData();
         const updatedPolicyHash1 = ethers.utils.sha256(
@@ -116,11 +117,11 @@ describe("SchemaPolicies", () => {
 
         const issPagination2 = await ts.getPolicies(1, 20);
         expect(getEthObject(issPagination2)).to.eql({
+          howMany: ethers.BigNumber.from(2),
           items: [policyName1, policyName2],
-          total: num(2),
-          howMany: num(2),
-          prev: num(1),
-          next: num(1),
+          next: ethers.BigNumber.from(1),
+          prev: ethers.BigNumber.from(1),
+          total: ethers.BigNumber.from(2),
         });
         // policyId should have been updated
         // the latest Attribute hash should be policyData2 and policyHash2
@@ -128,10 +129,12 @@ describe("SchemaPolicies", () => {
         expect(policy3).to.eql([updatedPolicyData1, updatedPolicyHash1]);
       });
     });
+
     describe("get attributebyHash (getPolicyRevisions)", () => {
-      const resAttributeHash = [...Array(11).keys()].map((i) =>
+      const resAttributeHash = [...Array.from({ length: 11 }).keys()].map((i) =>
         ethers.utils.sha256(ethers.utils.toUtf8Bytes(`data-update-${i}`)),
       );
+
       it("should fail with wrong page size", async () => {
         const did = `didi`;
         const firstinputdata = ethers.utils.toUtf8Bytes("data-update-0");
@@ -146,7 +149,7 @@ describe("SchemaPolicies", () => {
           const data = `data-update-${i}`;
           const inputdata = ethers.utils.toUtf8Bytes(data);
           // INSERT SHOULD BE DONE IN ORDER !!!
-          ts.updatePolicy(did, inputdata);
+          await ts.updatePolicy(did, inputdata);
         }
 
         // pagesize = 0 should revert
@@ -163,6 +166,7 @@ describe("SchemaPolicies", () => {
           tsUser.getPolicyRevisions(didFirstInputHash, 1, 52),
         ).to.be.revertedWith("PageSize must be <= 50");
       });
+
       it("should work", async () => {
         const did = `didi`;
         const firstinputdata = ethers.utils.toUtf8Bytes("data-update-0");
@@ -176,37 +180,37 @@ describe("SchemaPolicies", () => {
           const data = `data-update-${i}`;
           const inputdata = ethers.utils.toUtf8Bytes(data);
           // INSERT SHOULD BE DONE IN ORDER !!!
-          ts.updatePolicy(did, inputdata);
+          await ts.updatePolicy(did, inputdata);
         }
         // page = 0 and pagesize is less than total
         const r0 = await tsUser.getPolicyRevisions(did, 1, 10);
         expect(getEthObject(r0)).to.eql({
+          howMany: ethers.BigNumber.from(10),
           items: resAttributeHash.slice(0, 10),
-          total: num(11),
-          howMany: num(10),
-          prev: num(1),
-          next: num(2),
+          next: ethers.BigNumber.from(2),
+          prev: ethers.BigNumber.from(1),
+          total: ethers.BigNumber.from(11),
         });
 
         // page = 0 and pagesize is more than total
         const r1 = await tsUser.getPolicyRevisions(did, 1, 15);
         expect(r1.items).to.have.length(11);
         expect(getEthObject(r1)).to.eql({
+          howMany: ethers.BigNumber.from(11),
           items: resAttributeHash,
-          total: num(11),
-          howMany: num(11),
-          prev: num(1),
-          next: num(1),
+          next: ethers.BigNumber.from(1),
+          prev: ethers.BigNumber.from(1),
+          total: ethers.BigNumber.from(11),
         });
 
         // page = 0 and pagesize is way less than total
         const r2 = await tsUser.getPolicyRevisions(did, 1, 2);
         expect(getEthObject(r2)).to.eql({
+          howMany: ethers.BigNumber.from(2),
           items: [resAttributeHash[0], resAttributeHash[1]],
-          total: num(11),
-          howMany: num(2),
-          prev: num(1),
-          next: num(2),
+          next: ethers.BigNumber.from(2),
+          prev: ethers.BigNumber.from(1),
+          total: ethers.BigNumber.from(11),
         });
       });
     });
@@ -230,6 +234,7 @@ describe("SchemaPolicies", () => {
         expect(ethers.utils.arrayify(res[0])).to.eql(data);
         expect(res[1]).to.equal(dataHash);
       });
+
       it("for twice the same policyId should fail", async () => {
         const policyId = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
 
@@ -255,6 +260,7 @@ describe("SchemaPolicies", () => {
           "policy already exist",
         );
       });
+
       it("for two policyId", async () => {
         const policyId = "policyId:ebsi:1";
         // insert did and attribute1v0
@@ -305,6 +311,7 @@ describe("SchemaPolicies", () => {
         expect(policies.next.toString()).to.equal("1");
       });
     });
+
     describe("get policies", () => {
       const resAttributeHash = [
         "0",
@@ -327,7 +334,7 @@ describe("SchemaPolicies", () => {
           const inputdata = ethers.utils.toUtf8Bytes(data);
           const tsUser = ts.connect(user);
           // INSERT SHOULD BE DONE IN ORDER !!!
-          // eslint-disable-next-line no-await-in-loop
+
           await expect(tsUser.insertPolicy(did, inputdata)).to.emit(
             ts,
             "AddNewPolicy",
@@ -347,6 +354,7 @@ describe("SchemaPolicies", () => {
           "PageSize must be <= 50",
         );
       });
+
       it("should work with page==X and pagesize less than total", async () => {
         const tsUser = ts.connect(user);
 
@@ -355,52 +363,53 @@ describe("SchemaPolicies", () => {
           const data = `data${i}`;
           const inputdata = ethers.utils.toUtf8Bytes(data);
           // INSERT SHOULD BE DONE IN ORDER !!!
-          // eslint-disable-next-line no-await-in-loop
+
           await tsUser.insertPolicy(did, inputdata);
         }
         // page = 3 and pagesize 2
         const r1 = await ts.getPolicies(3, 2);
         expect(r1.items).to.have.length(2);
         expect(getEthObject(r1)).to.eql({
+          howMany: ethers.BigNumber.from(2),
           items: resAttributeHash.slice(4, 6),
-          total: num(11),
-          howMany: num(2),
-          prev: num(2),
-          next: num(4),
+          next: ethers.BigNumber.from(4),
+          prev: ethers.BigNumber.from(2),
+          total: ethers.BigNumber.from(11),
         });
         // page = 1 and pagesize 10
         const r2 = await ts.getPolicies(1, 10);
         expect(r2.items.length).to.equal(10);
         expect(getEthObject(r2)).to.eql({
+          howMany: ethers.BigNumber.from(10),
           items: resAttributeHash.slice(0, 10),
-          total: num(11),
-          howMany: num(10),
-          prev: num(1),
-          next: num(2),
+          next: ethers.BigNumber.from(2),
+          prev: ethers.BigNumber.from(1),
+          total: ethers.BigNumber.from(11),
         });
 
         // page = 65456465 and pagesize 564646545645
-        const r7 = await ts.getPolicies(65456465, 50);
+        const r7 = await ts.getPolicies(65_456_465, 50);
         expect(r7.items.length).to.equal(0);
         expect(getEthObject(r7)).to.eql({
+          howMany: ethers.BigNumber.from(0),
           items: [],
-          total: num(11),
-          howMany: num(0),
-          prev: num(1),
-          next: num(1),
+          next: ethers.BigNumber.from(1),
+          prev: ethers.BigNumber.from(1),
+          total: ethers.BigNumber.from(11),
         });
 
         // page = 3 and pagesize 3
         const r9 = await ts.getPolicies(4, 3);
         expect(r9.items.length).to.equal(2);
         expect(getEthObject(r9)).to.eql({
+          howMany: ethers.BigNumber.from(2),
           items: resAttributeHash.slice(9),
-          total: num(11),
-          howMany: num(2),
-          prev: num(3),
-          next: num(4),
+          next: ethers.BigNumber.from(4),
+          prev: ethers.BigNumber.from(3),
+          total: ethers.BigNumber.from(11),
         });
       });
+
       it("by hash should work or revert if not found", async () => {
         const tsUser = ts.connect(user);
 
@@ -409,7 +418,7 @@ describe("SchemaPolicies", () => {
           const data = `data${i}`;
           const inputdata = ethers.utils.toUtf8Bytes(data);
           // INSERT SHOULD BE DONE IN ORDER !!!
-          // eslint-disable-next-line no-await-in-loop
+
           await tsUser.insertPolicy(did, inputdata);
         }
         // update so that we have several revision fo some policies
@@ -418,12 +427,12 @@ describe("SchemaPolicies", () => {
           const data = `modifieddata${i}`;
           const inputdata = ethers.utils.toUtf8Bytes(data);
           // INSERT SHOULD BE DONE IN ORDER !!!
-          // eslint-disable-next-line no-await-in-loop
+
           await tsUser.updatePolicy(did, inputdata);
           const dataV2 = `modifieddata${i}V2`;
           const inputdataV2 = ethers.utils.toUtf8Bytes(dataV2);
           // INSERT SHOULD BE DONE IN ORDER !!!
-          // eslint-disable-next-line no-await-in-loop
+
           await tsUser.updatePolicy(did, inputdataV2);
         }
 
@@ -431,7 +440,7 @@ describe("SchemaPolicies", () => {
           const data = `data${i}`;
           const inputdata = ethers.utils.toUtf8Bytes(data);
           // INSERT SHOULD BE DONE IN ORDER !!!
-          // eslint-disable-next-line no-await-in-loop
+
           const policyData = await tsUser.getPolicyByHash(
             ethers.utils.sha256(inputdata),
           );
@@ -442,7 +451,7 @@ describe("SchemaPolicies", () => {
           const data = `modifieddata${i}`;
           const inputdata = ethers.utils.toUtf8Bytes(data);
           // INSERT SHOULD BE DONE IN ORDER !!!
-          // eslint-disable-next-line no-await-in-loop
+
           const policyData = await tsUser.getPolicyByHash(
             ethers.utils.sha256(inputdata),
           );
@@ -450,7 +459,7 @@ describe("SchemaPolicies", () => {
           const dataV2 = `modifieddata${i}V2`;
           const inputdataV2 = ethers.utils.toUtf8Bytes(dataV2);
           // INSERT SHOULD BE DONE IN ORDER !!!
-          // eslint-disable-next-line no-await-in-loop
+
           const policyDataV2 = await tsUser.getPolicyByHash(
             ethers.utils.sha256(inputdataV2),
           );
@@ -463,6 +472,7 @@ describe("SchemaPolicies", () => {
           ),
         ).to.be.revertedWith("policy data does not exist");
       });
+
       it("Revisions should work or revert if not found", async () => {
         const tsUser = ts.connect(user);
 
@@ -471,7 +481,7 @@ describe("SchemaPolicies", () => {
           const data = `data${i}`;
           const inputdata = ethers.utils.toUtf8Bytes(data);
           // INSERT SHOULD BE DONE IN ORDER !!!
-          // eslint-disable-next-line no-await-in-loop
+
           await tsUser.insertPolicy(did, inputdata);
         }
         // update so that we have several revision fo some policies
@@ -480,12 +490,12 @@ describe("SchemaPolicies", () => {
           const data = `modifieddata${i}`;
           const inputdata = ethers.utils.toUtf8Bytes(data);
           // INSERT SHOULD BE DONE IN ORDER !!!
-          // eslint-disable-next-line no-await-in-loop
+
           await tsUser.updatePolicy(did, inputdata);
           const dataV2 = `modifieddata${i}V2`;
           const inputdataV2 = ethers.utils.toUtf8Bytes(dataV2);
           // INSERT SHOULD BE DONE IN ORDER !!!
-          // eslint-disable-next-line no-await-in-loop
+
           await tsUser.updatePolicy(did, inputdataV2);
         }
 
@@ -500,7 +510,7 @@ describe("SchemaPolicies", () => {
           const dataV2 = `modifieddata${i}V2`;
           const inputdataV2 = ethers.utils.toUtf8Bytes(dataV2);
           // INSERT SHOULD BE DONE IN ORDER !!!
-          // eslint-disable-next-line no-await-in-loop
+
           const policyRevs = await tsUser.getPolicyRevisions(did, 1, 10);
           expect(policyRevs.items).to.eql([
             ethers.utils.sha256(inputdata),
@@ -516,14 +526,15 @@ describe("SchemaPolicies", () => {
           const data = `data${i}`;
           const inputdata = ethers.utils.toUtf8Bytes(data);
           // INSERT SHOULD BE DONE IN ORDER !!!
-          // eslint-disable-next-line no-await-in-loop
+
           const policyRevs = await tsUser.getPolicyRevisions(did, 1, 10);
 
           expect(policyRevs.items).to.eql([ethers.utils.sha256(inputdata)]);
         }
       });
     });
-    it("should work", async () => {
+
+    it("should work", () => {
       it("get policies", async () => {
         const tsUser = ts.connect(user);
         const policyId = "policyId:ebsi:1";
@@ -565,13 +576,14 @@ describe("SchemaPolicies", () => {
         expect(policies.prev.toString()).to.equal("1");
         expect(policies.next.toString()).to.equal("1");
 
-        // policyId shoudl have been updated
+        // policyId should have been updated
         // the latest Attribute hash should be attr1v1Hash and attr2Hash
         const res1V1 = await ts.getPolicy(policyId);
 
         expect(res1V1[0]).to.equal(ethers.utils.hexlify(attribute1v1));
         expect(res1V1[1]).to.equal(secondHash);
       });
+
       it("should fail if policy does not exists", async () => {
         const policyId = "policyId:ebsi:1";
         const tsUser = ts.connect(user);

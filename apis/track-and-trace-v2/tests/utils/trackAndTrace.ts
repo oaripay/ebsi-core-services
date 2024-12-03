@@ -1,26 +1,59 @@
-// eslint-disable-next-line @typescript-eslint/triple-slash-reference
-/// <reference path="../../../../contracts/track-and-trace-v2/src/types/hardhat.d.ts" />
+import "../../../../contracts/track-and-trace-v2/src/types/hardhat.d.ts";
+
 import hre from "hardhat";
+
 import "@nomiclabs/hardhat-ethers";
-import { ethers } from "ethers";
-import { TrackAndTrace } from "@ebsiint-sc/track-and-trace-v2";
-import { EbsiWallet } from "@cef-ebsi/wallet-lib";
-// eslint-disable-next-line import/extensions
+
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers.js";
+
+import { EbsiWallet } from "@cef-ebsi/wallet-lib";
+import { TrackAndTrace } from "@ebsiint-sc/track-and-trace-v2";
+import { ethers } from "ethers";
+
+import { Document, Operator } from "../../.graphclient/index.js";
+import { AccountType, Permission } from "../../src/shared/constants.js";
+import { didToHex, hexToDid } from "../../src/shared/utils.js";
 import {
   createDocument,
   createEvent,
   dummyData,
   type TestDocument,
 } from "./data.js";
-import { didToHex, hexToDid } from "../../src/shared/utils.js";
-import { AccountType, Permission } from "../../src/shared/constants.js";
-// eslint-disable-next-line import/extensions, import/no-relative-packages
-import { Document, Operator } from "../../.graphclient/index.js";
+
+export interface SetupOptions {
+  documentEventsTotal?: number;
+  documentsWithBlockSourceTotal?: number;
+  documentsWithExternalSourceTotal?: number;
+}
+
+export async function addEvent(contract: TrackAndTrace, doc: TestDocument) {
+  const event = createEvent(doc.documentHash, doc.didEbsiCreator);
+
+  const tx = await contract["writeEvent((bytes32,string,bytes,string,string))"](
+    {
+      documentHash: event.documentHash,
+      externalHash: event.externalHash,
+      metadata: event.metadata,
+      origin: event.origin,
+      sender: await didToHex(event.sender),
+    },
+  );
+
+  const receipt = await tx.wait();
+
+  const block = await hre.ethers.provider.getBlock(receipt.blockHash);
+
+  event.timestamp = {
+    datetime: `0x${block.timestamp.toString(16)}`,
+    proof: `0x${block.number.toString(16).padStart(64, "0")}`,
+  };
+
+  doc.events.push(event);
+}
 
 export async function deployTrackAndTraceContract(): Promise<{
-  trackAndTraceContract: TrackAndTrace;
   broadcaster: SignerWithAddress;
+  trackAndTraceContract: TrackAndTrace;
 }> {
   const signers = (await hre.ethers.getSigners()) as [
     SignerWithAddress,
@@ -60,9 +93,39 @@ export async function deployTrackAndTraceContract(): Promise<{
   await tprMock.setPolicyResult(true);
 
   return {
-    trackAndTraceContract,
     broadcaster,
+    trackAndTraceContract,
   };
+}
+
+export async function grantAccess(
+  contract: TrackAndTrace,
+  documentHash: string,
+  grantedByAccount: string,
+  subjectAccount: string,
+  subjectAccType: (typeof AccountType)[keyof typeof AccountType],
+) {
+  // permission to delegate
+  const txDelegate = await contract.grantAccess(
+    documentHash,
+    Buffer.from(grantedByAccount),
+    await didToHex(subjectAccount),
+    AccountType.DID_EBSI,
+    subjectAccType,
+    Permission.DELEGATE,
+  );
+  await txDelegate.wait();
+
+  // permission to write
+  const txWrite = await contract.grantAccess(
+    documentHash,
+    Buffer.from(grantedByAccount),
+    await didToHex(subjectAccount),
+    AccountType.DID_EBSI,
+    subjectAccType,
+    Permission.WRITE,
+  );
+  await txWrite.wait();
 }
 
 export async function insertDocumentWithBlockSource(
@@ -106,79 +169,18 @@ export async function insertDocumentWithExternalSource(
   return doc;
 }
 
-export async function addEvent(contract: TrackAndTrace, doc: TestDocument) {
-  const event = createEvent(doc.documentHash, doc.didEbsiCreator);
-
-  const tx = await contract["writeEvent((bytes32,string,bytes,string,string))"](
-    {
-      documentHash: event.documentHash,
-      externalHash: event.externalHash,
-      sender: await didToHex(event.sender),
-      origin: event.origin,
-      metadata: event.metadata,
-    },
-  );
-
-  const receipt = await tx.wait();
-
-  const block = await hre.ethers.provider.getBlock(receipt.blockHash);
-
-  event.timestamp = {
-    datetime: `0x${block.timestamp.toString(16)}`,
-    proof: `0x${block.number.toString(16).padStart(64, "0")}`,
-  };
-
-  doc.events.push(event);
-}
-
-export async function grantAccess(
-  contract: TrackAndTrace,
-  documentHash: string,
-  grantedByAccount: string,
-  subjectAccount: string,
-  subjectAccType: (typeof AccountType)[keyof typeof AccountType],
-) {
-  // permission to delegate
-  const txDelegate = await contract.grantAccess(
-    documentHash,
-    Buffer.from(grantedByAccount),
-    await didToHex(subjectAccount),
-    AccountType.DID_EBSI,
-    subjectAccType,
-    Permission.DELEGATE,
-  );
-  await txDelegate.wait();
-
-  // permission to write
-  const txWrite = await contract.grantAccess(
-    documentHash,
-    Buffer.from(grantedByAccount),
-    await didToHex(subjectAccount),
-    AccountType.DID_EBSI,
-    subjectAccType,
-    Permission.WRITE,
-  );
-  await txWrite.wait();
-}
-
-export interface SetupOptions {
-  documentsWithBlockSourceTotal?: number;
-  documentsWithExternalSourceTotal?: number;
-  documentEventsTotal?: number;
-}
-
 export async function setupTestEnv(): Promise<{
-  provider: ethers.providers.JsonRpcProvider;
-  trackAndTraceContract: TrackAndTrace;
   documentsWithBlockSource: TestDocument[];
   documentsWithExternalSource: TestDocument[];
   operators: Operator[];
+  provider: ethers.providers.JsonRpcProvider;
+  trackAndTraceContract: TrackAndTrace;
 }> {
   const ethersProvider = hre.ethers.provider;
   const supportOfficeAccount = EbsiWallet.createDid();
   const creatorAccount = dummyData.documents[0]!.creator;
   // Deploy contract
-  const { trackAndTraceContract, broadcaster } =
+  const { broadcaster, trackAndTraceContract } =
     await deployTrackAndTraceContract();
 
   // Authorise creator account
@@ -202,17 +204,17 @@ export async function setupTestEnv(): Promise<{
 
   const formatTestDocument = (doc: Document): TestDocument => {
     return {
+      didEbsiCreator: doc.creator,
       documentHash: doc.id,
       documentMetadata: doc.metadata,
-      didEbsiCreator: doc.creator,
       events: doc.events.map((e) => {
         return {
           documentHash: e.hash,
           eventHash: e.id,
           externalHash: e.externalHash,
-          sender: hexToDid(e.sender),
-          origin: e.origin,
           metadata: e.metadata,
+          origin: e.origin,
+          sender: hexToDid(e.sender),
           timestamp: {
             datetime: `0x${Number(e.timestamp).toString(16)}`,
             proof: e.proof,
@@ -225,17 +227,19 @@ export async function setupTestEnv(): Promise<{
       },
     };
   };
-  const documentsWithBlockSource =
-    dummyData.documentsWithBlockSource.map(formatTestDocument);
-  const documentsWithExternalSource =
-    dummyData.documentsWithExternalSource.map(formatTestDocument);
+  const documentsWithBlockSource = dummyData.documentsWithBlockSource.map(
+    (doc) => formatTestDocument(doc),
+  );
+  const documentsWithExternalSource = dummyData.documentsWithExternalSource.map(
+    (doc) => formatTestDocument(doc),
+  );
 
   // Return test env variables
   return {
-    provider: ethersProvider,
-    trackAndTraceContract,
     documentsWithBlockSource,
     documentsWithExternalSource,
     operators: dummyData.operators,
+    provider: ethersProvider,
+    trackAndTraceContract,
   };
 }

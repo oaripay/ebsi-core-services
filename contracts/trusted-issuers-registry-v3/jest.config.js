@@ -1,10 +1,10 @@
 module.exports = {
-  testEnvironment: "node",
-  testTimeout: 30000,
+  collectCoverage: true,
+  coverageDirectory: "./coverage/",
+  moduleFileExtensions: ["js", "json"],
   rootDir: ".",
   roots: ["<rootDir>/tests/"],
+  testEnvironment: "node",
   testMatch: ["**/?(*.|*-)+(spec|test).+(ts|tsx|js)"],
-  moduleFileExtensions: ["js", "json"],
-  coverageDirectory: "./coverage/",
-  collectCoverage: true,
+  testTimeout: 30_000,
 };

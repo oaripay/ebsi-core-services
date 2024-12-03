@@ -1,14 +1,33 @@
-import { Injectable, Logger } from "@nestjs/common";
 import { isEthersError, NotFoundError } from "@ebsiint-api/shared";
-import { UserResponseObject } from "./users.interface.js";
-// eslint-disable-next-line import/extensions, import/no-relative-packages
+import { Injectable, Logger } from "@nestjs/common";
+
 import { getBuiltGraphSDK, User_filter } from "../../../.graphclient/index.js";
+import { UserResponseObject } from "./users.interface.js";
 
 const sdk = getBuiltGraphSDK();
 
 @Injectable()
 export class UsersService {
   private readonly logger = new Logger(UsersService.name);
+
+  async getUser(user: string): Promise<UserResponseObject> {
+    try {
+      const res = await sdk.GetUser({ user });
+      if (!res.user) throw new Error("not found");
+
+      return {
+        attributes: res.user.attributes,
+        user: res.user.id,
+      };
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error, error.stack);
+      }
+      throw new NotFoundError("User Not Found", {
+        detail: `User ${user} not found`,
+      });
+    }
+  }
 
   async getUsers(
     page = 1,
@@ -19,31 +38,12 @@ export class UsersService {
     try {
       // get one more item to clarify next pages in pagination
       const queryPageSize = pagesize + 1;
-      const res = await sdk.GetUsers({ skip, pagesize: queryPageSize, where });
+      const res = await sdk.GetUsers({ pagesize: queryPageSize, skip, where });
       const users = res.users.map((u) => u.id);
       return { items: users };
-    } catch (error) {
+    } catch {
       throw new NotFoundError("Users not found", {
         detail: "Users not found",
-      });
-    }
-  }
-
-  async getUser(user: string): Promise<UserResponseObject> {
-    try {
-      const res = await sdk.GetUser({ user });
-      if (!res.user) throw new Error("not found");
-
-      return {
-        user: res.user.id,
-        attributes: res.user.attributes,
-      };
-    } catch (e) {
-      if (isEthersError(e)) {
-        this.logger.error(e, e.stack);
-      }
-      throw new NotFoundError("User Not Found", {
-        detail: `User ${user} not found`,
       });
     }
   }

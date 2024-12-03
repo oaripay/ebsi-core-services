@@ -1,24 +1,25 @@
-import { z, type RefinementCtx } from "zod";
-import validator from "validator";
 import { isDid } from "@ebsiint-api/shared";
+import validator from "validator";
+import { type RefinementCtx, z } from "zod";
+
 import { hexToDid } from "../../../shared/utils.js";
 
 const validators = validator.default;
 
 function isHexadecimal(
   value: string,
-): { success: true } | { success: false; error: string } {
+): { error: string; success: false } | { success: true } {
   if (!value.startsWith("0x")) {
     return {
-      success: false,
       error: "Must start with 0x",
+      success: false,
     };
   }
 
   if (!validators.isHexadecimal(value)) {
     return {
-      success: false,
       error: "Must be hexadecimal",
+      success: false,
     };
   }
 
@@ -28,15 +29,15 @@ function isHexadecimal(
 function isSender(value: string) {
   if (!value.startsWith("0x")) {
     return {
-      success: false,
       error: "Must start with 0x",
+      success: false,
     };
   }
 
   if (!validators.isHexadecimal(value)) {
     return {
-      success: false,
       error: "Must be hexadecimal",
+      success: false,
     };
   }
 
@@ -46,8 +47,8 @@ function isSender(value: string) {
     did = hexToDid(value);
   } catch (error) {
     return {
-      success: false,
       error: error instanceof Error ? error.message : "unknown error",
+      success: false,
     };
   }
 
@@ -61,8 +62,8 @@ export const refinements = {
     if (!isValid.success) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: isValid.error,
         fatal: true,
+        message: isValid.error,
       });
     }
   },
@@ -72,8 +73,8 @@ export const refinements = {
     if (!isValid.success) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: isValid.error,
         fatal: true,
+        message: isValid.error,
       });
     }
   },

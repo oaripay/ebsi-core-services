@@ -1,14 +1,24 @@
-/* eslint-disable @typescript-eslint/ban-types */
+import { Bytes, ethereum } from "@graphprotocol/graph-ts";
 import { newMockEvent } from "matchstick-as";
-import { ethereum, Bytes } from "@graphprotocol/graph-ts";
+
 import {
+  MetadataUpdated,
   SchemaInserted,
   SchemaUpdated,
-  MetadataUpdated,
 } from "../generated/TrustedSchemasRegistry/TrustedSchemasRegistry";
 
-function paramBytes(name: string, value: Bytes): ethereum.EventParam {
-  return new ethereum.EventParam(name, ethereum.Value.fromBytes(value));
+export function createMetadataUpdatedvent(
+  schemaRevisionId: Bytes,
+  metadataId: Bytes,
+  metadata: Bytes,
+): MetadataUpdated {
+  const event = changetype<MetadataUpdated>(newMockEvent());
+  event.parameters = [
+    paramBytes("schemaRevisionId", schemaRevisionId),
+    paramBytes("metadataId", metadataId),
+    paramBytes("metadata", metadata),
+  ];
+  return event;
 }
 
 export function createSchemaInsertedEvent(
@@ -47,16 +57,6 @@ export function createSchemaUpdatedEvent(
   return event;
 }
 
-export function createMetadataUpdatedvent(
-  schemaRevisionId: Bytes,
-  metadataId: Bytes,
-  metadata: Bytes,
-): MetadataUpdated {
-  const event = changetype<MetadataUpdated>(newMockEvent());
-  event.parameters = [
-    paramBytes("schemaRevisionId", schemaRevisionId),
-    paramBytes("metadataId", metadataId),
-    paramBytes("metadata", metadata),
-  ];
-  return event;
+function paramBytes(name: string, value: Bytes): ethereum.EventParam {
+  return new ethereum.EventParam(name, ethereum.Value.fromBytes(value));
 }

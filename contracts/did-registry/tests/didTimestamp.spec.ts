@@ -1,7 +1,10 @@
-import { ethers, network } from "hardhat";
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+
 import { expect } from "chai";
+import { ethers, network } from "hardhat";
+
 import type { DidRegistry } from "../src/types";
+
 import { testTprAddress } from "./testAddress";
 
 describe("Timestamp Hashes", () => {
@@ -39,9 +42,9 @@ describe("Timestamp Hashes", () => {
 
     const contractFactory = await ethers.getContractFactory("DidRegistry", {
       libraries: {
-        HashAlgoLib: hashAlgoLib.address,
-        DidTimestampLib: didTimestampLib.address,
         DidRecordLib: didRecordLib.address,
+        DidTimestampLib: didTimestampLib.address,
+        HashAlgoLib: hashAlgoLib.address,
       },
     });
 
@@ -113,7 +116,7 @@ describe("Timestamp Hashes", () => {
 
   it("getDidTimestampById should succeed", async () => {
     const hash0 = ethers.utils.sha256(ethers.utils.toUtf8Bytes("e40605e6"));
-    const hash1 = `${hash0}${hash0.substring(2)}`;
+    const hash1 = `${hash0}${hash0.slice(2)}`;
     const blockNumber = await ethers.provider.getBlockNumber();
     await ts.didTimestampHash(1, hash1, ethers.utils.toUtf8Bytes("btc"));
     const r1 = await ts.getDidTimestampById(ethers.utils.sha256(hash1));
@@ -204,9 +207,9 @@ describe("Timestamp Hashes", () => {
       // Id starts from zero
       resTsIds.push(ethers.utils.sha256(hash));
       // INSERT SHOULD BE DONE IN ORDER !!!
-      // eslint-disable-next-line no-await-in-loop
-      await expect(
-        ts.didTimestampHash(0, hash, ethers.utils.toUtf8Bytes(data)),
+
+      expect(
+        await ts.didTimestampHash(0, hash, ethers.utils.toUtf8Bytes(data)),
       );
     }
     // pagesize = 0 should revert
@@ -229,17 +232,18 @@ describe("Timestamp Hashes", () => {
       // Id starts from zero
       resTsIds.push(ethers.utils.sha256(hash));
       // INSERT SHOULD BE DONE IN ORDER !!!
-      // eslint-disable-next-line no-await-in-loop
-      await expect(
-        ts.didTimestampHash(0, hash, ethers.utils.toUtf8Bytes(data)),
+
+      expect(
+        await ts.didTimestampHash(0, hash, ethers.utils.toUtf8Bytes(data)),
       );
     }
 
     const r0 = await ts.getDidTimestamps(1, 1);
     expect(r0.items).to.have.length(1);
-    r0.items.forEach((el: unknown, id: number) => {
+
+    for (const [id, el] of r0.items.entries()) {
       expect(el).to.equal(resTsIds[id]);
-    });
+    }
 
     expect(r0.total).to.equal(11);
     expect(r0.howMany).to.equal(1);
@@ -248,9 +252,11 @@ describe("Timestamp Hashes", () => {
 
     const r = await ts.getDidTimestamps(1, 11);
     expect(r.items).to.have.length(11);
-    r.items.forEach((el: unknown, id: number) => {
+
+    for (const [id, el] of r.items.entries()) {
       expect(el).to.equal(resTsIds[id]);
-    });
+    }
+
     expect(r.total).to.equal(11);
     expect(r.howMany).to.equal(11);
     expect(r.prev).to.equal(1);

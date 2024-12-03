@@ -1,23 +1,38 @@
-// eslint-disable-next-line @typescript-eslint/triple-slash-reference
-/// <reference path="../../../../contracts/trusted-policies-registry-v2/src/types/hardhat.d.ts" />
+import "../../../../contracts/trusted-policies-registry-v2/src/types/hardhat.d.ts";
+
 import hre from "hardhat";
+
 import "@nomiclabs/hardhat-ethers";
-import crypto from "node:crypto";
+import { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry-v2";
 import { ethers } from "ethers";
+import crypto from "node:crypto";
 import { range } from "rxjs";
 import { mergeMap, toArray } from "rxjs/operators";
-import { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry-v2";
 
 export interface PolicyObject {
+  description: string;
   policyId: number;
   policyName: string;
-  description: string;
   status: true;
 }
 
+export interface SetupOptions {
+  policiesTotal?: number;
+  usersTotal?: number;
+}
+
 export interface UserObject {
-  user: string;
   attributes: string[];
+  user: string;
+}
+
+export async function deployPoliciesRegistryContract(): Promise<PolicyRegistry> {
+  const policiesRegistryFactory =
+    await hre.ethers.getContractFactory("PolicyRegistry");
+
+  const policyRegistry = await policiesRegistryFactory.deploy();
+  await policyRegistry.initialize(1);
+  return policyRegistry;
 }
 
 export async function insertPolicy(
@@ -30,9 +45,9 @@ export async function insertPolicy(
   await contract.insertPolicy(policyName, description);
 
   return {
+    description,
     policyId: policyId + 1,
     policyName,
-    description,
     status: true,
   };
 }
@@ -41,8 +56,8 @@ export async function insertUser(
   contract: PolicyRegistry,
 ): Promise<UserObject> {
   const user: UserObject = {
-    user: ethers.Wallet.createRandom().address,
     attributes: ["test-attr1", "test-attr2", "test-attr3"],
+    user: ethers.Wallet.createRandom().address,
   };
 
   await contract.insertUserAttributes(user.user, user.attributes);
@@ -50,31 +65,18 @@ export async function insertUser(
   return user;
 }
 
-export async function deployPoliciesRegistryContract(): Promise<PolicyRegistry> {
-  const policiesRegistryFactory =
-    await hre.ethers.getContractFactory("PolicyRegistry");
-
-  const policyRegistry = await policiesRegistryFactory.deploy();
-  await policyRegistry.initialize(1);
-  return policyRegistry;
-}
-
-export interface SetupOptions {
-  policiesTotal?: number;
-  usersTotal?: number;
-}
-
-export async function setupTestEnv(
-  opts: SetupOptions = {
-    policiesTotal: 1,
-  },
-): Promise<{
-  provider: ethers.providers.JsonRpcProvider;
-  policiesRegistryContract: PolicyRegistry;
-  policies: PolicyObject[];
-  users: UserObject[];
+export async function setupTestEnv(opts: SetupOptions): Promise<{
   adminWallet: ethers.Wallet;
+  policies: PolicyObject[];
+  policiesRegistryContract: PolicyRegistry;
+  provider: ethers.providers.JsonRpcProvider;
+  users: UserObject[];
 }> {
+  const { policiesTotal, usersTotal } = {
+    policiesTotal: 1,
+    usersTotal: 1,
+    ...opts,
+  };
   const ethersProvider = hre.ethers.provider;
 
   // Deploy contract
@@ -96,25 +98,25 @@ export async function setupTestEnv(
   };
 
   const policies =
-    opts.policiesTotal! >= 1
-      ? (await range(0, opts.policiesTotal)
+    policiesTotal >= 1
+      ? (await range(0, policiesTotal)
           .pipe(mergeMap(createPolicy), toArray())
           .toPromise())!
       : [];
 
   const users =
-    opts.usersTotal! >= 1
-      ? (await range(0, opts.usersTotal)
+    usersTotal >= 1
+      ? (await range(0, usersTotal)
           .pipe(mergeMap(createUser), toArray())
           .toPromise())!
       : [];
 
   // Return test env variables
   return {
-    provider: ethersProvider,
-    policiesRegistryContract,
-    policies,
-    users,
     adminWallet,
+    policies,
+    policiesRegistryContract,
+    provider: ethersProvider,
+    users,
   };
 }

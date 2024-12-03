@@ -1,43 +1,33 @@
-import { describe, beforeAll, it, expect, afterAll } from "vitest";
-import crypto from "node:crypto";
-import { ethers } from "ethers";
-import request from "supertest";
-import { Test } from "@nestjs/testing";
-import { ValidationPipe, Logger, HttpStatus } from "@nestjs/common";
-import {
-  FastifyAdapter,
-  type NestFastifyApplication,
-} from "@nestjs/platform-fastify";
-import { ConfigService } from "@nestjs/config";
-import type { RawServerDefault } from "fastify";
-import { fastifyAccepts } from "@fastify/accepts";
-import { fastifyHelmet } from "@fastify/helmet";
-import {
-  prefixWith0x,
-  multibase,
-  PaginatedList,
-  waitToBeMined,
-  methodNotAllowed,
-} from "@ebsiint-api/shared";
-import type { TransactionRequest } from "@ethersproject/abstract-provider";
 import type {
   EbsiEnvConfiguration,
   EbsiIssuer,
 } from "@cef-ebsi/verifiable-credential";
-import { AppModule } from "../../src/app.module.js";
-import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
-import type { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface.js";
-import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils.js";
-import type {
-  RecordLink,
-  VersionLink,
-} from "../../src/modules/records/records.interface.js";
-import type { ApiConfig } from "../../src/config/configuration.js";
-import { describeWriteOps, itWriteOps, writeOps } from "../utils/writeOps.js";
-import { getServer } from "../utils/getServer.js";
-import { getTimestampWriteAccessToken } from "../utils/getAccessToken.js";
-import { getEbsiIssuer } from "../utils/getEbsiIssuer.js";
+import type { TransactionRequest } from "@ethersproject/abstract-provider";
+import type { RawServerDefault } from "fastify";
 
+import {
+  methodNotAllowed,
+  multibase,
+  PaginatedList,
+  prefixWith0x,
+  waitToBeMined,
+} from "@ebsiint-api/shared";
+import { fastifyAccepts } from "@fastify/accepts";
+import { fastifyHelmet } from "@fastify/helmet";
+import { HttpStatus, Logger, ValidationPipe } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import {
+  FastifyAdapter,
+  type NestFastifyApplication,
+} from "@nestjs/platform-fastify";
+import { Test } from "@nestjs/testing";
+import { ethers } from "ethers";
+import crypto from "node:crypto";
+import request from "supertest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
+
+import type { ApiConfig } from "../../src/config/configuration.js";
+import type { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface.js";
 import type { AppendRecordVersionHashesSchema } from "../../src/modules/jsonrpc/validators/RequestAppendRecordVersionHashes.js";
 import type { DetachRecordVersionHashSchema } from "../../src/modules/jsonrpc/validators/RequestDetachRecordVersionHashes.js";
 import type { InsertRecordOwnerSchema } from "../../src/modules/jsonrpc/validators/RequestInsertRecordOwner.js";
@@ -45,24 +35,36 @@ import type { InsertRecordVersionInfoSchema } from "../../src/modules/jsonrpc/va
 import type { RevokeRecordOwnerSchema } from "../../src/modules/jsonrpc/validators/RequestRevokeRecordOwner.js";
 import type { TimestampRecordHashesSchema } from "../../src/modules/jsonrpc/validators/RequestTimestampRecordHashes.js";
 import type { TimestampRecordVersionHashesSchema } from "../../src/modules/jsonrpc/validators/RequestTimestampRecordVersionHashes.js";
-import type { UnsignedTransactionSchema } from "../../src/modules/jsonrpc/validators/UnsignedTransaction.js";
 import type { TimestampVersionHashesSchema } from "../../src/modules/jsonrpc/validators/RequestTimestampVersionHashes.js";
+import type { UnsignedTransactionSchema } from "../../src/modules/jsonrpc/validators/UnsignedTransaction.js";
+import type {
+  RecordLink,
+  VersionLink,
+} from "../../src/modules/records/records.interface.js";
 
-interface SupertestJsonRpcResponse {
-  status: number;
-  body: JsonRpcResponseObject;
-}
+import { AppModule } from "../../src/app.module.js";
+import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
+import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils.js";
+import { getTimestampWriteAccessToken } from "../utils/getAccessToken.js";
+import { getEbsiIssuer } from "../utils/getEbsiIssuer.js";
+import { getServer } from "../utils/getServer.js";
+import { describeWriteOps, itWriteOps, writeOps } from "../utils/writeOps.js";
 
 type JsonRpcParams =
-  | TimestampRecordHashesSchema
-  | TimestampRecordVersionHashesSchema
   | AppendRecordVersionHashesSchema
   | DetachRecordVersionHashSchema
-  | RevokeRecordOwnerSchema
   | InsertRecordOwnerSchema
   | InsertRecordVersionInfoSchema
-  | UnsignedTransactionSchema
-  | TimestampVersionHashesSchema;
+  | RevokeRecordOwnerSchema
+  | TimestampRecordHashesSchema
+  | TimestampRecordVersionHashesSchema
+  | TimestampVersionHashesSchema
+  | UnsignedTransactionSchema;
+
+interface SupertestJsonRpcResponse {
+  body: JsonRpcResponseObject;
+  status: number;
+}
 
 const multihashToNodeHashAlg = {
   "sha2-256": "sha256",
@@ -94,8 +96,25 @@ describe("Timestamp API v4 - Records (e2e)", () => {
   let trustedHostnames: string[];
   let adminUser: TestUser;
   let testUser: TestUser;
-
   let ledgerApi: string;
+
+  const getFirstRecordId = async () => {
+    const respRecords = await request(server).get("/records");
+    const { recordId } = (respRecords.body as { items: RecordLink[] })
+      .items[0]!;
+    return recordId;
+  };
+
+  const getRecordVersions = async (recordId: string) => {
+    const respRecords = await request(server).get(
+      `/records/${recordId}/versions`,
+    );
+    const { items, total } = respRecords.body as {
+      items: VersionLink[];
+      total: number;
+    };
+    return { items, total };
+  };
 
   beforeAll(async () => {
     // Start server
@@ -162,8 +181,8 @@ describe("Timestamp API v4 - Records (e2e)", () => {
         .replace(/^https?:\/\//, "");
       ledgerApi = `${configService.get<string>("ledgerApiUrl")}/blockchains/besu`;
       const ebsiEnvConfig = {
-        network: configService.get("network", { infer: true }),
         hosts: [ebsiAuthority, ...trustedHostnames],
+        network: configService.get("network", { infer: true }),
         services: {
           "did-registry": "v5",
           "trusted-issuers-registry": "v5",
@@ -182,10 +201,9 @@ describe("Timestamp API v4 - Records (e2e)", () => {
           ),
           wallet: adminWallet,
         };
-      } catch (e) {
-        // eslint-disable-next-line no-console
-        console.error(e);
-        throw e;
+      } catch (error) {
+        console.error(error);
+        throw error;
       }
 
       const configTestUser = configService.get<{
@@ -208,10 +226,9 @@ describe("Timestamp API v4 - Records (e2e)", () => {
           ),
           wallet: userWallet,
         };
-      } catch (e) {
-        // eslint-disable-next-line no-console
-        console.error(e);
-        throw e;
+      } catch (error) {
+        console.error(error);
+        throw error;
       }
     }
 
@@ -263,18 +280,18 @@ describe("Timestamp API v4 - Records (e2e)", () => {
 
       const response = await request(server).get("/records");
       expect(response.body).toStrictEqual({
-        self: expect.stringContaining("/records?page[after]=1&page[size]=10"),
         items: expect.arrayContaining([]),
-        total: expect.any(Number),
-        pageSize: 10,
         links: {
           first: expect.stringContaining(
             "/records?page[after]=1&page[size]=10",
           ),
-          prev: expect.stringContaining("/records?page[after]=1&page[size]=10"),
-          next: expect.stringContaining("/records?page[after]="),
           last: expect.stringContaining("/records?page[after]="),
+          next: expect.stringContaining("/records?page[after]="),
+          prev: expect.stringContaining("/records?page[after]=1&page[size]=10"),
         },
+        pageSize: 10,
+        self: expect.stringContaining("/records?page[after]=1&page[size]=10"),
+        total: expect.any(Number),
       });
       expect(response.status).toBe(200);
     });
@@ -293,10 +310,10 @@ describe("Timestamp API v4 - Records (e2e)", () => {
       const response = await request(server).get(`/records/${recordId}`);
 
       expect(response.body).toStrictEqual({
-        ownerIds: expect.arrayContaining([]),
-        revokedOwnerIds: expect.arrayContaining([]),
         firstVersionTimestamps: expect.arrayContaining([]),
         lastVersionTimestamps: expect.arrayContaining([]),
+        ownerIds: expect.arrayContaining([]),
+        revokedOwnerIds: expect.arrayContaining([]),
         totalVersions: expect.any(Number),
       });
       expect(response.status).toBe(200);
@@ -310,9 +327,9 @@ describe("Timestamp API v4 - Records (e2e)", () => {
       const response = await request(server).get(`/records/${recordId}`);
 
       expect(response.body).toStrictEqual({
-        title: "Record Not Found",
-        status: 404,
         detail: `Record ${recordId} not found`,
+        status: 404,
+        title: "Record Not Found",
         type: "about:blank",
       });
       expect(response.status).toBe(404);
@@ -320,16 +337,6 @@ describe("Timestamp API v4 - Records (e2e)", () => {
   });
 
   describe("GET /records/{recordId}/versions", () => {
-    const getFirstRecordId = async () => {
-      const respRecords = await request(server).get("/records");
-      const { recordId } = (
-        respRecords.body as {
-          items: RecordLink[];
-        }
-      ).items[0]!;
-      return recordId;
-    };
-
     it("should return a paginated collection of versions", async () => {
       expect.assertions(2);
 
@@ -339,53 +346,32 @@ describe("Timestamp API v4 - Records (e2e)", () => {
         `/records/${recordId}/versions`,
       );
       expect(response.body).toStrictEqual({
-        self: expect.stringContaining(
-          `/records/${recordId}/versions?page[after]=1&page[size]=10`,
-        ),
         items: expect.arrayContaining([]),
-        total: expect.any(Number),
-        pageSize: 10,
         links: {
           first: expect.stringContaining(
             `/records/${recordId}/versions?page[after]=1&page[size]=10`,
           ),
-          prev: expect.stringContaining(
-            `/records/${recordId}/versions?page[after]=1&page[size]=10`,
+          last: expect.stringContaining(
+            `/records/${recordId}/versions?page[after]=`,
           ),
           next: expect.stringContaining(
             `/records/${recordId}/versions?page[after]=`,
           ),
-          last: expect.stringContaining(
-            `/records/${recordId}/versions?page[after]=`,
+          prev: expect.stringContaining(
+            `/records/${recordId}/versions?page[after]=1&page[size]=10`,
           ),
         },
+        pageSize: 10,
+        self: expect.stringContaining(
+          `/records/${recordId}/versions?page[after]=1&page[size]=10`,
+        ),
+        total: expect.any(Number),
       });
       expect(response.status).toBe(200);
     });
   });
 
   describe("GET /records/{recordId}/versions/{versionId}", () => {
-    const getFirstRecordId = async () => {
-      const respRecords = await request(server).get("/records");
-      const { recordId } = (
-        respRecords.body as {
-          items: RecordLink[];
-        }
-      ).items[0]!;
-      return recordId;
-    };
-
-    const getRecordVersions = async (recordId: string) => {
-      const respRecords = await request(server).get(
-        `/records/${recordId}/versions`,
-      );
-      const { items, total } = respRecords.body as {
-        items: VersionLink[];
-        total: number;
-      };
-      return { items, total };
-    };
-
     it("should return a specific version", async () => {
       expect.assertions(2);
 
@@ -412,9 +398,9 @@ describe("Timestamp API v4 - Records (e2e)", () => {
       );
 
       expect(response.body).toStrictEqual({
-        title: "Record Not Found",
-        status: 404,
         detail: `Record ${randomRecordId} not found`,
+        status: 404,
+        title: "Record Not Found",
         type: "about:blank",
       });
       expect(response.status).toBe(404);
@@ -432,9 +418,9 @@ describe("Timestamp API v4 - Records (e2e)", () => {
       );
 
       expect(response.body).toStrictEqual({
-        title: "Version Not Found",
-        status: 404,
         detail: `Version ${versionId} not found`,
+        status: 404,
+        title: "Version Not Found",
         type: "about:blank",
       });
       expect(response.status).toBe(404);
@@ -454,8 +440,103 @@ describe("Timestamp API v4 - Records (e2e)", () => {
     it("should work", async () => {
       expect.assertions(5);
 
-      let param: JsonRpcParams | null = null;
+      let param: JsonRpcParams;
       switch (method) {
+        case "appendRecordVersionHashes": {
+          const recordId = ethers.utils.sha256(
+            ethers.utils.defaultAbiCoder.encode(
+              ["address", "uint256", "bytes"],
+              [testUser.wallet.address, blockNumber1, hashValue1],
+            ),
+          );
+          param = {
+            from: testUser.wallet.address,
+            hashAlgorithmIds: [hashAlgorithmId, hashAlgorithmId],
+            hashValues: [hashValue1, hashValue2],
+            recordId,
+            timestampData: [
+              `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
+                "hex",
+              )}`,
+              `0x${Buffer.from(JSON.stringify({ test: 82 }), "utf8").toString(
+                "hex",
+              )}`,
+              // `0x${crypto.randomBytes(32).toString("hex")}`,
+              // `0x${crypto.randomBytes(32).toString("hex")}`,
+            ],
+            versionId: 0,
+            versionInfo: `0x${Buffer.from(
+              JSON.stringify({ info: 42 }),
+              "utf8",
+            ).toString("hex")}`,
+          } satisfies AppendRecordVersionHashesSchema;
+          break;
+        }
+        case "detachRecordVersionHash": {
+          const recordId = ethers.utils.sha256(
+            ethers.utils.defaultAbiCoder.encode(
+              ["address", "uint256", "bytes"],
+              [testUser.wallet.address, blockNumber1, hashValue1],
+            ),
+          );
+          param = {
+            from: testUser.wallet.address,
+            hashValue: hashValue1,
+            recordId,
+            versionId: 0,
+          } satisfies DetachRecordVersionHashSchema;
+          break;
+        }
+        case "insertRecordOwner": {
+          const recordId = ethers.utils.sha256(
+            ethers.utils.defaultAbiCoder.encode(
+              ["address", "uint256", "bytes"],
+              [testUser.wallet.address, blockNumber1, hashValue1],
+            ),
+          );
+          const notBefore = Date.now();
+          param = {
+            from: testUser.wallet.address,
+            notAfter: notBefore + 1_000_000,
+            notBefore,
+            ownerId: "myownerid",
+            recordId,
+          } satisfies InsertRecordOwnerSchema;
+          break;
+        }
+        case "insertRecordVersionInfo": {
+          const recordId = ethers.utils.sha256(
+            ethers.utils.defaultAbiCoder.encode(
+              ["address", "uint256", "bytes"],
+              [testUser.wallet.address, blockNumber1, hashValue1],
+            ),
+          );
+
+          param = {
+            from: testUser.wallet.address,
+            recordId,
+            versionId: 0,
+            versionInfo: `0x${Buffer.from(
+              JSON.stringify({ test: 42 }),
+              "utf8",
+            ).toString("hex")}`,
+          } satisfies InsertRecordVersionInfoSchema;
+          break;
+        }
+        case "revokeRecordOwner": {
+          const recordId = ethers.utils.sha256(
+            ethers.utils.defaultAbiCoder.encode(
+              ["address", "uint256", "bytes"],
+              [testUser.wallet.address, blockNumber1, hashValue1],
+            ),
+          );
+          param = {
+            from: testUser.wallet.address,
+            ownerId: "myownerid",
+            recordId,
+          } satisfies RevokeRecordOwnerSchema;
+          break;
+        }
         case "timestampRecordHashes": {
           param = {
             from: testUser.wallet.address,
@@ -474,6 +555,34 @@ describe("Timestamp API v4 - Records (e2e)", () => {
               "utf8",
             ).toString("hex")}`,
           } satisfies TimestampRecordHashesSchema;
+          break;
+        }
+        case "timestampRecordVersionHashes": {
+          const recordId = ethers.utils.sha256(
+            ethers.utils.defaultAbiCoder.encode(
+              ["address", "uint256", "bytes"],
+              [testUser.wallet.address, blockNumber1, hashValue1],
+            ),
+          );
+
+          param = {
+            from: testUser.wallet.address,
+            hashAlgorithmIds: [hashAlgorithmId, hashAlgorithmId],
+            hashValues: [hashValue1, hashValue2],
+            recordId,
+            timestampData: [
+              `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
+                "hex",
+              )}`,
+              `0x${Buffer.from(JSON.stringify({ test: 82 }), "utf8").toString(
+                "hex",
+              )}`,
+            ],
+            versionInfo: `0x${Buffer.from(
+              JSON.stringify({ info: 42 }),
+              "utf8",
+            ).toString("hex")}`,
+          } satisfies TimestampRecordVersionHashesSchema;
           break;
         }
         case "timestampVersionHashes": {
@@ -497,146 +606,24 @@ describe("Timestamp API v4 - Records (e2e)", () => {
           } satisfies TimestampVersionHashesSchema;
           break;
         }
-        case "timestampRecordVersionHashes": {
-          const recordId = ethers.utils.sha256(
-            ethers.utils.defaultAbiCoder.encode(
-              ["address", "uint256", "bytes"],
-              [testUser.wallet.address, blockNumber1, hashValue1],
-            ),
-          );
-
-          param = {
-            from: testUser.wallet.address,
-            recordId,
-            hashAlgorithmIds: [hashAlgorithmId, hashAlgorithmId],
-            hashValues: [hashValue1, hashValue2],
-            timestampData: [
-              `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                "hex",
-              )}`,
-              `0x${Buffer.from(JSON.stringify({ test: 82 }), "utf8").toString(
-                "hex",
-              )}`,
-            ],
-            versionInfo: `0x${Buffer.from(
-              JSON.stringify({ info: 42 }),
-              "utf8",
-            ).toString("hex")}`,
-          } satisfies TimestampRecordVersionHashesSchema;
-          break;
-        }
-        case "insertRecordOwner": {
-          const recordId = ethers.utils.sha256(
-            ethers.utils.defaultAbiCoder.encode(
-              ["address", "uint256", "bytes"],
-              [testUser.wallet.address, blockNumber1, hashValue1],
-            ),
-          );
-          const notBefore = new Date().getTime();
-          param = {
-            from: testUser.wallet.address,
-            recordId,
-            ownerId: "myownerid",
-            notBefore,
-            notAfter: notBefore + 1000000,
-          } satisfies InsertRecordOwnerSchema;
-          break;
-        }
-        case "revokeRecordOwner": {
-          const recordId = ethers.utils.sha256(
-            ethers.utils.defaultAbiCoder.encode(
-              ["address", "uint256", "bytes"],
-              [testUser.wallet.address, blockNumber1, hashValue1],
-            ),
-          );
-          param = {
-            from: testUser.wallet.address,
-            recordId,
-            ownerId: "myownerid",
-          } satisfies RevokeRecordOwnerSchema;
-          break;
-        }
-        case "insertRecordVersionInfo": {
-          const recordId = ethers.utils.sha256(
-            ethers.utils.defaultAbiCoder.encode(
-              ["address", "uint256", "bytes"],
-              [testUser.wallet.address, blockNumber1, hashValue1],
-            ),
-          );
-
-          param = {
-            from: testUser.wallet.address,
-            recordId,
-            versionId: 0,
-            versionInfo: `0x${Buffer.from(
-              JSON.stringify({ test: 42 }),
-              "utf8",
-            ).toString("hex")}`,
-          } satisfies InsertRecordVersionInfoSchema;
-          break;
-        }
-        case "detachRecordVersionHash": {
-          const recordId = ethers.utils.sha256(
-            ethers.utils.defaultAbiCoder.encode(
-              ["address", "uint256", "bytes"],
-              [testUser.wallet.address, blockNumber1, hashValue1],
-            ),
-          );
-          param = {
-            from: testUser.wallet.address,
-            recordId,
-            versionId: 0,
-            hashValue: hashValue1,
-          } satisfies DetachRecordVersionHashSchema;
-          break;
-        }
-        case "appendRecordVersionHashes": {
-          const recordId = ethers.utils.sha256(
-            ethers.utils.defaultAbiCoder.encode(
-              ["address", "uint256", "bytes"],
-              [testUser.wallet.address, blockNumber1, hashValue1],
-            ),
-          );
-          param = {
-            from: testUser.wallet.address,
-            recordId,
-            versionId: 0,
-            hashAlgorithmIds: [hashAlgorithmId, hashAlgorithmId],
-            hashValues: [hashValue1, hashValue2],
-            timestampData: [
-              `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                "hex",
-              )}`,
-              `0x${Buffer.from(JSON.stringify({ test: 82 }), "utf8").toString(
-                "hex",
-              )}`,
-              // `0x${crypto.randomBytes(32).toString("hex")}`,
-              // `0x${crypto.randomBytes(32).toString("hex")}`,
-            ],
-            versionInfo: `0x${Buffer.from(
-              JSON.stringify({ info: 42 }),
-              "utf8",
-            ).toString("hex")}`,
-          } satisfies AppendRecordVersionHashesSchema;
-          break;
-        }
-        default:
+        default: {
           throw new Error(`Test Error: Invalid method ${method}`);
+        }
       }
 
       const responseBuild: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")
         .auth(testUser.token, { type: "bearer" })
         .send({
+          id: 231,
           jsonrpc: "2.0",
           method,
           params: [param],
-          id: 231,
         });
 
       expect(responseBuild.body).toStrictEqual({
-        jsonrpc: "2.0",
         id: 231,
+        jsonrpc: "2.0",
         result: {
           chainId: expect.any(String),
           data: expect.any(String),
@@ -652,6 +639,7 @@ describe("Timestamp API v4 - Records (e2e)", () => {
 
       const unsignedTransaction = responseBuild.body.result;
       const uTx = formatEthersUnsignedTransaction(
+        // eslint-disable-next-line unicorn/prefer-structured-clone
         JSON.parse(
           JSON.stringify(unsignedTransaction),
         ) as unknown as UnsignedTransactionSchema,
@@ -666,24 +654,24 @@ describe("Timestamp API v4 - Records (e2e)", () => {
         .post("/jsonrpc")
         .auth(testUser.token, { type: "bearer" })
         .send({
+          id: "45",
           jsonrpc: "2.0",
           method: "sendSignedTransaction",
           params: [
             {
               protocol: "eth",
-              unsignedTransaction,
               r,
               s,
-              v: `0x${Number(v).toString(16)}`,
               signedRawTransaction: sgnTx,
+              unsignedTransaction,
+              v: `0x${Number(v).toString(16)}`,
             },
           ],
-          id: "45",
         });
 
       expect(responseSend.body).toStrictEqual({
-        jsonrpc: "2.0",
         id: "45",
+        jsonrpc: "2.0",
         result: expect.any(String),
       });
       expect(responseSend.status).toBe(200);
@@ -705,9 +693,45 @@ describe("Timestamp API v4 - Records (e2e)", () => {
     it("should work with empty data", async () => {
       expect.assertions(5);
 
-      let param: JsonRpcParams | null = null;
+      let param: JsonRpcParams;
 
       switch (method) {
+        case "appendRecordVersionHashes": {
+          const recordId = ethers.utils.sha256(
+            ethers.utils.defaultAbiCoder.encode(
+              ["address", "uint256", "bytes"],
+              [testUser.wallet.address, blockNumber2, hashValue3],
+            ),
+          );
+          param = {
+            from: testUser.wallet.address,
+            hashAlgorithmIds: [hashAlgorithmId],
+            hashValues: [hashValue3],
+            recordId,
+            versionId: 0,
+            versionInfo: `0x${Buffer.from(
+              JSON.stringify({ info: 42 }),
+              "utf8",
+            ).toString("hex")}`,
+          } satisfies AppendRecordVersionHashesSchema;
+          break;
+        }
+        case "detachRecordVersionHash": {
+          expect.assertions(0);
+          return;
+        }
+        case "insertRecordOwner": {
+          expect.assertions(0);
+          return;
+        }
+        case "insertRecordVersionInfo": {
+          expect.assertions(0);
+          return;
+        }
+        case "revokeRecordOwner": {
+          expect.assertions(0);
+          return;
+        }
         case "timestampRecordHashes": {
           param = {
             from: testUser.wallet.address,
@@ -718,6 +742,26 @@ describe("Timestamp API v4 - Records (e2e)", () => {
               "utf8",
             ).toString("hex")}`,
           } satisfies TimestampRecordHashesSchema;
+          break;
+        }
+        case "timestampRecordVersionHashes": {
+          const recordId = ethers.utils.sha256(
+            ethers.utils.defaultAbiCoder.encode(
+              ["address", "uint256", "bytes"],
+              [testUser.wallet.address, blockNumber2, hashValue3],
+            ),
+          );
+
+          param = {
+            from: testUser.wallet.address,
+            hashAlgorithmIds: [hashAlgorithmId],
+            hashValues: [hashValue3],
+            recordId,
+            versionInfo: `0x${Buffer.from(
+              JSON.stringify({ info: 42 }),
+              "utf8",
+            ).toString("hex")}`,
+          } satisfies TimestampRecordVersionHashesSchema;
           break;
         }
         case "timestampVersionHashes": {
@@ -733,79 +777,24 @@ describe("Timestamp API v4 - Records (e2e)", () => {
           } satisfies TimestampVersionHashesSchema;
           break;
         }
-        case "timestampRecordVersionHashes": {
-          const recordId = ethers.utils.sha256(
-            ethers.utils.defaultAbiCoder.encode(
-              ["address", "uint256", "bytes"],
-              [testUser.wallet.address, blockNumber2, hashValue3],
-            ),
-          );
-
-          param = {
-            from: testUser.wallet.address,
-            recordId,
-            hashAlgorithmIds: [hashAlgorithmId],
-            hashValues: [hashValue3],
-            versionInfo: `0x${Buffer.from(
-              JSON.stringify({ info: 42 }),
-              "utf8",
-            ).toString("hex")}`,
-          } satisfies TimestampRecordVersionHashesSchema;
-          break;
-        }
-        case "insertRecordOwner": {
-          expect.assertions(0);
-          return;
-        }
-        case "revokeRecordOwner": {
-          expect.assertions(0);
-          return;
-        }
-        case "insertRecordVersionInfo": {
-          expect.assertions(0);
-          return;
-        }
-        case "detachRecordVersionHash": {
-          expect.assertions(0);
-          return;
-        }
-        case "appendRecordVersionHashes": {
-          const recordId = ethers.utils.sha256(
-            ethers.utils.defaultAbiCoder.encode(
-              ["address", "uint256", "bytes"],
-              [testUser.wallet.address, blockNumber2, hashValue3],
-            ),
-          );
-          param = {
-            from: testUser.wallet.address,
-            recordId,
-            versionId: 0,
-            hashAlgorithmIds: [hashAlgorithmId],
-            hashValues: [hashValue3],
-            versionInfo: `0x${Buffer.from(
-              JSON.stringify({ info: 42 }),
-              "utf8",
-            ).toString("hex")}`,
-          } satisfies AppendRecordVersionHashesSchema;
-          break;
-        }
-        default:
+        default: {
           throw new Error(`Test Error: Invalid method ${method}`);
+        }
       }
 
       const responseBuild: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")
         .auth(testUser.token, { type: "bearer" })
         .send({
+          id: 231,
           jsonrpc: "2.0",
           method,
           params: [param],
-          id: 231,
         });
 
       expect(responseBuild.body).toStrictEqual({
-        jsonrpc: "2.0",
         id: 231,
+        jsonrpc: "2.0",
         result: {
           chainId: expect.any(String),
           data: expect.any(String),
@@ -821,6 +810,7 @@ describe("Timestamp API v4 - Records (e2e)", () => {
 
       const unsignedTransaction = responseBuild.body.result;
       const uTx = formatEthersUnsignedTransaction(
+        // eslint-disable-next-line unicorn/prefer-structured-clone
         JSON.parse(
           JSON.stringify(unsignedTransaction),
         ) as unknown as UnsignedTransactionSchema,
@@ -835,24 +825,24 @@ describe("Timestamp API v4 - Records (e2e)", () => {
         .post("/jsonrpc")
         .auth(testUser.token, { type: "bearer" })
         .send({
+          id: "45",
           jsonrpc: "2.0",
           method: "sendSignedTransaction",
           params: [
             {
               protocol: "eth",
-              unsignedTransaction,
               r,
               s,
-              v: `0x${Number(v).toString(16)}`,
               signedRawTransaction: sgnTx,
+              unsignedTransaction,
+              v: `0x${Number(v).toString(16)}`,
             },
           ],
-          id: "45",
         });
 
       expect(responseSend.body).toStrictEqual({
-        jsonrpc: "2.0",
         id: "45",
+        jsonrpc: "2.0",
         result: expect.any(String),
       });
       expect(responseSend.status).toBe(200);
@@ -878,8 +868,38 @@ describe("Timestamp API v4 - Records (e2e)", () => {
     it("should fail with admin using an user recordId", async () => {
       expect.assertions(6);
 
-      let param: JsonRpcParams | null = null;
+      let param: JsonRpcParams;
       switch (method) {
+        case "appendRecordVersionHashes": {
+          const recordId = ethers.utils.sha256(
+            ethers.utils.defaultAbiCoder.encode(
+              ["address", "uint256", "bytes"],
+              [testUser.wallet.address, blockNumber1, hashValue1],
+            ),
+          );
+          param = {
+            from: adminUser.wallet.address,
+            hashAlgorithmIds: [hashAlgorithmId, hashAlgorithmId],
+            hashValues: [hashValue1, hashValue2],
+            recordId,
+            timestampData: [
+              `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
+                "hex",
+              )}`,
+              `0x${Buffer.from(JSON.stringify({ test: 82 }), "utf8").toString(
+                "hex",
+              )}`,
+              // `0x${crypto.randomBytes(32).toString("hex")}`,
+              // `0x${crypto.randomBytes(32).toString("hex")}`,
+            ],
+            versionId: 0,
+            versionInfo: `0x${Buffer.from(
+              JSON.stringify({ info: 42 }),
+              "utf8",
+            ).toString("hex")}`,
+          } satisfies AppendRecordVersionHashesSchema;
+          break;
+        }
         case "timestampRecordVersionHashes": {
           const recordId = ethers.utils.sha256(
             ethers.utils.defaultAbiCoder.encode(
@@ -890,9 +910,9 @@ describe("Timestamp API v4 - Records (e2e)", () => {
 
           param = {
             from: adminUser.wallet.address,
-            recordId,
             hashAlgorithmIds: [hashAlgorithmId, hashAlgorithmId],
             hashValues: [hashValue1, hashValue2],
+            recordId,
             timestampData: [
               `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
                 "hex",
@@ -908,53 +928,24 @@ describe("Timestamp API v4 - Records (e2e)", () => {
           } satisfies TimestampRecordVersionHashesSchema;
           break;
         }
-        case "appendRecordVersionHashes": {
-          const recordId = ethers.utils.sha256(
-            ethers.utils.defaultAbiCoder.encode(
-              ["address", "uint256", "bytes"],
-              [testUser.wallet.address, blockNumber1, hashValue1],
-            ),
-          );
-          param = {
-            from: adminUser.wallet.address,
-            recordId,
-            versionId: 0,
-            hashAlgorithmIds: [hashAlgorithmId, hashAlgorithmId],
-            hashValues: [hashValue1, hashValue2],
-            timestampData: [
-              `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                "hex",
-              )}`,
-              `0x${Buffer.from(JSON.stringify({ test: 82 }), "utf8").toString(
-                "hex",
-              )}`,
-              // `0x${crypto.randomBytes(32).toString("hex")}`,
-              // `0x${crypto.randomBytes(32).toString("hex")}`,
-            ],
-            versionInfo: `0x${Buffer.from(
-              JSON.stringify({ info: 42 }),
-              "utf8",
-            ).toString("hex")}`,
-          } satisfies AppendRecordVersionHashesSchema;
-          break;
-        }
-        default:
+        default: {
           throw new Error(`Test Error: Invalid method ${method}`);
+        }
       }
 
       const responseBuild: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")
         .auth(adminUser.token, { type: "bearer" })
         .send({
+          id: 231,
           jsonrpc: "2.0",
           method,
           params: [param],
-          id: 231,
         });
 
       expect(responseBuild.body).toStrictEqual({
-        jsonrpc: "2.0",
         id: 231,
+        jsonrpc: "2.0",
         result: {
           chainId: expect.any(String),
           data: expect.any(String),
@@ -970,6 +961,7 @@ describe("Timestamp API v4 - Records (e2e)", () => {
 
       const unsignedTransaction = responseBuild.body.result;
       const uTx = formatEthersUnsignedTransaction(
+        // eslint-disable-next-line unicorn/prefer-structured-clone
         JSON.parse(
           JSON.stringify(unsignedTransaction),
         ) as unknown as UnsignedTransactionSchema,
@@ -984,24 +976,24 @@ describe("Timestamp API v4 - Records (e2e)", () => {
         .post("/jsonrpc")
         .auth(adminUser.token, { type: "bearer" })
         .send({
+          id: "45",
           jsonrpc: "2.0",
           method: "sendSignedTransaction",
           params: [
             {
               protocol: "eth",
-              unsignedTransaction,
               r,
               s,
-              v: `0x${Number(v).toString(16)}`,
               signedRawTransaction: sgnTx,
+              unsignedTransaction,
+              v: `0x${Number(v).toString(16)}`,
             },
           ],
-          id: "45",
         });
 
       expect(responseSend.body).toStrictEqual({
-        jsonrpc: "2.0",
         id: "45",
+        jsonrpc: "2.0",
         result: expect.any(String),
       });
       expect(responseSend.status).toBe(200);
@@ -1044,14 +1036,15 @@ describe("Timestamp API v4 - Records (e2e)", () => {
         .post("/jsonrpc")
         .auth(testUser.token, { type: "bearer" })
         .send({
+          id: 231,
           jsonrpc: "2.0",
           method: "timestampRecordHashes",
           params: [param],
-          id: 231,
         });
 
       const unsignedTransaction = responseBuild.body.result;
       const uTx = formatEthersUnsignedTransaction(
+        // eslint-disable-next-line unicorn/prefer-structured-clone
         JSON.parse(
           JSON.stringify(unsignedTransaction),
         ) as unknown as UnsignedTransactionSchema,
@@ -1066,30 +1059,30 @@ describe("Timestamp API v4 - Records (e2e)", () => {
         .post("/jsonrpc")
         .auth(testUser.token, { type: "bearer" })
         .send({
+          id: "45",
           jsonrpc: "2.0",
           method: "sendSignedTransaction",
           params: [
             {
               protocol: "eth",
-              unsignedTransaction,
               r,
               s,
-              v: `0x${Number(v).toString(16)}`,
               signedRawTransaction: sgnTx,
+              unsignedTransaction,
+              v: `0x${Number(v).toString(16)}`,
             },
           ],
-          id: "45",
         });
 
       expect(responseSend.body).toStrictEqual({
-        jsonrpc: "2.0",
-        id: "45",
         error: {
-          code: -32600,
+          code: -32_600,
           message: `The DID ${
             testUser.info.did
           } is not controlled by the address ${adminUser.wallet.address.toLowerCase()}`,
         },
+        id: "45",
+        jsonrpc: "2.0",
       });
 
       expect(responseSend.status).toBe(400);
@@ -1131,14 +1124,15 @@ describe("Timestamp API v4 - Records (e2e)", () => {
         .post("/jsonrpc")
         .auth(adminUser.token, { type: "bearer" })
         .send({
+          id: 231,
           jsonrpc: "2.0",
           method: "timestampRecordHashes",
           params: [insertParam],
-          id: 231,
         });
 
       const insertUnsignedTransaction = insertResponseBuild.body.result;
       const insertUTx = formatEthersUnsignedTransaction(
+        // eslint-disable-next-line unicorn/prefer-structured-clone
         JSON.parse(
           JSON.stringify(insertUnsignedTransaction),
         ) as unknown as UnsignedTransactionSchema,
@@ -1154,22 +1148,22 @@ describe("Timestamp API v4 - Records (e2e)", () => {
         .post("/jsonrpc")
         .auth(adminUser.token, { type: "bearer" })
         .send({
+          id: "45",
           jsonrpc: "2.0",
           method: "sendSignedTransaction",
           params: [
             {
               protocol: "eth",
-              unsignedTransaction: insertUnsignedTransaction,
               r: parseTransactionResponse.r,
               s: parseTransactionResponse.s,
-              v: `0x${Number(parseTransactionResponse.v).toString(16)}`,
               signedRawTransaction: insertSgnTx,
+              unsignedTransaction: insertUnsignedTransaction,
+              v: `0x${Number(parseTransactionResponse.v).toString(16)}`,
             },
           ],
-          id: "45",
         });
       expect(insertResponseSend.status).toBe(HttpStatus.OK);
-      let param: JsonRpcParams | null = null;
+      let param: JsonRpcParams;
 
       // wait to be mined
       await waitToBeMined(ledgerApi, insertResponseSend.body.result as string);
@@ -1178,7 +1172,7 @@ describe("Timestamp API v4 - Records (e2e)", () => {
       expect((response.body as { items: string }).items).not.toHaveLength(0);
       expect(response.status).toBe(200);
       const responseLast = await request(server).get(
-        (response.body as PaginatedList<unknown>).links?.last.split("v4")[1] ||
+        (response.body as PaginatedList<unknown>).links?.last.split("v4")[1] ??
           "",
       );
 
@@ -1191,12 +1185,76 @@ describe("Timestamp API v4 - Records (e2e)", () => {
       ).toString("hex")}`;
 
       switch (method) {
-        case "timestampRecordVersionHashes": {
+        case "appendRecordVersionHashes": {
+          param = {
+            from: testUser.wallet.address,
+            hashAlgorithmIds: [hashAlgorithmId, hashAlgorithmId],
+            hashValues: [hashValue1, hashValue2],
+            recordId: decodedRecordId,
+            timestampData: [
+              `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
+                "hex",
+              )}`,
+              `0x${Buffer.from(JSON.stringify({ test: 82 }), "utf8").toString(
+                "hex",
+              )}`,
+              // `0x${crypto.randomBytes(32).toString("hex")}`,
+              // `0x${crypto.randomBytes(32).toString("hex")}`,
+            ],
+            versionId: 0,
+            versionInfo: `0x${Buffer.from(
+              JSON.stringify({ info: 42 }),
+              "utf8",
+            ).toString("hex")}`,
+          } satisfies AppendRecordVersionHashesSchema;
+          break;
+        }
+        case "detachRecordVersionHash": {
+          param = {
+            from: testUser.wallet.address,
+            hashValue: hashValue1,
+            recordId: decodedRecordId,
+            versionId: 0,
+          } satisfies DetachRecordVersionHashSchema;
+          break;
+        }
+        case "insertRecordOwner": {
+          const notBefore = Date.now();
+          param = {
+            from: testUser.wallet.address,
+            notAfter: notBefore + 1_000_000,
+            notBefore,
+            ownerId: "myownerid",
+            recordId: decodedRecordId,
+          } satisfies InsertRecordOwnerSchema;
+          break;
+        }
+        case "insertRecordVersionInfo": {
           param = {
             from: testUser.wallet.address,
             recordId: decodedRecordId,
+            versionId: 0,
+            versionInfo: `0x${Buffer.from(
+              JSON.stringify({ test: 42 }),
+              "utf8",
+            ).toString("hex")}`,
+          } satisfies InsertRecordVersionInfoSchema;
+          break;
+        }
+        case "revokeRecordOwner": {
+          param = {
+            from: testUser.wallet.address,
+            ownerId: "myownerid",
+            recordId: decodedRecordId,
+          } satisfies RevokeRecordOwnerSchema;
+          break;
+        }
+        case "timestampRecordVersionHashes": {
+          param = {
+            from: testUser.wallet.address,
             hashAlgorithmIds: [hashAlgorithmId, hashAlgorithmId],
             hashValues: [hashValue1, hashValue2],
+            recordId: decodedRecordId,
             timestampData: [
               `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
                 "hex",
@@ -1212,87 +1270,24 @@ describe("Timestamp API v4 - Records (e2e)", () => {
           } satisfies TimestampRecordVersionHashesSchema;
           break;
         }
-        case "insertRecordOwner": {
-          const notBefore = new Date().getTime();
-          param = {
-            from: testUser.wallet.address,
-            recordId: decodedRecordId,
-            ownerId: "myownerid",
-            notBefore,
-            notAfter: notBefore + 1000000,
-          } satisfies InsertRecordOwnerSchema;
-          break;
-        }
-        case "revokeRecordOwner": {
-          param = {
-            from: testUser.wallet.address,
-            recordId: decodedRecordId,
-            ownerId: "myownerid",
-          } satisfies RevokeRecordOwnerSchema;
-          break;
-        }
-        case "insertRecordVersionInfo": {
-          param = {
-            from: testUser.wallet.address,
-            recordId: decodedRecordId,
-            versionId: 0,
-            versionInfo: `0x${Buffer.from(
-              JSON.stringify({ test: 42 }),
-              "utf8",
-            ).toString("hex")}`,
-          } satisfies InsertRecordVersionInfoSchema;
-          break;
-        }
-        case "detachRecordVersionHash": {
-          param = {
-            from: testUser.wallet.address,
-            recordId: decodedRecordId,
-            versionId: 0,
-            hashValue: hashValue1,
-          } satisfies DetachRecordVersionHashSchema;
-          break;
-        }
-        case "appendRecordVersionHashes": {
-          param = {
-            from: testUser.wallet.address,
-            recordId: decodedRecordId,
-            versionId: 0,
-            hashAlgorithmIds: [hashAlgorithmId, hashAlgorithmId],
-            hashValues: [hashValue1, hashValue2],
-            timestampData: [
-              `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                "hex",
-              )}`,
-              `0x${Buffer.from(JSON.stringify({ test: 82 }), "utf8").toString(
-                "hex",
-              )}`,
-              // `0x${crypto.randomBytes(32).toString("hex")}`,
-              // `0x${crypto.randomBytes(32).toString("hex")}`,
-            ],
-            versionInfo: `0x${Buffer.from(
-              JSON.stringify({ info: 42 }),
-              "utf8",
-            ).toString("hex")}`,
-          } satisfies AppendRecordVersionHashesSchema;
-          break;
-        }
-        default:
+        default: {
           throw new Error(`Test Error: Invalid method ${method}`);
+        }
       }
 
       const responseBuild: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")
         .auth(testUser.token, { type: "bearer" })
         .send({
+          id: 231,
           jsonrpc: "2.0",
           method,
           params: [param],
-          id: 231,
         });
 
       expect(responseBuild.body).toStrictEqual({
-        jsonrpc: "2.0",
         id: 231,
+        jsonrpc: "2.0",
         result: {
           chainId: expect.any(String),
           data: expect.any(String),
@@ -1308,6 +1303,7 @@ describe("Timestamp API v4 - Records (e2e)", () => {
 
       const unsignedTransaction = responseBuild.body.result;
       const uTx = formatEthersUnsignedTransaction(
+        // eslint-disable-next-line unicorn/prefer-structured-clone
         JSON.parse(
           JSON.stringify(unsignedTransaction),
         ) as unknown as UnsignedTransactionSchema,
@@ -1322,19 +1318,19 @@ describe("Timestamp API v4 - Records (e2e)", () => {
         .post("/jsonrpc")
         .auth(testUser.token, { type: "bearer" })
         .send({
+          id: "45",
           jsonrpc: "2.0",
           method: "sendSignedTransaction",
           params: [
             {
               protocol: "eth",
-              unsignedTransaction,
               r,
               s,
-              v: `0x${Number(v).toString(16)}`,
               signedRawTransaction: sgnTx,
+              unsignedTransaction,
+              v: `0x${Number(v).toString(16)}`,
             },
           ],
-          id: "45",
         });
 
       // wait to be mined
@@ -1344,10 +1340,10 @@ describe("Timestamp API v4 - Records (e2e)", () => {
       );
       expect(receipt).toStrictEqual(
         expect.objectContaining({
-          status: 0,
           revertReason: expect.stringContaining(
             `sender is not listed as owner`,
           ),
+          status: 0,
         }),
       );
     });

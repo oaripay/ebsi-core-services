@@ -1,5 +1,6 @@
-import { buildMessage, ValidateBy, ValidationOptions } from "class-validator";
 import { validate } from "@cef-ebsi/ebsi-did-resolver";
+import { buildMessage, ValidateBy, ValidationOptions } from "class-validator";
+
 import type { ValidationResult } from "./types.js";
 
 export const IS_DID_V1 = "isDidV1";
@@ -10,8 +11,8 @@ export function isDidV1(value: unknown): ValidationResult {
     return { success: true };
   } catch (error) {
     return {
-      success: false,
       error: error instanceof Error ? error.message : "unknown error",
+      success: false,
     };
   }
 }
@@ -23,11 +24,11 @@ export function IsDidV1(
     {
       name: IS_DID_V1,
       validator: {
-        validate: (value) => isDidV1(value).success,
         defaultMessage: buildMessage(
           (eachPrefix) => `${eachPrefix}$property must be a valid DID v1`,
           validationOptions,
         ),
+        validate: (value) => isDidV1(value).success,
       },
     },
     validationOptions,

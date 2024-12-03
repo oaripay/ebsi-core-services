@@ -1,92 +1,52 @@
-import crypto from "node:crypto";
-import { ethers } from "ethers";
-import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import type { JSONSchema } from "@apidevtools/json-schema-ref-parser/dist/lib/types";
+
+import { EbsiWallet } from "@cef-ebsi/wallet-lib";
+import { ethers } from "ethers";
+import crypto from "node:crypto";
 
 export const createDid = (): string => EbsiWallet.createDid();
 
 export const createSchema = () =>
   ({
     $schema: "http://json-schema.org/draft-07/schema#",
-    title: "EBSI Verifiable Attestation",
     description: "Schema of an EBSI Verifiable Attestation",
-    type: "object",
     properties: {
       "@context": {
         description: "Defines semantic context of the Verifiable Attestation",
-        type: "array",
         items: {
-          type: "string",
           format: "uri",
-        },
-      },
-      id: {
-        description: "Defines unique identifier of the Verifiable Attestation",
-        type: "string",
-        format: "uri",
-      },
-      type: {
-        description: "Defines the Verifiable Credential type",
-        type: "array",
-        items: {
           type: "string",
         },
+        type: "array",
       },
-      issuer: {
-        description: "Defines the issuer of the Verifiable Attestation",
-        type: "string",
-        format: "uri",
-      },
-      issuanceDate: {
+      credentialSchema: {
         description:
-          "Defines the date and time, when the Verifiable Attestation becomes valid",
-        type: "string",
-        format: "date-time",
-      },
-      validFrom: {
-        description:
-          "Defines the date and time, when the Verifiable Attestation becomes valid",
-        type: "string",
-        format: "date-time",
-      },
-      issued: {
-        description: "Defines when the Verifiable Attestation was issued",
-        type: "string",
-        format: "date-time",
-      },
-      expirationDate: {
-        description:
-          "Defines the date and time, when the Verifiable Attestation expires",
-        type: "string",
-        format: "date-time",
-      },
-      credentialSubject: {
-        description:
-          "Defines information about the subject that is described by the Verifiable Attestation",
-        type: "object",
+          "Contains information about the credential schema (template) on which the Verifiable Authorisation is based",
         properties: {
           id: {
             description:
-              "Defines the DID of the subject that is described by the Verifiable Attestation",
-            type: "string",
+              "References the credential schema (template) stored on the (relevant) Trusted Schemas Registry (TSR) on which the Verifiable Authorisation is based",
             format: "uri",
+            type: "string",
+          },
+          type: {
+            description: "Defines credential schema type",
+            enum: ["FullJsonSchemaValidator2021"],
+            type: "string",
           },
         },
-        [`${crypto.randomBytes(16).toString("hex")}`]: {
-          description: "Random property",
-          type: "string",
-        },
+        required: ["id", "type"],
+        type: "object",
       },
       credentialStatus: {
         description:
           "Contains information about how to verify the status of the Verifiable Attestation (via the Revocation and Endorsement Registry, RER)",
-        type: "object",
         properties: {
           id: {
             description:
               "References record in the Revocation and Endorsement Registry (RER) to enable verification of a Verifiable Attestation’s validity",
-            type: "string",
             format: "uri",
+            type: "string",
           },
           type: {
             description: "Defines the Verifiable Credential status type",
@@ -94,70 +54,67 @@ export const createSchema = () =>
           },
         },
         required: ["id", "type"],
-      },
-      credentialSchema: {
-        description:
-          "Contains information about the credential schema (template) on which the Verifiable Authorisation is based",
         type: "object",
+      },
+      credentialSubject: {
+        [`${crypto.randomBytes(16).toString("hex")}`]: {
+          description: "Random property",
+          type: "string",
+        },
+        description:
+          "Defines information about the subject that is described by the Verifiable Attestation",
         properties: {
           id: {
             description:
-              "References the credential schema (template) stored on the (relevant) Trusted Schemas Registry (TSR) on which the Verifiable Authorisation is based",
-            type: "string",
+              "Defines the DID of the subject that is described by the Verifiable Attestation",
             format: "uri",
-          },
-          type: {
-            description: "Defines credential schema type",
             type: "string",
-            enum: ["FullJsonSchemaValidator2021"],
           },
         },
-        required: ["id", "type"],
+        type: "object",
       },
       evidence: {
         description:
           "Contains information about the process which resulted in the issuance of the Verifiable Attestation",
-        type: "array",
         items: {
-          type: "object",
           properties: {
-            id: {
+            documentPresence: {
               description:
-                "If present, it MUST contain a URL that points to where more information about this instance of evidence can be found.",
-              type: "string",
-            },
-            type: {
-              description: "Defines the evidence type",
-              type: "array",
+                "Defines how the document(s) which have been verified before Verifiable Attestation issuance have been provided (e.g. physically, digitally)",
               items: {
                 type: "string",
               },
-            },
-            verifier: {
-              description:
-                "Defines entity which has verified documents before Verifiable Attestation issuance",
-              type: "string",
+              type: "array",
             },
             evidenceDocument: {
               description:
                 "Defines document(s) which have been verified before Verifiable Attestation issuance",
-              type: "array",
               items: {
                 type: "string",
               },
+              type: "array",
+            },
+            id: {
+              description:
+                "If present, it MUST contain a URL that points to where more information about this instance of evidence can be found.",
+              type: "string",
             },
             subjectPresence: {
               description:
                 "Defines if the Verifiable Attestation subject was physically present in the course of the verification",
               type: "string",
             },
-            documentPresence: {
-              description:
-                "Defines how the document(s) which have been verified before Verifiable Attestation issuance have been provided (e.g. physically, digitally)",
-              type: "array",
+            type: {
+              description: "Defines the evidence type",
               items: {
                 type: "string",
               },
+              type: "array",
+            },
+            verifier: {
+              description:
+                "Defines entity which has verified documents before Verifiable Attestation issuance",
+              type: "string",
             },
           },
           required: [
@@ -167,33 +124,61 @@ export const createSchema = () =>
             "subjectPresence",
             "documentPresence",
           ],
+          type: "object",
         },
+        type: "array",
+      },
+      expirationDate: {
+        description:
+          "Defines the date and time, when the Verifiable Attestation expires",
+        format: "date-time",
+        type: "string",
+      },
+      id: {
+        description: "Defines unique identifier of the Verifiable Attestation",
+        format: "uri",
+        type: "string",
+      },
+      issuanceDate: {
+        description:
+          "Defines the date and time, when the Verifiable Attestation becomes valid",
+        format: "date-time",
+        type: "string",
+      },
+      issued: {
+        description: "Defines when the Verifiable Attestation was issued",
+        format: "date-time",
+        type: "string",
+      },
+      issuer: {
+        description: "Defines the issuer of the Verifiable Attestation",
+        format: "uri",
+        type: "string",
       },
       proof: {
         description: "Contains information about the proof",
-        type: "object",
         properties: {
-          type: {
-            description: "Defines the proof type",
+          created: {
+            description:
+              "Defines the date and time, when the proof has been created",
+            format: "date-time",
+            type: "string",
+          },
+          jws: {
+            description: "Defines the proof value in JWS format",
             type: "string",
           },
           proofPurpose: {
             description: "Defines the purpose of the proof",
             type: "string",
           },
-          created: {
-            description:
-              "Defines the date and time, when the proof has been created",
+          type: {
+            description: "Defines the proof type",
             type: "string",
-            format: "date-time",
           },
           verificationMethod: {
             description:
               "Contains information about the verification method / proof mechanisms",
-            type: "string",
-          },
-          jws: {
-            description: "Defines the proof value in JWS format",
             type: "string",
           },
         },
@@ -204,6 +189,20 @@ export const createSchema = () =>
           "verificationMethod",
           "jws",
         ],
+        type: "object",
+      },
+      type: {
+        description: "Defines the Verifiable Credential type",
+        items: {
+          type: "string",
+        },
+        type: "array",
+      },
+      validFrom: {
+        description:
+          "Defines the date and time, when the Verifiable Attestation becomes valid",
+        format: "date-time",
+        type: "string",
       },
     },
     required: [
@@ -217,14 +216,13 @@ export const createSchema = () =>
       "credentialSubject",
       "credentialSchema",
     ],
+    title: "EBSI Verifiable Attestation",
+    type: "object",
   }) satisfies JSONSchema;
 
 export const createVerifiableAuthorisationSchema = (ref: string) =>
   ({
     $schema: "http://json-schema.org/draft-07/schema#",
-    title: "EBSI Verifiable Authorisation",
-    description: "Schema of an EBSI Verifiable Authorisation",
-    type: "object",
     allOf: [
       {
         $ref: ref,
@@ -234,13 +232,20 @@ export const createVerifiableAuthorisationSchema = (ref: string) =>
           credentialSubject: {
             description:
               "Defines additional information about the subject that is described by the Verifiable Authorisation",
-            type: "object",
             properties: {
-              id: {
-                description:
-                  "Defines the DID of the subject that is described by the Verifiable Attestation",
+              [`${crypto.randomBytes(16).toString("hex")}`]: {
+                description: "Random property",
                 type: "string",
-                format: "uri",
+              },
+              currentAddress: {
+                description:
+                  "Defines the current address of the credential subject",
+                type: "string",
+              },
+              dateOfBirth: {
+                description: "Defines date of birth of the credential subject",
+                format: "date",
+                type: "string",
               },
               familyName: {
                 description:
@@ -252,14 +257,14 @@ export const createVerifiableAuthorisationSchema = (ref: string) =>
                   "Defines current first name(s) of the credential subject",
                 type: "string",
               },
-              dateOfBirth: {
-                description: "Defines date of birth of the credential subject",
+              gender: {
+                description: "Defines the gender of the credential subject",
                 type: "string",
-                format: "date",
               },
-              personalIdentifier: {
+              id: {
                 description:
-                  "Defines the unique national identifier of the credential subject (constructed by the sending Member State in accordance with the technical specifications for the purposes of cross-border identification and which is as persistent as possible in time)",
+                  "Defines the DID of the subject that is described by the Verifiable Attestation",
+                format: "uri",
                 type: "string",
               },
               nameAndFamilyNameAtBirth: {
@@ -267,30 +272,24 @@ export const createVerifiableAuthorisationSchema = (ref: string) =>
                   "Defines the first and the family name(s) of the credential subject at the time of their birth",
                 type: "string",
               },
+              personalIdentifier: {
+                description:
+                  "Defines the unique national identifier of the credential subject (constructed by the sending Member State in accordance with the technical specifications for the purposes of cross-border identification and which is as persistent as possible in time)",
+                type: "string",
+              },
               placeOfBirth: {
                 description:
                   "Defines the place where the credential subject is born",
                 type: "string",
               },
-              currentAddress: {
-                description:
-                  "Defines the current address of the credential subject",
-                type: "string",
-              },
-              gender: {
-                description: "Defines the gender of the credential subject",
-                type: "string",
-              },
-              [`${crypto.randomBytes(16).toString("hex")}`]: {
-                description: "Random property",
-                type: "string",
-              },
             },
             required: ["id"],
+            type: "object",
           },
         },
       },
     ],
+    description: "Schema of an EBSI Verifiable Authorisation",
     required: [
       "@context",
       "id",
@@ -301,6 +300,8 @@ export const createVerifiableAuthorisationSchema = (ref: string) =>
       "credentialSubject",
       "credentialSchema",
     ],
+    title: "EBSI Verifiable Authorisation",
+    type: "object",
   }) satisfies JSONSchema;
 
 export const createMetadata = () => {
@@ -308,36 +309,32 @@ export const createMetadata = () => {
     test: crypto.randomBytes(32).toString("hex"),
   });
   const metadataId = ethers.utils.sha256(Buffer.from(content));
-  return { id: metadataId, content };
+  return { content, id: metadataId };
 };
 
 export const SCHEMAS_TOTAL = 3;
 export const SCHEMA_REVISIONS_TOTAL = 3;
 export const SCHEMA_METADATA_TOTAL = 3;
-export const dummySchemas = Array(SCHEMAS_TOTAL)
-  .fill(undefined)
-  .map(() => {
-    const content = JSON.stringify(createSchema());
-    const lastRevision = {
-      id: ethers.utils.sha256(Buffer.from(content)),
-      content,
-      metadata: [createMetadata(), createMetadata(), createMetadata()],
-    };
-    return {
-      id: `0x${crypto.randomBytes(32).toString("hex")}`,
+export const dummySchemas = Array.from({ length: SCHEMAS_TOTAL }).map(() => {
+  const content = JSON.stringify(createSchema());
+  const lastRevision = {
+    content,
+    id: ethers.utils.sha256(Buffer.from(content)),
+    metadata: [createMetadata(), createMetadata(), createMetadata()],
+  };
+  return {
+    id: `0x${crypto.randomBytes(32).toString("hex")}`,
+    lastRevision,
+    revisions: [
+      ...Array.from({ length: SCHEMA_REVISIONS_TOTAL - 1 }).map(() => {
+        const contentRevision = JSON.stringify(createSchema());
+        return {
+          content: contentRevision,
+          id: ethers.utils.sha256(Buffer.from(contentRevision)),
+          metadata: [createMetadata(), createMetadata(), createMetadata()],
+        };
+      }),
       lastRevision,
-      revisions: [
-        ...Array(SCHEMA_REVISIONS_TOTAL - 1)
-          .fill(undefined)
-          .map(() => {
-            const contentRevision = JSON.stringify(createSchema());
-            return {
-              id: ethers.utils.sha256(Buffer.from(contentRevision)),
-              content: contentRevision,
-              metadata: [createMetadata(), createMetadata(), createMetadata()],
-            };
-          }),
-        lastRevision,
-      ],
-    };
-  });
+    ],
+  };
+});

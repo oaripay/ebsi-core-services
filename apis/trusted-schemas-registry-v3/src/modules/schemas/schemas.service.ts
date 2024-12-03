@@ -1,11 +1,12 @@
-import { Injectable, Logger } from "@nestjs/common";
-import pLimit from "p-limit";
-import { SchemaSCRegistry } from "@ebsiint-sc/trusted-schemas-registry-v2";
 import {
   isEthersError,
   NotFoundError,
   remove0xPrefix,
 } from "@ebsiint-api/shared";
+import { SchemaSCRegistry } from "@ebsiint-sc/trusted-schemas-registry-v2";
+import { Injectable, Logger } from "@nestjs/common";
+import pLimit from "p-limit";
+
 import { LedgerService } from "../ledger/ledger.service.js";
 import { ItemsList } from "./schemas.interface.js";
 import { range, schemaIdToHex } from "./schemas.utils.js";
@@ -18,26 +19,6 @@ export class SchemasService {
   private readonly logger = new Logger(SchemasService.name);
 
   constructor(private ledgerService: LedgerService) {}
-
-  async getSchemas(page: number, pageSize: number): Promise<ItemsList> {
-    try {
-      const result = await this.ledgerService
-        .getContract()
-        .getSchemaIds(page, pageSize);
-
-      return {
-        items: result.items,
-        total: result.total.toNumber(),
-      };
-    } catch (error) {
-      if (isEthersError(error)) {
-        this.logger.error(error, error.stack);
-      }
-      throw new NotFoundError("Schemas Not Found", {
-        detail: `Schemas not found`,
-      });
-    }
-  }
 
   async getSchema(schemaId: string): Promise<unknown> {
     let schema: Awaited<
@@ -59,138 +40,10 @@ export class SchemasService {
     }
 
     const decodedSchemaInfo = JSON.parse(
-      Buffer.from(remove0xPrefix(schema), "hex").toString("utf-8"),
+      Buffer.from(remove0xPrefix(schema), "hex").toString("utf8"),
     ) as unknown;
 
     return decodedSchemaInfo;
-  }
-
-  async getSchemaRevisions(
-    schemaId: string,
-    page: number,
-    pageSize: number,
-    validAt?: string,
-  ): Promise<ItemsList> {
-    const hexSchemaId = schemaIdToHex(schemaId);
-
-    // Make sure the schema exists
-    try {
-      await this.ledgerService
-        .getContract()
-        .getLatestSchemaRevision(hexSchemaId);
-    } catch (error) {
-      if (isEthersError(error)) {
-        this.logger.error(error, error.stack);
-      }
-      throw new NotFoundError("Schema Not Found", {
-        detail: `Schema ${schemaId} not found`,
-      });
-    }
-
-    try {
-      // Return only revisions valid at the given time (this is excessively inefficient!)
-      if (validAt) {
-        // Get all revisions IDs
-        const allRevisionsIds: string[] = [];
-
-        // Get the first MAX_RESULTS_PER_PAGE revisions IDs
-        const revisions = await this.ledgerService
-          .getContract()
-          .getSchemaRevisionIds(hexSchemaId, 1, MAX_RESULTS_PER_PAGE);
-        allRevisionsIds.push(...revisions.items);
-        const total = revisions.total.toNumber();
-
-        const limit = pLimit(MAX_CONCURRENT_PROMISES); // Limit concurrent promises
-
-        if (total > MAX_RESULTS_PER_PAGE) {
-          const contract = this.ledgerService.getContract();
-          // We need to fetch the next pages
-          allRevisionsIds.push(
-            ...(
-              await Promise.all(
-                // From page 2 to page "Math.ceil(total / MAX_RESULTS_PER_PAGE)"
-                range(2, Math.ceil(total / MAX_RESULTS_PER_PAGE)).map(
-                  (pageIndex) =>
-                    limit(() =>
-                      contract.getSchemaRevisionIds(
-                        hexSchemaId,
-                        pageIndex,
-                        MAX_RESULTS_PER_PAGE,
-                      ),
-                    ),
-                ),
-              )
-            ).reduce((arr, row) => arr.concat(row.items), [] as string[]),
-          );
-        }
-
-        // For each revision ID, get latest metadata
-        const contract = this.ledgerService.getContract();
-        const allMetadata = await Promise.all(
-          allRevisionsIds.map((id) =>
-            limit(() =>
-              contract.getLatestSchemaRevisionMetadataByRevisionId(id),
-            ),
-          ),
-        );
-
-        const validRevisionsIds: string[] = [];
-        allMetadata.forEach((metadata, index) => {
-          try {
-            const decodedMetadata = JSON.parse(
-              Buffer.from(remove0xPrefix(metadata), "hex").toString("utf-8"),
-            ) as Record<string, unknown>;
-
-            const validAtDate = new Date(validAt);
-
-            // If validFrom > validAt, ignore
-            if (
-              decodedMetadata["validFrom"] &&
-              new Date(decodedMetadata["validFrom"] as string) > validAtDate
-            ) {
-              return;
-            }
-
-            // If validTo < validAt, ignore
-            if (
-              decodedMetadata["validTo"] &&
-              new Date(decodedMetadata["validTo"] as string) < validAtDate
-            ) {
-              return;
-            }
-
-            validRevisionsIds.push(allRevisionsIds[index]!);
-          } catch (e) {
-            // Ignore
-          }
-        });
-
-        return {
-          items: validRevisionsIds.slice(
-            (page - 1) * pageSize,
-            page * pageSize,
-          ),
-          total: validRevisionsIds.length,
-        };
-      }
-
-      // Get the revisions
-      const revisions = await this.ledgerService
-        .getContract()
-        .getSchemaRevisionIds(hexSchemaId, page, pageSize);
-
-      return {
-        items: revisions.items,
-        total: revisions.total.toNumber(),
-      };
-    } catch (error) {
-      if (isEthersError(error)) {
-        this.logger.error(error, error.stack);
-      }
-      throw new NotFoundError("Revisions Not Found", {
-        detail: "Revisions not found",
-      });
-    }
   }
 
   async getSchemaRevision(
@@ -229,10 +82,69 @@ export class SchemasService {
     }
 
     const decodedSchemaRevisionInfo = JSON.parse(
-      Buffer.from(remove0xPrefix(revision), "hex").toString("utf-8"),
+      Buffer.from(remove0xPrefix(revision), "hex").toString("utf8"),
     ) as unknown;
 
     return decodedSchemaRevisionInfo;
+  }
+
+  async getSchemaRevisionMetadata(
+    schemaId: string,
+    schemaRevisionId: string,
+    metadataId: string,
+  ): Promise<unknown> {
+    const hexSchemaId = schemaIdToHex(schemaId);
+
+    // Make sure the schema exists
+    try {
+      await this.ledgerService
+        .getContract()
+        .getLatestSchemaRevision(hexSchemaId);
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error, error.stack);
+      }
+      throw new NotFoundError("Schema Not Found", {
+        detail: `Schema ${schemaId} not found`,
+      });
+    }
+
+    // Make sure the revision exists
+    try {
+      await this.ledgerService
+        .getContract()
+        .getSchemaRevision(schemaRevisionId);
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error, error.stack);
+      }
+      throw new NotFoundError("Revision Not Found", {
+        detail: `Revision ${schemaRevisionId} not found`,
+      });
+    }
+
+    // Get metadata
+    let metadata: Awaited<
+      ReturnType<SchemaSCRegistry["getSchemaRevisionMetadataByMetadataId"]>
+    >;
+    try {
+      metadata = await this.ledgerService
+        .getContract()
+        .getSchemaRevisionMetadataByMetadataId(metadataId);
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error, error.stack);
+      }
+      throw new NotFoundError("Metadata Not Found", {
+        detail: `Metadata ${metadataId} not found`,
+      });
+    }
+
+    const decodedMetadata = JSON.parse(
+      Buffer.from(remove0xPrefix(metadata), "hex").toString("utf8"),
+    ) as unknown;
+
+    return decodedMetadata;
   }
 
   async getSchemaRevisionMetadataList(
@@ -291,11 +203,12 @@ export class SchemasService {
     }
   }
 
-  async getSchemaRevisionMetadata(
+  async getSchemaRevisions(
     schemaId: string,
-    schemaRevisionId: string,
-    metadataId: string,
-  ): Promise<unknown> {
+    page: number,
+    pageSize: number,
+    validAt?: string,
+  ): Promise<ItemsList> {
     const hexSchemaId = schemaIdToHex(schemaId);
 
     // Make sure the schema exists
@@ -312,42 +225,131 @@ export class SchemasService {
       });
     }
 
-    // Make sure the revision exists
     try {
-      await this.ledgerService
+      // Return only revisions valid at the given time (this is excessively inefficient!)
+      if (validAt) {
+        // Get all revisions IDs
+        const allRevisionsIds: string[] = [];
+
+        // Get the first MAX_RESULTS_PER_PAGE revisions IDs
+        const revisions = await this.ledgerService
+          .getContract()
+          .getSchemaRevisionIds(hexSchemaId, 1, MAX_RESULTS_PER_PAGE);
+        allRevisionsIds.push(...revisions.items);
+        const total = revisions.total.toNumber();
+
+        const limit = pLimit(MAX_CONCURRENT_PROMISES); // Limit concurrent promises
+
+        if (total > MAX_RESULTS_PER_PAGE) {
+          const contract = this.ledgerService.getContract();
+          const otherSchemaRevisionIds = await Promise.all(
+            // From page 2 to page "Math.ceil(total / MAX_RESULTS_PER_PAGE)"
+            range(2, Math.ceil(total / MAX_RESULTS_PER_PAGE)).map((pageIndex) =>
+              limit(() =>
+                contract.getSchemaRevisionIds(
+                  hexSchemaId,
+                  pageIndex,
+                  MAX_RESULTS_PER_PAGE,
+                ),
+              ),
+            ),
+          );
+          // We need to fetch the next pages
+          allRevisionsIds.push(
+            ...otherSchemaRevisionIds.reduce(
+              (arr, row) => [...arr, ...row.items],
+              [] as string[],
+            ),
+          );
+        }
+
+        // For each revision ID, get latest metadata
+        const contract = this.ledgerService.getContract();
+        const allMetadata = await Promise.all(
+          allRevisionsIds.map((id) =>
+            limit(() =>
+              contract.getLatestSchemaRevisionMetadataByRevisionId(id),
+            ),
+          ),
+        );
+
+        const validRevisionsIds: string[] = [];
+        for (const [index, metadata] of allMetadata.entries()) {
+          try {
+            const decodedMetadata = JSON.parse(
+              Buffer.from(remove0xPrefix(metadata), "hex").toString("utf8"),
+            ) as Record<string, unknown>;
+
+            const validAtDate = new Date(validAt);
+
+            // If validFrom > validAt, ignore
+            if (
+              decodedMetadata["validFrom"] &&
+              new Date(decodedMetadata["validFrom"] as string) > validAtDate
+            ) {
+              continue;
+            }
+
+            // If validTo < validAt, ignore
+            if (
+              decodedMetadata["validTo"] &&
+              new Date(decodedMetadata["validTo"] as string) < validAtDate
+            ) {
+              continue;
+            }
+
+            validRevisionsIds.push(allRevisionsIds[index]!);
+          } catch {
+            // Ignore
+          }
+        }
+
+        return {
+          items: validRevisionsIds.slice(
+            (page - 1) * pageSize,
+            page * pageSize,
+          ),
+          total: validRevisionsIds.length,
+        };
+      }
+
+      // Get the revisions
+      const revisions = await this.ledgerService
         .getContract()
-        .getSchemaRevision(schemaRevisionId);
+        .getSchemaRevisionIds(hexSchemaId, page, pageSize);
+
+      return {
+        items: revisions.items,
+        total: revisions.total.toNumber(),
+      };
     } catch (error) {
       if (isEthersError(error)) {
         this.logger.error(error, error.stack);
       }
-      throw new NotFoundError("Revision Not Found", {
-        detail: `Revision ${schemaRevisionId} not found`,
+      throw new NotFoundError("Revisions Not Found", {
+        detail: "Revisions not found",
       });
     }
+  }
 
-    // Get metadata
-    let metadata: Awaited<
-      ReturnType<SchemaSCRegistry["getSchemaRevisionMetadataByMetadataId"]>
-    >;
+  async getSchemas(page: number, pageSize: number): Promise<ItemsList> {
     try {
-      metadata = await this.ledgerService
+      const result = await this.ledgerService
         .getContract()
-        .getSchemaRevisionMetadataByMetadataId(metadataId);
+        .getSchemaIds(page, pageSize);
+
+      return {
+        items: result.items,
+        total: result.total.toNumber(),
+      };
     } catch (error) {
       if (isEthersError(error)) {
         this.logger.error(error, error.stack);
       }
-      throw new NotFoundError("Metadata Not Found", {
-        detail: `Metadata ${metadataId} not found`,
+      throw new NotFoundError("Schemas Not Found", {
+        detail: `Schemas not found`,
       });
     }
-
-    const decodedMetadata = JSON.parse(
-      Buffer.from(remove0xPrefix(metadata), "hex").toString("utf-8"),
-    ) as unknown;
-
-    return decodedMetadata;
   }
 }
 

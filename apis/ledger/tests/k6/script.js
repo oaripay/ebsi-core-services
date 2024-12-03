@@ -1,9 +1,8 @@
+import { check, group } from "k6";
 // @ts-nocheck
 import http from "k6/http";
-import { group, check } from "k6";
 
-const BASE_URL = __ENV.BASE_URL || "http://0.0.0.0:3000";
-const token = __ENV.JWT;
+const BASE_URL = __ENV["BASE_URL"] || "http://0.0.0.0:3000";
 
 export const options = {
   stages: [
@@ -21,17 +20,11 @@ export default function loadTesting() {
     const request = http.post(
       url,
       JSON.stringify({
+        id: "42",
         jsonrpc: "2.0",
         method: "eth_chainId",
         params: [],
-        id: "42",
       }),
-      {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      },
     );
     check(request, {
       200: (r) => r.status === 200,

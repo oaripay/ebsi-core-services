@@ -1,11 +1,43 @@
 import type { JsonWebKey } from "node:crypto";
+
 import {
   CUSTOM_SCOPES,
   OPENID_SCOPE,
   SUPPORTED_SCOPES,
 } from "./authorisation.constants.js";
 
-export type Scope = `${typeof OPENID_SCOPE} ${(typeof CUSTOM_SCOPES)[number]}`;
+export interface Access {
+  /**
+   * Document ID
+   */
+  documentId: string;
+
+  /**
+   * The `did:ebsi` or `did:key` DID of the granter of the permission.
+   * "creator" shall have itself as "grantedBy".
+   */
+  grantedBy: string;
+
+  /**
+   * Permission granted: "write", "delegate" or "creator".
+   */
+  permission: "creator" | "delegate" | "write";
+
+  /**
+   * A `did:ebsi` or `did:key` DID.
+   */
+  subject: string;
+}
+
+/**
+ * JWK Set
+ *
+ * Specs:
+ * - https://www.rfc-editor.org/rfc/rfc7517.html#section-5
+ */
+export interface JsonWebKeySet {
+  keys: JsonWebKey[];
+}
 
 /**
  * OpenID Provider (OP) Metadata
@@ -21,29 +53,44 @@ export type Scope = `${typeof OPENID_SCOPE} ${(typeof CUSTOM_SCOPES)[number]}`;
  */
 export interface OPMetadata {
   /**
+   * URL of the OP's OAuth 2.0 Authorization Endpoint.
+   */
+  authorization_endpoint: string;
+
+  /**
+   * JSON array containing a list of the OAuth 2.0 Grant Type values that this OP supports.
+   * Dynamic OpenID Providers MUST support the authorization_code and implicit Grant Type values
+   * and MAY support other Grant Types. If omitted, the default value is `["authorization_code", "implicit"]`.
+   */
+  grant_types_supported: string[];
+
+  /**
+   * JSON array containing a list of the JWS signing algorithms (alg values) supported by the OP
+   * for the ID Token to encode the Claims in a JWT [JWT]. The algorithm `RS256` MUST be included.
+   * The value `none` MAY be supported, but MUST NOT be used unless the Response Type used returns
+   * no ID Token from the Authorization Endpoint (such as when using the Authorization Code Flow).
+   */
+  id_token_signing_alg_values_supported: string[];
+
+  /**
+   * A JSON array of strings containing the list of ID Token types supported by the OP, the default
+   * value is `attester_signed_id_token`. The ID Token types defined in this specification are:
+   * - `subject_signed_id_token`: Self-Issued ID Token, i.e. the id token is signed with key material
+   * under the end-user's control.
+   * - `attester_signed_id_token`: the id token is issued by the party operating the OP, i.e. this
+   * is the classical id token as defined in [OpenID.Core].
+   *
+   * MUST be subject_signed_id_token
+   */
+  id_token_types_supported: string[];
+
+  /**
    * URL using the `https` scheme with no query or fragment component that the OP asserts as its
    * Issuer Identifier. If Issuer discovery is supported, this value MUST be identical to the
    * issuer value returned by WebFinger. This also MUST be identical to the `iss` Claim value in ID
    * Tokens issued from this Issuer.
    */
   issuer: string;
-
-  /**
-   * URL of the OP's OAuth 2.0 Authorization Endpoint.
-   */
-  authorization_endpoint: string;
-
-  /**
-   * URL of the OP's OAuth 2.0 Token Endpoint. This is REQUIRED unless only the Implicit Flow is
-   * used.
-   */
-  token_endpoint: string;
-
-  /**
-   * The URL of the presentation definition endpoint at which the client can get the presentation
-   * definition requirements.
-   */
-  presentation_definition_endpoint: string;
 
   /**
    * URL of the OP's JSON Web Key Set document. This contains the signing key(s) the RP uses to
@@ -59,12 +106,10 @@ export interface OPMetadata {
   jwks_uri: string;
 
   /**
-   * JSON array containing a list of the OAuth 2.0 scope values that this server supports. The
-   * server MUST support the `openid` scope value. Servers MAY choose not to advertise some
-   * supported scope values even when this parameter is used, although those defined in OpenID.Core
-   * SHOULD be listed, if supported.
+   * The URL of the presentation definition endpoint at which the client can get the presentation
+   * definition requirements.
    */
-  scopes_supported: typeof SUPPORTED_SCOPES;
+  presentation_definition_endpoint: string;
 
   /**
    * JSON array containing a list of the OAuth 2.0 `response_type` values that this OP supports.
@@ -74,11 +119,28 @@ export interface OPMetadata {
   response_types_supported: string[];
 
   /**
-   * JSON array containing a list of the OAuth 2.0 Grant Type values that this OP supports.
-   * Dynamic OpenID Providers MUST support the authorization_code and implicit Grant Type values
-   * and MAY support other Grant Types. If omitted, the default value is `["authorization_code", "implicit"]`.
+   * JSON array containing a list of the OAuth 2.0 scope values that this server supports. The
+   * server MUST support the `openid` scope value. Servers MAY choose not to advertise some
+   * supported scope values even when this parameter is used, although those defined in OpenID.Core
+   * SHOULD be listed, if supported.
    */
-  grant_types_supported: string[];
+  scopes_supported: typeof SUPPORTED_SCOPES;
+
+  /**
+   * A JSON array of strings representing URI scheme identifiers and optionally method
+   * names of supported Subject Syntax Types. When Subject Syntax Type is JWK Thumbprint, valid
+   * value is `urn:ietf:params:oauth:jwk-thumbprint` defined in RFC9278. When Subject Syntax Type
+   * is Decentralized Identifier, valid values MUST be a `did:` prefix followed by a supported DID
+   * method without a `:` suffix. For example, support for the DID method with a method-name
+   * "example" would be represented by `did:example`. Support for all DID methods is indicated by
+   * sending did without any method-name.
+   */
+  subject_syntax_types_supported: string[];
+
+  /**
+   * A JSON array of supported trust frameworks.
+   */
+  subject_trust_frameworks_supported: string[];
 
   /**
    * JSON array containing a list of the Subject Identifier types that this OP supports.
@@ -87,12 +149,15 @@ export interface OPMetadata {
   subject_types_supported: ("pairwise" | "public")[];
 
   /**
-   * JSON array containing a list of the JWS signing algorithms (alg values) supported by the OP
-   * for the ID Token to encode the Claims in a JWT [JWT]. The algorithm `RS256` MUST be included.
-   * The value `none` MAY be supported, but MUST NOT be used unless the Response Type used returns
-   * no ID Token from the Authorization Endpoint (such as when using the Authorization Code Flow).
+   * URL of the OP's OAuth 2.0 Token Endpoint. This is REQUIRED unless only the Implicit Flow is
+   * used.
    */
-  id_token_signing_alg_values_supported: string[];
+  token_endpoint: string;
+
+  /**
+   * JSON array containing a list of Client Authentication methods supported by this Token Endpoint.
+   */
+  token_endpoint_auth_methods_supported: string[];
 
   /**
    * An object containing a list of key value pairs, where the key is a string identifying a
@@ -111,78 +176,14 @@ export interface OPMetadata {
       }
     >
   >;
-
-  /**
-   * A JSON array of strings representing URI scheme identifiers and optionally method
-   * names of supported Subject Syntax Types. When Subject Syntax Type is JWK Thumbprint, valid
-   * value is `urn:ietf:params:oauth:jwk-thumbprint` defined in RFC9278. When Subject Syntax Type
-   * is Decentralized Identifier, valid values MUST be a `did:` prefix followed by a supported DID
-   * method without a `:` suffix. For example, support for the DID method with a method-name
-   * "example" would be represented by `did:example`. Support for all DID methods is indicated by
-   * sending did without any method-name.
-   */
-  subject_syntax_types_supported: string[];
-
-  /**
-   * JSON array containing a list of Client Authentication methods supported by this Token Endpoint.
-   */
-  token_endpoint_auth_methods_supported: string[];
-
-  /**
-   * A JSON array of supported trust frameworks.
-   */
-  subject_trust_frameworks_supported: string[];
-
-  /**
-   * A JSON array of strings containing the list of ID Token types supported by the OP, the default
-   * value is `attester_signed_id_token`. The ID Token types defined in this specification are:
-   * - `subject_signed_id_token`: Self-Issued ID Token, i.e. the id token is signed with key material
-   * under the end-user's control.
-   * - `attester_signed_id_token`: the id token is issued by the party operating the OP, i.e. this
-   * is the classical id token as defined in [OpenID.Core].
-   *
-   * MUST be subject_signed_id_token
-   */
-  id_token_types_supported: string[];
 }
 
-/**
- * JWK Set
- *
- * Specs:
- * - https://www.rfc-editor.org/rfc/rfc7517.html#section-5
- */
-export interface JsonWebKeySet {
-  keys: JsonWebKey[];
-}
+export type Scope = `${typeof OPENID_SCOPE} ${(typeof CUSTOM_SCOPES)[number]}`;
 
 export interface TokenResponse {
   access_token: string;
-  token_type: string;
   expires_in: number;
-  scope: string;
   id_token: string;
-}
-
-export interface Access {
-  /**
-   * A `did:ebsi` or `did:key` DID.
-   */
-  subject: string;
-
-  /**
-   * Document ID
-   */
-  documentId: string;
-
-  /**
-   * Permission granted: "write", "delegate" or "creator".
-   */
-  permission: "write" | "delegate" | "creator";
-
-  /**
-   * The `did:ebsi` or `did:key` DID of the granter of the permission.
-   * "creator" shall have itself as "grantedBy".
-   */
-  grantedBy: string;
+  scope: string;
+  token_type: string;
 }

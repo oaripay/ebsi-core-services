@@ -1,71 +1,74 @@
-import { describe, beforeAll, it, expect, afterAll } from "vitest";
-import crypto from "node:crypto";
-import { ethers } from "ethers";
-import request from "supertest";
-import { Test } from "@nestjs/testing";
-import { ValidationPipe, Logger } from "@nestjs/common";
+import type { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
+import type { RawServerDefault } from "fastify";
+
+import {
+  methodNotAllowed,
+  PaginatedList,
+  prefixWith0x,
+  waitToBeMined,
+} from "@ebsiint-api/shared";
+import { fastifyAccepts } from "@fastify/accepts";
+import { fastifyHelmet } from "@fastify/helmet";
+import { Logger, ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import {
   FastifyAdapter,
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import type { RawServerDefault } from "fastify";
-import { fastifyAccepts } from "@fastify/accepts";
-import { fastifyHelmet } from "@fastify/helmet";
-import {
-  PaginatedList,
-  methodNotAllowed,
-  prefixWith0x,
-  waitToBeMined,
-} from "@ebsiint-api/shared";
-import type { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
+import { Test } from "@nestjs/testing";
 import { hexToBytes } from "did-jwt";
+import { ethers } from "ethers";
+import crypto from "node:crypto";
+import request from "supertest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
+
 import type { ApiConfig } from "../../src/config/configuration.js";
+import type { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface.js";
+
 import { AppModule } from "../../src/app.module.js";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
-import {
-  PolicyLink,
-  PolicyResponseObject,
-} from "../../src/modules/policies/policies.interface.js";
-import type { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface.js";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils.js";
 import {
   ActivatePolicySchema,
   DeactivatePolicySchema,
+  DeleteUserAttributeSchema,
   InsertPolicySchema,
+  InsertUserAttributesSchema,
   UnsignedTransaction,
   UpdatePolicySchema,
-  InsertUserAttributesSchema,
-  DeleteUserAttributeSchema,
 } from "../../src/modules/jsonrpc/validators/index.js";
+import {
+  PolicyLink,
+  PolicyResponseObject,
+} from "../../src/modules/policies/policies.interface.js";
 import { createPolicy } from "../utils/data.js";
-import { describeWriteOps, writeOps } from "../utils/writeOps.js";
-import { getServer } from "../utils/getServer.js";
 import { getTprWriteAccessToken } from "../utils/getAccessToken.js";
 import { getEbsiIssuer } from "../utils/getEbsiIssuer.js";
+import { getServer } from "../utils/getServer.js";
+import { describeWriteOps, writeOps } from "../utils/writeOps.js";
+
+type JsonRpcParams =
+  | ActivatePolicySchema
+  | DeactivatePolicySchema
+  | DeleteUserAttributeSchema
+  | InsertPolicySchema
+  | InsertUserAttributesSchema
+  | UpdatePolicySchema;
+
+interface SupertestJsonRpcResponse {
+  body: JsonRpcResponseObject;
+  status: number;
+}
 
 interface SupertestPoliciesResponse {
-  status: number;
   body: PaginatedList<PolicyLink>;
+  status: number;
 }
 
 interface SupertestPolicyResponse {
-  status: number;
   body: PolicyResponseObject;
-}
-
-interface SupertestJsonRpcResponse {
   status: number;
-  body: JsonRpcResponseObject;
 }
-
-type JsonRpcParams =
-  | InsertPolicySchema
-  | UpdatePolicySchema
-  | ActivatePolicySchema
-  | DeactivatePolicySchema
-  | InsertUserAttributesSchema
-  | DeleteUserAttributeSchema;
 
 describe("TPR API v3 - JSON RPC (e2e)", () => {
   let app: NestFastifyApplication;
@@ -78,8 +81,8 @@ describe("TPR API v3 - JSON RPC (e2e)", () => {
   let sampleTransaction: string;
 
   let blockscout: {
-    url: string;
     bearerToken: string;
+    url: string;
   };
 
   const pName = `test-${crypto.randomBytes(5).toString("hex")}`;
@@ -136,8 +139,8 @@ describe("TPR API v3 - JSON RPC (e2e)", () => {
         .get<string>("domain")
         .replace(/^https?:\/\//, "");
       const ebsiEnvConfig = {
-        network: configService.get("network", { infer: true }),
         hosts: [ebsiAuthority, ...trustedHostnames],
+        network: configService.get("network", { infer: true }),
         services: {
           "did-registry": "v5",
           "trusted-issuers-registry": "v5",
@@ -184,16 +187,15 @@ describe("TPR API v3 - JSON RPC (e2e)", () => {
           adminIssuerInfo,
           ebsiEnvConfig,
         );
-      } catch (e) {
-        // eslint-disable-next-line no-console
-        console.error(e);
-        throw e;
+      } catch (error) {
+        console.error(error);
+        throw error;
       }
     }
 
     blockscout = configService.get<{
-      url: string;
       bearerToken: string;
+      url: string;
     }>("blockscout");
   });
 
@@ -217,10 +219,7 @@ describe("TPR API v3 - JSON RPC (e2e)", () => {
           `/policies${prev.slice(last.indexOf("?"))}`,
         );
       }
-      const name =
-        getPoliciesResponse.body.items[
-          getPoliciesResponse.body.items.length - 2
-        ]!.policyName;
+      const name = getPoliciesResponse.body.items.at(-2)!.policyName;
       const policyResponse: SupertestPolicyResponse = await request(server).get(
         `/policies/${name}`,
       );
@@ -275,9 +274,10 @@ describe("TPR API v3 - JSON RPC (e2e)", () => {
 
       expect(response.body).toStrictEqual({
         error: {
-          code: -32600,
+          code: -32_600,
           message: "JSON-RPC payload must be an object",
         },
+        // eslint-disable-next-line unicorn/no-null
         id: null,
         jsonrpc: "2.0",
       });
@@ -291,21 +291,21 @@ describe("TPR API v3 - JSON RPC (e2e)", () => {
         .post("/jsonrpc")
         .auth(testAdminAccessToken, { type: "bearer" })
         .send({
+          id: 123,
           jsonrpc: "2.0",
           method: "unknown-method",
           params: [],
-          id: 123,
         });
 
       expect(response.body).toStrictEqual({
-        jsonrpc: "2.0",
-        id: 123,
         error: {
-          code: -32600,
+          code: -32_600,
           message: expect.stringContaining(
             "The method 'unknown-method' is invalid",
           ),
         },
+        id: 123,
+        jsonrpc: "2.0",
       });
       expect(response.status).toBe(400);
     });
@@ -315,26 +315,26 @@ describe("TPR API v3 - JSON RPC (e2e)", () => {
 
       const signer = ethers.Wallet.createRandom();
 
-      const { policyName, description } = policy1;
+      const { description, policyName } = policy1;
       const param = {
+        description,
         from: signer.address,
         policyName,
-        description,
       } satisfies InsertPolicySchema;
 
       const responseBuild: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")
         .auth(testAdminAccessToken, { type: "bearer" })
         .send({
+          id: 231,
           jsonrpc: "2.0",
           method: "insertPolicy",
           params: [param],
-          id: 231,
         });
 
       expect(responseBuild.body).toStrictEqual({
-        jsonrpc: "2.0",
         id: 231,
+        jsonrpc: "2.0",
         result: {
           chainId: expect.any(String),
           data: expect.any(String),
@@ -350,6 +350,7 @@ describe("TPR API v3 - JSON RPC (e2e)", () => {
 
       const unsignedTransaction = responseBuild.body.result;
       const uTx = formatEthersUnsignedTransaction(
+        // eslint-disable-next-line unicorn/prefer-structured-clone
         JSON.parse(
           JSON.stringify(unsignedTransaction),
         ) as unknown as UnsignedTransaction,
@@ -362,24 +363,24 @@ describe("TPR API v3 - JSON RPC (e2e)", () => {
         .post("/jsonrpc")
         .auth(testAdminAccessToken, { type: "bearer" })
         .send({
+          id: "45",
           jsonrpc: "2.0",
           method: "sendSignedTransaction",
           params: [
             {
               protocol: "eth",
-              unsignedTransaction,
               r,
               s,
-              v: `0x${Number(v).toString(16)}`,
               signedRawTransaction: sgnTx,
+              unsignedTransaction,
+              v: `0x${Number(v).toString(16)}`,
             },
           ],
-          id: "45",
         });
 
       expect(responseSend.body).toStrictEqual({
         error: {
-          code: -32600,
+          code: -32_600,
           message: `The DID ${
             configService.get<string>("testAdminKid").split("#")[0]
           } is not controlled by the address ${signer.address}`,
@@ -393,30 +394,28 @@ describe("TPR API v3 - JSON RPC (e2e)", () => {
     it("should throw an error if the wallet doesn't have the role OPERATOR_ROLE 0x97667070c54ef182b0f5858b034beac1b6f3089aa2d3188bb1e8929f4fa9b929", async () => {
       expect.assertions(3);
 
-      let param: JsonRpcParams | null = null;
-
       const signer = new ethers.Wallet(configService.get("testUserPrivateKey"));
 
-      const { policyName, description } = policy1;
-      param = {
+      const { description, policyName } = policy1;
+      const param = {
+        description,
         from: signer.address,
         policyName,
-        description,
       } satisfies InsertPolicySchema;
 
       const responseBuild: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")
         .auth(testUserAccessToken, { type: "bearer" })
         .send({
+          id: 231,
           jsonrpc: "2.0",
           method: "insertPolicy",
           params: [param],
-          id: 231,
         });
 
       expect(responseBuild.body).toStrictEqual({
-        jsonrpc: "2.0",
         id: 231,
+        jsonrpc: "2.0",
         result: {
           chainId: expect.any(String),
           data: expect.any(String),
@@ -432,6 +431,7 @@ describe("TPR API v3 - JSON RPC (e2e)", () => {
 
       const unsignedTransaction = responseBuild.body.result;
       const uTx = formatEthersUnsignedTransaction(
+        // eslint-disable-next-line unicorn/prefer-structured-clone
         JSON.parse(
           JSON.stringify(unsignedTransaction),
         ) as unknown as UnsignedTransaction,
@@ -444,19 +444,19 @@ describe("TPR API v3 - JSON RPC (e2e)", () => {
         .post("/jsonrpc")
         .auth(testUserAccessToken, { type: "bearer" })
         .send({
+          id: "45",
           jsonrpc: "2.0",
           method: "sendSignedTransaction",
           params: [
             {
               protocol: "eth",
-              unsignedTransaction,
               r,
               s,
-              v: `0x${Number(v).toString(16)}`,
               signedRawTransaction: sgnTx,
+              unsignedTransaction,
+              v: `0x${Number(v).toString(16)}`,
             },
           ],
-          id: "45",
         });
 
       // Wait to be mined
@@ -482,7 +482,7 @@ describe("TPR API v3 - JSON RPC (e2e)", () => {
         it("should return a valid unsigned transaction that we can sign and send to sendSignedTransaction", async () => {
           expect.assertions(7);
 
-          let param: JsonRpcParams | null = null;
+          let param: JsonRpcParams;
 
           // Get number of existing policies
           const response: SupertestPoliciesResponse =
@@ -494,22 +494,11 @@ describe("TPR API v3 - JSON RPC (e2e)", () => {
           const signer = adminTestWallet;
 
           switch (method) {
-            case "insertPolicy": {
-              const { policyName, description } = policy1;
+            case "activatePolicy": {
               param = {
                 from: signer.address,
-                policyName,
-                description,
-              } satisfies InsertPolicySchema;
-              break;
-            }
-            case "updatePolicy": {
-              const { policyName, description } = policy2;
-              param = {
-                from: signer.address,
-                policyName,
-                description,
-              } satisfies UpdatePolicySchema;
+                policyName: policyA.policyName,
+              } satisfies ActivatePolicySchema;
               break;
             }
             case "deactivatePolicy": {
@@ -519,27 +508,38 @@ describe("TPR API v3 - JSON RPC (e2e)", () => {
               } satisfies DeactivatePolicySchema;
               break;
             }
-            case "activatePolicy": {
+            case "deleteUserAttribute": {
               param = {
+                attribute: "other-attribute",
                 from: signer.address,
-                policyName: policyA.policyName,
-              } satisfies ActivatePolicySchema;
+                user: userAddress,
+              } satisfies DeleteUserAttributeSchema;
+              break;
+            }
+            case "insertPolicy": {
+              const { description, policyName } = policy1;
+              param = {
+                description,
+                from: signer.address,
+                policyName,
+              } satisfies InsertPolicySchema;
               break;
             }
             case "insertUserAttributes": {
               param = {
+                attributes: [pName, "other-attribute"],
                 from: signer.address,
                 user: userAddress,
-                attributes: [pName, "other-attribute"],
               } satisfies InsertUserAttributesSchema;
               break;
             }
-            case "deleteUserAttribute": {
+            case "updatePolicy": {
+              const { description, policyName } = policy2;
               param = {
+                description,
                 from: signer.address,
-                user: userAddress,
-                attribute: "other-attribute",
-              } satisfies DeleteUserAttributeSchema;
+                policyName,
+              } satisfies UpdatePolicySchema;
               break;
             }
             default: {
@@ -551,15 +551,15 @@ describe("TPR API v3 - JSON RPC (e2e)", () => {
             .post("/jsonrpc")
             .auth(testAdminAccessToken, { type: "bearer" })
             .send({
+              id: 231,
               jsonrpc: "2.0",
               method,
               params: [param],
-              id: 231,
             });
 
           expect(responseBuild.body).toStrictEqual({
-            jsonrpc: "2.0",
             id: 231,
+            jsonrpc: "2.0",
             result: {
               chainId: expect.any(String),
               data: expect.any(String),
@@ -575,6 +575,7 @@ describe("TPR API v3 - JSON RPC (e2e)", () => {
 
           const unsignedTransaction = responseBuild.body.result;
           const uTx = formatEthersUnsignedTransaction(
+            // eslint-disable-next-line unicorn/prefer-structured-clone
             JSON.parse(
               JSON.stringify(unsignedTransaction),
             ) as unknown as UnsignedTransaction,
@@ -587,24 +588,24 @@ describe("TPR API v3 - JSON RPC (e2e)", () => {
             .post("/jsonrpc")
             .auth(testAdminAccessToken, { type: "bearer" })
             .send({
+              id: "45",
               jsonrpc: "2.0",
               method: "sendSignedTransaction",
               params: [
                 {
                   protocol: "eth",
-                  unsignedTransaction,
                   r,
                   s,
-                  v: `0x${Number(v).toString(16)}`,
                   signedRawTransaction: sgnTx,
+                  unsignedTransaction,
+                  v: `0x${Number(v).toString(16)}`,
                 },
               ],
-              id: "45",
             });
 
           expect(responseSend.body).toStrictEqual({
-            jsonrpc: "2.0",
             id: "45",
+            jsonrpc: "2.0",
             result: expect.any(String),
           });
           expect(responseSend.status).toBe(200);
@@ -622,44 +623,13 @@ describe("TPR API v3 - JSON RPC (e2e)", () => {
           let actualResponse: SupertestPoliciesResponse;
 
           switch (method) {
-            case "insertPolicy": {
-              const { policyName, description } = policy1;
-
-              // Get number of existing policies
-              const getPoliciesResponse: SupertestPoliciesResponse =
-                await request(server).get("/policies");
-
-              const policyId = `${getPoliciesResponse.body.total}`;
-
+            case "activatePolicy": {
               // Expected response
-              expectedResponseBody = {
-                policyId: `${policyId}`,
-                policyName,
-                description,
-                status: true,
-              } as PolicyResponseObject;
+              expectedResponseBody = policyA;
 
               // Actual response
               actualResponse = await request(server).get(
-                `/policies/${policyName}`,
-              );
-
-              break;
-            }
-            case "updatePolicy": {
-              const { policyName, description } = policy2;
-
-              // Expected response
-              expectedResponseBody = {
-                policyId: `${lastPolicyId}`,
-                policyName,
-                description,
-                status: true,
-              } as PolicyResponseObject;
-
-              // Actual response
-              actualResponse = await request(server).get(
-                `/policies/${policyName}`,
+                `/policies/${policyA.policyName}`,
               );
 
               break;
@@ -678,35 +648,66 @@ describe("TPR API v3 - JSON RPC (e2e)", () => {
 
               break;
             }
-            case "activatePolicy": {
+            case "deleteUserAttribute": {
+              expectedResponseBody = {
+                attributes: [pName],
+                user: userAddress,
+              };
+              actualResponse = await request(server).get(
+                `/users/${userAddress}`,
+              );
+              break;
+            }
+            case "insertPolicy": {
+              const { description, policyName } = policy1;
+
+              // Get number of existing policies
+              const getPoliciesResponse: SupertestPoliciesResponse =
+                await request(server).get("/policies");
+
+              const policyId = `${getPoliciesResponse.body.total}`;
+
               // Expected response
-              expectedResponseBody = policyA;
+              expectedResponseBody = {
+                description,
+                policyId: `${policyId}`,
+                policyName,
+                status: true,
+              } as PolicyResponseObject;
 
               // Actual response
               actualResponse = await request(server).get(
-                `/policies/${policyA.policyName}`,
+                `/policies/${policyName}`,
               );
 
               break;
             }
             case "insertUserAttributes": {
               expectedResponseBody = {
-                user: userAddress,
                 attributes: [pName, "other-attribute"],
+                user: userAddress,
               };
               actualResponse = await request(server).get(
                 `/users/${userAddress}`,
               );
               break;
             }
-            case "deleteUserAttribute": {
+            case "updatePolicy": {
+              const { description, policyName } = policy2;
+
+              // Expected response
               expectedResponseBody = {
-                user: userAddress,
-                attributes: [pName],
-              };
+                description,
+                policyId: `${lastPolicyId}`,
+                policyName,
+                status: true,
+              } as PolicyResponseObject;
+
+              // Actual response
               actualResponse = await request(server).get(
-                `/users/${userAddress}`,
+                `/policies/${policyName}`,
               );
+
               break;
             }
             default: {
@@ -741,25 +742,15 @@ describe("TPR API v3 - JSON RPC (e2e)", () => {
 
         const signer = adminTestWallet;
 
-        let param: JsonRpcParams | null = null;
+        let param: JsonRpcParams;
 
         switch (method) {
-          case "insertPolicy": {
-            const { policyName, description } = policy1;
+          case "activatePolicy": {
+            const { policyName } = policy1;
             param = {
               from: signer.address,
               policyName,
-              description,
-            } satisfies InsertPolicySchema;
-            break;
-          }
-          case "updatePolicy": {
-            const { policyName, description } = policy2;
-            param = {
-              from: signer.address,
-              policyName,
-              description,
-            } satisfies UpdatePolicySchema;
+            } satisfies ActivatePolicySchema;
             break;
           }
           case "deactivatePolicy": {
@@ -770,28 +761,38 @@ describe("TPR API v3 - JSON RPC (e2e)", () => {
             } satisfies DeactivatePolicySchema;
             break;
           }
-          case "activatePolicy": {
-            const { policyName } = policy1;
+          case "deleteUserAttribute": {
             param = {
+              attribute: pName,
+              from: signer.address,
+              user: userAddress,
+            } satisfies DeleteUserAttributeSchema;
+            break;
+          }
+          case "insertPolicy": {
+            const { description, policyName } = policy1;
+            param = {
+              description,
               from: signer.address,
               policyName,
-            } satisfies ActivatePolicySchema;
+            } satisfies InsertPolicySchema;
             break;
           }
           case "insertUserAttributes": {
             param = {
+              attributes: [pName],
               from: signer.address,
               user: userAddress,
-              attributes: [pName],
             } satisfies InsertUserAttributesSchema;
             break;
           }
-          case "deleteUserAttribute": {
+          case "updatePolicy": {
+            const { description, policyName } = policy2;
             param = {
+              description,
               from: signer.address,
-              user: userAddress,
-              attribute: pName,
-            } satisfies DeleteUserAttributeSchema;
+              policyName,
+            } satisfies UpdatePolicySchema;
             break;
           }
           default: {
@@ -810,8 +811,9 @@ describe("TPR API v3 - JSON RPC (e2e)", () => {
           });
 
         expect(responseBuild.body).toStrictEqual({
-          jsonrpc: "2.0",
+          // eslint-disable-next-line unicorn/no-null
           id: null,
+          jsonrpc: "2.0",
           result: expect.objectContaining({}),
         });
         expect(responseBuild.status).toBe(200);
@@ -824,68 +826,14 @@ describe("TPR API v3 - JSON RPC (e2e)", () => {
         const expectedErrorMessages: string[] = [];
 
         switch (method) {
-          case "insertPolicy": {
-            params.push({
-              from: signer.address,
-              // policyName: policy1.policyName, <- missing policyName
-              description: policy1.description,
-            } as InsertPolicySchema);
-
-            expectedErrorMessages.push(
-              "Invalid 'params.0.policyName': Required",
-            );
-
-            params.push({
-              from: "bad address",
-              policyName: policy2.policyName,
-              description: policy2.description,
-            } satisfies InsertPolicySchema);
-
-            expectedErrorMessages.push(
-              "Invalid 'params.0.from': Invalid Ethereum address",
-            );
-
-            break;
-          }
-          case "updatePolicy": {
-            params.push({
-              from: signer.address,
-              policyName: 40,
-              description: policy1.description, // <- missing description
-            } as unknown as UpdatePolicySchema);
-
-            expectedErrorMessages.push(
-              "Invalid 'params.0.policyName': Expected string, received number",
-            );
-
-            params.push({
-              from: signer.address,
-              policyName: policy2.policyName,
-              description: 15, // Invalid description
-            } as unknown as UpdatePolicySchema);
-
-            expectedErrorMessages.push(
-              "Invalid 'params.0.description': Expected string, received number",
-            );
-
+          case "activatePolicy": {
             params.push({
               from: signer.address,
               policyId: "test",
-              description: policy2.description,
-            } satisfies UpdatePolicySchema);
+            } satisfies ActivatePolicySchema);
 
             expectedErrorMessages.push(
               "Invalid 'params.0.policyId': Not an integer string",
-            );
-
-            params.push({
-              from: "bad address",
-              policyName: policy2.policyName,
-              description: policy2.description,
-            } satisfies UpdatePolicySchema);
-
-            expectedErrorMessages.push(
-              "Invalid 'params.0.from': Invalid Ethereum address",
             );
 
             break;
@@ -902,23 +850,47 @@ describe("TPR API v3 - JSON RPC (e2e)", () => {
 
             break;
           }
-          case "activatePolicy": {
+          case "deleteUserAttribute": {
             params.push({
+              attribute: pName,
               from: signer.address,
-              policyId: "test",
-            } satisfies ActivatePolicySchema);
+              user: "0x123",
+            } satisfies DeleteUserAttributeSchema);
 
             expectedErrorMessages.push(
-              "Invalid 'params.0.policyId': Not an integer string",
+              "Invalid 'params.0.user': Invalid Ethereum address",
+            );
+
+            break;
+          }
+          case "insertPolicy": {
+            params.push({
+              // policyName: policy1.policyName, <- missing policyName
+              description: policy1.description,
+              from: signer.address,
+            } as InsertPolicySchema);
+
+            expectedErrorMessages.push(
+              "Invalid 'params.0.policyName': Required",
+            );
+
+            params.push({
+              description: policy2.description,
+              from: "bad address",
+              policyName: policy2.policyName,
+            } satisfies InsertPolicySchema);
+
+            expectedErrorMessages.push(
+              "Invalid 'params.0.from': Invalid Ethereum address",
             );
 
             break;
           }
           case "insertUserAttributes": {
             params.push({
+              attributes: [pName],
               from: signer.address,
               user: "0x123",
-              attributes: [pName],
             } satisfies InsertUserAttributesSchema);
 
             expectedErrorMessages.push(
@@ -927,15 +899,45 @@ describe("TPR API v3 - JSON RPC (e2e)", () => {
 
             break;
           }
-          case "deleteUserAttribute": {
+          case "updatePolicy": {
             params.push({
+              description: policy1.description, // <- missing description
               from: signer.address,
-              user: "0x123",
-              attribute: pName,
-            } satisfies DeleteUserAttributeSchema);
+              policyName: 40,
+            } as unknown as UpdatePolicySchema);
 
             expectedErrorMessages.push(
-              "Invalid 'params.0.user': Invalid Ethereum address",
+              "Invalid 'params.0.policyName': Expected string, received number",
+            );
+
+            params.push({
+              description: 15, // Invalid description
+              from: signer.address,
+              policyName: policy2.policyName,
+            } as unknown as UpdatePolicySchema);
+
+            expectedErrorMessages.push(
+              "Invalid 'params.0.description': Expected string, received number",
+            );
+
+            params.push({
+              description: policy2.description,
+              from: signer.address,
+              policyId: "test",
+            } satisfies UpdatePolicySchema);
+
+            expectedErrorMessages.push(
+              "Invalid 'params.0.policyId': Not an integer string",
+            );
+
+            params.push({
+              description: policy2.description,
+              from: "bad address",
+              policyName: policy2.policyName,
+            } satisfies UpdatePolicySchema);
+
+            expectedErrorMessages.push(
+              "Invalid 'params.0.from': Invalid Ethereum address",
             );
 
             break;
@@ -955,19 +957,19 @@ describe("TPR API v3 - JSON RPC (e2e)", () => {
                 type: "bearer",
               })
               .send({
+                id: 231,
                 jsonrpc: "2.0",
                 method,
                 params: [param],
-                id: 231,
               });
 
             expect(response1.body).toStrictEqual({
-              jsonrpc: "2.0",
-              id: 231,
               error: {
-                code: -32600,
+                code: -32_600,
                 message: expect.stringContaining(expectedErrorMessages[index]!),
               },
+              id: 231,
+              jsonrpc: "2.0",
             });
             expect(response1.status).toBe(400);
           }),
@@ -983,35 +985,17 @@ describe("TPR API v3 - JSON RPC (e2e)", () => {
         let param2: JsonRpcParams;
 
         switch (method) {
-          case "insertPolicy": {
-            const { policyName, description } = policy1;
-
-            param1 = {
-              from: signer.address,
-              policyName,
-              description,
-            } satisfies InsertPolicySchema;
-            param2 = {
-              from: signer.address,
-              policyName: "another name",
-              description,
-            } satisfies InsertPolicySchema;
-            break;
-          }
-          case "updatePolicy": {
-            const { description } = policy1;
-
+          case "activatePolicy": {
             param1 = {
               from: signer.address,
               policyId: "1",
-              description,
-            } satisfies UpdatePolicySchema;
+            } satisfies ActivatePolicySchema;
+
             param2 = {
               from: signer.address,
-              policyId: "1",
-              policyName: "another name",
-              description,
-            } satisfies UpdatePolicySchema;
+              policyId: "2",
+            } satisfies ActivatePolicySchema;
+
             break;
           }
           case "deactivatePolicy": {
@@ -1027,47 +1011,65 @@ describe("TPR API v3 - JSON RPC (e2e)", () => {
 
             break;
           }
-          case "activatePolicy": {
+          case "deleteUserAttribute": {
             param1 = {
+              attribute: "name1",
               from: signer.address,
-              policyId: "1",
-            } satisfies ActivatePolicySchema;
+              user: userAddress,
+            } satisfies DeleteUserAttributeSchema;
 
             param2 = {
+              attribute: "name2",
               from: signer.address,
-              policyId: "2",
-            } satisfies ActivatePolicySchema;
+              user: userAddress,
+            } satisfies DeleteUserAttributeSchema;
 
+            break;
+          }
+          case "insertPolicy": {
+            const { description, policyName } = policy1;
+
+            param1 = {
+              description,
+              from: signer.address,
+              policyName,
+            } satisfies InsertPolicySchema;
+            param2 = {
+              description,
+              from: signer.address,
+              policyName: "another name",
+            } satisfies InsertPolicySchema;
             break;
           }
           case "insertUserAttributes": {
             param1 = {
+              attributes: ["name1"],
               from: signer.address,
               user: userAddress,
-              attributes: ["name1"],
             } satisfies InsertUserAttributesSchema;
 
             param2 = {
+              attributes: ["name2"],
               from: signer.address,
               user: userAddress,
-              attributes: ["name2"],
             } satisfies InsertUserAttributesSchema;
 
             break;
           }
-          case "deleteUserAttribute": {
+          case "updatePolicy": {
+            const { description } = policy1;
+
             param1 = {
+              description,
               from: signer.address,
-              user: userAddress,
-              attribute: "name1",
-            } satisfies DeleteUserAttributeSchema;
-
+              policyId: "1",
+            } satisfies UpdatePolicySchema;
             param2 = {
+              description,
               from: signer.address,
-              user: userAddress,
-              attribute: "name2",
-            } satisfies DeleteUserAttributeSchema;
-
+              policyId: "1",
+              policyName: "another name",
+            } satisfies UpdatePolicySchema;
             break;
           }
           default: {
@@ -1079,10 +1081,10 @@ describe("TPR API v3 - JSON RPC (e2e)", () => {
           .post("/jsonrpc")
           .auth(testAdminAccessToken, { type: "bearer" })
           .send({
+            id: 231,
             jsonrpc: "2.0",
             method,
             params: [param1],
-            id: 231,
           });
 
         expect(responseBuild1.status).toBe(200);
@@ -1093,10 +1095,10 @@ describe("TPR API v3 - JSON RPC (e2e)", () => {
           .post("/jsonrpc")
           .auth(testAdminAccessToken, { type: "bearer" })
           .send({
+            id: 232,
             jsonrpc: "2.0",
             method,
             params: [param2],
-            id: 232,
           });
 
         expect(responseBuild2.status).toBe(200);
@@ -1105,6 +1107,7 @@ describe("TPR API v3 - JSON RPC (e2e)", () => {
         const randomSigner = ethers.Wallet.createRandom();
 
         const uTx = formatEthersUnsignedTransaction(
+          // eslint-disable-next-line unicorn/prefer-structured-clone
           JSON.parse(
             JSON.stringify(transaction1),
           ) as unknown as UnsignedTransaction,
@@ -1118,30 +1121,30 @@ describe("TPR API v3 - JSON RPC (e2e)", () => {
           .post("/jsonrpc")
           .auth(testAdminAccessToken, { type: "bearer" })
           .send({
+            id: "45",
             jsonrpc: "2.0",
             method: "sendSignedTransaction",
             params: [
               {
                 protocol: "eth",
-                unsignedTransaction: transaction2,
                 r,
                 s,
-                v: `0x${Number(v).toString(16)}`,
                 signedRawTransaction: sgnTx1,
+                unsignedTransaction: transaction2,
+                v: `0x${Number(v).toString(16)}`,
               },
             ],
-            id: "45",
           });
 
         expect(responseSend1.body).toStrictEqual({
-          jsonrpc: "2.0",
-          id: "45",
           error: {
-            code: -32600,
+            code: -32_600,
             message: expect.stringContaining(
               "does not match with the signedRawTransaction",
             ),
           },
+          id: "45",
+          jsonrpc: "2.0",
         });
         expect(responseSend1.status).toBe(400);
 
@@ -1151,30 +1154,30 @@ describe("TPR API v3 - JSON RPC (e2e)", () => {
           .post("/jsonrpc")
           .auth(testAdminAccessToken, { type: "bearer" })
           .send({
+            id: "46",
             jsonrpc: "2.0",
             method: "sendSignedTransaction",
             params: [
               {
                 protocol: "eth",
-                unsignedTransaction: transaction1,
                 r,
                 s,
-                v: `0x${Number(v).toString(16)}`,
                 signedRawTransaction: sgnTx1,
+                unsignedTransaction: transaction1,
+                v: `0x${Number(v).toString(16)}`,
               },
             ],
-            id: "46",
           });
 
         expect(responseSend2.body).toStrictEqual({
-          jsonrpc: "2.0",
-          id: "46",
           error: {
-            code: -32600,
+            code: -32_600,
             message: expect.stringContaining(
               "does not match with unsignedTransaction.from",
             ),
           },
+          id: "46",
+          jsonrpc: "2.0",
         });
         expect(responseSend1.status).toBe(400);
       });

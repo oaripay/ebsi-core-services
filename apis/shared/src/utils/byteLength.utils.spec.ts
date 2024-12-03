@@ -1,5 +1,6 @@
-import { describe, it, expect } from "vitest";
 import crypto from "node:crypto";
+import { describe, expect, it } from "vitest";
+
 import { byteLength } from "./byteLength.utils.js";
 
 describe("byteLength", () => {

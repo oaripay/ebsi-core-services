@@ -1,46 +1,19 @@
-import { Injectable, Logger } from "@nestjs/common";
 import { InternalServerError, NotFoundError } from "@ebsiint-api/shared";
-import { HashAlgorithmResponseObject } from "./hash-algorithms.interface.js";
+import { Injectable, Logger } from "@nestjs/common";
+
 import {
   getBuiltGraphSDK,
-  GetHashAlgorithmsQuery,
   GetHashAlgorithmQuery,
+  GetHashAlgorithmsQuery,
   HashAlgo_filter,
-  // eslint-disable-next-line import/extensions, import/no-relative-packages
 } from "../../../.graphclient/index.js";
+import { HashAlgorithmResponseObject } from "./hash-algorithms.interface.js";
 
 const sdk = getBuiltGraphSDK();
 
 @Injectable()
 export class HashAlgorithmsService {
   private readonly logger = new Logger(HashAlgorithmsService.name);
-
-  async getHashAlgorithms(
-    page: number,
-    pagesize: number,
-    where: HashAlgo_filter = {},
-  ): Promise<{ items: number[] }> {
-    const skip = (page - 1) * pagesize;
-    let res: GetHashAlgorithmsQuery;
-    try {
-      // get one more item to clarify next pages in pagination
-      const queryPageSize = pagesize + 1;
-      res = await sdk.GetHashAlgorithms({
-        skip,
-        pagesize: queryPageSize,
-        where,
-      });
-    } catch (error) {
-      this.logger.error(
-        error,
-        error instanceof Error ? error.stack : undefined,
-      );
-      throw new InternalServerError();
-    }
-
-    const ids = res.hashAlgos.map((h) => Number(h.id));
-    return { items: ids };
-  }
 
   async getHashAlgorithm(
     hashAlgorithmId: number,
@@ -65,15 +38,42 @@ export class HashAlgorithmsService {
       });
     }
 
-    const { outputLength, ianaName, oid, status, multiHash } = res.hashAlgo;
+    const { ianaName, multiHash, oid, outputLength, status } = res.hashAlgo;
 
     return {
-      outputLengthBits: Number(outputLength),
       ianaName,
-      oid,
-      status,
       multihash: multiHash,
+      oid,
+      outputLengthBits: Number(outputLength),
+      status,
     };
+  }
+
+  async getHashAlgorithms(
+    page: number,
+    pagesize: number,
+    where: HashAlgo_filter = {},
+  ): Promise<{ items: number[] }> {
+    const skip = (page - 1) * pagesize;
+    let res: GetHashAlgorithmsQuery;
+    try {
+      // get one more item to clarify next pages in pagination
+      const queryPageSize = pagesize + 1;
+      res = await sdk.GetHashAlgorithms({
+        pagesize: queryPageSize,
+        skip,
+        where,
+      });
+    } catch (error) {
+      this.logger.error(
+        error,
+        error instanceof Error ? error.stack : undefined,
+      );
+      throw new InternalServerError();
+    }
+
+    const ids = res.hashAlgos.map((h) => Number(h.id));
+    return { items: ids };
   }
 }
 

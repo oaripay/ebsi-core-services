@@ -1,4 +1,5 @@
-import { HardhatUserConfig } from "hardhat/config";
+import type { TypechainUserConfig } from "@typechain/hardhat/dist/types";
+
 import "@nomiclabs/hardhat-waffle";
 import "@nomiclabs/hardhat-solhint";
 import "@typechain/hardhat";
@@ -6,14 +7,17 @@ import "hardhat-deploy";
 import "hardhat-deploy-ethers";
 import "hardhat-abi-exporter";
 import "@openzeppelin/hardhat-upgrades";
+
 import "./tasks/index";
-import * as fs from "node:fs";
-import { resolve } from "node:path";
-import * as dotenv from "dotenv";
-import type { TypechainUserConfig } from "@typechain/hardhat/dist/types";
+
 import type { AbiExporterUserConfig } from "hardhat-abi-exporter";
 
-dotenv.config({ path: resolve(__dirname, ".env") });
+import * as dotenv from "dotenv";
+import { HardhatUserConfig } from "hardhat/config";
+import * as fs from "node:fs";
+import path from "node:path";
+
+dotenv.config({ path: path.resolve(__dirname, ".env") });
 
 // The solhint plugin overrides the check task, runs solhint
 // on the project's sources and prints the report to the console
@@ -22,11 +26,11 @@ dotenv.config({ path: resolve(__dirname, ".env") });
 const mnemonicPath = `${__dirname}/.secret.mnemonic`;
 const privKeyPath = `${__dirname}/.secret.privatekey`;
 let mnemonic =
-  "test test test test test test test test test test test junk" ||
-  process.env.MNEMONIC;
+  process.env.MNEMONIC ??
+  "test test test test test test test test test test test junk";
 let privKey =
-  "0x6a41084b4e952f85d4ea71f1af325fa9925f98befd72f8a12534c67b5679fe0e" ||
-  process.env.PRIVATE_KEY;
+  process.env.PRIVATE_KEY ??
+  "0x6a41084b4e952f85d4ea71f1af325fa9925f98befd72f8a12534c67b5679fe0e";
 
 if (fs.existsSync(mnemonicPath)) {
   console.log(".secret.mnemonic exists and will be used");
@@ -40,88 +44,82 @@ const accounts = {
 };
 
 const {
-  TEST_HARDHAT_NETWORK_URL,
-  PILOT_HARDHAT_NETWORK_URL,
   CONFORMANCE_HARDHAT_NETWORK_URL,
+  PILOT_HARDHAT_NETWORK_URL,
+  TEST_HARDHAT_NETWORK_URL,
 } = process.env;
 
-const config: HardhatUserConfig & {
-  typechain: TypechainUserConfig;
-  abiExporter: AbiExporterUserConfig;
-  namedAccounts?: {
-    [name: string]:
-      | string
-      | number
-      | { [network: string]: null | number | string };
-  };
-} = {
-  defaultNetwork: "local",
-  networks: {
-    hardhat: {},
-    test: {
-      url: TEST_HARDHAT_NETWORK_URL,
-      accounts: [privKey],
-      gas: 20000000,
-      gasPrice: 0,
-    },
-    pilot: {
-      url: PILOT_HARDHAT_NETWORK_URL,
-      accounts: [privKey],
-      gas: 20000000,
-      gasPrice: 0,
-    },
-    conformance: {
-      url: CONFORMANCE_HARDHAT_NETWORK_URL,
-      accounts: [privKey],
-      gas: 20000000,
-      gasPrice: 0,
-    },
-    local: {
-      url: TEST_HARDHAT_NETWORK_URL,
-      accounts: [privKey],
-      // accounts,
-      gas: 20000000,
-      gasPrice: 0,
-    },
-    sokol: {
-      url: TEST_HARDHAT_NETWORK_URL,
-      accounts: [privKey],
-      gas: 20000000,
-      gasPrice: 0,
-    },
-    localWithData: {
-      url: TEST_HARDHAT_NETWORK_URL,
-      accounts,
-      gas: 70000000,
-      gasPrice: 0,
-    },
-    box: {
-      url: "http://192.168.55.5:8545", // config for node1-besu-1
-      accounts,
-    },
-  },
-  typechain: {
-    outDir: "src/types",
-    target: "ethers-v5",
-  },
+const config = {
   abiExporter: {
-    path: "./src/abi",
     clear: true,
     flat: true,
+    path: "./src/abi",
   },
+  defaultNetwork: "local",
   namedAccounts: {
-    deployer: 0,
-    user: 1,
     admin: 2,
+    deployer: 0,
     multiSig: {
       default: 3, // here this will by default take the first account as deployer
       local: "0x28774ee74a79e27af87f4a7668542be43e2f742b", // it can also specify a specific network name
     },
+    user: 1,
+  },
+  networks: {
+    box: {
+      accounts,
+      url: "http://192.168.55.5:8545", // config for node1-besu-1
+    },
+    conformance: {
+      accounts: [privKey],
+      gas: 20_000_000,
+      gasPrice: 0,
+      url: CONFORMANCE_HARDHAT_NETWORK_URL!,
+    },
+    hardhat: {},
+    local: {
+      accounts: [privKey],
+      // accounts,
+      gas: 20_000_000,
+      gasPrice: 0,
+      url: TEST_HARDHAT_NETWORK_URL!,
+    },
+    localWithData: {
+      accounts,
+      gas: 70_000_000,
+      gasPrice: 0,
+      url: TEST_HARDHAT_NETWORK_URL!,
+    },
+    pilot: {
+      accounts: [privKey],
+      gas: 20_000_000,
+      gasPrice: 0,
+      url: PILOT_HARDHAT_NETWORK_URL!,
+    },
+    sokol: {
+      accounts: [privKey],
+      gas: 20_000_000,
+      gasPrice: 0,
+      url: TEST_HARDHAT_NETWORK_URL!,
+    },
+    test: {
+      accounts: [privKey],
+      gas: 20_000_000,
+      gasPrice: 0,
+      url: TEST_HARDHAT_NETWORK_URL!,
+    },
+  },
+  paths: {
+    artifacts: "src/artifacts",
+    cache: "./cache",
+    deploy: "./scripts/deployment",
+    deployments: "./deployments",
+    sources: "./contracts",
+    tests: "./tests",
   },
   solidity: {
     compilers: [
       {
-        version: "0.8.12",
         settings: {
           optimizer: {
             enabled: true,
@@ -130,17 +128,21 @@ const config: HardhatUserConfig & {
           // remove viaIR when legacy contract are deprecated
           viaIR: true,
         },
+        version: "0.8.12",
       },
     ],
   },
-  paths: {
-    deploy: "./scripts/deployment",
-    deployments: "./deployments",
-    sources: "./contracts",
-    tests: "./tests",
-    cache: "./cache",
-    artifacts: "src/artifacts",
+  typechain: {
+    outDir: "src/types",
+    target: "ethers-v5",
   },
+} satisfies HardhatUserConfig & {
+  abiExporter: AbiExporterUserConfig;
+  namedAccounts?: Record<
+    string,
+    number | Record<string, null | number | string> | string
+  >;
+  typechain: TypechainUserConfig;
 };
 
 export default config;

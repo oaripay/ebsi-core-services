@@ -1,14 +1,15 @@
+import {
+  BadRequestError,
+  getErrorMessage,
+  isEthersError,
+  multibase,
+  NotFoundError,
+  remove0xPrefix,
+} from "@ebsiint-api/shared";
+import { Timestamp } from "@ebsiint-sc/timestamp";
 import { Injectable, Logger } from "@nestjs/common";
 import { ethers } from "ethers";
-import { Timestamp } from "@ebsiint-sc/timestamp";
-import {
-  multibase,
-  BadRequestError,
-  NotFoundError,
-  isEthersError,
-  remove0xPrefix,
-  getErrorMessage,
-} from "@ebsiint-api/shared";
+
 import { LedgerService } from "../ledger/ledger.service.js";
 import {
   InfoObject,
@@ -22,9 +23,37 @@ export default class RecordsService {
 
   constructor(private ledgerService: LedgerService) {}
 
+  async getAllPages(
+    fnName: string,
+    params: (number | string)[],
+  ): Promise<{
+    hashValues: string[];
+    infoIds: string[];
+    totalHashes: number;
+  }> {
+    const { hashValues, infoIds, total } = await this.getPage(
+      fnName,
+      params,
+      1,
+    );
+    const lastPage = Math.ceil(total.toNumber() / 50);
+    const promisesNextPages = Array.from(
+      { length: lastPage - 1 },
+      (_, i) => i + 2,
+    ).map(async (i) => {
+      const { hashValues: pagItems } = await this.getPage(fnName, params, i);
+      return pagItems;
+    });
+    const hashValuesNextPages = await Promise.all(promisesNextPages);
+    for (const pagItems of hashValuesNextPages) {
+      hashValues.splice(hashValues.length, 0, ...pagItems);
+    }
+    return { hashValues, infoIds, totalHashes: total.toNumber() };
+  }
+
   async getPage(
     fnName: string,
-    params: (string | number)[],
+    params: (number | string)[],
     page: number,
   ): Promise<{
     hashValues: string[];
@@ -52,37 +81,48 @@ export default class RecordsService {
           });
         }
       }
-      default:
+      default: {
         throw new Error(`Timestamp function ${fnName} not implemented`);
+      }
     }
   }
 
-  async getAllPages(
-    fnName: string,
-    params: (string | number)[],
-  ): Promise<{
-    hashValues: string[];
-    infoIds: string[];
-    totalHashes: number;
-  }> {
-    const { hashValues, infoIds, total } = await this.getPage(
-      fnName,
-      params,
-      1,
+  async getRecord(recordIdEncoded: string): Promise<RecordResponseObject> {
+    let record: Awaited<ReturnType<Timestamp["getRecord"]>>;
+    const recordId = `0x${Buffer.from(
+      multibase.base64url.decode(recordIdEncoded),
+    ).toString("hex")}`;
+
+    try {
+      record = await this.ledgerService.getContract().getRecord(recordId);
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error, error.stack);
+      }
+      throw new NotFoundError("Record Not Found", {
+        detail: `Record ${recordIdEncoded} not found`,
+      });
+    }
+
+    const { ownerIds, revokedOwnerIds, totalVersions } = record;
+
+    const { hashValues: firstVersionTimestamps } = await this.getAllPages(
+      "getRecordVersion",
+      [recordId, 0],
     );
-    const lastPage = Math.ceil(total.toNumber() / 50);
-    const promisesNextPages = Array.from(
-      { length: lastPage - 1 },
-      (_, i) => i + 2,
-    ).map(async (i) => {
-      const { hashValues: pagItems } = await this.getPage(fnName, params, i);
-      return pagItems;
-    });
-    const hashValuesNextPages = await Promise.all(promisesNextPages);
-    hashValuesNextPages.forEach((pagItems) => {
-      hashValues.splice(hashValues.length, 0, ...pagItems);
-    });
-    return { hashValues, infoIds, totalHashes: total.toNumber() };
+
+    const { hashValues: lastVersionTimestamps } = await this.getAllPages(
+      "getRecordVersion",
+      [recordId, totalVersions.toNumber() - 1],
+    );
+
+    return {
+      firstVersionTimestamps,
+      lastVersionTimestamps,
+      ownerIds,
+      revokedOwnerIds,
+      totalVersions: totalVersions.toNumber(),
+    };
   }
 
   async getRecordIds(
@@ -141,64 +181,6 @@ export default class RecordsService {
     }
   }
 
-  async getRecord(recordIdEncoded: string): Promise<RecordResponseObject> {
-    let record: Awaited<ReturnType<Timestamp["getRecord"]>>;
-    const recordId = `0x${Buffer.from(
-      multibase.base64url.decode(recordIdEncoded),
-    ).toString("hex")}`;
-
-    try {
-      record = await this.ledgerService.getContract().getRecord(recordId);
-    } catch (error) {
-      if (isEthersError(error)) {
-        this.logger.error(error, error.stack);
-      }
-      throw new NotFoundError("Record Not Found", {
-        detail: `Record ${recordIdEncoded} not found`,
-      });
-    }
-
-    const { ownerIds, revokedOwnerIds, totalVersions } = record;
-
-    const { hashValues: firstVersionTimestamps } = await this.getAllPages(
-      "getRecordVersion",
-      [recordId, 0],
-    );
-
-    const { hashValues: lastVersionTimestamps } = await this.getAllPages(
-      "getRecordVersion",
-      [recordId, totalVersions.toNumber() - 1],
-    );
-
-    return {
-      ownerIds,
-      revokedOwnerIds,
-      firstVersionTimestamps,
-      lastVersionTimestamps,
-      totalVersions: totalVersions.toNumber(),
-    };
-  }
-
-  async getRecordVersions(recordIdEncoded: string): Promise<number> {
-    let record: Awaited<ReturnType<Timestamp["getRecord"]>>;
-    const recordId = `0x${Buffer.from(
-      multibase.base64url.decode(recordIdEncoded),
-    ).toString("hex")}`;
-
-    try {
-      record = await this.ledgerService.getContract().getRecord(recordId);
-    } catch (error) {
-      if (isEthersError(error)) {
-        this.logger.error(error, error.stack);
-      }
-      throw new NotFoundError("Record Not Found", {
-        detail: `Record ${recordIdEncoded} not found`,
-      });
-    }
-
-    return record.totalVersions.toNumber();
-  }
-
   async getRecordVersion(
     recordIdEncoded: string,
     versionId: string,
@@ -233,7 +215,7 @@ export default class RecordsService {
         ).toString("utf8");
         try {
           return JSON.parse(infoString) as InfoObject;
-        } catch (error) {
+        } catch {
           throw new BadRequestError("Info can not be parsed", {
             detail: `The info related to this versionId can not be parsed to JSON. infoBytes: ${infoBytes}`,
           });
@@ -250,5 +232,25 @@ export default class RecordsService {
       }
       throw new Error(getErrorMessage(error));
     }
+  }
+
+  async getRecordVersions(recordIdEncoded: string): Promise<number> {
+    let record: Awaited<ReturnType<Timestamp["getRecord"]>>;
+    const recordId = `0x${Buffer.from(
+      multibase.base64url.decode(recordIdEncoded),
+    ).toString("hex")}`;
+
+    try {
+      record = await this.ledgerService.getContract().getRecord(recordId);
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error, error.stack);
+      }
+      throw new NotFoundError("Record Not Found", {
+        detail: `Record ${recordIdEncoded} not found`,
+      });
+    }
+
+    return record.totalVersions.toNumber();
   }
 }

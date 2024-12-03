@@ -31,8 +31,8 @@ async function main() {
   const contractFactory = await ethers.getContractFactory("Timestamp", {
     libraries: {
       HashAlgoLib: haLib.address,
-      TimestampLib: tsLib.address,
       RecordLib: rsLib.address,
+      TimestampLib: tsLib.address,
     },
   });
 

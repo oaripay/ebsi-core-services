@@ -13,7 +13,7 @@ export function extractNamedAttributes(
   }
 
   const keys = Object.keys(mixedArray).filter((key) =>
-    Number.isNaN(parseInt(key, 10)),
+    Number.isNaN(Number.parseInt(key, 10)),
   );
 
   return keys.reduce((obj, key) => {

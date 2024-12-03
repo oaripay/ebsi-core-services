@@ -1,5 +1,7 @@
-import { Equals, IsString, IsJWT, IsJSON } from "class-validator";
+import { Equals, IsJSON, IsJWT, IsString } from "class-validator";
+
 import type { Scope } from "../authorisation.interfaces.js";
+
 import { IsScope } from "../validators/index.js";
 
 export class CreateAccessTokenDto {

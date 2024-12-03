@@ -1,5 +1,5 @@
-import { IsNumber, Min } from "class-validator";
 import { Type } from "class-transformer";
+import { IsNumber, Min } from "class-validator";
 
 export class GetHashAlgorithmDto {
   @IsNumber()

@@ -1,6 +1,7 @@
-import { describe, it, expect } from "vitest";
-import crypto from "node:crypto";
 import { multibase, multihashEncode } from "@ebsiint-api/shared";
+import crypto from "node:crypto";
+import { describe, expect, it } from "vitest";
+
 import { formatTimestamps } from "./timestamps.formatter.js";
 
 describe("formatTimestamps", () => {
@@ -40,12 +41,12 @@ describe("formatTimestamps", () => {
     ).toStrictEqual({
       items: [
         {
-          timestampId: timestampIds[0],
           href: `/${timestampIds[0]}`,
+          timestampId: timestampIds[0],
         },
         {
-          timestampId: timestampIds[1],
           href: `/${timestampIds[1]}`,
+          timestampId: timestampIds[1],
         },
       ],
       links: {

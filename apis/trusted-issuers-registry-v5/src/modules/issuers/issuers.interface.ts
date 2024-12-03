@@ -1,34 +1,16 @@
 import { IssuerTypeNames } from "./issuers.constants.js";
 
-export type IssuerTypeName = (typeof IssuerTypeNames)[number];
+export interface AttributeDetailsObject {
+  attribute: AttributeObject;
+  did: string;
+}
 
 export interface AttributeObject {
-  hash: string;
   body: string;
+  hash: string;
   issuerType: IssuerTypeName;
-  tao: string;
   rootTao: string;
-}
-
-export interface AttributeDetailsObject {
-  did: string;
-  attribute: AttributeObject;
-}
-
-export interface IssuerResponseObject {
-  did: string;
-  attributes: AttributeObject[];
-}
-
-export interface IssuerProxyResponseObject {
-  prefix: string;
-  headers: Record<string, string | number | boolean>;
-  testSuffix: string;
-}
-
-export interface IdLink {
-  id: string;
-  href: string;
+  tao: string;
 }
 
 export interface DidLink {
@@ -36,7 +18,25 @@ export interface DidLink {
   href: string;
 }
 
-export interface ProxyLink {
-  proxyId: string;
+export interface IdLink {
   href: string;
+  id: string;
+}
+
+export interface IssuerProxyResponseObject {
+  headers: Record<string, boolean | number | string>;
+  prefix: string;
+  testSuffix: string;
+}
+
+export interface IssuerResponseObject {
+  attributes: AttributeObject[];
+  did: string;
+}
+
+export type IssuerTypeName = (typeof IssuerTypeNames)[number];
+
+export interface ProxyLink {
+  href: string;
+  proxyId: string;
 }

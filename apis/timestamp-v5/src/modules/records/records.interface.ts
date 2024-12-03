@@ -1,24 +1,24 @@
+export type InfoObject = Record<string, unknown>;
+
 export interface RecordLink {
-  recordId: string;
   href: string;
+  recordId: string;
 }
 
 export interface RecordResponseObject {
-  ownerIds: string[];
-  revokedOwnerIds: string[];
   firstVersionTimestamps: string[];
   lastVersionTimestamps: string[];
+  ownerIds: string[];
+  revokedOwnerIds: string[];
   totalVersions: number;
 }
-
-export interface VersionLink {
-  versionId: number;
-  href: string;
-}
-
-export type InfoObject = Record<string, unknown>;
 
 export interface RecordVersionResponseObject {
   hashes: string[];
   info: InfoObject[];
+}
+
+export interface VersionLink {
+  href: string;
+  versionId: number;
 }

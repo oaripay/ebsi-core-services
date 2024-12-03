@@ -1,103 +1,3 @@
-export function getDidsQuery() {
-  return /* GraphQL */ `
-    query GetDids($skip: Int, $pagesize: Int) {
-      didDocuments(first: $pagesize, skip: $skip) {
-        baseDocument
-        id
-        isSecp256k1
-        notBefore
-        notAfter
-        publicKey
-        vMethodId
-      }
-    }
-  `;
-}
-
-export function getDidsByControllerQuery() {
-  return /* GraphQL */ `
-    query GetDidsByController($controller: String, $skip: Int, $pagesize: Int) {
-      didDocuments(
-        first: $pagesize
-        skip: $skip
-        where: { controllers_: { controller: $controller } }
-      ) {
-        baseDocument
-        id
-        isSecp256k1
-        notAfter
-        notBefore
-        publicKey
-        vMethodId
-      }
-    }
-  `;
-}
-
-export function getDidsByVerificationRelationshipQuery() {
-  return /* GraphQL */ `
-    query GetDidsByVerificationRelationship(
-      $vMethodId: String
-      $vRelationship: String
-      $skip: Int
-      $pagesize: Int
-    ) {
-      didDocuments(
-        first: $pagesize
-        skip: $skip
-        where: {
-          verificationRelationships_: {
-            and: [{ name: $vRelationship }, { vMethodId: $vMethodId }]
-          }
-        }
-      ) {
-        baseDocument
-        id
-        isSecp256k1
-        notAfter
-        notBefore
-        publicKey
-        vMethodId
-      }
-    }
-  `;
-}
-
-export function getDidsByControllerAndVerificationRelationshipQuery() {
-  return /* GraphQL */ `
-    query GetDidsByControllerAndVerificationRelationshipQuery(
-      $controller: String
-      $vMethodId: String
-      $vRelationship: String
-      $skip: Int
-      $pagesize: Int
-    ) {
-      didDocuments(
-        first: $pagesize
-        skip: $skip
-        where: {
-          and: [
-            { controllers_: { controller: $controller } }
-            {
-              verificationRelationships_: {
-                and: [{ name: $vRelationship }, { vMethodId: $vMethodId }]
-              }
-            }
-          ]
-        }
-      ) {
-        baseDocument
-        id
-        isSecp256k1
-        notAfter
-        notBefore
-        publicKey
-        vMethodId
-      }
-    }
-  `;
-}
-
 export function getDidDocumentByTimestampQuery() {
   return /* GraphQL */ `
     query GetDidDocument($did: String, $timestamp: Int) {
@@ -157,6 +57,106 @@ export function getDidDocumentEventsQuery() {
           txId
           blockNumber
         }
+      }
+    }
+  `;
+}
+
+export function getDidsByControllerAndVerificationRelationshipQuery() {
+  return /* GraphQL */ `
+    query GetDidsByControllerAndVerificationRelationshipQuery(
+      $controller: String
+      $vMethodId: String
+      $vRelationship: String
+      $skip: Int
+      $pagesize: Int
+    ) {
+      didDocuments(
+        first: $pagesize
+        skip: $skip
+        where: {
+          and: [
+            { controllers_: { controller: $controller } }
+            {
+              verificationRelationships_: {
+                and: [{ name: $vRelationship }, { vMethodId: $vMethodId }]
+              }
+            }
+          ]
+        }
+      ) {
+        baseDocument
+        id
+        isSecp256k1
+        notAfter
+        notBefore
+        publicKey
+        vMethodId
+      }
+    }
+  `;
+}
+
+export function getDidsByControllerQuery() {
+  return /* GraphQL */ `
+    query GetDidsByController($controller: String, $skip: Int, $pagesize: Int) {
+      didDocuments(
+        first: $pagesize
+        skip: $skip
+        where: { controllers_: { controller: $controller } }
+      ) {
+        baseDocument
+        id
+        isSecp256k1
+        notAfter
+        notBefore
+        publicKey
+        vMethodId
+      }
+    }
+  `;
+}
+
+export function getDidsByVerificationRelationshipQuery() {
+  return /* GraphQL */ `
+    query GetDidsByVerificationRelationship(
+      $vMethodId: String
+      $vRelationship: String
+      $skip: Int
+      $pagesize: Int
+    ) {
+      didDocuments(
+        first: $pagesize
+        skip: $skip
+        where: {
+          verificationRelationships_: {
+            and: [{ name: $vRelationship }, { vMethodId: $vMethodId }]
+          }
+        }
+      ) {
+        baseDocument
+        id
+        isSecp256k1
+        notAfter
+        notBefore
+        publicKey
+        vMethodId
+      }
+    }
+  `;
+}
+
+export function getDidsQuery() {
+  return /* GraphQL */ `
+    query GetDids($skip: Int, $pagesize: Int) {
+      didDocuments(first: $pagesize, skip: $skip) {
+        baseDocument
+        id
+        isSecp256k1
+        notBefore
+        notAfter
+        publicKey
+        vMethodId
       }
     }
   `;

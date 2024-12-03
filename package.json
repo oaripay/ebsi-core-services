@@ -22,36 +22,44 @@
     "patch-package": "patch-package"
   },
   "devDependencies": {
-    "@changesets/cli": "^2.27.8",
+    "@changesets/cli": "^2.27.10",
     "@changesets/types": "^6.0.0",
-    "@commitlint/cli": "^19.5.0",
-    "@commitlint/config-conventional": "^19.5.0",
+    "@commitlint/cli": "^19.6.0",
+    "@commitlint/config-conventional": "^19.6.0",
+    "@eslint/eslintrc": "^3.2.0",
+    "@eslint/js": "^9.16.0",
     "@nx/workspace": "17.2.8",
-    "@stoplight/spectral-cli": "^6.12.0",
+    "@stoplight/spectral-cli": "^6.14.2",
+    "@tsconfig/node22": "^22.0.0",
+    "@tsconfig/strictest": "^2.0.5",
     "@types/mustache": "^4.2.5",
-    "@typescript-eslint/eslint-plugin": "^7.4.0",
-    "@typescript-eslint/parser": "^7.4.0",
-    "audit-ci": "^6.6.1",
+    "@typescript-eslint/eslint-plugin": "^8.17.0",
+    "@typescript-eslint/parser": "^8.17.0",
+    "audit-ci": "^7.1.0",
     "cross-env": "^7.0.3",
-    "eslint": "^8.57.0",
-    "eslint-config-airbnb-base": "^15.0.0",
-    "eslint-config-airbnb-typescript": "^18.0.0",
+    "eslint": "^9.16.0",
     "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-import": "^2.30.0",
+    "eslint-import-resolver-typescript": "^3.6.3",
+    "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-perfectionist": "^4.1.2",
     "eslint-plugin-prettier": "^5.2.1",
-    "eslint-plugin-vitest": "^0.4.0",
-    "husky": "^9.1.6",
+    "eslint-plugin-regexp": "^2.7.0",
+    "eslint-plugin-unicorn": "^56.0.1",
+    "eslint-plugin-vitest": "^0.5.4",
+    "globals": "^15.13.0",
+    "husky": "^9.1.7",
     "is-ci": "^3.0.1",
     "lint-staged": "^15.2.10",
     "mustache": "^4.2.0",
     "nx": "17.2.8",
     "patch-package": "^8.0.0",
     "postinstall-postinstall": "^2.1.0",
-    "prettier": "^3.3.3",
+    "prettier": "^3.4.1",
     "prettier-plugin-solidity": "^1.4.1",
-    "rimraf": "^5.0.5",
-    "solhint": "^3.6.2",
-    "typescript": "5.3.3"
+    "rimraf": "^6.0.1",
+    "solhint": "^5.0.3",
+    "typescript": "5.6.3",
+    "typescript-eslint": "^8.17.0"
   },
   "workspaces": {
     "packages": [
@@ -64,7 +72,10 @@
       "**/undici-types",
       "**/@graphprotocol/graph-ts",
       "**/@graphprotocol/graph-ts/**",
-      "**/matchstick-as"
+      "**/matchstick-as",
+      "**/vite",
+      "**/vitest",
+      "**/@sphereon/**"
     ]
   },
   "resolutions": {
@@ -76,10 +87,8 @@
     "**/@ethersproject/signing-key/elliptic": "^6.6.0",
     "**/@graphql-mesh/cli/node-libcurl": "link:./node_modules/.cache/null",
     "**/@graphprotocol/graph-cli/semver": "^7.5.2",
-    "**/gluegun/cross-spawn": "^7.0.5",
+    "**/gluegun/cross-spawn": "^7.0.6 ",
     "**/gluegun/semver": "^7.5.2",
-    "**/gluegun/ejs": "^3.1.10",
-    "**/@nestjs/core/path-to-regexp": "^3.3.0",
-    "**/@nestjs/platform-fastify/path-to-regexp": "^3.3.0"
+    "**/gluegun/ejs": "^3.1.10"
   }
 }

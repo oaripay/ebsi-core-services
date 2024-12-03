@@ -1,7 +1,8 @@
-import { task } from "hardhat/config";
-import "@nomiclabs/hardhat-waffle";
 import canonicalize from "canonicalize";
-import { readFile } from "fs/promises";
+import "@nomiclabs/hardhat-waffle";
+import { task } from "hardhat/config";
+import { readFile } from "node:fs/promises";
+
 import type { SchemaSCRegistry } from "../src/types";
 
 // follows ETH/BTC's BIP 39 protocol
@@ -11,7 +12,7 @@ task(
   "updateSchema",
   "Update existing schema in TSR Contract ",
   async (
-    taskArgs: { proxy: string; schema: string; file: string },
+    taskArgs: { file: string; proxy: string; schema: string },
     { ethers },
   ) => {
     const [deployer, admin] = await ethers.getSigners();
@@ -36,8 +37,8 @@ task(
       `${__dirname}/../schemas/json-schemas/${taskArgs.file}`,
     );
     const json = canonicalize(JSON.parse(jsonFile.toString()));
-    const schema = ethers.utils.toUtf8Bytes(json);
-    const schemaHex = `0x${Buffer.from(JSON.stringify(json), "utf-8").toString(
+    const schema = ethers.utils.toUtf8Bytes(json!);
+    const schemaHex = `0x${Buffer.from(JSON.stringify(json), "utf8").toString(
       "hex",
     )}`;
 
@@ -48,7 +49,7 @@ task(
       console.log(
         `Schema ${taskArgs.file} updated on networkId ${network.chainId} at id: ${taskArgs.schema}`,
       );
-    } catch (e) {
+    } catch {
       console.log(
         `There is no schema ${taskArgs.file} registered on networkId ${network.chainId} at id: ${taskArgs.schema}`,
       );

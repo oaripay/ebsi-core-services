@@ -1,15 +1,14 @@
-/* eslint-disable no-underscore-dangle */
-import { setupServer } from "msw/node";
 import { graphql, HttpResponse } from "msw";
-import { dummySchemas } from "./data.js";
-// eslint-disable-next-line import/extensions, import/no-relative-packages
+import { setupServer } from "msw/node";
+
 import { Revision_filter, Schema_filter } from "../../.graphclient/index.js";
+import { dummySchemas } from "./data.js";
 
 export const graphServer = setupServer(
   graphql.query("GetSchemas", ({ variables }) => {
-    const { skip, pagesize, where } = variables as {
-      skip: number;
+    const { pagesize, skip, where } = variables as {
       pagesize: number;
+      skip: number;
       where: Schema_filter;
     };
     return HttpResponse.json({
@@ -17,10 +16,8 @@ export const graphServer = setupServer(
         schemas: dummySchemas
           .filter((s) => {
             if (
-              where &&
-              where.revisions_ &&
-              where.revisions_.id &&
-              !s.revisions.find((r) => r.id === where.revisions_!.id)
+              where?.revisions_?.id &&
+              !s.revisions.some((r) => r.id === where.revisions_!.id)
             )
               return false;
             return true;
@@ -37,6 +34,7 @@ export const graphServer = setupServer(
     if (!schema)
       return HttpResponse.json({
         data: {
+          // eslint-disable-next-line unicorn/no-null
           schema: null,
         },
       });
@@ -52,16 +50,17 @@ export const graphServer = setupServer(
   }),
 
   graphql.query("GetRevisions", ({ variables }) => {
-    const { schemaId, skip, pagesize, where } = variables as {
+    const { pagesize, schemaId, skip, where } = variables as {
+      pagesize: number;
       schemaId: string;
       skip: number;
-      pagesize: number;
       where: Revision_filter;
     };
     const schema = dummySchemas.find((s) => s.id === schemaId);
     if (!schema)
       return HttpResponse.json({
         data: {
+          // eslint-disable-next-line unicorn/no-null
           schema: null,
         },
       });
@@ -71,9 +70,8 @@ export const graphServer = setupServer(
           revisions: schema.revisions
             .filter((r) => {
               if (
-                where &&
-                where.metadata_ &&
-                !r.metadata.find((m) => m.id === where.metadata_!.id)
+                where?.metadata_ &&
+                !r.metadata.some((m) => m.id === where.metadata_!.id)
               )
                 return false;
               return true;
@@ -94,6 +92,7 @@ export const graphServer = setupServer(
     if (!schema)
       return HttpResponse.json({
         data: {
+          // eslint-disable-next-line unicorn/no-null
           schema: null,
         },
       });
@@ -103,9 +102,8 @@ export const graphServer = setupServer(
           revisions: schema.revisions
             .filter((r) => {
               if (
-                where &&
-                where.metadata_ &&
-                !r.metadata.find((m) => m.id === where.metadata_!.id)
+                where?.metadata_ &&
+                !r.metadata.some((m) => m.id === where.metadata_!.id)
               )
                 return false;
               return true;
@@ -120,14 +118,15 @@ export const graphServer = setupServer(
   }),
 
   graphql.query("GetRevision", ({ variables }) => {
-    const { schemaId, revisionId } = variables as {
-      schemaId: string;
+    const { revisionId, schemaId } = variables as {
       revisionId: string;
+      schemaId: string;
     };
     const schema = dummySchemas.find((s) => s.id === schemaId);
     if (!schema)
       return HttpResponse.json({
         data: {
+          // eslint-disable-next-line unicorn/no-null
           schema: null,
         },
       });
@@ -143,16 +142,17 @@ export const graphServer = setupServer(
   }),
 
   graphql.query("GetMetadatas", ({ variables }) => {
-    const { schemaId, revisionId, skip, pagesize } = variables as {
-      schemaId: string;
-      revisionId: string;
-      skip: number;
+    const { pagesize, revisionId, schemaId, skip } = variables as {
       pagesize: number;
+      revisionId: string;
+      schemaId: string;
+      skip: number;
     };
     const schema = dummySchemas.find((s) => s.id === schemaId);
     if (!schema)
       return HttpResponse.json({
         data: {
+          // eslint-disable-next-line unicorn/no-null
           schema: null,
         },
       });
@@ -172,15 +172,16 @@ export const graphServer = setupServer(
   }),
 
   graphql.query("GetMetadata", ({ variables }) => {
-    const { schemaId, revisionId, metadataId } = variables as {
-      schemaId: string;
-      revisionId: string;
+    const { metadataId, revisionId, schemaId } = variables as {
       metadataId: string;
+      revisionId: string;
+      schemaId: string;
     };
     const schema = dummySchemas.find((s) => s.id === schemaId);
     if (!schema)
       return HttpResponse.json({
         data: {
+          // eslint-disable-next-line unicorn/no-null
           schema: null,
         },
       });
@@ -199,4 +200,5 @@ export const graphServer = setupServer(
     });
   }),
 );
+
 export default graphServer;

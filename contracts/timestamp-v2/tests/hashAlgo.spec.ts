@@ -1,17 +1,18 @@
-import { ethers, waffle, network } from "hardhat";
-import { Contract } from "ethers";
-import { expect } from "chai";
 import StringManipArtifact from "@ebsiint-sc/bootstrap-v2/artifacts/contracts/utils/StringManip.sol/StringManip.json";
-
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { expect } from "chai";
+import { ethers, network, waffle } from "hardhat";
+
+import type { PolicyRegistryMock, Timestamp } from "../src/types/index.js";
+
 import { testTprAddress } from "./testAddress";
 
 const { deployContract } = waffle;
 
 describe("Hash Algorithm", () => {
-  let ts: Contract;
+  let ts: Timestamp;
   let admin: SignerWithAddress;
-  let policyContractMock: Contract;
+  let policyContractMock: PolicyRegistryMock;
 
   before(async () => {
     const policyRegistryFactory =
@@ -42,8 +43,8 @@ describe("Hash Algorithm", () => {
     const contractFactory = await ethers.getContractFactory("Timestamp", {
       libraries: {
         HashAlgoLib: haLib.address,
-        TimestampLib: tsLib.address,
         RecordLib: rsLib.address,
+        TimestampLib: tsLib.address,
       },
     });
     ts = await contractFactory.deploy(testTprAddress);
@@ -60,6 +61,7 @@ describe("Hash Algorithm", () => {
       "Policy error: sender doesn't have the attribute TS:insertHashAlgorithm",
     );
   });
+
   it("should fail when user does not have attribute updateHashAlgorithm", async () => {
     await policyContractMock.setPolicyResult(false);
     await expect(
@@ -68,6 +70,7 @@ describe("Hash Algorithm", () => {
       "Policy error: sender doesn't have the attribute TS:updateHashAlgorithm",
     );
   });
+
   it("getHashAlgorithmById should succeed", async () => {
     await expect(
       ts.insertHashAlgorithm(256, "SHA256", "oid256", 1, "multi"),
@@ -95,11 +98,13 @@ describe("Hash Algorithm", () => {
     expect(receipt3.status).to.equal(1);
     expect(receipt3.multiHash).to.equal("multi2-256");
   });
+
   it("getHashAlgorithmById should revert if hash is unknown", async () => {
     await expect(ts.getHashAlgorithmById(0)).to.be.revertedWith(
       "hashAlgo unknown",
     );
   });
+
   it("insertHashAlgorithm should revert for incorrect parameters", async () => {
     await expect(
       ts.connect(admin).insertHashAlgorithm(0, "SHA256", "oid", 1, ""),
@@ -118,6 +123,7 @@ describe("Hash Algorithm", () => {
       ts.insertHashAlgorithm(256, "", "oid", 1, ""),
     ).to.be.revertedWith("ianaName unknown");
   });
+
   it("insertHashAlgorithm should work", async () => {
     await expect(
       ts.connect(admin).insertHashAlgorithm(256, "SHA256", "oid", 1, ""),
@@ -136,6 +142,7 @@ describe("Hash Algorithm", () => {
     expect(receipt.status).to.equal(1);
     expect(receipt.multiHash).to.equal("tt");
   });
+
   it("updateHashAlgorithm should revert for incorrect parameters", async () => {
     await expect(
       ts.updateHashAlgorithm(0, 0, "SHA256", "oid", 1, ""),
@@ -147,6 +154,7 @@ describe("Hash Algorithm", () => {
       ts.updateHashAlgorithm(0, 1, "SHA256", "oid", 1, ""),
     ).to.be.revertedWith("hashAlgorithmId unknown");
   });
+
   it("updateHashAlgorithm should revert for empty ianaName", async () => {
     await expect(ts.insertHashAlgorithm(256, "SHA256", "oid", 1, "")).to.emit(
       ts,
@@ -166,6 +174,7 @@ describe("Hash Algorithm", () => {
       ts.updateHashAlgorithm(1, 1024, "", "oid3", 2, ""),
     ).to.be.revertedWith("ianaName unknown");
   });
+
   it("updateHashAlgorithm should update also ianaName", async () => {
     await expect(ts.insertHashAlgorithm(256, "SHA256", "oid", 1, "")).to.emit(
       ts,
@@ -198,6 +207,7 @@ describe("Hash Algorithm", () => {
       ts.insertHashAlgorithm(512, "SHA4-512", "oid2", 1, ""),
     ).to.be.revertedWith("ianaName defined");
   });
+
   it("updateHashAlgorithm should work", async () => {
     await expect(ts.insertHashAlgorithm(256, "SHA256", "oid", 1, "")).to.emit(
       ts,
@@ -223,6 +233,7 @@ describe("Hash Algorithm", () => {
     expect(updated.status).to.equal(2);
     expect(updated.multiHash).to.equal("");
   });
+
   it("getHashAlgorithms should failed with wrong page and pageSize", async () => {
     const resHashIds: number[] = [];
     for (let i = 1; i < 12; i += 1) {
@@ -231,7 +242,7 @@ describe("Hash Algorithm", () => {
       // Id starts from zero
       resHashIds.push(i - 1);
       // INSERT SHOULD BE DONE IN ORDER !!!
-      // eslint-disable-next-line no-await-in-loop
+
       await expect(
         ts.connect(admin).insertHashAlgorithm(i, name, oid, 1, ""),
       ).to.emit(ts, "AddNewHashAlgo");
@@ -246,6 +257,7 @@ describe("Hash Algorithm", () => {
       "PSize not <= 50",
     );
   });
+
   it("getHashAlgorithms should work with correct page and pageSize", async () => {
     const resHashIds: number[] = [];
     for (let i = 1; i < 12; i += 1) {
@@ -255,7 +267,7 @@ describe("Hash Algorithm", () => {
       // Id starts from zero
       resHashIds.push(i - 1);
       // INSERT SHOULD BE DONE IN ORDER !!!
-      // eslint-disable-next-line no-await-in-loop
+
       await expect(ts.insertHashAlgorithm(i, name, oid, 1, multiHash)).to.emit(
         ts,
         "AddNewHashAlgo",
@@ -264,9 +276,10 @@ describe("Hash Algorithm", () => {
 
     const r0 = await ts.getHashAlgorithms(1, 1);
     expect(r0.items).to.have.length(1);
-    r0.items.forEach((el: unknown, id: number) => {
+
+    for (const [id, el] of r0.items.entries()) {
       expect(el).to.equal(resHashIds.slice(0, 1)[id]);
-    });
+    }
 
     expect(r0.total).to.equal(11);
     expect(r0.howMany).to.equal(1);
@@ -275,9 +288,11 @@ describe("Hash Algorithm", () => {
 
     const r = await ts.getHashAlgorithms(1, 11);
     expect(r.items).to.have.length(11);
-    r.items.forEach((el: unknown, id: number) => {
+
+    for (const [id, el] of r.items.entries()) {
       expect(el).to.equal(resHashIds[id]);
-    });
+    }
+
     expect(r.total).to.equal(11);
     expect(r.howMany).to.equal(11);
     expect(r.prev).to.equal(1);

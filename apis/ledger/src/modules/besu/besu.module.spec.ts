@@ -1,30 +1,34 @@
-import {
-  vi,
-  describe,
-  beforeAll,
-  beforeEach,
-  afterEach,
-  afterAll,
-  it,
-  expect,
-} from "vitest";
 import hre from "hardhat";
-import "@nomiclabs/hardhat-ethers";
-import type { JsonRpcServer } from "hardhat/types";
-// eslint-disable-next-line import/extensions
-import * as taskNames from "hardhat/builtin-tasks/task-names.js";
-import request from "supertest";
-import { Test } from "@nestjs/testing";
-import { ValidationPipe, Logger } from "@nestjs/common";
+
 import type { RawServerDefault } from "fastify";
+
+import "@nomiclabs/hardhat-ethers";
+
+import type { JsonRpcServer } from "hardhat/types";
+
+import { methodNotAllowed } from "@ebsiint-api/shared";
 import { fastifyAccepts } from "@fastify/accepts";
+import { Logger, ValidationPipe } from "@nestjs/common";
 import {
   FastifyAdapter,
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import { methodNotAllowed } from "@ebsiint-api/shared";
-import { BesuModule } from "./besu.module.js";
+import { Test } from "@nestjs/testing";
+import * as taskNames from "hardhat/builtin-tasks/task-names.js";
+import request from "supertest";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
+
 import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
+import { BesuModule } from "./besu.module.js";
 import { BesuService } from "./besu.service.js";
 
 describe("Besu Module", () => {
@@ -128,16 +132,16 @@ describe("Besu Module", () => {
       expect.assertions(4);
 
       const response = await request(server).post("/blockchains/besu").send({
+        id: "42",
         jsonrpc: "2.0",
         method: "eth_chainId",
         params: [],
-        id: "42",
       });
 
       expect(response.body).toStrictEqual({
+        id: "42",
         jsonrpc: "2.0",
         result: "0x539",
-        id: "42",
       });
       expect(response.status).toBe(200);
       expect(response.header).toHaveProperty("content-type");
@@ -150,10 +154,10 @@ describe("Besu Module", () => {
       expect.assertions(2);
 
       const response = await request(server).post("/blockchains/besu").send({
+        id: "42",
         jsonrpc: "2.0",
         method: "eth_sendRawTransaction",
         params: [],
-        id: "42",
       });
 
       expect(response.body).toStrictEqual({
@@ -174,16 +178,16 @@ describe("Besu Module", () => {
       });
 
       const response = await request(server).post("/blockchains/besu").send({
+        id: "42",
         jsonrpc: "2.0",
         method: "eth_chainId",
         params: [],
-        id: "42",
       });
 
       expect(response.body).toStrictEqual({
-        title: "Internal Server Error",
-        status: 500,
         detail: expect.stringContaining("internal error"),
+        status: 500,
+        title: "Internal Server Error",
         type: "about:blank",
       });
       expect(response.status).toBe(500);
@@ -194,7 +198,7 @@ describe("Besu Module", () => {
 
       // Let's say Besu answers with an error
       vi.spyOn(besuService, "send").mockImplementation(() => {
-        const err = new Error();
+        const err = new Error("error");
 
         // @ts-expect-error Property 'response' does not exist on type 'Error'.ts(2339)
         err.response = { unparseable: "response" };
@@ -202,16 +206,16 @@ describe("Besu Module", () => {
       });
 
       const response = await request(server).post("/blockchains/besu").send({
+        id: "42",
         jsonrpc: "2.0",
         method: "eth_chainId",
         params: [],
-        id: "42",
       });
 
       expect(response.body).toStrictEqual({
-        title: "Internal Server Error",
-        status: 500,
         detail: expect.stringContaining("internal error"),
+        status: 500,
+        title: "Internal Server Error",
         type: "about:blank",
       });
       expect(response.status).toBe(500);
@@ -222,16 +226,16 @@ describe("Besu Module", () => {
 
       // Let's say Besu answers with an error
       vi.spyOn(besuService, "send").mockImplementation(() => {
-        const err = new Error();
+        const err = new Error("error");
 
         // @ts-expect-error Property 'response' does not exist on type 'Error'.ts(2339)
         err.response = JSON.stringify({
-          jsonrpc: "2.0",
-          id: 1,
           error: {
-            code: -32001,
+            code: -32_001,
             message: "Nonce too low",
           },
+          id: 1,
+          jsonrpc: "2.0",
         });
         return Promise.reject(err);
       });
@@ -239,16 +243,16 @@ describe("Besu Module", () => {
       const response = await request(server)
         .post("/blockchains/besu")
         .send({
+          id: 1,
           jsonrpc: "2.0",
           method: "eth_getTransactionCount",
           params: ["0x213", "latest"],
-          id: 1,
         });
 
       // I expect to see the error returned by Besu
       expect(response.body).toStrictEqual({
         error: {
-          code: -32001,
+          code: -32_001,
           message: "Nonce too low",
         },
         id: 1,

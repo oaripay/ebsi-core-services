@@ -5,9 +5,9 @@ import { ProblemDetailsError } from "./ProblemDetailsError.js";
  */
 
 export class UnauthorizedError extends ProblemDetailsError {
-  static statusCode = 401;
-
   static defaultTitle = "Unauthorized";
+
+  static statusCode = 401;
 
   /**
    * @param title A short, human-readable summary of the problem type. It SHOULD NOT change from occurrence to occurrence of the problem, except for purposes of localization.
@@ -20,10 +20,10 @@ export class UnauthorizedError extends ProblemDetailsError {
   constructor(
     title: string = UnauthorizedError.defaultTitle,
     options?: {
-      type?: string;
       detail?: string;
-      instance?: string;
       extensions?: Record<string, unknown>;
+      instance?: string;
+      type?: string;
     },
   ) {
     super(UnauthorizedError.statusCode, title, options);

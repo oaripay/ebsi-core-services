@@ -1,5 +1,6 @@
-import { SetMetadata } from "@nestjs/common";
 import type { FastifyRequest } from "fastify";
+
+import { SetMetadata } from "@nestjs/common";
 
 export const METHOD_LOG_METADATA = "METHOD_LOG_METADATA";
 
@@ -10,7 +11,7 @@ export interface LogOptions {
   /**
    * If true, it will log the request and response. Errors are always logged.
    */
-  logRequest?: boolean | ((req: FastifyRequest) => boolean);
+  logRequest?: ((req: FastifyRequest) => boolean) | boolean;
 }
 
 /**

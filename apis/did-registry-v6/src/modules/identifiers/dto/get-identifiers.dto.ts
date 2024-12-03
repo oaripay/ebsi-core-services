@@ -1,5 +1,5 @@
-import { IsIn, IsOptional, IsString } from "class-validator";
 import { IsDidV1, PaginationQuery } from "@ebsiint-api/shared";
+import { IsIn, IsOptional, IsString } from "class-validator";
 
 const verificationRelationships = [
   "authentication",

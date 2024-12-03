@@ -1,6 +1,7 @@
+import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+
 import { assert, expect } from "chai";
 import { ethers } from "hardhat";
-import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 const initializeData = async (pauser: SignerWithAddress) => {
   const tirFactory = await ethers.getContractFactory("Tir");
@@ -28,16 +29,14 @@ const setupProxy = async (
     await ethers.getContractFactory("TirV2Breaking")
   ).deploy();
 
-  const tir = await (
-    await ethers.getContractFactory("Tir")
-  ).attach(proxy.address);
-  const tirV1 = await (
-    await ethers.getContractFactory("TirV1")
-  ).attach(proxy.address);
-  const tirV2 = await (
-    await ethers.getContractFactory("TirV2")
-  ).attach(proxy.address);
-  const tirV2Breaking = await (
+  const tir = (await ethers.getContractFactory("Tir")).attach(proxy.address);
+  const tirV1 = (await ethers.getContractFactory("TirV1")).attach(
+    proxy.address,
+  );
+  const tirV2 = (await ethers.getContractFactory("TirV2")).attach(
+    proxy.address,
+  );
+  const tirV2Breaking = (
     await ethers.getContractFactory("TirV2Breaking")
   ).attach(proxy.address);
 
@@ -48,14 +47,14 @@ const setupProxy = async (
   );
 
   return {
-    proxy,
     implV0,
     implV1,
+    implV2,
+    implV2Breaking,
+    proxy,
     tir,
     tirV1,
-    implV2,
     tirV2,
-    implV2Breaking,
     tirV2Breaking,
   };
 };
@@ -65,7 +64,7 @@ describe("upgrade and call new version struct", () => {
     const [proxyOwner, proxyAdmin, anotherAccount, anchorOwner] =
       await ethers.getSigners();
 
-    const { proxy, tir, tirV1, implV1, implV2, tirV2 } = await setupProxy(
+    const { implV1, implV2, proxy, tir, tirV1, tirV2 } = await setupProxy(
       await initializeData(anchorOwner),
       proxyOwner,
       proxyAdmin,
@@ -116,7 +115,7 @@ describe("upgrade and call new version struct", () => {
   it("fails when new parameters has been added in the middle of the struct", async () => {
     const [proxyOwner, proxyAdmin, anotherAccount, anchorOwner] =
       await ethers.getSigners();
-    const { proxy, tir, tirV1, implV1, implV2Breaking, tirV2Breaking } =
+    const { implV1, implV2Breaking, proxy, tir, tirV1, tirV2Breaking } =
       await setupProxy(
         await initializeData(anchorOwner),
         proxyOwner,

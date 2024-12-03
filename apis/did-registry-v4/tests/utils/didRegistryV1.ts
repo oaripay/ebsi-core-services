@@ -1,37 +1,39 @@
-// eslint-disable-next-line @typescript-eslint/triple-slash-reference
-/// <reference path="../../../../contracts/did-registry/src/types/hardhat.d.ts" />
+import "../../../../contracts/did-registry/src/types/hardhat.d.ts";
+
 import hre from "hardhat";
+
+import { DidRegistry as DidRegistryV1 } from "@ebsiint-sc/did-registry";
+import canonicalize from "canonicalize";
+import { Contract, ethers } from "ethers";
+import "@nomiclabs/hardhat-ethers";
+import { Artifact, FactoryOptions } from "hardhat/types";
+import { HashName } from "multihashes";
+import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
-import { Artifact, FactoryOptions } from "hardhat/types";
-import "@nomiclabs/hardhat-ethers";
-import crypto from "node:crypto";
-import { Contract, ethers } from "ethers";
-import canonicalize from "canonicalize";
-import { HashName } from "multihashes";
-import { DidRegistry as DidRegistryV1 } from "@ebsiint-sc/did-registry";
+
 import { createDid, createDidDocument, createMetadata } from "./dataV1.js";
 
 interface DidDocument {
-  did: string;
-  identifier: string;
-  didDocument: Record<string, unknown>;
-  didDocumentBuffer: Buffer;
   canonicalizedDidDocument: string;
   canonicalizedDidDocumentBuffer: Buffer;
   canonicalizedDidDocumentHash: string;
   controller: ethers.Wallet;
-  timestampDataBuffer: Buffer;
+  did: string;
+  didDocument: Record<string, unknown>;
+  didDocumentBuffer: Buffer;
   didVersionMetadata: Record<string, unknown>;
   didVersionMetadataBuffer: Buffer;
+  identifier: string;
+  timestampDataBuffer: Buffer;
 }
 
 interface HashAlgorithmObject {
-  outputLength: number;
   ianaName: string;
-  oid: string;
-  status: number;
   multihash: HashName;
+  oid: string;
+  outputLength: number;
+  status: number;
 }
 
 const validHashAlgorithms = [
@@ -44,30 +46,30 @@ const validHashAlgorithms = [
 ] as const;
 
 const outputLengths: Record<string, number> = {
-  "sha-256": 256,
-  "sha-512": 512,
   "sha3-224": 224,
   "sha3-256": 256,
   "sha3-384": 384,
   "sha3-512": 512,
+  "sha-256": 256,
+  "sha-512": 512,
 };
 
 const ianaToMultihashAlg: Record<string, HashName> = {
-  "sha-256": "sha2-256",
-  "sha-512": "sha2-512",
   "sha3-224": "sha3-224",
   "sha3-256": "sha3-256",
   "sha3-384": "sha3-384",
   "sha3-512": "sha3-512",
+  "sha-256": "sha2-256",
+  "sha-512": "sha2-512",
 };
 
 const ianaToNodeHashAlg: Record<string, string> = {
-  "sha-256": "sha256",
-  "sha-512": "sha512",
   "sha3-224": "sha3-224",
   "sha3-256": "sha3-256",
   "sha3-384": "sha3-384",
   "sha3-512": "sha3-512",
+  "sha-256": "sha256",
+  "sha-512": "sha512",
 };
 
 const getArtifactV1 = (name: string): Artifact => {
@@ -105,6 +107,11 @@ const deployContractV1 = async (
   return contract.address;
 };
 
+export interface SetupOptions {
+  didDocumentsTotal?: number;
+  hashAlgorithmsTotal?: number;
+}
+
 export async function deployDidRegistryContract(): Promise<{
   didRegistryV1Contract: DidRegistryV1;
   policyContractMock: Contract;
@@ -136,12 +143,12 @@ export async function deployDidRegistryContract(): Promise<{
       getArtifactV1("DidRegistry"),
       {
         libraries: {
-          HashAlgoLib: await deployContractV1("HashAlgoLib"),
-          DidTimestampLib: await deployContractV1("DidTimestampLib"),
           DidRecordLib: await deployContractV1(
             "DidRecordLib",
             linkLibPagination,
           ),
+          DidTimestampLib: await deployContractV1("DidTimestampLib"),
+          HashAlgoLib: await deployContractV1("HashAlgoLib"),
         },
       },
     );
@@ -210,21 +217,21 @@ export async function insertDidDocument(
     identifier,
     controller.address,
     Date.now() - 1,
-    Date.now() + 100000,
+    Date.now() + 100_000,
   );
 
   return {
-    did,
-    identifier,
-    didDocument,
-    didDocumentBuffer,
     canonicalizedDidDocument,
     canonicalizedDidDocumentBuffer,
     canonicalizedDidDocumentHash,
     controller,
-    timestampDataBuffer,
+    did,
+    didDocument,
+    didDocumentBuffer,
     didVersionMetadata,
     didVersionMetadataBuffer,
+    identifier,
+    timestampDataBuffer,
   };
 }
 
@@ -247,31 +254,27 @@ export async function insertHashAlgorithm(
   );
 
   return {
-    outputLength,
     ianaName,
-    oid,
-    status,
     multihash,
+    oid,
+    outputLength,
+    status,
   };
-}
-
-export interface SetupOptions {
-  didDocumentsTotal?: number;
-  hashAlgorithmsTotal?: number;
 }
 
 export async function setupTestEnv({
   didDocumentsTotal = 1,
   hashAlgorithmsTotal = 1,
 }: SetupOptions = {}): Promise<{
-  provider: ethers.providers.JsonRpcProvider;
-  didRegistryV1Contract: DidRegistryV1;
-  policyContractMock: Contract;
-  didDocuments: DidDocument[];
   defaultController: ethers.Wallet;
+  didDocuments: DidDocument[];
+  didRegistryV1Contract: DidRegistryV1;
   hashAlgorithms: HashAlgorithmObject[];
+  policyContractMock: Contract;
+  provider: ethers.providers.JsonRpcProvider;
 }> {
   const ethersProvider = hre.ethers.provider;
+  const hashAlgorithms: HashAlgorithmObject[] = [];
   const didDocuments: DidDocument[] = [];
 
   // Deploy contract
@@ -279,37 +282,31 @@ export async function setupTestEnv({
     await deployDidRegistryContract();
 
   // Insert fake data
-  const hashAlgorithms = await Promise.all(
-    Array(hashAlgorithmsTotal)
-      .fill(0)
-      .map((i: number) => insertHashAlgorithm(didRegistryV1Contract, i)),
-  );
+  for (let i = 0; i < hashAlgorithmsTotal; i++) {
+    hashAlgorithms.push(await insertHashAlgorithm(didRegistryV1Contract, i));
+  }
 
   const defaultController = ethers.Wallet.createRandom();
 
-  didDocuments.push(
-    ...(await Promise.all(
-      Array(didDocumentsTotal)
-        .fill(0)
-        .map(() =>
-          insertDidDocument(
-            didRegistryV1Contract,
-            ethersProvider,
-            createDid(),
-            hashAlgorithms[0]!.ianaName,
-            defaultController,
-          ),
-        ),
-    )),
-  );
+  for (let i = 0; i < didDocumentsTotal; i++) {
+    didDocuments.push(
+      await insertDidDocument(
+        didRegistryV1Contract,
+        ethersProvider,
+        createDid(),
+        hashAlgorithms[0]!.ianaName,
+        defaultController,
+      ),
+    );
+  }
 
   // Return test env variables
   return {
-    provider: ethersProvider,
-    didRegistryV1Contract,
-    policyContractMock,
-    didDocuments,
     defaultController,
+    didDocuments,
+    didRegistryV1Contract,
     hashAlgorithms,
+    policyContractMock,
+    provider: ethersProvider,
   };
 }

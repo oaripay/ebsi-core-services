@@ -1,18 +1,20 @@
-import { describe, beforeAll, it, expect, afterEach, afterAll } from "vitest";
-import request from "supertest";
-import { Test } from "@nestjs/testing";
-import { ValidationPipe, Logger } from "@nestjs/common";
+import type { RawServerDefault } from "fastify";
+
+import { methodNotAllowed } from "@ebsiint-api/shared";
+import { fastifyAccepts } from "@fastify/accepts";
+import { Logger, ValidationPipe } from "@nestjs/common";
 import {
   FastifyAdapter,
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import type { RawServerDefault } from "fastify";
-import { fastifyAccepts } from "@fastify/accepts";
+import { Test } from "@nestjs/testing";
 import { graphql, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
-import { methodNotAllowed } from "@ebsiint-api/shared";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
+import request from "supertest";
+import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
+
 import { DEPENDENCIES } from "../../config/configuration.js";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
 import { HealthModule } from "./health.module.js";
 
 describe("Health Module", () => {
@@ -83,8 +85,8 @@ describe("Health Module", () => {
       // Expect all the dependencies to be up except Besu
       const expectedStatuses: Record<string, unknown> = {};
       expectedStatuses["DIDR Subgraph"] = {
-        status: "down",
         message: "Not synchronized",
+        status: "down",
       };
 
       const { "DIDR Subgraph": errorStatus, ...otherStatuses } =

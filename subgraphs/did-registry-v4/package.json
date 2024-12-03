@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "deploy": "node ./scripts/prepare.mjs && node ./scripts/deploy.mjs",
-    "lint": "eslint . --ext .js,.cjs,.mjs,.ts",
+    "lint": "eslint .",
     "prepare": "cross-env NODE_ENV=test DIDR_SC_V4_ADDRESS=0xb44e3f0e2A049EBEd8fB5a28524D2164796a9963 DIDR_SC_V4_START_BLOCK=10500079 node ./scripts/prepare.mjs && yarn graph codegen",
     "test": "yarn graph test -d",
     "test:unit": "yarn graph test -d"
@@ -15,7 +15,7 @@
     "@graphprotocol/graph-ts": "^0.35.1"
   },
   "devDependencies": {
-    "@graphprotocol/graph-cli": "0.81.0",
+    "@graphprotocol/graph-cli": "0.90.1",
     "assemblyscript-json": "^1.1.0",
     "execa": "^8.0.1",
     "matchstick-as": "0.6.0"

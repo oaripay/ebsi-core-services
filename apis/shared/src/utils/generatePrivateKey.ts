@@ -1,8 +1,8 @@
+import { ed25519 } from "@noble/curves/ed25519";
 import { p256 } from "@noble/curves/p256";
 import { secp256k1 } from "@noble/curves/secp256k1";
-import { ed25519 } from "@noble/curves/ed25519";
 
-export function generatePrivateKey(alg: "ES256K" | "ES256" | "EdDSA") {
+export function generatePrivateKey(alg: "EdDSA" | "ES256" | "ES256K") {
   if (alg === "ES256K") {
     return secp256k1.utils.randomPrivateKey();
   }

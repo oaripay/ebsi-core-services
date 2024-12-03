@@ -1,7 +1,7 @@
 {
-  "extends": "@tsconfig/node20/tsconfig",
+  "extends": "@tsconfig/node22/tsconfig",
   "compilerOptions": {
-    // Inlined from @tsconfig/node20, must be explicitly defined otherwise @graphprotocol/client-cli will generate CJS module
+    // Inlined from @tsconfig/node22, must be explicitly defined otherwise @graphprotocol/client-cli will generate CJS module
     "module": "Node16",
     "moduleResolution": "Node16",
     // Inlined @tsconfig/strictest config so we can use ts-node

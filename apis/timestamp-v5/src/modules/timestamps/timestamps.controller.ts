@@ -1,16 +1,17 @@
-import { Controller, Get, Query, Param } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
 import { Accepts, PaginatedListWithoutTotal } from "@ebsiint-api/shared";
-import TimestampsService from "./timestamps.service.js";
+import { Controller, Get, Param, Query } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+
+import type { ApiConfig } from "../../config/configuration.js";
+
+import { TimestampSet_filter } from "../../../.graphclient/index.js";
+import { GetTimestampDto, GetTimestampsDto } from "./dto/index.js";
 import { formatTimestamps } from "./timestamps.formatter.js";
 import {
   TimestampLink,
   TimestampResponseObject,
 } from "./timestamps.interface.js";
-import type { ApiConfig } from "../../config/configuration.js";
-import { GetTimestampsDto, GetTimestampDto } from "./dto/index.js";
-// eslint-disable-next-line import/extensions, import/no-relative-packages
-import { TimestampSet_filter } from "../../../.graphclient/index.js";
+import TimestampsService from "./timestamps.service.js";
 
 @Controller("/timestamps")
 export default class TimestampsController {
@@ -19,8 +20,17 @@ export default class TimestampsController {
     private configService: ConfigService<ApiConfig, true>,
   ) {}
 
-  @Get("")
   @Accepts("application/json")
+  @Get("/:timestampId")
+  async getTimestamp(
+    @Param() params: GetTimestampDto,
+  ): Promise<TimestampResponseObject> {
+    const { timestampId } = params;
+    return this.timestampsService.getTimestamp(timestampId);
+  }
+
+  @Accepts("application/json")
+  @Get("")
   async getTimestamps(
     @Query() query: GetTimestampsDto,
   ): Promise<PaginatedListWithoutTotal<TimestampLink>> {
@@ -45,17 +55,19 @@ export default class TimestampsController {
     const baseUrl = `${domain}${apiUrlPrefix}/timestamps`;
 
     const searchParams = new URLSearchParams();
-    Object.keys(query).forEach((k) => {
+    for (const k of Object.keys(query)) {
       const key = k as keyof GetTimestampsDto;
       if (
         query[key] !== undefined &&
         key !== "page[after]" &&
         key !== "page[size]"
       ) {
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
         searchParams.append(key, query[key]!);
       }
-    });
-    const extraQuery = searchParams.size ? `&${searchParams.toString()}` : "";
+    }
+    const extraQuery =
+      searchParams.size > 0 ? `&${searchParams.toString()}` : "";
 
     return formatTimestamps(
       timestamps,
@@ -64,14 +76,5 @@ export default class TimestampsController {
       baseUrl,
       extraQuery,
     );
-  }
-
-  @Get("/:timestampId")
-  @Accepts("application/json")
-  async getTimestamp(
-    @Param() params: GetTimestampDto,
-  ): Promise<TimestampResponseObject> {
-    const { timestampId } = params;
-    return this.timestampsService.getTimestamp(timestampId);
   }
 }

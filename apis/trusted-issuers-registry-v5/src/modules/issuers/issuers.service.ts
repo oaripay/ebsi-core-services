@@ -1,31 +1,34 @@
-import { Injectable, Logger } from "@nestjs/common";
-import { Tir } from "@ebsiint-sc/trusted-issuers-registry-v3";
-import { ConfigService } from "@nestjs/config";
+import type { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
+
 import {
   BadRequestError,
+  checkStatusList2021Credential,
   InternalServerError,
+  isEthersError,
   NotFoundError,
   prefixWith0x,
-  isEthersError,
   remove0xPrefix,
-  checkStatusList2021Credential,
 } from "@ebsiint-api/shared";
-import type { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
+import { Tir } from "@ebsiint-sc/trusted-issuers-registry-v3";
+import { Injectable, Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import axios, { type AxiosResponse } from "axios";
+
+import type { ApiConfig } from "../../config/configuration.js";
+
 import { LedgerService } from "../ledger/ledger.service.js";
+import { IssuerTypeNames } from "./issuers.constants.js";
 import {
   AttributeObject,
   IssuerProxyResponseObject,
   IssuerResponseObject,
 } from "./issuers.interface.js";
-import type { ApiConfig } from "../../config/configuration.js";
-import { IssuerTypeNames } from "./issuers.constants.js";
 
 @Injectable()
 export class IssuersService {
-  private readonly logger = new Logger(IssuersService.name);
-
   private ebsiEnvConfig: EbsiEnvConfiguration;
+
+  private readonly logger = new Logger(IssuersService.name);
 
   private timeout: number;
 
@@ -37,8 +40,8 @@ export class IssuersService {
     const ebsiAuthority = domain.replace(/^https?:\/\//, ""); // remove http protocol scheme
     const trustedHostnames = configService.get<string[]>("trustedHostnames");
     this.ebsiEnvConfig = {
-      network: configService.get("network", { infer: true }),
       hosts: [ebsiAuthority, ...trustedHostnames],
+      network: configService.get("network", { infer: true }),
       services: {
         "did-registry": "v5",
         "trusted-issuers-registry": "v5",
@@ -49,54 +52,65 @@ export class IssuersService {
     this.timeout = configService.get<number>("requestTimeout");
   }
 
-  async getIssuers(
-    page: number,
-    pageSize: number,
-  ): ReturnType<Tir["getIssuers"]> {
+  async assertIssuerExists(did: string): Promise<void> {
     try {
-      return await this.ledgerService.getContract().getIssuers(page, pageSize);
-    } catch (e) {
-      if (isEthersError(e)) {
-        this.logger.error(e, e.stack);
+      await this.ledgerService.getContract().getIssuer(did);
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error, error.stack);
       }
-      throw new NotFoundError("Failed to get issuers", {
-        detail: "Failed to get issuers",
+      throw new NotFoundError("Issuer Not Found", {
+        detail: `Issuer ${did} not found`,
       });
     }
   }
 
-  async getAttributeRevision(revisionId: string): Promise<AttributeObject> {
-    // This function assumes that the revisionId exists
-    const hash = prefixWith0x(revisionId);
-
-    let attributeByHash: Awaited<ReturnType<Tir["getIssuerAttributeByHash"]>>;
+  async didIncludesAttribute(
+    did: string,
+    attributeId: string,
+  ): Promise<boolean> {
+    const attribId = prefixWith0x(attributeId);
+    let attributesLastHash: string[];
 
     try {
-      attributeByHash = await this.ledgerService
+      attributesLastHash = await this.ledgerService
         .getContract()
-        .getIssuerAttributeByHash(hash);
-    } catch (e) {
-      if (isEthersError(e)) {
-        this.logger.error(e, e.stack);
+        .getIssuer(did);
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error, error.stack);
       }
-      throw new NotFoundError("Revision Not Found", {
-        detail: `Revision ${hash} not found`,
+      throw new NotFoundError("Issuer Not Found", {
+        detail: `Issuer ${did} not found`,
       });
     }
 
-    const { attribData, tao, rootTao, issuerType } = attributeByHash;
-    const attributeData = Buffer.from(
-      remove0xPrefix(attribData),
-      "hex",
-    ).toString();
+    if (attributesLastHash.length === 0) {
+      return false;
+    }
 
-    return {
-      hash: hash.slice(2),
-      body: attributeData,
-      issuerType: IssuerTypeNames[issuerType]!,
-      tao,
-      rootTao,
-    };
+    // /!\ only checks the first 50 revisions of each hash
+    // Known issue: if there are more than 50 revisions, didIncludesAttribute may wrongly return false
+    try {
+      const revisionHashesList = await Promise.all(
+        attributesLastHash.map(async (hash) => {
+          return this.ledgerService
+            .getContract()
+            .getIssuerAttributeRevisions(hash, 1, 50);
+        }),
+      );
+
+      return !!revisionHashesList.some((revisionHashes) => {
+        return revisionHashes.items.find((hash) => hash === attribId);
+      });
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error, error.stack);
+      }
+      throw new NotFoundError("Attribute Not Found", {
+        detail: `Attribute ${attribId} not found`,
+      });
+    }
   }
 
   async getAttribute(attributeId: string): Promise<AttributeObject> {
@@ -125,6 +139,40 @@ export class IssuersService {
     return this.getAttributeRevision(revisionHashes.items[0]!);
   }
 
+  async getAttributeRevision(revisionId: string): Promise<AttributeObject> {
+    // This function assumes that the revisionId exists
+    const hash = prefixWith0x(revisionId);
+
+    let attributeByHash: Awaited<ReturnType<Tir["getIssuerAttributeByHash"]>>;
+
+    try {
+      attributeByHash = await this.ledgerService
+        .getContract()
+        .getIssuerAttributeByHash(hash);
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error, error.stack);
+      }
+      throw new NotFoundError("Revision Not Found", {
+        detail: `Revision ${hash} not found`,
+      });
+    }
+
+    const { attribData, issuerType, rootTao, tao } = attributeByHash;
+    const attributeData = Buffer.from(
+      remove0xPrefix(attribData),
+      "hex",
+    ).toString();
+
+    return {
+      body: attributeData,
+      hash: hash.slice(2),
+      issuerType: IssuerTypeNames[issuerType]!,
+      rootTao,
+      tao,
+    };
+  }
+
   async getAttributes(issuerDid: string): Promise<AttributeObject[]> {
     let attributesLastHash: string[];
 
@@ -132,14 +180,19 @@ export class IssuersService {
       attributesLastHash = await this.ledgerService
         .getContract()
         .getIssuer(issuerDid);
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error, error.stack);
+      } else {
+        this.logger.error(error);
+      }
 
-      if (attributesLastHash.length === 0) {
-        throw new Error();
-      }
-    } catch (e) {
-      if (isEthersError(e)) {
-        this.logger.error(e, e.stack);
-      }
+      throw new NotFoundError("Issuer Not Found", {
+        detail: `Issuer ${issuerDid} not found`,
+      });
+    }
+
+    if (attributesLastHash.length === 0) {
       throw new NotFoundError("Issuer Not Found", {
         detail: `Issuer ${issuerDid} not found`,
       });
@@ -152,70 +205,9 @@ export class IssuersService {
     );
   }
 
-  async assertIssuerExists(did: string): Promise<void> {
-    try {
-      await this.ledgerService.getContract().getIssuer(did);
-    } catch (e) {
-      if (isEthersError(e)) {
-        this.logger.error(e, e.stack);
-      }
-      throw new NotFoundError("Issuer Not Found", {
-        detail: `Issuer ${did} not found`,
-      });
-    }
-  }
-
   async getIssuer(did: string): Promise<IssuerResponseObject> {
     const attributes = await this.getAttributes(did);
-    return { did, attributes };
-  }
-
-  async didIncludesAttribute(
-    did: string,
-    attributeId: string,
-  ): Promise<boolean> {
-    const attribId = prefixWith0x(attributeId);
-    let attributesLastHash: string[];
-
-    try {
-      attributesLastHash = await this.ledgerService
-        .getContract()
-        .getIssuer(did);
-    } catch (e) {
-      if (isEthersError(e)) {
-        this.logger.error(e, e.stack);
-      }
-      throw new NotFoundError("Issuer Not Found", {
-        detail: `Issuer ${did} not found`,
-      });
-    }
-
-    if (attributesLastHash.length === 0) {
-      throw new Error();
-    }
-
-    // /!\ only checks the first 50 revisions of each hash
-    // Known issue: if there are more than 50 revisions, didIncludesAttribute may wrongly return false
-    try {
-      const revisionHashesList = await Promise.all(
-        attributesLastHash.map(async (hash) => {
-          return this.ledgerService
-            .getContract()
-            .getIssuerAttributeRevisions(hash, 1, 50);
-        }),
-      );
-
-      return !!revisionHashesList.find((revisionHashes) => {
-        return revisionHashes.items.find((hash) => hash === attribId);
-      });
-    } catch (error) {
-      if (isEthersError(error)) {
-        this.logger.error(error, error.stack);
-      }
-      throw new NotFoundError("Attribute Not Found", {
-        detail: `Attribute ${attribId} not found`,
-      });
-    }
+    return { attributes, did };
   }
 
   async getIssuerAttributeIdRevisions(
@@ -256,9 +248,9 @@ export class IssuersService {
 
     try {
       proxies = await this.ledgerService.getContract().getIssuerProxies(did);
-    } catch (e) {
-      if (isEthersError(e)) {
-        this.logger.error(e, e.stack);
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error, error.stack);
       }
       throw new NotFoundError("Issuer Not Found", {
         detail: `Issuer ${did} not found`,
@@ -277,13 +269,18 @@ export class IssuersService {
       proxy = await this.ledgerService
         .getContract()
         .getIssuerProxyById(did, proxyId);
-
-      // Throw an error if the proxy is empty (i.e. not found)
-      if (!proxy) throw new Error();
-    } catch (e) {
-      if (isEthersError(e)) {
-        this.logger.error(e, e.stack);
+    } catch (error) {
+      if (error instanceof Error) {
+        this.logger.error(error, error.stack);
+      } else {
+        this.logger.error(error);
       }
+
+      throw new InternalServerError();
+    }
+
+    // Throw an error if the proxy is empty (i.e. not found)
+    if (!proxy) {
       throw new NotFoundError("Proxy Not Found", {
         detail: `Proxy ${proxyId} of issuer ${did} can't be found`,
       });
@@ -299,6 +296,22 @@ export class IssuersService {
     }
   }
 
+  async getIssuers(
+    page: number,
+    pageSize: number,
+  ): ReturnType<Tir["getIssuers"]> {
+    try {
+      return await this.ledgerService.getContract().getIssuers(page, pageSize);
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error, error.stack);
+      }
+      throw new NotFoundError("Failed to get issuers", {
+        detail: "Failed to get issuers",
+      });
+    }
+  }
+
   async proxyRequest(did: string, proxyId: string, url: string) {
     // Make sure the issuer exists
     await this.assertIssuerExists(did);
@@ -306,8 +319,8 @@ export class IssuersService {
     const proxy = await this.getIssuerProxy(did, proxyId);
 
     // Extract subpath from request URL
-    const found = url.match(/\/issuers\/.*\/proxies\/\w*\/(.*)$/);
-    if (!found || !found[1]) {
+    const found = /\/issuers\/.*\/proxies\/\w*\/(.*)$/.exec(url);
+    if (!found?.[1]) {
       throw new BadRequestError("Invalid Proxy", {
         detail: "The server was unable to parse the requested proxy",
       });
@@ -322,10 +335,10 @@ export class IssuersService {
         headers: proxy.headers,
         timeout: this.timeout,
       });
-    } catch (e) {
-      if (e instanceof Error) {
+    } catch (error) {
+      if (error instanceof Error) {
         this.logger.error(
-          `Status List Credential ${credRequestUrl} unreachable - ${e.message}`,
+          `Status List Credential ${credRequestUrl} unreachable - ${error.message}`,
         );
       }
 

@@ -22,9 +22,6 @@ export interface OAuth2ErrorOptions {
 }
 
 export class OAuth2Error<T extends string = OAuth2ErrorCode> extends Error {
-  // HTTP status code (default: 400)
-  statusCode: number;
-
   /**
    * REQUIRED.  A single ASCII error code.
    *
@@ -61,6 +58,9 @@ export class OAuth2Error<T extends string = OAuth2ErrorCode> extends Error {
    */
   errorUri: string | undefined;
 
+  // HTTP status code (default: 400)
+  statusCode: number;
+
   constructor(errorCode: T, options?: OAuth2ErrorOptions) {
     super(options?.errorDescription);
     this.name = "OAuth2Error";
@@ -68,10 +68,6 @@ export class OAuth2Error<T extends string = OAuth2ErrorCode> extends Error {
     this.errorDescription = options?.errorDescription;
     this.errorUri = options?.errorUri;
     this.statusCode = options?.statusCode ?? 400;
-  }
-
-  override toString(): string {
-    return `${this.name} - ${this.error}`;
   }
 
   toJSON() {
@@ -82,6 +78,10 @@ export class OAuth2Error<T extends string = OAuth2ErrorCode> extends Error {
       }),
       ...(this.errorUri && { error_uri: this.errorUri }),
     };
+  }
+
+  override toString(): string {
+    return `${this.name} - ${this.error}`;
   }
 }
 

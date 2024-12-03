@@ -1,14 +1,16 @@
-import { randomUUID } from "node:crypto";
+import type { EbsiIssuer } from "@cef-ebsi/verifiable-credential";
+import type { PresentationSubmission } from "@sphereon/pex-models";
+import type { DIDDocument, JsonWebKey } from "did-resolver";
+import type { JWK } from "jose";
+
+import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import {
   generatePrivateKey,
   getPublicKeyJwk,
   getSigner,
 } from "@ebsiint-api/shared";
-import type { JWK } from "jose";
-import { EbsiWallet } from "@cef-ebsi/wallet-lib";
-import type { DIDDocument, JsonWebKey } from "did-resolver";
-import type { EbsiIssuer } from "@cef-ebsi/verifiable-credential";
-import type { PresentationSubmission } from "@sphereon/pex-models";
+import { randomUUID } from "node:crypto";
+
 import {
   CUSTOM_SCOPES,
   DIDR_INVITE_PRESENTATION_DEFINITION,
@@ -21,6 +23,10 @@ import {
   TIR_WRITE_SCOPE,
 } from "../../src/modules/authorisation/authorisation.constants.js";
 
+export interface LegalEntity extends EbsiIssuer {
+  didDocument: DIDDocument;
+}
+
 export function createDidDocument(
   did: string,
   kid: string,
@@ -31,26 +37,22 @@ export function createDidDocument(
       "https://www.w3.org/ns/did/v1",
       "https://w3id.org/security/suites/jws-2020/v1",
     ],
+    assertionMethod: [kid],
+    authentication: [kid],
     id: did,
     verificationMethod: [
       {
-        id: kid,
-        type: "JsonWebKey2020",
         controller: did,
+        id: kid,
         publicKeyJwk: publicKeyJwk as JsonWebKey,
+        type: "JsonWebKey2020",
       },
     ],
-    authentication: [kid],
-    assertionMethod: [kid],
   };
 }
 
-export interface LegalEntity extends EbsiIssuer {
-  didDocument: DIDDocument;
-}
-
 export async function createLegalEntity(
-  alg: "ES256" | "ES256K" | "EdDSA",
+  alg: "EdDSA" | "ES256" | "ES256K",
 ): Promise<LegalEntity> {
   const did = EbsiWallet.createDid();
   const privateKey = generatePrivateKey(alg);
@@ -62,9 +64,9 @@ export async function createLegalEntity(
   return {
     alg,
     did,
+    didDocument,
     kid,
     signer: getSigner(privateKey, alg),
-    didDocument,
   };
 }
 
@@ -73,9 +75,9 @@ export function createPresentationSubmission(
 ): PresentationSubmission {
   // Note that there are no .vc or .vp in path or path_nested below.
   const testPresentationSubmission: PresentationSubmission = {
-    id: randomUUID(),
     definition_id: "",
     descriptor_map: [],
+    id: randomUUID(),
   };
 
   switch (scope) {
@@ -84,12 +86,12 @@ export function createPresentationSubmission(
         DIDR_INVITE_PRESENTATION_DEFINITION.id;
 
       testPresentationSubmission.descriptor_map.push({
-        id: DIDR_INVITE_PRESENTATION_DEFINITION.input_descriptors[0].id,
         format: "jwt_vp",
+        id: DIDR_INVITE_PRESENTATION_DEFINITION.input_descriptors[0].id,
         path: "$",
         path_nested: {
-          id: DIDR_INVITE_PRESENTATION_DEFINITION.input_descriptors[0].id,
           format: "jwt_vc",
+          id: DIDR_INVITE_PRESENTATION_DEFINITION.input_descriptors[0].id,
           path: "$.verifiableCredential[0]",
         },
       });
@@ -107,12 +109,12 @@ export function createPresentationSubmission(
         TIR_INVITE_PRESENTATION_DEFINITION.id;
 
       testPresentationSubmission.descriptor_map.push({
-        id: TIR_INVITE_PRESENTATION_DEFINITION.input_descriptors[0].id,
         format: "jwt_vp",
+        id: TIR_INVITE_PRESENTATION_DEFINITION.input_descriptors[0].id,
         path: "$",
         path_nested: {
-          id: TIR_INVITE_PRESENTATION_DEFINITION.input_descriptors[0].id,
           format: "jwt_vc",
+          id: TIR_INVITE_PRESENTATION_DEFINITION.input_descriptors[0].id,
           path: "$.verifiableCredential[0]",
         },
       });

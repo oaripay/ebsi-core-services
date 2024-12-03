@@ -4,32 +4,32 @@ import type { Network } from "@cef-ebsi/ebsi-uri";
 declare global {
   namespace NodeJS {
     interface ProcessEnv {
-      NODE_ENV: "development" | "production" | "test";
       API_PORT?: string;
       API_URL_PREFIX?: string;
-      LOG_LEVEL?: "error" | "warn" | "log" | "verbose" | "debug" | "silent";
-      DOMAIN: string;
-      DOCKER_TAG?: string;
-      LOCAL_ORIGIN?: string;
-      NETWORK: Network;
-      REQUEST_TIMEOUT?: string;
       AXIOS_RETRY_DELAY?: string;
-      TRUSTED_HOSTNAMES?: string;
+      BESU_READINESS_ENDPOINT: string;
       // Ledger & SC
       BESU_RPC_NODE: string;
-      BESU_READINESS_ENDPOINT: string;
       CONTRACT_ADDR: string;
+      DOCKER_TAG?: string;
+      DOMAIN: string;
+      LOCAL_ORIGIN?: string;
+      LOG_LEVEL?: "debug" | "error" | "log" | "silent" | "verbose" | "warn";
+      NETWORK: Network;
+      NODE_ENV: "development" | "production" | "test";
+      REQUEST_TIMEOUT?: string;
       // Test variables
       TEST_AUTH_API_ES256_PRIVATE_KEY?: string;
       TEST_AUTHORISED_LEGAL_ENTITY_KID?: string;
       TEST_AUTHORISED_LEGAL_ENTITY_PRIVATE_KEY?: string;
       TEST_AUTHORISED_LEGAL_ENTITY_VC_TO_ONBOARD?: string;
+      TEST_DOC_WITH_EVENTS?: string;
+      TEST_ENABLE_WRITE_OPS?: string;
+      TEST_ENV?: string;
       TEST_REGULAR_LEGAL_ENTITY_KID?: string;
       TEST_REGULAR_LEGAL_ENTITY_PRIVATE_KEY?: string;
-      TEST_DOC_WITH_EVENTS?: string;
-      TEST_ENV?: string;
-      TEST_ENABLE_WRITE_OPS?: string;
       TEST_SPECIFIC_NODE_DOMAIN?: string;
+      TRUSTED_HOSTNAMES?: string;
     }
   }
 

@@ -4,7 +4,8 @@
   "version": "0.0.0-rc.0",
   "type": "module",
   "scripts": {
-    "docker:build": "docker build . -t ebsi/subgraphs-deployer:${GIT_COMMIT} --build-arg DOCKER_TAG=${GIT_COMMIT}"
+    "docker:build": "docker build . -t ebsi/subgraphs-deployer:${GIT_COMMIT} --build-arg DOCKER_TAG=${GIT_COMMIT}",
+    "prepare": "exit 0"
   },
   "dependencies": {
     "@ebsiint-subgraph/did-registry-v4": "^0.0.0-rc.0",

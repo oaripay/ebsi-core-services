@@ -1,20 +1,21 @@
-import { describe, it, expect } from "vitest";
-import crypto from "node:crypto";
-import { ethers } from "ethers";
-import { Timestamp } from "@ebsiint-sc/timestamp";
 import { multibase } from "@ebsiint-api/shared";
+import { Timestamp } from "@ebsiint-sc/timestamp";
+import { ethers } from "ethers";
+import crypto from "node:crypto";
+import { describe, expect, it } from "vitest";
+
 import { formatRecords, formatRecordVersions } from "./records.formatter.js";
 
 describe("formatRecords", () => {
   const records = {
+    howMany: ethers.BigNumber.from("2"),
     items: [
       `0x${crypto.randomBytes(32).toString("hex")}`,
       `0x${crypto.randomBytes(32).toString("hex")}`,
     ],
-    total: ethers.BigNumber.from("42"),
-    howMany: ethers.BigNumber.from("2"),
-    prev: ethers.BigNumber.from("0"),
     next: ethers.BigNumber.from("0"),
+    prev: ethers.BigNumber.from("0"),
+    total: ethers.BigNumber.from("42"),
   } as Awaited<ReturnType<Timestamp["getRecordIds"]>>;
 
   it("should use the values returned by the smart contract (except pageSize)", () => {
@@ -37,12 +38,12 @@ describe("formatRecords", () => {
     ).toStrictEqual({
       items: [
         {
-          recordId: recordIds[0],
           href: `/${recordIds[0]}`,
+          recordId: recordIds[0],
         },
         {
-          recordId: recordIds[1],
           href: `/${recordIds[1]}`,
+          recordId: recordIds[1],
         },
       ],
       links: {
@@ -72,12 +73,12 @@ describe("formatRecordVersions", () => {
     ).toStrictEqual({
       items: [
         {
-          versionId: 4,
           href: "/4",
+          versionId: 4,
         },
         {
-          versionId: 5,
           href: "/5",
+          versionId: 5,
         },
       ],
       links: {

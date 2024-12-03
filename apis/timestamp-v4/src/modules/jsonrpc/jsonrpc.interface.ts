@@ -1,29 +1,29 @@
-export interface JsonRpcResponseObject {
-  jsonrpc: string;
-  id: string | number | null;
-  result: unknown;
-  error?: unknown;
-}
-
-export interface AxiosResponseSessions {
-  status: number;
-  data: {
-    accessToken: string;
-    tokenType: string;
-    expiresIn: number;
-    issuedAt: number;
+export interface AxiosErrorResponse {
+  message: string;
+  response: {
+    data: unknown;
+    status: number;
   };
 }
 
 export interface AxiosResponseJsonRpc {
-  status: number;
   data: JsonRpcResponseObject;
+  status: number;
 }
 
-export interface AxiosErrorResponse {
-  message: string;
-  response: {
-    status: number;
-    data: unknown;
+export interface AxiosResponseSessions {
+  data: {
+    accessToken: string;
+    expiresIn: number;
+    issuedAt: number;
+    tokenType: string;
   };
+  status: number;
+}
+
+export interface JsonRpcResponseObject {
+  error?: unknown;
+  id: null | number | string;
+  jsonrpc: string;
+  result: unknown;
 }

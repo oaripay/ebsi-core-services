@@ -1,7 +1,8 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
+
 import {
-  formatIssuers,
   formatAttributes,
+  formatIssuers,
   formatProxies,
 } from "./issuers.formatter.js";
 
@@ -80,12 +81,12 @@ describe("formatProxies", () => {
     expect(formatProxies(proxies, page, pageSize, baseUrl)).toStrictEqual({
       items: [
         {
-          proxyId: "0xProxy1",
           href: "/0xProxy1",
+          proxyId: "0xProxy1",
         },
         {
-          proxyId: "0xProxy2",
           href: "/0xProxy2",
+          proxyId: "0xProxy2",
         },
       ],
       links: {

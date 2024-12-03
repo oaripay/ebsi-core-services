@@ -1,29 +1,36 @@
-import { Controller, Body, Post, HttpCode, UseGuards } from "@nestjs/common";
 import {
   Accepts,
-  InvalidRequestJsonRpcError,
   getErrorMessage,
+  InvalidRequestJsonRpcError,
 } from "@ebsiint-api/shared";
-import { JsonRpcService } from "./jsonrpc.service.js";
+import { Body, Controller, HttpCode, Post, UseGuards } from "@nestjs/common";
+
 import type { JsonRpcResponseObject } from "./jsonrpc.interface.js";
-import { BearerJwtAuthGuard } from "../auth/guards/index.js";
+
 import { Subject, type SubjectInfo } from "../auth/decorators/index.js";
+import { BearerJwtAuthGuard } from "../auth/guards/index.js";
+import { JsonRpcService } from "./jsonrpc.service.js";
 import { jsonRpcSchema } from "./validators/JsonRpcSchema.js";
 
 function formatJsonRpcResponse(
   result: unknown,
-  id: string | number | null | undefined,
-): JsonRpcResponseObject {
-  return { jsonrpc: "2.0", id: id ?? null, result };
+  id: null | number | string | undefined,
+) {
+  return {
+    // eslint-disable-next-line unicorn/no-null
+    id: id ?? null,
+    jsonrpc: "2.0",
+    result,
+  } satisfies JsonRpcResponseObject;
 }
 
 @Controller("/jsonrpc")
 export default class AppController {
   constructor(private jsonRpcService: JsonRpcService) {}
 
-  @Post()
   @Accepts("application/json")
   @HttpCode(200)
+  @Post()
   @UseGuards(BearerJwtAuthGuard)
   async jsonRPC(
     @Body() unsafeBody: unknown,
@@ -32,6 +39,7 @@ export default class AppController {
     if (!unsafeBody || typeof unsafeBody !== "object") {
       throw new InvalidRequestJsonRpcError(
         "JSON-RPC payload must be an object",
+        // eslint-disable-next-line unicorn/no-null
         null,
       );
     }
@@ -41,12 +49,16 @@ export default class AppController {
     if (!parsedBody.success) {
       throw new InvalidRequestJsonRpcError(
         getErrorMessage(parsedBody.error),
+        // eslint-disable-next-line unicorn/no-null
         null,
       );
     }
 
     const body = parsedBody.data;
-    const { method, id: requestId } = body;
+    const { id: requestId, method } = body;
+    // "id": An identifier established by the Client that MUST contain a String, Number, or NULL value if included. If it is not included it is assumed to be a notification.
+    // See https://www.jsonrpc.org/specification#request_object
+    // eslint-disable-next-line unicorn/no-null
     const id = requestId ?? null;
     const { scp: scope, sub } = subject;
 
@@ -74,9 +86,9 @@ export default class AppController {
           );
         return formatJsonRpcResponse(transaction, id);
       }
-      case "removeDocument": {
+      case "grantAccess": {
         const transaction =
-          await this.jsonRpcService.buildTransactionRemoveDocument(
+          await this.jsonRpcService.buildTransactionGrantAccess(
             body,
             id,
             sub,
@@ -84,9 +96,9 @@ export default class AppController {
           );
         return formatJsonRpcResponse(transaction, id);
       }
-      case "grantAccess": {
+      case "removeDocument": {
         const transaction =
-          await this.jsonRpcService.buildTransactionGrantAccess(
+          await this.jsonRpcService.buildTransactionRemoveDocument(
             body,
             id,
             sub,
@@ -104,6 +116,15 @@ export default class AppController {
           );
         return formatJsonRpcResponse(transaction, id);
       }
+      case "sendSignedTransaction": {
+        const result = await this.jsonRpcService.sendTransaction(
+          body,
+          id,
+          sub,
+          scope,
+        );
+        return formatJsonRpcResponse(result, id);
+      }
       case "writeEvent": {
         const transaction =
           await this.jsonRpcService.buildTransactionWriteEvent(
@@ -114,20 +135,12 @@ export default class AppController {
           );
         return formatJsonRpcResponse(transaction, id);
       }
-      case "sendSignedTransaction": {
-        const result = await this.jsonRpcService.sendTransaction(
-          body,
-          id,
-          sub,
-          scope,
-        );
-        return formatJsonRpcResponse(result, id);
-      }
-      default:
+      default: {
         throw new InvalidRequestJsonRpcError(
           `The method '${method}' is invalid`,
           id,
         );
+      }
     }
   }
 }

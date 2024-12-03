@@ -1,4 +1,5 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
+
 import { NotFoundError, ProblemDetailsError } from "../index.js";
 
 describe("error NotFoundError", () => {
@@ -23,10 +24,10 @@ describe("error NotFoundError", () => {
     expect.assertions(7);
 
     const error = new NotFoundError("Test Error", {
-      type: "test",
       extensions: {
         custom: "value",
       },
+      type: "test",
     });
 
     expect(error.name).toBe("NotFoundError");
@@ -42,14 +43,15 @@ describe("error NotFoundError", () => {
     expect.assertions(2);
 
     const error = new NotFoundError("Test Error", {
-      type: "test",
       extensions: {
         custom: "value",
       },
+      type: "test",
     });
     const jsonError = error.toJSON();
 
     // JSON.stringify should call toJSON
+    // eslint-disable-next-line unicorn/prefer-structured-clone
     expect(JSON.parse(JSON.stringify(error))).toStrictEqual(jsonError);
     expect(jsonError).toStrictEqual({
       custom: "value",
@@ -63,10 +65,10 @@ describe("error NotFoundError", () => {
     expect.assertions(1);
 
     const error = new NotFoundError("Test Error", {
-      type: "test",
       extensions: {
         custom: "value",
       },
+      type: "test",
     });
 
     expect(error.toString()).toBe(`${NotFoundError.statusCode} - Test Error`);

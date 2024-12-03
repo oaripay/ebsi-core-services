@@ -1,28 +1,24 @@
 import {
-  paginateWithoutTotal,
   type PaginatedListWithoutTotal,
+  paginateWithoutTotal,
 } from "@ebsiint-api/shared";
+
 import type {
   Access,
   DocumentEventsLink,
   DocumentsLink,
 } from "./documents.interface.js";
 
-export function formatDocuments(
-  documents: { items: string[] },
+export function formatDocumentAccesses(
+  accesses: { items: Access[] },
   page: number,
   pageSize: number,
   baseUrl: string,
   extraQuery?: string,
-): PaginatedListWithoutTotal<DocumentsLink> {
-  const items = documents.items.map((documentId) => {
-    return {
-      documentId,
-      href: `${baseUrl}/${documentId}`,
-    };
-  });
+): PaginatedListWithoutTotal<Access> {
+  const { items } = accesses;
 
-  return paginateWithoutTotal<DocumentsLink>(
+  return paginateWithoutTotal<Access>(
     items,
     baseUrl,
     page,
@@ -54,16 +50,21 @@ export function formatDocumentEvents(
   );
 }
 
-export function formatDocumentAccesses(
-  accesses: { items: Access[] },
+export function formatDocuments(
+  documents: { items: string[] },
   page: number,
   pageSize: number,
   baseUrl: string,
   extraQuery?: string,
-): PaginatedListWithoutTotal<Access> {
-  const { items } = accesses;
+): PaginatedListWithoutTotal<DocumentsLink> {
+  const items = documents.items.map((documentId) => {
+    return {
+      documentId,
+      href: `${baseUrl}/${documentId}`,
+    };
+  });
 
-  return paginateWithoutTotal<Access>(
+  return paginateWithoutTotal<DocumentsLink>(
     items,
     baseUrl,
     page,

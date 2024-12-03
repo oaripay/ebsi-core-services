@@ -1,7 +1,15 @@
-import type { HardhatRuntimeEnvironment } from "hardhat/types";
 import type { DeployFunction } from "hardhat-deploy/types";
+import type { HardhatRuntimeEnvironment } from "hardhat/types";
+
 import { ethers } from "hardhat";
+
 import dependencies from "./dependencies.json";
+
+function validateChainId(
+  chainId: string,
+): asserts chainId is keyof typeof dependencies {
+  if (!(chainId in dependencies)) throw new Error(`Invalid chainId ${chainId}`);
+}
 
 const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   const { deployments, getNamedAccounts } = hre;
@@ -12,15 +20,27 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     log: true,
   };
   // get Proxy of TPR
-  const { chainId } = await ethers.provider.getNetwork();
+  const chainId = `${(await ethers.provider.getNetwork()).chainId}`;
+
+  validateChainId(chainId);
+
   console.log(`chain id ${chainId}`);
-  let tprAddress = dependencies[chainId]?.tprV2Address;
+
+  const deps = dependencies[chainId];
+
+  if (!("tprV2Address" in deps)) {
+    throw new Error("tprV2Address does not exist");
+  }
+
+  let tprAddress = deps.tprV2Address;
+
   if (!ethers.utils.isAddress(tprAddress)) {
     console.log(`Deploying TPR for testnet`);
     // deploy for testnet
     await deployments.run("PolicyRegistryV2");
     tprAddress = (await deployments.get("PolicyRegistryV2")).address;
   }
+
   console.log(`Trusted Policy Registry Address is ${tprAddress}`);
 
   const schemaLib = await deployments.deploy("SchemaLib", {
@@ -31,9 +51,9 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
 
   const ts = await deployments.deploy("SchemaSCRegistryV2", {
     ...opts,
+    args: [tprAddress],
     contract:
       "contracts/trusted-schemas-registry-v2/trusted-schemas-registry/SchemaSCRegistry.sol:SchemaSCRegistry",
-    args: [tprAddress],
     libraries: {
       SchemaLib: schemaLib.address,
     },

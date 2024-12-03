@@ -1,38 +1,46 @@
-import { Injectable, Logger } from "@nestjs/common";
-import axios from "axios";
-import { ethers } from "ethers";
-import { ConfigService } from "@nestjs/config";
 import {
   getErrorMessage,
-  prefixWith0x,
-  logAxiosError,
   InvalidRequestJsonRpcError,
   isEthersError,
+  logAxiosError,
+  prefixWith0x,
 } from "@ebsiint-api/shared";
+import { Injectable, Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import axios, { isAxiosError } from "axios";
+import { ethers } from "ethers";
+
+import type { ApiConfig } from "../../config/configuration.js";
+
 import { LedgerService } from "../ledger/ledger.service.js";
 import {
-  RequestInsertIssuerDto,
-  RequestUpdateIssuerDto,
-  RequestSetAttributeMetadataDto,
-  RequestSetAttributeDataDto,
-  RequestSendSignedTransactionDto,
-  UnsignedTransaction,
-  SignedTransactionParam,
-  ArgsInsertIssuer,
-  ArgsUpdateIssuer,
-  RequestAddIssuerProxyDto,
   ArgsAddIssuerProxy,
-  ArgsUpdateIssuerProxy,
-  ArgsSetAttributeMetadata,
+  ArgsInsertIssuer,
   ArgsSetAttributeData,
+  ArgsSetAttributeMetadata,
+  ArgsUpdateIssuer,
+  ArgsUpdateIssuerProxy,
+  RequestAddIssuerProxyDto,
+  RequestInsertIssuerDto,
+  RequestSendSignedTransactionDto,
+  RequestSetAttributeDataDto,
+  RequestSetAttributeMetadataDto,
+  RequestUpdateIssuerDto,
+  SignedTransactionParam,
+  UnsignedTransaction,
 } from "./dto/index.js";
+import { RequestUpdateIssuerProxyDto } from "./dto/updateIssuerProxy/index.js";
 import {
-  formatEthersUnsignedTransaction,
   formatEthersSignature,
+  formatEthersUnsignedTransaction,
   validateClass,
 } from "./jsonrpc.utils.js";
-import type { ApiConfig } from "../../config/configuration.js";
-import { RequestUpdateIssuerProxyDto } from "./dto/updateIssuerProxy/index.js";
+
+function assertDidMatchesSub(did: string, sub: string) {
+  if (did !== sub) {
+    throw new Error("Access token sub doesn't match the DID from the payload");
+  }
+}
 
 function assertScopeContains(
   scope: string,
@@ -53,21 +61,15 @@ function assertScopeContains(
   }
 }
 
-function assertDidMatchesSub(did: string, sub: string) {
-  if (did !== sub) {
-    throw new Error("Access token sub doesn't match the DID from the payload");
-  }
-}
-
 @Injectable()
 export class JsonRpcService {
-  private readonly logger = new Logger(JsonRpcService.name);
-
   private chainId?: string;
+
+  private readonly contractAddress: string;
 
   private readonly didRegistryApiUrl: string;
 
-  private readonly contractAddress: string;
+  private readonly logger = new Logger(JsonRpcService.name);
 
   private readonly timeout: number;
 
@@ -78,6 +80,287 @@ export class JsonRpcService {
     this.didRegistryApiUrl = configService.get<string>("didRegistryApiUrl");
     this.contractAddress = ledgerService.getContractAddress();
     this.timeout = configService.get<number>("requestTimeout");
+  }
+
+  async buildTransaction(
+    from: string,
+    params: string,
+  ): Promise<UnsignedTransaction> {
+    const nonceInt = await this.ledgerService
+      .getContract()
+      .provider.getTransactionCount(from);
+
+    const unsignedTransaction: UnsignedTransaction = {
+      chainId: await this.getChainId(),
+      data: params,
+      from,
+      gasLimit: "0x1000000",
+      gasPrice: "0x0",
+      nonce: ethers.BigNumber.from(nonceInt).toHexString(),
+      to: this.contractAddress,
+      value: "0x0",
+    };
+
+    let gasEstimation: ethers.BigNumber | string = "unset";
+
+    try {
+      gasEstimation = await this.estimateGas(unsignedTransaction);
+
+      // Multiply by 1.4
+      unsignedTransaction.gasLimit = gasEstimation
+        .mul(14)
+        .div(10)
+        .toHexString();
+    } catch {
+      this.logger.warn(
+        `Gas could not be estimated.${
+          gasEstimation === "unset"
+            ? ""
+            : `Received ${gasEstimation.toString()}.`
+        } Using 0x1000000`,
+      );
+      unsignedTransaction.gasLimit = "0x1000000";
+    }
+
+    return unsignedTransaction;
+  }
+
+  async buildTransactionAddIssuerProxy(
+    body: RequestAddIssuerProxyDto,
+    id: null | number | string | undefined,
+    scope: string,
+  ): Promise<UnsignedTransaction> {
+    const method = "addIssuerProxy";
+
+    try {
+      assertScopeContains(scope, "tir_write", method);
+
+      await validateClass(RequestAddIssuerProxyDto, body);
+
+      const { did, from, proxyData } = body.params[0]!;
+
+      const data = this.ledgerService
+        .getContract()
+        .interface.encodeFunctionData(method, [did, proxyData]);
+
+      return await this.buildTransaction(from, data);
+    } catch (error_) {
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(error_), id);
+      if (error_ instanceof Error && error_.stack) {
+        error.stack = error_.stack;
+      }
+      throw error;
+    }
+  }
+
+  async buildTransactionInsertIssuer(
+    body: RequestInsertIssuerDto,
+    id: null | number | string | undefined,
+    scope: string,
+  ): Promise<UnsignedTransaction> {
+    const method = "insertIssuer";
+
+    try {
+      assertScopeContains(scope, "tir_write", method);
+
+      await validateClass(RequestInsertIssuerDto, body);
+
+      const { attributeData, did, from, issuerType, taoAttributeId, taoDid } =
+        body.params[0]!;
+
+      const data = this.ledgerService
+        .getContract()
+        .interface.encodeFunctionData(method, [
+          did,
+          attributeData,
+          issuerType,
+          taoDid,
+          taoAttributeId,
+        ]);
+
+      return await this.buildTransaction(from, data);
+    } catch (error_) {
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(error_), id);
+      if (error_ instanceof Error && error_.stack) {
+        error.stack = error_.stack;
+      }
+      throw error;
+    }
+  }
+
+  async buildTransactionSetAttributeData(
+    body: RequestSetAttributeDataDto,
+    id: null | number | string | undefined,
+    sub: string,
+    scope: string,
+  ): Promise<UnsignedTransaction> {
+    const method = "setAttributeData";
+
+    try {
+      assertScopeContains(scope, ["tir_invite", "tir_write"], method);
+
+      await validateClass(RequestSetAttributeDataDto, body);
+
+      const { attributeData, attributeId, did, from } = body.params[0]!;
+
+      if (scope.includes("tir_invite")) {
+        // Verify that the Access Token sub and the payload DID match
+        assertDidMatchesSub(did, sub);
+      }
+
+      const data = this.ledgerService
+        .getContract()
+        .interface.encodeFunctionData(method, [
+          did,
+          attributeId,
+          attributeData,
+        ]);
+
+      return await this.buildTransaction(from, data);
+    } catch (error_) {
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(error_), id);
+      if (error_ instanceof Error && error_.stack) {
+        error.stack = error_.stack;
+      }
+      throw error;
+    }
+  }
+
+  async buildTransactionSetAttributeMetadata(
+    body: RequestSetAttributeMetadataDto,
+    id: null | number | string | undefined,
+    scope: string,
+  ): Promise<UnsignedTransaction> {
+    const method = "setAttributeMetadata";
+
+    try {
+      assertScopeContains(scope, "tir_write", method);
+
+      await validateClass(RequestSetAttributeMetadataDto, body);
+
+      const { attributeId, did, from, issuerType, taoAttributeId, taoDid } =
+        body.params[0]!;
+
+      const data = this.ledgerService
+        .getContract()
+        .interface.encodeFunctionData(method, [
+          did,
+          attributeId,
+          issuerType,
+          taoDid,
+          taoAttributeId,
+        ]);
+
+      return await this.buildTransaction(from, data);
+    } catch (error_) {
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(error_), id);
+      if (error_ instanceof Error && error_.stack) {
+        error.stack = error_.stack;
+      }
+      throw error;
+    }
+  }
+
+  async buildTransactionUpdateIssuer(
+    body: RequestUpdateIssuerDto,
+    id: null | number | string | undefined,
+    scope: string,
+  ): Promise<UnsignedTransaction> {
+    const method = "updateIssuer";
+
+    try {
+      assertScopeContains(scope, "tir_write", method);
+
+      await validateClass(RequestUpdateIssuerDto, body);
+
+      const {
+        attributeData,
+        did,
+        from,
+        issuerType,
+        prevAttributeHash,
+        taoAttributeId,
+        taoDid,
+      } = body.params[0]!;
+
+      const data: (number | string)[] = [did, attributeData];
+
+      if (prevAttributeHash) {
+        data.push(prefixWith0x(prevAttributeHash));
+      }
+
+      data.push(issuerType, taoDid, taoAttributeId);
+
+      const functionSig = prevAttributeHash
+        ? // using updateIssuer to update an existing attribute
+          "updateIssuer(string,bytes,bytes32,uint8,string,bytes32)"
+        : // using updateIssuer to add a new attribute
+          "updateIssuer(string,bytes,uint8,string,bytes32)";
+
+      const encodedData = this.ledgerService
+        .getContract()
+        .interface.encodeFunctionData(
+          // @ts-expect-error No overload matches this call.
+          functionSig,
+          data,
+        );
+
+      return await this.buildTransaction(from, encodedData);
+    } catch (error_) {
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(error_), id);
+      if (error_ instanceof Error && error_.stack) {
+        error.stack = error_.stack;
+      }
+      throw error;
+    }
+  }
+
+  async buildTransactionUpdateIssuerProxy(
+    body: RequestUpdateIssuerProxyDto,
+    id: null | number | string | undefined,
+    scope: string,
+  ): Promise<UnsignedTransaction> {
+    const method = "updateIssuerProxy";
+
+    try {
+      assertScopeContains(scope, "tir_write", method);
+
+      await validateClass(RequestUpdateIssuerProxyDto, body);
+
+      const { did, from, proxyData, proxyId } = body.params[0]!;
+
+      const data = this.ledgerService
+        .getContract()
+        .interface.encodeFunctionData(method, [did, proxyId, proxyData]);
+
+      return await this.buildTransaction(from, data);
+    } catch (error_) {
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(error_), id);
+      if (error_ instanceof Error && error_.stack) {
+        error.stack = error_.stack;
+      }
+      throw error;
+    }
+  }
+
+  async estimateGas(
+    transaction: UnsignedTransaction,
+  ): Promise<ethers.BigNumber> {
+    const { data, from, to, value } = transaction;
+
+    try {
+      return await this.ledgerService.getContract().provider.estimateGas({
+        data,
+        from,
+        to,
+        value,
+      });
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error, error.stack);
+      }
+      throw new Error(getErrorMessage(error));
+    }
   }
 
   async getChainId(): Promise<string> {
@@ -97,33 +380,13 @@ export class JsonRpcService {
     return this.chainId;
   }
 
-  async estimateGas(
-    transaction: UnsignedTransaction,
-  ): Promise<ethers.BigNumber> {
-    const { from, to, data, value } = transaction;
-
-    try {
-      return await this.ledgerService.getContract().provider.estimateGas({
-        from,
-        to,
-        data,
-        value,
-      });
-    } catch (error) {
-      if (isEthersError(error)) {
-        this.logger.error(error, error.stack);
-      }
-      throw new Error(getErrorMessage(error));
-    }
-  }
-
   async isDidControlledByAddress(
     did: string,
     controllerAddress: string,
   ): Promise<boolean> {
     const { data } = await axios.post<{
-      result: boolean;
       error?: { message: string };
+      result: boolean;
     }>(
       `${this.didRegistryApiUrl}/identifiers/${did}/actions`,
       {
@@ -141,12 +404,65 @@ export class JsonRpcService {
     return data.result;
   }
 
+  async sendTransaction(
+    sub: string,
+    body: RequestSendSignedTransactionDto,
+    id: null | number | string | undefined,
+    scope: string,
+  ): Promise<string> {
+    try {
+      await validateClass(RequestSendSignedTransactionDto, body);
+
+      const request = body.params[0]!;
+
+      const { signer } = await this.verifyTransaction(request, sub, scope);
+
+      if (!(await this.isDidControlledByAddress(sub, signer))) {
+        throw new Error(
+          `The DID ${sub} is not controlled by the address ${signer}`,
+        );
+      }
+
+      const tx = await this.ledgerService
+        .getContract()
+        .provider.sendTransaction(request.signedRawTransaction);
+      return tx.hash;
+    } catch (error_) {
+      if (isEthersError(error_)) {
+        this.logger.error(error_, error_.stack); // Log the original error with all ethers.js details for internal debugging
+        throw new InvalidRequestJsonRpcError(error_.reason, id); // throw simplified ethers error to the user
+      }
+
+      if (error_ instanceof Error) {
+        if (isAxiosError(error_)) {
+          logAxiosError(error_, this.logger);
+        } else {
+          this.logger.error(error_.message, error_.stack);
+        }
+
+        const error = new InvalidRequestJsonRpcError(
+          getErrorMessage(error_),
+          id,
+        );
+
+        if (error_.stack) {
+          error.stack = error_.stack;
+        }
+
+        throw error;
+      }
+
+      this.logger.error(error_);
+      throw error_;
+    }
+  }
+
   async verifyTransaction(
     param: SignedTransactionParam,
     sub: string,
     scope: string,
-  ): Promise<{ signer: string; functionName: string; args: unknown }> {
-    const { unsignedTransaction, r, s, v, signedRawTransaction } = param;
+  ): Promise<{ args: unknown; functionName: string; signer: string }> {
+    const { r, s, signedRawTransaction, unsignedTransaction, v } = param;
 
     const unsignedTx = formatEthersUnsignedTransaction(unsignedTransaction);
     const signature = formatEthersSignature(r, s, v);
@@ -191,22 +507,16 @@ export class JsonRpcService {
       .interface.parseTransaction(unsignedTransaction);
 
     switch (functionFragment.name) {
+      case "addIssuerProxy": {
+        assertScopeContains(scope, "tir_write", functionFragment.name);
+        const castArgs = args as unknown as ArgsAddIssuerProxy;
+        await validateClass(ArgsAddIssuerProxy, castArgs);
+        break;
+      }
       case "insertIssuer": {
         assertScopeContains(scope, "tir_write", functionFragment.name);
         const castArgs = args as unknown as ArgsInsertIssuer;
         await validateClass(ArgsInsertIssuer, castArgs);
-        break;
-      }
-      case "updateIssuer": {
-        assertScopeContains(scope, "tir_write", functionFragment.name);
-        const castArgs = args as unknown as ArgsUpdateIssuer;
-        await validateClass(ArgsUpdateIssuer, castArgs);
-        break;
-      }
-      case "setAttributeMetadata": {
-        assertScopeContains(scope, "tir_write", functionFragment.name);
-        const castArgs = args as unknown as ArgsSetAttributeMetadata;
-        await validateClass(ArgsSetAttributeMetadata, castArgs);
         break;
       }
       case "setAttributeData": {
@@ -222,10 +532,16 @@ export class JsonRpcService {
         }
         break;
       }
-      case "addIssuerProxy": {
+      case "setAttributeMetadata": {
         assertScopeContains(scope, "tir_write", functionFragment.name);
-        const castArgs = args as unknown as ArgsAddIssuerProxy;
-        await validateClass(ArgsAddIssuerProxy, castArgs);
+        const castArgs = args as unknown as ArgsSetAttributeMetadata;
+        await validateClass(ArgsSetAttributeMetadata, castArgs);
+        break;
+      }
+      case "updateIssuer": {
+        assertScopeContains(scope, "tir_write", functionFragment.name);
+        const castArgs = args as unknown as ArgsUpdateIssuer;
+        await validateClass(ArgsUpdateIssuer, castArgs);
         break;
       }
       case "updateIssuerProxy": {
@@ -234,335 +550,18 @@ export class JsonRpcService {
         await validateClass(ArgsUpdateIssuerProxy, castArgs);
         break;
       }
-      default:
+      default: {
         throw new Error(
           `The function name ${functionFragment.name} can not be used in this context`,
         );
+      }
     }
 
     return {
-      signer,
-      functionName: functionFragment.name,
       args,
+      functionName: functionFragment.name,
+      signer,
     };
-  }
-
-  async buildTransaction(
-    from: string,
-    params: string,
-  ): Promise<UnsignedTransaction> {
-    const nonceInt = await this.ledgerService
-      .getContract()
-      .provider.getTransactionCount(from);
-
-    const unsignedTransaction: UnsignedTransaction = {
-      from,
-      to: this.contractAddress,
-      data: params,
-      value: "0x0",
-      nonce: ethers.BigNumber.from(nonceInt).toHexString(),
-      chainId: await this.getChainId(),
-      gasLimit: "0x1000000",
-      gasPrice: "0x0",
-    };
-
-    let gasEstimation: string | ethers.BigNumber = "unset";
-
-    try {
-      gasEstimation = await this.estimateGas(unsignedTransaction);
-
-      // Multiply by 1.4
-      unsignedTransaction.gasLimit = gasEstimation
-        .mul(14)
-        .div(10)
-        .toHexString();
-    } catch (error) {
-      this.logger.warn(
-        `Gas could not be estimated.${
-          gasEstimation === "unset"
-            ? ""
-            : `Received ${gasEstimation.toString()}.`
-        } Using 0x1000000`,
-      );
-      unsignedTransaction.gasLimit = "0x1000000";
-    }
-
-    return unsignedTransaction;
-  }
-
-  async buildTransactionInsertIssuer(
-    body: RequestInsertIssuerDto,
-    id: number | string | null | undefined,
-    scope: string,
-  ): Promise<UnsignedTransaction> {
-    const method = "insertIssuer";
-
-    try {
-      assertScopeContains(scope, "tir_write", method);
-
-      await validateClass(RequestInsertIssuerDto, body);
-
-      const { from, did, attributeData, issuerType, taoDid, taoAttributeId } =
-        body.params[0]!;
-
-      const data = this.ledgerService
-        .getContract()
-        .interface.encodeFunctionData(method, [
-          did,
-          attributeData,
-          issuerType,
-          taoDid,
-          taoAttributeId,
-        ]);
-
-      return await this.buildTransaction(from, data);
-    } catch (err) {
-      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      if (err instanceof Error && err.stack) {
-        error.stack = err.stack;
-      }
-      throw error;
-    }
-  }
-
-  async buildTransactionUpdateIssuer(
-    body: RequestUpdateIssuerDto,
-    id: number | string | null | undefined,
-    scope: string,
-  ): Promise<UnsignedTransaction> {
-    const method = "updateIssuer";
-
-    try {
-      assertScopeContains(scope, "tir_write", method);
-
-      await validateClass(RequestUpdateIssuerDto, body);
-
-      const {
-        from,
-        did,
-        attributeData,
-        prevAttributeHash,
-        issuerType,
-        taoDid,
-        taoAttributeId,
-      } = body.params[0]!;
-
-      const data: (string | number)[] = [did, attributeData];
-
-      if (prevAttributeHash) {
-        data.push(prefixWith0x(prevAttributeHash));
-      }
-
-      data.push(issuerType, taoDid, taoAttributeId);
-
-      let functionSig: string;
-
-      if (prevAttributeHash) {
-        // using updateIssuer to update an existing attribute
-        functionSig = "updateIssuer(string,bytes,bytes32,uint8,string,bytes32)";
-      } else {
-        // using updateIssuer to add a new attribute
-        functionSig = "updateIssuer(string,bytes,uint8,string,bytes32)";
-      }
-
-      const encodedData = this.ledgerService
-        .getContract()
-        .interface.encodeFunctionData(
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
-          functionSig,
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
-          data,
-        );
-
-      return await this.buildTransaction(from, encodedData);
-    } catch (err) {
-      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      if (err instanceof Error && err.stack) {
-        error.stack = err.stack;
-      }
-      throw error;
-    }
-  }
-
-  async buildTransactionSetAttributeMetadata(
-    body: RequestSetAttributeMetadataDto,
-    id: number | string | null | undefined,
-    scope: string,
-  ): Promise<UnsignedTransaction> {
-    const method = "setAttributeMetadata";
-
-    try {
-      assertScopeContains(scope, "tir_write", method);
-
-      await validateClass(RequestSetAttributeMetadataDto, body);
-
-      const { from, did, attributeId, issuerType, taoDid, taoAttributeId } =
-        body.params[0]!;
-
-      const data = this.ledgerService
-        .getContract()
-        .interface.encodeFunctionData(method, [
-          did,
-          attributeId,
-          issuerType,
-          taoDid,
-          taoAttributeId,
-        ]);
-
-      return await this.buildTransaction(from, data);
-    } catch (err) {
-      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      if (err instanceof Error && err.stack) {
-        error.stack = err.stack;
-      }
-      throw error;
-    }
-  }
-
-  async buildTransactionSetAttributeData(
-    body: RequestSetAttributeDataDto,
-    id: number | string | null | undefined,
-    sub: string,
-    scope: string,
-  ): Promise<UnsignedTransaction> {
-    const method = "setAttributeData";
-
-    try {
-      assertScopeContains(scope, ["tir_invite", "tir_write"], method);
-
-      await validateClass(RequestSetAttributeDataDto, body);
-
-      const { from, did, attributeId, attributeData } = body.params[0]!;
-
-      if (scope.includes("tir_invite")) {
-        // Verify that the Access Token sub and the payload DID match
-        assertDidMatchesSub(did, sub);
-      }
-
-      const data = this.ledgerService
-        .getContract()
-        .interface.encodeFunctionData(method, [
-          did,
-          attributeId,
-          attributeData,
-        ]);
-
-      return await this.buildTransaction(from, data);
-    } catch (err) {
-      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      if (err instanceof Error && err.stack) {
-        error.stack = err.stack;
-      }
-      throw error;
-    }
-  }
-
-  async buildTransactionAddIssuerProxy(
-    body: RequestAddIssuerProxyDto,
-    id: number | string | null | undefined,
-    scope: string,
-  ): Promise<UnsignedTransaction> {
-    const method = "addIssuerProxy";
-
-    try {
-      assertScopeContains(scope, "tir_write", method);
-
-      await validateClass(RequestAddIssuerProxyDto, body);
-
-      const { from, did, proxyData } = body.params[0]!;
-
-      const data = this.ledgerService
-        .getContract()
-        .interface.encodeFunctionData(method, [did, proxyData]);
-
-      return await this.buildTransaction(from, data);
-    } catch (err) {
-      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      if (err instanceof Error && err.stack) {
-        error.stack = err.stack;
-      }
-      throw error;
-    }
-  }
-
-  async buildTransactionUpdateIssuerProxy(
-    body: RequestUpdateIssuerProxyDto,
-    id: number | string | null | undefined,
-    scope: string,
-  ): Promise<UnsignedTransaction> {
-    const method = "updateIssuerProxy";
-
-    try {
-      assertScopeContains(scope, "tir_write", method);
-
-      await validateClass(RequestUpdateIssuerProxyDto, body);
-
-      const { from, did, proxyId, proxyData } = body.params[0]!;
-
-      const data = this.ledgerService
-        .getContract()
-        .interface.encodeFunctionData(method, [did, proxyId, proxyData]);
-
-      return await this.buildTransaction(from, data);
-    } catch (err) {
-      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      if (err instanceof Error && err.stack) {
-        error.stack = err.stack;
-      }
-      throw error;
-    }
-  }
-
-  async sendTransaction(
-    sub: string,
-    body: RequestSendSignedTransactionDto,
-    id: number | string | null | undefined,
-    scope: string,
-  ): Promise<string> {
-    try {
-      await validateClass(RequestSendSignedTransactionDto, body);
-
-      const request = body.params[0]!;
-
-      const { signer } = await this.verifyTransaction(request, sub, scope);
-
-      if (!(await this.isDidControlledByAddress(sub, signer))) {
-        throw new Error(
-          `The DID ${sub} is not controlled by the address ${signer}`,
-        );
-      }
-
-      const tx = await this.ledgerService
-        .getContract()
-        .provider.sendTransaction(request.signedRawTransaction);
-      return tx.hash;
-    } catch (err) {
-      if (isEthersError(err)) {
-        this.logger.error(err, err.stack); // Log the original error with all ethers.js details for internal debugging
-        throw new InvalidRequestJsonRpcError(err.reason, id); // throw simplified ethers error to the user
-      }
-
-      if (err instanceof Error) {
-        if (axios.isAxiosError(err)) {
-          logAxiosError(err, this.logger);
-        } else {
-          this.logger.error(err.message, err.stack);
-        }
-
-        const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-
-        if (err.stack) {
-          error.stack = err.stack;
-        }
-
-        throw error;
-      }
-
-      this.logger.error(err);
-      throw err;
-    }
   }
 }
 

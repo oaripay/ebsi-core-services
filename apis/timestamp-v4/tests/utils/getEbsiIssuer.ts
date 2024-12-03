@@ -1,4 +1,5 @@
 import type { EbsiIssuer } from "@cef-ebsi/verifiable-credential";
+
 import { getPublicKeyJwk, getSigner } from "@ebsiint-api/shared";
 import { hexToBytes } from "did-jwt";
 
@@ -11,9 +12,9 @@ export async function getEbsiIssuer(
   const publicKeyJwk = await getPublicKeyJwk(privateKey, "ES256");
 
   const issuer: EbsiIssuer = {
+    alg: "ES256",
     did,
     kid: kid ?? publicKeyJwk.kid,
-    alg: "ES256",
     signer: getSigner(privateKey, "ES256"),
   };
   return issuer;

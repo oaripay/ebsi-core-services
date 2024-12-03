@@ -1,10 +1,12 @@
-import { Controller, Get, Query, Param } from "@nestjs/common";
+import { Accepts, PaginatedList, PaginationQuery } from "@ebsiint-api/shared";
+import { Controller, Get, Param, Query } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { PaginationQuery, PaginatedList, Accepts } from "@ebsiint-api/shared";
-import { PoliciesService } from "./policies.service.js";
-import { formatPolicies, formatRevisions } from "./policies.formatter.js";
-import { PolicyResponseObject, PolicyLink } from "./policies.interface.js";
+
 import type { ApiConfig } from "../../config/configuration.js";
+
+import { formatPolicies, formatRevisions } from "./policies.formatter.js";
+import { PolicyLink, PolicyResponseObject } from "./policies.interface.js";
+import { PoliciesService } from "./policies.service.js";
 
 @Controller("/policies")
 export class PoliciesController {
@@ -13,8 +15,8 @@ export class PoliciesController {
     private configService: ConfigService<ApiConfig, true>,
   ) {}
 
-  @Get("")
   @Accepts("application/json")
+  @Get("")
   async getPolicies(
     @Query() query: PaginationQuery,
   ): Promise<PaginatedList<PolicyLink>> {
@@ -35,8 +37,8 @@ export class PoliciesController {
     );
   }
 
-  @Get("/:policyId")
   @Accepts("application/json")
+  @Get("/:policyId")
   async getPolicy(
     @Param() params: { policyId: string },
   ): Promise<PolicyResponseObject> {
@@ -45,14 +47,14 @@ export class PoliciesController {
     const [policy, hash] = await this.policiesService.getPolicy(policyId);
 
     return {
-      policyId,
-      policy,
       hash,
+      policy,
+      policyId,
     };
   }
 
-  @Get("/:policyId/revisions")
   @Accepts("application/json")
+  @Get("/:policyId/revisions")
   async getPolicyRevisions(
     @Param() params: { policyId: string },
     @Query() query: PaginationQuery,

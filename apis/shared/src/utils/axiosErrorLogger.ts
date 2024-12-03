@@ -1,31 +1,7 @@
 import type { Logger } from "@nestjs/common";
-import axios, { type AxiosError } from "axios";
-import { stringify } from "safe-stable-stringify";
 
-function formatError(error: AxiosError, message: string) {
-  return `AxiosError: ${message}\n${stringify(
-    {
-      code: error.code,
-      message: error.message,
-      status: error.status,
-      request: {
-        url: error.config?.url,
-        method: error.config?.method,
-        headers: error.config?.headers,
-        data: error.config?.data as unknown,
-      },
-      response: error.response
-        ? {
-            data: error.response.data,
-            status: error.response.status,
-            headers: error.response.headers,
-          }
-        : null,
-    },
-    null,
-    2,
-  )}`;
-}
+import { type AxiosError, isAxiosError } from "axios";
+import { stringify } from "safe-stable-stringify";
 
 export function logAxiosError(
   error: unknown,
@@ -36,7 +12,7 @@ export function logAxiosError(
    */
   minErrorStatus = 400,
 ): void {
-  if (!axios.isAxiosError<unknown, unknown>(error)) return;
+  if (!isAxiosError<unknown, unknown>(error)) return;
 
   if (error.response) {
     // The request was made and the server responded with a status code that falls out of the range of 2xx
@@ -57,6 +33,31 @@ export function logAxiosError(
   }
 
   logger.debug(error.toJSON());
+}
+
+function formatError(error: AxiosError, message: string) {
+  return `AxiosError: ${message}\n${stringify(
+    {
+      code: error.code,
+      message: error.message,
+      request: {
+        data: error.config?.data as unknown,
+        headers: error.config?.headers,
+        method: error.config?.method,
+        url: error.config?.url,
+      },
+      response: error.response
+        ? {
+            data: error.response.data,
+            headers: error.response.headers,
+            status: error.response.status,
+          }
+        : undefined,
+      status: error.status,
+    },
+    undefined,
+    2,
+  )}`;
 }
 
 export default logAxiosError;

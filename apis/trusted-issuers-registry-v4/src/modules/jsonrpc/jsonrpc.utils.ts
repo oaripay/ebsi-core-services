@@ -1,51 +1,38 @@
+import { ClassConstructor, ClassTransformer } from "class-transformer";
 import * as ClassValidator from "class-validator";
-import { ClassTransformer, ClassConstructor } from "class-transformer";
 import { ethers } from "ethers";
+
 import {
-  UnsignedTransaction,
-  RequestInsertIssuerDto,
-  RequestUpdateIssuerDto,
-  RequestSetAttributeMetadataDto,
-  RequestSetAttributeDataDto,
-  RequestSendSignedTransactionDto,
-  ArgsInsertIssuer,
-  ArgsUpdateIssuer,
-  ArgsSetAttributeMetadata,
-  ArgsSetAttributeData,
-  RequestAddIssuerProxyDto,
-  RequestUpdateIssuerProxyDto,
   ArgsAddIssuerProxy,
+  ArgsInsertIssuer,
+  ArgsSetAttributeData,
+  ArgsSetAttributeMetadata,
+  ArgsUpdateIssuer,
   ArgsUpdateIssuerProxy,
+  RequestAddIssuerProxyDto,
+  RequestInsertIssuerDto,
+  RequestSendSignedTransactionDto,
+  RequestSetAttributeDataDto,
+  RequestSetAttributeMetadataDto,
+  RequestUpdateIssuerDto,
+  RequestUpdateIssuerProxyDto,
+  UnsignedTransaction,
 } from "./dto/index.js";
 
 type JsonRpcDtos =
-  | RequestInsertIssuerDto
-  | RequestUpdateIssuerDto
-  | RequestSetAttributeMetadataDto
-  | RequestSetAttributeDataDto
-  | RequestAddIssuerProxyDto
-  | RequestUpdateIssuerProxyDto
-  | RequestSendSignedTransactionDto
-  | ArgsInsertIssuer
-  | ArgsUpdateIssuer
-  | ArgsSetAttributeMetadata
-  | ArgsSetAttributeData
   | ArgsAddIssuerProxy
-  | ArgsUpdateIssuerProxy;
-
-export function formatEthersUnsignedTransaction(
-  unsignedTransaction: UnsignedTransaction,
-) {
-  return {
-    to: unsignedTransaction.to,
-    data: unsignedTransaction.data,
-    value: unsignedTransaction.value,
-    nonce: Number(unsignedTransaction.nonce),
-    chainId: Number(unsignedTransaction.chainId),
-    gasLimit: unsignedTransaction.gasLimit,
-    gasPrice: unsignedTransaction.gasPrice,
-  } satisfies ethers.UnsignedTransaction;
-}
+  | ArgsInsertIssuer
+  | ArgsSetAttributeData
+  | ArgsSetAttributeMetadata
+  | ArgsUpdateIssuer
+  | ArgsUpdateIssuerProxy
+  | RequestAddIssuerProxyDto
+  | RequestInsertIssuerDto
+  | RequestSendSignedTransactionDto
+  | RequestSetAttributeDataDto
+  | RequestSetAttributeMetadataDto
+  | RequestUpdateIssuerDto
+  | RequestUpdateIssuerProxyDto;
 
 export function formatEthersSignature(r: string, s: string, v: string) {
   return {
@@ -53,6 +40,20 @@ export function formatEthersSignature(r: string, s: string, v: string) {
     s,
     v: Number(v),
   } satisfies Partial<ethers.Signature>;
+}
+
+export function formatEthersUnsignedTransaction(
+  unsignedTransaction: UnsignedTransaction,
+) {
+  return {
+    chainId: Number(unsignedTransaction.chainId),
+    data: unsignedTransaction.data,
+    gasLimit: unsignedTransaction.gasLimit,
+    gasPrice: unsignedTransaction.gasPrice,
+    nonce: Number(unsignedTransaction.nonce),
+    to: unsignedTransaction.to,
+    value: unsignedTransaction.value,
+  } satisfies ethers.UnsignedTransaction;
 }
 
 export const validateClass = async (

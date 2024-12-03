@@ -1,3 +1,8 @@
+import type { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
+
+import * as SharedLib from "@ebsiint-api/shared";
+import { http, HttpResponse } from "msw";
+import { setupServer } from "msw/node";
 import {
   afterAll,
   afterEach,
@@ -7,15 +12,12 @@ import {
   it,
   vi,
 } from "vitest";
-import { http, HttpResponse } from "msw";
-import { setupServer } from "msw/node";
-import type { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
-import * as SharedLib from "@ebsiint-api/shared";
+
 import { isIssuerProxy } from "./isIssuerProxy.js";
 
 const ebsiEnvConfig = {
-  network: "test",
   hosts: ["api-test.ebsi.eu"],
+  network: "test",
   services: {
     "did-registry": "v6",
     "trusted-issuers-registry": "v6",
@@ -74,9 +76,9 @@ describe("isIssuerProxy", () => {
 
   it("should return false if the prefix is not a valid URL", async () => {
     const proxy = {
+      headers: {},
       prefix: "not an URL",
       testSuffix: "/credentials",
-      headers: {},
     };
 
     const result = await isIssuerProxy(
@@ -94,9 +96,9 @@ describe("isIssuerProxy", () => {
 
   it("should return false if the prefix doesn't start with https", async () => {
     const proxy = {
+      headers: {},
       prefix: "http://trusted-issuer.com",
       testSuffix: "/credentials",
-      headers: {},
     };
 
     const result = await isIssuerProxy(
@@ -114,9 +116,9 @@ describe("isIssuerProxy", () => {
 
   it("should return false if the proxy headers property is not an object", async () => {
     const proxy = {
+      headers: "not an object",
       prefix: "https://trusted-issuer.com",
       testSuffix: "/credentials",
-      headers: "not an object",
     };
 
     const result = await isIssuerProxy(
@@ -133,11 +135,11 @@ describe("isIssuerProxy", () => {
 
   it("should return false if the proxy headers property contains an unauthorized key", async () => {
     const proxy = {
-      prefix: "https://trusted-issuer.com",
-      testSuffix: "/credentials",
       headers: {
         "Invalid-Header": "value",
       },
+      prefix: "https://trusted-issuer.com",
+      testSuffix: "/credentials",
     };
 
     const result = await isIssuerProxy(
@@ -154,13 +156,13 @@ describe("isIssuerProxy", () => {
 
   it("should return false if the proxy headers property contains an invalid value", async () => {
     const proxy = {
-      prefix: "https://trusted-issuer.com",
-      testSuffix: "/credentials",
       headers: {
         Authorization: {
           key: "value",
         },
       },
+      prefix: "https://trusted-issuer.com",
+      testSuffix: "/credentials",
     };
 
     const result = await isIssuerProxy(
@@ -177,9 +179,9 @@ describe("isIssuerProxy", () => {
 
   it("should return false if the testSuffix property is not a string", async () => {
     const proxy = {
+      headers: {},
       prefix: "https://trusted-issuer.com",
       testSuffix: 42,
-      headers: {},
     };
 
     const result = await isIssuerProxy(
@@ -196,9 +198,9 @@ describe("isIssuerProxy", () => {
 
   it("should return false if testSuffix contains a fragment", async () => {
     const proxy = {
+      headers: {},
       prefix: "https://trusted-issuer.com",
       testSuffix: "/credentials#42",
-      headers: {},
     };
 
     const result = await isIssuerProxy(
@@ -215,9 +217,9 @@ describe("isIssuerProxy", () => {
 
   it("should return false if prefix + testSuffix doesn't resolve (404)", async () => {
     const proxy = {
+      headers: {},
       prefix: "https://trusted-issuer.com",
       testSuffix: "/credentials",
-      headers: {},
     };
 
     mockServer.use(
@@ -225,10 +227,10 @@ describe("isIssuerProxy", () => {
         "https://trusted-issuer.com/credentials",
         () =>
           new HttpResponse("Not found", {
-            status: 404,
             headers: {
               "Content-Type": "text/plain",
             },
+            status: 404,
           }),
       ),
     );
@@ -248,9 +250,9 @@ describe("isIssuerProxy", () => {
 
   it("should return false if the credential status list returned by the issuer is invalid", async () => {
     const proxy = {
+      headers: {},
       prefix: "https://trusted-issuer.com",
       testSuffix: "/credentials",
-      headers: {},
     };
 
     mockServer.use(
@@ -261,7 +263,7 @@ describe("isIssuerProxy", () => {
 
     // The status list returned by the issuer is invalid
     vi.spyOn(SharedLib, "checkStatusList2021Credential").mockImplementation(
-      async () => Promise.resolve({ success: false, error: "error" }),
+      () => Promise.resolve({ error: "error", success: false }),
     );
 
     const result = await isIssuerProxy(
@@ -270,14 +272,14 @@ describe("isIssuerProxy", () => {
       10,
     );
 
-    expect(result).toStrictEqual({ success: false, error: "error" });
+    expect(result).toStrictEqual({ error: "error", success: false });
   });
 
   it("should return true if the proxy is valid", async () => {
     const proxy = {
+      headers: {},
       prefix: "https://trusted-issuer.com",
       testSuffix: "/credentials",
-      headers: {},
     };
 
     mockServer.use(
@@ -288,7 +290,7 @@ describe("isIssuerProxy", () => {
 
     // Assume that the status list returned by the issuer is valid
     vi.spyOn(SharedLib, "checkStatusList2021Credential").mockImplementation(
-      async () => Promise.resolve({ success: true }),
+      () => Promise.resolve({ success: true }),
     );
 
     const result = await isIssuerProxy(

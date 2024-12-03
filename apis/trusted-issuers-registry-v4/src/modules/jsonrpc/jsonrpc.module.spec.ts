@@ -1,81 +1,84 @@
-import {
-  vi,
-  describe,
-  beforeAll,
-  beforeEach,
-  afterAll,
-  it,
-  expect,
-  afterEach,
-  MockInstance,
-} from "vitest";
-import request from "supertest";
-import { Test } from "@nestjs/testing";
-import { ValidationPipe, Logger } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
-import { ethers } from "ethers";
-import crypto from "node:crypto";
+import type { EbsiIssuer } from "@cef-ebsi/verifiable-credential";
 import type { RawServerDefault } from "fastify";
+import type { GenerateKeyPairResult } from "jose";
+
+import { createVerifiableCredentialJwt } from "@cef-ebsi/verifiable-credential";
+import { methodNotAllowed } from "@ebsiint-api/shared";
+import * as StatusList2021CredentialHelpers from "@ebsiint-api/shared";
+import { Tir } from "@ebsiint-sc/trusted-issuers-registry";
 import { fastifyAccepts } from "@fastify/accepts";
+import { Logger, ValidationPipe } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import {
   FastifyAdapter,
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import { Tir } from "@ebsiint-sc/trusted-issuers-registry";
-import { createVerifiableCredentialJwt } from "@cef-ebsi/verifiable-credential";
-import type { EbsiIssuer } from "@cef-ebsi/verifiable-credential";
+import { Test } from "@nestjs/testing";
+import { useContainer } from "class-validator";
+import { ethers } from "ethers";
 import {
   calculateJwkThumbprint,
   exportJWK,
   generateKeyPair,
   SignJWT,
 } from "jose";
-import type { GenerateKeyPairResult } from "jose";
-import { useContainer } from "class-validator";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
-import { methodNotAllowed } from "@ebsiint-api/shared";
-import * as StatusList2021CredentialHelpers from "@ebsiint-api/shared";
-import { JsonRpcModule } from "./jsonrpc.module.js";
-import type { JsonRpcResponseObject } from "./jsonrpc.interface.js";
-import { JsonRpcService } from "./jsonrpc.service.js";
+import crypto from "node:crypto";
+import request from "supertest";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  MockInstance,
+  vi,
+} from "vitest";
+
+import type { IssuerObject } from "../../../tests/utils/tir.js";
+import type { ApiConfig } from "../../config/configuration.js";
 import type {
-  UnsignedTransaction,
-  InsertIssuerParam,
-  UpdateIssuerParam,
-  SetAttributeMetadataParam,
-  SetAttributeDataParam,
   AddIssuerProxyParam,
+  InsertIssuerParam,
+  SetAttributeDataParam,
+  SetAttributeMetadataParam,
+  UnsignedTransaction,
+  UpdateIssuerParam,
   UpdateIssuerProxyParam,
 } from "./dto/index.js";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
-import { formatEthersUnsignedTransaction } from "./jsonrpc.utils.js";
-import { createIssuer, setupTestEnv } from "../../../tests/utils/tir.js";
-import type { IssuerObject } from "../../../tests/utils/tir.js";
-import { LedgerService } from "../ledger/ledger.service.js";
-import type { ApiConfig } from "../../config/configuration.js";
-import { createDidDocument } from "../../../tests/utils/data.js";
-import { IssuerType } from "../issuers/issuers.constants.js";
+import type { JsonRpcResponseObject } from "./jsonrpc.interface.js";
 
-interface SupertestJsonRpcResponse {
-  status: number;
-  body: JsonRpcResponseObject;
-}
+import { createDidDocument } from "../../../tests/utils/data.js";
+import { createIssuer, setupTestEnv } from "../../../tests/utils/tir.js";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
+import { IssuerType } from "../issuers/issuers.constants.js";
+import { LedgerService } from "../ledger/ledger.service.js";
+import { JsonRpcModule } from "./jsonrpc.module.js";
+import { JsonRpcService } from "./jsonrpc.service.js";
+import { formatEthersUnsignedTransaction } from "./jsonrpc.utils.js";
 
 type JsonRpcParams =
-  | InsertIssuerParam
-  | UpdateIssuerParam
-  | SetAttributeMetadataParam
-  | SetAttributeDataParam
   | AddIssuerProxyParam
+  | InsertIssuerParam
+  | SetAttributeDataParam
+  | SetAttributeMetadataParam
+  | UpdateIssuerParam
   | UpdateIssuerProxyParam;
+
+interface SupertestJsonRpcResponse {
+  body: JsonRpcResponseObject;
+  status: number;
+}
 
 /**
  * Escape DID in URLs mocked by MSW
  * @see https://github.com/mswjs/msw/discussions/739#discussioncomment-2524732
  */
 function escapeDid(url: string) {
-  return url.replace("did:ebsi:", "did\\:ebsi\\:");
+  return url.replace("did:ebsi:", String.raw`did\:ebsi\:`);
 }
 
 describe("JsonRpc Module", () => {
@@ -110,87 +113,86 @@ describe("JsonRpc Module", () => {
     const issuer3 = issuers[2]!;
 
     switch (method) {
+      case "addIssuerProxy": {
+        param = {
+          did: issuer1.did,
+          from: signer.address,
+          proxyData: tamper ? issuer2.proxy.utf8 : issuer1.proxy.utf8,
+        } as AddIssuerProxyParam;
+        break;
+      }
       case "insertIssuer": {
         param = {
           attributeData: tamper ? issuer2.attribute.hex : issuer1.attribute.hex,
           did: issuer1.did,
-          issuerType: issuer1.issuerType,
-          taoDid: issuer1.tao,
-          taoAttributeId: issuer1.taoAttributeId,
           from: signer.address,
+          issuerType: issuer1.issuerType,
+          taoAttributeId: issuer1.taoAttributeId,
+          taoDid: issuer1.tao,
         } as InsertIssuerParam;
-        break;
-      }
-      case "updateIssuer": {
-        if (updateAttribute) {
-          // update attribute1: change it to attribute3
-          param = {
-            attributeData: tamper
-              ? issuer2.attribute.hex
-              : issuer3.attribute.hex,
-            did: issuer1.did,
-            issuerType: issuer3.issuerType,
-            taoDid: issuer3.tao,
-            taoAttributeId: issuer3.taoAttributeId,
-            from: signer.address,
-            prevAttributeHash: issuer1.attribute.id,
-          } as UpdateIssuerParam;
-        } else {
-          // updateIssuer: add attribute2
-          param = {
-            attributeData: tamper
-              ? issuer3.attribute.hex
-              : issuer2.attribute.hex,
-            did: issuer1.did,
-            issuerType: issuer2.issuerType,
-            taoDid: issuer2.tao,
-            taoAttributeId: issuer2.taoAttributeId,
-            from: signer.address,
-          } as UpdateIssuerParam;
-        }
-        break;
-      }
-      case "setAttributeMetadata": {
-        // update metadata attribute1
-        param = {
-          from: signer.address,
-          did: issuer1.did,
-          attributeId: tamper ? issuer2.attribute.id : issuer1.attribute.id,
-          issuerType: issuer1.issuerType,
-          taoDid: issuer1.tao,
-          taoAttributeId: issuer1.taoAttributeId,
-        } as SetAttributeMetadataParam;
         break;
       }
       case "setAttributeData": {
         // update data attribute1
         param = {
-          from: signer.address,
-          did: issuer1.did,
-          attributeId: tamper ? issuer2.attribute.id : issuer1.attribute.id,
           attributeData: `0x${crypto.randomBytes(12).toString("hex")}`,
+          attributeId: tamper ? issuer2.attribute.id : issuer1.attribute.id,
+          did: issuer1.did,
+          from: signer.address,
         } as SetAttributeDataParam;
         break;
       }
-      case "addIssuerProxy": {
+      case "setAttributeMetadata": {
+        // update metadata attribute1
         param = {
-          from: signer.address,
+          attributeId: tamper ? issuer2.attribute.id : issuer1.attribute.id,
           did: issuer1.did,
-          proxyData: tamper ? issuer2.proxy.utf8 : issuer1.proxy.utf8,
-        } as AddIssuerProxyParam;
+          from: signer.address,
+          issuerType: issuer1.issuerType,
+          taoAttributeId: issuer1.taoAttributeId,
+          taoDid: issuer1.tao,
+        } as SetAttributeMetadataParam;
+        break;
+      }
+      case "updateIssuer": {
+        // update attribute1: change it to attribute3
+        param = updateAttribute
+          ? ({
+              attributeData: tamper
+                ? issuer2.attribute.hex
+                : issuer3.attribute.hex,
+              did: issuer1.did,
+              from: signer.address,
+              issuerType: issuer3.issuerType,
+              prevAttributeHash: issuer1.attribute.id,
+              taoAttributeId: issuer3.taoAttributeId,
+              taoDid: issuer3.tao,
+            } satisfies UpdateIssuerParam)
+          : ({
+              attributeData: tamper
+                ? issuer3.attribute.hex
+                : issuer2.attribute.hex,
+              did: issuer1.did,
+              from: signer.address,
+              issuerType: issuer2.issuerType,
+              taoAttributeId: issuer2.taoAttributeId,
+              taoDid: issuer2.tao,
+            } satisfies UpdateIssuerParam);
+
         break;
       }
       case "updateIssuerProxy": {
         param = {
-          from: signer.address,
           did: issuer1.did,
-          proxyId: tamper ? issuer2.proxy.id : issuer1.proxy.id,
+          from: signer.address,
           proxyData: issuer2.proxy.utf8,
+          proxyId: tamper ? issuer2.proxy.id : issuer1.proxy.id,
         } as UpdateIssuerProxyParam;
         break;
       }
-      default:
+      default: {
         throw new Error(`Test Error: Invalid method ${method}`);
+      }
     }
 
     return param;
@@ -219,11 +221,7 @@ describe("JsonRpc Module", () => {
     issuers = [];
     issuers.push(
       createIssuer(IssuerType.TI, tao1.did, tao1.attribute.id, rootTao.did),
-    );
-    issuers.push(
       createIssuer(IssuerType.TI, tao1.did, tao1.attribute.id, rootTao.did),
-    );
-    issuers.push(
       createIssuer(IssuerType.TI, tao1.did, tao1.attribute.id, rootTao.did),
     );
 
@@ -291,24 +289,24 @@ describe("JsonRpc Module", () => {
 
     // Generate access tokens
     issuer1TirInviteAccessToken = await new SignJWT({
-      sub: issuers[0]!.did,
       scp: "openid tir_invite",
+      sub: issuers[0]!.did,
     })
       .setProtectedHeader({
-        typ: "JWT",
         alg: "ES256",
         kid: authApiKid,
+        typ: "JWT",
       })
       .sign(authApiKeyPair.privateKey);
 
     tao1TirWriteAccessToken = await new SignJWT({
-      sub: tao1.did,
       scp: "openid tir_write",
+      sub: tao1.did,
     })
       .setProtectedHeader({
-        typ: "JWT",
         alg: "ES256",
         kid: authApiKid,
+        typ: "JWT",
       })
       .sign(authApiKeyPair.privateKey);
 
@@ -316,8 +314,8 @@ describe("JsonRpc Module", () => {
     const privateKey =
       StatusList2021CredentialHelpers.generatePrivateKey("ES256K");
     const {
-      kid: publicKeyJwkKid,
       alg: publicKeyJwkAlg,
+      kid: publicKeyJwkKid,
       ...publicKeyJwk
     } = await StatusList2021CredentialHelpers.getPublicKeyJwk(
       privateKey,
@@ -325,9 +323,9 @@ describe("JsonRpc Module", () => {
     );
 
     const issuer = {
+      alg: "ES256K",
       did: issuers[0]!.did,
       kid: `${issuers[0]!.did}#keys-1`,
-      alg: "ES256K",
       signer: StatusList2021CredentialHelpers.getSigner(privateKey, "ES256K"),
     } satisfies EbsiIssuer;
 
@@ -340,8 +338,8 @@ describe("JsonRpc Module", () => {
         issuers[0]!.proxy.statusList2021Credential,
         issuer,
         {
-          network: configService.get("network", { infer: true }),
           hosts: [ebsiAuthority, ...trustedHostnames],
+          network: configService.get("network", { infer: true }),
           services: {
             "did-registry": "v4",
             "trusted-issuers-registry": "v4",
@@ -386,9 +384,7 @@ describe("JsonRpc Module", () => {
       jsonRpcService,
       "isDidControlledByAddress",
     );
-    isDidControlledByAddressMock.mockImplementation(async () =>
-      Promise.resolve(true),
-    );
+    isDidControlledByAddressMock.mockImplementation(() => true);
 
     // Mock isStatusList2021Credential
     vi.spyOn(
@@ -415,10 +411,10 @@ describe("JsonRpc Module", () => {
     const param: InsertIssuerParam = {
       attributeData: issuers[0]!.attribute.hex,
       did: issuers[0]!.did,
-      issuerType: issuers[0]!.issuerType,
-      taoDid: issuers[0]!.tao,
-      taoAttributeId: issuers[0]!.taoAttributeId,
       from: signer.address,
+      issuerType: issuers[0]!.issuerType,
+      taoAttributeId: issuers[0]!.taoAttributeId,
+      taoDid: issuers[0]!.tao,
     };
 
     // The DID does not exist
@@ -432,9 +428,10 @@ describe("JsonRpc Module", () => {
         () =>
           HttpResponse.json(
             {
-              jsonrpc: "2.0",
-              error: { code: -32600, message: "did doesn't exist" },
+              error: { code: -32_600, message: "did doesn't exist" },
+              // eslint-disable-next-line unicorn/no-null
               id: null,
+              jsonrpc: "2.0",
             },
             { status: 400 },
           ),
@@ -446,15 +443,15 @@ describe("JsonRpc Module", () => {
       .post("/jsonrpc")
       .auth(tao1TirWriteAccessToken, { type: "bearer" })
       .send({
+        id: 231,
         jsonrpc: "2.0",
         method: "insertIssuer",
         params: [param],
-        id: 231,
       });
 
     expect(responseBuild.body).toStrictEqual({
-      jsonrpc: "2.0",
       id: 231,
+      jsonrpc: "2.0",
       result: {
         chainId: expect.any(String),
         data: expect.any(String),
@@ -470,6 +467,7 @@ describe("JsonRpc Module", () => {
 
     const unsignedTransaction = responseBuild.body.result;
     const uTx = formatEthersUnsignedTransaction(
+      // eslint-disable-next-line unicorn/prefer-structured-clone
       JSON.parse(JSON.stringify(unsignedTransaction)) as UnsignedTransaction,
     );
     uTx.chainId = Number(uTx.chainId);
@@ -480,24 +478,24 @@ describe("JsonRpc Module", () => {
       .post("/jsonrpc")
       .auth(tao1TirWriteAccessToken, { type: "bearer" })
       .send({
+        id: "45",
         jsonrpc: "2.0",
         method: "sendSignedTransaction",
         params: [
           {
             protocol: "eth",
-            unsignedTransaction,
             r,
             s,
-            v: `0x${Number(v).toString(16)}`,
             signedRawTransaction: sgnTx,
+            unsignedTransaction,
+            v: `0x${Number(v).toString(16)}`,
           },
         ],
-        id: "45",
       });
 
     expect(responseSend.body).toStrictEqual({
       error: {
-        code: -32600,
+        code: -32_600,
         message: `The DID ${tao1.did} does not exist`,
       },
       id: "45",
@@ -551,13 +549,13 @@ describe("JsonRpc Module", () => {
     const signer = await generateKeyPair("ES256");
     const kid = await calculateJwkThumbprint(await exportJWK(signer.publicKey));
     const accessTokenWithInvalidKid = await new SignJWT({
-      sub: issuers[0]!.did,
       scp: "openid tir_invite",
+      sub: issuers[0]!.did,
     })
       .setProtectedHeader({
-        typ: "JWT",
         alg: "ES256",
         kid,
+        typ: "JWT",
       })
       .sign(signer.privateKey);
 
@@ -579,13 +577,13 @@ describe("JsonRpc Module", () => {
     ).toStrictEqual(expect.stringContaining("application/problem+json"));
 
     const accessTokenWithInvalidSignature = await new SignJWT({
-      sub: issuers[0]!.did,
       scp: "openid didr_write",
+      sub: issuers[0]!.did,
     })
       .setProtectedHeader({
-        typ: "JWT",
         alg: "ES256",
         kid: authApiKid,
+        typ: "JWT",
       })
       .sign(signer.privateKey);
 
@@ -615,10 +613,10 @@ describe("JsonRpc Module", () => {
       .send();
 
     expect(response.body).toStrictEqual({
-      title: "Bad Request",
-      status: 400,
       detail:
         '["jsonrpc must be equal to 2.0","method must be a string","params must be an array"]',
+      status: 400,
+      title: "Bad Request",
       type: "about:blank",
     });
     expect(response.status).toBe(400);
@@ -630,17 +628,18 @@ describe("JsonRpc Module", () => {
     const wallet = ethers.Wallet.createRandom();
 
     const transaction = {
-      from: wallet.address,
-      to: tirContractAddress,
-      data: tirContract.interface.encodeFunctionData("getPolicy", ["policy1"]),
-      value: "0x00",
-      nonce: "0x00",
       chainId: "0x1b3b",
+      data: tirContract.interface.encodeFunctionData("getPolicy", ["policy1"]),
+      from: wallet.address,
       gasLimit: "0x1000000",
       gasPrice: "0x00",
+      nonce: "0x00",
+      to: tirContractAddress,
+      value: "0x00",
     };
 
     const uTx = formatEthersUnsignedTransaction(
+      // eslint-disable-next-line unicorn/prefer-structured-clone
       JSON.parse(JSON.stringify(transaction)) as UnsignedTransaction,
     );
     uTx.chainId = Number(uTx.chainId);
@@ -651,31 +650,31 @@ describe("JsonRpc Module", () => {
       .post("/jsonrpc")
       .auth(tao1TirWriteAccessToken, { type: "bearer" })
       .send({
+        id: "45",
         jsonrpc: "2.0",
         method: "sendSignedTransaction",
         params: [
           {
             protocol: "eth",
-            unsignedTransaction: transaction,
             r,
             s,
-            v: `0x${Number(v).toString(16)}`,
             signedRawTransaction: sgnTx,
+            unsignedTransaction: transaction,
+            v: `0x${Number(v).toString(16)}`,
           },
         ],
-        id: "45",
       });
 
     const { chainId } = await tirContract.provider.getNetwork();
     const actualChainId = ethers.BigNumber.from(chainId).toHexString();
 
     expect(responseSend.body).toStrictEqual({
-      jsonrpc: "2.0",
-      id: "45",
       error: {
-        code: -32600,
+        code: -32_600,
         message: `Invalid unsignedTransaction.chainId. Expected ${actualChainId}. Received 0x1b3b`,
       },
+      id: "45",
+      jsonrpc: "2.0",
     });
     expect(responseSend.status).toBe(400);
   });
@@ -687,21 +686,21 @@ describe("JsonRpc Module", () => {
       .post("/jsonrpc")
       .auth(tao1TirWriteAccessToken, { type: "bearer" })
       .send({
+        id: 123,
         jsonrpc: "2.0",
         method: "unknown-method",
         params: [],
-        id: 123,
       });
 
     expect(response.body).toStrictEqual({
-      jsonrpc: "2.0",
-      id: 123,
       error: {
-        code: -32600,
+        code: -32_600,
         message: expect.stringContaining(
           "The method 'unknown-method' is invalid",
         ),
       },
+      id: 123,
+      jsonrpc: "2.0",
     });
     expect(response.status).toBe(400);
   });
@@ -714,30 +713,30 @@ describe("JsonRpc Module", () => {
     const param: InsertIssuerParam = {
       attributeData: issuers[0]!.attribute.hex,
       did: issuers[0]!.did,
-      issuerType: issuers[0]!.issuerType,
-      taoDid: issuers[0]!.tao,
-      taoAttributeId: issuers[0]!.taoAttributeId,
       from: signer.address,
+      issuerType: issuers[0]!.issuerType,
+      taoAttributeId: issuers[0]!.taoAttributeId,
+      taoDid: issuers[0]!.tao,
     };
 
     // The DID is not controlled by the signer
     vi.spyOn(jsonRpcService, "isDidControlledByAddress").mockImplementation(
-      async () => Promise.resolve(false),
+      () => Promise.resolve(false),
     );
 
     const responseBuild: SupertestJsonRpcResponse = await request(server)
       .post("/jsonrpc")
       .auth(tao1TirWriteAccessToken, { type: "bearer" })
       .send({
+        id: 231,
         jsonrpc: "2.0",
         method: "insertIssuer",
         params: [param],
-        id: 231,
       });
 
     expect(responseBuild.body).toStrictEqual({
-      jsonrpc: "2.0",
       id: 231,
+      jsonrpc: "2.0",
       result: {
         chainId: expect.any(String),
         data: expect.any(String),
@@ -753,6 +752,7 @@ describe("JsonRpc Module", () => {
 
     const unsignedTransaction = responseBuild.body.result;
     const uTx = formatEthersUnsignedTransaction(
+      // eslint-disable-next-line unicorn/prefer-structured-clone
       JSON.parse(JSON.stringify(unsignedTransaction)) as UnsignedTransaction,
     );
     uTx.chainId = Number(uTx.chainId);
@@ -763,24 +763,24 @@ describe("JsonRpc Module", () => {
       .post("/jsonrpc")
       .auth(tao1TirWriteAccessToken, { type: "bearer" })
       .send({
+        id: "45",
         jsonrpc: "2.0",
         method: "sendSignedTransaction",
         params: [
           {
             protocol: "eth",
-            unsignedTransaction,
             r,
             s,
-            v: `0x${Number(v).toString(16)}`,
             signedRawTransaction: sgnTx,
+            unsignedTransaction,
+            v: `0x${Number(v).toString(16)}`,
           },
         ],
-        id: "45",
       });
 
     expect(responseSend.body).toStrictEqual({
       error: {
-        code: -32600,
+        code: -32_600,
         message: `The DID ${tao1.did} is not controlled by the address ${signer.address}`,
       },
       id: "45",
@@ -821,15 +821,15 @@ describe("JsonRpc Module", () => {
           .post("/jsonrpc")
           .auth(accessToken, { type: "bearer" })
           .send({
+            id: 231,
             jsonrpc: "2.0",
             method,
             params: [param],
-            id: 231,
           });
 
         expect(responseBuild.body).toStrictEqual({
-          jsonrpc: "2.0",
           id: 231,
+          jsonrpc: "2.0",
           result: {
             chainId: expect.any(String),
             data: expect.any(String),
@@ -845,6 +845,7 @@ describe("JsonRpc Module", () => {
 
         const unsignedTransaction = responseBuild.body.result;
         const uTx = formatEthersUnsignedTransaction(
+          // eslint-disable-next-line unicorn/prefer-structured-clone
           JSON.parse(
             JSON.stringify(unsignedTransaction),
           ) as UnsignedTransaction,
@@ -857,24 +858,24 @@ describe("JsonRpc Module", () => {
           .post("/jsonrpc")
           .auth(accessToken, { type: "bearer" })
           .send({
+            id: "45",
             jsonrpc: "2.0",
             method: "sendSignedTransaction",
             params: [
               {
                 protocol: "eth",
-                unsignedTransaction,
                 r,
                 s,
-                v: `0x${Number(v).toString(16)}`,
                 signedRawTransaction: sgnTx,
+                unsignedTransaction,
+                v: `0x${Number(v).toString(16)}`,
               },
             ],
-            id: "45",
           });
 
         expect(responseSend.body).toStrictEqual({
-          jsonrpc: "2.0",
           id: "45",
+          jsonrpc: "2.0",
           result: expect.any(String),
         });
         expect(responseSend.status).toBe(200);
@@ -898,8 +899,9 @@ describe("JsonRpc Module", () => {
           });
 
         expect(responseBuild.body).toStrictEqual({
-          jsonrpc: "2.0",
+          // eslint-disable-next-line unicorn/no-null
           id: null,
+          jsonrpc: "2.0",
           result: expect.objectContaining({}),
         });
         expect(responseBuild.status).toBe(200);
@@ -919,8 +921,25 @@ describe("JsonRpc Module", () => {
         let expectedErrorMessage3: string;
 
         switch (method) {
+          case "addIssuerProxy":
+          case "updateIssuerProxy": {
+            // @ts-expect-error Delete required property
+            delete (param1 as AddIssuerProxyParam).did;
+            expectedErrorMessage1 =
+              "property params[0].did has failed the following constraints: isDidV1";
+
+            // @ts-expect-error Delete required property
+            delete (param2 as AddIssuerProxyParam).proxyData;
+            expectedErrorMessage2 =
+              "property params[0].proxyData has failed the following constraints: isIssuerProxy";
+
+            param3.from = "bad address";
+            expectedErrorMessage3 =
+              "property params[0].from has failed the following constraints: isEthereumAddress";
+            break;
+          }
           case "insertIssuer":
-          case "updateIssuer":
+          case "updateIssuer": {
             // @ts-expect-error Delete required property
             delete (param1 as InsertIssuerParam).attributeData;
             expectedErrorMessage1 =
@@ -935,23 +954,8 @@ describe("JsonRpc Module", () => {
             expectedErrorMessage3 =
               "property params[0].from has failed the following constraints: isEthereumAddress";
             break;
-          case "setAttributeMetadata":
-            (param1 as SetAttributeMetadataParam).attributeId = crypto
-              .randomBytes(12)
-              .toString("hex"); // Not prefixed with 0x
-            expectedErrorMessage1 =
-              "property params[0].attributeId has failed the following constraints: matches";
-
-            // @ts-expect-error Delete required property
-            delete (param2 as InsertIssuerParam).did;
-            expectedErrorMessage2 =
-              "property params[0].did has failed the following constraints: isDidV1";
-
-            param3.from = "bad address";
-            expectedErrorMessage3 =
-              "property params[0].from has failed the following constraints: isEthereumAddress";
-            break;
-          case "setAttributeData":
+          }
+          case "setAttributeData": {
             (param1 as SetAttributeDataParam).attributeId = crypto
               .randomBytes(12)
               .toString("hex"); // Not prefixed with 0x
@@ -969,43 +973,46 @@ describe("JsonRpc Module", () => {
             expectedErrorMessage3 =
               "property params[0].attributeData has failed the following constraints: matches";
             break;
-          case "addIssuerProxy":
-          case "updateIssuerProxy":
-            // @ts-expect-error Delete required property
-            delete (param1 as AddIssuerProxyParam).did;
+          }
+          case "setAttributeMetadata": {
+            (param1 as SetAttributeMetadataParam).attributeId = crypto
+              .randomBytes(12)
+              .toString("hex"); // Not prefixed with 0x
             expectedErrorMessage1 =
-              "property params[0].did has failed the following constraints: isDidV1";
+              "property params[0].attributeId has failed the following constraints: matches";
 
             // @ts-expect-error Delete required property
-            delete (param2 as AddIssuerProxyParam).proxyData;
+            delete (param2 as InsertIssuerParam).did;
             expectedErrorMessage2 =
-              "property params[0].proxyData has failed the following constraints: isIssuerProxy";
+              "property params[0].did has failed the following constraints: isDidV1";
 
             param3.from = "bad address";
             expectedErrorMessage3 =
               "property params[0].from has failed the following constraints: isEthereumAddress";
             break;
-          default:
+          }
+          default: {
             throw new Error("Test Error: Invalid method");
+          }
         }
 
         const response1 = await request(server)
           .post("/jsonrpc")
           .auth(tao1TirWriteAccessToken, { type: "bearer" })
           .send({
+            id: 231,
             jsonrpc: "2.0",
             method,
             params: [param1],
-            id: 231,
           });
 
         expect(response1.body).toStrictEqual({
-          jsonrpc: "2.0",
-          id: 231,
           error: {
-            code: -32600,
+            code: -32_600,
             message: expect.stringContaining(expectedErrorMessage1),
           },
+          id: 231,
+          jsonrpc: "2.0",
         });
         expect(response1.status).toBe(400);
 
@@ -1013,19 +1020,19 @@ describe("JsonRpc Module", () => {
           .post("/jsonrpc")
           .auth(tao1TirWriteAccessToken, { type: "bearer" })
           .send({
+            id: 231,
             jsonrpc: "2.0",
             method,
             params: [param2],
-            id: 231,
           });
 
         expect(response2.body).toStrictEqual({
-          jsonrpc: "2.0",
-          id: 231,
           error: {
-            code: -32600,
+            code: -32_600,
             message: expect.stringContaining(expectedErrorMessage2),
           },
+          id: 231,
+          jsonrpc: "2.0",
         });
         expect(response2.status).toBe(400);
 
@@ -1033,19 +1040,19 @@ describe("JsonRpc Module", () => {
           .post("/jsonrpc")
           .auth(tao1TirWriteAccessToken, { type: "bearer" })
           .send({
+            id: 231,
             jsonrpc: "2.0",
             method,
             params: [param3],
-            id: 231,
           });
 
         expect(response3.body).toStrictEqual({
-          jsonrpc: "2.0",
-          id: 231,
           error: {
-            code: -32600,
+            code: -32_600,
             message: expect.stringContaining(expectedErrorMessage3),
           },
+          id: 231,
+          jsonrpc: "2.0",
         });
         expect(response3.status).toBe(400);
       });
@@ -1063,10 +1070,10 @@ describe("JsonRpc Module", () => {
           .post("/jsonrpc")
           .auth(tao1TirWriteAccessToken, { type: "bearer" })
           .send({
+            id: 231,
             jsonrpc: "2.0",
             method,
             params: [param1],
-            id: 231,
           });
 
         expect(responseBuild1.status).toBe(200);
@@ -1077,10 +1084,10 @@ describe("JsonRpc Module", () => {
           .post("/jsonrpc")
           .auth(tao1TirWriteAccessToken, { type: "bearer" })
           .send({
+            id: 232,
             jsonrpc: "2.0",
             method,
             params: [param2],
-            id: 232,
           });
 
         expect(responseBuild2.status).toBe(200);
@@ -1088,6 +1095,7 @@ describe("JsonRpc Module", () => {
         const transaction2 = responseBuild2.body.result as UnsignedTransaction;
 
         const uTx = formatEthersUnsignedTransaction(
+          // eslint-disable-next-line unicorn/prefer-structured-clone
           JSON.parse(JSON.stringify(transaction1)) as UnsignedTransaction,
         );
         uTx.chainId = Number(uTx.chainId);
@@ -1099,30 +1107,30 @@ describe("JsonRpc Module", () => {
           .post("/jsonrpc")
           .auth(tao1TirWriteAccessToken, { type: "bearer" })
           .send({
+            id: "45",
             jsonrpc: "2.0",
             method: "sendSignedTransaction",
             params: [
               {
                 protocol: "eth",
-                unsignedTransaction: transaction2,
                 r,
                 s,
-                v: `0x${Number(v).toString(16)}`,
                 signedRawTransaction: sgnTx1,
+                unsignedTransaction: transaction2,
+                v: `0x${Number(v).toString(16)}`,
               },
             ],
-            id: "45",
           });
 
         expect(responseSend1.body).toStrictEqual({
-          jsonrpc: "2.0",
-          id: "45",
           error: {
-            code: -32600,
+            code: -32_600,
             message: expect.stringContaining(
               "does not match with the signedRawTransaction",
             ),
           },
+          id: "45",
+          jsonrpc: "2.0",
         });
         expect(responseSend1.status).toBe(400);
 
@@ -1132,28 +1140,28 @@ describe("JsonRpc Module", () => {
           .post("/jsonrpc")
           .auth(tao1TirWriteAccessToken, { type: "bearer" })
           .send({
+            id: "46",
             jsonrpc: "2.0",
             method: "sendSignedTransaction",
             params: [
               {
                 protocol: "eth",
-                unsignedTransaction: transaction1,
                 r,
                 s,
-                v: `0x${Number(v).toString(16)}`,
                 signedRawTransaction: sgnTx1,
+                unsignedTransaction: transaction1,
+                v: `0x${Number(v).toString(16)}`,
               },
             ],
-            id: "46",
           });
 
         expect(responseSend2.body).toStrictEqual({
-          jsonrpc: "2.0",
-          id: "46",
           error: {
-            code: -32600,
+            code: -32_600,
             message: `The signer of the transaction (${wallet1.address}) does not match with unsignedTransaction.from (${wallet2.address}) `,
           },
+          id: "46",
+          jsonrpc: "2.0",
         });
         expect(responseSend1.status).toBe(400);
       });

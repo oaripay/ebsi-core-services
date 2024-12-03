@@ -5,9 +5,9 @@ import { ProblemDetailsError } from "./ProblemDetailsError.js";
  */
 
 export class PreconditionFailedError extends ProblemDetailsError {
-  static statusCode = 412;
-
   static defaultTitle = "Precondition Failed";
+
+  static statusCode = 412;
 
   /**
    * @param title A short, human-readable summary of the problem type. It SHOULD NOT change from occurrence to occurrence of the problem, except for purposes of localization.
@@ -20,10 +20,10 @@ export class PreconditionFailedError extends ProblemDetailsError {
   constructor(
     title: string = PreconditionFailedError.defaultTitle,
     options?: {
-      type?: string;
       detail?: string;
-      instance?: string;
       extensions?: Record<string, unknown>;
+      instance?: string;
+      type?: string;
     },
   ) {
     super(PreconditionFailedError.statusCode, title, options);

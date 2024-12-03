@@ -1,5 +1,6 @@
+import { paginate, PaginatedList } from "@ebsiint-api/shared";
 import { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry";
-import { PaginatedList, paginate } from "@ebsiint-api/shared";
+
 import { PolicyLink } from "./policies.interface.js";
 
 export function formatPolicies(
@@ -13,8 +14,8 @@ export function formatPolicies(
   // Reshape items
   const items = policies.items.map((policyName) => {
     return {
-      policyName,
       href: `${baseUrl}/${policyName}`,
+      policyName,
     };
   });
 

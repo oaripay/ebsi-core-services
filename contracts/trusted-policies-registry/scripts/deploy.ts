@@ -19,7 +19,7 @@ async function main() {
   await policyContract.initialize(ethers.BigNumber.from(1));
 
   console.log(
-    `Policy contract version set to: ${await policyContract.version()}`,
+    `Policy contract version set to: ${(await policyContract.version()).toString()}`,
   );
 }
 

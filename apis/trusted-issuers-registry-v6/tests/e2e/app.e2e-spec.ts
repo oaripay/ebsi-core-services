@@ -1,26 +1,28 @@
-import { describe, beforeAll, it, expect, afterAll } from "vitest";
-import request from "supertest";
-import { Test } from "@nestjs/testing";
-import { ValidationPipe, Logger } from "@nestjs/common";
+import type { RawServerDefault } from "fastify";
+
+import { methodNotAllowed } from "@ebsiint-api/shared";
+import { TrustedIssuersRegistry__factory } from "@ebsiint-sc/trusted-issuers-registry-v4";
+import { fastifyAccepts } from "@fastify/accepts";
+import { fastifyHelmet } from "@fastify/helmet";
+import { Logger, ValidationPipe } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import {
   FastifyAdapter,
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import { ConfigService } from "@nestjs/config";
-import type { RawServerDefault } from "fastify";
-import { fastifyAccepts } from "@fastify/accepts";
-import { fastifyHelmet } from "@fastify/helmet";
+import { Test } from "@nestjs/testing";
 import { useContainer } from "class-validator";
-import { methodNotAllowed } from "@ebsiint-api/shared";
-import { TrustedIssuersRegistry__factory } from "@ebsiint-sc/trusted-issuers-registry-v4";
+import request from "supertest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
+
 import { AppModule } from "../../src/app.module.js";
-import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
 import {
-  DEPENDENCIES,
   type ApiConfig,
+  DEPENDENCIES,
 } from "../../src/config/configuration.js";
-import { getServer } from "../utils/getServer.js";
+import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
 import { describeWriteOps } from "../utils/describeWriteOps.js";
+import { getServer } from "../utils/getServer.js";
 
 describe("TIR API v6 - Generic tests (e2e)", () => {
   let app: NestFastifyApplication;
@@ -96,18 +98,18 @@ describe("TIR API v6 - Generic tests (e2e)", () => {
     });
 
     it("should return an error 405 if called with a method different from GET", async () => {
-      expect.assertions(16);
+      expect.assertions(15);
 
       // POST
       let response = await request(server).post("/");
 
       expect(response.body).toStrictEqual({
-        detail: "Cannot POST /. Allowed HTTP methods: GET",
+        detail: "Cannot POST /. Allowed HTTP methods: GET, HEAD",
         status: 405,
         title: "Method Not Allowed",
         type: "about:blank",
       });
-      expect(response.headers["allow"]).toStrictEqual("GET");
+      expect(response.headers["allow"]).toStrictEqual("GET, HEAD");
       expect(response.headers["content-type"]).toStrictEqual(
         "application/problem+json; charset=utf-8",
       );
@@ -117,22 +119,21 @@ describe("TIR API v6 - Generic tests (e2e)", () => {
       response = await request(server).head("/");
 
       expect(response.body).toStrictEqual({}); // HEAD response body is empty
-      expect(response.headers["allow"]).toStrictEqual("GET");
       expect(response.headers["content-type"]).toStrictEqual(
-        "application/problem+json; charset=utf-8",
+        "text/plain; charset=utf-8",
       );
-      expect(response.status).toBe(405);
+      expect(response.status).toBe(200);
 
       // PUT
       response = await request(server).put("/");
 
       expect(response.body).toStrictEqual({
-        detail: "Cannot PUT /. Allowed HTTP methods: GET",
+        detail: "Cannot PUT /. Allowed HTTP methods: GET, HEAD",
         status: 405,
         title: "Method Not Allowed",
         type: "about:blank",
       });
-      expect(response.headers["allow"]).toStrictEqual("GET");
+      expect(response.headers["allow"]).toStrictEqual("GET, HEAD");
       expect(response.headers["content-type"]).toStrictEqual(
         "application/problem+json; charset=utf-8",
       );
@@ -142,12 +143,12 @@ describe("TIR API v6 - Generic tests (e2e)", () => {
       response = await request(server).patch("/");
 
       expect(response.body).toStrictEqual({
-        detail: "Cannot PATCH /. Allowed HTTP methods: GET",
+        detail: "Cannot PATCH /. Allowed HTTP methods: GET, HEAD",
         status: 405,
         title: "Method Not Allowed",
         type: "about:blank",
       });
-      expect(response.headers["allow"]).toStrictEqual("GET");
+      expect(response.headers["allow"]).toStrictEqual("GET, HEAD");
       expect(response.headers["content-type"]).toStrictEqual(
         "application/problem+json; charset=utf-8",
       );
@@ -199,7 +200,9 @@ describe("TIR API v6 - Generic tests (e2e)", () => {
     const dependencies = Object.keys(
       DEPENDENCIES,
     ) as (keyof typeof DEPENDENCIES)[];
-    const expectedStatuses = ([...dependencies, "Besu"] as const)
+    const expectedStatuses = (
+      [...dependencies, "Besu", "TIR Subgraph"] as const
+    )
       .map((dependency) => ({
         [`${dependency}`]: { status: "up" },
       }))

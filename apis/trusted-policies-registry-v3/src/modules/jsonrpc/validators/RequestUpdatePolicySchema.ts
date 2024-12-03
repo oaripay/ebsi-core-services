@@ -1,21 +1,21 @@
-import { z } from "zod";
 import {
-  isBigNumberish,
   type BigNumberish,
-  // eslint-disable-next-line import/extensions
+  isBigNumberish,
 } from "@ethersproject/bignumber/lib/bignumber.js";
-import { jsonRpcSchema } from "./JsonRpcSchema.js";
+import { z } from "zod";
+
 import { baseParamSchema } from "./BaseParamSchema.js";
+import { jsonRpcSchema } from "./JsonRpcSchema.js";
 
 export const updatePolicySchema = baseParamSchema.merge(
   z.object({
+    description: z.string(),
     policyId: z.optional(
       z.custom<BigNumberish>((val) => isBigNumberish(val), {
         message: "Not an integer string",
       }),
     ),
     policyName: z.optional(z.string()),
-    description: z.string(),
   }),
 );
 

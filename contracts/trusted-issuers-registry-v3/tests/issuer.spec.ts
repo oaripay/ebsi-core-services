@@ -1,11 +1,16 @@
+import { expect } from "chai";
 import { ethers, network, upgrades } from "hardhat";
 import crypto from "node:crypto";
-import { expect } from "chai";
-import { Contract } from "ethers";
-import { testDidrAddress, testTprAddress } from "./testAddress";
-import { Tir } from "../src/types";
 
-const num = ethers.BigNumber.from;
+import type {
+  DidRegistryMock,
+  PolicyRegistryMock,
+  Tir,
+  TirDetailed,
+} from "../src/types";
+
+import { testDidrAddress, testTprAddress } from "./testAddress";
+
 enum IssuerType {
   Undefined,
   RootTAO,
@@ -14,24 +19,13 @@ enum IssuerType {
   Revoked,
 }
 function getEthObject(o: unknown): Record<string, unknown> {
-  const obj = o as string[] & Record<string, unknown>;
+  const obj = o as Record<string, unknown> & string[];
   const keys = Object.keys(obj);
   const result: Record<string, unknown> = {};
-  keys.forEach((k, i) => {
+  for (const [i, k] of keys.entries()) {
     if (i >= keys.length / 2) result[k] = obj[k];
-  });
+  }
   return result;
-}
-
-function randomProxy(): string {
-  return Buffer.from(
-    JSON.stringify({
-      prefix: "https://localhost/my-provider/revocation/",
-      headers: { Authorization: "Bearer ABC" },
-      testSuffix: "/credentials/status/1",
-    }),
-    "utf-8",
-  ).toString("hex");
 }
 
 function randomDid(): string {
@@ -42,43 +36,54 @@ function randomHash(): string {
   return `0x${crypto.randomBytes(32).toString("hex")}`;
 }
 
+function randomProxy(): string {
+  return Buffer.from(
+    JSON.stringify({
+      headers: { Authorization: "Bearer ABC" },
+      prefix: "https://localhost/my-provider/revocation/",
+      testSuffix: "/credentials/status/1",
+    }),
+    "utf8",
+  ).toString("hex");
+}
+
 describe("Issuers", () => {
-  let tir: Contract;
-  let policyContractMock: Contract;
-  let didContractMock: Contract;
+  let tir: Tir;
+  let policyContractMock: PolicyRegistryMock;
+  let didContractMock: DidRegistryMock;
 
   const rootTAO1 = {
-    did: "did:ebsi:roottao1",
-    attributeId: `0x${crypto.randomBytes(32).toString("hex")}`,
     attribute: `0x${crypto.randomBytes(10).toString("hex")}`,
+    attributeId: `0x${crypto.randomBytes(32).toString("hex")}`,
+    did: "did:ebsi:roottao1",
     revisionId: "",
   };
   rootTAO1.revisionId = ethers.utils.sha256(rootTAO1.attribute);
 
   const tao1 = {
-    did: "did:ebsi:tao1",
-    attributeId: `0x${crypto.randomBytes(32).toString("hex")}`,
     attribute: `0x${crypto.randomBytes(10).toString("hex")}`,
+    attributeId: `0x${crypto.randomBytes(32).toString("hex")}`,
+    did: "did:ebsi:tao1",
     revisionId: "",
   };
   tao1.revisionId = ethers.utils.sha256(tao1.attribute);
 
   const tao2 = {
-    did: "did:ebsi:tao2",
-    attributeId: `0x${crypto.randomBytes(32).toString("hex")}`,
     attribute: `0x${crypto.randomBytes(10).toString("hex")}`,
-    revisionId: "",
+    attributeId: `0x${crypto.randomBytes(32).toString("hex")}`,
+    did: "did:ebsi:tao2",
     proxyData: randomProxy(),
+    revisionId: "",
   };
   tao2.revisionId = ethers.utils.sha256(tao2.attribute);
 
   const ti1 = {
-    did: "did:ebsi:ti1",
-    attributeId1: `0x${crypto.randomBytes(32).toString("hex")}`,
     attribute1: `0x${crypto.randomBytes(10).toString("hex")}`,
-    revisionId1: "",
-    attributeId2: `0x${crypto.randomBytes(32).toString("hex")}`,
     attribute2: `0x${crypto.randomBytes(10).toString("hex")}`,
+    attributeId1: `0x${crypto.randomBytes(32).toString("hex")}`,
+    attributeId2: `0x${crypto.randomBytes(32).toString("hex")}`,
+    did: "did:ebsi:ti1",
+    revisionId1: "",
     revisionId2: "",
   };
   ti1.revisionId1 = ethers.utils.sha256(ti1.attribute1);
@@ -118,10 +123,7 @@ describe("Issuers", () => {
 
   beforeEach(async () => {
     const contractFactory = await ethers.getContractFactory("Tir", {});
-    tir = (await contractFactory.deploy(
-      testTprAddress,
-      testDidrAddress,
-    )) as Tir;
+    tir = await contractFactory.deploy(testTprAddress, testDidrAddress);
     await tir.deployed();
     // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     expect(tir.address).to.properAddress;
@@ -147,8 +149,8 @@ describe("Issuers", () => {
     expect(issuerHashes).to.eql([rootTAO1.attributeId]);
     let issuerAttr = await tir.getIssuerAttributeByHash(issuerHashes[0]);
     expect(getEthObject(issuerAttr)).to.eql({
-      did: rootTAO1.did,
       attribData: "0x",
+      did: rootTAO1.did,
       issuerType: IssuerType.RootTAO,
       rootTao: rootTAO1.did,
       tao: rootTAO1.did,
@@ -177,8 +179,8 @@ describe("Issuers", () => {
     expect(issuerHashes).to.eql([rootTAO1.revisionId]);
     issuerAttr = await tir.getIssuerAttributeByHash(issuerHashes[0]);
     expect(getEthObject(issuerAttr)).to.eql({
-      did: rootTAO1.did,
       attribData: rootTAO1.attribute,
+      did: rootTAO1.did,
       issuerType: IssuerType.RootTAO,
       rootTao: rootTAO1.did,
       tao: rootTAO1.did,
@@ -210,8 +212,8 @@ describe("Issuers", () => {
     expect(issuerHashes).to.eql([tao1.revisionId]);
     const issuerAttr = await tir.getIssuerAttributeByHash(issuerHashes[0]);
     expect(getEthObject(issuerAttr)).to.eql({
-      did: tao1.did,
       attribData: tao1.attribute,
+      did: tao1.did,
       issuerType: IssuerType.TAO,
       rootTao: rootTAO1.did,
       tao: rootTAO1.did,
@@ -243,8 +245,8 @@ describe("Issuers", () => {
     expect(issuerHashes).to.eql([tao2.revisionId]);
     const issuerAttr = await tir.getIssuerAttributeByHash(issuerHashes[0]);
     expect(getEthObject(issuerAttr)).to.eql({
-      did: tao2.did,
       attribData: tao2.attribute,
+      did: tao2.did,
       issuerType: IssuerType.TAO,
       rootTao: rootTAO1.did,
       tao: rootTAO1.did,
@@ -276,8 +278,8 @@ describe("Issuers", () => {
     expect(issuerHashes).to.eql([ti1.revisionId1]);
     const issuerAttr = await tir.getIssuerAttributeByHash(issuerHashes[0]);
     expect(getEthObject(issuerAttr)).to.eql({
-      did: ti1.did,
       attribData: ti1.attribute1,
+      did: ti1.did,
       issuerType: IssuerType.TI,
       rootTao: rootTAO1.did,
       tao: tao1.did,
@@ -327,8 +329,8 @@ describe("Issuers", () => {
       const issuerHashes = await tir.getIssuer(tao1.did);
       const issuerAttr = await tir.getIssuerAttributeByHash(issuerHashes[0]);
       expect(getEthObject(issuerAttr)).to.eql({
-        did: tao1.did,
         attribData: "0x",
+        did: tao1.did,
         issuerType: IssuerType.Revoked,
         rootTao: rootTAO1.did,
         tao: rootTAO1.did,
@@ -343,29 +345,33 @@ describe("Issuers", () => {
 
     it("should initialize if proxy", async () => {
       const contractFactory = await ethers.getContractFactory("Tir", {});
-      const tsProxy = await upgrades.deployProxy(contractFactory, [42], {
+      const tsProxy = (await upgrades.deployProxy(contractFactory, [42], {
+        constructorArgs: [testTprAddress, testDidrAddress],
         unsafeAllow: [
           "constructor",
           "external-library-linking",
           "state-variable-immutable",
         ],
-        constructorArgs: [testTprAddress, testDidrAddress],
-      });
+      })) as Tir;
       await tsProxy.deployed();
-      await expect((await tsProxy.version()).toString()).to.equal("42");
+      expect((await tsProxy.version()).toString()).to.equal("42");
     });
 
     it("should fail to call init on TirDetailed", async () => {
       const contractFactory = await ethers.getContractFactory("Tir", {});
-      const tsProxy = await upgrades.deployProxy(contractFactory, [42], {
+      const tsProxy = (await upgrades.deployProxy(contractFactory, [42], {
+        constructorArgs: [testTprAddress, testDidrAddress],
         unsafeAllow: [
           "constructor",
           "external-library-linking",
           "state-variable-immutable",
         ],
-        constructorArgs: [testTprAddress, testDidrAddress],
-      });
+      })) as Tir;
+
       await tsProxy.deployed();
+
+      // FIXME: this test should be awaited, but it fails with another message
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
       expect(tsProxy.init(30)).to.be.revertedWith(
         "Initializable: contract is already initialized",
       );
@@ -379,8 +385,13 @@ describe("Issuers", () => {
 
     it("should fail to init", async () => {
       const contractFactory = await ethers.getContractFactory("TirDetailed");
-      const tirDetailedProxy = await upgrades.deployProxy(contractFactory, []);
+      const tirDetailedProxy = (await upgrades.deployProxy(
+        contractFactory,
+        [],
+      )) as TirDetailed;
+
       await tirDetailedProxy.deployed();
+
       await expect(tirDetailedProxy.init(42)).to.be.revertedWith(
         "Initializable: contract is not initializing",
       );
@@ -390,14 +401,14 @@ describe("Issuers", () => {
       const contractFactory = await ethers.getContractFactory("Tir", {});
       await expect(
         upgrades.deployProxy(contractFactory, [42], {
+          constructorArgs: [
+            ethers.constants.AddressZero,
+            ethers.constants.AddressZero,
+          ],
           unsafeAllow: [
             "constructor",
             "external-library-linking",
             "state-variable-immutable",
-          ],
-          constructorArgs: [
-            ethers.constants.AddressZero,
-            ethers.constants.AddressZero,
           ],
         }),
       ).to.be.revertedWith("zero address");
@@ -432,7 +443,6 @@ describe("Issuers", () => {
         issuers[i] = randomDid();
         const attrId = `0x${crypto.randomBytes(32).toString("hex")}`;
 
-        // eslint-disable-next-line no-await-in-loop
         await tir.setAttributeMetadata(
           issuers[i],
           attrId,
@@ -445,41 +455,41 @@ describe("Issuers", () => {
       // get issuers: page 1
       let issPagination = await tir.getIssuers(1, 5);
       expect(getEthObject(issPagination)).to.eql({
+        howMany: ethers.BigNumber.from(5),
         items: issuers.slice(0, 5),
-        total: num(18),
-        howMany: num(5),
-        prev: num(1),
-        next: num(2),
+        next: ethers.BigNumber.from(2),
+        prev: ethers.BigNumber.from(1),
+        total: ethers.BigNumber.from(18),
       });
 
       // get issuers: page 2
       issPagination = await tir.getIssuers(2, 5);
       expect(getEthObject(issPagination)).to.eql({
+        howMany: ethers.BigNumber.from(5),
         items: issuers.slice(5, 10),
-        total: num(18),
-        howMany: num(5),
-        prev: num(1),
-        next: num(3),
+        next: ethers.BigNumber.from(3),
+        prev: ethers.BigNumber.from(1),
+        total: ethers.BigNumber.from(18),
       });
 
       // get issuers: page 3
       issPagination = await tir.getIssuers(3, 5);
       expect(getEthObject(issPagination)).to.eql({
+        howMany: ethers.BigNumber.from(5),
         items: issuers.slice(10, 15),
-        total: num(18),
-        howMany: num(5),
-        prev: num(2),
-        next: num(4),
+        next: ethers.BigNumber.from(4),
+        prev: ethers.BigNumber.from(2),
+        total: ethers.BigNumber.from(18),
       });
 
       // get issuers: page 4
       issPagination = await tir.getIssuers(4, 5);
       expect(getEthObject(issPagination)).to.eql({
+        howMany: ethers.BigNumber.from(3),
         items: issuers.slice(15, 20),
-        total: num(18),
-        howMany: num(3),
-        prev: num(3),
-        next: num(4),
+        next: ethers.BigNumber.from(4),
+        prev: ethers.BigNumber.from(3),
+        total: ethers.BigNumber.from(18),
       });
     });
 
@@ -509,8 +519,8 @@ describe("Issuers", () => {
       // get the second attribute
       const issuerAttr = await tir.getIssuerAttributeByHash(issuerHashes[0]);
       expect(getEthObject(issuerAttr)).to.eql({
-        did: rootTAO1.did,
         attribData: attr,
+        did: rootTAO1.did,
         issuerType: IssuerType.Revoked,
         rootTao: rootTAO1.did,
         tao: rootTAO1.did,
@@ -539,8 +549,8 @@ describe("Issuers", () => {
       // get the second attribute
       const issuerAttr = await tir.getIssuerAttributeByHash(issuerHashes[0]);
       expect(getEthObject(issuerAttr)).to.eql({
-        did: rootTAO1.did,
         attribData: "0x",
+        did: rootTAO1.did,
         issuerType: IssuerType.Revoked,
         rootTao: rootTAO1.did,
         tao: rootTAO1.did,
@@ -811,7 +821,7 @@ describe("Issuers", () => {
         didIssuer,
         proxyId,
       );
-      expect(proxyDataReturned).to.not.eq(undefined);
+      expect(proxyDataReturned).to.eq(proxyData1);
     });
 
     it("updateIssuerProxy: update a specific proxy record", async () => {

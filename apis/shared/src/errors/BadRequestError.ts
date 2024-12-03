@@ -5,9 +5,9 @@ import { ProblemDetailsError } from "./ProblemDetailsError.js";
  */
 
 export class BadRequestError extends ProblemDetailsError {
-  static statusCode = 400;
-
   static defaultTitle = "Bad Request";
+
+  static statusCode = 400;
 
   /**
    * @param title A short, human-readable summary of the problem type. It SHOULD NOT change from occurrence to occurrence of the problem, except for purposes of localization.
@@ -20,10 +20,10 @@ export class BadRequestError extends ProblemDetailsError {
   constructor(
     title: string = BadRequestError.defaultTitle,
     options?: {
-      type?: string;
       detail?: string;
-      instance?: string;
       extensions?: Record<string, unknown>;
+      instance?: string;
+      type?: string;
     },
   ) {
     super(BadRequestError.statusCode, title, options);

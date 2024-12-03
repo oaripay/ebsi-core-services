@@ -1,26 +1,17 @@
 import { isBaseDocument, isDidV1, isPublicKeyHex } from "@ebsiint-api/shared";
-import { z } from "zod";
 import {
   BigNumber,
-  isBigNumberish,
   type BigNumberish,
-  // eslint-disable-next-line import/extensions
+  isBigNumberish,
 } from "@ethersproject/bignumber/lib/bignumber.js";
-import { jsonRpcSchema } from "./JsonRpcSchema.js";
+import { z } from "zod";
+
 import { baseParamSchema } from "./BaseParamSchema.js";
+import { jsonRpcSchema } from "./JsonRpcSchema.js";
 
 export const insertDidDocumentSchema = baseParamSchema
   .merge(
     z.object({
-      did: z.string().superRefine((val, ctx) => {
-        const didValidation = isDidV1(val);
-        if (!didValidation.success) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: didValidation.error,
-          });
-        }
-      }),
       baseDocument: z.string().superRefine((val, ctx) => {
         const baseDocumentValidation = isBaseDocument(val);
         if (!baseDocumentValidation.success) {
@@ -30,19 +21,28 @@ export const insertDidDocumentSchema = baseParamSchema
           });
         }
       }),
-      publicKey: z.string(),
-      vMethodId: z.string(),
+      did: z.string().superRefine((val, ctx) => {
+        const didValidation = isDidV1(val);
+        if (!didValidation.success) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: didValidation.error,
+          });
+        }
+      }),
       isSecp256k1: z.literal(true),
-      notBefore: z
-        .custom<BigNumberish>((val) => isBigNumberish(val))
-        .refine((val) => BigNumber.from(val).gte(0), {
-          message: "Number must be greater than or equal to 0",
-        }),
       notAfter: z
         .custom<BigNumberish>((val) => isBigNumberish(val))
         .refine((val) => BigNumber.from(val).gte(0), {
           message: "Number must be greater than or equal to 0",
         }),
+      notBefore: z
+        .custom<BigNumberish>((val) => isBigNumberish(val))
+        .refine((val) => BigNumber.from(val).gte(0), {
+          message: "Number must be greater than or equal to 0",
+        }),
+      publicKey: z.string(),
+      vMethodId: z.string(),
     }),
   )
   .superRefine(async (val, ctx) => {
@@ -52,9 +52,9 @@ export const insertDidDocumentSchema = baseParamSchema
     if (!publicKeyHexValidation.success) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        path: ["publicKey"],
-        message: publicKeyHexValidation.error,
         fatal: true,
+        message: publicKeyHexValidation.error,
+        path: ["publicKey"],
       });
     }
 

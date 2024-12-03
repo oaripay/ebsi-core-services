@@ -1,12 +1,14 @@
-import { describe, beforeAll, it, expect } from "vitest";
-import request from "supertest";
-import { Test } from "@nestjs/testing";
+import type { RawServerDefault } from "fastify";
+
+import { fastifyAccepts } from "@fastify/accepts";
 import {
   FastifyAdapter,
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import type { RawServerDefault } from "fastify";
-import { fastifyAccepts } from "@fastify/accepts";
+import { Test } from "@nestjs/testing";
+import request from "supertest";
+import { beforeAll, describe, expect, it } from "vitest";
+
 import { OpenApiModule } from "./openapi.module.js";
 
 describe("OpenApiController", () => {

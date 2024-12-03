@@ -1,31 +1,28 @@
-import { ethers, network, upgrades } from "hardhat";
-import { Contract } from "ethers";
 import { expect } from "chai";
-import { SchemaSCRegistry } from "../src/types";
+import { ethers, network, upgrades } from "hardhat";
+
+import type { PolicyRegistryMock, SchemaSCRegistry } from "../src/types";
+
 import { testTprAddress } from "./testAddress";
 
+async function getFactories() {
+  const schemaLibFactory = await ethers.getContractFactory("SchemaLib", {});
+  const schemaLib = await schemaLibFactory.deploy();
+
+  const contractFactory = await ethers.getContractFactory("SchemaSCRegistry", {
+    libraries: {
+      SchemaLib: schemaLib.address,
+    },
+  });
+  return {
+    contractFactory,
+    schemaLibFactory,
+  };
+}
+
 describe("Schema", () => {
-  let ts: Contract;
-  let policyContractMock: Contract;
-
-  async function getFactories() {
-    const schemaLibFactory = await ethers.getContractFactory("SchemaLib", {});
-    const schemaLib = await schemaLibFactory.deploy();
-
-    const contractFactory = await ethers.getContractFactory(
-      "SchemaSCRegistry",
-      {
-        libraries: {
-          SchemaLib: schemaLib.address,
-        },
-      },
-    );
-
-    return {
-      schemaLibFactory,
-      contractFactory,
-    };
-  }
+  let ts: SchemaSCRegistry;
+  let policyContractMock: PolicyRegistryMock;
 
   before(async () => {
     const policyRegistryFactory =
@@ -38,12 +35,12 @@ describe("Schema", () => {
 
   beforeEach(async () => {
     const { contractFactory } = await getFactories();
-    ts = (await contractFactory.deploy(testTprAddress)) as SchemaSCRegistry;
+    ts = await contractFactory.deploy(testTprAddress);
     await policyContractMock.setPolicyResult(true);
   });
 
   it("should get current version", async () => {
-    await expect((await ts.version()).toString()).to.equal("0");
+    expect((await ts.version()).toString()).to.equal("0");
   });
 
   it("should not initialize if not proxy", async () => {
@@ -54,28 +51,28 @@ describe("Schema", () => {
 
   it("should initialize if proxy", async () => {
     const { contractFactory } = await getFactories();
-    const tsProxy = await upgrades.deployProxy(contractFactory, [42], {
+    const tsProxy = (await upgrades.deployProxy(contractFactory, [42], {
+      constructorArgs: [testTprAddress],
       unsafeAllow: [
         "constructor",
         "external-library-linking",
         "state-variable-immutable",
       ],
-      constructorArgs: [testTprAddress],
-    });
+    })) as SchemaSCRegistry;
     await tsProxy.deployed();
-    await expect((await tsProxy.version()).toString()).to.equal("42");
+    expect((await tsProxy.version()).toString()).to.equal("42");
   });
 
   it("should fail with invalid construct args", async () => {
     const { contractFactory } = await getFactories();
-    expect(
+    await expect(
       upgrades.deployProxy(contractFactory, [42], {
+        constructorArgs: [ethers.constants.AddressZero],
         unsafeAllow: [
           "constructor",
           "external-library-linking",
           "state-variable-immutable",
         ],
-        constructorArgs: [ethers.constants.AddressZero],
       }),
     ).to.be.revertedWith("zero address");
   });
@@ -178,7 +175,7 @@ describe("Schema", () => {
     for (let i = 1; i <= 10; i += 1) {
       const schemaId = ethers.utils.toUtf8Bytes(`schemaId-${i}`);
       const schemaRevision = ethers.utils.toUtf8Bytes(`schema-${i}`);
-      // eslint-disable-next-line no-await-in-loop
+
       await ts.insertSchema(schemaId, schemaRevision, metadata);
       schemaIds.push(ethers.utils.hexlify(schemaId));
     }
@@ -235,13 +232,9 @@ describe("Schema", () => {
     for (let i = 1; i <= 3; i += 1) {
       const schemaRevision = ethers.utils.toUtf8Bytes(`schema-${i}`);
       const metadata = ethers.utils.toUtf8Bytes(`metadata-${i}`);
-      if (i > 1) {
-        // eslint-disable-next-line no-await-in-loop
-        await ts.updateSchema(schemaId, schemaRevision, metadata);
-      } else {
-        // eslint-disable-next-line no-await-in-loop
-        await ts.insertSchema(schemaId, schemaRevision, metadata);
-      }
+      await (i > 1
+        ? ts.updateSchema(schemaId, schemaRevision, metadata)
+        : ts.insertSchema(schemaId, schemaRevision, metadata));
     }
     const result = await ts.getLatestSchemaRevision(schemaId);
     expect(result).to.be.equal(
@@ -274,13 +267,9 @@ describe("Schema", () => {
     for (let i = 1; i <= 10; i += 1) {
       const metadata = ethers.utils.toUtf8Bytes(`metadata-${i}`);
       const schemaRevision = ethers.utils.toUtf8Bytes(`schema-${i}`);
-      if (i > 1) {
-        // eslint-disable-next-line no-await-in-loop
-        await ts.updateSchema(schemaId, schemaRevision, metadata);
-      } else {
-        // eslint-disable-next-line no-await-in-loop
-        await ts.insertSchema(schemaId, schemaRevision, metadata);
-      }
+      await (i > 1
+        ? ts.updateSchema(schemaId, schemaRevision, metadata)
+        : ts.insertSchema(schemaId, schemaRevision, metadata));
       revisionsIds.push(ethers.utils.sha256(schemaRevision));
     }
 
@@ -505,7 +494,7 @@ describe("Schema", () => {
 
     for (let i = 1; i <= 10; i += 1) {
       const m = ethers.utils.toUtf8Bytes(`metadata+${i}`);
-      // eslint-disable-next-line no-await-in-loop
+
       await ts.updateMetadata(schemaRevisionId, m);
 
       metadataIds.push(ethers.utils.sha256(m));

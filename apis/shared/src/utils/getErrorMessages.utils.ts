@@ -1,26 +1,8 @@
 import * as ClassValidator from "class-validator";
 import { ZodError } from "zod";
+
 import { ProblemDetailsError } from "../errors/ProblemDetailsError.js";
 import { isEthersError } from "./isEthersError.js";
-
-export function getErrorMessages(
-  errors: ClassValidator.ValidationError[],
-): string[] {
-  return errors
-    .map((err) => {
-      const errorMessages: string[] = [];
-      if (err.constraints) {
-        errorMessages.push(...Object.values(err.constraints));
-      }
-
-      if (err.children) {
-        errorMessages.push(...getErrorMessages(err.children));
-      }
-
-      return errorMessages;
-    })
-    .flat();
-}
 
 export function getErrorMessage(error: unknown, defaultErrorMessage?: string) {
   if (isEthersError(error)) {
@@ -48,4 +30,21 @@ export function getErrorMessage(error: unknown, defaultErrorMessage?: string) {
   }
 
   return defaultErrorMessage ?? "Unknown error";
+}
+
+export function getErrorMessages(
+  errors: ClassValidator.ValidationError[],
+): string[] {
+  return errors.flatMap((err) => {
+    const errorMessages: string[] = [];
+    if (err.constraints) {
+      errorMessages.push(...Object.values(err.constraints));
+    }
+
+    if (err.children) {
+      errorMessages.push(...getErrorMessages(err.children));
+    }
+
+    return errorMessages;
+  });
 }

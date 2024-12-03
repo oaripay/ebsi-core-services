@@ -1,5 +1,6 @@
-import { describe, it, expect } from "vitest";
-import { UriTooLongError, ProblemDetailsError } from "../index.js";
+import { describe, expect, it } from "vitest";
+
+import { ProblemDetailsError, UriTooLongError } from "../index.js";
 
 describe("error UriTooLongError", () => {
   it("should extend ProblemDetailsError", () => {
@@ -22,10 +23,10 @@ describe("error UriTooLongError", () => {
     expect.assertions(7);
 
     const error = new UriTooLongError("Test Error", {
-      type: "test",
       extensions: {
         custom: "value",
       },
+      type: "test",
     });
 
     expect(error.name).toBe("UriTooLongError");
@@ -41,14 +42,15 @@ describe("error UriTooLongError", () => {
     expect.assertions(2);
 
     const error = new UriTooLongError("Test Error", {
-      type: "test",
       extensions: {
         custom: "value",
       },
+      type: "test",
     });
     const jsonError = error.toJSON();
 
     // JSON.stringify should call toJSON
+    // eslint-disable-next-line unicorn/prefer-structured-clone
     expect(JSON.parse(JSON.stringify(error))).toStrictEqual(jsonError);
     expect(jsonError).toStrictEqual({
       custom: "value",
@@ -62,10 +64,10 @@ describe("error UriTooLongError", () => {
     expect.assertions(1);
 
     const error = new UriTooLongError("Test Error", {
-      type: "test",
       extensions: {
         custom: "value",
       },
+      type: "test",
     });
 
     expect(error.toString()).toBe(`${UriTooLongError.statusCode} - Test Error`);

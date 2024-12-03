@@ -18,31 +18,31 @@ async function main() {
   const proxyAddress = "0x37F2364856fCB8a4B2F70dB231D5791Ab6432248";
   const [deployer, admin] = await ethers.getSigners();
   const contractFactory = await ethers.getContractFactory("Timestamp", {
-    signer: admin,
     libraries: {
       HashAlgoLib: "0x1e604CF94A6D9907CfceB0F61a753Dd7db98e702",
-      TimestampLib: "0x0654fC6108A0C8C9aEB2E134414F161BBE8e1854",
       RecordLib: "0xE65d87135cA2e45C705581CcACDe55CFD1A78AD4",
+      TimestampLib: "0x0654fC6108A0C8C9aEB2E134414F161BBE8e1854",
     },
+    signer: admin,
   });
-  const ts = await contractFactory.attach(proxyAddress);
+  const ts = contractFactory.attach(proxyAddress);
 
   console.log(
     `deployer:${deployer.address}
      admin:${admin.address}
-     version:${ts.version()}`,
+     version:${(await ts.version()).toString()}`,
   );
   const initialVersion = await ts.version();
   console.log(initialVersion);
   console.log("initialVersion:", initialVersion.toString());
 
   // add hashAlgo
-  await ts.insertHashAlgorithm(256, "SHA256", "oid", 1);
-  await ts.insertHashAlgorithm(512, "SHA512", "oid2", 1);
-  await ts.insertHashAlgorithm(256, "SHA3-256", "oid3", 1);
-  const halgo = await ts.getHashAlgorithmById(1);
+  await ts.insertHashAlgorithm(256, "SHA256", "oid", 1, "sha2-256");
+  await ts.insertHashAlgorithm(512, "SHA512", "oid2", 1, "sha2-512");
+  await ts.insertHashAlgorithm(256, "SHA3-256", "oid3", 1, "sha3-256");
+  const algo = await ts.getHashAlgorithmById(1);
   console.log(
-    `halgorithm ${halgo.ianaName} oid:${halgo.oid} length:${halgo.outputLength} status:${halgo.status}`,
+    `algorithm ${algo.ianaName} oid:${algo.oid} length:${algo.outputLength.toString()} status:${algo.status}`,
   );
 }
 

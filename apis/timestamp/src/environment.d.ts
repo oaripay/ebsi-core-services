@@ -2,16 +2,16 @@
 declare global {
   namespace NodeJS {
     interface ProcessEnv {
-      NODE_ENV: "development" | "production" | "test";
       API_PORT?: string;
       API_URL_PREFIX?: string;
-      BESU_RPC_NODE: string;
       BESU_READINESS_ENDPOINT: string;
-      LOG_LEVEL?: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
-      DOCKER_TAG?: string;
+      BESU_RPC_NODE: string;
       CONTRACT_ADDR: string;
+      DOCKER_TAG?: string;
       DOMAIN: string;
       LOCAL_ORIGIN?: string;
+      LOG_LEVEL?: "debug" | "error" | "info" | "silent" | "verbose" | "warn";
+      NODE_ENV: "development" | "production" | "test";
       REQUEST_TIMEOUT?: string;
       TEST_ADMIN_PRIVATE_KEY?: string;
       TEST_ENV?: string;

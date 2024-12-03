@@ -1,28 +1,17 @@
-import { randomBytes, randomUUID } from "node:crypto";
-import { describe, beforeAll, afterAll, it, expect, beforeEach } from "vitest";
-import request from "supertest";
-import { ethers } from "ethers";
-import { http, HttpResponse } from "msw";
-import { setupServer } from "msw/node";
-import { Test } from "@nestjs/testing";
-import { ConfigService } from "@nestjs/config";
-import { ValidationPipe, Logger } from "@nestjs/common";
-import {
-  FastifyAdapter,
-  type NestFastifyApplication,
-} from "@nestjs/platform-fastify";
+import type {
+  PaginatedList,
+  StatusList2021Credential,
+} from "@ebsiint-api/shared";
 import type { RawServerDefault } from "fastify";
-import { fastifyAccepts } from "@fastify/accepts";
-import { fastifyHelmet } from "@fastify/helmet";
-import { useContainer } from "class-validator";
-import { EbsiWallet } from "@cef-ebsi/wallet-lib";
+
+import { fromUrl } from "@cef-ebsi/ebsi-uri";
 import {
   createVerifiableCredentialJwt,
   type EbsiEnvConfiguration,
   type EbsiIssuer,
   type EbsiVerifiableAttestation,
 } from "@cef-ebsi/verifiable-credential";
-import { fromUrl } from "@cef-ebsi/ebsi-uri";
+import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import {
   getPublicKeyJwk,
   getSigner,
@@ -31,27 +20,30 @@ import {
   remove0xPrefix,
   waitToBeMined,
 } from "@ebsiint-api/shared";
-import type {
-  StatusList2021Credential,
-  PaginatedList,
-} from "@ebsiint-api/shared";
+import { fastifyAccepts } from "@fastify/accepts";
+import { fastifyHelmet } from "@fastify/helmet";
+import { Logger, ValidationPipe } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import {
+  FastifyAdapter,
+  type NestFastifyApplication,
+} from "@nestjs/platform-fastify";
+import { Test } from "@nestjs/testing";
+import { useContainer } from "class-validator";
 import { hexToBytes } from "did-jwt";
+import { ethers } from "ethers";
+import { http, HttpResponse } from "msw";
+import { setupServer } from "msw/node";
+import { randomBytes, randomUUID } from "node:crypto";
+import request from "supertest";
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
+
 import type { ApiConfig } from "../../src/config/configuration.js";
-import { AppModule } from "../../src/app.module.js";
-import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
 import type {
-  IdLink,
   DidLink,
+  IdLink,
   IssuerProxyResponseObject,
 } from "../../src/modules/issuers/issuers.interface.js";
-import {
-  IssuerType,
-  IssuerTypeNames,
-} from "../../src/modules/issuers/issuers.constants.js";
-import type { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface.js";
-import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils.js";
-import { createIssuer } from "../utils/tir.js";
-import type { IssuerObject } from "../utils/tir.js";
 import type {
   AddIssuerProxyParam,
   InsertIssuerParam,
@@ -61,30 +53,41 @@ import type {
   UpdateIssuerParam,
   UpdateIssuerProxyParam,
 } from "../../src/modules/jsonrpc/dto/index.js";
-import { describeWriteOps } from "../utils/describeWriteOps.js";
-import { getServer } from "../utils/getServer.js";
+import type { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface.js";
+import type { IssuerObject } from "../utils/tir.js";
+
+import { AppModule } from "../../src/app.module.js";
+import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
+import {
+  IssuerType,
+  IssuerTypeNames,
+} from "../../src/modules/issuers/issuers.constants.js";
+import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils.js";
 import { describeLocalTestEnvOnly } from "../utils/describeLocalTestEnvOnly.js";
+import { describeWriteOps } from "../utils/describeWriteOps.js";
 import {
   getDidrWriteAccessToken,
   getTirInviteAccessToken,
   getTirWriteAccessToken,
 } from "../utils/getAccessToken.js";
-
-interface SupertestJsonRpcResponse {
-  status: number;
-  body: JsonRpcResponseObject;
-}
-
-interface SupertestIssuersResponse {
-  status: number;
-  body: PaginatedList<DidLink>;
-}
+import { getServer } from "../utils/getServer.js";
+import { createIssuer } from "../utils/tir.js";
 
 interface SupertestAttributesResponse {
-  status: number;
   body: {
     items: IdLink[];
   };
+  status: number;
+}
+
+interface SupertestIssuersResponse {
+  body: PaginatedList<DidLink>;
+  status: number;
+}
+
+interface SupertestJsonRpcResponse {
+  body: JsonRpcResponseObject;
+  status: number;
 }
 
 interface TestIssuer {
@@ -97,9 +100,9 @@ async function getEbsiIssuer(privateKeyHex: string, did: string, kid?: string) {
   const privateKey = hexToBytes(privateKeyHex);
   const publicKeyJwk = await getPublicKeyJwk(privateKey, "ES256K");
   const issuer: EbsiIssuer = {
+    alg: "ES256K",
     did,
     kid: kid ?? publicKeyJwk.kid,
-    alg: "ES256K",
     signer: getSigner(privateKey, "ES256K"),
   };
   return issuer;
@@ -118,8 +121,8 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
     let authorisationApiUrl: string;
     let sampleTransaction: string;
     let blockscout: {
-      url: string;
       bearerToken: string;
+      url: string;
     };
     let trustedHostnames: string[];
     let adminIssuer: TestIssuer;
@@ -139,25 +142,6 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
           "https://www.w3.org/2018/credentials/v1",
           "https://w3id.org/vc/status-list/2021/v1",
         ],
-        id: `${issuerProxy.prefix}${issuerProxy.testSuffix}`,
-        type: [
-          "VerifiableCredential",
-          "VerifiableAttestation",
-          "StatusList2021Credential",
-        ],
-        issuer: issuer.did,
-        issued: "2021-04-05T14:27:40Z",
-        issuanceDate: "2021-04-05T14:27:40Z",
-        validFrom: "2021-04-05T14:27:40Z",
-        credentialSubject: {
-          // Note: the VC lib requires that credentialSubject.id is a valid EBSI DID. We can't use a URL here!
-          // id: `${issuer.proxy.rawProxyData.prefix}${issuer.proxy.rawProxyData.testSuffix}#list`,
-          id: issuer.did,
-          type: "StatusList2021",
-          statusPurpose: "revocation",
-          encodedList:
-            "H4sIAAAAAAAAA-3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAAAAAAIC3AYbSVKsAQAAA",
-        },
         credentialSchema: [
           {
             id:
@@ -174,6 +158,25 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
             type: "FullJsonSchemaValidator2021",
           },
         ],
+        credentialSubject: {
+          encodedList:
+            "H4sIAAAAAAAAA-3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAAAAAAIC3AYbSVKsAQAAA",
+          // Note: the VC lib requires that credentialSubject.id is a valid EBSI DID. We can't use a URL here!
+          // id: `${issuer.proxy.rawProxyData.prefix}${issuer.proxy.rawProxyData.testSuffix}#list`,
+          id: issuer.did,
+          statusPurpose: "revocation",
+          type: "StatusList2021",
+        },
+        id: `${issuerProxy.prefix}${issuerProxy.testSuffix}`,
+        issuanceDate: "2021-04-05T14:27:40Z",
+        issued: "2021-04-05T14:27:40Z",
+        issuer: issuer.did,
+        type: [
+          "VerifiableCredential",
+          "VerifiableAttestation",
+          "StatusList2021Credential",
+        ],
+        validFrom: "2021-04-05T14:27:40Z",
       };
       const newIssuer1StatusList2021CredentialJwt =
         await createVerifiableCredentialJwt(
@@ -241,8 +244,8 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
       server = getServer(app, configService);
 
       blockscout = configService.get<{
-        url: string;
         bearerToken: string;
+        url: string;
       }>("blockscout");
       trustedHostnames = configService.get<string[]>("trustedHostnames");
       ebsiAuthority = configService
@@ -250,8 +253,8 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
         .replace(/^https?:\/\//, "");
       ledgerApi = `${configService.get<string>("ledgerApiUrl")}/blockchains/besu`;
       ebsiEnvConfig = {
-        network: configService.get("network", { infer: true }),
         hosts: [ebsiAuthority, ...trustedHostnames],
+        network: configService.get("network", { infer: true }),
         services: {
           "did-registry": "v4",
           "trusted-issuers-registry": "v4",
@@ -310,10 +313,9 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
           ),
           wallet: testIssuerWithProxyWallet,
         };
-      } catch (e) {
-        // eslint-disable-next-line no-console
-        console.error(e);
-        throw e;
+      } catch (error) {
+        console.error(error);
+        throw error;
       }
 
       // Import "admin" issuer (TI with policies to call the SC methods)
@@ -339,10 +341,9 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
           ),
           wallet: adminWallet,
         };
-      } catch (e) {
-        // eslint-disable-next-line no-console
-        console.error(e);
-        throw e;
+      } catch (error) {
+        console.error(error);
+        throw error;
       }
     });
 
@@ -391,30 +392,31 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
               .post("/jsonrpc")
               .auth(didWriteAccessToken, { type: "bearer" })
               .send({
+                id: 231,
                 jsonrpc: "2.0",
                 method: "insertDidDocument",
                 params: [
                   {
-                    from: adminIssuer.wallet.address,
-                    did: newIssuerInfo.did,
                     baseDocument: JSON.stringify({
                       "@context": [
                         "https://www.w3.org/ns/did/v1",
                         "https://w3id.org/security/suites/jws-2020/v1", // Required
                       ],
                     }),
-                    vMethodId: newIssuerInfo.kid.split("#")[1],
-                    publicKey: newIssuerWallet.publicKey,
+                    did: newIssuerInfo.did,
+                    from: adminIssuer.wallet.address,
                     isSecp256k1: true,
-                    notBefore: now,
                     notAfter: in6months,
+                    notBefore: now,
+                    publicKey: newIssuerWallet.publicKey,
+                    vMethodId: newIssuerInfo.kid.split("#")[1],
                   },
                 ],
-                id: 231,
               });
 
             let unsignedTransaction = responseBuild.body.result;
             let uTx = formatEthersUnsignedTransaction(
+              // eslint-disable-next-line unicorn/prefer-structured-clone
               JSON.parse(
                 JSON.stringify(unsignedTransaction),
               ) as UnsignedTransaction,
@@ -428,19 +430,19 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
               .post("/jsonrpc")
               .auth(didWriteAccessToken, { type: "bearer" })
               .send({
+                id: "45",
                 jsonrpc: "2.0",
                 method: "sendSignedTransaction",
                 params: [
                   {
                     protocol: "eth",
-                    unsignedTransaction,
                     r: parsedTx.r,
                     s: parsedTx.s,
-                    v: `0x${Number(parsedTx.v).toString(16)}`,
                     signedRawTransaction: sgnTx,
+                    unsignedTransaction,
+                    v: `0x${Number(parsedTx.v).toString(16)}`,
                   },
                 ],
-                id: "45",
               });
 
             // Wait to be mined
@@ -451,23 +453,24 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
               .post("/jsonrpc")
               .auth(adminIssuer.token, { type: "bearer" })
               .send({
+                id: 231,
                 jsonrpc: "2.0",
                 method: "setAttributeMetadata",
                 params: [
                   {
-                    from: adminIssuer.wallet.address,
-                    did: newIssuerDid,
                     attributeId: `0x${randomBytes(32).toString("hex")}`,
+                    did: newIssuerDid,
+                    from: adminIssuer.wallet.address,
                     issuerType: IssuerType.RootTAO,
-                    taoDid: newIssuerDid,
                     taoAttributeId: `0x${"0".repeat(64)}`,
+                    taoDid: newIssuerDid,
                   } as SetAttributeMetadataParam,
                 ],
-                id: 231,
               });
 
             unsignedTransaction = responseBuild.body.result;
             uTx = formatEthersUnsignedTransaction(
+              // eslint-disable-next-line unicorn/prefer-structured-clone
               JSON.parse(
                 JSON.stringify(unsignedTransaction),
               ) as UnsignedTransaction,
@@ -479,19 +482,19 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
               .post("/jsonrpc")
               .auth(adminIssuer.token, { type: "bearer" })
               .send({
+                id: "45",
                 jsonrpc: "2.0",
                 method: "sendSignedTransaction",
                 params: [
                   {
                     protocol: "eth",
-                    unsignedTransaction,
                     r: parsedTx.r,
                     s: parsedTx.s,
-                    v: `0x${Number(parsedTx.v).toString(16)}`,
                     signedRawTransaction: sgnTx,
+                    unsignedTransaction,
+                    v: `0x${Number(parsedTx.v).toString(16)}`,
                   },
                 ],
-                id: "45",
               });
 
             // Wait to be mined
@@ -508,18 +511,6 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
             );
             const vcPayload: EbsiVerifiableAttestation = {
               "@context": ["https://www.w3.org/2018/credentials/v1"],
-              id: `urn:uuid:${randomUUID()}`,
-              type: [
-                "VerifiableCredential",
-                "VerifiableAttestation",
-                "VerifiableAccreditationToAccredit",
-              ],
-              issuer: adminIssuer.info.did,
-              issuanceDate: `${issuanceDate.toISOString().slice(0, -5)}Z`,
-              issued: `${issuanceDate.toISOString().slice(0, -5)}Z`,
-              validFrom: `${issuanceDate.toISOString().slice(0, -5)}Z`,
-              expirationDate: `${expirationDate.toISOString().slice(0, -5)}Z`,
-              credentialSubject: { id: newIssuerDid },
               credentialSchema: {
                 id:
                   uriType === "URL"
@@ -527,10 +518,22 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
                     : fromUrl(verifiableAttestationSchemaUrl),
                 type: "FullJsonSchemaValidator2021",
               },
+              credentialSubject: { id: newIssuerDid },
+              expirationDate: `${expirationDate.toISOString().slice(0, -5)}Z`,
+              id: `urn:uuid:${randomUUID()}`,
+              issuanceDate: `${issuanceDate.toISOString().slice(0, -5)}Z`,
+              issued: `${issuanceDate.toISOString().slice(0, -5)}Z`,
+              issuer: adminIssuer.info.did,
               termsOfUse: {
                 id: uriType === "URL" ? termsOfUseUrl : fromUrl(termsOfUseUrl),
                 type: "IssuanceCertificate",
               },
+              type: [
+                "VerifiableCredential",
+                "VerifiableAttestation",
+                "VerifiableAccreditationToAccredit",
+              ],
+              validFrom: `${issuanceDate.toISOString().slice(0, -5)}Z`,
             };
             const vcJwt = await createVerifiableCredentialJwt(
               vcPayload,
@@ -553,10 +556,9 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
                 ),
                 wallet: newIssuerWallet,
               };
-            } catch (e) {
-              // eslint-disable-next-line no-console
-              console.error(e);
-              throw e;
+            } catch (error) {
+              console.error(error);
+              throw error;
             }
           }
 
@@ -584,7 +586,7 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
           switch (method) {
             case "insertIssuer":
             case "updateIssuer": {
-              const { did, attribute, tao, taoAttributeId, issuerType } =
+              const { attribute, did, issuerType, tao, taoAttributeId } =
                 createIssuer(IssuerType.RootTAO);
               let prevAttributeHash = "";
 
@@ -593,39 +595,39 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
                   "0x9045517cc555c75cd7085900a900e6693439086f9eddeee513271fba278964fe";
               }
               params = {
-                from: sender.wallet.address,
-                did,
                 attributeData: attribute.hex,
-                taoDid: tao,
-                taoAttributeId,
+                did,
+                from: sender.wallet.address,
                 issuerType,
+                taoAttributeId,
+                taoDid: tao,
                 ...(prevAttributeHash && { prevAttributeHash }),
               } as InsertIssuerParam;
-              break;
-            }
-            case "setAttributeMetadata": {
-              const { did, attribute, tao, taoAttributeId, issuerType } =
-                createIssuer(IssuerType.RootTAO);
-
-              params = {
-                from: sender.wallet.address,
-                did,
-                attributeId: attribute.id,
-                taoDid: tao,
-                taoAttributeId,
-                issuerType,
-              } as SetAttributeMetadataParam;
               break;
             }
             case "setAttributeData": {
               const { attribute } = createIssuer(IssuerType.RootTAO);
 
               params = {
-                from: sender.wallet.address,
-                did: newIssuer.info.did,
-                attributeId: attribute.id,
                 attributeData: attribute.hex,
+                attributeId: attribute.id,
+                did: newIssuer.info.did,
+                from: sender.wallet.address,
               } as SetAttributeDataParam;
+              break;
+            }
+            case "setAttributeMetadata": {
+              const { attribute, did, issuerType, tao, taoAttributeId } =
+                createIssuer(IssuerType.RootTAO);
+
+              params = {
+                attributeId: attribute.id,
+                did,
+                from: sender.wallet.address,
+                issuerType,
+                taoAttributeId,
+                taoDid: tao,
+              } as SetAttributeMetadataParam;
               break;
             }
             default: {
@@ -637,15 +639,15 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
             .post("/jsonrpc")
             .auth(sender.token, { type: "bearer" })
             .send({
+              id: 231,
               jsonrpc: "2.0",
               method,
               params: [params],
-              id: 231,
             });
 
           expect(responseBuild.body).toStrictEqual({
-            jsonrpc: "2.0",
             id: 231,
+            jsonrpc: "2.0",
             result: {
               chainId: expect.any(String),
               data: expect.any(String),
@@ -672,123 +674,27 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
             case "insertIssuer": {
               // create a new issuer and add newIssuer1.attribute
               params = {
-                from: sender.wallet.address,
-                did,
                 attributeData: newIssuer1.attribute.hex,
+                did,
+                from: sender.wallet.address,
                 issuerType: newIssuer1.issuerType,
-                taoDid: newIssuer1.tao,
                 taoAttributeId: newIssuer1.taoAttributeId,
+                taoDid: newIssuer1.tao,
               } as InsertIssuerParam;
 
               extraTestUrl = `/issuers/${did}`;
 
               extraTestExpectedResponse = {
-                did,
                 attributes: [
                   {
                     body: newIssuer1.attribute.utf8,
                     hash: remove0xPrefix(newIssuer1.attribute.id),
                     issuerType: IssuerTypeNames[newIssuer1.issuerType],
-                    tao: newIssuer1.tao,
                     rootTao: newIssuer1.rootTao,
+                    tao: newIssuer1.tao,
                   },
                 ],
-              };
-
-              break;
-            }
-            case "updateIssuer": {
-              if (updateAttribute) {
-                // update newIssuer1.attribute: change it to newIssuer3.attribute
-                params = {
-                  from: sender.wallet.address,
-                  did,
-                  attributeData: newIssuer3.attribute.hex,
-                  prevAttributeHash: newIssuer1.attribute.id,
-                  issuerType: newIssuer3.issuerType,
-                  taoDid: newIssuer3.tao,
-                  taoAttributeId: newIssuer3.taoAttributeId,
-                } as UpdateIssuerParam;
-
-                extraTestUrl = `/issuers/${did}`;
-
-                extraTestExpectedResponse = {
-                  did,
-                  attributes: [
-                    {
-                      body: newIssuer3.attribute.utf8,
-                      hash: remove0xPrefix(newIssuer3.attribute.id),
-                      issuerType: IssuerTypeNames[newIssuer3.issuerType],
-                      tao: newIssuer1.tao,
-                      rootTao: newIssuer1.rootTao,
-                    },
-                    {
-                      body: newIssuer2.attribute.utf8,
-                      hash: remove0xPrefix(newIssuer2.attribute.id),
-                      issuerType: IssuerTypeNames[newIssuer2.issuerType],
-                      tao: newIssuer1.tao,
-                      rootTao: newIssuer1.rootTao,
-                    },
-                  ],
-                };
-              } else {
-                // updateIssuer: add newIssuer2.attribute
-                params = {
-                  from: sender.wallet.address,
-                  did,
-                  attributeData: newIssuer2.attribute.hex,
-                  issuerType: newIssuer2.issuerType,
-                  taoDid: newIssuer2.tao,
-                  taoAttributeId: newIssuer2.taoAttributeId,
-                } as UpdateIssuerParam;
-
-                extraTestUrl = `/issuers/${did}`;
-
-                extraTestExpectedResponse = {
-                  did,
-                  attributes: [
-                    {
-                      body: newIssuer1.attribute.utf8,
-                      hash: remove0xPrefix(newIssuer1.attribute.id),
-                      issuerType: IssuerTypeNames[newIssuer1.issuerType],
-                      tao: newIssuer1.tao,
-                      rootTao: newIssuer1.rootTao,
-                    },
-                    {
-                      body: newIssuer2.attribute.utf8,
-                      hash: remove0xPrefix(newIssuer2.attribute.id),
-                      issuerType: IssuerTypeNames[newIssuer2.issuerType],
-                      tao: newIssuer1.tao,
-                      rootTao: newIssuer1.rootTao,
-                    },
-                  ],
-                };
-              }
-              break;
-            }
-            case "setAttributeMetadata": {
-              params = {
-                from: sender.wallet.address,
-                did: sender.info.did,
-                attributeId: prefixWith0x(senderFirstAttributeId),
-                issuerType: 1, // RootTAO
-                taoDid: newIssuer1.tao,
-                taoAttributeId: newIssuer1.taoAttributeId,
-              } as SetAttributeMetadataParam;
-
-              extraTestUrl = `/issuers/${sender.info.did}`;
-
-              extraTestExpectedResponse = {
-                did: sender.info.did,
-                attributes: expect.arrayContaining([
-                  {
-                    body: expect.any(String),
-                    hash: expect.any(String),
-                    issuerType: "RootTAO",
-                    tao: sender.info.did,
-                    rootTao: sender.info.did,
-                  },
-                ]),
+                did,
               };
 
               break;
@@ -801,27 +707,123 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
               );
 
               params = {
-                from: sender.wallet.address,
-                did: sender.info.did,
-                attributeId: prefixWith0x(senderFirstAttributeId),
                 attributeData: `0x${newAttributeDataBuffer.toString("hex")}`,
+                attributeId: prefixWith0x(senderFirstAttributeId),
+                did: sender.info.did,
+                from: sender.wallet.address,
               } as SetAttributeDataParam;
 
               extraTestUrl = `/issuers/${sender.info.did}`;
 
               extraTestExpectedResponse = {
-                did: sender.info.did,
                 attributes: expect.arrayContaining([
                   {
                     body: newAttributeData,
                     hash: remove0xPrefix(newAttributeId),
                     issuerType: "RootTAO",
-                    tao: sender.info.did,
                     rootTao: sender.info.did,
+                    tao: sender.info.did,
                   },
                 ]),
+                did: sender.info.did,
               };
 
+              break;
+            }
+            case "setAttributeMetadata": {
+              params = {
+                attributeId: prefixWith0x(senderFirstAttributeId),
+                did: sender.info.did,
+                from: sender.wallet.address,
+                issuerType: 1, // RootTAO
+                taoAttributeId: newIssuer1.taoAttributeId,
+                taoDid: newIssuer1.tao,
+              } as SetAttributeMetadataParam;
+
+              extraTestUrl = `/issuers/${sender.info.did}`;
+
+              extraTestExpectedResponse = {
+                attributes: expect.arrayContaining([
+                  {
+                    body: expect.any(String),
+                    hash: expect.any(String),
+                    issuerType: "RootTAO",
+                    rootTao: sender.info.did,
+                    tao: sender.info.did,
+                  },
+                ]),
+                did: sender.info.did,
+              };
+
+              break;
+            }
+            case "updateIssuer": {
+              if (updateAttribute) {
+                // update newIssuer1.attribute: change it to newIssuer3.attribute
+                params = {
+                  attributeData: newIssuer3.attribute.hex,
+                  did,
+                  from: sender.wallet.address,
+                  issuerType: newIssuer3.issuerType,
+                  prevAttributeHash: newIssuer1.attribute.id,
+                  taoAttributeId: newIssuer3.taoAttributeId,
+                  taoDid: newIssuer3.tao,
+                } as UpdateIssuerParam;
+
+                extraTestUrl = `/issuers/${did}`;
+
+                extraTestExpectedResponse = {
+                  attributes: [
+                    {
+                      body: newIssuer3.attribute.utf8,
+                      hash: remove0xPrefix(newIssuer3.attribute.id),
+                      issuerType: IssuerTypeNames[newIssuer3.issuerType],
+                      rootTao: newIssuer1.rootTao,
+                      tao: newIssuer1.tao,
+                    },
+                    {
+                      body: newIssuer2.attribute.utf8,
+                      hash: remove0xPrefix(newIssuer2.attribute.id),
+                      issuerType: IssuerTypeNames[newIssuer2.issuerType],
+                      rootTao: newIssuer1.rootTao,
+                      tao: newIssuer1.tao,
+                    },
+                  ],
+                  did,
+                };
+              } else {
+                // updateIssuer: add newIssuer2.attribute
+                params = {
+                  attributeData: newIssuer2.attribute.hex,
+                  did,
+                  from: sender.wallet.address,
+                  issuerType: newIssuer2.issuerType,
+                  taoAttributeId: newIssuer2.taoAttributeId,
+                  taoDid: newIssuer2.tao,
+                } as UpdateIssuerParam;
+
+                extraTestUrl = `/issuers/${did}`;
+
+                extraTestExpectedResponse = {
+                  attributes: [
+                    {
+                      body: newIssuer1.attribute.utf8,
+                      hash: remove0xPrefix(newIssuer1.attribute.id),
+                      issuerType: IssuerTypeNames[newIssuer1.issuerType],
+                      rootTao: newIssuer1.rootTao,
+                      tao: newIssuer1.tao,
+                    },
+                    {
+                      body: newIssuer2.attribute.utf8,
+                      hash: remove0xPrefix(newIssuer2.attribute.id),
+                      issuerType: IssuerTypeNames[newIssuer2.issuerType],
+                      rootTao: newIssuer1.rootTao,
+                      tao: newIssuer1.tao,
+                    },
+                  ],
+                  did,
+                };
+              }
               break;
             }
             default: {
@@ -833,15 +835,15 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
             .post("/jsonrpc")
             .auth(sender.token, { type: "bearer" })
             .send({
+              id: 231,
               jsonrpc: "2.0",
               method,
               params: [params],
-              id: 231,
             });
 
           expect(responseBuild.body).toStrictEqual({
-            jsonrpc: "2.0",
             id: 231,
+            jsonrpc: "2.0",
             result: {
               chainId: expect.any(String),
               data: expect.any(String),
@@ -856,6 +858,7 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
 
           const unsignedTransaction = responseBuild.body.result;
           const uTx = formatEthersUnsignedTransaction(
+            // eslint-disable-next-line unicorn/prefer-structured-clone
             JSON.parse(
               JSON.stringify(unsignedTransaction),
             ) as UnsignedTransaction,
@@ -868,24 +871,24 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
             .post("/jsonrpc")
             .auth(sender.token, { type: "bearer" })
             .send({
+              id: "45",
               jsonrpc: "2.0",
               method: "sendSignedTransaction",
               params: [
                 {
                   protocol: "eth",
-                  unsignedTransaction,
                   r,
                   s,
-                  v: `0x${Number(v).toString(16)}`,
                   signedRawTransaction: sgnTx,
+                  unsignedTransaction,
+                  v: `0x${Number(v).toString(16)}`,
                 },
               ],
-              id: "45",
             });
 
           expect(responseSend.body).toStrictEqual({
-            jsonrpc: "2.0",
             id: "45",
+            jsonrpc: "2.0",
             result: expect.any(String),
           });
           expect(responseSend.status).toBe(200);
@@ -918,13 +921,33 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
             case "insertIssuer": {
               // create a new issuer and add newIssuer1.attribute
               params = {
-                from: sender.wallet.address,
-                did: EbsiWallet.createDid(),
                 attributeData: newIssuer4.attribute.hex,
-                taoDid: newIssuer4.tao,
+                did: EbsiWallet.createDid(),
+                from: sender.wallet.address,
                 issuerType: newIssuer4.issuerType,
                 taoAttributeId: newIssuer4.taoAttributeId,
+                taoDid: newIssuer4.tao,
               } as InsertIssuerParam;
+              break;
+            }
+            case "setAttributeData": {
+              params = {
+                attributeData: newIssuer4.attribute.hex,
+                attributeId: prefixWith0x(senderFirstAttributeId),
+                did: newIssuer.info.did,
+                from: sender.wallet.address,
+              } as SetAttributeDataParam;
+              break;
+            }
+            case "setAttributeMetadata": {
+              params = {
+                attributeId: newIssuer4.attribute.id,
+                did: EbsiWallet.createDid(),
+                from: sender.wallet.address,
+                issuerType: newIssuer4.issuerType,
+                taoAttributeId: newIssuer4.taoAttributeId,
+                taoDid: newIssuer4.tao,
+              } as SetAttributeMetadataParam;
               break;
             }
             case "updateIssuer": {
@@ -932,45 +955,25 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
                 // update newIssuer1.attribute: change it to newIssuer3.attribute
                 const prevAttributeHash = newIssuer1.attribute.id;
                 params = {
-                  from: sender.wallet.address,
-                  did: newIssuer1.did,
                   attributeData: newIssuer4.attribute.hex,
+                  did: newIssuer1.did,
+                  from: sender.wallet.address,
                   ...(prevAttributeHash && { prevAttributeHash }),
-                  taoDid: newIssuer1.tao,
                   issuerType: newIssuer1.issuerType,
                   taoAttributeId: newIssuer1.taoAttributeId,
+                  taoDid: newIssuer1.tao,
                 };
               } else {
                 // updateIssuer: add newIssuer4.attribute
                 params = {
-                  from: sender.wallet.address,
-                  did: adminIssuer.info.did,
                   attributeData: newIssuer4.attribute.hex,
-                  taoDid: newIssuer4.tao,
+                  did: adminIssuer.info.did,
+                  from: sender.wallet.address,
                   issuerType: newIssuer4.issuerType,
                   taoAttributeId: newIssuer4.taoAttributeId,
+                  taoDid: newIssuer4.tao,
                 };
               }
-              break;
-            }
-            case "setAttributeMetadata": {
-              params = {
-                from: sender.wallet.address,
-                did: EbsiWallet.createDid(),
-                attributeId: newIssuer4.attribute.id,
-                taoDid: newIssuer4.tao,
-                issuerType: newIssuer4.issuerType,
-                taoAttributeId: newIssuer4.taoAttributeId,
-              } as SetAttributeMetadataParam;
-              break;
-            }
-            case "setAttributeData": {
-              params = {
-                from: sender.wallet.address,
-                did: newIssuer.info.did,
-                attributeId: prefixWith0x(senderFirstAttributeId),
-                attributeData: newIssuer4.attribute.hex,
-              } as SetAttributeDataParam;
               break;
             }
             default: {
@@ -982,15 +985,15 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
             .post("/jsonrpc")
             .auth(sender.token, { type: "bearer" })
             .send({
+              id: 231,
               jsonrpc: "2.0",
               method,
               params: [params],
-              id: 231,
             });
 
           expect(responseBuild.body).toStrictEqual({
-            jsonrpc: "2.0",
             id: 231,
+            jsonrpc: "2.0",
             result: {
               chainId: expect.any(String),
               data: expect.any(String),
@@ -1005,6 +1008,7 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
 
           const unsignedTransaction = responseBuild.body.result;
           const uTx = formatEthersUnsignedTransaction(
+            // eslint-disable-next-line unicorn/prefer-structured-clone
             JSON.parse(
               JSON.stringify(unsignedTransaction),
             ) as UnsignedTransaction,
@@ -1017,24 +1021,24 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
             .post("/jsonrpc")
             .auth(sender.token, { type: "bearer" })
             .send({
+              id: "45",
               jsonrpc: "2.0",
               method: "sendSignedTransaction",
               params: [
                 {
                   protocol: "eth",
-                  unsignedTransaction,
                   r,
                   s,
-                  v: `0x${Number(v).toString(16)}`,
                   signedRawTransaction: sgnTx,
+                  unsignedTransaction,
+                  v: `0x${Number(v).toString(16)}`,
                 },
               ],
-              id: "45",
             });
 
           expect(responseSend.body).toStrictEqual({
-            jsonrpc: "2.0",
             id: "45",
+            jsonrpc: "2.0",
             result: expect.any(String),
           });
           expect(responseSend.status).toBe(200);
@@ -1052,8 +1056,8 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
 
           expect(receipt).toStrictEqual(
             expect.objectContaining({
-              status: 0,
               revertReason: expect.stringContaining(expectedRevertReason),
+              status: 0,
             }),
           );
         });
@@ -1125,8 +1129,8 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
             switch (method) {
               case "addIssuerProxy": {
                 params = {
-                  from: testIssuerWithProxyWallet.address,
                   did,
+                  from: testIssuerWithProxyWallet.address,
                   proxyData: newIssuer1.proxy.utf8,
                 } as AddIssuerProxyParam;
 
@@ -1135,11 +1139,11 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
                 extraTestExpectedResponse = {
                   items: expect.arrayContaining([
                     {
-                      proxyId: newIssuer1.proxy.id,
-
                       href: expect.stringContaining(
                         `/proxies/${newIssuer1.proxy.id}`,
                       ),
+
+                      proxyId: newIssuer1.proxy.id,
                     },
                   ]),
 
@@ -1150,8 +1154,8 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
               }
               case "updateIssuerProxy": {
                 params = {
-                  from: testIssuerWithProxyWallet.address,
                   did,
+                  from: testIssuerWithProxyWallet.address,
                   proxyData: newIssuer2.proxy.utf8,
                   proxyId: newIssuer1.proxy.id,
                 } as UpdateIssuerProxyParam;
@@ -1171,15 +1175,16 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
               .post("/jsonrpc")
               .auth(testIssuerWithProxy.token, { type: "bearer" })
               .send({
+                id: 231,
                 jsonrpc: "2.0",
                 method,
                 params: [params],
-                id: 231,
               });
 
             const unsignedTransaction = responseBuild.body.result;
 
             const uTx = formatEthersUnsignedTransaction(
+              // eslint-disable-next-line unicorn/prefer-structured-clone
               JSON.parse(
                 JSON.stringify(unsignedTransaction),
               ) as UnsignedTransaction,
@@ -1192,24 +1197,24 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
               .post("/jsonrpc")
               .auth(testIssuerWithProxy.token, { type: "bearer" })
               .send({
+                id: "45",
                 jsonrpc: "2.0",
                 method: "sendSignedTransaction",
                 params: [
                   {
                     protocol: "eth",
-                    unsignedTransaction,
                     r,
                     s,
-                    v: `0x${Number(v).toString(16)}`,
                     signedRawTransaction: sgnTx,
+                    unsignedTransaction,
+                    v: `0x${Number(v).toString(16)}`,
                   },
                 ],
-                id: "45",
               });
 
             expect(responseSend.body).toStrictEqual({
-              jsonrpc: "2.0",
               id: "45",
+              jsonrpc: "2.0",
               result: expect.any(String),
             });
             expect(responseSend.status).toBe(200);

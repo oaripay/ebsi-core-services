@@ -1,68 +1,71 @@
-import {
-  vi,
-  describe,
-  beforeAll,
-  beforeEach,
-  afterEach,
-  afterAll,
-  it,
-  expect,
-  MockInstance,
-} from "vitest";
-import axios from "axios";
-import request from "supertest";
-import { Test } from "@nestjs/testing";
-import { ConfigService } from "@nestjs/config";
-import { ValidationPipe, Logger } from "@nestjs/common";
-import { ethers } from "ethers";
 import type { RawServerDefault } from "fastify";
+
+import { methodNotAllowed } from "@ebsiint-api/shared";
+import { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry-v3";
 import { fastifyAccepts } from "@fastify/accepts";
+import { Logger, ValidationPipe } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import {
   FastifyAdapter,
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
+import { Test } from "@nestjs/testing";
+import axios from "axios";
+import { ethers } from "ethers";
 import {
-  SignJWT,
   calculateJwkThumbprint,
   exportJWK,
   generateKeyPair,
   type GenerateKeyPairResult,
+  SignJWT,
 } from "jose";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
-import { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry-v3";
-import { methodNotAllowed } from "@ebsiint-api/shared";
+import request from "supertest";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  MockInstance,
+  vi,
+} from "vitest";
+
+import type { ApiConfig } from "../../config/configuration.js";
+import type { JsonRpcResponseObject } from "./jsonrpc.interface.js";
+
+import { createPolicy } from "../../../tests/utils/data.js";
+import { setupTestEnv } from "../../../tests/utils/trustedPoliciesRegistry.js";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
+import { LedgerService } from "../ledger/ledger.service.js";
 import { JsonRpcModule } from "./jsonrpc.module.js";
 import { JsonRpcService } from "./jsonrpc.service.js";
-import type { JsonRpcResponseObject } from "./jsonrpc.interface.js";
+import { formatEthersUnsignedTransaction } from "./jsonrpc.utils.js";
 import {
-  type UnsignedTransaction,
-  type InsertPolicySchema,
-  type UpdatePolicySchema,
   type ActivatePolicySchema,
   type DeactivatePolicySchema,
-  type InsertUserAttributesSchema,
   type DeleteUserAttributeSchema,
+  type InsertPolicySchema,
+  type InsertUserAttributesSchema,
+  type UnsignedTransaction,
+  type UpdatePolicySchema,
 } from "./validators/index.js";
-import { formatEthersUnsignedTransaction } from "./jsonrpc.utils.js";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
-import { setupTestEnv } from "../../../tests/utils/trustedPoliciesRegistry.js";
-import type { ApiConfig } from "../../config/configuration.js";
-import { LedgerService } from "../ledger/ledger.service.js";
-import { createPolicy } from "../../../tests/utils/data.js";
-
-interface SupertestJsonRpcResponse {
-  status: number;
-  body: JsonRpcResponseObject;
-}
 
 type JsonRpcParams =
-  | InsertPolicySchema
-  | UpdatePolicySchema
   | ActivatePolicySchema
   | DeactivatePolicySchema
+  | DeleteUserAttributeSchema
+  | InsertPolicySchema
   | InsertUserAttributesSchema
-  | DeleteUserAttributeSchema;
+  | UpdatePolicySchema;
+
+interface SupertestJsonRpcResponse {
+  body: JsonRpcResponseObject;
+  status: number;
+}
 
 describe("JsonRpc Module", () => {
   let app: NestFastifyApplication;
@@ -144,29 +147,29 @@ describe("JsonRpc Module", () => {
     authApiKid = await calculateJwkThumbprint(publicKeyJwk);
 
     userAccessTokenPayload = {
-      sub: "did:ebsi:admin",
       scp: "openid tpr_write",
+      sub: "did:ebsi:admin",
     };
     userAccessToken = await new SignJWT(userAccessTokenPayload)
       .setProtectedHeader({
-        typ: "JWT",
         alg: "ES256",
         kid: authApiKid,
+        typ: "JWT",
       })
       .sign(authApiKeyPair.privateKey);
 
     defaultSignerSiopAccessTokenPayload = {
-      sub: "did:ebsi:default-signer",
       scp: "openid tpr_write",
+      sub: "did:ebsi:default-signer",
     };
 
     defaultSignerSiopAccessToken = await new SignJWT(
       defaultSignerSiopAccessTokenPayload,
     )
       .setProtectedHeader({
-        typ: "JWT",
         alg: "ES256",
         kid: authApiKid,
+        typ: "JWT",
       })
       .sign(authApiKeyPair.privateKey);
 
@@ -200,9 +203,7 @@ describe("JsonRpc Module", () => {
       jsonRpcService,
       "isDidControlledByAddress",
     );
-    isDidControlledByAddressMock.mockImplementation(async () =>
-      Promise.resolve(true),
-    );
+    isDidControlledByAddressMock.mockImplementation(() => true);
   });
 
   afterEach(() => {
@@ -223,9 +224,10 @@ describe("JsonRpc Module", () => {
       if (url.includes("/identifiers/did:ebsi:default-signer/actions")) {
         return Promise.resolve({
           data: {
-            jsonrpc: "2.0",
-            error: { code: -32600, message: "did doesn't exist" },
+            error: { code: -32_600, message: "did doesn't exist" },
+            // eslint-disable-next-line unicorn/no-null
             id: null,
+            jsonrpc: "2.0",
           },
           status: 400,
         });
@@ -235,26 +237,26 @@ describe("JsonRpc Module", () => {
 
     isDidControlledByAddressMock.mockRestore();
 
-    const { policyName, description } = policy1;
+    const { description, policyName } = policy1;
     const param = {
+      description,
       from: signer.address,
       policyName,
-      description,
     } satisfies InsertPolicySchema;
 
     const responseBuild: SupertestJsonRpcResponse = await request(server)
       .post("/jsonrpc")
       .auth(defaultSignerSiopAccessToken, { type: "bearer" })
       .send({
+        id: 231,
         jsonrpc: "2.0",
         method: "insertPolicy",
         params: [param],
-        id: 231,
       });
 
     expect(responseBuild.body).toStrictEqual({
-      jsonrpc: "2.0",
       id: 231,
+      jsonrpc: "2.0",
       result: {
         chainId: expect.any(String),
         data: expect.any(String),
@@ -270,6 +272,7 @@ describe("JsonRpc Module", () => {
 
     const unsignedTransaction = responseBuild.body.result;
     const uTx = formatEthersUnsignedTransaction(
+      // eslint-disable-next-line unicorn/prefer-structured-clone
       JSON.parse(
         JSON.stringify(unsignedTransaction),
       ) as unknown as UnsignedTransaction,
@@ -282,24 +285,24 @@ describe("JsonRpc Module", () => {
       .post("/jsonrpc")
       .auth(defaultSignerSiopAccessToken, { type: "bearer" })
       .send({
+        id: "45",
         jsonrpc: "2.0",
         method: "sendSignedTransaction",
         params: [
           {
             protocol: "eth",
-            unsignedTransaction,
             r,
             s,
-            v: `0x${Number(v).toString(16)}`,
             signedRawTransaction: sgnTx,
+            unsignedTransaction,
+            v: `0x${Number(v).toString(16)}`,
           },
         ],
-        id: "45",
       });
 
     expect(responseSend.body).toStrictEqual({
       error: {
-        code: -32600,
+        code: -32_600,
         message: "The DID did:ebsi:default-signer does not exist",
       },
       id: "45",
@@ -354,9 +357,9 @@ describe("JsonRpc Module", () => {
     const kid = await calculateJwkThumbprint(await exportJWK(signer.publicKey));
     const accessTokenWithInvalidKid = await new SignJWT(userAccessTokenPayload)
       .setProtectedHeader({
-        typ: "JWT",
         alg: "ES256",
         kid,
+        typ: "JWT",
       })
       .sign(signer.privateKey);
 
@@ -381,9 +384,9 @@ describe("JsonRpc Module", () => {
       userAccessTokenPayload,
     )
       .setProtectedHeader({
-        typ: "JWT",
         alg: "ES256",
         kid: authApiKid,
+        typ: "JWT",
       })
       .sign(signer.privateKey);
 
@@ -414,9 +417,10 @@ describe("JsonRpc Module", () => {
 
     expect(response.body).toStrictEqual({
       error: {
-        code: -32600,
+        code: -32_600,
         message: "JSON-RPC payload must be an object",
       },
+      // eslint-disable-next-line unicorn/no-null
       id: null,
       jsonrpc: "2.0",
     });
@@ -429,13 +433,14 @@ describe("JsonRpc Module", () => {
 
     expect(response.body).toStrictEqual({
       error: {
-        code: -32600,
+        code: -32_600,
         message: [
           "Invalid 'jsonrpc': Invalid literal value, expected \"2.0\"",
           "Invalid 'method': Required",
           "Invalid 'params': Required",
         ].join("\n"),
       },
+      // eslint-disable-next-line unicorn/no-null
       id: null,
       jsonrpc: "2.0",
     });
@@ -446,23 +451,24 @@ describe("JsonRpc Module", () => {
     expect.assertions(2);
     const wallet = ethers.Wallet.createRandom();
 
-    const { policyName, description } = policy1;
+    const { description, policyName } = policy1;
 
     const transaction = {
-      from: wallet.address,
-      to: policiesRegistryContract.address,
+      chainId: "0x1b3b",
       data: policiesRegistryContract.interface.encodeFunctionData(
         "insertPolicy",
         [policyName, description],
       ),
-      value: "0x00",
-      nonce: "0x00",
-      chainId: "0x1b3b",
+      from: wallet.address,
       gasLimit: "0x1000000",
       gasPrice: "0x00",
+      nonce: "0x00",
+      to: policiesRegistryContract.address,
+      value: "0x00",
     };
 
     const uTx = formatEthersUnsignedTransaction(
+      // eslint-disable-next-line unicorn/prefer-structured-clone
       JSON.parse(JSON.stringify(transaction)) as unknown as UnsignedTransaction,
     );
     uTx.chainId = Number(uTx.chainId);
@@ -473,31 +479,31 @@ describe("JsonRpc Module", () => {
       .post("/jsonrpc")
       .auth(userAccessToken, { type: "bearer" })
       .send({
+        id: "45",
         jsonrpc: "2.0",
         method: "sendSignedTransaction",
         params: [
           {
             protocol: "eth",
-            unsignedTransaction: transaction,
             r,
             s,
-            v: `0x${Number(v).toString(16)}`,
             signedRawTransaction: sgnTx,
+            unsignedTransaction: transaction,
+            v: `0x${Number(v).toString(16)}`,
           },
         ],
-        id: "45",
       });
 
     const { chainId } = await policiesRegistryContract.provider.getNetwork();
     const actualChainId = ethers.BigNumber.from(chainId).toHexString();
 
     expect(responseSend.body).toStrictEqual({
-      jsonrpc: "2.0",
-      id: "45",
       error: {
-        code: -32600,
+        code: -32_600,
         message: `Invalid unsignedTransaction.chainId. Expected ${actualChainId}. Received 0x1b3b`,
       },
+      id: "45",
+      jsonrpc: "2.0",
     });
     expect(responseSend.status).toBe(400);
   });
@@ -509,21 +515,21 @@ describe("JsonRpc Module", () => {
       .post("/jsonrpc")
       .auth(userAccessToken, { type: "bearer" })
       .send({
+        id: 123,
         jsonrpc: "2.0",
         method: "unknown-method",
         params: [],
-        id: 123,
       });
 
     expect(response.body).toStrictEqual({
-      jsonrpc: "2.0",
-      id: 123,
       error: {
-        code: -32600,
+        code: -32_600,
         message: expect.stringContaining(
           "The method 'unknown-method' is invalid",
         ),
       },
+      id: 123,
+      jsonrpc: "2.0",
     });
     expect(response.status).toBe(400);
   });
@@ -535,29 +541,29 @@ describe("JsonRpc Module", () => {
 
     // The DID is not controlled by the signer
     vi.spyOn(jsonRpcService, "isDidControlledByAddress").mockImplementation(
-      async () => Promise.resolve(false),
+      () => Promise.resolve(false),
     );
 
-    const { policyName, description } = policy1;
+    const { description, policyName } = policy1;
     const param = {
+      description,
       from: signer.address,
       policyName,
-      description,
     } satisfies InsertPolicySchema;
 
     const responseBuild: SupertestJsonRpcResponse = await request(server)
       .post("/jsonrpc")
       .auth(defaultSignerSiopAccessToken, { type: "bearer" })
       .send({
+        id: 231,
         jsonrpc: "2.0",
         method: "insertPolicy",
         params: [param],
-        id: 231,
       });
 
     expect(responseBuild.body).toStrictEqual({
-      jsonrpc: "2.0",
       id: 231,
+      jsonrpc: "2.0",
       result: {
         chainId: expect.any(String),
         data: expect.any(String),
@@ -573,6 +579,7 @@ describe("JsonRpc Module", () => {
 
     const unsignedTransaction = responseBuild.body.result;
     const uTx = formatEthersUnsignedTransaction(
+      // eslint-disable-next-line unicorn/prefer-structured-clone
       JSON.parse(
         JSON.stringify(unsignedTransaction),
       ) as unknown as UnsignedTransaction,
@@ -585,24 +592,24 @@ describe("JsonRpc Module", () => {
       .post("/jsonrpc")
       .auth(defaultSignerSiopAccessToken, { type: "bearer" })
       .send({
+        id: "45",
         jsonrpc: "2.0",
         method: "sendSignedTransaction",
         params: [
           {
             protocol: "eth",
-            unsignedTransaction,
             r,
             s,
-            v: `0x${Number(v).toString(16)}`,
             signedRawTransaction: sgnTx,
+            unsignedTransaction,
+            v: `0x${Number(v).toString(16)}`,
           },
         ],
-        id: "45",
       });
 
     expect(responseSend.body).toStrictEqual({
       error: {
-        code: -32600,
+        code: -32_600,
         message: `The DID did:ebsi:default-signer is not controlled by the address ${signer.address}`,
       },
       id: "45",
@@ -614,30 +621,28 @@ describe("JsonRpc Module", () => {
   it("should throw an error if the wallet doesn't have the role OPERATOR_ROLE 0x97667070c54ef182b0f5858b034beac1b6f3089aa2d3188bb1e8929f4fa9b929", async () => {
     expect.assertions(4);
 
-    let param: JsonRpcParams | null = null;
-
     const signer = ethers.Wallet.createRandom();
 
-    const { policyName, description } = policy1;
-    param = {
+    const { description, policyName } = policy1;
+    const param = {
+      description,
       from: signer.address,
       policyName,
-      description,
     } satisfies InsertPolicySchema;
 
     const responseBuild: SupertestJsonRpcResponse = await request(server)
       .post("/jsonrpc")
       .auth(defaultSignerSiopAccessToken, { type: "bearer" })
       .send({
+        id: 231,
         jsonrpc: "2.0",
         method: "insertPolicy",
         params: [param],
-        id: 231,
       });
 
     expect(responseBuild.body).toStrictEqual({
-      jsonrpc: "2.0",
       id: 231,
+      jsonrpc: "2.0",
       result: {
         chainId: expect.any(String),
         data: expect.any(String),
@@ -653,6 +658,7 @@ describe("JsonRpc Module", () => {
 
     const unsignedTransaction = responseBuild.body.result;
     const uTx = formatEthersUnsignedTransaction(
+      // eslint-disable-next-line unicorn/prefer-structured-clone
       JSON.parse(
         JSON.stringify(unsignedTransaction),
       ) as unknown as UnsignedTransaction,
@@ -665,30 +671,30 @@ describe("JsonRpc Module", () => {
       .post("/jsonrpc")
       .auth(defaultSignerSiopAccessToken, { type: "bearer" })
       .send({
+        id: "45",
         jsonrpc: "2.0",
         method: "sendSignedTransaction",
         params: [
           {
             protocol: "eth",
-            unsignedTransaction,
             r,
             s,
-            v: `0x${Number(v).toString(16)}`,
             signedRawTransaction: sgnTx,
+            unsignedTransaction,
+            v: `0x${Number(v).toString(16)}`,
           },
         ],
-        id: "45",
       });
 
     expect(responseSend.body).toStrictEqual({
       error: {
-        code: -32600,
+        code: -32_600,
         message: expect.stringContaining(
           `reverted with reason string 'AccessControl: account ${signer.address.toLowerCase()} is missing role 0x97667070c54ef182b0f5858b034beac1b6f3089aa2d3188bb1e8929f4fa9b929'`,
         ),
       },
-      jsonrpc: "2.0",
       id: "45",
+      jsonrpc: "2.0",
     });
     expect(responseSend.status).toBe(400);
   });
@@ -698,28 +704,28 @@ describe("JsonRpc Module", () => {
 
     const accessToken = userAccessToken;
     const param = {
+      description: "test",
       from: "0x123",
       policyName: "test",
-      description: "test",
     } satisfies InsertPolicySchema;
 
     const responseBuild = await request(server)
       .post("/jsonrpc")
       .auth(accessToken, { type: "bearer" })
       .send({
+        id: 123,
         jsonrpc: "2.0",
         method: "insertPolicy",
         params: [param],
-        id: 123,
       });
 
     expect(responseBuild.body).toStrictEqual({
-      jsonrpc: "2.0",
-      id: 123,
       error: {
-        code: -32600,
+        code: -32_600,
         message: "Invalid 'params.0.from': Invalid Ethereum address",
       },
+      id: 123,
+      jsonrpc: "2.0",
     });
     expect(responseBuild.status).toBe(400);
   });
@@ -743,28 +749,18 @@ describe("JsonRpc Module", () => {
     it("should return a valid unsigned transaction that we can sign and send to sendSignedTransaction", async () => {
       expect.assertions(4);
 
-      let param: JsonRpcParams | null = null;
+      let param: JsonRpcParams;
 
       const signer = testEnv.adminWallet;
 
       switch (method) {
-        case "insertPolicy": {
-          const { policyName, description } = policy1;
-          param = {
-            from: signer.address,
-            policyName,
-            description,
-          } satisfies InsertPolicySchema;
-          break;
-        }
-        case "updatePolicy": {
-          const { policyName, description } = policy2;
+        case "activatePolicy": {
+          const { policyName } = policy1;
           param = {
             from: signer.address,
             ...(byPolicyId && { policyId: "1" }),
             ...(byPolicyName && { policyName }),
-            description,
-          } satisfies UpdatePolicySchema;
+          } satisfies ActivatePolicySchema;
           break;
         }
         case "deactivatePolicy": {
@@ -776,29 +772,39 @@ describe("JsonRpc Module", () => {
           } satisfies DeactivatePolicySchema;
           break;
         }
-        case "activatePolicy": {
-          const { policyName } = policy1;
+        case "deleteUserAttribute": {
           param = {
+            attribute: "attr1",
             from: signer.address,
-            ...(byPolicyId && { policyId: "1" }),
-            ...(byPolicyName && { policyName }),
-          } satisfies ActivatePolicySchema;
+            user: userAddress,
+          } satisfies DeleteUserAttributeSchema;
+          break;
+        }
+        case "insertPolicy": {
+          const { description, policyName } = policy1;
+          param = {
+            description,
+            from: signer.address,
+            policyName,
+          } satisfies InsertPolicySchema;
           break;
         }
         case "insertUserAttributes": {
           param = {
+            attributes: ["attr1", "attr2"],
             from: signer.address,
             user: userAddress,
-            attributes: ["attr1", "attr2"],
           } satisfies InsertUserAttributesSchema;
           break;
         }
-        case "deleteUserAttribute": {
+        case "updatePolicy": {
+          const { description, policyName } = policy2;
           param = {
             from: signer.address,
-            user: userAddress,
-            attribute: "attr1",
-          } satisfies DeleteUserAttributeSchema;
+            ...(byPolicyId && { policyId: "1" }),
+            ...(byPolicyName && { policyName }),
+            description,
+          } satisfies UpdatePolicySchema;
           break;
         }
         default: {
@@ -810,15 +816,15 @@ describe("JsonRpc Module", () => {
         .post("/jsonrpc")
         .auth(defaultSignerSiopAccessToken, { type: "bearer" })
         .send({
+          id: 231,
           jsonrpc: "2.0",
           method,
           params: [param],
-          id: 231,
         });
 
       expect(responseBuild.body).toStrictEqual({
-        jsonrpc: "2.0",
         id: 231,
+        jsonrpc: "2.0",
         result: {
           chainId: expect.any(String),
           data: expect.any(String),
@@ -834,6 +840,7 @@ describe("JsonRpc Module", () => {
 
       const unsignedTransaction = responseBuild.body.result;
       const uTx = formatEthersUnsignedTransaction(
+        // eslint-disable-next-line unicorn/prefer-structured-clone
         JSON.parse(
           JSON.stringify(unsignedTransaction),
         ) as unknown as UnsignedTransaction,
@@ -846,24 +853,24 @@ describe("JsonRpc Module", () => {
         .post("/jsonrpc")
         .auth(defaultSignerSiopAccessToken, { type: "bearer" })
         .send({
+          id: "45",
           jsonrpc: "2.0",
           method: "sendSignedTransaction",
           params: [
             {
               protocol: "eth",
-              unsignedTransaction,
               r,
               s,
-              v: `0x${Number(v).toString(16)}`,
               signedRawTransaction: sgnTx,
+              unsignedTransaction,
+              v: `0x${Number(v).toString(16)}`,
             },
           ],
-          id: "45",
         });
 
       expect(responseSend.body).toStrictEqual({
-        jsonrpc: "2.0",
         id: "45",
+        jsonrpc: "2.0",
         result: expect.any(String),
       });
       expect(responseSend.status).toBe(200);
@@ -874,26 +881,16 @@ describe("JsonRpc Module", () => {
 
       const signer = ethers.Wallet.createRandom();
 
-      let param: JsonRpcParams | null = null;
+      let param: JsonRpcParams;
 
       switch (method) {
-        case "insertPolicy": {
-          const { policyName, description } = policy1;
-          param = {
-            from: signer.address,
-            policyName,
-            description,
-          } satisfies InsertPolicySchema;
-          break;
-        }
-        case "updatePolicy": {
-          const { policyName, description } = policy2;
+        case "activatePolicy": {
+          const { policyName } = policy1;
           param = {
             from: signer.address,
             ...(byPolicyId && { policyId: "1" }),
             ...(byPolicyName && { policyName }),
-            description,
-          } satisfies UpdatePolicySchema;
+          } satisfies ActivatePolicySchema;
           break;
         }
         case "deactivatePolicy": {
@@ -905,29 +902,39 @@ describe("JsonRpc Module", () => {
           } satisfies DeactivatePolicySchema;
           break;
         }
-        case "activatePolicy": {
-          const { policyName } = policy1;
+        case "deleteUserAttribute": {
           param = {
+            attribute: "attr1",
             from: signer.address,
-            ...(byPolicyId && { policyId: "1" }),
-            ...(byPolicyName && { policyName }),
-          } satisfies ActivatePolicySchema;
+            user: userAddress,
+          } satisfies DeleteUserAttributeSchema;
+          break;
+        }
+        case "insertPolicy": {
+          const { description, policyName } = policy1;
+          param = {
+            description,
+            from: signer.address,
+            policyName,
+          } satisfies InsertPolicySchema;
           break;
         }
         case "insertUserAttributes": {
           param = {
+            attributes: ["attr1", "attr2"],
             from: signer.address,
             user: userAddress,
-            attributes: ["attr1", "attr2"],
           } satisfies InsertUserAttributesSchema;
           break;
         }
-        case "deleteUserAttribute": {
+        case "updatePolicy": {
+          const { description, policyName } = policy2;
           param = {
             from: signer.address,
-            user: userAddress,
-            attribute: "attr1",
-          } satisfies DeleteUserAttributeSchema;
+            ...(byPolicyId && { policyId: "1" }),
+            ...(byPolicyName && { policyName }),
+            description,
+          } satisfies UpdatePolicySchema;
           break;
         }
         default: {
@@ -946,8 +953,9 @@ describe("JsonRpc Module", () => {
         });
 
       expect(responseBuild.body).toStrictEqual({
-        jsonrpc: "2.0",
+        // eslint-disable-next-line unicorn/no-null
         id: null,
+        jsonrpc: "2.0",
         result: expect.objectContaining({}),
       });
       expect(responseBuild.status).toBe(200);
@@ -960,58 +968,11 @@ describe("JsonRpc Module", () => {
       const expectedErrorMessages: string[] = [];
 
       switch (method) {
-        case "insertPolicy": {
+        case "activatePolicy": {
           params.push({
             from: signer.address,
-            policyName: policy1.policyName,
-            // description: policy1.description, <- missing description
-          } as InsertPolicySchema);
-
-          expectedErrorMessages.push(
-            "Invalid 'params.0.description': Required",
-          );
-
-          params.push({
-            from: "bad address",
-            policyName: policy2.policyName,
-            description: policy2.description,
-          } satisfies InsertPolicySchema);
-
-          expectedErrorMessages.push(
-            "Invalid 'params.0.from': Invalid Ethereum address",
-          );
-
-          break;
-        }
-        case "updatePolicy": {
-          params.push({
-            from: signer.address,
-            policyId: "1",
-            policyName: policy1.policyName,
-            // description: policy1.description, <- missing description
-          } as UpdatePolicySchema);
-
-          expectedErrorMessages.push(
-            "Invalid 'params.0.description': Required",
-          );
-
-          params.push({
-            from: signer.address,
-            policyId: "1",
-            policyName: policy2.policyName,
-            description: 15, // Invalid description
-          } as unknown as UpdatePolicySchema);
-
-          expectedErrorMessages.push(
-            "Invalid 'params.0.description': Expected string, received number",
-          );
-
-          params.push({
-            from: signer.address,
-            policyId: "badId",
-            policyName: policy2.policyName,
-            description: policy2.description,
-          } satisfies UpdatePolicySchema);
+            policyId: "test",
+          } satisfies ActivatePolicySchema);
 
           expectedErrorMessages.push(
             "Invalid 'params.0.policyId': Not an integer string",
@@ -1031,23 +992,46 @@ describe("JsonRpc Module", () => {
 
           break;
         }
-        case "activatePolicy": {
+        case "deleteUserAttribute": {
           params.push({
+            attribute: 12,
             from: signer.address,
-            policyId: "test",
-          } satisfies ActivatePolicySchema);
+            user: userAddress,
+          } as unknown as DeleteUserAttributeSchema);
 
           expectedErrorMessages.push(
-            "Invalid 'params.0.policyId': Not an integer string",
+            "Invalid 'params.0.attribute': Expected string, received number",
+          );
+          break;
+        }
+        case "insertPolicy": {
+          params.push({
+            from: signer.address,
+            policyName: policy1.policyName,
+            // description: policy1.description, <- missing description
+          } as InsertPolicySchema);
+
+          expectedErrorMessages.push(
+            "Invalid 'params.0.description': Required",
+          );
+
+          params.push({
+            description: policy2.description,
+            from: "bad address",
+            policyName: policy2.policyName,
+          } satisfies InsertPolicySchema);
+
+          expectedErrorMessages.push(
+            "Invalid 'params.0.from': Invalid Ethereum address",
           );
 
           break;
         }
         case "insertUserAttributes": {
           params.push({
+            attributes: "attr1",
             from: signer.address,
             user: userAddress,
-            attributes: "attr1",
           } as unknown as InsertUserAttributesSchema);
 
           expectedErrorMessages.push(
@@ -1055,16 +1039,40 @@ describe("JsonRpc Module", () => {
           );
           break;
         }
-        case "deleteUserAttribute": {
+        case "updatePolicy": {
           params.push({
             from: signer.address,
-            user: userAddress,
-            attribute: 12,
-          } as unknown as DeleteUserAttributeSchema);
+            policyId: "1",
+            policyName: policy1.policyName,
+            // description: policy1.description, <- missing description
+          } as UpdatePolicySchema);
 
           expectedErrorMessages.push(
-            "Invalid 'params.0.attribute': Expected string, received number",
+            "Invalid 'params.0.description': Required",
           );
+
+          params.push({
+            description: 15, // Invalid description
+            from: signer.address,
+            policyId: "1",
+            policyName: policy2.policyName,
+          } as unknown as UpdatePolicySchema);
+
+          expectedErrorMessages.push(
+            "Invalid 'params.0.description': Expected string, received number",
+          );
+
+          params.push({
+            description: policy2.description,
+            from: signer.address,
+            policyId: "badId",
+            policyName: policy2.policyName,
+          } satisfies UpdatePolicySchema);
+
+          expectedErrorMessages.push(
+            "Invalid 'params.0.policyId': Not an integer string",
+          );
+
           break;
         }
         default: {
@@ -1080,19 +1088,19 @@ describe("JsonRpc Module", () => {
             .post("/jsonrpc")
             .auth(defaultSignerSiopAccessToken, { type: "bearer" })
             .send({
+              id: 231,
               jsonrpc: "2.0",
               method,
               params: [param],
-              id: 231,
             });
 
           expect(response1.body).toStrictEqual({
-            jsonrpc: "2.0",
-            id: 231,
             error: {
-              code: -32600,
+              code: -32_600,
               message: expect.stringContaining(expectedErrorMessages[index]!),
             },
+            id: 231,
+            jsonrpc: "2.0",
           });
           expect(response1.status).toBe(400);
         }),
@@ -1108,36 +1116,17 @@ describe("JsonRpc Module", () => {
       let param2: JsonRpcParams;
 
       switch (method) {
-        case "insertPolicy": {
-          const { policyName, description } = policy1;
-
-          param1 = {
-            from: signer.address,
-            policyName,
-            description,
-          } satisfies InsertPolicySchema;
-          param2 = {
-            from: signer.address,
-            policyName: "another name",
-            description,
-          } satisfies InsertPolicySchema;
-          break;
-        }
-        case "updatePolicy": {
-          const { policyName, description } = policy1;
-
+        case "activatePolicy": {
           param1 = {
             from: signer.address,
             policyId: "1",
-            policyName,
-            description,
-          } satisfies UpdatePolicySchema;
+          } satisfies ActivatePolicySchema;
+
           param2 = {
             from: signer.address,
-            policyId: "1",
-            policyName: "another name",
-            description,
-          } satisfies UpdatePolicySchema;
+            policyId: "2",
+          } satisfies ActivatePolicySchema;
+
           break;
         }
         case "deactivatePolicy": {
@@ -1153,45 +1142,64 @@ describe("JsonRpc Module", () => {
 
           break;
         }
-        case "activatePolicy": {
+        case "deleteUserAttribute": {
           param1 = {
+            attribute: "attr1",
             from: signer.address,
-            policyId: "1",
-          } satisfies ActivatePolicySchema;
+            user: userAddress,
+          } satisfies DeleteUserAttributeSchema;
 
           param2 = {
+            attribute: "attr2",
             from: signer.address,
-            policyId: "2",
-          } satisfies ActivatePolicySchema;
+            user: userAddress,
+          } satisfies DeleteUserAttributeSchema;
+          break;
+        }
+        case "insertPolicy": {
+          const { description, policyName } = policy1;
 
+          param1 = {
+            description,
+            from: signer.address,
+            policyName,
+          } satisfies InsertPolicySchema;
+          param2 = {
+            description,
+            from: signer.address,
+            policyName: "another name",
+          } satisfies InsertPolicySchema;
           break;
         }
         case "insertUserAttributes": {
           param1 = {
+            attributes: ["attr1", "attr2"],
             from: signer.address,
             user: userAddress,
-            attributes: ["attr1", "attr2"],
           } satisfies InsertUserAttributesSchema;
 
           param2 = {
+            attributes: ["attr1", "attr3"],
             from: signer.address,
             user: userAddress,
-            attributes: ["attr1", "attr3"],
           } satisfies InsertUserAttributesSchema;
           break;
         }
-        case "deleteUserAttribute": {
-          param1 = {
-            from: signer.address,
-            user: userAddress,
-            attribute: "attr1",
-          } satisfies DeleteUserAttributeSchema;
+        case "updatePolicy": {
+          const { description, policyName } = policy1;
 
-          param2 = {
+          param1 = {
+            description,
             from: signer.address,
-            user: userAddress,
-            attribute: "attr2",
-          } satisfies DeleteUserAttributeSchema;
+            policyId: "1",
+            policyName,
+          } satisfies UpdatePolicySchema;
+          param2 = {
+            description,
+            from: signer.address,
+            policyId: "1",
+            policyName: "another name",
+          } satisfies UpdatePolicySchema;
           break;
         }
         default: {
@@ -1203,10 +1211,10 @@ describe("JsonRpc Module", () => {
         .post("/jsonrpc")
         .auth(defaultSignerSiopAccessToken, { type: "bearer" })
         .send({
+          id: 231,
           jsonrpc: "2.0",
           method,
           params: [param1],
-          id: 231,
         });
 
       expect(responseBuild1.status).toBe(200);
@@ -1217,10 +1225,10 @@ describe("JsonRpc Module", () => {
         .post("/jsonrpc")
         .auth(defaultSignerSiopAccessToken, { type: "bearer" })
         .send({
+          id: 232,
           jsonrpc: "2.0",
           method,
           params: [param2],
-          id: 232,
         });
 
       expect(responseBuild2.status).toBe(200);
@@ -1229,6 +1237,7 @@ describe("JsonRpc Module", () => {
       const randomSigner = ethers.Wallet.createRandom();
 
       const uTx = formatEthersUnsignedTransaction(
+        // eslint-disable-next-line unicorn/prefer-structured-clone
         JSON.parse(
           JSON.stringify(transaction1),
         ) as unknown as UnsignedTransaction,
@@ -1242,30 +1251,30 @@ describe("JsonRpc Module", () => {
         .post("/jsonrpc")
         .auth(defaultSignerSiopAccessToken, { type: "bearer" })
         .send({
+          id: "45",
           jsonrpc: "2.0",
           method: "sendSignedTransaction",
           params: [
             {
               protocol: "eth",
-              unsignedTransaction: transaction2,
               r,
               s,
-              v: `0x${Number(v).toString(16)}`,
               signedRawTransaction: sgnTx1,
+              unsignedTransaction: transaction2,
+              v: `0x${Number(v).toString(16)}`,
             },
           ],
-          id: "45",
         });
 
       expect(responseSend1.body).toStrictEqual({
-        jsonrpc: "2.0",
-        id: "45",
         error: {
-          code: -32600,
+          code: -32_600,
           message: expect.stringContaining(
             "does not match with the signedRawTransaction",
           ),
         },
+        id: "45",
+        jsonrpc: "2.0",
       });
       expect(responseSend1.status).toBe(400);
 
@@ -1275,30 +1284,30 @@ describe("JsonRpc Module", () => {
         .post("/jsonrpc")
         .auth(defaultSignerSiopAccessToken, { type: "bearer" })
         .send({
+          id: "46",
           jsonrpc: "2.0",
           method: "sendSignedTransaction",
           params: [
             {
               protocol: "eth",
-              unsignedTransaction: transaction1,
               r,
               s,
-              v: `0x${Number(v).toString(16)}`,
               signedRawTransaction: sgnTx1,
+              unsignedTransaction: transaction1,
+              v: `0x${Number(v).toString(16)}`,
             },
           ],
-          id: "46",
         });
 
       expect(responseSend2.body).toStrictEqual({
-        jsonrpc: "2.0",
-        id: "46",
         error: {
-          code: -32600,
+          code: -32_600,
           message: expect.stringContaining(
             "does not match with unsignedTransaction.from",
           ),
         },
+        id: "46",
+        jsonrpc: "2.0",
       });
       expect(responseSend1.status).toBe(400);
     });

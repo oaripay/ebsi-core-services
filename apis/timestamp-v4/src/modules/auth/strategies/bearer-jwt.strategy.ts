@@ -1,8 +1,10 @@
-import { Strategy } from "passport-http-bearer";
-import { PassportStrategy } from "@nestjs/passport";
 import { Injectable } from "@nestjs/common";
-import { AuthService } from "../auth.service.js";
+import { PassportStrategy } from "@nestjs/passport";
+import { Strategy } from "passport-http-bearer";
+
 import type { SubjectInfo } from "../auth.interface.js";
+
+import { AuthService } from "../auth.service.js";
 
 @Injectable()
 export class BearerJwtStrategy extends PassportStrategy(

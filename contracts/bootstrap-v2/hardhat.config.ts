@@ -1,4 +1,4 @@
-import { task, HardhatUserConfig } from "hardhat/config";
+import { HardhatUserConfig, task } from "hardhat/config";
 import "@typechain/hardhat";
 import "@nomiclabs/hardhat-waffle";
 import "@nomiclabs/hardhat-solhint";
@@ -16,9 +16,9 @@ if (fs.existsSync(mnemonicPath)) {
 
 // This is a sample Buidler task. To learn how to create your own go to
 // https://buidler.dev/guides/create-task.html
-task("accounts", "Prints the list of accounts", async (args, hre) => {
+task("accounts", "Prints the list of accounts", async (_, hre) => {
   const accounts = await hre.ethers.getSigners();
-  accounts.forEach((account) => console.log(account.address));
+  for (const account of accounts) console.log(account.address);
 });
 task(
   "blockNumber",
@@ -52,42 +52,42 @@ task("tx", "Prints the detail for the transaction hash")
 // Some of the settings should be defined in `./config.js`.
 // Go to https://hardhat.org/config/ for the syntax.
 const config: HardhatUserConfig = {
-  defaultNetwork: "hardhat",
+  abiExporter: {
+    clear: true,
+    flat: true,
+    path: "./src/abi",
+  },
 
+  defaultNetwork: "hardhat",
   networks: {
     hardhat: {},
     local: {
-      url: "http://localhost:8545",
       accounts: { mnemonic },
+      url: "http://localhost:8545",
     },
     mainnet: {
-      url: "https://api-test.ebsi.eu/ledger/v3/blockchains/besu",
       accounts: { mnemonic },
+      url: "https://api-test.ebsi.eu/ledger/v3/blockchains/besu",
     },
   },
-  typechain: {
-    outDir: "src/types",
-    target: "ethers-v5",
-  },
-  abiExporter: {
-    path: "./src/abi",
-    flat: true,
-    clear: true,
+  paths: {
+    artifacts: "./artifacts",
+    cache: "./cache",
+    sources: "./contracts",
+    tests: "./tests",
   },
   solidity: {
-    version: "0.8.12",
     settings: {
       optimizer: {
         enabled: true,
         runs: 200,
       },
     },
+    version: "0.8.12",
   },
-  paths: {
-    sources: "./contracts",
-    tests: "./tests",
-    cache: "./cache",
-    artifacts: "./artifacts",
+  typechain: {
+    outDir: "src/types",
+    target: "ethers-v5",
   },
 };
 

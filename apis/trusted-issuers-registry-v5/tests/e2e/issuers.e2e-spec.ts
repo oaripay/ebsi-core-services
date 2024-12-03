@@ -1,77 +1,80 @@
-import { describe, beforeAll, afterEach, it, expect, afterAll } from "vitest";
-import request from "supertest";
-import crypto from "node:crypto";
-import { http, HttpResponse } from "msw";
-import { setupServer } from "msw/node";
-import { Test } from "@nestjs/testing";
-import { ConfigService } from "@nestjs/config";
-import { ValidationPipe, Logger } from "@nestjs/common";
-import {
-  FastifyAdapter,
-  type NestFastifyApplication,
-} from "@nestjs/platform-fastify";
-import type { RawServerDefault } from "fastify";
-import { fastifyAccepts } from "@fastify/accepts";
-import { fastifyHelmet } from "@fastify/helmet";
-import { useContainer } from "class-validator";
-import { EbsiWallet } from "@cef-ebsi/wallet-lib";
-import { fromUrl } from "@cef-ebsi/ebsi-uri";
-import { createVerifiableCredentialJwt } from "@cef-ebsi/verifiable-credential";
 import type {
   EbsiEnvConfiguration,
   EbsiIssuer,
 } from "@cef-ebsi/verifiable-credential";
+import type { RawServerDefault } from "fastify";
+
+import { fromUrl } from "@cef-ebsi/ebsi-uri";
+import { createVerifiableCredentialJwt } from "@cef-ebsi/verifiable-credential";
+import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import {
-  type StatusList2021Credential,
-  type PaginatedList,
   getSigner,
   methodNotAllowed,
+  type PaginatedList,
+  type StatusList2021Credential,
 } from "@ebsiint-api/shared";
+import { fastifyAccepts } from "@fastify/accepts";
+import { fastifyHelmet } from "@fastify/helmet";
+import { Logger, ValidationPipe } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import {
+  FastifyAdapter,
+  type NestFastifyApplication,
+} from "@nestjs/platform-fastify";
+import { Test } from "@nestjs/testing";
+import { useContainer } from "class-validator";
 import { hexToBytes } from "did-jwt";
+import { http, HttpResponse } from "msw";
+import { setupServer } from "msw/node";
+import crypto from "node:crypto";
+import request from "supertest";
+import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
+
 import type { ApiConfig } from "../../src/config/configuration.js";
-import { AppModule } from "../../src/app.module.js";
-import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
 import type {
   AttributeObject,
-  IdLink,
   DidLink,
+  IdLink,
+  IssuerProxyResponseObject,
   IssuerResponseObject,
   ProxyLink,
-  IssuerProxyResponseObject,
 } from "../../src/modules/issuers/issuers.interface.js";
-import { getServer } from "../utils/getServer.js";
+
+import { AppModule } from "../../src/app.module.js";
+import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
 import { describeLocalTestEnvOnly } from "../utils/describeLocalTestEnvOnly.js";
+import { getServer } from "../utils/getServer.js";
 
-interface SupertestIssuersResponse {
+interface SupertestAttributeResponse {
+  body: AttributeObject;
   status: number;
-  body: PaginatedList<DidLink>;
-}
-
-interface SupertestIssuerProxiesResponse {
-  status: number;
-  body: PaginatedList<ProxyLink>;
-}
-
-interface SupertestIssuerResponse {
-  status: number;
-  body: IssuerResponseObject;
 }
 
 interface SupertestAttributesResponse {
-  status: number;
   body: {
     items: IdLink[];
   };
+  status: number;
 }
 
-interface SupertestAttributeResponse {
+interface SupertestIssuerProxiesResponse {
+  body: PaginatedList<ProxyLink>;
   status: number;
-  body: AttributeObject;
 }
 
 interface SupertestIssuerProxyResponse {
-  status: number;
   body: IssuerProxyResponseObject;
+  status: number;
+}
+
+interface SupertestIssuerResponse {
+  body: IssuerResponseObject;
+  status: number;
+}
+
+interface SupertestIssuersResponse {
+  body: PaginatedList<DidLink>;
+  status: number;
 }
 
 interface SupertestStringResponse {
@@ -79,13 +82,21 @@ interface SupertestStringResponse {
   text: string;
 }
 
+/**
+ * Escape DID in URLs mocked by MSW
+ * @see https://github.com/mswjs/msw/discussions/739#discussioncomment-2524732
+ */
+function escapeDid(url: string) {
+  return url.replace("did:ebsi:", String.raw`did\:ebsi\:`);
+}
+
 function getEbsiIssuer(privateKeyHex: string, did: string, kid: string) {
   const privateKey = hexToBytes(privateKeyHex);
   const issuer: EbsiIssuer = {
+    alg: "ES256",
     did,
     kid,
-    alg: "ES256K",
-    signer: getSigner(privateKey, "ES256K"),
+    signer: getSigner(privateKey, "ES256"),
   };
   return issuer;
 }
@@ -107,7 +118,7 @@ describe("TIR API v5 - Issuers (e2e)", () => {
     issuer: EbsiIssuer,
     issuerProxy: IssuerProxyResponseObject,
     ebsiEnvConfig: EbsiEnvConfiguration,
-    uriType: "URL" | "EBSI URI",
+    uriType: "EBSI URI" | "URL",
   ) {
     const verifiableAttestationSchemaUrl = `${trustedSchemasRegistryApiUrl}/schemas/${testVerifiableAttestationSchemaId}`;
     const statusListSchemaUrl = `${trustedSchemasRegistryApiUrl}/schemas/${testStatusListSchemaId}`;
@@ -116,25 +127,6 @@ describe("TIR API v5 - Issuers (e2e)", () => {
         "https://www.w3.org/2018/credentials/v1",
         "https://w3id.org/vc/status-list/2021/v1",
       ],
-      id: `${issuerProxy.prefix}${issuerProxy.testSuffix}`,
-      type: [
-        "VerifiableCredential",
-        "VerifiableAttestation",
-        "StatusList2021Credential",
-      ],
-      issuer: issuer.did,
-      issued: "2021-04-05T14:27:40Z",
-      issuanceDate: "2021-04-05T14:27:40Z",
-      validFrom: "2021-04-05T14:27:40Z",
-      credentialSubject: {
-        // Note: the VC lib requires that credentialSubject.id is a valid EBSI DID. We can't use a URL here!
-        // id: `${issuer.proxy.rawProxyData.prefix}${issuer.proxy.rawProxyData.testSuffix}#list`,
-        id: issuer.did,
-        type: "StatusList2021",
-        statusPurpose: "revocation",
-        encodedList:
-          "H4sIAAAAAAAAA-3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAAAAAAIC3AYbSVKsAQAAA",
-      },
       credentialSchema: [
         {
           id:
@@ -151,6 +143,25 @@ describe("TIR API v5 - Issuers (e2e)", () => {
           type: "FullJsonSchemaValidator2021",
         },
       ],
+      credentialSubject: {
+        encodedList:
+          "H4sIAAAAAAAAA-3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAAAAAAIC3AYbSVKsAQAAA",
+        // Note: the VC lib requires that credentialSubject.id is a valid EBSI DID. We can't use a URL here!
+        // id: `${issuer.proxy.rawProxyData.prefix}${issuer.proxy.rawProxyData.testSuffix}#list`,
+        id: issuer.did,
+        statusPurpose: "revocation",
+        type: "StatusList2021",
+      },
+      id: `${issuerProxy.prefix}${issuerProxy.testSuffix}`,
+      issuanceDate: "2021-04-05T14:27:40Z",
+      issued: "2021-04-05T14:27:40Z",
+      issuer: issuer.did,
+      type: [
+        "VerifiableCredential",
+        "VerifiableAttestation",
+        "StatusList2021Credential",
+      ],
+      validFrom: "2021-04-05T14:27:40Z",
     };
     const newIssuer1StatusList2021CredentialJwt =
       await createVerifiableCredentialJwt(
@@ -260,26 +271,26 @@ describe("TIR API v5 - Issuers (e2e)", () => {
 
       expect(response.body).toStrictEqual(
         expect.objectContaining({
-          self: expect.stringContaining(
-            "/trusted-issuers-registry/v5/issuers?page[after]=1&page[size]=10",
-          ),
           items: expect.arrayContaining([]),
-          total: expect.any(Number),
-          pageSize: expect.any(Number),
           links: expect.objectContaining({
             first: expect.stringContaining(
               "/trusted-issuers-registry/v5/issuers?page[after]=1&page[size]=10",
             ),
-            prev: expect.stringContaining(
-              "/trusted-issuers-registry/v5/issuers?page[after]=1&page[size]=10",
+            last: expect.stringContaining(
+              "/trusted-issuers-registry/v5/issuers?page[after]=",
             ),
             next: expect.stringContaining(
               "/trusted-issuers-registry/v5/issuers?page[after]=",
             ),
-            last: expect.stringContaining(
-              "/trusted-issuers-registry/v5/issuers?page[after]=",
+            prev: expect.stringContaining(
+              "/trusted-issuers-registry/v5/issuers?page[after]=1&page[size]=10",
             ),
           }),
+          pageSize: expect.any(Number),
+          self: expect.stringContaining(
+            "/trusted-issuers-registry/v5/issuers?page[after]=1&page[size]=10",
+          ),
+          total: expect.any(Number),
         }),
       );
       expect(response.status).toBe(200);
@@ -294,8 +305,8 @@ describe("TIR API v5 - Issuers (e2e)", () => {
         `/issuers/${lastExistingIssuerDid}`,
       );
       expect(response.body).toStrictEqual({
-        did: lastExistingIssuerDid,
         attributes: expect.arrayContaining([]),
+        did: lastExistingIssuerDid,
       });
       expect(response.status).toBe(200);
     });
@@ -334,9 +345,9 @@ describe("TIR API v5 - Issuers (e2e)", () => {
       const response = await request(server).get(`/issuers/${randomDid}`);
 
       expect(response.body).toStrictEqual({
-        title: "Issuer Not Found",
-        status: 404,
         detail: `Issuer ${randomDid} not found`,
+        status: 404,
+        title: "Issuer Not Found",
         type: "about:blank",
       });
       expect(response.status).toBe(404);
@@ -353,26 +364,26 @@ describe("TIR API v5 - Issuers (e2e)", () => {
 
       expect(response.body).toStrictEqual(
         expect.objectContaining({
-          self: expect.stringContaining(
-            `/trusted-issuers-registry/v5/issuers/${lastExistingIssuerDid}/attributes?page[after]=1&page[size]=10`,
-          ),
           items: expect.arrayContaining([]),
-          total: expect.any(Number),
-          pageSize: expect.any(Number),
           links: expect.objectContaining({
             first: expect.stringContaining(
               `/trusted-issuers-registry/v5/issuers/${lastExistingIssuerDid}/attributes?page[after]=1&page[size]=10`,
             ),
-            prev: expect.stringContaining(
-              `/trusted-issuers-registry/v5/issuers/${lastExistingIssuerDid}/attributes?page[after]=1&page[size]=10`,
+            last: expect.stringContaining(
+              `/trusted-issuers-registry/v5/issuers/${lastExistingIssuerDid}/attributes?page[after]=`,
             ),
             next: expect.stringContaining(
               `/trusted-issuers-registry/v5/issuers/${lastExistingIssuerDid}/attributes?page[after]=`,
             ),
-            last: expect.stringContaining(
-              `/trusted-issuers-registry/v5/issuers/${lastExistingIssuerDid}/attributes?page[after]=`,
+            prev: expect.stringContaining(
+              `/trusted-issuers-registry/v5/issuers/${lastExistingIssuerDid}/attributes?page[after]=1&page[size]=10`,
             ),
           }),
+          pageSize: expect.any(Number),
+          self: expect.stringContaining(
+            `/trusted-issuers-registry/v5/issuers/${lastExistingIssuerDid}/attributes?page[after]=1&page[size]=10`,
+          ),
+          total: expect.any(Number),
         }),
       );
       expect(response.status).toBe(200);
@@ -418,9 +429,9 @@ describe("TIR API v5 - Issuers (e2e)", () => {
       );
 
       expect(response.body).toStrictEqual({
-        title: "Issuer Not Found",
-        status: 404,
         detail: `Issuer ${randomDid} not found`,
+        status: 404,
+        title: "Issuer Not Found",
         type: "about:blank",
       });
       expect(response.status).toBe(404);
@@ -445,7 +456,6 @@ describe("TIR API v5 - Issuers (e2e)", () => {
         `/issuers/${lastExistingIssuerDid}/attributes/${attributeId}`,
       );
       expect(response.body).toStrictEqual({
-        did: lastExistingIssuerDid,
         attribute: {
           body: expect.any(String),
           hash: attributeId,
@@ -453,6 +463,7 @@ describe("TIR API v5 - Issuers (e2e)", () => {
           rootTao: expect.any(String),
           tao: expect.any(String),
         },
+        did: lastExistingIssuerDid,
       });
       expect(response.status).toBe(200);
     });
@@ -497,9 +508,9 @@ describe("TIR API v5 - Issuers (e2e)", () => {
       );
 
       expect(response.body).toStrictEqual({
-        title: "Issuer Not Found",
-        status: 404,
         detail: `Issuer ${randomDid} not found`,
+        status: 404,
+        title: "Issuer Not Found",
         type: "about:blank",
       });
       expect(response.status).toBe(404);
@@ -565,16 +576,16 @@ describe("TIR API v5 - Issuers (e2e)", () => {
         `/issuers/${lastExistingIssuerDid}/attributes/${attributeId}/revisions`,
       );
       expect(response.body).toStrictEqual({
-        self: expect.stringContaining(urlPath),
         items: expect.arrayContaining([]),
-        total: expect.any(Number),
-        pageSize: expect.any(Number),
         links: {
           first: expect.stringContaining(urlPath),
-          prev: expect.stringContaining(urlPath),
-          next: expect.stringContaining(urlPath),
           last: expect.stringContaining(urlPath),
+          next: expect.stringContaining(urlPath),
+          prev: expect.stringContaining(urlPath),
         },
+        pageSize: expect.any(Number),
+        self: expect.stringContaining(urlPath),
+        total: expect.any(Number),
       });
       expect(response.status).toBe(200);
     });
@@ -619,9 +630,9 @@ describe("TIR API v5 - Issuers (e2e)", () => {
       );
 
       expect(response.body).toStrictEqual({
-        title: "Issuer Not Found",
-        status: 404,
         detail: `Issuer ${randomDid} not found`,
+        status: 404,
+        title: "Issuer Not Found",
         type: "about:blank",
       });
       expect(response.status).toBe(404);
@@ -729,9 +740,9 @@ describe("TIR API v5 - Issuers (e2e)", () => {
       );
 
       expect(response.body).toStrictEqual({
-        title: "Issuer Not Found",
-        status: 404,
         detail: `Issuer ${randomDid} not found`,
+        status: 404,
+        title: "Issuer Not Found",
         type: "about:blank",
       });
       expect(response.status).toBe(404);
@@ -794,9 +805,9 @@ describe("TIR API v5 - Issuers (e2e)", () => {
       );
 
       expect(response.body).toStrictEqual({
-        title: "Issuer Not Found",
-        status: 404,
         detail: `Issuer ${randomDid} not found`,
+        status: 404,
+        title: "Issuer Not Found",
         type: "about:blank",
       });
       expect(response.status).toBe(404);
@@ -805,16 +816,16 @@ describe("TIR API v5 - Issuers (e2e)", () => {
     it("should throw an error if the proxy is not found", async () => {
       expect.assertions(2);
 
-      const invalidProxyId = crypto.randomBytes(16).toString("hex");
+      const invalidProxyId = `0x${crypto.randomBytes(32).toString("hex")}`;
 
       const response = await request(server).get(
         `/issuers/${testIssuerWithProxyDid}/proxies/${invalidProxyId}`,
       );
 
       expect(response.body).toStrictEqual({
-        title: "Proxy Not Found",
-        status: 404,
         detail: `Proxy ${invalidProxyId} of issuer ${testIssuerWithProxyDid} can't be found`,
+        status: 404,
+        title: "Proxy Not Found",
         type: "about:blank",
       });
       expect(response.status).toBe(404);
@@ -876,8 +887,8 @@ describe("TIR API v5 - Issuers (e2e)", () => {
               testIssuerWithProxy,
               proxy,
               {
-                network: configService.get("network", { infer: true }),
                 hosts: [authority, ...trustedHostnames],
+                network: configService.get("network", { infer: true }),
                 services: {
                   "did-registry": "v5",
                   "trusted-issuers-registry": "v5",
@@ -889,7 +900,7 @@ describe("TIR API v5 - Issuers (e2e)", () => {
             );
 
           mockServer.use(
-            http.get(`${proxy.prefix}${path}`, () =>
+            http.get(escapeDid(`${proxy.prefix}${path}`), () =>
               HttpResponse.json(statusList2021CredentialJwt),
             ),
           );
@@ -909,8 +920,8 @@ describe("TIR API v5 - Issuers (e2e)", () => {
         // Mock issuer's endpoint response
         mockServer.use(
           http.get(
-            `${proxy.prefix}${path}`,
-            () => new HttpResponse(null, { status: 500 }),
+            escapeDid(`${proxy.prefix}${path}`),
+            () => new HttpResponse(undefined, { status: 500 }),
           ),
         );
 
@@ -932,7 +943,7 @@ describe("TIR API v5 - Issuers (e2e)", () => {
 
         // Mock issuer's endpoint response
         mockServer.use(
-          http.get(`${proxy.prefix}${path}`, () =>
+          http.get(escapeDid(`${proxy.prefix}${path}`), () =>
             HttpResponse.text("invalid jwt"),
           ),
         );
@@ -992,9 +1003,9 @@ describe("TIR API v5 - Issuers (e2e)", () => {
       );
 
       expect(response.body).toStrictEqual({
-        title: "Issuer Not Found",
-        status: 404,
         detail: `Issuer ${randomDid} not found`,
+        status: 404,
+        title: "Issuer Not Found",
         type: "about:blank",
       });
       expect(response.status).toBe(404);
@@ -1003,16 +1014,16 @@ describe("TIR API v5 - Issuers (e2e)", () => {
     it("should throw an error if the proxy is not found", async () => {
       expect.assertions(2);
 
-      const invalidProxyId = crypto.randomBytes(16).toString("hex");
+      const invalidProxyId = `0x${crypto.randomBytes(32).toString("hex")}`;
 
       const response = await request(server).get(
         `/issuers/${testIssuerWithProxyDid}/proxies/${invalidProxyId}${path}`,
       );
 
       expect(response.body).toStrictEqual({
-        title: "Proxy Not Found",
-        status: 404,
         detail: `Proxy ${invalidProxyId} of issuer ${testIssuerWithProxyDid} can't be found`,
+        status: 404,
+        title: "Proxy Not Found",
         type: "about:blank",
       });
       expect(response.status).toBe(404);

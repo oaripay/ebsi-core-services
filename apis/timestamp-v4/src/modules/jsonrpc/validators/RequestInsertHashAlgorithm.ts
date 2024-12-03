@@ -1,28 +1,27 @@
-import { z } from "zod";
 import {
   BigNumber,
-  isBigNumberish,
   type BigNumberish,
-  // eslint-disable-next-line import/extensions
+  isBigNumberish,
 } from "@ethersproject/bignumber/lib/bignumber.js";
-import { jsonRpcSchema } from "./JsonRpcSchema.js";
-import { baseParamSchema } from "./BaseParamSchema.js";
+import { z } from "zod";
 
+import { baseParamSchema } from "./BaseParamSchema.js";
+import { jsonRpcSchema } from "./JsonRpcSchema.js";
 import { refinements } from "./utils.js";
 
 const { isMultihash } = refinements;
 
 export const insertHashAlgorithmSchema = baseParamSchema.merge(
   z.object({
+    ianaName: z.string().optional(),
+    multiHash: z.string().superRefine(isMultihash),
+    oid: z.string().optional(),
     outputLength: z
       .custom<BigNumberish>((val) => isBigNumberish(val))
       .refine((val) => BigNumber.from(val).gte(0), {
         message: "Number must be greater than or equal to 0",
       }),
-    ianaName: z.string().optional(),
-    oid: z.string().optional(),
     status: z.number().int().min(1).max(2),
-    multiHash: z.string().superRefine(isMultihash),
   }),
 );
 

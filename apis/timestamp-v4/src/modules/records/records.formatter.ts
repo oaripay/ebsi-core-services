@@ -1,5 +1,6 @@
+import { multibase, paginate, PaginatedList } from "@ebsiint-api/shared";
 import { Timestamp } from "@ebsiint-sc/timestamp-v2";
-import { PaginatedList, paginate, multibase } from "@ebsiint-api/shared";
+
 import { RecordLink, VersionLink } from "./records.interface.js";
 
 export function formatRecords(
@@ -17,8 +18,8 @@ export function formatRecords(
     );
 
     return {
-      recordId: multibaseBase64urlRecordId,
       href: `${baseUrl}/${multibaseBase64urlRecordId}`,
+      recordId: multibaseBase64urlRecordId,
     };
   });
 
@@ -40,13 +41,12 @@ export function formatRecordVersions(
   extraQuery?: string,
 ): PaginatedList<VersionLink> {
   const total = totalVersions;
-  const items = Array(total)
-    .fill(0)
+  const items = Array.from({ length: total })
     .map((_, i) => i)
     .slice((page - 1) * pageSize, page * pageSize)
     .map((versionId) => ({
-      versionId,
       href: `${baseUrl}/${versionId}`,
+      versionId,
     }));
 
   return paginate<VersionLink>(

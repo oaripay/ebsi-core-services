@@ -1,51 +1,54 @@
-import { describe, beforeAll, it, expect, afterAll } from "vitest";
-import crypto from "node:crypto";
-import { ethers } from "ethers";
-import request from "supertest";
-import { Test } from "@nestjs/testing";
-import { ValidationPipe, Logger } from "@nestjs/common";
+import type { JSONSchema } from "@apidevtools/json-schema-ref-parser/dist/lib/types";
+import type { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
+import type { TransactionRequest } from "@ethersproject/abstract-provider";
+import type { RawServerDefault } from "fastify";
+
+import {
+  computeId,
+  methodNotAllowed,
+  prefixWith0x,
+  waitToBeMined,
+} from "@ebsiint-api/shared";
+import { fastifyAccepts } from "@fastify/accepts";
+import { fastifyHelmet } from "@fastify/helmet";
+import { Logger, ValidationPipe } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import {
   FastifyAdapter,
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import { ConfigService } from "@nestjs/config";
-import type { RawServerDefault } from "fastify";
-import { fastifyAccepts } from "@fastify/accepts";
-import { fastifyHelmet } from "@fastify/helmet";
-import type { TransactionRequest } from "@ethersproject/abstract-provider";
-import type { JSONSchema } from "@apidevtools/json-schema-ref-parser/dist/lib/types";
-import {
-  prefixWith0x,
-  computeId,
-  waitToBeMined,
-  methodNotAllowed,
-} from "@ebsiint-api/shared";
-import type { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
+import { Test } from "@nestjs/testing";
+import { ethers } from "ethers";
+import crypto from "node:crypto";
+import request from "supertest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
+
+import type { ApiConfig } from "../../src/config/configuration.js";
+import type { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface.js";
+import type { InsertSchemaSchema } from "../../src/modules/jsonrpc/validators/RequestInsertSchemaSchema.js";
+import type { UnsignedTransaction } from "../../src/modules/jsonrpc/validators/RequestSendSignedTransactionSchema.js";
+import type { UpdateMetadataSchema } from "../../src/modules/jsonrpc/validators/RequestUpdateMetadataSchema.js";
+import type { UpdateSchemaSchema } from "../../src/modules/jsonrpc/validators/RequestUpdateSchemaSchema.js";
+
 import { AppModule } from "../../src/app.module.js";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
-import type { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface.js";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils.js";
-import type { ApiConfig } from "../../src/config/configuration.js";
-import { createVerifiableAuthorisationSchema } from "../utils/data.js";
 import { hexToMultibaseBase58Btc } from "../../src/modules/schemas/schemas.utils.js";
-import { describeWriteOps, writeOps } from "../utils/writeOps.js";
-import { getServer } from "../utils/getServer.js";
-import type { InsertSchemaSchema } from "../../src/modules/jsonrpc/validators/RequestInsertSchemaSchema.js";
-import type { UpdateSchemaSchema } from "../../src/modules/jsonrpc/validators/RequestUpdateSchemaSchema.js";
-import type { UpdateMetadataSchema } from "../../src/modules/jsonrpc/validators/RequestUpdateMetadataSchema.js";
-import type { UnsignedTransaction } from "../../src/modules/jsonrpc/validators/RequestSendSignedTransactionSchema.js";
+import { createVerifiableAuthorisationSchema } from "../utils/data.js";
 import { getTsrWriteAccessToken } from "../utils/getAccessToken.js";
 import { getEbsiIssuer } from "../utils/getEbsiIssuer.js";
-
-interface SupertestJsonRpcResponse {
-  status: number;
-  body: JsonRpcResponseObject;
-}
+import { getServer } from "../utils/getServer.js";
+import { describeWriteOps, writeOps } from "../utils/writeOps.js";
 
 type JsonRpcParams =
   | InsertSchemaSchema
-  | UpdateSchemaSchema
-  | UpdateMetadataSchema;
+  | UpdateMetadataSchema
+  | UpdateSchemaSchema;
+
+interface SupertestJsonRpcResponse {
+  body: JsonRpcResponseObject;
+  status: number;
+}
 
 describe("TSR API v3 - Schemas (e2e)", () => {
   let app: NestFastifyApplication;
@@ -81,8 +84,8 @@ describe("TSR API v3 - Schemas (e2e)", () => {
   let sampleTransaction: string;
 
   let blockscout: {
-    url: string;
     bearerToken: string;
+    url: string;
   };
 
   beforeAll(async () => {
@@ -132,8 +135,8 @@ describe("TSR API v3 - Schemas (e2e)", () => {
         .get<string>("domain")
         .replace(/^https?:\/\//, "");
       const ebsiEnvConfig = {
-        network: configService.get("network", { infer: true }),
         hosts: [ebsiAuthority, ...trustedHostnames],
+        network: configService.get("network", { infer: true }),
         services: {
           "did-registry": "v5",
           "trusted-issuers-registry": "v5",
@@ -167,10 +170,9 @@ describe("TSR API v3 - Schemas (e2e)", () => {
           testUserIssuerInfo,
           ebsiEnvConfig,
         );
-      } catch (e) {
-        // eslint-disable-next-line no-console
-        console.error(e);
-        throw e;
+      } catch (error) {
+        console.error(error);
+        throw error;
       }
     }
 
@@ -181,11 +183,12 @@ describe("TSR API v3 - Schemas (e2e)", () => {
     );
 
     blockscout = configService.get<{
-      url: string;
       bearerToken: string;
+      url: string;
     }>("blockscout");
 
-    schemaId = `0x${(await computeId(rawSchema)).toString("hex")}`;
+    const schemaIdBuffer = await computeId(rawSchema);
+    schemaId = `0x${schemaIdBuffer.toString("hex")}`;
 
     serializedSchema = JSON.stringify(rawSchema);
     serializedSchemaBuffer = Buffer.from(serializedSchema);
@@ -199,8 +202,8 @@ describe("TSR API v3 - Schemas (e2e)", () => {
     serializedSchemaUpdatedBuffer = Buffer.from(serializedUpdatedSchema);
 
     rawMetadata = {
-      meta: "value",
       data: crypto.randomBytes(16).toString("hex"),
+      meta: "value",
       validFrom: new Date(Date.now() - 60 * 1000).toISOString(), // -1 minute
       validTo: new Date(Date.now() + 5 * 60 * 1000).toISOString(), // +5 minutes
     };
@@ -209,16 +212,16 @@ describe("TSR API v3 - Schemas (e2e)", () => {
     schemaRevisionMetadataId = ethers.utils.sha256(serializedMetadataBuffer);
 
     rawMetadata2 = {
-      meta: "value 2",
       data: crypto.randomBytes(16).toString("hex"),
+      meta: "value 2",
       validFrom: new Date(Date.now() - 60 * 1000).toISOString(), // -1 minute
       validTo: new Date(Date.now() + 5 * 60 * 1000).toISOString(), // +5 minutes
     };
     serializedMetadata2 = JSON.stringify(rawMetadata2);
     serializedMetadataBuffer2 = Buffer.from(serializedMetadata2);
     rawUpdatedMetadata = {
-      meta: "value updated",
       data: crypto.randomBytes(16).toString("hex"),
+      meta: "value updated",
       validFrom: new Date(Date.now() - 60 * 1000).toISOString(), // -1 minute
       validTo: new Date(Date.now() + 5 * 60 * 1000).toISOString(), // +5 minutes
     };
@@ -236,33 +239,33 @@ describe("TSR API v3 - Schemas (e2e)", () => {
       it("should work", async () => {
         expect.assertions(5);
 
-        let params: JsonRpcParams | null = null;
+        let params: JsonRpcParams;
 
         switch (method) {
           case "insertSchema": {
             params = {
               from: adminTestWallet.address,
-              schemaId,
-              schema: `0x${serializedSchemaBuffer.toString("hex")}`,
               metadata: `0x${serializedMetadataBuffer.toString("hex")}`,
-            } satisfies InsertSchemaSchema;
-            break;
-          }
-          case "updateSchema": {
-            params = {
-              from: adminTestWallet.address,
+              schema: `0x${serializedSchemaBuffer.toString("hex")}`,
               schemaId,
-              schema: `0x${serializedSchemaUpdatedBuffer.toString("hex")}`,
-              metadata: `0x${serializedUpdatedMetadataBuffer.toString("hex")}`,
-            } satisfies UpdateSchemaSchema;
+            } satisfies InsertSchemaSchema;
             break;
           }
           case "updateMetadata": {
             params = {
               from: adminTestWallet.address,
-              schemaRevisionId,
               metadata: `0x${serializedMetadataBuffer2.toString("hex")}`,
+              schemaRevisionId,
             } satisfies UpdateMetadataSchema;
+            break;
+          }
+          case "updateSchema": {
+            params = {
+              from: adminTestWallet.address,
+              metadata: `0x${serializedUpdatedMetadataBuffer.toString("hex")}`,
+              schema: `0x${serializedSchemaUpdatedBuffer.toString("hex")}`,
+              schemaId,
+            } satisfies UpdateSchemaSchema;
             break;
           }
           default: {
@@ -274,15 +277,15 @@ describe("TSR API v3 - Schemas (e2e)", () => {
           .post("/jsonrpc")
           .auth(testUserAccessToken, { type: "bearer" })
           .send({
+            id: 231,
             jsonrpc: "2.0",
             method,
             params: [params],
-            id: 231,
           });
 
         expect(responseBuild.body).toStrictEqual({
-          jsonrpc: "2.0",
           id: 231,
+          jsonrpc: "2.0",
           result: {
             chainId: expect.any(String),
             data: expect.any(String),
@@ -298,6 +301,7 @@ describe("TSR API v3 - Schemas (e2e)", () => {
 
         const unsignedTransaction = responseBuild.body.result;
         const uTx = formatEthersUnsignedTransaction(
+          // eslint-disable-next-line unicorn/prefer-structured-clone
           JSON.parse(
             JSON.stringify(unsignedTransaction),
           ) as unknown as UnsignedTransaction,
@@ -312,24 +316,24 @@ describe("TSR API v3 - Schemas (e2e)", () => {
           .post("/jsonrpc")
           .auth(testUserAccessToken, { type: "bearer" })
           .send({
+            id: "45",
             jsonrpc: "2.0",
             method: "sendSignedTransaction",
             params: [
               {
                 protocol: "eth",
-                unsignedTransaction,
                 r,
                 s,
-                v: `0x${Number(v).toString(16)}`,
                 signedRawTransaction: sgnTx,
+                unsignedTransaction,
+                v: `0x${Number(v).toString(16)}`,
               },
             ],
-            id: "45",
           });
 
         expect(responseSend.body).toStrictEqual({
-          jsonrpc: "2.0",
           id: "45",
+          jsonrpc: "2.0",
           result: expect.any(String),
         });
         expect(responseSend.status).toBe(200);
@@ -369,18 +373,18 @@ describe("TSR API v3 - Schemas (e2e)", () => {
       const response = await request(server).get("/schemas");
 
       expect(response.body).toStrictEqual({
-        self: expect.stringContaining("/schemas?page[after]=1&page[size]=10"),
         items: expect.arrayContaining([]),
-        total: expect.any(Number),
-        pageSize: 10,
         links: {
           first: expect.stringContaining(
             "/schemas?page[after]=1&page[size]=10",
           ),
-          prev: expect.stringContaining("/schemas?page[after]=1&page[size]=10"),
-          next: expect.stringContaining("/schemas?page[after]="),
           last: expect.stringContaining("/schemas?page[after]="),
+          next: expect.stringContaining("/schemas?page[after]="),
+          prev: expect.stringContaining("/schemas?page[after]=1&page[size]=10"),
         },
+        pageSize: 10,
+        self: expect.stringContaining("/schemas?page[after]=1&page[size]=10"),
+        total: expect.any(Number),
       });
       expect(response.status).toBe(200);
     });
@@ -425,9 +429,9 @@ describe("TSR API v3 - Schemas (e2e)", () => {
       const response = await request(server).get(`/schemas/${fakeId}`);
 
       expect(response.body).toStrictEqual({
-        title: "Schema Not Found",
-        status: 404,
         detail: `Schema ${fakeId} not found`,
+        status: 404,
+        title: "Schema Not Found",
         type: "about:blank",
       });
       expect(response.status).toBe(404);
@@ -466,9 +470,9 @@ describe("TSR API v3 - Schemas (e2e)", () => {
       );
 
       expect(response.body).toStrictEqual({
-        title: "Schema Not Found",
-        status: 404,
         detail: `Schema ${fakeId} not found`,
+        status: 404,
+        title: "Schema Not Found",
         type: "about:blank",
       });
       expect(response.status).toBe(404);
@@ -485,9 +489,9 @@ describe("TSR API v3 - Schemas (e2e)", () => {
       );
 
       expect(response.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
         detail: '["valid-at must be a valid ISO 8601 date string"]',
+        status: 400,
+        title: "Bad Request",
         type: "about:blank",
       });
       expect(response.status).toBe(400);
@@ -503,9 +507,9 @@ describe("TSR API v3 - Schemas (e2e)", () => {
         `/schemas/${schemaId}/revisions?page[size]=100`,
       );
       expect(response1.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
         detail: '["page[size] must not be greater than 50"]',
+        status: 400,
+        title: "Bad Request",
         type: "about:blank",
       });
       expect(response1.status).toBe(400);
@@ -517,9 +521,9 @@ describe("TSR API v3 - Schemas (e2e)", () => {
         `/schemas/${schemaId}/revisions?page[size]=0`,
       );
       expect(response2.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
         detail: '["page[size] must not be less than 1"]',
+        status: 400,
+        title: "Bad Request",
         type: "about:blank",
       });
       expect(response2.status).toBe(400);
@@ -531,9 +535,9 @@ describe("TSR API v3 - Schemas (e2e)", () => {
         `/schemas/${schemaId}/revisions?page[after]=0`,
       );
       expect(response3.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
         detail: '["page[after] must not be less than 1"]',
+        status: 400,
+        title: "Bad Request",
         type: "about:blank",
       });
       expect(response3.status).toBe(400);
@@ -545,10 +549,10 @@ describe("TSR API v3 - Schemas (e2e)", () => {
         `/schemas/${schemaId}/revisions?page[after]=abc`,
       );
       expect(response4.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
         detail:
           '["page[after] must not be less than 1","page[after] must be a number conforming to the specified constraints"]',
+        status: 400,
+        title: "Bad Request",
         type: "about:blank",
       });
       expect(response4.status).toBe(400);
@@ -701,9 +705,9 @@ describe("TSR API v3 - Schemas (e2e)", () => {
       );
 
       expect(response.body).toStrictEqual({
-        title: "Schema Not Found",
-        status: 404,
         detail: `Schema ${fakeSchemaId} not found`,
+        status: 404,
+        title: "Schema Not Found",
         type: "about:blank",
       });
       expect(response.status).toBe(404);
@@ -723,7 +727,7 @@ describe("TSR API v3 - Schemas (e2e)", () => {
 
       expect(response.body).toStrictEqual({
         detail:
-          '["schemaRevisionId must be a hexadecimal number","schemaRevisionId must match /^0x/ regular expression"]',
+          '["schemaRevisionId must match /^0x/ regular expression","schemaRevisionId must be a hexadecimal number"]',
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -747,9 +751,9 @@ describe("TSR API v3 - Schemas (e2e)", () => {
         );
 
         expect(response.body).toStrictEqual({
-          title: "Revision Not Found",
-          status: 404,
           detail: `Revision ${fakeSchemaRevisionId} not found`,
+          status: 404,
+          title: "Revision Not Found",
           type: "about:blank",
         });
         expect(response.status).toBe(404);
@@ -811,9 +815,9 @@ describe("TSR API v3 - Schemas (e2e)", () => {
       );
 
       expect(response.body).toStrictEqual({
-        title: "Schema Not Found",
-        status: 404,
         detail: `Schema ${fakeSchemaId} not found`,
+        status: 404,
+        title: "Schema Not Found",
         type: "about:blank",
       });
       expect(response.status).toBe(404);
@@ -833,7 +837,7 @@ describe("TSR API v3 - Schemas (e2e)", () => {
 
       expect(response.body).toStrictEqual({
         detail:
-          '["schemaRevisionId must be a hexadecimal number","schemaRevisionId must match /^0x/ regular expression"]',
+          '["schemaRevisionId must match /^0x/ regular expression","schemaRevisionId must be a hexadecimal number"]',
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -857,9 +861,9 @@ describe("TSR API v3 - Schemas (e2e)", () => {
         );
 
         expect(response.body).toStrictEqual({
-          title: "Revision Not Found",
-          status: 404,
           detail: `Revision ${fakeSchemaRevisionId} not found`,
+          status: 404,
+          title: "Revision Not Found",
           type: "about:blank",
         });
         expect(response.status).toBe(404);
@@ -956,9 +960,9 @@ describe("TSR API v3 - Schemas (e2e)", () => {
       );
 
       expect(response.body).toStrictEqual({
-        title: "Schema Not Found",
-        status: 404,
         detail: `Schema ${fakeSchemaId} not found`,
+        status: 404,
+        title: "Schema Not Found",
         type: "about:blank",
       });
       expect(response.status).toBe(404);
@@ -981,7 +985,7 @@ describe("TSR API v3 - Schemas (e2e)", () => {
 
       expect(response.body).toStrictEqual({
         detail:
-          '["schemaRevisionId must be a hexadecimal number","schemaRevisionId must match /^0x/ regular expression"]',
+          '["schemaRevisionId must match /^0x/ regular expression","schemaRevisionId must be a hexadecimal number"]',
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -1008,9 +1012,9 @@ describe("TSR API v3 - Schemas (e2e)", () => {
         );
 
         expect(response.body).toStrictEqual({
-          title: "Revision Not Found",
-          status: 404,
           detail: `Revision ${fakeSchemaRevisionId} not found`,
+          status: 404,
+          title: "Revision Not Found",
           type: "about:blank",
         });
         expect(response.status).toBe(404);
@@ -1028,7 +1032,7 @@ describe("TSR API v3 - Schemas (e2e)", () => {
 
         expect(response.body).toStrictEqual({
           detail:
-            '["metadataId must be a hexadecimal number","metadataId must match /^0x/ regular expression"]',
+            '["metadataId must match /^0x/ regular expression","metadataId must be a hexadecimal number"]',
           status: 400,
           title: "Bad Request",
           type: "about:blank",
@@ -1065,9 +1069,9 @@ describe("TSR API v3 - Schemas (e2e)", () => {
         );
 
         expect(response.body).toStrictEqual({
-          title: "Metadata Not Found",
-          status: 404,
           detail: `Metadata ${fakeSchemaMetadataId} not found`,
+          status: 404,
+          title: "Metadata Not Found",
           type: "about:blank",
         });
         expect(response.status).toBe(404);

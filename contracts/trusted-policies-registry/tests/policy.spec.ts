@@ -1,19 +1,19 @@
-import { ethers } from "hardhat";
-import { expect } from "chai";
-import { ContractFunction, Signer } from "ethers";
-import { PolicyRegistry } from "../src/types";
+import type { Signer } from "ethers";
 
-const num = ethers.BigNumber.from;
+import { expect } from "chai";
+import { ethers } from "hardhat";
+
+import type { PolicyRegistry } from "../src/types";
 
 function getEthObject(o: unknown): Record<string, unknown> | unknown[] {
-  const obj = o as string[] & Record<string, unknown>;
+  const obj = o as Record<string, unknown> & string[];
   const keys = Object.keys(obj);
 
   // check if it is a string
   if (typeof obj === "string") return obj;
 
   // check if it is an array
-  if (keys[keys.length - 1] === String(keys.length - 1)) {
+  if (keys.at(-1) === String(keys.length - 1)) {
     return (o as unknown[]).map((item) => getEthObject(item));
   }
 
@@ -22,15 +22,11 @@ function getEthObject(o: unknown): Record<string, unknown> | unknown[] {
 
   // treat it as object. ["alice", "name": "alice"] ==> { "name" : "alice" }
   const result: Record<string, unknown> = {};
-  keys.forEach((k, i) => {
-    if (i < keys.length / 2) return;
+  for (const [i, k] of keys.entries()) {
+    if (i < keys.length / 2) continue;
 
-    if (typeof obj[k] === "object") {
-      result[k] = getEthObject(obj[k]);
-    } else {
-      result[k] = obj[k];
-    }
-  });
+    result[k] = typeof obj[k] === "object" ? getEthObject(obj[k]) : obj[k];
+  }
   return result;
 }
 
@@ -40,18 +36,18 @@ describe("Policy", () => {
 
   const pcs = [
     {
-      name: "name1",
       attributeName: "attrName1",
-      value: "0x1122334455667788",
       attributeOperation: 0,
+      name: "name1",
       typeOfValue: 3,
+      value: "0x1122334455667788",
     },
     {
-      name: "name2",
       attributeName: "attrName2",
-      value: "0xaabbccddeeff0011",
       attributeOperation: 0,
+      name: "name2",
       typeOfValue: 1,
+      value: "0xaabbccddeeff0011",
     },
   ];
 
@@ -70,7 +66,7 @@ describe("Policy", () => {
         },
       },
     );
-    policyContract = (await policyRegistryFactory.deploy()) as PolicyRegistry;
+    policyContract = await policyRegistryFactory.deploy();
     [, addr1] = await ethers.getSigners();
     await policyContract.deployed();
 
@@ -86,7 +82,7 @@ describe("Policy", () => {
   });
 
   beforeEach(async () => {
-    snapshotId = await ethers.provider.send("evm_snapshot", []);
+    snapshotId = (await ethers.provider.send("evm_snapshot", [])) as string;
   });
 
   afterEach(async () => {
@@ -105,12 +101,12 @@ describe("Policy", () => {
       let policyById = await policyContract["getPolicy(uint256)"](0);
       let policyByName = await policyContract["getPolicy(string)"]("policy-0");
       let expectedPolicy = {
-        policyId: num(0),
-        policyName: "policy-0",
         description: "description 0",
         opType: 0,
-        status: true,
         policyConditions: pcs,
+        policyId: ethers.BigNumber.from(0),
+        policyName: "policy-0",
+        status: true,
       };
       expect(getEthObject(policyById)).to.eql(expectedPolicy);
       expect(getEthObject(policyByName)).to.eql(expectedPolicy);
@@ -119,12 +115,12 @@ describe("Policy", () => {
       policyById = await policyContract["getPolicy(uint256)"](1);
       policyByName = await policyContract["getPolicy(string)"]("policy-1");
       expectedPolicy = {
-        policyId: num(1),
-        policyName: "policy-1",
         description: "description 1",
         opType: 0,
-        status: true,
         policyConditions: [],
+        policyId: ethers.BigNumber.from(1),
+        policyName: "policy-1",
+        status: true,
       };
       expect(getEthObject(policyById)).to.eql(expectedPolicy);
       expect(getEthObject(policyByName)).to.eql(expectedPolicy);
@@ -134,41 +130,41 @@ describe("Policy", () => {
       // by Policy ID - page 1
       let policiesById = await policyContract.getPolicies(1, 2);
       expect(getEthObject(policiesById)).to.eql({
-        items: [num(0), num(1)],
-        total: num(4),
-        howMany: num(2),
-        prev: num(1),
-        next: num(2),
+        howMany: ethers.BigNumber.from(2),
+        items: [ethers.BigNumber.from(0), ethers.BigNumber.from(1)],
+        next: ethers.BigNumber.from(2),
+        prev: ethers.BigNumber.from(1),
+        total: ethers.BigNumber.from(4),
       });
 
       // by Policy ID - page 2
       policiesById = await policyContract.getPolicies(2, 2);
       expect(getEthObject(policiesById)).to.eql({
-        items: [num(2), num(3)],
-        total: num(4),
-        howMany: num(2),
-        prev: num(1),
-        next: num(2),
+        howMany: ethers.BigNumber.from(2),
+        items: [ethers.BigNumber.from(2), ethers.BigNumber.from(3)],
+        next: ethers.BigNumber.from(2),
+        prev: ethers.BigNumber.from(1),
+        total: ethers.BigNumber.from(4),
       });
 
       // by Policy Name - page 1
       let policiesByName = await policyContract.getPolicyNames(1, 2);
       expect(getEthObject(policiesByName)).to.eql({
+        howMany: ethers.BigNumber.from(2),
         items: ["policy-0", "policy-1"],
-        total: num(4),
-        howMany: num(2),
-        prev: num(1),
-        next: num(2),
+        next: ethers.BigNumber.from(2),
+        prev: ethers.BigNumber.from(1),
+        total: ethers.BigNumber.from(4),
       });
 
       // by Policy Name - page 2
       policiesByName = await policyContract.getPolicyNames(2, 2);
       expect(getEthObject(policiesByName)).to.eql({
+        howMany: ethers.BigNumber.from(2),
         items: ["policy-2", "policy-3"],
-        total: num(4),
-        howMany: num(2),
-        prev: num(1),
-        next: num(2),
+        next: ethers.BigNumber.from(2),
+        prev: ethers.BigNumber.from(1),
+        total: ethers.BigNumber.from(4),
       });
     });
   });
@@ -176,23 +172,24 @@ describe("Policy", () => {
   describe("deactivatePolicy", () => {
     const tests = [
       {
-        type: "call by id",
-        override: "uint256",
-        value: 0,
         invalidValue: 4,
+        override: "uint256",
+        type: "call by id",
+        value: 0,
       },
       {
-        type: "call by name",
-        override: "string",
-        value: "policy-1",
         invalidValue: "bad-policy",
+        override: "string",
+        type: "call by name",
+        value: "policy-1",
       },
     ] as const;
 
-    tests.forEach(({ type, override, value, invalidValue }) => {
-      let deactivatePolicy: ContractFunction;
-      let deactivatePolicyBadUser: ContractFunction;
-      let getPolicy: ContractFunction;
+    for (const { invalidValue, override, type, value } of tests) {
+      let deactivatePolicy: (typeof policyContract)[`deactivatePolicy(${typeof override})`];
+      let deactivatePolicyBadUser: (typeof policyContract)[`deactivatePolicy(${typeof override})`];
+      let getPolicy: (typeof policyContract)[`getPolicy(${typeof override})`];
+
       before(() => {
         deactivatePolicy = policyContract[`deactivatePolicy(${override})`];
         deactivatePolicyBadUser =
@@ -201,12 +198,14 @@ describe("Policy", () => {
       });
 
       it(`Should fail for missing policy (${type})`, async () => {
+        // @ts-expect-error Mismatch of types
         await expect(deactivatePolicy(invalidValue)).to.be.revertedWith(
           "Policy: invalid policy",
         );
       });
 
       it(`Should be reverted if it doesn't have operator role (${type})`, async () => {
+        // @ts-expect-error Mismatch of types
         await expect(deactivatePolicyBadUser(value)).to.be.revertedWith(
           `AccessControl: account ${(
             await addr1.getAddress()
@@ -215,45 +214,51 @@ describe("Policy", () => {
       });
 
       it(`Should deactivate policy (${type})`, async () => {
+        // @ts-expect-error Mismatch of types
         await expect(deactivatePolicy(value)).to.emit(
           policyContract,
           "PolicyDeactivated",
         );
+
+        // @ts-expect-error Mismatch of types
         const policy = await getPolicy(value);
+
         // eslint-disable-next-line @typescript-eslint/no-unused-expressions
         expect(policy.status).to.be.false;
       });
 
       it(`Should fail for inactive policy (${type})`, async () => {
+        // @ts-expect-error Mismatch of types
         await deactivatePolicy(value);
+        // @ts-expect-error Mismatch of types
         await expect(deactivatePolicy(value)).to.be.revertedWith(
           "Policy: policy already inactive",
         );
       });
-    });
+    }
   });
 
   describe("activatePolicy", () => {
     const tests = [
       {
-        type: "call by id",
-        override: "uint256",
-        value: 0,
         invalidValue: 4,
+        override: "uint256",
+        type: "call by id",
+        value: 0,
       },
       {
-        type: "call by name",
-        override: "string",
-        value: "policy-1",
         invalidValue: "bad-policy",
+        override: "string",
+        type: "call by name",
+        value: "policy-1",
       },
     ] as const;
 
-    tests.forEach(({ type, override, value, invalidValue }) => {
-      let activatePolicy: ContractFunction;
-      let activatePolicyBadUser: ContractFunction;
-      let deactivatePolicy: ContractFunction;
-      let getPolicy: ContractFunction;
+    for (const { invalidValue, override, type, value } of tests) {
+      let activatePolicy: (typeof policyContract)[`activatePolicy(${typeof override})`];
+      let activatePolicyBadUser: (typeof policyContract)[`activatePolicy(${typeof override})`];
+      let deactivatePolicy: (typeof policyContract)[`deactivatePolicy(${typeof override})`];
+      let getPolicy: (typeof policyContract)[`getPolicy(${typeof override})`];
 
       before(() => {
         activatePolicy = policyContract[`activatePolicy(${override})`];
@@ -264,18 +269,21 @@ describe("Policy", () => {
       });
 
       it(`Should fail for missing policy (${type})`, async () => {
+        // @ts-expect-error Mismatch of types
         await expect(activatePolicy(invalidValue)).to.be.revertedWith(
           "Policy: invalid policy",
         );
       });
 
       it(`Should fail for active policy (${type})`, async () => {
+        // @ts-expect-error Mismatch of types
         await expect(activatePolicy(value)).to.be.revertedWith(
           "Policy: policy already active",
         );
       });
 
       it(`Should be reverted if it doesn't have operator role (${type})`, async () => {
+        // @ts-expect-error Mismatch of types
         await expect(activatePolicyBadUser(value)).to.be.revertedWith(
           `AccessControl: account ${(
             await addr1.getAddress()
@@ -284,42 +292,46 @@ describe("Policy", () => {
       });
 
       it(`Should activate policy (${type})`, async () => {
+        // @ts-expect-error Mismatch of types
         await deactivatePolicy(value);
+        // @ts-expect-error Mismatch of types
         let policy = await getPolicy(value);
         // eslint-disable-next-line @typescript-eslint/no-unused-expressions
         expect(policy.status).to.be.false;
+        // @ts-expect-error Mismatch of types
         await expect(activatePolicy(value)).to.emit(
           policyContract,
           "PolicyActivated",
         );
+        // @ts-expect-error Mismatch of types
         policy = await getPolicy(value);
         // eslint-disable-next-line @typescript-eslint/no-unused-expressions
         expect(policy.status).to.be.true;
       });
-    });
+    }
   });
 
   describe("updatePolicy", () => {
     const tests = [
       {
-        type: "call by id",
-        override: "uint256",
-        value: 1,
         invalidValue: 4,
+        override: "uint256",
+        type: "call by id",
+        value: 1,
       },
       {
-        type: "call by name",
-        override: "string",
-        value: "policy-1",
         invalidValue: "bad-policy",
+        override: "string",
+        type: "call by name",
+        value: "policy-1",
       },
     ] as const;
 
-    tests.forEach(({ type, override, value, invalidValue }) => {
-      let updatePolicy: ContractFunction;
-      let updatePolicyBadUser: ContractFunction;
-      let deactivatePolicy: ContractFunction;
-      let getPolicy: ContractFunction;
+    for (const { invalidValue, override, type, value } of tests) {
+      let updatePolicy: (typeof policyContract)[`updatePolicy(${typeof override},uint8,string)`];
+      let updatePolicyBadUser: (typeof policyContract)[`updatePolicy(${typeof override},uint8,string)`];
+      let deactivatePolicy: (typeof policyContract)[`deactivatePolicy(${typeof override})`];
+      let getPolicy: (typeof policyContract)[`getPolicy(${typeof override})`];
 
       before(() => {
         updatePolicy = policyContract[`updatePolicy(${override},uint8,string)`];
@@ -332,13 +344,16 @@ describe("Policy", () => {
       });
 
       it(`Should fail for missing policy (${type})`, async () => {
+        // @ts-expect-error Mismatch of types
         await expect(updatePolicy(invalidValue, 0, "")).to.be.revertedWith(
           "Policy: invalid policy",
         );
       });
 
       it(`Should fail for inactive policy (${type})`, async () => {
+        // @ts-expect-error Mismatch of types
         await deactivatePolicy(value);
+        // @ts-expect-error Mismatch of types
         await expect(updatePolicy(value, 0, "")).to.be.revertedWith(
           "Policy: policy inactive",
         );
@@ -346,6 +361,7 @@ describe("Policy", () => {
 
       it(`Should be reverted if it doesn't have operator role (${type})`, async () => {
         await expect(
+          // @ts-expect-error Mismatch of types
           updatePolicyBadUser(value, 0, "description"),
         ).to.be.revertedWith(
           `AccessControl: account ${(
@@ -355,44 +371,47 @@ describe("Policy", () => {
       });
 
       it(`Should update policy (${type})`, async () => {
+        // @ts-expect-error Mismatch of types
         await expect(updatePolicy(value, 0, "description")).to.emit(
           policyContract,
           "PolicyUpdated",
         );
+        // @ts-expect-error Mismatch of types
         const policy = await getPolicy(value);
         expect(getEthObject(policy)).to.eql({
-          policyId: num(1),
-          policyName: "policy-1",
           description: "description",
           opType: 0,
-          status: true,
           policyConditions: [],
+          policyId: ethers.BigNumber.from(1),
+          policyName: "policy-1",
+          status: true,
         });
       });
-    });
+    }
   });
 
   describe("addPolicyConditions", () => {
     const tests = [
       {
-        type: "call by id",
-        override: "uint256",
-        value: 0,
         invalidValue: 4,
+        override: "uint256",
+        type: "call by id",
+        value: 0,
       },
       {
-        type: "call by name",
-        override: "string",
-        value: "policy-0",
         invalidValue: "bad-policy",
+        override: "string",
+        type: "call by name",
+        value: "policy-0",
       },
     ] as const;
 
-    tests.forEach(({ type, override, value, invalidValue }) => {
-      let addPolicyConditions: ContractFunction;
-      let addPolicyConditionsBadUser: ContractFunction;
-      let deactivatePolicy: ContractFunction;
-      let getPolicy: ContractFunction;
+    for (const { invalidValue, override, type, value } of tests) {
+      let addPolicyConditions: (typeof policyContract)[`addPolicyConditions(${typeof override},(string,string,uint8,bytes,uint8)[])`];
+      let addPolicyConditionsBadUser: (typeof policyContract)[`addPolicyConditions(${typeof override},(string,string,uint8,bytes,uint8)[])`];
+      let deactivatePolicy: (typeof policyContract)[`deactivatePolicy(${typeof override})`];
+      let getPolicy: (typeof policyContract)[`getPolicy(${typeof override})`];
+
       before(() => {
         addPolicyConditions =
           policyContract[
@@ -407,19 +426,23 @@ describe("Policy", () => {
       });
 
       it(`Should fail for missing policy id (${type})`, async () => {
+        // @ts-expect-error Mismatch of types
         await expect(addPolicyConditions(invalidValue, [])).to.be.revertedWith(
           "Policy: invalid policy",
         );
       });
 
       it(`Should fail for inactive policy (${type})`, async () => {
+        // @ts-expect-error Mismatch of types
         await deactivatePolicy(value);
+        // @ts-expect-error Mismatch of types
         await expect(addPolicyConditions(value, [])).to.be.revertedWith(
           "Policy: policy inactive",
         );
       });
 
       it(`Should be reverted if it doesn't have operator role (${type})`, async () => {
+        // @ts-expect-error Mismatch of types
         await expect(addPolicyConditionsBadUser(1, [])).to.be.revertedWith(
           `AccessControl: account ${(
             await addr1.getAddress()
@@ -428,20 +451,23 @@ describe("Policy", () => {
       });
 
       it(`Should be able to add empty policyConditions array (${type})`, async () => {
+        // @ts-expect-error Mismatch of types
         await addPolicyConditions(value, []);
+        // @ts-expect-error Mismatch of types
         const policy = await getPolicy(value);
         expect(policy.policyConditions).to.have.length(pcs.length);
       });
 
       it(`Should fail for empty attribute name (${type})`, async () => {
         await expect(
+          // @ts-expect-error Mismatch of types
           addPolicyConditions(value, [
             {
-              name: "name",
               attributeName: "",
-              value: ethers.utils.toUtf8Bytes("4hcd6s"),
               attributeOperation: 0,
+              name: "name",
               typeOfValue: 3,
+              value: ethers.utils.toUtf8Bytes("4hcd6s"),
             },
           ]),
         ).to.be.revertedWith("Policy: invalid attribute name on counter 0");
@@ -450,58 +476,63 @@ describe("Policy", () => {
       it(`Should add policy condition (${type})`, async () => {
         const addPcs = [
           {
-            name: "name 1",
             attributeName: "attr 1",
-            value: "0xaa124564",
             attributeOperation: 0,
+            name: "name 1",
             typeOfValue: 3,
+            value: "0xaa124564",
           },
           {
-            name: "name 2",
             attributeName: "attr 2",
-            value: "0x003311223344ee",
             attributeOperation: 0,
+            name: "name 2",
             typeOfValue: 3,
+            value: "0x003311223344ee",
           },
         ];
+
+        // @ts-expect-error Mismatch of types
         await expect(addPolicyConditions(value, addPcs)).to.emit(
           policyContract,
           "PolicyConditionInserted",
         );
+
+        // @ts-expect-error Mismatch of types
         const policy = await getPolicy(value);
         expect(getEthObject(policy)).to.eql({
-          policyId: num(0),
-          policyName: "policy-0",
           description: "description 0",
           opType: 0,
-          status: true,
           policyConditions: [...pcs, ...addPcs],
+          policyId: ethers.BigNumber.from(0),
+          policyName: "policy-0",
+          status: true,
         });
       });
-    });
+    }
   });
 
   describe("deletePolicyCondition", () => {
     const tests = [
       {
-        type: "call by id",
-        override: "uint256",
-        value: 0,
         invalidValue: 4,
+        override: "uint256",
+        type: "call by id",
+        value: 0,
       },
       {
-        type: "call by name",
-        override: "string",
-        value: "policy-0",
         invalidValue: "bad-policy",
+        override: "string",
+        type: "call by name",
+        value: "policy-0",
       },
     ] as const;
 
-    tests.forEach(({ type, override, value, invalidValue }) => {
-      let deletePolicyCondition: ContractFunction;
-      let deletePolicyConditionBadUser: ContractFunction;
-      let deactivatePolicy: ContractFunction;
-      let getPolicy: ContractFunction;
+    for (const { invalidValue, override, type, value } of tests) {
+      let deletePolicyCondition: (typeof policyContract)[`deletePolicyCondition(${typeof override},uint256)`];
+      let deletePolicyConditionBadUser: (typeof policyContract)[`deletePolicyCondition(${typeof override},uint256)`];
+      let deactivatePolicy: (typeof policyContract)[`deactivatePolicy(${typeof override})`];
+      let getPolicy: (typeof policyContract)[`getPolicy(${typeof override})`];
+
       before(() => {
         deletePolicyCondition =
           policyContract[`deletePolicyCondition(${override},uint256)`];
@@ -514,25 +545,30 @@ describe("Policy", () => {
       });
 
       it(`Should fail for missing policy id (${type})`, async () => {
+        // @ts-expect-error Mismatch of types
         await expect(deletePolicyCondition(invalidValue, 0)).to.be.revertedWith(
           "Policy: invalid policy",
         );
       });
 
       it(`Should fail for inactive policy (${type})`, async () => {
+        // @ts-expect-error Mismatch of types
         await deactivatePolicy(value);
+        // @ts-expect-error Mismatch of types
         await expect(deletePolicyCondition(value, 0)).to.be.revertedWith(
           "Policy: policy inactive",
         );
       });
 
       it(`Should fail for invalid policyConditionId (${type})`, async () => {
+        // @ts-expect-error Mismatch of types
         await expect(deletePolicyCondition(value, 5)).to.be.revertedWith(
           "Policy: invalid condition",
         );
       });
 
       it(`Should be reverted if it doesn't have operator role (${type})`, async () => {
+        // @ts-expect-error Mismatch of types
         await expect(deletePolicyConditionBadUser(value, 0)).to.be.revertedWith(
           `AccessControl: account ${(
             await addr1.getAddress()
@@ -541,21 +577,23 @@ describe("Policy", () => {
       });
 
       it(`Should delete policyCondition (${type})`, async () => {
+        // @ts-expect-error Mismatch of types
         await expect(deletePolicyCondition(value, 1)).to.emit(
           policyContract,
           "PolicyConditionDeleted",
         );
+        // @ts-expect-error Mismatch of types
         const policy = await getPolicy(value);
         expect(getEthObject(policy)).to.eql({
-          policyId: num(0),
-          policyName: "policy-0",
           description: "description 0",
           opType: 0,
-          status: true,
           policyConditions: pcs.slice(0, 1),
+          policyId: ethers.BigNumber.from(0),
+          policyName: "policy-0",
+          status: true,
         });
       });
-    });
+    }
   });
 
   describe("insertPolicy", () => {
@@ -577,11 +615,11 @@ describe("Policy", () => {
           1,
           [
             {
-              name: "policy-1",
               attributeName: "testAttr",
-              value: ethers.utils.toUtf8Bytes("vxc4gdbfgb"),
               attributeOperation: 0,
+              name: "policy-1",
               typeOfValue: 3,
+              value: ethers.utils.toUtf8Bytes("vxc4gdbfgb"),
             },
           ],
           "policy-1",
@@ -596,11 +634,11 @@ describe("Policy", () => {
           1,
           [
             {
-              name: "name",
               attributeName: "",
-              value: ethers.utils.toUtf8Bytes("vxc4gdbfgb"),
               attributeOperation: 0,
+              name: "name",
               typeOfValue: 3,
+              value: ethers.utils.toUtf8Bytes("vxc4gdbfgb"),
             },
           ],
           "name",
@@ -631,17 +669,17 @@ describe("Policy", () => {
         .withArgs(1, pcs[1].attributeName, ethers.utils.hexlify(pcs[1].value));
       const policy = await policyContract["getPolicy(uint256)"](4);
       expect(getEthObject(policy)).to.eql({
-        policyId: num(4),
-        policyName: "name",
         description: "description",
         opType: 0,
-        status: true,
         policyConditions: pcs,
+        policyId: ethers.BigNumber.from(4),
+        policyName: "name",
+        status: true,
       });
     });
   });
 
-  describe("Access Control", async () => {
+  describe("Access Control", () => {
     it("Admin Should be able to grant role", async () => {
       await policyContract.grantRole(OPERATOR_ROLE, await addr1.getAddress());
       await policyContract
@@ -684,11 +722,11 @@ describe("Policy", () => {
       [byPolicyName, byPolicyDescription] =
         await policyContract.searchPolicy("description 4");
       expect(byPolicyName).to.have.length(0);
-      expect(byPolicyDescription).to.deep.equal([num(4)]);
+      expect(byPolicyDescription).to.deep.equal([ethers.BigNumber.from(4)]);
       [byPolicyName, byPolicyDescription] =
         await policyContract.searchPolicy("test policy 4");
       expect(byPolicyDescription).to.have.length(0);
-      expect(byPolicyName).to.deep.equal([num(4)]);
+      expect(byPolicyName).to.deep.equal([ethers.BigNumber.from(4)]);
     });
   });
 });

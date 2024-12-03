@@ -1,11 +1,11 @@
+import { PaginationQuery } from "@ebsiint-api/shared";
 import {
+  IsEthereumAddress,
   IsHexadecimal,
   IsOptional,
   Length,
-  IsEthereumAddress,
   Matches,
 } from "class-validator";
-import { PaginationQuery } from "@ebsiint-api/shared";
 
 export default class GetRecordsDto extends PaginationQuery {
   @IsOptional()

@@ -1,23 +1,23 @@
 interface JsonRpcErrorObject {
-  jsonrpc: string;
   error: {
     code: number;
-    message: string;
     data?: unknown;
+    message: string;
   };
-  id: string | number | null;
+  id: null | number | string;
+  jsonrpc: string;
 }
 
 export class JsonRpcError extends Error {
-  public jsonrpc: string;
-
   public error: {
     code: number;
-    message: string;
     data?: unknown;
+    message: string;
   };
 
-  public id: string | number | null | undefined;
+  public id: null | number | string | undefined;
+
+  public jsonrpc: string;
 
   public status: number;
 
@@ -32,22 +32,23 @@ export class JsonRpcError extends Error {
     code: number,
     status: number,
     message: string,
-    id?: string | number | null | undefined,
+    id?: null | number | string,
     data?: unknown,
   ) {
     super(message);
     this.name = "JsonRpcError";
     this.jsonrpc = "2.0";
     this.status = status;
-    this.error = { code, message, data };
+    this.error = { code, data, message };
     this.id = id;
   }
 
   toJSON(): JsonRpcErrorObject {
     return {
-      jsonrpc: this.jsonrpc,
       error: this.error,
+      // eslint-disable-next-line unicorn/no-null
       id: this.id ?? null,
+      jsonrpc: this.jsonrpc,
     };
   }
 

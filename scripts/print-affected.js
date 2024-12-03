@@ -24,7 +24,7 @@ const deprecatedServices = [
 // otherwise, if the variable is not present, make the diff with the previous commit
 const baseCommit = process.env["GIT_PREVIOUS_SUCCESSFUL_COMMIT"] ?? "main~1";
 
-console.log("Comparing HEAD to commit: ", baseCommit)
+console.log("Comparing HEAD to commit: ", baseCommit);
 
 const processResult = spawnSync("sh", [
   "-c",

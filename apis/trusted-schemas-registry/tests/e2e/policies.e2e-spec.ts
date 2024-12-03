@@ -1,25 +1,28 @@
-import { describe, beforeAll, it, expect, afterAll } from "vitest";
-import request from "supertest";
-import { Test } from "@nestjs/testing";
-import { ValidationPipe, Logger } from "@nestjs/common";
+import type { RawServerDefault } from "fastify";
+
+import { methodNotAllowed, type PaginatedList } from "@ebsiint-api/shared";
+import { fastifyAccepts } from "@fastify/accepts";
+import { fastifyHelmet } from "@fastify/helmet";
+import { Logger, ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import {
   FastifyAdapter,
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import type { RawServerDefault } from "fastify";
-import { fastifyAccepts } from "@fastify/accepts";
-import { fastifyHelmet } from "@fastify/helmet";
-import { methodNotAllowed, type PaginatedList } from "@ebsiint-api/shared";
-import { AppModule } from "../../src/app.module.js";
+import { Test } from "@nestjs/testing";
+import request from "supertest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
+
 import type { ApiConfig } from "../../src/config/configuration.js";
-import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
 import type { PolicyLink } from "../../src/modules/policies/policies.interface.js";
+
+import { AppModule } from "../../src/app.module.js";
+import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
 import { getServer } from "../utils/getServer.js";
 
 interface SupertestPoliciesResponse {
-  status: number;
   body: PaginatedList<PolicyLink>;
+  status: number;
 }
 
 describe("TSR API v2 - Policies (e2e)", () => {
@@ -80,26 +83,26 @@ describe("TSR API v2 - Policies (e2e)", () => {
 
       expect(response.body).toStrictEqual(
         expect.objectContaining({
-          self: expect.stringContaining(
-            "/trusted-schemas-registry/v2/policies?page[after]=1&page[size]=10",
-          ),
           items: expect.arrayContaining([]),
-          total: expect.any(Number),
-          pageSize: expect.any(Number),
           links: expect.objectContaining({
             first: expect.stringContaining(
               "/trusted-schemas-registry/v2/policies?page[after]=1&page[size]=10",
             ),
-            prev: expect.stringContaining(
-              "/trusted-schemas-registry/v2/policies?page[after]=1&page[size]=10",
+            last: expect.stringContaining(
+              "/trusted-schemas-registry/v2/policies?page[after]=",
             ),
             next: expect.stringContaining(
               "/trusted-schemas-registry/v2/policies?page[after]=",
             ),
-            last: expect.stringContaining(
-              "/trusted-schemas-registry/v2/policies?page[after]=",
+            prev: expect.stringContaining(
+              "/trusted-schemas-registry/v2/policies?page[after]=1&page[size]=10",
             ),
           }),
+          pageSize: expect.any(Number),
+          self: expect.stringContaining(
+            "/trusted-schemas-registry/v2/policies?page[after]=1&page[size]=10",
+          ),
+          total: expect.any(Number),
         }),
       );
       expect(response.status).toBe(200);
@@ -111,9 +114,9 @@ describe("TSR API v2 - Policies (e2e)", () => {
       expect.assertions(2);
       const response = await request(server).get("/policies/unknown-policy");
       expect(response.body).toStrictEqual({
-        title: "Policy Not Found",
-        status: 404,
         detail: "Policy unknown-policy not found",
+        status: 404,
+        title: "Policy Not Found",
         type: "about:blank",
       });
       expect(response.status).toBe(404);
@@ -129,9 +132,9 @@ describe("TSR API v2 - Policies (e2e)", () => {
       );
 
       expect(response.body).toStrictEqual({
-        title: "Policy Not Found",
-        status: 404,
         detail: "Policy unknown-policy not found",
+        status: 404,
+        title: "Policy Not Found",
         type: "about:blank",
       });
       expect(response.status).toBe(404);

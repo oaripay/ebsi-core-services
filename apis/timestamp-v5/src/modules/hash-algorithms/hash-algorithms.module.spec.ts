@@ -1,19 +1,21 @@
-import { vi, describe, beforeAll, afterAll, it, expect } from "vitest";
-import request from "supertest";
-import { Test } from "@nestjs/testing";
-import { ValidationPipe, Logger } from "@nestjs/common";
+import type { RawServerDefault } from "fastify";
+
+import { methodNotAllowed } from "@ebsiint-api/shared";
+import { Timestamp, Timestamp__factory } from "@ebsiint-sc/timestamp-v3";
+import { fastifyAccepts } from "@fastify/accepts";
+import { Logger, ValidationPipe } from "@nestjs/common";
 import {
   FastifyAdapter,
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import type { RawServerDefault } from "fastify";
-import { fastifyAccepts } from "@fastify/accepts";
-import { Timestamp, Timestamp__factory } from "@ebsiint-sc/timestamp-v3";
-import { methodNotAllowed } from "@ebsiint-api/shared";
-import { HashAlgorithmsModule } from "./hash-algorithms.module.js";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
-import { setupTestEnv } from "../../../tests/utils/timestamp.js";
+import { Test } from "@nestjs/testing";
+import request from "supertest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+
 import { graphServer } from "../../../tests/utils/graphServer.js";
+import { setupTestEnv } from "../../../tests/utils/timestamp.js";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
+import { HashAlgorithmsModule } from "./hash-algorithms.module.js";
 
 describe("HashAlgorithms Module", () => {
   let app: NestFastifyApplication;
@@ -72,25 +74,25 @@ describe("HashAlgorithms Module", () => {
       const response = await request(server).get("/hash-algorithms");
 
       expect(response.body).toStrictEqual({
-        self: expect.stringContaining(
-          "/hash-algorithms?page[after]=1&page[size]=10",
-        ),
         items: expect.arrayContaining([]),
-        pageSize: 10,
         links: {
           first: expect.stringContaining(
-            "/hash-algorithms?page[after]=1&page[size]=10",
-          ),
-          prev: expect.stringContaining(
-            "/hash-algorithms?page[after]=1&page[size]=10",
-          ),
-          next: expect.stringContaining(
             "/hash-algorithms?page[after]=1&page[size]=10",
           ),
           last: expect.stringContaining(
             "/hash-algorithms?page[after]=1&page[size]=10",
           ),
+          next: expect.stringContaining(
+            "/hash-algorithms?page[after]=1&page[size]=10",
+          ),
+          prev: expect.stringContaining(
+            "/hash-algorithms?page[after]=1&page[size]=10",
+          ),
         },
+        pageSize: 10,
+        self: expect.stringContaining(
+          "/hash-algorithms?page[after]=1&page[size]=10",
+        ),
       });
       expect((response.body as { items: string }).items).toHaveLength(3);
       expect(response.status).toBe(200);
@@ -103,22 +105,22 @@ describe("HashAlgorithms Module", () => {
         "/hash-algorithms?page[size]=2",
       );
       expect(response1.body).toStrictEqual({
-        self: expect.stringContaining(
-          "/hash-algorithms?page[after]=1&page[size]=2",
-        ),
         items: expect.arrayContaining([]),
-        pageSize: 2,
         links: {
           first: expect.stringContaining(
-            "/hash-algorithms?page[after]=1&page[size]=2",
-          ),
-          prev: expect.stringContaining(
             "/hash-algorithms?page[after]=1&page[size]=2",
           ),
           next: expect.stringContaining(
             "/hash-algorithms?page[after]=2&page[size]=2",
           ),
+          prev: expect.stringContaining(
+            "/hash-algorithms?page[after]=1&page[size]=2",
+          ),
         },
+        pageSize: 2,
+        self: expect.stringContaining(
+          "/hash-algorithms?page[after]=1&page[size]=2",
+        ),
       });
       expect((response1.body as { items: string }).items).toHaveLength(2);
       expect(response1.status).toBe(200);
@@ -128,25 +130,25 @@ describe("HashAlgorithms Module", () => {
         "/hash-algorithms?page[after]=2&page[size]=2",
       );
       expect(response2.body).toStrictEqual({
-        self: expect.stringContaining(
-          "/hash-algorithms?page[after]=2&page[size]=2",
-        ),
         items: expect.arrayContaining([]),
-        pageSize: 2,
         links: {
           first: expect.stringContaining(
             "/hash-algorithms?page[after]=1&page[size]=2",
           ),
-          prev: expect.stringContaining(
-            "/hash-algorithms?page[after]=1&page[size]=2",
+          last: expect.stringContaining(
+            "/hash-algorithms?page[after]=2&page[size]=2",
           ),
           next: expect.stringContaining(
             "/hash-algorithms?page[after]=2&page[size]=2",
           ),
-          last: expect.stringContaining(
-            "/hash-algorithms?page[after]=2&page[size]=2",
+          prev: expect.stringContaining(
+            "/hash-algorithms?page[after]=1&page[size]=2",
           ),
         },
+        pageSize: 2,
+        self: expect.stringContaining(
+          "/hash-algorithms?page[after]=2&page[size]=2",
+        ),
       });
       expect((response2.body as { items: string }).items).toHaveLength(1);
       expect(response2.status).toBe(200);
@@ -156,25 +158,25 @@ describe("HashAlgorithms Module", () => {
         "/hash-algorithms?page[after]=100&page[size]=2",
       );
       expect(response3.body).toStrictEqual({
-        self: expect.stringContaining(
-          "/hash-algorithms?page[after]=100&page[size]=2",
-        ),
         items: expect.arrayContaining([]),
-        pageSize: 2,
         links: {
           first: expect.stringContaining(
             "/hash-algorithms?page[after]=1&page[size]=2",
           ),
-          prev: expect.stringContaining(
-            "/hash-algorithms?page[after]=99&page[size]=2",
+          last: expect.stringContaining(
+            "/hash-algorithms?page[after]=100&page[size]=2",
           ),
           next: expect.stringContaining(
             "/hash-algorithms?page[after]=100&page[size]=2",
           ),
-          last: expect.stringContaining(
-            "/hash-algorithms?page[after]=100&page[size]=2",
+          prev: expect.stringContaining(
+            "/hash-algorithms?page[after]=99&page[size]=2",
           ),
         },
+        pageSize: 2,
+        self: expect.stringContaining(
+          "/hash-algorithms?page[after]=100&page[size]=2",
+        ),
       });
       expect((response3.body as { items: string }).items).toHaveLength(0);
       expect(response3.status).toBe(200);
@@ -184,25 +186,25 @@ describe("HashAlgorithms Module", () => {
         "/hash-algorithms?page[after]=1",
       );
       expect(response4.body).toStrictEqual({
-        self: expect.stringContaining(
-          "/hash-algorithms?page[after]=1&page[size]=10",
-        ),
         items: expect.arrayContaining([]),
-        pageSize: 10,
         links: {
           first: expect.stringContaining(
-            "/hash-algorithms?page[after]=1&page[size]=10",
-          ),
-          prev: expect.stringContaining(
-            "/hash-algorithms?page[after]=1&page[size]=10",
-          ),
-          next: expect.stringContaining(
             "/hash-algorithms?page[after]=1&page[size]=10",
           ),
           last: expect.stringContaining(
             "/hash-algorithms?page[after]=1&page[size]=10",
           ),
+          next: expect.stringContaining(
+            "/hash-algorithms?page[after]=1&page[size]=10",
+          ),
+          prev: expect.stringContaining(
+            "/hash-algorithms?page[after]=1&page[size]=10",
+          ),
         },
+        pageSize: 10,
+        self: expect.stringContaining(
+          "/hash-algorithms?page[after]=1&page[size]=10",
+        ),
       });
       expect((response4.body as { items: string }).items).toHaveLength(3);
       expect(response4.status).toBe(200);
@@ -215,9 +217,9 @@ describe("HashAlgorithms Module", () => {
         "/hash-algorithms?page[size]=100",
       );
       expect(response1.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
         detail: '["page[size] must not be greater than 50"]',
+        status: 400,
+        title: "Bad Request",
         type: "about:blank",
       });
       expect(response1.status).toBe(400);
@@ -226,9 +228,9 @@ describe("HashAlgorithms Module", () => {
         "/hash-algorithms?page[size]=0",
       );
       expect(response2.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
         detail: '["page[size] must not be less than 1"]',
+        status: 400,
+        title: "Bad Request",
         type: "about:blank",
       });
       expect(response2.status).toBe(400);
@@ -237,9 +239,9 @@ describe("HashAlgorithms Module", () => {
         "/hash-algorithms?page[after]=0",
       );
       expect(response3.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
         detail: '["page[after] must not be less than 1"]',
+        status: 400,
+        title: "Bad Request",
         type: "about:blank",
       });
       expect(response3.status).toBe(400);
@@ -248,10 +250,10 @@ describe("HashAlgorithms Module", () => {
         "/hash-algorithms?page[after]=abc",
       );
       expect(response4.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
         detail:
           '["page[after] must not be less than 1","page[after] must be a number conforming to the specified constraints"]',
+        status: 400,
+        title: "Bad Request",
         type: "about:blank",
       });
       expect(response4.status).toBe(400);
@@ -268,10 +270,10 @@ describe("HashAlgorithms Module", () => {
 
       expect(response.body).toStrictEqual({
         ianaName: firstHashAlgorithm.ianaName,
+        multihash: firstHashAlgorithm.multihash,
         oid: firstHashAlgorithm.oid,
         outputLengthBits: firstHashAlgorithm.outputLength,
         status: "active",
-        multihash: firstHashAlgorithm.multihash,
       });
       expect(response.status).toBe(200);
     });
@@ -286,9 +288,9 @@ describe("HashAlgorithms Module", () => {
       );
 
       expect(response.body).toStrictEqual({
-        title: "Hash algorithm Not Found",
-        status: 404,
         detail: `Hash algorithm ${hashAlgorithmId} not found`,
+        status: 404,
+        title: "Hash algorithm Not Found",
         type: "about:blank",
       });
       expect(response.status).toBe(404);

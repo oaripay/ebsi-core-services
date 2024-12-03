@@ -1,13 +1,14 @@
+import { Accepts, PaginatedListWithoutTotal } from "@ebsiint-api/shared";
 import { Controller, Get, Param, Query } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { Accepts, PaginatedListWithoutTotal } from "@ebsiint-api/shared";
-import { PoliciesService } from "./policies.service.js";
+
+import type { ApiConfig } from "../../config/configuration.js";
+
+import { Policy_filter } from "../../../.graphclient/index.js";
+import { GetPoliciesQuery, GetPolicyParams } from "./dto/index.js";
 import { formatPolicies } from "./policies.formatter.js";
 import { PolicyLink, PolicyResponseObject } from "./policies.interface.js";
-import type { ApiConfig } from "../../config/configuration.js";
-import { GetPolicyParams, GetPoliciesQuery } from "./dto/index.js";
-// eslint-disable-next-line import/extensions, import/no-relative-packages
-import { Policy_filter } from "../../../.graphclient/index.js";
+import { PoliciesService } from "./policies.service.js";
 
 @Controller("/policies")
 export class PoliciesController {
@@ -16,8 +17,8 @@ export class PoliciesController {
     private configService: ConfigService<ApiConfig, true>,
   ) {}
 
-  @Get("")
   @Accepts("application/json")
+  @Get("")
   async getPolicies(
     @Query() query: GetPoliciesQuery,
   ): Promise<PaginatedListWithoutTotal<PolicyLink>> {
@@ -38,7 +39,7 @@ export class PoliciesController {
     const baseUrl = `${domain}${apiUrlPrefix}/policies`;
 
     const searchParams = new URLSearchParams();
-    Object.keys(query).forEach((k) => {
+    for (const k of Object.keys(query)) {
       const key = k as keyof GetPoliciesQuery;
       if (
         query[key] !== undefined &&
@@ -47,8 +48,9 @@ export class PoliciesController {
       ) {
         searchParams.append(key, query[key]);
       }
-    });
-    const extraQuery = searchParams.size ? `&${searchParams.toString()}` : "";
+    }
+    const extraQuery =
+      searchParams.size > 0 ? `&${searchParams.toString()}` : "";
 
     return formatPolicies(
       policies,
@@ -59,8 +61,8 @@ export class PoliciesController {
     );
   }
 
-  @Get("/:policyName")
   @Accepts("application/json")
+  @Get("/:policyName")
   async getPolicy(
     @Param() params: GetPolicyParams,
   ): Promise<PolicyResponseObject> {

@@ -1,21 +1,24 @@
-import { describe, beforeAll, it, expect, afterAll } from "vitest";
-import request from "supertest";
-import { Test } from "@nestjs/testing";
-import { ValidationPipe, Logger } from "@nestjs/common";
+import type { RawServerDefault } from "fastify";
+
+import { EbsiWallet } from "@cef-ebsi/wallet-lib";
+import { methodNotAllowed } from "@ebsiint-api/shared";
+import { fastifyAccepts } from "@fastify/accepts";
+import { fastifyHelmet } from "@fastify/helmet";
+import { Logger, ValidationPipe } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import {
   FastifyAdapter,
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import { ConfigService } from "@nestjs/config";
-import type { RawServerDefault } from "fastify";
-import { fastifyAccepts } from "@fastify/accepts";
-import { fastifyHelmet } from "@fastify/helmet";
+import { Test } from "@nestjs/testing";
 import { useContainer } from "class-validator";
-import { EbsiWallet } from "@cef-ebsi/wallet-lib";
-import { methodNotAllowed } from "@ebsiint-api/shared";
+import request from "supertest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
+
+import type { ApiConfig } from "../../src/config/configuration.js";
+
 import { AppModule } from "../../src/app.module.js";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
-import type { ApiConfig } from "../../src/config/configuration.js";
 import { getServer } from "../utils/getServer.js";
 
 describe("Track and Trace API v2 - Accesses (e2e)", () => {
@@ -159,27 +162,27 @@ describe("Track and Trace API v2 - Accesses (e2e)", () => {
       );
 
       expect(response.body).toStrictEqual({
-        self: expect.stringContaining(
-          `/accesses?page[after]=1&page[size]=10&subject=${encodeURIComponent(testAuthorisedLegalEntityDid)}`,
-        ),
         items: expect.arrayContaining([
           expect.objectContaining({
-            subject: testAuthorisedLegalEntityDid,
             documentId: expect.any(String),
             grantedBy: expect.stringMatching(/^did:/),
             permission: expect.stringMatching(/^(write|delegate|creator)$/),
+            subject: testAuthorisedLegalEntityDid,
           }),
         ]),
-        pageSize: 10,
         links: expect.objectContaining({
           first: expect.stringContaining(
             `/accesses?page[after]=1&page[size]=10&subject=${encodeURIComponent(testAuthorisedLegalEntityDid)}`,
           ),
+          next: expect.stringContaining("/accesses?page[after]="),
           prev: expect.stringContaining(
             `/accesses?page[after]=1&page[size]=10&subject=${encodeURIComponent(testAuthorisedLegalEntityDid)}`,
           ),
-          next: expect.stringContaining("/accesses?page[after]="),
         }),
+        pageSize: 10,
+        self: expect.stringContaining(
+          `/accesses?page[after]=1&page[size]=10&subject=${encodeURIComponent(testAuthorisedLegalEntityDid)}`,
+        ),
       });
       expect(response.status).toBe(200);
     });

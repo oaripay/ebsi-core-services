@@ -1,14 +1,14 @@
 import { z } from "zod";
-import { jsonRpcSchema } from "./JsonRpcSchema.js";
-import { baseParamSchema } from "./BaseParamSchema.js";
 
+import { baseParamSchema } from "./BaseParamSchema.js";
+import { jsonRpcSchema } from "./JsonRpcSchema.js";
 import { refinements } from "./utils.js";
 
 const { isHexadecimal } = refinements;
 export const revokeRecordOwnerSchema = baseParamSchema.merge(
   z.object({
-    recordId: z.string().superRefine(isHexadecimal),
     ownerId: z.string(),
+    recordId: z.string().superRefine(isHexadecimal),
   }),
 );
 

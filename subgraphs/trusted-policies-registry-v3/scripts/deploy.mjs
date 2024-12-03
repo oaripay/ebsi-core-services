@@ -1,15 +1,15 @@
-/* eslint-disable no-unused-expressions */
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
+#!/usr/bin/env node
 import { $ } from "execa";
+import { readFileSync } from "node:fs";
+import path from "node:path";
 
 const { dirname } = import.meta;
 
 const { version } = JSON.parse(
-  readFileSync(resolve(dirname, "../package.json")),
+  readFileSync(path.resolve(dirname, "../package.json")),
 );
 
-const graphBinary = resolve(dirname, "../node_modules/.bin/graph");
+const graphBinary = path.resolve(dirname, "../node_modules/.bin/graph");
 
 const $$ = $({ stdio: "inherit" }).sync;
 

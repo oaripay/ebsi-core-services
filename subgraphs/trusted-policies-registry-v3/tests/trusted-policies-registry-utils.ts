@@ -1,14 +1,40 @@
-/* eslint-disable @typescript-eslint/ban-types */
+import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
 import { newMockEvent } from "matchstick-as";
-import { ethereum, BigInt, Address } from "@graphprotocol/graph-ts";
+
 import {
-  PolicyInserted,
-  PolicyUpdated,
   PolicyActivated,
   PolicyDeactivated,
-  UserAttributeInserted,
+  PolicyInserted,
+  PolicyUpdated,
   UserAttributeDeleted,
+  UserAttributeInserted,
 } from "../generated/TrustedPoliciesRegistry/TrustedPoliciesRegistry";
+
+export function createPolicyActivatedEvent(policyId: BigInt): PolicyActivated {
+  const event = changetype<PolicyActivated>(newMockEvent());
+  event.parameters = [];
+  event.parameters.push(
+    new ethereum.EventParam(
+      "policyId",
+      ethereum.Value.fromUnsignedBigInt(policyId),
+    ),
+  );
+  return event;
+}
+
+export function createPolicyDeactivatedEvent(
+  policyId: BigInt,
+): PolicyDeactivated {
+  const event = changetype<PolicyDeactivated>(newMockEvent());
+  event.parameters = [];
+  event.parameters.push(
+    new ethereum.EventParam(
+      "policyId",
+      ethereum.Value.fromUnsignedBigInt(policyId),
+    ),
+  );
+  return event;
+}
 
 export function createPolicyInsertedEvent(
   policyId: BigInt,
@@ -66,37 +92,11 @@ export function createPolicyUpdatedEvent(
   return event;
 }
 
-export function createPolicyActivatedEvent(policyId: BigInt): PolicyActivated {
-  const event = changetype<PolicyActivated>(newMockEvent());
-  event.parameters = [];
-  event.parameters.push(
-    new ethereum.EventParam(
-      "policyId",
-      ethereum.Value.fromUnsignedBigInt(policyId),
-    ),
-  );
-  return event;
-}
-
-export function createPolicyDeactivatedEvent(
-  policyId: BigInt,
-): PolicyDeactivated {
-  const event = changetype<PolicyDeactivated>(newMockEvent());
-  event.parameters = [];
-  event.parameters.push(
-    new ethereum.EventParam(
-      "policyId",
-      ethereum.Value.fromUnsignedBigInt(policyId),
-    ),
-  );
-  return event;
-}
-
-export function createUserAttributeInsertedEvent(
+export function createUserAttributeDeletedEvent(
   user: Address,
   attribute: string,
-): UserAttributeInserted {
-  const event = changetype<UserAttributeInserted>(newMockEvent());
+): UserAttributeDeleted {
+  const event = changetype<UserAttributeDeleted>(newMockEvent());
   event.parameters = [];
   event.parameters.push(
     new ethereum.EventParam("user", ethereum.Value.fromAddress(user)),
@@ -107,11 +107,11 @@ export function createUserAttributeInsertedEvent(
   return event;
 }
 
-export function createUserAttributeDeletedEvent(
+export function createUserAttributeInsertedEvent(
   user: Address,
   attribute: string,
-): UserAttributeDeleted {
-  const event = changetype<UserAttributeDeleted>(newMockEvent());
+): UserAttributeInserted {
+  const event = changetype<UserAttributeInserted>(newMockEvent());
   event.parameters = [];
   event.parameters.push(
     new ethereum.EventParam("user", ethereum.Value.fromAddress(user)),

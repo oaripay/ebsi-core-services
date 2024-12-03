@@ -5,9 +5,9 @@ import { ProblemDetailsError } from "./ProblemDetailsError.js";
  */
 
 export class NotAcceptableError extends ProblemDetailsError {
-  static statusCode = 406;
-
   static defaultTitle = "Not Acceptable";
+
+  static statusCode = 406;
 
   /**
    * @param title A short, human-readable summary of the problem type. It SHOULD NOT change from occurrence to occurrence of the problem, except for purposes of localization.
@@ -20,10 +20,10 @@ export class NotAcceptableError extends ProblemDetailsError {
   constructor(
     title: string = NotAcceptableError.defaultTitle,
     options?: {
-      type?: string;
       detail?: string;
-      instance?: string;
       extensions?: Record<string, unknown>;
+      instance?: string;
+      type?: string;
     },
   ) {
     super(NotAcceptableError.statusCode, title, options);

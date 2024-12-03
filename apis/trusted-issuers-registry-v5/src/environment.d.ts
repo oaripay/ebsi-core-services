@@ -4,34 +4,34 @@ import type { Network } from "@cef-ebsi/ebsi-uri";
 declare global {
   namespace NodeJS {
     interface ProcessEnv {
-      NODE_ENV: "development" | "production" | "test";
       API_PORT?: string;
       API_URL_PREFIX?: string;
-      LOG_LEVEL?: "error" | "warn" | "log" | "verbose" | "debug" | "silent";
-      DOMAIN: string;
-      DOCKER_TAG?: string;
-      LOCAL_ORIGIN?: string;
-      NETWORK: Network;
-      REQUEST_TIMEOUT?: string;
       AXIOS_RETRY_DELAY?: string;
-      TRUSTED_HOSTNAMES?: string;
+      BESU_READINESS_ENDPOINT: string;
       // Ledger & SC
       BESU_RPC_NODE: string;
-      BESU_READINESS_ENDPOINT: string;
       BESU_TRUSTED_ISSUERS_REGISTRY_ADDRESS: string;
+      BLOCKSCOUT_BEARER_TOKEN?: string;
+      BLOCKSCOUT_URL?: string;
+      DOCKER_TAG?: string;
+      DOMAIN: string;
+      LOCAL_ORIGIN?: string;
+      LOG_LEVEL?: "debug" | "error" | "log" | "silent" | "verbose" | "warn";
+      NETWORK: Network;
+      NODE_ENV: "development" | "production" | "test";
+      REQUEST_TIMEOUT?: string;
+      TEST_ADMIN_ACCREDITATION?: string;
       // Test vars
       TEST_ADMIN_KID?: string;
       TEST_ADMIN_PRIVATE_KEY?: string;
-      TEST_ADMIN_ACCREDITATION?: string;
+      TEST_ENABLE_WRITE_OPS?: string;
+      TEST_ENV?: string;
       TEST_ISSUER_WITH_PROXY_KID?: string;
       TEST_ISSUER_WITH_PROXY_PRIVATE_KEY?: string;
-      TEST_VERIFIABLE_ATTESTATION_SCHEMA_ID?: string;
-      TEST_STATUS_LIST_SCHEMA_ID?: string;
-      TEST_ENV?: string;
-      TEST_ENABLE_WRITE_OPS?: string;
       TEST_SPECIFIC_NODE_DOMAIN?: string;
-      BLOCKSCOUT_URL?: string;
-      BLOCKSCOUT_BEARER_TOKEN?: string;
+      TEST_STATUS_LIST_SCHEMA_ID?: string;
+      TEST_VERIFIABLE_ATTESTATION_SCHEMA_ID?: string;
+      TRUSTED_HOSTNAMES?: string;
     }
   }
 

@@ -1,29 +1,17 @@
-import { randomBytes, randomUUID } from "node:crypto";
-import { describe, beforeAll, afterAll, it, expect, beforeEach } from "vitest";
-import request from "supertest";
-import { ethers } from "ethers";
-import { http, HttpResponse } from "msw";
-import { setupServer } from "msw/node";
-import { Test } from "@nestjs/testing";
-import { ConfigService } from "@nestjs/config";
-import { ValidationPipe, Logger } from "@nestjs/common";
-import {
-  FastifyAdapter,
-  type NestFastifyApplication,
-} from "@nestjs/platform-fastify";
+import type {
+  PaginatedList,
+  StatusList2021Credential,
+} from "@ebsiint-api/shared";
 import type { RawServerDefault } from "fastify";
-import { fastifyAccepts } from "@fastify/accepts";
-import { fastifyHelmet } from "@fastify/helmet";
-import { useContainer } from "class-validator";
-import { EbsiWallet } from "@cef-ebsi/wallet-lib";
-import { calculateJwkThumbprint, exportJWK, generateKeyPair } from "jose";
+
+import { fromUrl } from "@cef-ebsi/ebsi-uri";
 import {
   createVerifiableCredentialJwt,
   type EbsiEnvConfiguration,
   type EbsiIssuer,
   type EbsiVerifiableAttestation,
 } from "@cef-ebsi/verifiable-credential";
-import { fromUrl } from "@cef-ebsi/ebsi-uri";
+import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import {
   encode,
   getPublicKeyJwk,
@@ -33,53 +21,68 @@ import {
   remove0xPrefix,
   waitToBeMined,
 } from "@ebsiint-api/shared";
-import type {
-  StatusList2021Credential,
-  PaginatedList,
-} from "@ebsiint-api/shared";
+import { fastifyAccepts } from "@fastify/accepts";
+import { fastifyHelmet } from "@fastify/helmet";
+import { Logger, ValidationPipe } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import {
+  FastifyAdapter,
+  type NestFastifyApplication,
+} from "@nestjs/platform-fastify";
+import { Test } from "@nestjs/testing";
+import { useContainer } from "class-validator";
 import { hexToBytes } from "did-jwt";
+import { ethers } from "ethers";
+import { calculateJwkThumbprint, exportJWK, generateKeyPair } from "jose";
+import { http, HttpResponse } from "msw";
+import { setupServer } from "msw/node";
+import { randomBytes, randomUUID } from "node:crypto";
+import request from "supertest";
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
+
 import type { ApiConfig } from "../../src/config/configuration.js";
-import { AppModule } from "../../src/app.module.js";
-import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
 import type {
-  IdLink,
   DidLink,
+  IdLink,
   IssuerProxyResponseObject,
 } from "../../src/modules/issuers/issuers.interface.js";
-import { IssuerType } from "../../src/modules/issuers/issuers.constants.js";
 import type { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface.js";
-import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils.js";
-import { createIssuer } from "../utils/tir.js";
+import type { AddIssuerProxySchema } from "../../src/modules/jsonrpc/validators/RequestAddIssuerProxySchema.js";
+import type { UnsignedTransaction } from "../../src/modules/jsonrpc/validators/RequestSendSignedTransactionSchema.js";
+import type { SetAttributeDataSchema } from "../../src/modules/jsonrpc/validators/RequestSetAttributeDataSchema.js";
+import type { SetAttributeMetadataSchema } from "../../src/modules/jsonrpc/validators/RequestSetAttributeMetadataSchema.js";
+import type { UpdateIssuerProxySchema } from "../../src/modules/jsonrpc/validators/RequestUpdateIssuerProxySchema.js";
 import type { IssuerObject } from "../utils/tir.js";
-import { describeWriteOps } from "../utils/describeWriteOps.js";
-import { getServer } from "../utils/getServer.js";
+
+import { AppModule } from "../../src/app.module.js";
+import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
+import { IssuerType } from "../../src/modules/issuers/issuers.constants.js";
+import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils.js";
 import { describeLocalTestEnvOnly } from "../utils/describeLocalTestEnvOnly.js";
+import { describeWriteOps } from "../utils/describeWriteOps.js";
 import {
   getDidrWriteAccessToken,
   getTirInviteAccessToken,
   getTirWriteAccessToken,
 } from "../utils/getAccessToken.js";
-import type { SetAttributeMetadataSchema } from "../../src/modules/jsonrpc/validators/RequestSetAttributeMetadataSchema.js";
-import type { SetAttributeDataSchema } from "../../src/modules/jsonrpc/validators/RequestSetAttributeDataSchema.js";
-import type { AddIssuerProxySchema } from "../../src/modules/jsonrpc/validators/RequestAddIssuerProxySchema.js";
-import type { UpdateIssuerProxySchema } from "../../src/modules/jsonrpc/validators/RequestUpdateIssuerProxySchema.js";
-import type { UnsignedTransaction } from "../../src/modules/jsonrpc/validators/RequestSendSignedTransactionSchema.js";
-
-interface SupertestJsonRpcResponse {
-  status: number;
-  body: JsonRpcResponseObject;
-}
-
-interface SupertestIssuersResponse {
-  status: number;
-  body: PaginatedList<DidLink>;
-}
+import { getServer } from "../utils/getServer.js";
+import { createIssuer } from "../utils/tir.js";
 
 interface SupertestAttributesResponse {
-  status: number;
   body: {
     items: IdLink[];
   };
+  status: number;
+}
+
+interface SupertestIssuersResponse {
+  body: PaginatedList<DidLink>;
+  status: number;
+}
+
+interface SupertestJsonRpcResponse {
+  body: JsonRpcResponseObject;
+  status: number;
 }
 
 interface TestIssuer {
@@ -97,9 +100,9 @@ async function getEbsiIssuer(
   const privateKey = hexToBytes(privateKeyHex);
   const publicKeyJwk = await getPublicKeyJwk(privateKey, alg);
   const issuer: EbsiIssuer = {
+    alg,
     did,
     kid: kid ?? `${did}#${publicKeyJwk.kid}`,
-    alg,
     signer: getSigner(privateKey, alg),
   };
   return issuer;
@@ -118,8 +121,8 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
     let authorisationApiUrl: string;
     let sampleTransaction: string;
     let blockscout: {
-      url: string;
       bearerToken: string;
+      url: string;
     };
     let trustedHostnames: string[];
     let adminIssuer: TestIssuer;
@@ -138,25 +141,6 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
           "https://www.w3.org/2018/credentials/v1",
           "https://w3id.org/vc/status-list/2021/v1",
         ],
-        id: `${issuerProxy.prefix}${issuerProxy.testSuffix}`,
-        type: [
-          "VerifiableCredential",
-          "VerifiableAttestation",
-          "StatusList2021Credential",
-        ],
-        issuer: issuer.did,
-        issued: "2021-04-05T14:27:40Z",
-        issuanceDate: "2021-04-05T14:27:40Z",
-        validFrom: "2021-04-05T14:27:40Z",
-        credentialSubject: {
-          // Note: the VC lib requires that credentialSubject.id is a valid EBSI DID. We can't use a URL here!
-          // id: `${issuer.proxy.rawProxyData.prefix}${issuer.proxy.rawProxyData.testSuffix}#list`,
-          id: issuer.did,
-          type: "StatusList2021",
-          statusPurpose: "revocation",
-          encodedList:
-            "H4sIAAAAAAAAA-3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAAAAAAIC3AYbSVKsAQAAA",
-        },
         credentialSchema: [
           {
             id:
@@ -173,6 +157,25 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
             type: "FullJsonSchemaValidator2021",
           },
         ],
+        credentialSubject: {
+          encodedList:
+            "H4sIAAAAAAAAA-3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAAAAAAIC3AYbSVKsAQAAA",
+          // Note: the VC lib requires that credentialSubject.id is a valid EBSI DID. We can't use a URL here!
+          // id: `${issuer.proxy.rawProxyData.prefix}${issuer.proxy.rawProxyData.testSuffix}#list`,
+          id: issuer.did,
+          statusPurpose: "revocation",
+          type: "StatusList2021",
+        },
+        id: `${issuerProxy.prefix}${issuerProxy.testSuffix}`,
+        issuanceDate: "2021-04-05T14:27:40Z",
+        issued: "2021-04-05T14:27:40Z",
+        issuer: issuer.did,
+        type: [
+          "VerifiableCredential",
+          "VerifiableAttestation",
+          "StatusList2021Credential",
+        ],
+        validFrom: "2021-04-05T14:27:40Z",
       };
       const newIssuer1StatusList2021CredentialJwt =
         await createVerifiableCredentialJwt(
@@ -239,8 +242,8 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
       server = getServer(app, configService);
 
       blockscout = configService.get<{
-        url: string;
         bearerToken: string;
+        url: string;
       }>("blockscout");
       trustedHostnames = configService.get<string[]>("trustedHostnames");
       ledgerApi = `${configService.get<string>("ledgerApiUrl")}/blockchains/besu`;
@@ -260,8 +263,8 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
         .replace(/^https?:\/\//, "");
       ledgerApi = `${configService.get<string>("ledgerApiUrl")}/blockchains/besu`;
       ebsiEnvConfig = {
-        network: configService.get("network", { infer: true }),
         hosts: [ebsiAuthority, ...trustedHostnames],
+        network: configService.get("network", { infer: true }),
         services: {
           "did-registry": "v6",
           "trusted-issuers-registry": "v6",
@@ -310,10 +313,9 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
           ),
           wallet: testIssuerWithProxyWallet,
         };
-      } catch (e) {
-        // eslint-disable-next-line no-console
-        console.error(e);
-        throw e;
+      } catch (error) {
+        console.error(error);
+        throw error;
       }
 
       // Import "admin" issuer (TI with policies to call the SC methods)
@@ -339,10 +341,9 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
           ),
           wallet: adminWallet,
         };
-      } catch (e) {
-        // eslint-disable-next-line no-console
-        console.error(e);
-        throw e;
+      } catch (error) {
+        console.error(error);
+        throw error;
       }
     });
 
@@ -404,26 +405,26 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
               .post("/jsonrpc")
               .auth(didWriteAccessToken, { type: "bearer" })
               .send({
+                id: 231,
                 jsonrpc: "2.0",
                 method: "insertDidDocument",
                 params: [
                   {
-                    from: adminIssuer.wallet.address,
-                    did: newIssuerInfo.did,
                     baseDocument: JSON.stringify({
                       "@context": [
                         "https://www.w3.org/ns/did/v1",
                         "https://w3id.org/security/suites/jws-2020/v1", // Required
                       ],
                     }),
-                    vMethodId: newIssuerInfo.kid.split("#")[1],
-                    publicKey: newIssuerWallet.publicKey,
+                    did: newIssuerInfo.did,
+                    from: adminIssuer.wallet.address,
                     isSecp256k1: true,
-                    notBefore: now,
                     notAfter: in6months,
+                    notBefore: now,
+                    publicKey: newIssuerWallet.publicKey,
+                    vMethodId: newIssuerInfo.kid.split("#")[1],
                   },
                 ],
-                id: 231,
               });
 
             if (!responseBuild.body.result) {
@@ -432,6 +433,7 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
 
             let unsignedTransaction: unknown = responseBuild.body.result;
             let uTx = formatEthersUnsignedTransaction(
+              // eslint-disable-next-line unicorn/prefer-structured-clone
               JSON.parse(
                 JSON.stringify(unsignedTransaction),
               ) as UnsignedTransaction,
@@ -445,19 +447,19 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
               .post("/jsonrpc")
               .auth(didWriteAccessToken, { type: "bearer" })
               .send({
+                id: "45",
                 jsonrpc: "2.0",
                 method: "sendSignedTransaction",
                 params: [
                   {
                     protocol: "eth",
-                    unsignedTransaction,
                     r: parsedTx.r,
                     s: parsedTx.s,
-                    v: `0x${Number(parsedTx.v).toString(16)}`,
                     signedRawTransaction: sgnTx,
+                    unsignedTransaction,
+                    v: `0x${Number(parsedTx.v).toString(16)}`,
                   },
                 ],
-                id: "45",
               });
 
             // Wait to be mined
@@ -468,25 +470,26 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
               .post("/jsonrpc")
               .auth(didWriteAccessToken, { type: "bearer" })
               .send({
+                id: 1,
                 jsonrpc: "2.0",
                 method: "addVerificationMethod",
                 params: [
                   {
-                    from: adminIssuer.wallet.address,
                     did: newIssuerInfo.did,
-                    vMethodId: newIssuerES256PublicKeyThumbprint,
+                    from: adminIssuer.wallet.address,
+                    isSecp256k1: false,
                     publicKey: `0x${Buffer.from(
                       JSON.stringify(newIssuerES256PublicKeyJwk),
                     ).toString("hex")}`,
-                    isSecp256k1: false,
+                    vMethodId: newIssuerES256PublicKeyThumbprint,
                   },
                 ],
-                id: 1,
               });
 
             unsignedTransaction = responseBuild.body.result;
 
             uTx = formatEthersUnsignedTransaction(
+              // eslint-disable-next-line unicorn/prefer-structured-clone
               JSON.parse(
                 JSON.stringify(unsignedTransaction),
               ) as UnsignedTransaction,
@@ -498,19 +501,19 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
               .post("/jsonrpc")
               .auth(didWriteAccessToken, { type: "bearer" })
               .send({
+                id: "45",
                 jsonrpc: "2.0",
                 method: "sendSignedTransaction",
                 params: [
                   {
                     protocol: "eth",
-                    unsignedTransaction,
                     r: parsedTx.r,
                     s: parsedTx.s,
-                    v: `0x${Number(parsedTx.v).toString(16)}`,
                     signedRawTransaction: sgnTx,
+                    unsignedTransaction,
+                    v: `0x${Number(parsedTx.v).toString(16)}`,
                   },
                 ],
-                id: "45",
               });
 
             // Wait to be mined
@@ -521,24 +524,25 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
               .post("/jsonrpc")
               .auth(didWriteAccessToken, { type: "bearer" })
               .send({
+                id: 1,
                 jsonrpc: "2.0",
                 method: "addVerificationRelationship",
                 params: [
                   {
-                    from: adminIssuer.wallet.address,
                     did: newIssuerInfo.did,
+                    from: adminIssuer.wallet.address,
                     name: "assertionMethod",
-                    vMethodId: newIssuerES256PublicKeyThumbprint,
-                    notBefore: now,
                     notAfter: in6months,
+                    notBefore: now,
+                    vMethodId: newIssuerES256PublicKeyThumbprint,
                   },
                 ],
-                id: 1,
               });
 
             unsignedTransaction = responseBuild.body.result;
 
             uTx = formatEthersUnsignedTransaction(
+              // eslint-disable-next-line unicorn/prefer-structured-clone
               JSON.parse(
                 JSON.stringify(unsignedTransaction),
               ) as UnsignedTransaction,
@@ -550,19 +554,19 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
               .post("/jsonrpc")
               .auth(didWriteAccessToken, { type: "bearer" })
               .send({
+                id: "45",
                 jsonrpc: "2.0",
                 method: "sendSignedTransaction",
                 params: [
                   {
                     protocol: "eth",
-                    unsignedTransaction,
                     r: parsedTx.r,
                     s: parsedTx.s,
-                    v: `0x${Number(parsedTx.v).toString(16)}`,
                     signedRawTransaction: sgnTx,
+                    unsignedTransaction,
+                    v: `0x${Number(parsedTx.v).toString(16)}`,
                   },
                 ],
-                id: "45",
               });
 
             // Wait to be mined
@@ -573,24 +577,25 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
               .post("/jsonrpc")
               .auth(didWriteAccessToken, { type: "bearer" })
               .send({
+                id: 1,
                 jsonrpc: "2.0",
                 method: "addVerificationRelationship",
                 params: [
                   {
-                    from: adminIssuer.wallet.address,
                     did: newIssuerInfo.did,
+                    from: adminIssuer.wallet.address,
                     name: "authentication",
-                    vMethodId: newIssuerES256PublicKeyThumbprint,
-                    notBefore: now,
                     notAfter: in6months,
+                    notBefore: now,
+                    vMethodId: newIssuerES256PublicKeyThumbprint,
                   },
                 ],
-                id: 1,
               });
 
             unsignedTransaction = responseBuild.body.result;
 
             uTx = formatEthersUnsignedTransaction(
+              // eslint-disable-next-line unicorn/prefer-structured-clone
               JSON.parse(
                 JSON.stringify(unsignedTransaction),
               ) as UnsignedTransaction,
@@ -602,19 +607,19 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
               .post("/jsonrpc")
               .auth(didWriteAccessToken, { type: "bearer" })
               .send({
+                id: "45",
                 jsonrpc: "2.0",
                 method: "sendSignedTransaction",
                 params: [
                   {
                     protocol: "eth",
-                    unsignedTransaction,
                     r: parsedTx.r,
                     s: parsedTx.s,
-                    v: `0x${Number(parsedTx.v).toString(16)}`,
                     signedRawTransaction: sgnTx,
+                    unsignedTransaction,
+                    v: `0x${Number(parsedTx.v).toString(16)}`,
                   },
                 ],
-                id: "45",
               });
 
             // Wait to be mined
@@ -630,23 +635,24 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
               .post("/jsonrpc")
               .auth(adminIssuer.token, { type: "bearer" })
               .send({
+                id: 231,
                 jsonrpc: "2.0",
                 method: "setAttributeMetadata",
                 params: [
                   {
-                    from: adminIssuer.wallet.address,
-                    did: newIssuerDid,
-                    revisionId: `0x${randomBytes(32).toString("hex")}`,
-                    issuerType: IssuerType.RootTAO,
-                    taoDid: newIssuerDid,
                     attributeIdTao: `0x${"0".repeat(64)}`,
+                    did: newIssuerDid,
+                    from: adminIssuer.wallet.address,
+                    issuerType: IssuerType.RootTAO,
+                    revisionId: `0x${randomBytes(32).toString("hex")}`,
+                    taoDid: newIssuerDid,
                   } satisfies SetAttributeMetadataSchema,
                 ],
-                id: 231,
               });
 
             unsignedTransaction = responseBuild.body.result;
             uTx = formatEthersUnsignedTransaction(
+              // eslint-disable-next-line unicorn/prefer-structured-clone
               JSON.parse(
                 JSON.stringify(unsignedTransaction),
               ) as UnsignedTransaction,
@@ -658,19 +664,19 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
               .post("/jsonrpc")
               .auth(adminIssuer.token, { type: "bearer" })
               .send({
+                id: "45",
                 jsonrpc: "2.0",
                 method: "sendSignedTransaction",
                 params: [
                   {
                     protocol: "eth",
-                    unsignedTransaction,
                     r: parsedTx.r,
                     s: parsedTx.s,
-                    v: `0x${Number(parsedTx.v).toString(16)}`,
                     signedRawTransaction: sgnTx,
+                    unsignedTransaction,
+                    v: `0x${Number(parsedTx.v).toString(16)}`,
                   },
                 ],
-                id: "45",
               });
 
             // Wait to be mined
@@ -692,18 +698,6 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
             );
             const vcPayload: EbsiVerifiableAttestation = {
               "@context": ["https://www.w3.org/2018/credentials/v1"],
-              id: `urn:uuid:${randomUUID()}`,
-              type: [
-                "VerifiableCredential",
-                "VerifiableAttestation",
-                "VerifiableAccreditationToAccredit",
-              ],
-              issuer: adminIssuer.info.did,
-              issuanceDate: `${issuanceDate.toISOString().slice(0, -5)}Z`,
-              issued: `${issuanceDate.toISOString().slice(0, -5)}Z`,
-              validFrom: `${issuanceDate.toISOString().slice(0, -5)}Z`,
-              expirationDate: `${expirationDate.toISOString().slice(0, -5)}Z`,
-              credentialSubject: { id: newIssuerDid },
               credentialSchema: {
                 id:
                   uriType === "URL"
@@ -711,10 +705,22 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
                     : fromUrl(verifiableAttestationSchemaUrl),
                 type: "FullJsonSchemaValidator2021",
               },
+              credentialSubject: { id: newIssuerDid },
+              expirationDate: `${expirationDate.toISOString().slice(0, -5)}Z`,
+              id: `urn:uuid:${randomUUID()}`,
+              issuanceDate: `${issuanceDate.toISOString().slice(0, -5)}Z`,
+              issued: `${issuanceDate.toISOString().slice(0, -5)}Z`,
+              issuer: adminIssuer.info.did,
               termsOfUse: {
                 id: uriType === "URL" ? termsOfUseUrl : fromUrl(termsOfUseUrl),
                 type: "IssuanceCertificate",
               },
+              type: [
+                "VerifiableCredential",
+                "VerifiableAttestation",
+                "VerifiableAccreditationToAccredit",
+              ],
+              validFrom: `${issuanceDate.toISOString().slice(0, -5)}Z`,
             };
             const vcJwt = await createVerifiableCredentialJwt(
               vcPayload,
@@ -737,10 +743,9 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
               ),
               wallet: newIssuerWallet,
             };
-          } catch (e) {
-            // eslint-disable-next-line no-console
-            console.error(e);
-            throw e;
+          } catch (error) {
+            console.error(error);
+            throw error;
           }
         }
 
@@ -772,16 +777,16 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
 
         switch (method) {
           case "setAttributeMetadata": {
-            const { did, attribute, tao, attributeIdTao, issuerType } =
+            const { attribute, attributeIdTao, did, issuerType, tao } =
               createIssuer(IssuerType.RootTAO);
 
             params = {
-              from: sender.wallet.address,
+              attributeIdTao,
               did,
+              from: sender.wallet.address,
+              issuerType,
               revisionId: attribute.id,
               taoDid: tao,
-              attributeIdTao,
-              issuerType,
             } satisfies SetAttributeMetadataSchema;
             break;
           }
@@ -794,15 +799,15 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
           .post("/jsonrpc")
           .auth(sender.token, { type: "bearer" })
           .send({
+            id: 231,
             jsonrpc: "2.0",
             method,
             params: [params],
-            id: 231,
           });
 
         expect(responseBuild.body).toStrictEqual({
-          jsonrpc: "2.0",
           id: 231,
+          jsonrpc: "2.0",
           result: {
             chainId: expect.any(String),
             data: expect.any(String),
@@ -831,10 +836,10 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
         switch (method) {
           case "setAttributeData": {
             params = {
-              from: sender.wallet.address,
-              did: newIssuer.info.did,
-              attributeId: attribute.id,
               attributeData: attribute.hex,
+              attributeId: attribute.id,
+              did: newIssuer.info.did,
+              from: sender.wallet.address,
             } satisfies SetAttributeDataSchema;
             break;
           }
@@ -847,19 +852,19 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
           .post("/jsonrpc")
           .auth(sender.token, { type: "bearer" })
           .send({
+            id: 231,
             jsonrpc: "2.0",
             method,
             params: [params],
-            id: 231,
           });
 
         expect(responseBuild.body).toStrictEqual({
-          jsonrpc: "2.0",
-          id: 231,
           error: {
-            code: -32600,
+            code: -32_600,
             message: `Invalid 'params.0': Attribute ${attribute.id} does not relate to ${newIssuer.info.did}`,
           },
+          id: 231,
+          jsonrpc: "2.0",
         });
         expect(responseBuild.status).toBe(400);
       });
@@ -872,58 +877,58 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
         let params = {};
 
         switch (method) {
-          case "setAttributeMetadata": {
-            params = {
-              from: sender.wallet.address,
-              did: sender.info.did,
-              revisionId: prefixWith0x(senderFirstAttributeId),
-              issuerType: IssuerType.RootTAO,
-              taoDid: sender.info.did,
-              attributeIdTao: `0x${"0".repeat(64)}`,
-            } satisfies SetAttributeMetadataSchema;
-
-            extraTestUrl = `/issuers/${sender.info.did}`;
-
-            extraTestExpectedResponse = {
-              did: sender.info.did,
-              attributes: expect.arrayContaining([
-                {
-                  body: expect.any(String),
-                  hash: expect.any(String),
-                  issuerType: "RootTAO",
-                  tao: sender.info.did,
-                  rootTao: sender.info.did,
-                },
-              ]),
-            };
-
-            break;
-          }
           case "setAttributeData": {
             const newAttributeData = `test - ${new Date().toISOString()}`;
             const newAttributeDataBuffer = Buffer.from(newAttributeData);
             const newAttributeId = ethers.utils.sha256(newAttributeDataBuffer);
 
             params = {
-              from: sender.wallet.address,
-              did: sender.info.did,
-              attributeId: prefixWith0x(senderFirstAttributeId),
               attributeData: `0x${newAttributeDataBuffer.toString("hex")}`,
+              attributeId: prefixWith0x(senderFirstAttributeId),
+              did: sender.info.did,
+              from: sender.wallet.address,
             } satisfies SetAttributeDataSchema;
 
             extraTestUrl = `/issuers/${sender.info.did}`;
 
             extraTestExpectedResponse = {
-              did: sender.info.did,
               attributes: expect.arrayContaining([
                 {
                   body: newAttributeData,
                   hash: remove0xPrefix(newAttributeId),
                   issuerType: "RootTAO",
-                  tao: sender.info.did,
                   rootTao: sender.info.did,
+                  tao: sender.info.did,
                 },
               ]),
+              did: sender.info.did,
+            };
+
+            break;
+          }
+          case "setAttributeMetadata": {
+            params = {
+              attributeIdTao: `0x${"0".repeat(64)}`,
+              did: sender.info.did,
+              from: sender.wallet.address,
+              issuerType: IssuerType.RootTAO,
+              revisionId: prefixWith0x(senderFirstAttributeId),
+              taoDid: sender.info.did,
+            } satisfies SetAttributeMetadataSchema;
+
+            extraTestUrl = `/issuers/${sender.info.did}`;
+
+            extraTestExpectedResponse = {
+              attributes: expect.arrayContaining([
+                {
+                  body: expect.any(String),
+                  hash: expect.any(String),
+                  issuerType: "RootTAO",
+                  rootTao: sender.info.did,
+                  tao: sender.info.did,
+                },
+              ]),
+              did: sender.info.did,
             };
 
             break;
@@ -937,15 +942,15 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
           .post("/jsonrpc")
           .auth(sender.token, { type: "bearer" })
           .send({
+            id: 231,
             jsonrpc: "2.0",
             method,
             params: [params],
-            id: 231,
           });
 
         expect(responseBuild.body).toStrictEqual({
-          jsonrpc: "2.0",
           id: 231,
+          jsonrpc: "2.0",
           result: {
             chainId: expect.any(String),
             data: expect.any(String),
@@ -960,6 +965,7 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
 
         const unsignedTransaction = responseBuild.body.result;
         const uTx = formatEthersUnsignedTransaction(
+          // eslint-disable-next-line unicorn/prefer-structured-clone
           JSON.parse(
             JSON.stringify(unsignedTransaction),
           ) as UnsignedTransaction,
@@ -972,24 +978,24 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
           .post("/jsonrpc")
           .auth(sender.token, { type: "bearer" })
           .send({
+            id: "45",
             jsonrpc: "2.0",
             method: "sendSignedTransaction",
             params: [
               {
                 protocol: "eth",
-                unsignedTransaction,
                 r,
                 s,
-                v: `0x${Number(v).toString(16)}`,
                 signedRawTransaction: sgnTx,
+                unsignedTransaction,
+                v: `0x${Number(v).toString(16)}`,
               },
             ],
-            id: "45",
           });
 
         expect(responseSend.body).toStrictEqual({
-          jsonrpc: "2.0",
           id: "45",
+          jsonrpc: "2.0",
           result: expect.any(String),
         });
         expect(responseSend.status).toBe(200);
@@ -1022,25 +1028,25 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
         sender = testIssuerWithProxy;
 
         switch (method) {
+          case "setAttributeData": {
+            params = {
+              attributeData: newIssuer3.attribute.hex,
+              attributeId: prefixWith0x(senderFirstAttributeId),
+              did: newIssuer.info.did,
+              from: sender.wallet.address,
+            } satisfies SetAttributeDataSchema;
+            break;
+          }
           case "setAttributeMetadata": {
             const newDid = EbsiWallet.createDid();
             params = {
-              from: sender.wallet.address,
+              attributeIdTao: newIssuer3.attributeIdTao,
               did: newDid,
+              from: sender.wallet.address,
+              issuerType: newIssuer3.issuerType,
               revisionId: newIssuer3.attribute.id,
               taoDid: newDid,
-              issuerType: newIssuer3.issuerType,
-              attributeIdTao: newIssuer3.attributeIdTao,
             } satisfies SetAttributeMetadataSchema;
-            break;
-          }
-          case "setAttributeData": {
-            params = {
-              from: sender.wallet.address,
-              did: newIssuer.info.did,
-              attributeId: prefixWith0x(senderFirstAttributeId),
-              attributeData: newIssuer3.attribute.hex,
-            } satisfies SetAttributeDataSchema;
             break;
           }
           default: {
@@ -1052,15 +1058,15 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
           .post("/jsonrpc")
           .auth(sender.token, { type: "bearer" })
           .send({
+            id: 231,
             jsonrpc: "2.0",
             method,
             params: [params],
-            id: 231,
           });
 
         expect(responseBuild.body).toStrictEqual({
-          jsonrpc: "2.0",
           id: 231,
+          jsonrpc: "2.0",
           result: {
             chainId: expect.any(String),
             data: expect.any(String),
@@ -1075,6 +1081,7 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
 
         const unsignedTransaction = responseBuild.body.result;
         const uTx = formatEthersUnsignedTransaction(
+          // eslint-disable-next-line unicorn/prefer-structured-clone
           JSON.parse(
             JSON.stringify(unsignedTransaction),
           ) as UnsignedTransaction,
@@ -1087,24 +1094,24 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
           .post("/jsonrpc")
           .auth(sender.token, { type: "bearer" })
           .send({
+            id: "45",
             jsonrpc: "2.0",
             method: "sendSignedTransaction",
             params: [
               {
                 protocol: "eth",
-                unsignedTransaction,
                 r,
                 s,
-                v: `0x${Number(v).toString(16)}`,
                 signedRawTransaction: sgnTx,
+                unsignedTransaction,
+                v: `0x${Number(v).toString(16)}`,
               },
             ],
-            id: "45",
           });
 
         expect(responseSend.body).toStrictEqual({
-          jsonrpc: "2.0",
           id: "45",
+          jsonrpc: "2.0",
           result: expect.any(String),
         });
         expect(responseSend.status).toBe(200);
@@ -1122,8 +1129,8 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
 
         expect(receipt).toStrictEqual(
           expect.objectContaining({
-            status: 0,
             revertReason: expect.stringContaining(expectedRevertReason),
+            status: 0,
           }),
         );
       });
@@ -1194,8 +1201,8 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
             switch (method) {
               case "addIssuerProxy": {
                 params = {
-                  from: testIssuerWithProxyWallet.address,
                   did,
+                  from: testIssuerWithProxyWallet.address,
                   proxyData: newIssuer1.proxy.utf8,
                 } satisfies AddIssuerProxySchema;
 
@@ -1206,8 +1213,8 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
               }
               case "updateIssuerProxy": {
                 params = {
-                  from: testIssuerWithProxyWallet.address,
                   did,
+                  from: testIssuerWithProxyWallet.address,
                   proxyData: newIssuer2.proxy.utf8,
                   proxyId: newIssuer1.proxy.id,
                 } satisfies UpdateIssuerProxySchema;
@@ -1227,14 +1234,15 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
               .post("/jsonrpc")
               .auth(testIssuerWithProxy.token, { type: "bearer" })
               .send({
+                id: 231,
                 jsonrpc: "2.0",
                 method,
                 params: [params],
-                id: 231,
               });
 
             const unsignedTransaction = responseBuild.body.result;
             const uTx = formatEthersUnsignedTransaction(
+              // eslint-disable-next-line unicorn/prefer-structured-clone
               JSON.parse(
                 JSON.stringify(unsignedTransaction),
               ) as UnsignedTransaction,
@@ -1247,24 +1255,24 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
               .post("/jsonrpc")
               .auth(testIssuerWithProxy.token, { type: "bearer" })
               .send({
+                id: "45",
                 jsonrpc: "2.0",
                 method: "sendSignedTransaction",
                 params: [
                   {
                     protocol: "eth",
-                    unsignedTransaction,
                     r,
                     s,
-                    v: `0x${Number(v).toString(16)}`,
                     signedRawTransaction: sgnTx,
+                    unsignedTransaction,
+                    v: `0x${Number(v).toString(16)}`,
                   },
                 ],
-                id: "45",
               });
 
             expect(responseSend.body).toStrictEqual({
-              jsonrpc: "2.0",
               id: "45",
+              jsonrpc: "2.0",
               result: expect.any(String),
             });
             expect(responseSend.status).toBe(200);

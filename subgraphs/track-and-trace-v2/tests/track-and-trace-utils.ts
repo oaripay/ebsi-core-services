@@ -1,36 +1,43 @@
-/* eslint-disable @typescript-eslint/ban-types */
+import { BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts";
 import { newMockEvent } from "matchstick-as";
-import { ethereum, Bytes, BigInt } from "@graphprotocol/graph-ts";
+
 import {
+  AccessGranted,
+  AccessRevoked,
   DidEbsiAuthorised,
   DocumentCreated,
   DocumentRemoved,
-  AccessGranted,
-  AccessRevoked,
   EventWritten,
 } from "../generated/TrackAndTrace/TrackAndTrace";
 
-function paramBytes(name: string, value: Bytes): ethereum.EventParam {
-  return new ethereum.EventParam(name, ethereum.Value.fromBytes(value));
+export function createAccessGrantedEvent(
+  docHash: string,
+  subject: string,
+  signer: string,
+  permission: string,
+): AccessGranted {
+  const event = changetype<AccessGranted>(newMockEvent());
+  event.parameters = [
+    paramBytes("docHash", Bytes.fromHexString(docHash)),
+    paramBytes("subject", Bytes.fromHexString(subject)),
+    paramBytes("signer", Bytes.fromHexString(signer)),
+    paramI32("permission", permission == "delegate" ? 0 : 1),
+  ];
+  return event;
 }
 
-function paramString(name: string, value: string): ethereum.EventParam {
-  return new ethereum.EventParam(name, ethereum.Value.fromString(value));
-}
-
-function paramBoolean(name: string, value: boolean): ethereum.EventParam {
-  return new ethereum.EventParam(name, ethereum.Value.fromBoolean(value));
-}
-
-function paramBigInt(name: string, value: BigInt): ethereum.EventParam {
-  return new ethereum.EventParam(
-    name,
-    ethereum.Value.fromUnsignedBigInt(value),
-  );
-}
-
-function paramI32(name: string, value: i32): ethereum.EventParam {
-  return new ethereum.EventParam(name, ethereum.Value.fromI32(value));
+export function createAccessRevokedEvent(
+  docHash: string,
+  subject: string,
+  signer: string,
+): AccessRevoked {
+  const event = changetype<AccessRevoked>(newMockEvent());
+  event.parameters = [
+    paramBytes("docHash", Bytes.fromHexString(docHash)),
+    paramBytes("subject", Bytes.fromHexString(subject)),
+    paramBytes("signer", Bytes.fromHexString(signer)),
+  ];
+  return event;
 }
 
 export function createDidEbsiAuthorisedEvent(
@@ -68,36 +75,6 @@ export function createDocumentRemovedEvent(docHash: string): DocumentRemoved {
   return event;
 }
 
-export function createAccessGrantedEvent(
-  docHash: string,
-  subject: string,
-  signer: string,
-  permission: string,
-): AccessGranted {
-  const event = changetype<AccessGranted>(newMockEvent());
-  event.parameters = [
-    paramBytes("docHash", Bytes.fromHexString(docHash)),
-    paramBytes("subject", Bytes.fromHexString(subject)),
-    paramBytes("signer", Bytes.fromHexString(signer)),
-    paramI32("permission", permission == "delegate" ? 0 : 1),
-  ];
-  return event;
-}
-
-export function createAccessRevokedEvent(
-  docHash: string,
-  subject: string,
-  signer: string,
-): AccessRevoked {
-  const event = changetype<AccessRevoked>(newMockEvent());
-  event.parameters = [
-    paramBytes("docHash", Bytes.fromHexString(docHash)),
-    paramBytes("subject", Bytes.fromHexString(subject)),
-    paramBytes("signer", Bytes.fromHexString(signer)),
-  ];
-  return event;
-}
-
 export function createEventWrittenEvent(
   docHash: string,
   eventHash: string,
@@ -120,4 +97,27 @@ export function createEventWrittenEvent(
     paramBytes("proof", Bytes.fromHexString(proof)),
   ];
   return event;
+}
+
+function paramBigInt(name: string, value: BigInt): ethereum.EventParam {
+  return new ethereum.EventParam(
+    name,
+    ethereum.Value.fromUnsignedBigInt(value),
+  );
+}
+
+function paramBoolean(name: string, value: boolean): ethereum.EventParam {
+  return new ethereum.EventParam(name, ethereum.Value.fromBoolean(value));
+}
+
+function paramBytes(name: string, value: Bytes): ethereum.EventParam {
+  return new ethereum.EventParam(name, ethereum.Value.fromBytes(value));
+}
+
+function paramI32(name: string, value: i32): ethereum.EventParam {
+  return new ethereum.EventParam(name, ethereum.Value.fromI32(value));
+}
+
+function paramString(name: string, value: string): ethereum.EventParam {
+  return new ethereum.EventParam(name, ethereum.Value.fromString(value));
 }

@@ -1,19 +1,22 @@
-import { Injectable, Logger } from "@nestjs/common";
+import type { JWK } from "jose";
+
 import {
-  encode,
   BadRequestError,
-  NotFoundError,
-  InvalidRequestJsonRpcError,
-  remove0xPrefix,
-  isEthersError,
+  encode,
   getErrorMessage,
+  InvalidRequestJsonRpcError,
+  isEthersError,
   logAxiosError,
+  NotFoundError,
+  remove0xPrefix,
 } from "@ebsiint-api/shared";
 import { DidRegistry } from "@ebsiint-sc/did-registry-v3";
-import type { JWK } from "jose";
-import axios from "axios";
-import { LedgerService } from "../ledger/ledger.service.js";
+import { Injectable, Logger } from "@nestjs/common";
+import { isAxiosError } from "axios";
+
 import type { JsonRpcSchema } from "./validators/JsonRpcSchema.js";
+
+import { LedgerService } from "../ledger/ledger.service.js";
 import { requestCheckControllerDtoSchema } from "./validators/RequestCheckControllerSchema.js";
 
 @Injectable()
@@ -21,6 +24,134 @@ export default class IdentifiersService {
   private readonly logger = new Logger(IdentifiersService.name);
 
   constructor(private ledgerService: LedgerService) {}
+
+  async checkController(
+    did: string,
+    body: JsonRpcSchema,
+    id: null | number | string | undefined,
+  ): Promise<boolean> {
+    try {
+      const parsedBody = requestCheckControllerDtoSchema.parse(body);
+      const address = parsedBody.params[0]!;
+      const contract = this.ledgerService.getContract();
+      return await contract["checkController(string,address)"](did, address);
+    } catch (error_) {
+      if (isEthersError(error_)) {
+        this.logger.error(error_, error_.stack); // Log the original error with all ethers.js details for internal debugging
+        throw new InvalidRequestJsonRpcError(error_.reason, id); // throw simplified ethers error to the user
+      }
+
+      if (error_ instanceof Error) {
+        if (isAxiosError(error_)) {
+          logAxiosError(error_, this.logger);
+        } else {
+          this.logger.error(error_.message, error_.stack);
+        }
+
+        const error = new InvalidRequestJsonRpcError(
+          getErrorMessage(error_),
+          id,
+        );
+
+        if (error_.stack) {
+          error.stack = error_.stack;
+        }
+
+        throw error;
+      }
+
+      this.logger.error(error_);
+      throw error_;
+    }
+  }
+
+  async getDidDocument(
+    did: string,
+    validAt?: string,
+  ): Promise<Record<string, unknown>> {
+    const contract = this.ledgerService.getContract();
+    let document: Awaited<ReturnType<typeof contract.getDidDocument>>;
+
+    try {
+      if (validAt) {
+        const timestamp = Math.floor(new Date(validAt).getTime() / 1000);
+        document = await contract.getDidDocumentByTimestamp(did, timestamp);
+      } else {
+        document = await contract.getDidDocument(did);
+      }
+
+      if (!document.baseDocument) {
+        throw new NotFoundError("Identifier Not Found", {
+          detail: `Identifier ${did} not found`,
+        });
+      }
+
+      let baseDocument: Record<string, unknown>;
+      try {
+        baseDocument = JSON.parse(document.baseDocument) as Record<
+          string,
+          unknown
+        >;
+      } catch (error) {
+        throw new BadRequestError(BadRequestError.defaultTitle, {
+          detail: `Identifier ${did} contains an invalid base document. ${
+            (error as Error).message
+          }`,
+        });
+      }
+
+      let verificationMethod: Record<string, unknown>[];
+      try {
+        verificationMethod = document.vMethods.map((vMethod, i) => ({
+          controller: did,
+          id: `${did}#${document.vMethodIds[i]}`,
+          publicKeyJwk: vMethod.isSecp256k1
+            ? encode.publicKey.fromHexToJWK(vMethod.publicKey)
+            : (JSON.parse(
+                Buffer.from(
+                  remove0xPrefix(vMethod.publicKey),
+                  "hex",
+                ).toString(),
+              ) as JWK),
+          type: "JsonWebKey2020",
+        }));
+      } catch (error) {
+        throw new BadRequestError(BadRequestError.defaultTitle, {
+          detail: `Identifier ${did} contains an invalid public key in a verification method. ${
+            (error as Error).message
+          }`,
+        });
+      }
+
+      const verificationRelationships: Record<string, string[]> = {};
+      for (const vRelationship of document.vRelationships) {
+        if (!verificationRelationships[vRelationship.name]) {
+          verificationRelationships[vRelationship.name] = [];
+        }
+        verificationRelationships[vRelationship.name]!.push(
+          `${did}#${vRelationship.vMethodId}`,
+        );
+      }
+
+      return {
+        ...baseDocument,
+        controller: document.controllers,
+        id: did,
+        verificationMethod,
+        ...verificationRelationships,
+      } as Record<string, unknown>;
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error, error.stack);
+        // Throw a generic error to avoid leaking information.
+        throw new NotFoundError("Identifier Not Found", {
+          detail: `Identifier ${did} not found`,
+        });
+      }
+
+      throw error;
+    }
+  }
 
   async getIdentifiers(
     page: number,
@@ -75,14 +206,14 @@ export default class IdentifiersService {
           );
         const dids: string[] = [];
         const now = Math.floor(Date.now() / 1000);
-        didsWithPeriod.items.forEach((didWithPeriod) => {
+        for (const didWithPeriod of didsWithPeriod.items) {
           if (
             didWithPeriod.notBefore.toNumber() <= now &&
             now <= didWithPeriod.notAfter.toNumber()
           ) {
             dids.push(didWithPeriod.did);
           }
-        });
+        }
         const { items, ...details } = didsWithPeriod;
         return await ({
           items: dids,
@@ -107,131 +238,6 @@ export default class IdentifiersService {
       throw new NotFoundError("No identifiers found", {
         detail: "No identifiers found",
       });
-    }
-  }
-
-  async getDidDocument(
-    did: string,
-    validAt?: string,
-  ): Promise<Record<string, unknown>> {
-    const contract = this.ledgerService.getContract();
-    let document: Awaited<ReturnType<typeof contract.getDidDocument>>;
-
-    try {
-      if (!validAt) {
-        document = await contract.getDidDocument(did);
-      } else {
-        const timestamp = Math.floor(new Date(validAt).getTime() / 1000);
-        document = await contract.getDidDocumentByTimestamp(did, timestamp);
-      }
-
-      if (!document.baseDocument) {
-        throw new NotFoundError("Identifier Not Found", {
-          detail: `Identifier ${did} not found`,
-        });
-      }
-
-      let baseDocument: Record<string, unknown>;
-      try {
-        baseDocument = JSON.parse(document.baseDocument) as Record<
-          string,
-          unknown
-        >;
-      } catch (error) {
-        throw new BadRequestError(BadRequestError.defaultTitle, {
-          detail: `Identifier ${did} contains an invalid base document. ${
-            (error as Error).message
-          }`,
-        });
-      }
-
-      let verificationMethod: Record<string, unknown>[];
-      try {
-        verificationMethod = document.vMethods.map((vMethod, i) => ({
-          id: `${did}#${document.vMethodIds[i]}`,
-          type: "JsonWebKey2020",
-          controller: did,
-          publicKeyJwk: vMethod.isSecp256k1
-            ? encode.publicKey.fromHexToJWK(vMethod.publicKey)
-            : (JSON.parse(
-                Buffer.from(
-                  remove0xPrefix(vMethod.publicKey),
-                  "hex",
-                ).toString(),
-              ) as JWK),
-        }));
-      } catch (error) {
-        throw new BadRequestError(BadRequestError.defaultTitle, {
-          detail: `Identifier ${did} contains an invalid public key in a verification method. ${
-            (error as Error).message
-          }`,
-        });
-      }
-
-      const verificationRelationships: Record<string, string[]> = {};
-      document.vRelationships.forEach((vRelationship) => {
-        if (!verificationRelationships[vRelationship.name]) {
-          verificationRelationships[vRelationship.name] = [];
-        }
-        verificationRelationships[vRelationship.name]!.push(
-          `${did}#${vRelationship.vMethodId}`,
-        );
-      });
-
-      return {
-        ...baseDocument,
-        id: did,
-        controller: document.controllers,
-        verificationMethod,
-        ...verificationRelationships,
-      } as Record<string, unknown>;
-    } catch (error) {
-      if (isEthersError(error)) {
-        this.logger.error(error, error.stack);
-        // Throw a generic error to avoid leaking information.
-        throw new NotFoundError("Identifier Not Found", {
-          detail: `Identifier ${did} not found`,
-        });
-      }
-
-      throw error;
-    }
-  }
-
-  async checkController(
-    did: string,
-    body: JsonRpcSchema,
-    id: number | string | null | undefined,
-  ): Promise<boolean> {
-    try {
-      const parsedBody = requestCheckControllerDtoSchema.parse(body);
-      const address = parsedBody.params[0]!;
-      const contract = this.ledgerService.getContract();
-      return await contract["checkController(string,address)"](did, address);
-    } catch (err) {
-      if (isEthersError(err)) {
-        this.logger.error(err, err.stack); // Log the original error with all ethers.js details for internal debugging
-        throw new InvalidRequestJsonRpcError(err.reason, id); // throw simplified ethers error to the user
-      }
-
-      if (err instanceof Error) {
-        if (axios.isAxiosError(err)) {
-          logAxiosError(err, this.logger);
-        } else {
-          this.logger.error(err.message, err.stack);
-        }
-
-        const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-
-        if (err.stack) {
-          error.stack = err.stack;
-        }
-
-        throw error;
-      }
-
-      this.logger.error(err);
-      throw err;
     }
   }
 }

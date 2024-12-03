@@ -1,11 +1,12 @@
 import { z } from "zod";
-import { jsonRpcSchema } from "./JsonRpcSchema.js";
+
 import { baseParamSchema } from "./BaseParamSchema.js";
+import { jsonRpcSchema } from "./JsonRpcSchema.js";
 
 export const insertPolicySchema = baseParamSchema.merge(
   z.object({
-    policyName: z.string(),
     description: z.string(),
+    policyName: z.string(),
   }),
 );
 

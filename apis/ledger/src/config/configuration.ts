@@ -5,14 +5,14 @@ import Joi from "joi";
 export interface ApiConfig {
   apiPort: number;
   apiUrlPrefix: string;
-  logLevel: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
-  besuRpcNode: string;
   besuReadinessEndpoint: string;
+  besuRpcNode: string;
+  dockerContainerTag: string;
   domain: string;
   localOrigin: string;
+  logLevel: "debug" | "error" | "info" | "silent" | "verbose" | "warn";
   requestTimeout: number;
   testSpecificNodeDomain: string | undefined;
-  dockerContainerTag: string;
 }
 
 // Config factory
@@ -22,16 +22,16 @@ export const loadConfig = (): ApiConfig => {
   const { DOMAIN } = process.env;
 
   return {
-    apiPort: parseInt(process.env.API_PORT || "3000", 10),
-    apiUrlPrefix: process.env.API_URL_PREFIX || "/ledger/v3",
-    logLevel: process.env.LOG_LEVEL || "warn",
-    besuRpcNode: process.env.BESU_RPC_NODE,
+    apiPort: Number.parseInt(process.env.API_PORT ?? "3000", 10),
+    apiUrlPrefix: process.env.API_URL_PREFIX ?? "/ledger/v3",
     besuReadinessEndpoint: process.env.BESU_READINESS_ENDPOINT,
+    besuRpcNode: process.env.BESU_RPC_NODE,
+    dockerContainerTag: process.env.DOCKER_TAG ?? "",
     domain: DOMAIN,
-    localOrigin: process.env.LOCAL_ORIGIN || "",
-    requestTimeout: parseInt(process.env.REQUEST_TIMEOUT || "15000", 10),
+    localOrigin: process.env.LOCAL_ORIGIN ?? "",
+    logLevel: process.env.LOG_LEVEL ?? "warn",
+    requestTimeout: Number.parseInt(process.env.REQUEST_TIMEOUT ?? "15000", 10),
     testSpecificNodeDomain: process.env.TEST_SPECIFIC_NODE_DOMAIN,
-    dockerContainerTag: process.env.DOCKER_TAG || "",
   };
 };
 
@@ -44,12 +44,13 @@ export const ApiConfigModule = ConfigModule.forRoot({
   ],
   load: [loadConfig],
   validationSchema: Joi.object<typeof process.env, true>({
-    // Common API variables
-    NODE_ENV: Joi.string()
-      .valid("development", "production", "test")
-      .default("development"),
     API_PORT: Joi.string().default("3000"),
     API_URL_PREFIX: Joi.string(),
+    BESU_READINESS_ENDPOINT: Joi.string().uri().required(),
+    BESU_RPC_NODE: Joi.string().uri().required(),
+    DOCKER_TAG: Joi.string(),
+    DOMAIN: Joi.string().uri().required(),
+    LOCAL_ORIGIN: Joi.string().uri(),
     LOG_LEVEL: Joi.string().valid(
       "silent",
       "error",
@@ -58,11 +59,10 @@ export const ApiConfigModule = ConfigModule.forRoot({
       "verbose",
       "debug",
     ),
-    DOCKER_TAG: Joi.string(),
-    BESU_RPC_NODE: Joi.string().uri().required(),
-    BESU_READINESS_ENDPOINT: Joi.string().uri().required(),
-    DOMAIN: Joi.string().uri().required(),
-    LOCAL_ORIGIN: Joi.string().uri(),
+    // Common API variables
+    NODE_ENV: Joi.string()
+      .valid("development", "production", "test")
+      .default("development"),
     REQUEST_TIMEOUT: Joi.string(),
     TEST_APP_NAME: Joi.string(),
     TEST_APP_PRIVATE_KEY: Joi.string(),

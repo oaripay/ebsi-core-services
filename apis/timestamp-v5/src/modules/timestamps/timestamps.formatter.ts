@@ -4,6 +4,7 @@ import {
   PaginatedListWithoutTotal,
   paginateWithoutTotal,
 } from "@ebsiint-api/shared";
+
 import { TimestampLink } from "./timestamps.interface.js";
 
 export function formatTimestamps(
@@ -20,8 +21,8 @@ export function formatTimestamps(
     );
 
     return {
-      timestampId: multibaseBase64urlTimestampId,
       href: `${baseUrl}/${multibaseBase64urlTimestampId}`,
+      timestampId: multibaseBase64urlTimestampId,
     };
   });
 

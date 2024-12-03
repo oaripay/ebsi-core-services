@@ -2,12 +2,55 @@ import {
   PaginatedListWithoutTotal,
   paginateWithoutTotal,
 } from "@ebsiint-api/shared";
+
 import {
+  GetSchemaRevisionMetadataListResponse,
   GetSchemaRevisionsResponse,
   GetSchemasResponse,
-  GetSchemaRevisionMetadataListResponse,
 } from "./schemas.interface.js";
 import { hexToMultibaseBase58Btc } from "./schemas.utils.js";
+
+export function formatSchemaRevisionMetadataList(
+  metadata: { items: string[] },
+  page: number,
+  pageSize: number,
+  baseUrl: string,
+): PaginatedListWithoutTotal<GetSchemaRevisionMetadataListResponse> {
+  // Reshape items
+  const items = metadata.items.map((metadataId) => ({
+    href: `${baseUrl}/${metadataId}`,
+    metadataId,
+  }));
+
+  return paginateWithoutTotal<GetSchemaRevisionMetadataListResponse>(
+    items,
+    baseUrl,
+    page,
+    pageSize,
+  );
+}
+
+export function formatSchemaRevisions(
+  schemas: { items: string[] },
+  page: number,
+  pageSize: number,
+  baseUrl: string,
+  extraQuery?: string,
+): PaginatedListWithoutTotal<GetSchemaRevisionsResponse> {
+  // Reshape items
+  const items = schemas.items.map((schemaRevisionId) => ({
+    href: `${baseUrl}/${schemaRevisionId}`,
+    schemaRevisionId,
+  }));
+
+  return paginateWithoutTotal<GetSchemaRevisionsResponse>(
+    items,
+    baseUrl,
+    page,
+    pageSize,
+    extraQuery,
+  );
+}
 
 export function formatSchemas(
   schemas: { items: string[] },
@@ -21,8 +64,8 @@ export function formatSchemas(
     const multibaseBase58BtcSchemaId = hexToMultibaseBase58Btc(schema);
 
     return {
-      schemaId: multibaseBase58BtcSchemaId,
       href: `${baseUrl}/${multibaseBase58BtcSchemaId}`,
+      schemaId: multibaseBase58BtcSchemaId,
     };
   });
 
@@ -32,47 +75,5 @@ export function formatSchemas(
     page,
     pageSize,
     extraQuery,
-  );
-}
-
-export function formatSchemaRevisions(
-  schemas: { items: string[] },
-  page: number,
-  pageSize: number,
-  baseUrl: string,
-  extraQuery?: string,
-): PaginatedListWithoutTotal<GetSchemaRevisionsResponse> {
-  // Reshape items
-  const items = schemas.items.map((schemaRevisionId) => ({
-    schemaRevisionId,
-    href: `${baseUrl}/${schemaRevisionId}`,
-  }));
-
-  return paginateWithoutTotal<GetSchemaRevisionsResponse>(
-    items,
-    baseUrl,
-    page,
-    pageSize,
-    extraQuery,
-  );
-}
-
-export function formatSchemaRevisionMetadataList(
-  metadata: { items: string[] },
-  page: number,
-  pageSize: number,
-  baseUrl: string,
-): PaginatedListWithoutTotal<GetSchemaRevisionMetadataListResponse> {
-  // Reshape items
-  const items = metadata.items.map((metadataId) => ({
-    metadataId,
-    href: `${baseUrl}/${metadataId}`,
-  }));
-
-  return paginateWithoutTotal<GetSchemaRevisionMetadataListResponse>(
-    items,
-    baseUrl,
-    page,
-    pageSize,
   );
 }

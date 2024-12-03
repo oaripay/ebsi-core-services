@@ -1,21 +1,24 @@
-import { randomBytes } from "node:crypto";
-import { describe, beforeAll, it, expect, afterAll } from "vitest";
-import request from "supertest";
-import { Test } from "@nestjs/testing";
-import { ValidationPipe, Logger } from "@nestjs/common";
+import type { RawServerDefault } from "fastify";
+
+import { methodNotAllowed } from "@ebsiint-api/shared";
+import { fastifyAccepts } from "@fastify/accepts";
+import { fastifyHelmet } from "@fastify/helmet";
+import { Logger, ValidationPipe } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import {
   FastifyAdapter,
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import { ConfigService } from "@nestjs/config";
-import type { RawServerDefault } from "fastify";
-import { fastifyAccepts } from "@fastify/accepts";
-import { fastifyHelmet } from "@fastify/helmet";
+import { Test } from "@nestjs/testing";
 import { useContainer } from "class-validator";
-import { methodNotAllowed } from "@ebsiint-api/shared";
+import { randomBytes } from "node:crypto";
+import request from "supertest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
+
+import type { ApiConfig } from "../../src/config/configuration.js";
+
 import { AppModule } from "../../src/app.module.js";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
-import type { ApiConfig } from "../../src/config/configuration.js";
 import { getServer } from "../utils/getServer.js";
 
 describe("Track and Trace API v1 - Documents (e2e)", () => {
@@ -119,7 +122,6 @@ describe("Track and Trace API v1 - Documents (e2e)", () => {
         ((response.body as Record<string, unknown>)?.["total"] as number) ?? 0;
 
       expect(response.body).toStrictEqual({
-        self: expect.stringContaining("/documents?page[after]=1&page[size]=10"),
         items:
           total > 0
             ? expect.arrayContaining([
@@ -129,22 +131,23 @@ describe("Track and Trace API v1 - Documents (e2e)", () => {
                 },
               ])
             : [],
-        total: expect.any(Number),
-        pageSize: 10,
         links: {
           first: expect.stringContaining(
             "/documents?page[after]=1&page[size]=10",
           ),
-          prev: expect.stringContaining(
-            "/documents?page[after]=1&page[size]=10",
+          last: expect.stringContaining(
+            `/documents?page[after]=${Math.max(Math.ceil(total / 10), 1)}&page[size]=10`,
           ),
           next: expect.stringContaining(
             `/documents?page[after]=${total > 10 ? 2 : 1}&page[size]=10`,
           ),
-          last: expect.stringContaining(
-            `/documents?page[after]=${Math.max(Math.ceil(total / 10), 1)}&page[size]=10`,
+          prev: expect.stringContaining(
+            "/documents?page[after]=1&page[size]=10",
           ),
         },
+        pageSize: 10,
+        self: expect.stringContaining("/documents?page[after]=1&page[size]=10"),
+        total: expect.any(Number),
       });
       expect(response.status).toBe(200);
     });
@@ -154,37 +157,37 @@ describe("Track and Trace API v1 - Documents (e2e)", () => {
 
       const response1 = await request(server).get("/documents?page[size]=100");
       expect(response1.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
         detail: '["page[size] must not be greater than 50"]',
+        status: 400,
+        title: "Bad Request",
         type: "about:blank",
       });
       expect(response1.status).toBe(400);
 
       const response2 = await request(server).get("/documents?page[size]=0");
       expect(response2.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
         detail: '["page[size] must not be less than 1"]',
+        status: 400,
+        title: "Bad Request",
         type: "about:blank",
       });
       expect(response2.status).toBe(400);
 
       const response3 = await request(server).get("/documents?page[after]=0");
       expect(response3.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
         detail: '["page[after] must not be less than 1"]',
+        status: 400,
+        title: "Bad Request",
         type: "about:blank",
       });
       expect(response3.status).toBe(400);
 
       const response4 = await request(server).get("/documents?page[after]=abc");
       expect(response4.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
         detail:
           '["page[after] must not be less than 1","page[after] must be a number conforming to the specified constraints"]',
+        status: 400,
+        title: "Bad Request",
         type: "about:blank",
       });
       expect(response4.status).toBe(400);
@@ -201,14 +204,14 @@ describe("Track and Trace API v1 - Documents (e2e)", () => {
 
       expect(response.body).toStrictEqual(
         expect.objectContaining({
+          creator: expect.any(String),
+          events: expect.arrayContaining([]),
           metadata: expect.any(String),
           timestamp: {
             datetime: expect.any(String),
-            source: expect.stringMatching(/^(block|external)$/),
             proof: expect.any(String),
+            source: expect.stringMatching(/^(block|external)$/),
           },
-          events: expect.arrayContaining([]),
-          creator: expect.any(String),
         }),
       );
       expect(response.status).toBe(200);
@@ -288,9 +291,9 @@ describe("Track and Trace API v1 - Documents (e2e)", () => {
       const response = await request(server).get(`/documents/${documentId}`);
 
       expect(response.body).toStrictEqual({
-        title: "Document Not Found",
-        status: 404,
         detail: `Document ${documentId} not found`,
+        status: 404,
+        title: "Document Not Found",
         type: "about:blank",
       });
       expect(response.status).toBe(404);
@@ -376,9 +379,9 @@ describe("Track and Trace API v1 - Documents (e2e)", () => {
       );
 
       expect(response.body).toStrictEqual({
-        title: "Document Not Found",
-        status: 404,
         detail: `Document ${documentId} not found`,
+        status: 404,
+        title: "Document Not Found",
         type: "about:blank",
       });
       expect(response.status).toBe(404);
@@ -398,9 +401,6 @@ describe("Track and Trace API v1 - Documents (e2e)", () => {
         ((response.body as Record<string, unknown>)?.["total"] as number) ?? 0;
 
       expect(response.body).toStrictEqual({
-        self: expect.stringContaining(
-          `/documents/${documentWithEvents}/events?page[after]=1&page[size]=10`,
-        ),
         items:
           total > 0
             ? expect.arrayContaining([
@@ -412,22 +412,25 @@ describe("Track and Trace API v1 - Documents (e2e)", () => {
                 },
               ])
             : [],
-        total: expect.any(Number),
-        pageSize: 10,
         links: {
           first: expect.stringContaining(
             `/documents/${documentWithEvents}/events?page[after]=1&page[size]=10`,
           ),
-          prev: expect.stringContaining(
-            `/documents/${documentWithEvents}/events?page[after]=1&page[size]=10`,
+          last: expect.stringContaining(
+            `/documents/${documentWithEvents}/events?page[after]=${Math.max(Math.ceil(total / 10), 1)}&page[size]=10`,
           ),
           next: expect.stringContaining(
             `/documents/${documentWithEvents}/events?page[after]=${total > 10 ? 2 : 1}&page[size]=10`,
           ),
-          last: expect.stringContaining(
-            `/documents/${documentWithEvents}/events?page[after]=${Math.max(Math.ceil(total / 10), 1)}&page[size]=10`,
+          prev: expect.stringContaining(
+            `/documents/${documentWithEvents}/events?page[after]=1&page[size]=10`,
           ),
         },
+        pageSize: 10,
+        self: expect.stringContaining(
+          `/documents/${documentWithEvents}/events?page[after]=1&page[size]=10`,
+        ),
+        total: expect.any(Number),
       });
       expect(response.status).toBe(200);
     });
@@ -441,9 +444,9 @@ describe("Track and Trace API v1 - Documents (e2e)", () => {
         `/documents/${documentId}/events?page[size]=100`,
       );
       expect(response1.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
         detail: '["page[size] must not be greater than 50"]',
+        status: 400,
+        title: "Bad Request",
         type: "about:blank",
       });
       expect(response1.status).toBe(400);
@@ -452,9 +455,9 @@ describe("Track and Trace API v1 - Documents (e2e)", () => {
         `/documents/${documentId}/events?page[size]=0`,
       );
       expect(response2.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
         detail: '["page[size] must not be less than 1"]',
+        status: 400,
+        title: "Bad Request",
         type: "about:blank",
       });
       expect(response2.status).toBe(400);
@@ -463,9 +466,9 @@ describe("Track and Trace API v1 - Documents (e2e)", () => {
         `/documents/${documentId}/events?page[after]=0`,
       );
       expect(response3.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
         detail: '["page[after] must not be less than 1"]',
+        status: 400,
+        title: "Bad Request",
         type: "about:blank",
       });
       expect(response3.status).toBe(400);
@@ -474,10 +477,10 @@ describe("Track and Trace API v1 - Documents (e2e)", () => {
         `/documents/${documentId}/events?page[after]=abc`,
       );
       expect(response4.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
         detail:
           '["page[after] must not be less than 1","page[after] must be a number conforming to the specified constraints"]',
+        status: 400,
+        title: "Bad Request",
         type: "about:blank",
       });
       expect(response4.status).toBe(400);
@@ -493,16 +496,16 @@ describe("Track and Trace API v1 - Documents (e2e)", () => {
       );
 
       expect(response.body).toStrictEqual({
-        metadata: expect.any(String),
-        timestamp: {
-          datetime: expect.any(String),
-          source: expect.stringMatching(/^(block|external)$/),
-          proof: expect.any(String),
-        },
         externalHash: expect.any(String),
         hash: expect.stringMatching(/^0x/),
+        metadata: expect.any(String),
         origin: expect.any(String),
         sender: expect.stringMatching(/^did:/),
+        timestamp: {
+          datetime: expect.any(String),
+          proof: expect.any(String),
+          source: expect.stringMatching(/^(block|external)$/),
+        },
       });
       expect(response.status).toBe(200);
       expect(
@@ -596,9 +599,9 @@ describe("Track and Trace API v1 - Documents (e2e)", () => {
       );
 
       expect(response.body).toStrictEqual({
-        title: "Document Not Found",
-        status: 404,
         detail: `Document ${wrongDocumentId} not found`,
+        status: 404,
+        title: "Document Not Found",
         type: "about:blank",
       });
       expect(response.status).toBe(404);
@@ -616,9 +619,9 @@ describe("Track and Trace API v1 - Documents (e2e)", () => {
       );
 
       expect(response.body).toStrictEqual({
-        title: "Event Not Found",
-        status: 404,
         detail: `Event ${wrongEventId} not found`,
+        status: 404,
+        title: "Event Not Found",
         type: "about:blank",
       });
       expect(response.status).toBe(404);
@@ -706,9 +709,9 @@ describe("Track and Trace API v1 - Documents (e2e)", () => {
       );
 
       expect(response.body).toStrictEqual({
-        title: "Document Not Found",
-        status: 404,
         detail: `Document ${documentId} not found`,
+        status: 404,
+        title: "Document Not Found",
         type: "about:blank",
       });
       expect(response.status).toBe(404);
@@ -728,38 +731,38 @@ describe("Track and Trace API v1 - Documents (e2e)", () => {
         ((response.body as Record<string, unknown>)?.["total"] as number) ?? 0;
 
       expect(response.body).toStrictEqual({
-        self: expect.stringContaining(
-          `/documents/${documentWithEvents}/accesses?page[after]=1&page[size]=10`,
-        ),
         items:
           total > 0
             ? expect.arrayContaining([
                 {
+                  documentId: documentWithEvents,
                   grantedBy: expect.stringMatching(/^did:/),
                   permission: expect.stringMatching(
                     /^(write|delegate|creator)$/,
                   ),
                   subject: expect.stringMatching(/^did:/),
-                  documentId: documentWithEvents,
                 },
               ])
             : [],
-        total: expect.any(Number),
-        pageSize: 10,
         links: {
           first: expect.stringContaining(
             `/documents/${documentWithEvents}/accesses?page[after]=1&page[size]=10`,
           ),
-          prev: expect.stringContaining(
-            `/documents/${documentWithEvents}/accesses?page[after]=1&page[size]=10`,
+          last: expect.stringContaining(
+            `/documents/${documentWithEvents}/accesses?page[after]=${Math.max(Math.ceil(total / 10), 1)}&page[size]=10`,
           ),
           next: expect.stringContaining(
             `/documents/${documentWithEvents}/accesses?page[after]=${total > 10 ? 2 : 1}&page[size]=10`,
           ),
-          last: expect.stringContaining(
-            `/documents/${documentWithEvents}/accesses?page[after]=${Math.max(Math.ceil(total / 10), 1)}&page[size]=10`,
+          prev: expect.stringContaining(
+            `/documents/${documentWithEvents}/accesses?page[after]=1&page[size]=10`,
           ),
         },
+        pageSize: 10,
+        self: expect.stringContaining(
+          `/documents/${documentWithEvents}/accesses?page[after]=1&page[size]=10`,
+        ),
+        total: expect.any(Number),
       });
       expect(response.status).toBe(200);
     });
@@ -773,9 +776,9 @@ describe("Track and Trace API v1 - Documents (e2e)", () => {
         `/documents/${documentId}/accesses?page[size]=100`,
       );
       expect(response1.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
         detail: '["page[size] must not be greater than 50"]',
+        status: 400,
+        title: "Bad Request",
         type: "about:blank",
       });
       expect(response1.status).toBe(400);
@@ -784,9 +787,9 @@ describe("Track and Trace API v1 - Documents (e2e)", () => {
         `/documents/${documentId}/accesses?page[size]=0`,
       );
       expect(response2.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
         detail: '["page[size] must not be less than 1"]',
+        status: 400,
+        title: "Bad Request",
         type: "about:blank",
       });
       expect(response2.status).toBe(400);
@@ -795,9 +798,9 @@ describe("Track and Trace API v1 - Documents (e2e)", () => {
         `/documents/${documentId}/accesses?page[after]=0`,
       );
       expect(response3.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
         detail: '["page[after] must not be less than 1"]',
+        status: 400,
+        title: "Bad Request",
         type: "about:blank",
       });
       expect(response3.status).toBe(400);
@@ -806,10 +809,10 @@ describe("Track and Trace API v1 - Documents (e2e)", () => {
         `/documents/${documentId}/accesses?page[after]=abc`,
       );
       expect(response4.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
         detail:
           '["page[after] must not be less than 1","page[after] must be a number conforming to the specified constraints"]',
+        status: 400,
+        title: "Bad Request",
         type: "about:blank",
       });
       expect(response4.status).toBe(400);

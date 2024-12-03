@@ -1,19 +1,19 @@
-export interface PolicyResponseObject {
+export interface PolicyLink {
+  href: string;
   policyId: string;
-  policy: string;
-  hash: string;
 }
 
-export interface PolicyLink {
+export interface PolicyResponseObject {
+  hash: string;
+  policy: string;
   policyId: string;
-  href: string;
 }
 
 export interface PolicyRevisions {
   items: {
-    policyId: string;
-    policy: string;
     hash: string;
+    policy: string;
+    policyId: string;
   }[];
   total: number;
 }

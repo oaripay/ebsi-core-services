@@ -1,7 +1,7 @@
-/* eslint-disable no-console */
-import { readFileSync, writeFileSync } from "node:fs";
-import { resolve } from "node:path";
+#!/usr/bin/env node
 import Mustache from "mustache";
+import { readFileSync, writeFileSync } from "node:fs";
+import path from "node:path";
 
 if (!process.env.DIDR_SC_V4_ADDRESS) {
   console.error("DIDR_SC_V4_ADDRESS must be defined");
@@ -16,17 +16,17 @@ if (!process.env.DIDR_SC_V4_START_BLOCK) {
 const { dirname } = import.meta;
 
 const source = readFileSync(
-  resolve(dirname, "../subgraph.template.yaml"),
+  path.resolve(dirname, "../subgraph.template.yaml"),
 ).toString();
 
 const contents = Mustache.render(source, {
-  address: process.env.DIDR_SC_V4_ADDRESS || "",
-  startBlock: parseInt(process.env.DIDR_SC_V4_START_BLOCK || "0", 10),
   abi: import.meta
     .resolve("@ebsiint-sc/did-registry-v4/src/abi/DidRegistry.json")
     .replace("file://", ""),
+  address: process.env.DIDR_SC_V4_ADDRESS || "",
+  startBlock: Number.parseInt(process.env.DIDR_SC_V4_START_BLOCK || "0", 10),
 });
 
-writeFileSync(resolve(dirname, "../subgraph.yaml"), contents);
+writeFileSync(path.resolve(dirname, "../subgraph.yaml"), contents);
 
 console.log("subgraph.yaml generated successfully!");

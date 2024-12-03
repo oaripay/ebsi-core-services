@@ -1,13 +1,13 @@
 import { isDidV1, isPublicKeyHex } from "@ebsiint-api/shared";
-import { z } from "zod";
 import {
   BigNumber,
-  isBigNumberish,
   type BigNumberish,
-  // eslint-disable-next-line import/extensions
+  isBigNumberish,
 } from "@ethersproject/bignumber/lib/bignumber.js";
-import { jsonRpcSchema } from "./JsonRpcSchema.js";
+import { z } from "zod";
+
 import { baseParamSchema } from "./BaseParamSchema.js";
+import { jsonRpcSchema } from "./JsonRpcSchema.js";
 
 export const rollVerificationMethodSchema = baseParamSchema.merge(
   z.object({
@@ -22,28 +22,28 @@ export const rollVerificationMethodSchema = baseParamSchema.merge(
             });
           }
         }),
-        publicKey: z.string(),
-        vMethodId: z.string(),
-        isSecp256k1: z.boolean(),
-        notBefore: z
-          .custom<BigNumberish>((val) => isBigNumberish(val))
-          .refine((val) => BigNumber.from(val).gte(0), {
-            message: "Number must be greater than or equal to 0",
-          }),
-        notAfter: z
-          .custom<BigNumberish>((val) => isBigNumberish(val))
-          .refine((val) => BigNumber.from(val).gte(0), {
-            message: "Number must be greater than or equal to 0",
-          }),
-        oldVMethodId: z.string(),
         duration: z
           .custom<BigNumberish>((val) => isBigNumberish(val))
           .refine((val) => BigNumber.from(val).gte(0), {
             message: "Number must be greater than or equal to 0",
           }),
+        isSecp256k1: z.boolean(),
+        notAfter: z
+          .custom<BigNumberish>((val) => isBigNumberish(val))
+          .refine((val) => BigNumber.from(val).gte(0), {
+            message: "Number must be greater than or equal to 0",
+          }),
+        notBefore: z
+          .custom<BigNumberish>((val) => isBigNumberish(val))
+          .refine((val) => BigNumber.from(val).gte(0), {
+            message: "Number must be greater than or equal to 0",
+          }),
+        oldVMethodId: z.string(),
+        publicKey: z.string(),
+        vMethodId: z.string(),
       })
       .superRefine(async (val, ctx) => {
-        const { publicKey, isSecp256k1 } = val;
+        const { isSecp256k1, publicKey } = val;
 
         const publicKeyHexValidation = await isPublicKeyHex(
           publicKey,
@@ -52,9 +52,9 @@ export const rollVerificationMethodSchema = baseParamSchema.merge(
         if (!publicKeyHexValidation.success) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            path: ["publicKey"],
-            message: publicKeyHexValidation.error,
             fatal: true,
+            message: publicKeyHexValidation.error,
+            path: ["publicKey"],
           });
         }
 

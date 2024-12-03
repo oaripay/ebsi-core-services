@@ -3,13 +3,13 @@ export interface BesuResponseErrorObject {
 }
 
 export interface BesuResponseObject {
-  jsonrpc: string;
-  id: string | number | null;
-  result?: unknown;
   error?: BesuResponseErrorObject;
+  id: null | number | string;
+  jsonrpc: string;
+  result?: unknown;
 }
 
 export interface BesuServiceResponse {
-  status: number;
   data: BesuResponseObject;
+  status: number;
 }

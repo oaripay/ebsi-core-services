@@ -1,5 +1,6 @@
-import { FastifyRequest, FastifyReply, FastifyError } from "fastify";
 import type { LoggerService } from "@nestjs/common";
+
+import { FastifyError, FastifyReply, FastifyRequest } from "fastify";
 
 export const frameworkErrors =
   (logger: LoggerService) =>
@@ -11,24 +12,22 @@ export const frameworkErrors =
     }
 
     if (error && (error as FastifyError).code === "FST_ERR_BAD_URL") {
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
       res.code(400);
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+
       res.send({
-        title: "Bad Request",
         detail: `${req.url} is not a valid url component`,
         status: 400,
+        title: "Bad Request",
         type: "about:blank",
       });
     } else {
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
       res.code(500);
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+
       res.send({
-        title: "Internal Server Error",
         detail:
           "The server encountered an internal error and was unable to complete your request",
         status: 500,
+        title: "Internal Server Error",
         type: "about:blank",
       });
     }

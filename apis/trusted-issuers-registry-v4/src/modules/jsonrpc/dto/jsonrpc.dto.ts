@@ -1,4 +1,4 @@
-import { IsString, IsArray, Equals, IsOptional } from "class-validator";
+import { Equals, IsArray, IsOptional, IsString } from "class-validator";
 
 export class JsonRpcDto {
   @Equals("2.0")

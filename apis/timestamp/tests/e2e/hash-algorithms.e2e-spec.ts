@@ -1,21 +1,24 @@
-import { randomInt } from "node:crypto";
-import { describe, beforeAll, it, expect, afterAll } from "vitest";
-import request from "supertest";
-import { Test } from "@nestjs/testing";
-import { ValidationPipe, Logger } from "@nestjs/common";
+import type { RawServerDefault } from "fastify";
+
+import { methodNotAllowed } from "@ebsiint-api/shared";
+import { fastifyAccepts } from "@fastify/accepts";
+import { fastifyHelmet } from "@fastify/helmet";
+import { Logger, ValidationPipe } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import {
   FastifyAdapter,
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import { ConfigService } from "@nestjs/config";
-import type { RawServerDefault } from "fastify";
-import { fastifyAccepts } from "@fastify/accepts";
-import { fastifyHelmet } from "@fastify/helmet";
-import { methodNotAllowed } from "@ebsiint-api/shared";
+import { Test } from "@nestjs/testing";
+import { randomInt } from "node:crypto";
+import request from "supertest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
+
+import type { ApiConfig } from "../../src/config/configuration.js";
+
 import { AppModule } from "../../src/app.module.js";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
 import { HashAlgorithmLink } from "../../src/modules/hash-algorithms/hash-algorithms.interface.js";
-import type { ApiConfig } from "../../src/config/configuration.js";
 import { getServer } from "../utils/getServer.js";
 
 describe("Timestamp API v3 - HashAlgorithms (e2e)", () => {
@@ -74,22 +77,22 @@ describe("Timestamp API v3 - HashAlgorithms (e2e)", () => {
 
       const response = await request(server).get("/hash-algorithms");
       expect(response.body).toStrictEqual({
-        self: expect.stringContaining(
-          "/hash-algorithms?page[after]=1&page[size]=10",
-        ),
         items: expect.arrayContaining([]),
-        total: expect.any(Number),
-        pageSize: 10,
         links: {
           first: expect.stringContaining(
             "/hash-algorithms?page[after]=1&page[size]=10",
           ),
+          last: expect.stringContaining("/hash-algorithms?page[after]="),
+          next: expect.stringContaining("/hash-algorithms?page[after]="),
           prev: expect.stringContaining(
             "/hash-algorithms?page[after]=1&page[size]=10",
           ),
-          next: expect.stringContaining("/hash-algorithms?page[after]="),
-          last: expect.stringContaining("/hash-algorithms?page[after]="),
         },
+        pageSize: 10,
+        self: expect.stringContaining(
+          "/hash-algorithms?page[after]=1&page[size]=10",
+        ),
+        total: expect.any(Number),
       });
       expect(response.status).toBe(200);
     });
@@ -112,10 +115,10 @@ describe("Timestamp API v3 - HashAlgorithms (e2e)", () => {
 
       expect(response.body).toStrictEqual({
         ianaName: expect.any(String),
+        multihash: expect.any(String),
         oid: expect.any(String),
         outputLengthBits: expect.any(Number),
         status: expect.any(String),
-        multihash: expect.any(String),
       });
       expect(response.status).toBe(200);
     });
@@ -123,16 +126,16 @@ describe("Timestamp API v3 - HashAlgorithms (e2e)", () => {
     it("should throw an error if the hash algorithm is not found", async () => {
       expect.assertions(2);
 
-      const hashAlgorithmId = randomInt(10000) + 10000; // some random number between 10,000 and 20,000
+      const hashAlgorithmId = randomInt(10_000) + 10_000; // some random number between 10,000 and 20,000
 
       const response = await request(server).get(
         `/hash-algorithms/${hashAlgorithmId}`,
       );
 
       expect(response.body).toStrictEqual({
-        title: "Hash algorithm Not Found",
-        status: 404,
         detail: `Hash algorithm ${hashAlgorithmId} not found`,
+        status: 404,
+        title: "Hash algorithm Not Found",
         type: "about:blank",
       });
       expect(response.status).toBe(404);

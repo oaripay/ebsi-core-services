@@ -3,6 +3,7 @@ import {
   PaginatedListWithoutTotal,
   paginateWithoutTotal,
 } from "@ebsiint-api/shared";
+
 import { RecordLink, VersionLink } from "./records.interface.js";
 
 export function formatRecords(
@@ -19,8 +20,8 @@ export function formatRecords(
     );
 
     return {
-      recordId: multibaseBase64urlRecordId,
       href: `${baseUrl}/${multibaseBase64urlRecordId}`,
+      recordId: multibaseBase64urlRecordId,
     };
   });
 
@@ -41,8 +42,8 @@ export function formatRecordVersions(
   extraQuery?: string,
 ): PaginatedListWithoutTotal<VersionLink> {
   const items = versions.items.map((versionId) => ({
-    versionId,
     href: `${baseUrl}/${versionId}`,
+    versionId,
   }));
 
   return paginateWithoutTotal<VersionLink>(

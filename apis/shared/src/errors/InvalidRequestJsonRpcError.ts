@@ -5,9 +5,9 @@ import { JsonRpcError } from "./JsonRpcError.js";
  */
 
 export class InvalidRequestJsonRpcError extends JsonRpcError {
-  static statusCode = 400;
-
   static defaultTitle = "Invalid Request";
+
+  static statusCode = 400;
 
   /**
    * @param message A String providing a short description of the error. The message SHOULD be limited to a concise single sentence.
@@ -16,10 +16,10 @@ export class InvalidRequestJsonRpcError extends JsonRpcError {
    */
   constructor(
     message: string,
-    id: string | number | null | undefined,
+    id: null | number | string | undefined,
     data?: unknown,
   ) {
-    super(-32600, 400, message, id, data);
+    super(-32_600, 400, message, id, data);
     this.name = "InvalidRequestJsonRpcError";
   }
 }

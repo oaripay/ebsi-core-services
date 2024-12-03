@@ -1,68 +1,71 @@
-import { randomUUID } from "node:crypto";
-import { describe, beforeAll, it, expect } from "vitest";
-import request from "supertest";
-import { Test } from "@nestjs/testing";
-import { ValidationPipe, Logger } from "@nestjs/common";
+import type { EbsiIssuer } from "@cef-ebsi/verifiable-credential";
+import type { RawServerDefault } from "fastify";
+import type { JWK } from "jose";
+
+import { methodNotAllowed, waitToBeMined } from "@ebsiint-api/shared";
+import { TransactionRequest } from "@ethersproject/abstract-provider";
+import { fastifyAccepts } from "@fastify/accepts";
+import { fastifyHelmet } from "@fastify/helmet";
+import { Logger, ValidationPipe } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import {
   FastifyAdapter,
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import type { RawServerDefault } from "fastify";
-import { fastifyAccepts } from "@fastify/accepts";
-import { fastifyHelmet } from "@fastify/helmet";
-import { ConfigService } from "@nestjs/config";
-import { TransactionRequest } from "@ethersproject/abstract-provider";
+import { Test } from "@nestjs/testing";
+import { useContainer } from "class-validator";
 import { ethers } from "ethers";
 import { calculateJwkThumbprint, exportJWK, generateKeyPair } from "jose";
-import type { JWK } from "jose";
-import { useContainer } from "class-validator";
-import type { EbsiIssuer } from "@cef-ebsi/verifiable-credential";
-import { methodNotAllowed, waitToBeMined } from "@ebsiint-api/shared";
+import { randomUUID } from "node:crypto";
+import request from "supertest";
+import { beforeAll, describe, expect, it } from "vitest";
+
+import type { ApiConfig } from "../../src/config/configuration.js";
+import type { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface.js";
+
 import { AppModule } from "../../src/app.module.js";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
-import type { ApiConfig } from "../../src/config/configuration.js";
-import { getServer } from "../utils/getServer.js";
 import {
-  UnsignedTransaction,
-  InsertDidDocumentParam,
-  UpdateBaseDocumentParam,
   AddControllerParam,
-  RevokeControllerParam,
   AddVerificationMethodParam,
   AddVerificationRelationshipParam,
-  RevokeVerificationMethodParam,
   ExpireVerificationMethodParam,
+  InsertDidDocumentParam,
+  RevokeControllerParam,
+  RevokeVerificationMethodParam,
   RollVerificationMethodParam,
+  UnsignedTransaction,
+  UpdateBaseDocumentParam,
 } from "../../src/modules/jsonrpc/dto/index.js";
-import type { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface.js";
-import { describeWriteOps } from "../utils/describeWriteOps.js";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils.js";
+import { createUser } from "../utils/data.js";
+import { describeWriteOps } from "../utils/describeWriteOps.js";
 import {
   getDidrInviteAccessToken,
   getDidrWriteAccessToken,
 } from "../utils/getAccessToken.js";
-import { createUser } from "../utils/data.js";
+import { getServer } from "../utils/getServer.js";
 
 type JsonRpcParams =
-  | InsertDidDocumentParam
-  | UpdateBaseDocumentParam
   | AddControllerParam
-  | RevokeControllerParam
   | AddVerificationMethodParam
   | AddVerificationRelationshipParam
+  | ExpireVerificationMethodParam
+  | InsertDidDocumentParam
+  | RevokeControllerParam
   | RevokeVerificationMethodParam
-  | ExpireVerificationMethodParam;
+  | UpdateBaseDocumentParam;
 
 interface SupertestJsonRpcResponse {
-  status: number;
   body: JsonRpcResponseObject;
+  status: number;
 }
 
 interface TestUser {
   info: EbsiIssuer;
+  thumbprint: string;
   token: string;
   wallet: ethers.Wallet;
-  thumbprint: string;
 }
 
 describeWriteOps()("DID Registry API v4 - JSON RPC - e2e", () => {
@@ -134,7 +137,7 @@ describeWriteOps()("DID Registry API v4 - JSON RPC - e2e", () => {
         href: string;
       }[];
     };
-    lastDid = identifiers[identifiers.length - 1]!.did;
+    lastDid = identifiers.at(-1)!.did;
   });
 
   describe("registering a new DID document", () => {
@@ -153,9 +156,9 @@ describeWriteOps()("DID Registry API v4 - JSON RPC - e2e", () => {
 
       user = {
         info: userDetails,
+        thumbprint: userDetails.thumbprint,
         token: userAccessToken,
         wallet: userDetails.wallet,
-        thumbprint: userDetails.thumbprint,
       };
     });
 
@@ -164,34 +167,34 @@ describeWriteOps()("DID Registry API v4 - JSON RPC - e2e", () => {
         expect.assertions(5);
 
         const params = {
-          from: user.wallet.address,
-          did: user.info.did,
           baseDocument: JSON.stringify({
             "@context": [
               "https://www.w3.org/ns/did/v1",
               "https://w3id.org/security/suites/jws-2020/v1", // Required
             ],
           }),
-          vMethodId: user.thumbprint,
-          publicKey: user.wallet.publicKey,
+          did: user.info.did,
+          from: user.wallet.address,
           isSecp256k1: true,
-          notBefore: now,
           notAfter: in6months,
+          notBefore: now,
+          publicKey: user.wallet.publicKey,
+          vMethodId: user.thumbprint,
         } as InsertDidDocumentParam;
 
         const responseBuild: SupertestJsonRpcResponse = await request(server)
           .post("/jsonrpc")
           .auth(user.token, { type: "bearer" })
           .send({
+            id: 1,
             jsonrpc: "2.0",
             method: "insertDidDocument",
             params: [params],
-            id: 1,
           });
 
         expect(responseBuild.body).toStrictEqual({
-          jsonrpc: "2.0",
           id: 1,
+          jsonrpc: "2.0",
           result: {
             chainId: expect.any(String),
             data: expect.any(String),
@@ -207,6 +210,7 @@ describeWriteOps()("DID Registry API v4 - JSON RPC - e2e", () => {
 
         const unsignedTransaction = responseBuild.body.result;
         const uTx = formatEthersUnsignedTransaction(
+          // eslint-disable-next-line unicorn/prefer-structured-clone
           JSON.parse(
             JSON.stringify(unsignedTransaction),
           ) as UnsignedTransaction,
@@ -219,24 +223,24 @@ describeWriteOps()("DID Registry API v4 - JSON RPC - e2e", () => {
           .post("/jsonrpc")
           .auth(user.token, { type: "bearer" })
           .send({
+            id: "45",
             jsonrpc: "2.0",
             method: "sendSignedTransaction",
             params: [
               {
                 protocol: "eth",
-                unsignedTransaction,
                 r,
                 s,
-                v: `0x${Number(v).toString(16)}`,
                 signedRawTransaction: sgnTx,
+                unsignedTransaction,
+                v: `0x${Number(v).toString(16)}`,
               },
             ],
-            id: "45",
           });
 
         expect(responseSend.body).toStrictEqual({
-          jsonrpc: "2.0",
           id: "45",
+          jsonrpc: "2.0",
           result: expect.any(String),
         });
         expect(responseSend.status).toBe(200);
@@ -268,8 +272,8 @@ describeWriteOps()("DID Registry API v4 - JSON RPC - e2e", () => {
           configService.get<string>("authorisationApiUrl"),
           user.info,
           {
-            network: configService.get("network", { infer: true }),
             hosts: [ebsiAuthority, ...trustedHostnames],
+            network: configService.get("network", { infer: true }),
             services: {
               "did-registry": "v4",
               "trusted-issuers-registry": "v4",
@@ -279,20 +283,17 @@ describeWriteOps()("DID Registry API v4 - JSON RPC - e2e", () => {
           },
         );
         user.token = didrWriteToken;
-      } catch (e) {
-        // eslint-disable-next-line no-console
-        console.error(e);
-        throw e;
+      } catch (error) {
+        console.error(error);
+        throw error;
       }
 
-      publicKeyJwk2 = await exportJWK(
-        (await generateKeyPair("EdDSA", { crv: "Ed25519" })).publicKey,
-      );
+      const keyPair2 = await generateKeyPair("EdDSA", { crv: "Ed25519" });
+      publicKeyJwk2 = await exportJWK(keyPair2.publicKey);
       thumbprint2 = await calculateJwkThumbprint(publicKeyJwk2);
 
-      publicKeyJwk3 = await exportJWK(
-        (await generateKeyPair("ES256")).publicKey,
-      );
+      const keyPair3 = await generateKeyPair("ES256");
+      publicKeyJwk3 = await exportJWK(keyPair3.publicKey);
       thumbprint3 = await calculateJwkThumbprint(publicKeyJwk3);
     });
 
@@ -309,13 +310,85 @@ describeWriteOps()("DID Registry API v4 - JSON RPC - e2e", () => {
       it("should work", async () => {
         expect.assertions(5);
 
-        let params: JsonRpcParams | null = null;
+        let params: JsonRpcParams;
 
         switch (method) {
+          case "addController": {
+            // it is already a controller
+            params = {
+              controller: lastDid,
+              did: user.info.did,
+              from: user.wallet.address,
+            } as AddControllerParam;
+            break;
+          }
+          case "addVerificationMethod": {
+            params = {
+              did: user.info.did,
+              from: user.wallet.address,
+              isSecp256k1: false,
+              publicKey: `0x${Buffer.from(
+                JSON.stringify(publicKeyJwk2),
+              ).toString("hex")}`,
+              vMethodId: thumbprint2,
+            } as AddVerificationMethodParam;
+            break;
+          }
+          case "addVerificationRelationship": {
+            params = {
+              did: user.info.did,
+              from: user.wallet.address,
+              name: "assertionMethod",
+              notAfter: in6months,
+              notBefore: now,
+              vMethodId: thumbprint2,
+            } as AddVerificationRelationshipParam;
+            break;
+          }
+          case "expireVerificationMethod": {
+            params = {
+              did: user.info.did,
+              from: user.wallet.address,
+              notAfter: now + 600,
+              vMethodId: thumbprint2,
+            } as ExpireVerificationMethodParam;
+            break;
+          }
+          case "revokeController": {
+            params = {
+              controller: lastDid,
+              did: user.info.did,
+              from: user.wallet.address,
+            } as RevokeControllerParam;
+            break;
+          }
+          case "revokeVerificationMethod": {
+            params = {
+              did: user.info.did,
+              from: user.wallet.address,
+              notAfter: now - 60,
+              vMethodId: thumbprint2,
+            } as RevokeVerificationMethodParam;
+            break;
+          }
+          case "rollVerificationMethod": {
+            params = {
+              did: user.info.did,
+              duration: 3600,
+              from: user.wallet.address,
+              isSecp256k1: false,
+              notAfter: in6months,
+              notBefore: now,
+              oldVMethodId: thumbprint2,
+              publicKey: `0x${Buffer.from(
+                JSON.stringify(publicKeyJwk3),
+              ).toString("hex")}`,
+              vMethodId: thumbprint3,
+            } as RollVerificationMethodParam;
+            break;
+          }
           case "updateBaseDocument": {
             params = {
-              from: user.wallet.address,
-              did: user.info.did,
               baseDocument: JSON.stringify({
                 "@context": [
                   "https://www.w3.org/ns/did/v1",
@@ -323,81 +396,9 @@ describeWriteOps()("DID Registry API v4 - JSON RPC - e2e", () => {
                 ],
                 testKey: randomUUID(),
               }),
+              did: user.info.did,
+              from: user.wallet.address,
             } as UpdateBaseDocumentParam;
-            break;
-          }
-          case "addController": {
-            // it is already a controller
-            params = {
-              from: user.wallet.address,
-              did: user.info.did,
-              controller: lastDid,
-            } as AddControllerParam;
-            break;
-          }
-          case "revokeController": {
-            params = {
-              from: user.wallet.address,
-              did: user.info.did,
-              controller: lastDid,
-            } as RevokeControllerParam;
-            break;
-          }
-          case "addVerificationMethod": {
-            params = {
-              from: user.wallet.address,
-              did: user.info.did,
-              vMethodId: thumbprint2,
-              publicKey: `0x${Buffer.from(
-                JSON.stringify(publicKeyJwk2),
-              ).toString("hex")}`,
-              isSecp256k1: false,
-            } as AddVerificationMethodParam;
-            break;
-          }
-          case "addVerificationRelationship": {
-            params = {
-              from: user.wallet.address,
-              did: user.info.did,
-              name: "assertionMethod",
-              vMethodId: thumbprint2,
-              notBefore: now,
-              notAfter: in6months,
-            } as AddVerificationRelationshipParam;
-            break;
-          }
-          case "expireVerificationMethod": {
-            params = {
-              from: user.wallet.address,
-              did: user.info.did,
-              vMethodId: thumbprint2,
-              notAfter: now + 600,
-            } as ExpireVerificationMethodParam;
-            break;
-          }
-          case "revokeVerificationMethod": {
-            params = {
-              from: user.wallet.address,
-              did: user.info.did,
-              vMethodId: thumbprint2,
-              notAfter: now - 60,
-            } as RevokeVerificationMethodParam;
-            break;
-          }
-          case "rollVerificationMethod": {
-            params = {
-              from: user.wallet.address,
-              did: user.info.did,
-              vMethodId: thumbprint3,
-              publicKey: `0x${Buffer.from(
-                JSON.stringify(publicKeyJwk3),
-              ).toString("hex")}`,
-              isSecp256k1: false,
-              notBefore: now,
-              notAfter: in6months,
-              oldVMethodId: thumbprint2,
-              duration: 3600,
-            } as RollVerificationMethodParam;
             break;
           }
           default: {
@@ -409,15 +410,15 @@ describeWriteOps()("DID Registry API v4 - JSON RPC - e2e", () => {
           .post("/jsonrpc")
           .auth(user.token, { type: "bearer" })
           .send({
+            id: 1,
             jsonrpc: "2.0",
             method,
             params: [params],
-            id: 1,
           });
 
         expect(responseBuild.body).toStrictEqual({
-          jsonrpc: "2.0",
           id: 1,
+          jsonrpc: "2.0",
           result: {
             chainId: expect.any(String),
             data: expect.any(String),
@@ -433,6 +434,7 @@ describeWriteOps()("DID Registry API v4 - JSON RPC - e2e", () => {
 
         const unsignedTransaction = responseBuild.body.result;
         const uTx = formatEthersUnsignedTransaction(
+          // eslint-disable-next-line unicorn/prefer-structured-clone
           JSON.parse(
             JSON.stringify(unsignedTransaction),
           ) as UnsignedTransaction,
@@ -445,24 +447,24 @@ describeWriteOps()("DID Registry API v4 - JSON RPC - e2e", () => {
           .post("/jsonrpc")
           .auth(user.token, { type: "bearer" })
           .send({
+            id: "45",
             jsonrpc: "2.0",
             method: "sendSignedTransaction",
             params: [
               {
                 protocol: "eth",
-                unsignedTransaction,
                 r,
                 s,
-                v: `0x${Number(v).toString(16)}`,
                 signedRawTransaction: sgnTx,
+                unsignedTransaction,
+                v: `0x${Number(v).toString(16)}`,
               },
             ],
-            id: "45",
           });
 
         expect(responseSend.body).toStrictEqual({
-          jsonrpc: "2.0",
           id: "45",
+          jsonrpc: "2.0",
           result: expect.any(String),
         });
         expect(responseSend.status).toBe(200);

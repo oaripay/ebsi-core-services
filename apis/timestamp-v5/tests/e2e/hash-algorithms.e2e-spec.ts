@@ -1,51 +1,54 @@
-import { randomInt } from "node:crypto";
-import { describe, beforeAll, it, expect, afterAll } from "vitest";
-import { ethers } from "ethers";
-import request from "supertest";
-import { Test } from "@nestjs/testing";
-import { ValidationPipe, Logger } from "@nestjs/common";
-import {
-  FastifyAdapter,
-  type NestFastifyApplication,
-} from "@nestjs/platform-fastify";
-import { ConfigService } from "@nestjs/config";
+import type {
+  EbsiEnvConfiguration,
+  EbsiIssuer,
+} from "@cef-ebsi/verifiable-credential";
+import type { TransactionRequest } from "@ethersproject/abstract-provider";
 import type { RawServerDefault } from "fastify";
-import { fastifyAccepts } from "@fastify/accepts";
-import { fastifyHelmet } from "@fastify/helmet";
 import type { HashName } from "multihashes";
+
 import {
   methodNotAllowed,
   prefixWith0x,
   waitToBeMined,
 } from "@ebsiint-api/shared";
-import type { TransactionRequest } from "@ethersproject/abstract-provider";
-import type {
-  EbsiEnvConfiguration,
-  EbsiIssuer,
-} from "@cef-ebsi/verifiable-credential";
+import { fastifyAccepts } from "@fastify/accepts";
+import { fastifyHelmet } from "@fastify/helmet";
+import { Logger, ValidationPipe } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import {
+  FastifyAdapter,
+  type NestFastifyApplication,
+} from "@nestjs/platform-fastify";
+import { Test } from "@nestjs/testing";
+import { ethers } from "ethers";
+import { randomInt } from "node:crypto";
+import request from "supertest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
+
+import type { ApiConfig } from "../../src/config/configuration.js";
+import type { HashAlgorithmLink } from "../../src/modules/hash-algorithms/hash-algorithms.interface.js";
+import type { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface.js";
+import type { InsertHashAlgorithmSchema } from "../../src/modules/jsonrpc/validators/RequestInsertHashAlgorithm.js";
 import type { UpdateHashAlgorithmSchema } from "../../src/modules/jsonrpc/validators/RequestUpdateHashAlgorithm.js";
 import type { UnsignedTransactionSchema } from "../../src/modules/jsonrpc/validators/UnsignedTransaction.js";
-import type { InsertHashAlgorithmSchema } from "../../src/modules/jsonrpc/validators/RequestInsertHashAlgorithm.js";
+
 import { AppModule } from "../../src/app.module.js";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
-import type { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface.js";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils.js";
-import type { HashAlgorithmLink } from "../../src/modules/hash-algorithms/hash-algorithms.interface.js";
-import type { ApiConfig } from "../../src/config/configuration.js";
-import { describeWriteOps, itWriteOps, writeOps } from "../utils/writeOps.js";
-import { getServer } from "../utils/getServer.js";
 import { getTimestampWriteAccessToken } from "../utils/getAccessToken.js";
 import { getEbsiIssuer } from "../utils/getEbsiIssuer.js";
-
-interface SupertestJsonRpcResponse {
-  status: number;
-  body: JsonRpcResponseObject;
-}
+import { getServer } from "../utils/getServer.js";
+import { describeWriteOps, itWriteOps, writeOps } from "../utils/writeOps.js";
 
 type JsonRpcParams =
   | InsertHashAlgorithmSchema
-  | UpdateHashAlgorithmSchema
-  | UnsignedTransactionSchema;
+  | UnsignedTransactionSchema
+  | UpdateHashAlgorithmSchema;
+
+interface SupertestJsonRpcResponse {
+  body: JsonRpcResponseObject;
+  status: number;
+}
 
 interface TestUser {
   info: EbsiIssuer;
@@ -55,14 +58,14 @@ interface TestUser {
 
 const newHashAlgorithm = {
   ianaName: `test-${Date.now()}`,
-  outputLength: 256,
   multiHash: "sha2-256",
   oid: "2.16.840.1.101.3.4.2.1",
+  outputLength: 256,
 } as const satisfies {
   ianaName: string;
-  outputLength: number;
   multiHash: HashName;
   oid: string;
+  outputLength: number;
 };
 
 describe("Timestamp API v4 - HashAlgorithms (e2e)", () => {
@@ -138,8 +141,8 @@ describe("Timestamp API v4 - HashAlgorithms (e2e)", () => {
         .get<string>("domain")
         .replace(/^https?:\/\//, "");
       const ebsiEnvConfig = {
-        network: configService.get("network", { infer: true }),
         hosts: [ebsiAuthority, ...trustedHostnames],
+        network: configService.get("network", { infer: true }),
         services: {
           "did-registry": "v6",
           "trusted-issuers-registry": "v6",
@@ -158,10 +161,9 @@ describe("Timestamp API v4 - HashAlgorithms (e2e)", () => {
           ),
           wallet: adminWallet,
         };
-      } catch (e) {
-        // eslint-disable-next-line no-console
-        console.error(e);
-        throw e;
+      } catch (error) {
+        console.error(error);
+        throw error;
       }
 
       const configTestUser = configService.get<{
@@ -184,10 +186,9 @@ describe("Timestamp API v4 - HashAlgorithms (e2e)", () => {
           ),
           wallet: userWallet,
         };
-      } catch (e) {
-        // eslint-disable-next-line no-console
-        console.error(e);
-        throw e;
+      } catch (error) {
+        console.error(error);
+        throw error;
       }
     }
 
@@ -204,20 +205,20 @@ describe("Timestamp API v4 - HashAlgorithms (e2e)", () => {
 
       const response = await request(server).get("/hash-algorithms");
       expect(response.body).toStrictEqual({
-        self: expect.stringContaining(
-          "/hash-algorithms?page[after]=1&page[size]=10",
-        ),
         items: expect.arrayContaining([]),
-        pageSize: 10,
         links: {
           first: expect.stringContaining(
             "/hash-algorithms?page[after]=1&page[size]=10",
           ),
+          next: expect.stringContaining("/hash-algorithms?page[after]="),
           prev: expect.stringContaining(
             "/hash-algorithms?page[after]=1&page[size]=10",
           ),
-          next: expect.stringContaining("/hash-algorithms?page[after]="),
         },
+        pageSize: 10,
+        self: expect.stringContaining(
+          "/hash-algorithms?page[after]=1&page[size]=10",
+        ),
       });
       expect(response.status).toBe(200);
     });
@@ -240,10 +241,10 @@ describe("Timestamp API v4 - HashAlgorithms (e2e)", () => {
 
       expect(response.body).toStrictEqual({
         ianaName: expect.any(String),
+        multihash: expect.any(String),
         oid: expect.any(String),
         outputLengthBits: expect.any(Number),
         status: expect.any(String),
-        multihash: expect.any(String),
       });
       expect(response.status).toBe(200);
     });
@@ -251,16 +252,16 @@ describe("Timestamp API v4 - HashAlgorithms (e2e)", () => {
     it("should throw an error if the hash algorithm is not found", async () => {
       expect.assertions(2);
 
-      const hashAlgorithmId = randomInt(10000) + 10000; // some random number between 10,000 and 20,000
+      const hashAlgorithmId = randomInt(10_000) + 10_000; // some random number between 10,000 and 20,000
 
       const response = await request(server).get(
         `/hash-algorithms/${hashAlgorithmId}`,
       );
 
       expect(response.body).toStrictEqual({
-        title: "Hash algorithm Not Found",
-        status: 404,
         detail: `Hash algorithm ${hashAlgorithmId} not found`,
+        status: 404,
+        title: "Hash algorithm Not Found",
         type: "about:blank",
       });
       expect(response.status).toBe(404);
@@ -276,55 +277,56 @@ describe("Timestamp API v4 - HashAlgorithms (e2e)", () => {
       it("should work", async () => {
         expect.assertions(5);
 
-        let params: JsonRpcParams | null = null;
-        const { outputLength, ianaName, oid, multiHash } = newHashAlgorithm;
+        let params: JsonRpcParams;
+        const { ianaName, multiHash, oid, outputLength } = newHashAlgorithm;
 
         switch (method) {
           case "insertHashAlgorithm": {
             params = {
               from: adminUser.wallet.address,
-              outputLength,
               ianaName,
-              oid,
-              status: 1,
               multiHash,
+              oid,
+              outputLength,
+              status: 1,
             } satisfies InsertHashAlgorithmSchema;
             break;
           }
           case "updateHashAlgorithm": {
             const response = await request(server).get("/hash-algorithms");
             const { items } = response.body as { items: HashAlgorithmLink[] };
-            const { hashAlgorithmId } = items[items.length - 1]!;
+            const { hashAlgorithmId } = items.at(-1)!;
 
             params = {
               from: adminUser.wallet.address,
               hashAlgorithmId,
-              outputLength,
               ianaName,
-              oid,
-              status: 1,
               multiHash,
+              oid,
+              outputLength,
+              status: 1,
             } satisfies UpdateHashAlgorithmSchema;
             break;
           }
-          default:
+          default: {
             // Never happens
-            break;
+            throw new Error("Unsupported method");
+          }
         }
 
         const responseBuild: SupertestJsonRpcResponse = await request(server)
           .post("/jsonrpc")
           .auth(adminUser.token, { type: "bearer" })
           .send({
+            id: 231,
             jsonrpc: "2.0",
             method,
             params: [params],
-            id: 231,
           });
 
         expect(responseBuild.body).toStrictEqual({
-          jsonrpc: "2.0",
           id: 231,
+          jsonrpc: "2.0",
           result: {
             chainId: expect.any(String),
             data: expect.any(String),
@@ -340,6 +342,7 @@ describe("Timestamp API v4 - HashAlgorithms (e2e)", () => {
 
         const unsignedTransaction = responseBuild.body.result;
         const uTx = formatEthersUnsignedTransaction(
+          // eslint-disable-next-line unicorn/prefer-structured-clone
           JSON.parse(
             JSON.stringify(unsignedTransaction),
           ) as unknown as UnsignedTransactionSchema,
@@ -354,24 +357,24 @@ describe("Timestamp API v4 - HashAlgorithms (e2e)", () => {
           .post("/jsonrpc")
           .auth(adminUser.token, { type: "bearer" })
           .send({
+            id: "45",
             jsonrpc: "2.0",
             method: "sendSignedTransaction",
             params: [
               {
                 protocol: "eth",
-                unsignedTransaction,
                 r,
                 s,
-                v: `0x${Number(v).toString(16)}`,
                 signedRawTransaction: sgnTx,
+                unsignedTransaction,
+                v: `0x${Number(v).toString(16)}`,
               },
             ],
-            id: "45",
           });
 
         expect(responseSend.body).toStrictEqual({
-          jsonrpc: "2.0",
           id: "45",
+          jsonrpc: "2.0",
           result: expect.any(String),
         });
         expect(responseSend.status).toBe(200);
@@ -395,55 +398,56 @@ describe("Timestamp API v4 - HashAlgorithms (e2e)", () => {
       it("should not work with testUser data", async () => {
         expect.assertions(6);
 
-        let params: JsonRpcParams | null = null;
-        const { outputLength, ianaName, oid, multiHash } = newHashAlgorithm;
+        let params: JsonRpcParams;
+        const { ianaName, multiHash, oid, outputLength } = newHashAlgorithm;
 
         switch (method) {
           case "insertHashAlgorithm": {
             params = {
               from: testUser.wallet.address,
-              outputLength,
               ianaName,
-              oid,
-              status: 1,
               multiHash,
+              oid,
+              outputLength,
+              status: 1,
             } satisfies InsertHashAlgorithmSchema;
             break;
           }
           case "updateHashAlgorithm": {
             const response = await request(server).get("/hash-algorithms");
             const { items } = response.body as { items: HashAlgorithmLink[] };
-            const { hashAlgorithmId } = items[items.length - 1]!;
+            const { hashAlgorithmId } = items.at(-1)!;
 
             params = {
               from: testUser.wallet.address,
               hashAlgorithmId,
-              outputLength,
               ianaName,
-              oid,
-              status: 1,
               multiHash,
+              oid,
+              outputLength,
+              status: 1,
             } satisfies UpdateHashAlgorithmSchema;
             break;
           }
-          default:
+          default: {
             // Never happens
-            break;
+            throw new Error("Unsupported method");
+          }
         }
 
         const responseBuild: SupertestJsonRpcResponse = await request(server)
           .post("/jsonrpc")
           .auth(testUser.token, { type: "bearer" })
           .send({
+            id: 231,
             jsonrpc: "2.0",
             method,
             params: [params],
-            id: 231,
           });
 
         expect(responseBuild.body).toStrictEqual({
-          jsonrpc: "2.0",
           id: 231,
+          jsonrpc: "2.0",
           result: {
             chainId: expect.any(String),
             data: expect.any(String),
@@ -459,6 +463,7 @@ describe("Timestamp API v4 - HashAlgorithms (e2e)", () => {
 
         const unsignedTransaction = responseBuild.body.result;
         const uTx = formatEthersUnsignedTransaction(
+          // eslint-disable-next-line unicorn/prefer-structured-clone
           JSON.parse(
             JSON.stringify(unsignedTransaction),
           ) as unknown as UnsignedTransactionSchema,
@@ -473,24 +478,24 @@ describe("Timestamp API v4 - HashAlgorithms (e2e)", () => {
           .post("/jsonrpc")
           .auth(testUser.token, { type: "bearer" })
           .send({
+            id: "45",
             jsonrpc: "2.0",
             method: "sendSignedTransaction",
             params: [
               {
                 protocol: "eth",
-                unsignedTransaction,
                 r,
                 s,
-                v: `0x${Number(v).toString(16)}`,
                 signedRawTransaction: sgnTx,
+                unsignedTransaction,
+                v: `0x${Number(v).toString(16)}`,
               },
             ],
-            id: "45",
           });
 
         expect(responseSend.body).toStrictEqual({
-          jsonrpc: "2.0",
           id: "45",
+          jsonrpc: "2.0",
           result: expect.any(String),
         });
         expect(responseSend.status).toBe(200);
@@ -514,29 +519,30 @@ describe("Timestamp API v4 - HashAlgorithms (e2e)", () => {
     async () => {
       expect.assertions(2);
 
-      const { outputLength, ianaName, oid, multiHash } = newHashAlgorithm;
+      const { ianaName, multiHash, oid, outputLength } = newHashAlgorithm;
 
       const param = {
         from: adminUser.wallet.address,
-        outputLength,
         ianaName,
-        oid,
-        status: 1,
         multiHash,
+        oid,
+        outputLength,
+        status: 1,
       } satisfies InsertHashAlgorithmSchema;
 
       const responseBuild: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")
         .auth(testUser.token, { type: "bearer" })
         .send({
+          id: 231,
           jsonrpc: "2.0",
           method: "insertHashAlgorithm",
           params: [param],
-          id: 231,
         });
 
       const unsignedTransaction = responseBuild.body.result;
       const uTx = formatEthersUnsignedTransaction(
+        // eslint-disable-next-line unicorn/prefer-structured-clone
         JSON.parse(
           JSON.stringify(unsignedTransaction),
         ) as unknown as UnsignedTransactionSchema,
@@ -551,30 +557,30 @@ describe("Timestamp API v4 - HashAlgorithms (e2e)", () => {
         .post("/jsonrpc")
         .auth(testUser.token, { type: "bearer" })
         .send({
+          id: "45",
           jsonrpc: "2.0",
           method: "sendSignedTransaction",
           params: [
             {
               protocol: "eth",
-              unsignedTransaction,
               r,
               s,
-              v: `0x${Number(v).toString(16)}`,
               signedRawTransaction: sgnTx,
+              unsignedTransaction,
+              v: `0x${Number(v).toString(16)}`,
             },
           ],
-          id: "45",
         });
 
       expect(responseSend.body).toStrictEqual({
-        jsonrpc: "2.0",
-        id: "45",
         error: {
-          code: -32600,
+          code: -32_600,
           message: `The DID ${
             testUser.info.did
           } is not controlled by the address ${adminUser.wallet.address.toLowerCase()}`,
         },
+        id: "45",
+        jsonrpc: "2.0",
       });
 
       expect(responseSend.status).toBe(400);

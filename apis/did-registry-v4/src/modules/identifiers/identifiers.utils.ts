@@ -1,6 +1,7 @@
-import * as ClassValidator from "class-validator";
-import { type ClassConstructor, ClassTransformer } from "class-transformer";
 import { getErrorMessages } from "@ebsiint-api/shared";
+import { type ClassConstructor, ClassTransformer } from "class-transformer";
+import * as ClassValidator from "class-validator";
+
 import { RequestCheckControllerDto } from "./dto/request-check-controller.dto.js";
 
 type JsonRpcDtos = RequestCheckControllerDto;
@@ -23,7 +24,7 @@ export const validateClass = async (
     }
 
     throw new Error(
-      `Validation errors:${errorMessages.map((err) => `\n- ${err}`).join()}`,
+      `Validation errors:${errorMessages.map((err) => `\n- ${err}`).join(",")}`,
     );
   }
 };

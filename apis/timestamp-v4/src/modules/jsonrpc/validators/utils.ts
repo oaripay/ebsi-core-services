@@ -1,24 +1,24 @@
-import { z, type RefinementCtx } from "zod";
-import validator from "validator";
 import { remove0xPrefix } from "@ebsiint-api/shared";
 import { coerceCode, HashName } from "multihashes";
+import validator from "validator";
+import { type RefinementCtx, z } from "zod";
 
 const validators = validator.default;
 
 function isHexadecimal(
   value: string,
-): { success: true } | { success: false; error: string } {
+): { error: string; success: false } | { success: true } {
   if (!value.startsWith("0x")) {
     return {
-      success: false,
       error: "Must start with 0x",
+      success: false,
     };
   }
 
   if (!validators.isHexadecimal(value)) {
     return {
-      success: false,
       error: "Must be hexadecimal",
+      success: false,
     };
   }
 
@@ -27,7 +27,7 @@ function isHexadecimal(
 
 function isHexadecimalJSON(
   value: string,
-): { success: true } | { success: false; error: string } {
+): { error: string; success: false } | { success: true } {
   const isValidHexadecimal = isHexadecimal(value);
 
   if (!isValidHexadecimal.success) {
@@ -37,8 +37,8 @@ function isHexadecimalJSON(
   // Length must be even
   if (value.length % 2 !== 0) {
     return {
-      success: false,
       error: "Length must be even",
+      success: false,
     };
   }
 
@@ -48,8 +48,8 @@ function isHexadecimalJSON(
     )
   ) {
     return {
-      success: false,
       error: "Must be a JSON object encoded in hexadecimal",
+      success: false,
     };
   }
 
@@ -58,13 +58,13 @@ function isHexadecimalJSON(
 
 function isMultihash(
   value: string,
-): { success: true } | { success: false; error: string } {
+): { error: string; success: false } | { success: true } {
   try {
     coerceCode(value as HashName);
   } catch {
     return {
-      success: false,
       error: "Must be multihash",
+      success: false,
     };
   }
 
@@ -78,8 +78,8 @@ export const refinements = {
     if (!isValid.success) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: isValid.error,
         fatal: true,
+        message: isValid.error,
       });
     }
   },
@@ -89,8 +89,8 @@ export const refinements = {
     if (!isValid.success) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: isValid.error,
         fatal: true,
+        message: isValid.error,
       });
     }
   },
@@ -100,8 +100,8 @@ export const refinements = {
     if (!isValid.success) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: isValid.error,
         fatal: true,
+        message: isValid.error,
       });
     }
   },

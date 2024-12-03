@@ -1,33 +1,36 @@
+import type { FastifyReply } from "fastify";
+
 import {
+  Accepts,
+  InvalidRequestJsonRpcError,
+  PaginatedList,
+} from "@ebsiint-api/shared";
+import {
+  Body,
   Controller,
   Get,
-  Query,
-  Param,
   Headers,
-  Res,
-  Post,
-  Body,
   HttpCode,
+  Param,
+  Post,
+  Query,
+  Res,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import type { FastifyReply } from "fastify";
-import {
-  PaginatedList,
-  InvalidRequestJsonRpcError,
-  Accepts,
-} from "@ebsiint-api/shared";
-import IdentifiersService from "./identifiers.service.js";
-import { formatIdentifiers } from "./identifiers.formatter.js";
-import { DidLink } from "./identifiers.interface.js";
+
+import type { ApiConfig } from "../../config/configuration.js";
+
+import { JsonRpcDto } from "../jsonrpc/dto/index.js";
+import { JsonRpcResponseObject } from "../jsonrpc/jsonrpc.interface.js";
 import {
   GetIdentifierParamsDto,
   GetIdentifierQueryDto,
   GetIdentifiersDto,
 } from "./dto/index.js";
-import type { ApiConfig } from "../../config/configuration.js";
-import { JsonRpcResponseObject } from "../jsonrpc/jsonrpc.interface.js";
-import { JsonRpcDto } from "../jsonrpc/dto/index.js";
 import { RequestCheckControllerDto } from "./dto/request-check-controller.dto.js";
+import { formatIdentifiers } from "./identifiers.formatter.js";
+import { DidLink } from "./identifiers.interface.js";
+import IdentifiersService from "./identifiers.service.js";
 
 @Controller("/identifiers")
 export default class IdentifiersController {
@@ -36,8 +39,31 @@ export default class IdentifiersController {
     private configService: ConfigService<ApiConfig, true>,
   ) {}
 
-  @Get("")
+  @Accepts("application/did+ld+json", "application/did+json")
+  @Get("/:did")
+  async getDidDocument(
+    @Param() params: GetIdentifierParamsDto,
+    @Query() query: GetIdentifierQueryDto,
+    @Headers("Accept") accept: string,
+    @Res() res: FastifyReply,
+  ): Promise<Record<string, unknown>> {
+    const { did } = params;
+
+    const didDocument = await this.identifiersService.getDidDocument(
+      did,
+      query["valid-at"],
+    );
+
+    if (accept === "application/did+json") {
+      const { "@context": context, ...otherProps } = didDocument;
+      return res.type("application/did+json").send(otherProps);
+    }
+
+    return res.type("application/did+ld+json").send(didDocument);
+  }
+
   @Accepts("application/json")
+  @Get("")
   async getIdentifiers(
     @Query() query: GetIdentifiersDto,
   ): Promise<PaginatedList<DidLink>> {
@@ -64,38 +90,18 @@ export default class IdentifiersController {
     );
   }
 
-  @Get("/:did")
-  @Accepts("application/did+ld+json", "application/did+json")
-  async getDidDocument(
-    @Param() params: GetIdentifierParamsDto,
-    @Query() query: GetIdentifierQueryDto,
-    @Headers("Accept") accept: string,
-    @Res() res: FastifyReply,
-  ): Promise<Record<string, unknown>> {
-    const { did } = params;
-
-    const didDocument = await this.identifiersService.getDidDocument(
-      did,
-      query["valid-at"],
-    );
-
-    if (accept === "application/did+json") {
-      const { "@context": context, ...otherProps } = didDocument;
-      return res.type("application/did+json").send(otherProps);
-    }
-
-    return res.type("application/did+ld+json").send(didDocument);
-  }
-
-  @Post("/:did/actions")
   @Accepts("application/json")
   @HttpCode(200)
+  @Post("/:did/actions")
   async processAction(
     @Param() params: GetIdentifierParamsDto,
     @Body() body: JsonRpcDto,
   ): Promise<JsonRpcResponseObject> {
     const { did } = params;
-    const { method, id: requestId } = body;
+    const { id: requestId, method } = body;
+    // "id": An identifier established by the Client that MUST contain a String, Number, or NULL value if included. If it is not included it is assumed to be a notification.
+    // See https://www.jsonrpc.org/specification#request_object
+    // eslint-disable-next-line unicorn/no-null
     const id = requestId ?? null;
 
     switch (method) {
@@ -105,14 +111,15 @@ export default class IdentifiersController {
           body as RequestCheckControllerDto,
           id,
         );
-        return { jsonrpc: "2.0", id, result };
+        return { id, jsonrpc: "2.0", result };
       }
 
-      default:
+      default: {
         throw new InvalidRequestJsonRpcError(
           `The method '${method}' is invalid`,
           id,
         );
+      }
     }
   }
 }

@@ -1,34 +1,28 @@
-// eslint-disable-next-line @typescript-eslint/triple-slash-reference
-/// <reference path="../../../../contracts/trusted-policies-registry-v3/src/types/hardhat.d.ts" />
+import "../../../../contracts/trusted-policies-registry-v3/src/types/hardhat.d.ts";
+
 import hre from "hardhat";
+
 import "@nomiclabs/hardhat-ethers";
-import { ethers } from "ethers";
 import { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry-v3";
+import { ethers } from "ethers";
+
 import { dummyPolicies, dummyUsers } from "./data.js";
 
 export interface PolicyObject {
+  description: string;
   policyId: string;
   policyName: string;
-  description: string;
   status: boolean;
 }
 
-export interface UserObject {
-  user: string;
-  attributes: string[];
+export interface SetupOptions {
+  policiesTotal?: number;
+  usersTotal?: number;
 }
 
-export async function insertUser(
-  contract: PolicyRegistry,
-): Promise<UserObject> {
-  const user: UserObject = {
-    user: ethers.Wallet.createRandom().address,
-    attributes: ["test-attr1", "test-attr2", "test-attr3"],
-  };
-
-  await contract.insertUserAttributes(user.user, user.attributes);
-
-  return user;
+export interface UserObject {
+  attributes: string[];
+  user: string;
 }
 
 export async function deployPoliciesRegistryContract(): Promise<PolicyRegistry> {
@@ -40,17 +34,25 @@ export async function deployPoliciesRegistryContract(): Promise<PolicyRegistry> 
   return policyRegistry;
 }
 
-export interface SetupOptions {
-  policiesTotal?: number;
-  usersTotal?: number;
+export async function insertUser(
+  contract: PolicyRegistry,
+): Promise<UserObject> {
+  const user: UserObject = {
+    attributes: ["test-attr1", "test-attr2", "test-attr3"],
+    user: ethers.Wallet.createRandom().address,
+  };
+
+  await contract.insertUserAttributes(user.user, user.attributes);
+
+  return user;
 }
 
 export async function setupTestEnv(): Promise<{
-  provider: ethers.providers.JsonRpcProvider;
-  policiesRegistryContract: PolicyRegistry;
-  policies: PolicyObject[];
-  users: UserObject[];
   adminWallet: ethers.Wallet;
+  policies: PolicyObject[];
+  policiesRegistryContract: PolicyRegistry;
+  provider: ethers.providers.JsonRpcProvider;
+  users: UserObject[];
 }> {
   const ethersProvider = hre.ethers.provider;
 
@@ -65,10 +67,10 @@ export async function setupTestEnv(): Promise<{
 
   // Return test env variables
   return {
-    provider: ethersProvider,
-    policiesRegistryContract,
-    policies: dummyPolicies,
-    users: dummyUsers,
     adminWallet,
+    policies: dummyPolicies,
+    policiesRegistryContract,
+    provider: ethersProvider,
+    users: dummyUsers,
   };
 }

@@ -1,5 +1,5 @@
-import type { JWK } from "jose";
 import type { DIDDocument, JsonWebKey } from "did-resolver";
+import type { JWK } from "jose";
 
 export function createDidDocument(
   did: string,
@@ -11,17 +11,17 @@ export function createDidDocument(
       "https://www.w3.org/ns/did/v1",
       "https://w3id.org/security/suites/jws-2020/v1",
     ],
+    assertionMethod: [kid],
+    authentication: [kid],
     id: did,
     verificationMethod: [
       {
-        id: kid,
-        type: "JsonWebKey2020",
         controller: did,
+        id: kid,
         publicKeyJwk: publicKeyJwk as JsonWebKey,
+        type: "JsonWebKey2020",
       },
     ],
-    authentication: [kid],
-    assertionMethod: [kid],
   };
 }
 

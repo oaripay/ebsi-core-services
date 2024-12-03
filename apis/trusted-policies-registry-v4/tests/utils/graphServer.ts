@@ -1,14 +1,14 @@
-import { setupServer } from "msw/node";
 import { graphql, HttpResponse } from "msw";
-import { dummyPolicies, dummyUsers } from "./data.js";
-// eslint-disable-next-line import/extensions, import/no-relative-packages
+import { setupServer } from "msw/node";
+
 import { Policy_filter, User_filter } from "../../.graphclient/index.js";
+import { dummyPolicies, dummyUsers } from "./data.js";
 
 export const graphServer = setupServer(
   graphql.query("GetPolicyNames", ({ variables }) => {
-    const { skip, pagesize, where } = variables as {
-      skip: number;
+    const { pagesize, skip, where } = variables as {
       pagesize: number;
+      skip: number;
       where: Policy_filter;
     };
 
@@ -41,9 +41,9 @@ export const graphServer = setupServer(
   }),
 
   graphql.query("GetUsers", ({ variables }) => {
-    const { skip, pagesize, where } = variables as {
-      skip: number;
+    const { pagesize, skip, where } = variables as {
       pagesize: number;
+      skip: number;
       where: User_filter;
     };
 
@@ -52,8 +52,7 @@ export const graphServer = setupServer(
         users: dummyUsers
           .filter((u) => {
             if (
-              where &&
-              where.attributes_contains &&
+              where?.attributes_contains &&
               where.attributes_contains.length > 0 &&
               !u.attributes.includes(where.attributes_contains[0]!)
             )
@@ -76,4 +75,5 @@ export const graphServer = setupServer(
     });
   }),
 );
+
 export default graphServer;

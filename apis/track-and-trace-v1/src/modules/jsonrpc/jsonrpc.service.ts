@@ -1,46 +1,54 @@
-import { Injectable, Logger } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
-import { ethers } from "ethers";
-import {
-  InvalidRequestJsonRpcError,
-  isEthersError,
-  getErrorMessage,
-  extractNamedAttributes,
-  logAxiosError,
-} from "@ebsiint-api/shared";
-import axios from "axios";
-import { Resolver } from "did-resolver";
 import { getResolver } from "@cef-ebsi/ebsi-did-resolver";
 import {
-  formatEthersUnsignedTransaction,
-  formatEthersSignature,
-} from "./jsonrpc.utils.js";
-import { LedgerService } from "../ledger/ledger.service.js";
+  extractNamedAttributes,
+  getErrorMessage,
+  InvalidRequestJsonRpcError,
+  isEthersError,
+  logAxiosError,
+} from "@ebsiint-api/shared";
+import { Injectable, Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { isAxiosError } from "axios";
+import { Resolver } from "did-resolver";
+import { ethers } from "ethers";
+
+import type { ApiConfig } from "../../config/configuration.js";
+
+import { hexToDid } from "../../shared/utils.js";
 import {
   TNT_AUTHORISE_SCOPE,
   TNT_CREATE_SCOPE,
   TNT_WRITE_SCOPE,
 } from "../auth/auth.constants.js";
-import type { ApiConfig } from "../../config/configuration.js";
-import { hexToDid } from "../../shared/utils.js";
+import { LedgerService } from "../ledger/ledger.service.js";
+import {
+  formatEthersSignature,
+  formatEthersUnsignedTransaction,
+} from "./jsonrpc.utils.js";
 import {
   authoriseDidSchemaBuilder,
   createDocumentSchema,
-  removeDocumentSchema,
   grantAccessSchema,
-  revokeAccessSchema,
-  writeEventSchema,
+  type JsonRpcSchema,
+  removeDocumentSchema,
   requestAuthoriseDidDtoSchemaBuilder,
   requestCreateDocumentDtoSchema,
-  requestRemoveDocumentDtoSchema,
   requestGrantAccessDtoSchema,
-  requestWriteEventDtoSchema,
+  requestRemoveDocumentDtoSchema,
   requestRevokeAccessDtoSchema,
   requestSendSignedTransactionDtoSchema,
-  type JsonRpcSchema,
+  requestWriteEventDtoSchema,
+  revokeAccessSchema,
   type SendSignedTransactionParamsSchema,
   type UnsignedTransaction,
+  writeEventSchema,
 } from "./validators/index.js";
+
+function assertDidMatchesSub(did: string, sub: string) {
+  if (did !== sub) {
+    throw new Error("Access token sub doesn't match the DID from the payload");
+  }
+}
 
 function assertScopeContains(
   scope: string,
@@ -60,23 +68,17 @@ function assertScopeContains(
   }
 }
 
-function assertDidMatchesSub(did: string, sub: string) {
-  if (did !== sub) {
-    throw new Error("Access token sub doesn't match the DID from the payload");
-  }
-}
-
 @Injectable()
 export class JsonRpcService {
-  private readonly logger = new Logger(JsonRpcService.name);
+  private readonly authoriseDidSchema: ReturnType<
+    typeof authoriseDidSchemaBuilder
+  >;
 
   private chainId?: string;
 
   private readonly contractAddress: string;
 
-  private readonly authoriseDidSchema: ReturnType<
-    typeof authoriseDidSchemaBuilder
-  >;
+  private readonly logger = new Logger(JsonRpcService.name);
 
   private readonly requestAuthoriseDidDtoSchema: ReturnType<
     typeof requestAuthoriseDidDtoSchemaBuilder
@@ -97,6 +99,318 @@ export class JsonRpcService {
       requestAuthoriseDidDtoSchemaBuilder(didResolver);
   }
 
+  async buildTransaction(
+    from: string,
+    params: string,
+  ): Promise<UnsignedTransaction> {
+    try {
+      const nonceInt = await this.ledgerService
+        .getContract()
+        .provider.getTransactionCount(from);
+
+      const unsignedTransaction: UnsignedTransaction = {
+        chainId: await this.getChainId(),
+        data: params,
+        from,
+        gasLimit: "0x1000000",
+        gasPrice: "0x0",
+        nonce: ethers.BigNumber.from(nonceInt).toHexString(),
+        to: this.contractAddress,
+        value: "0x0",
+      };
+
+      let gasEstimation: ethers.BigNumber | string = "unset";
+
+      try {
+        gasEstimation = await this.estimateGas(unsignedTransaction);
+        // Multiply by 1.4
+        unsignedTransaction.gasLimit = gasEstimation
+          .mul(14)
+          .div(10)
+          .toHexString();
+      } catch {
+        this.logger.warn(
+          `Gas could not be estimated.${
+            gasEstimation === "unset"
+              ? ""
+              : `Received ${gasEstimation.toString()}.`
+          } Using 0x1000000`,
+        );
+        unsignedTransaction.gasLimit = "0x1000000";
+      }
+
+      return unsignedTransaction;
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error, error.stack);
+      }
+      throw new Error("Could not build transaction.");
+    }
+  }
+
+  async buildTransactionAuthoriseDid(
+    body: JsonRpcSchema,
+    id: null | number | string | undefined,
+    sub: string,
+    scope: string,
+  ): Promise<UnsignedTransaction> {
+    try {
+      assertScopeContains(scope, [TNT_AUTHORISE_SCOPE], "authoriseDid");
+
+      const parsedBody =
+        await this.requestAuthoriseDidDtoSchema.parseAsync(body);
+
+      const { authorisedDid, from, senderDid, whiteList } =
+        parsedBody.params[0]!;
+
+      // Verify that the Access Token sub and the senderDid match
+      assertDidMatchesSub(senderDid, sub);
+
+      const data = this.ledgerService
+        .getContract()
+        .interface.encodeFunctionData("authoriseDid", [
+          senderDid,
+          authorisedDid,
+          whiteList,
+        ]);
+
+      return await this.buildTransaction(from, data);
+    } catch (error_) {
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(error_), id);
+      if (error_ instanceof Error && error_.stack) {
+        error.stack = error_.stack;
+      }
+      throw error;
+    }
+  }
+
+  async buildTransactionCreateDocument(
+    body: JsonRpcSchema,
+    id: null | number | string | undefined,
+    sub: string,
+    scope: string,
+  ): Promise<UnsignedTransaction> {
+    try {
+      assertScopeContains(scope, [TNT_CREATE_SCOPE], "createDocument");
+
+      const parsedBody = await requestCreateDocumentDtoSchema.parseAsync(body);
+
+      const {
+        didEbsiCreator,
+        documentHash,
+        documentMetadata,
+        from,
+        timestamp,
+        timestampProof,
+      } = parsedBody.params[0]!;
+
+      // Verify that the Access Token sub and the payload DID match
+      assertDidMatchesSub(didEbsiCreator, sub);
+
+      const functionSig = timestamp
+        ? "createDocument(bytes32,string,string,uint256,bytes32)"
+        : "createDocument(bytes32,string,string)";
+
+      const args = timestamp
+        ? [
+            documentHash,
+            documentMetadata,
+            didEbsiCreator,
+            timestamp,
+            timestampProof,
+          ]
+        : [documentHash, documentMetadata, didEbsiCreator];
+
+      const data = this.ledgerService
+        .getContract()
+        .interface // @ts-expect-error No overload matches this call
+        .encodeFunctionData(functionSig, args);
+
+      return await this.buildTransaction(from, data);
+    } catch (error_) {
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(error_), id);
+      if (error_ instanceof Error && error_.stack) {
+        error.stack = error_.stack;
+      }
+      throw error;
+    }
+  }
+
+  async buildTransactionGrantAccess(
+    body: JsonRpcSchema,
+    id: null | number | string | undefined,
+    sub: string,
+    scope: string,
+  ): Promise<UnsignedTransaction> {
+    try {
+      assertScopeContains(scope, [TNT_WRITE_SCOPE], "grantAccess");
+
+      const parsedBody = await requestGrantAccessDtoSchema.parseAsync(body);
+
+      const {
+        documentHash,
+        from,
+        grantedByAccount,
+        grantedByAccType,
+        permission,
+        subjectAccount,
+        subjectAccType,
+      } = parsedBody.params[0]!;
+
+      // Verify that the Access Token sub and grantedByAccount match
+      const grantedByAccountDid = hexToDid(grantedByAccount);
+      assertDidMatchesSub(grantedByAccountDid, sub);
+
+      const data = this.ledgerService
+        .getContract()
+        .interface.encodeFunctionData("grantAccess", [
+          documentHash,
+          grantedByAccount,
+          subjectAccount,
+          grantedByAccType,
+          subjectAccType,
+          permission,
+        ]);
+      return await this.buildTransaction(from, data);
+    } catch (error_) {
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(error_), id);
+      if (error_ instanceof Error && error_.stack) {
+        error.stack = error_.stack;
+      }
+      throw error;
+    }
+  }
+
+  async buildTransactionRemoveDocument(
+    body: JsonRpcSchema,
+    id: null | number | string | undefined,
+    _: string,
+    scope: string,
+  ): Promise<UnsignedTransaction> {
+    try {
+      assertScopeContains(scope, [TNT_WRITE_SCOPE], "removeDocument");
+
+      const parsedBody = await requestRemoveDocumentDtoSchema.parseAsync(body);
+
+      const { documentHash, from } = parsedBody.params[0]!;
+
+      const data = this.ledgerService
+        .getContract()
+        .interface.encodeFunctionData("removeDocument", [documentHash]);
+
+      return await this.buildTransaction(from, data);
+    } catch (error_) {
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(error_), id);
+      if (error_ instanceof Error && error_.stack) {
+        error.stack = error_.stack;
+      }
+      throw error;
+    }
+  }
+
+  async buildTransactionRevokeAccess(
+    body: JsonRpcSchema,
+    id: null | number | string | undefined,
+    sub: string,
+    scope: string,
+  ): Promise<UnsignedTransaction> {
+    try {
+      assertScopeContains(scope, [TNT_WRITE_SCOPE], "grantAccess");
+
+      const parsedBody = await requestRevokeAccessDtoSchema.parseAsync(body);
+
+      const {
+        documentHash,
+        from,
+        permission,
+        revokedByAccount,
+        subjectAccount,
+      } = parsedBody.params[0]!;
+
+      // Verify that the Access Token sub and revokedByAccount match
+      const revokedByAccountDid = hexToDid(revokedByAccount);
+      assertDidMatchesSub(revokedByAccountDid, sub);
+
+      const data = this.ledgerService
+        .getContract()
+        .interface.encodeFunctionData("revokeAccess", [
+          documentHash,
+          revokedByAccount,
+          subjectAccount,
+          permission,
+        ]);
+      return await this.buildTransaction(from, data);
+    } catch (error_) {
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(error_), id);
+      if (error_ instanceof Error && error_.stack) {
+        error.stack = error_.stack;
+      }
+      throw error;
+    }
+  }
+
+  async buildTransactionWriteEvent(
+    body: JsonRpcSchema,
+    id: null | number | string | undefined,
+    sub: string,
+    scope: string,
+  ): Promise<UnsignedTransaction> {
+    try {
+      assertScopeContains(scope, [TNT_WRITE_SCOPE], "writeEvent");
+
+      const parsedBody = await requestWriteEventDtoSchema.parseAsync(body);
+
+      const { eventParams, from, timestamp, timestampProof } =
+        parsedBody.params[0]!;
+
+      const did = hexToDid(eventParams.sender);
+      assertDidMatchesSub(did, sub);
+
+      const data =
+        timestamp && timestampProof !== undefined
+          ? this.ledgerService
+              .getContract()
+              .interface.encodeFunctionData(
+                "writeEvent((bytes32,string,bytes,string,string),uint256,bytes32)",
+                [eventParams, timestamp, timestampProof],
+              )
+          : this.ledgerService
+              .getContract()
+              .interface.encodeFunctionData(
+                "writeEvent((bytes32,string,bytes,string,string))",
+                [eventParams],
+              );
+
+      return await this.buildTransaction(from, data);
+    } catch (error_) {
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(error_), id);
+      if (error_ instanceof Error && error_.stack) {
+        error.stack = error_.stack;
+      }
+      throw error;
+    }
+  }
+
+  async estimateGas(
+    transaction: UnsignedTransaction,
+  ): Promise<ethers.BigNumber> {
+    const { data, from, to, value } = transaction;
+
+    try {
+      return await this.ledgerService.getContract().provider.estimateGas({
+        data,
+        from,
+        to,
+        value,
+      });
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error, error.stack);
+      }
+      throw new Error(getErrorMessage(error));
+    }
+  }
+
   async getChainId(): Promise<string> {
     if (!this.chainId) {
       try {
@@ -114,23 +428,52 @@ export class JsonRpcService {
     return this.chainId;
   }
 
-  async estimateGas(
-    transaction: UnsignedTransaction,
-  ): Promise<ethers.BigNumber> {
-    const { from, to, data, value } = transaction;
-
+  async sendTransaction(
+    body: JsonRpcSchema,
+    id: null | number | string | undefined,
+    sub: string,
+    scope: string,
+  ): Promise<string> {
     try {
-      return await this.ledgerService.getContract().provider.estimateGas({
-        from,
-        to,
-        data,
-        value,
-      });
-    } catch (error) {
-      if (isEthersError(error)) {
-        this.logger.error(error, error.stack);
+      const parsedBody =
+        await requestSendSignedTransactionDtoSchema.parseAsync(body);
+
+      const request = parsedBody.params[0]!;
+
+      await this.verifyTransaction(sub, request, scope);
+
+      const tx = await this.ledgerService
+        .getContract()
+        .provider.sendTransaction(request.signedRawTransaction);
+
+      return tx.hash;
+    } catch (error_) {
+      if (isEthersError(error_)) {
+        this.logger.error(error_, error_.stack); // Log the original error with all ethers.js details for internal debugging
+        throw new InvalidRequestJsonRpcError(error_.reason, id); // throw simplified ethers error to the user
       }
-      throw new Error(getErrorMessage(error));
+
+      if (error_ instanceof Error) {
+        if (isAxiosError(error_)) {
+          logAxiosError(error_, this.logger);
+        } else {
+          this.logger.error(error_.message, error_.stack);
+        }
+
+        const error = new InvalidRequestJsonRpcError(
+          getErrorMessage(error_),
+          id,
+        );
+
+        if (error_.stack) {
+          error.stack = error_.stack;
+        }
+
+        throw error;
+      }
+
+      this.logger.error(error_);
+      throw error_;
     }
   }
 
@@ -138,8 +481,8 @@ export class JsonRpcService {
     clientId: string,
     param: SendSignedTransactionParamsSchema,
     scope: string,
-  ): Promise<{ signer: string; functionName: string }> {
-    const { unsignedTransaction, r, s, v, signedRawTransaction } = param;
+  ): Promise<{ functionName: string; signer: string }> {
+    const { r, s, signedRawTransaction, unsignedTransaction, v } = param;
 
     const unsignedTx = formatEthersUnsignedTransaction(unsignedTransaction);
     const signature = formatEthersSignature(r, s, v);
@@ -208,17 +551,17 @@ export class JsonRpcService {
         assertDidMatchesSub(castArgs.didEbsiCreator, clientId);
         break;
       }
-      case "removeDocument": {
-        assertScopeContains(scope, [TNT_WRITE_SCOPE], functionFragment.name);
-
-        await removeDocumentSchema.parseAsync(argsObject);
-        break;
-      }
       case "grantAccess": {
         assertScopeContains(scope, [TNT_WRITE_SCOPE], functionFragment.name);
         const castArgs = await grantAccessSchema.parseAsync(argsObject);
         const did = hexToDid(castArgs.grantedByAccount);
         assertDidMatchesSub(did, clientId);
+        break;
+      }
+      case "removeDocument": {
+        assertScopeContains(scope, [TNT_WRITE_SCOPE], functionFragment.name);
+
+        await removeDocumentSchema.parseAsync(argsObject);
         break;
       }
       case "revokeAccess": {
@@ -243,356 +586,17 @@ export class JsonRpcService {
         assertDidMatchesSub(did, clientId);
         break;
       }
-      default:
+      default: {
         throw new Error(
           `The function name ${functionFragment.name} can not be used in this context`,
         );
+      }
     }
 
     return {
-      signer,
       functionName: functionFragment.name,
+      signer,
     };
-  }
-
-  async buildTransaction(
-    from: string,
-    params: string,
-  ): Promise<UnsignedTransaction> {
-    try {
-      const nonceInt = await this.ledgerService
-        .getContract()
-        .provider.getTransactionCount(from);
-
-      const unsignedTransaction: UnsignedTransaction = {
-        from,
-        to: this.contractAddress,
-        data: params,
-        value: "0x0",
-        nonce: ethers.BigNumber.from(nonceInt).toHexString(),
-        chainId: await this.getChainId(),
-        gasLimit: "0x1000000",
-        gasPrice: "0x0",
-      };
-
-      let gasEstimation: string | ethers.BigNumber = "unset";
-
-      try {
-        gasEstimation = await this.estimateGas(unsignedTransaction);
-        // Multiply by 1.4
-        unsignedTransaction.gasLimit = gasEstimation
-          .mul(14)
-          .div(10)
-          .toHexString();
-      } catch (error) {
-        this.logger.warn(
-          `Gas could not be estimated.${
-            gasEstimation === "unset"
-              ? ""
-              : `Received ${gasEstimation.toString()}.`
-          } Using 0x1000000`,
-        );
-        unsignedTransaction.gasLimit = "0x1000000";
-      }
-
-      return unsignedTransaction;
-    } catch (error) {
-      if (isEthersError(error)) {
-        this.logger.error(error, error.stack);
-      }
-      throw new Error("Could not build transaction.");
-    }
-  }
-
-  async buildTransactionAuthoriseDid(
-    body: JsonRpcSchema,
-    id: number | string | null | undefined,
-    sub: string,
-    scope: string,
-  ): Promise<UnsignedTransaction> {
-    try {
-      assertScopeContains(scope, [TNT_AUTHORISE_SCOPE], "authoriseDid");
-
-      const parsedBody =
-        await this.requestAuthoriseDidDtoSchema.parseAsync(body);
-
-      const { from, senderDid, authorisedDid, whiteList } =
-        parsedBody.params[0]!;
-
-      // Verify that the Access Token sub and the senderDid match
-      assertDidMatchesSub(senderDid, sub);
-
-      const data = this.ledgerService
-        .getContract()
-        .interface.encodeFunctionData("authoriseDid", [
-          senderDid,
-          authorisedDid,
-          whiteList,
-        ]);
-
-      return await this.buildTransaction(from, data);
-    } catch (err) {
-      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      if (err instanceof Error && err.stack) {
-        error.stack = err.stack;
-      }
-      throw error;
-    }
-  }
-
-  async buildTransactionCreateDocument(
-    body: JsonRpcSchema,
-    id: number | string | null | undefined,
-    sub: string,
-    scope: string,
-  ): Promise<UnsignedTransaction> {
-    try {
-      assertScopeContains(scope, [TNT_CREATE_SCOPE], "createDocument");
-
-      const parsedBody = await requestCreateDocumentDtoSchema.parseAsync(body);
-
-      const {
-        from,
-        documentHash,
-        documentMetadata,
-        didEbsiCreator,
-        timestamp,
-        timestampProof,
-      } = parsedBody.params[0]!;
-
-      // Verify that the Access Token sub and the payload DID match
-      assertDidMatchesSub(didEbsiCreator, sub);
-
-      const functionSig = timestamp
-        ? "createDocument(bytes32,string,string,uint256,bytes32)"
-        : "createDocument(bytes32,string,string)";
-
-      const args = timestamp
-        ? [
-            documentHash,
-            documentMetadata,
-            didEbsiCreator,
-            timestamp,
-            timestampProof,
-          ]
-        : [documentHash, documentMetadata, didEbsiCreator];
-
-      const data = this.ledgerService
-        .getContract()
-        .interface // @ts-expect-error No overload matches this call
-        .encodeFunctionData(functionSig, args);
-
-      return await this.buildTransaction(from, data);
-    } catch (err) {
-      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      if (err instanceof Error && err.stack) {
-        error.stack = err.stack;
-      }
-      throw error;
-    }
-  }
-
-  async buildTransactionRemoveDocument(
-    body: JsonRpcSchema,
-    id: number | string | null | undefined,
-    _: string,
-    scope: string,
-  ): Promise<UnsignedTransaction> {
-    try {
-      assertScopeContains(scope, [TNT_WRITE_SCOPE], "removeDocument");
-
-      const parsedBody = await requestRemoveDocumentDtoSchema.parseAsync(body);
-
-      const { from, documentHash } = parsedBody.params[0]!;
-
-      const data = this.ledgerService
-        .getContract()
-        .interface.encodeFunctionData("removeDocument", [documentHash]);
-
-      return await this.buildTransaction(from, data);
-    } catch (err) {
-      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      if (err instanceof Error && err.stack) {
-        error.stack = err.stack;
-      }
-      throw error;
-    }
-  }
-
-  async buildTransactionGrantAccess(
-    body: JsonRpcSchema,
-    id: number | string | null | undefined,
-    sub: string,
-    scope: string,
-  ): Promise<UnsignedTransaction> {
-    try {
-      assertScopeContains(scope, [TNT_WRITE_SCOPE], "grantAccess");
-
-      const parsedBody = await requestGrantAccessDtoSchema.parseAsync(body);
-
-      const {
-        from,
-        documentHash,
-        grantedByAccount,
-        subjectAccount,
-        grantedByAccType,
-        subjectAccType,
-        permission,
-      } = parsedBody.params[0]!;
-
-      // Verify that the Access Token sub and grantedByAccount match
-      const grantedByAccountDid = hexToDid(grantedByAccount);
-      assertDidMatchesSub(grantedByAccountDid, sub);
-
-      const data = this.ledgerService
-        .getContract()
-        .interface.encodeFunctionData("grantAccess", [
-          documentHash,
-          grantedByAccount,
-          subjectAccount,
-          grantedByAccType,
-          subjectAccType,
-          permission,
-        ]);
-      return await this.buildTransaction(from, data);
-    } catch (err) {
-      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      if (err instanceof Error && err.stack) {
-        error.stack = err.stack;
-      }
-      throw error;
-    }
-  }
-
-  async buildTransactionRevokeAccess(
-    body: JsonRpcSchema,
-    id: number | string | null | undefined,
-    sub: string,
-    scope: string,
-  ): Promise<UnsignedTransaction> {
-    try {
-      assertScopeContains(scope, [TNT_WRITE_SCOPE], "grantAccess");
-
-      const parsedBody = await requestRevokeAccessDtoSchema.parseAsync(body);
-
-      const {
-        from,
-        documentHash,
-        revokedByAccount,
-        subjectAccount,
-        permission,
-      } = parsedBody.params[0]!;
-
-      // Verify that the Access Token sub and revokedByAccount match
-      const revokedByAccountDid = hexToDid(revokedByAccount);
-      assertDidMatchesSub(revokedByAccountDid, sub);
-
-      const data = this.ledgerService
-        .getContract()
-        .interface.encodeFunctionData("revokeAccess", [
-          documentHash,
-          revokedByAccount,
-          subjectAccount,
-          permission,
-        ]);
-      return await this.buildTransaction(from, data);
-    } catch (err) {
-      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      if (err instanceof Error && err.stack) {
-        error.stack = err.stack;
-      }
-      throw error;
-    }
-  }
-
-  async buildTransactionWriteEvent(
-    body: JsonRpcSchema,
-    id: number | string | null | undefined,
-    sub: string,
-    scope: string,
-  ): Promise<UnsignedTransaction> {
-    try {
-      assertScopeContains(scope, [TNT_WRITE_SCOPE], "writeEvent");
-
-      const parsedBody = await requestWriteEventDtoSchema.parseAsync(body);
-
-      const { from, eventParams, timestamp, timestampProof } =
-        parsedBody.params[0]!;
-
-      const did = hexToDid(eventParams.sender);
-      assertDidMatchesSub(did, sub);
-
-      let data: string;
-      if (timestamp && timestampProof !== undefined) {
-        data = this.ledgerService
-          .getContract()
-          .interface.encodeFunctionData(
-            "writeEvent((bytes32,string,bytes,string,string),uint256,bytes32)",
-            [eventParams, timestamp, timestampProof],
-          );
-      } else {
-        data = this.ledgerService
-          .getContract()
-          .interface.encodeFunctionData(
-            "writeEvent((bytes32,string,bytes,string,string))",
-            [eventParams],
-          );
-      }
-
-      return await this.buildTransaction(from, data);
-    } catch (err) {
-      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      if (err instanceof Error && err.stack) {
-        error.stack = err.stack;
-      }
-      throw error;
-    }
-  }
-
-  async sendTransaction(
-    body: JsonRpcSchema,
-    id: number | string | null | undefined,
-    sub: string,
-    scope: string,
-  ): Promise<string> {
-    try {
-      const parsedBody =
-        await requestSendSignedTransactionDtoSchema.parseAsync(body);
-
-      const request = parsedBody.params[0]!;
-
-      await this.verifyTransaction(sub, request, scope);
-
-      const tx = await this.ledgerService
-        .getContract()
-        .provider.sendTransaction(request.signedRawTransaction);
-
-      return tx.hash;
-    } catch (err) {
-      if (isEthersError(err)) {
-        this.logger.error(err, err.stack); // Log the original error with all ethers.js details for internal debugging
-        throw new InvalidRequestJsonRpcError(err.reason, id); // throw simplified ethers error to the user
-      }
-
-      if (err instanceof Error) {
-        if (axios.isAxiosError(err)) {
-          logAxiosError(err, this.logger);
-        } else {
-          this.logger.error(err.message, err.stack);
-        }
-
-        const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-
-        if (err.stack) {
-          error.stack = err.stack;
-        }
-
-        throw error;
-      }
-
-      this.logger.error(err);
-      throw err;
-    }
   }
 }
 

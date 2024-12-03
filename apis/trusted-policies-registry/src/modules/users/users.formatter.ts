@@ -1,5 +1,6 @@
+import { paginate, PaginatedList } from "@ebsiint-api/shared";
 import { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry";
-import { PaginatedList, paginate } from "@ebsiint-api/shared";
+
 import { UserLink } from "./users.interface.js";
 
 export function formatUsers(

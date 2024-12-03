@@ -1,6 +1,8 @@
-import { ethers } from "hardhat";
-import { expect } from "chai";
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+
+import { expect } from "chai";
+import { ethers } from "hardhat";
+
 import type { PolicyRegistry } from "../src/types";
 
 describe("UserAttributesManagement", () => {
@@ -11,32 +13,32 @@ describe("UserAttributesManagement", () => {
 
   const pcs = [
     {
-      name: "name1",
       attributeName: "attrName1",
-      value: ethers.utils.toUtf8Bytes("oneval"),
       attributeOperation: 0,
+      name: "name1",
       typeOfValue: 3,
+      value: ethers.utils.toUtf8Bytes("oneval"),
     },
     {
-      name: "name2",
       attributeName: "attrName2",
+      attributeOperation: 0,
+      name: "name2",
+      typeOfValue: 1,
       value: ethers.utils.toUtf8Bytes("twoval"),
-      attributeOperation: 0,
-      typeOfValue: 1,
     },
     {
-      name: "name3",
       attributeName: "attrName3",
-      value: ethers.utils.toUtf8Bytes("treeval"),
       attributeOperation: 0,
+      name: "name3",
       typeOfValue: 1,
+      value: ethers.utils.toUtf8Bytes("treeval"),
     },
     {
-      name: "name4",
       attributeName: "attrName4",
-      value: ethers.utils.toUtf8Bytes("fourval"),
       attributeOperation: 0,
+      name: "name4",
       typeOfValue: 1,
+      value: ethers.utils.toUtf8Bytes("fourval"),
     },
   ];
 
@@ -79,7 +81,7 @@ describe("UserAttributesManagement", () => {
   });
 
   beforeEach(async () => {
-    snapshotId = await ethers.provider.send("evm_snapshot", []);
+    snapshotId = (await ethers.provider.send("evm_snapshot", [])) as string;
   });
 
   afterEach(async () => {

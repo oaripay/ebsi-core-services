@@ -1,4 +1,5 @@
-import { IsArray, Equals, IsOptional } from "class-validator";
+import { Equals, IsArray, IsOptional } from "class-validator";
+
 import { IsValidMethod, PUBLIC_BESU_METHODS } from "../validators/index.js";
 
 export class BesuDto {

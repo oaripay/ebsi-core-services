@@ -1,4 +1,5 @@
 import { task } from "hardhat/config";
+
 import { Settings } from "../utils/settings";
 
 task("trackAndTraceV2", "Deploy contract Track And Trace")
@@ -10,11 +11,11 @@ task("trackAndTraceV2", "Deploy contract Track And Trace")
     async (
       taskArgs: {
         admin: string;
-        upgrader: string;
-        tpr: string;
         registry: string;
+        tpr: string;
+        upgrader: string;
       },
-      { ethers, upgrades, run },
+      { ethers, run, upgrades },
     ) => {
       // compile
       await run("compile", { quiet: true });

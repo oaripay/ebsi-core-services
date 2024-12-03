@@ -1,9 +1,9 @@
-import { format, transports } from "winston";
 import {
-  utilities as winstonUtilities,
   WinstonModule,
   type WinstonModuleOptions,
+  utilities as winstonUtilities,
 } from "nest-winston";
+import { format, transports } from "winston";
 
 export const consoleTransport = new transports.Console({
   format: format.combine(

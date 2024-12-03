@@ -1,6 +1,7 @@
+import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+
 import { assert, expect } from "chai";
 import { ethers } from "hardhat";
-import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
@@ -28,12 +29,10 @@ const setupProxy = async (
   const implV0 = await (await ethers.getContractFactory("Tir")).deploy();
   const implV1 = await (await ethers.getContractFactory("TirV1")).deploy();
 
-  const tir = await (
-    await ethers.getContractFactory("Tir")
-  ).attach(proxy.address);
-  const tirV1 = await (
-    await ethers.getContractFactory("TirV1")
-  ).attach(proxy.address);
+  const tir = (await ethers.getContractFactory("Tir")).attach(proxy.address);
+  const tirV1 = (await ethers.getContractFactory("TirV1")).attach(
+    proxy.address,
+  );
 
   await proxy["initialize(address,address,bytes)"](
     implV0.address,
@@ -42,9 +41,9 @@ const setupProxy = async (
   );
 
   return {
-    proxy,
     implV0,
     implV1,
+    proxy,
     tir,
     tirV1,
   };
@@ -123,7 +122,7 @@ describe("transferOwnership", () => {
           anotherAccount,
           anchorOwner,
         ] = await ethers.getSigners();
-        const { proxy, implV1 } = await setupProxy(
+        const { implV1, proxy } = await setupProxy(
           await initializeData(anchorOwner),
           proxyOwner,
           proxyAdmin,
@@ -141,7 +140,7 @@ describe("transferOwnership", () => {
       it("reverts", async () => {
         const [proxyOwner, proxyAdmin, anotherAccount, anchorOwner] =
           await ethers.getSigners();
-        const { proxy, implV1 } = await setupProxy(
+        const { implV1, proxy } = await setupProxy(
           await initializeData(anchorOwner),
           proxyOwner,
           proxyAdmin,
@@ -174,7 +173,7 @@ describe("implementation", () => {
   describe("when an initial implementation was provided", () => {
     it("returns the given implementation", async () => {
       const [proxyOwner, proxyAdmin, anchorOwner] = await ethers.getSigners();
-      const { proxy, implV0 } = await setupProxy(
+      const { implV0, proxy } = await setupProxy(
         await initializeData(anchorOwner),
         proxyOwner,
         proxyAdmin,
@@ -189,7 +188,7 @@ describe("implementation", () => {
 
     it("can't be initialized twice", async () => {
       const [proxyOwner, proxyAdmin, anchorOwner] = await ethers.getSigners();
-      const { proxy, implV0, implV1 } = await setupProxy(
+      const { implV0, implV1, proxy } = await setupProxy(
         await initializeData(anchorOwner),
         proxyOwner,
         proxyAdmin,
@@ -206,7 +205,7 @@ describe("implementation", () => {
           .connect(proxyOwner)
           [
             "initialize(address,address,bytes)"
-          ](implV1.address, proxyAdmin.address, initializeData(anchorOwner)),
+          ](implV1.address, proxyAdmin.address, await initializeData(anchorOwner)),
       ).to.be.revertedWith("implementation must be zero");
     });
   });
@@ -241,7 +240,7 @@ describe("upgrade", () => {
             const [proxyOwner, proxyAdmin, anchorOwner] =
               await ethers.getSigners();
 
-            const { proxy, implV1 } = await setupProxy(
+            const { implV1, proxy } = await setupProxy(
               await initializeData(anchorOwner),
               proxyOwner,
               proxyAdmin,
@@ -258,7 +257,7 @@ describe("upgrade", () => {
           it("upgrades to the new implementation", async () => {
             const [proxyOwner, proxyAdmin, anchorOwner] =
               await ethers.getSigners();
-            const { proxy, implV1 } = await setupProxy(
+            const { implV1, proxy } = await setupProxy(
               await initializeData(anchorOwner),
               proxyOwner,
               proxyAdmin,
@@ -279,7 +278,7 @@ describe("upgrade", () => {
       it("reverts", async () => {
         const [proxyOwner, proxyAdmin, anotherAccount, anchorOwner] =
           await ethers.getSigners();
-        const { proxy, implV1 } = await setupProxy(
+        const { implV1, proxy } = await setupProxy(
           await initializeData(anchorOwner),
           proxyOwner,
           proxyAdmin,
@@ -294,7 +293,7 @@ describe("upgrade", () => {
   describe("when the new implementation is the zero address", () => {
     it("reverts", async () => {
       const [proxyOwner, proxyAdmin, anchorOwner] = await ethers.getSigners();
-      const { proxy, implV1 } = await setupProxy(
+      const { implV1, proxy } = await setupProxy(
         await initializeData(anchorOwner),
         proxyOwner,
         proxyAdmin,
@@ -324,7 +323,7 @@ describe("upgrade and call", () => {
       it("upgrades to the given implementation", async () => {
         const [proxyOwner, proxyAdmin, anotherAccount, anchorOwner] =
           await ethers.getSigners();
-        const { proxy, tir, tirV1, implV1 } = await setupProxy(
+        const { implV1, proxy, tir, tirV1 } = await setupProxy(
           await initializeData(anchorOwner),
           proxyOwner,
           proxyAdmin,
@@ -353,7 +352,7 @@ describe("upgrade and call", () => {
       it("calls the implementation using the given data as msg.data", async () => {
         const [proxyOwner, proxyAdmin, anotherAccount, anchorOwner] =
           await ethers.getSigners();
-        const { proxy, implV1, tirV1 } = await setupProxy(
+        const { implV1, proxy, tirV1 } = await setupProxy(
           await initializeData(anchorOwner),
           proxyOwner,
           proxyAdmin,
@@ -382,7 +381,7 @@ describe("upgrade and call", () => {
       it("reverts", async () => {
         const [proxyOwner, proxyAdmin, anotherAccount, anchorOwner] =
           await ethers.getSigners();
-        const { proxy, implV1 } = await setupProxy(
+        const { implV1, proxy } = await setupProxy(
           await initializeData(anchorOwner),
           proxyOwner,
           proxyAdmin,
@@ -409,7 +408,7 @@ describe("upgrade and call", () => {
       await expect(
         proxy
           .connect(proxyAdmin)
-          .upgradeToAndCall(ZERO_ADDRESS, initializeData(anchorOwner)),
+          .upgradeToAndCall(ZERO_ADDRESS, await initializeData(anchorOwner)),
       ).to.be.revertedWith("newImp. address can't be zero");
     });
   });
@@ -447,9 +446,9 @@ describe("delegatecall", () => {
       const proxy = await proxyFactory.connect(proxyOwner).deploy();
       await proxy.deployed();
 
-      const tir = await (
-        await ethers.getContractFactory("Tir")
-      ).attach(proxy.address);
+      const tir = (await ethers.getContractFactory("Tir")).attach(
+        proxy.address,
+      );
 
       await expect(tir.version.call({ from: anotherAccount })).to.be.reverted;
     });
@@ -492,7 +491,7 @@ describe("delegatecall", () => {
           anotherAccount,
           anchorOwner,
         ] = await ethers.getSigners();
-        const { proxy, implV1, tir, tirV1 } = await setupProxy(
+        const { implV1, proxy, tir, tirV1 } = await setupProxy(
           await initializeData(anchorOwner),
           proxyOwner,
           proxyAdmin,

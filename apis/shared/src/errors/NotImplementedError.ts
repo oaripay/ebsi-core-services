@@ -5,9 +5,9 @@ import { ProblemDetailsError } from "./ProblemDetailsError.js";
  */
 
 export class NotImplementedError extends ProblemDetailsError {
-  static statusCode = 501;
-
   static defaultTitle = "Not Implemented";
+
+  static statusCode = 501;
 
   /**
    * @param title A short, human-readable summary of the problem type. It SHOULD NOT change from occurrence to occurrence of the problem, except for purposes of localization.
@@ -20,10 +20,10 @@ export class NotImplementedError extends ProblemDetailsError {
   constructor(
     title: string = NotImplementedError.defaultTitle,
     options?: {
-      type?: string;
       detail?: string;
-      instance?: string;
       extensions?: Record<string, unknown>;
+      instance?: string;
+      type?: string;
     },
   ) {
     super(NotImplementedError.statusCode, title, options);

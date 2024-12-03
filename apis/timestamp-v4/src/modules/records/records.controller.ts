@@ -1,8 +1,14 @@
-import { Controller, Get, Query, Param } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
-import { Timestamp } from "@ebsiint-sc/timestamp-v2";
 import { Accepts, PaginatedList } from "@ebsiint-api/shared";
-import RecordsService from "./records.service.js";
+import { Timestamp } from "@ebsiint-sc/timestamp-v2";
+import { Controller, Get, Param, Query } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+
+import type { ApiConfig } from "../../config/configuration.js";
+
+import GetRecordVersionDto from "./dto/get-record-version.dto.js";
+import GetRecordVersionsDto from "./dto/get-record-versions.dto.js";
+import GetRecordDto from "./dto/get-record.dto.js";
+import GetRecordsDto from "./dto/get-records.dto.js";
 import { formatRecords, formatRecordVersions } from "./records.formatter.js";
 import {
   RecordLink,
@@ -10,11 +16,7 @@ import {
   RecordVersionResponseObject,
   VersionLink,
 } from "./records.interface.js";
-import type { ApiConfig } from "../../config/configuration.js";
-import GetRecordsDto from "./dto/get-records.dto.js";
-import GetRecordDto from "./dto/get-record.dto.js";
-import GetRecordVersionsDto from "./dto/get-record-versions.dto.js";
-import GetRecordVersionDto from "./dto/get-record-version.dto.js";
+import RecordsService from "./records.service.js";
 
 @Controller("/records")
 export default class RecordsController {
@@ -23,8 +25,17 @@ export default class RecordsController {
     private configService: ConfigService<ApiConfig, true>,
   ) {}
 
-  @Get("")
   @Accepts("application/json")
+  @Get("/:recordId")
+  async getRecord(
+    @Param() params: GetRecordDto,
+  ): Promise<RecordResponseObject> {
+    const { recordId } = params;
+    return this.recordsService.getRecord(recordId);
+  }
+
+  @Accepts("application/json")
+  @Get("")
   async getRecords(
     @Query() query: GetRecordsDto,
   ): Promise<PaginatedList<RecordLink>> {
@@ -53,32 +64,34 @@ export default class RecordsController {
     const baseUrl = `${domain}${apiUrlPrefix}/records`;
 
     const searchParams = new URLSearchParams();
-    Object.keys(query).forEach((k) => {
+    for (const k of Object.keys(query)) {
       const key = k as keyof GetRecordsDto;
       if (
         query[key] !== undefined &&
         key !== "page[after]" &&
         key !== "page[size]"
       ) {
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
         searchParams.append(key, query[key]!);
       }
-    });
-    const extraQuery = searchParams.size ? `&${searchParams.toString()}` : "";
+    }
+    const extraQuery =
+      searchParams.size > 0 ? `&${searchParams.toString()}` : "";
 
     return formatRecords(records, pageAfter, pageSize, baseUrl, extraQuery);
   }
 
-  @Get("/:recordId")
   @Accepts("application/json")
-  async getRecord(
-    @Param() params: GetRecordDto,
-  ): Promise<RecordResponseObject> {
-    const { recordId } = params;
-    return this.recordsService.getRecord(recordId);
+  @Get("/:recordId/versions/:versionId")
+  async getRecordVersion(
+    @Param() params: GetRecordVersionDto,
+  ): Promise<RecordVersionResponseObject> {
+    const { recordId, versionId } = params;
+    return this.recordsService.getRecordVersion(recordId, versionId);
   }
 
-  @Get("/:recordId/versions")
   @Accepts("application/json")
+  @Get("/:recordId/versions")
   async getRecordVersions(
     @Param() params: GetRecordDto,
     @Query() query: GetRecordVersionsDto,
@@ -96,14 +109,5 @@ export default class RecordsController {
       query["page[size]"],
       baseUrl,
     );
-  }
-
-  @Get("/:recordId/versions/:versionId")
-  @Accepts("application/json")
-  async getRecordVersion(
-    @Param() params: GetRecordVersionDto,
-  ): Promise<RecordVersionResponseObject> {
-    const { recordId, versionId } = params;
-    return this.recordsService.getRecordVersion(recordId, versionId);
   }
 }

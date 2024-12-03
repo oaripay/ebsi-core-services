@@ -9,16 +9,16 @@ export function getEthObject(o: unknown): unknown {
     return o;
   }
 
-  const obj = o as string[] & Record<string, unknown>;
+  const obj = o as Record<string, unknown> & string[];
   const keys = Object.keys(obj);
   if (keys.some((k) => Number.isNaN(Number(k)))) {
     // is an object
     const result: Record<string, unknown> = {};
-    keys.forEach((k, i) => {
+    for (const [i, k] of keys.entries()) {
       if (i >= keys.length / 2) {
         result[k] = getEthObject(obj[k]);
       }
-    });
+    }
     return result;
   }
 

@@ -8,7 +8,7 @@
  */
 export const byteLength = (
   /* global NodeJS */
-  input: string | NodeJS.ArrayBufferView | ArrayBuffer | SharedArrayBuffer,
+  input: ArrayBuffer | NodeJS.ArrayBufferView | SharedArrayBuffer | string,
   /* global BufferEncoding */
   encoding?: BufferEncoding,
 ): number => {

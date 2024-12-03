@@ -1,9 +1,9 @@
-export interface UserResponseObject {
+export interface UserLink {
+  href: string;
   user: string;
-  attributes: string[];
 }
 
-export interface UserLink {
+export interface UserResponseObject {
+  attributes: string[];
   user: string;
-  href: string;
 }

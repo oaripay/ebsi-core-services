@@ -5,9 +5,9 @@ import { ProblemDetailsError } from "./ProblemDetailsError.js";
  */
 
 export class NotFoundError extends ProblemDetailsError {
-  static statusCode = 404;
-
   static defaultTitle = "Not Found";
+
+  static statusCode = 404;
 
   /**
    * @param title A short, human-readable summary of the problem type. It SHOULD NOT change from occurrence to occurrence of the problem, except for purposes of localization.
@@ -20,10 +20,10 @@ export class NotFoundError extends ProblemDetailsError {
   constructor(
     title: string = NotFoundError.defaultTitle,
     options?: {
-      type?: string;
       detail?: string;
-      instance?: string;
       extensions?: Record<string, unknown>;
+      instance?: string;
+      type?: string;
     },
   ) {
     super(NotFoundError.statusCode, title, options);

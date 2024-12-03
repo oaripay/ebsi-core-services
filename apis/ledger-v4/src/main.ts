@@ -1,21 +1,23 @@
+import {
+  frameworkErrors,
+  methodNotAllowed,
+  setupInterceptors,
+} from "@ebsiint-api/shared";
+import { fastifyAccepts } from "@fastify/accepts";
+import { fastifyHelmet } from "@fastify/helmet";
+import { ValidationPipe } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { NestFactory } from "@nestjs/core";
 import {
   FastifyAdapter,
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import { ConfigService } from "@nestjs/config";
-import { ValidationPipe } from "@nestjs/common";
-import { fastifyHelmet } from "@fastify/helmet";
-import { fastifyAccepts } from "@fastify/accepts";
-import {
-  setupInterceptors,
-  frameworkErrors,
-  methodNotAllowed,
-} from "@ebsiint-api/shared";
+
+import type { ApiConfig } from "./config/configuration.js";
+
 import { AppModule } from "./app.module.js";
 import { AllExceptionsFilter } from "./filters/http-exception.filter.js";
-import { createLogger, consoleTransport } from "./logger/logger.js";
-import type { ApiConfig } from "./config/configuration.js";
+import { consoleTransport, createLogger } from "./logger/logger.js";
 
 async function bootstrap(): Promise<void> {
   const logger = createLogger();
@@ -90,17 +92,13 @@ async function bootstrap(): Promise<void> {
   // Notes:
   // - see https://github.com/nestjs/nest/issues/3209
   // - read Note https://www.fastify.io/docs/latest/Getting-Started/#your-first-server
-  await app.listen(port, "0.0.0.0", (err: Error, address: string) => {
+  await app.listen(port, "0.0.0.0", (err, address) => {
     if (err) {
-      logger.error(err.message, null, "main");
+      logger.error(err.message, undefined, "main");
     } else {
       logger.log(`Server listening on ${address}`, "main");
     }
   });
 }
 
-bootstrap()
-  .then(() => {})
-  .catch((e) => {
-    throw e;
-  });
+await bootstrap();

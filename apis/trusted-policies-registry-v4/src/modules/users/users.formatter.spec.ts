@@ -1,4 +1,5 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
+
 import { formatUsers } from "./users.formatter.js";
 
 describe("formatUsers", () => {
@@ -13,12 +14,12 @@ describe("formatUsers", () => {
     expect(formatUsers(users, page, pageSize, "")).toStrictEqual({
       items: [
         {
-          user: "0x123456",
           href: `/0x123456`,
+          user: "0x123456",
         },
         {
-          user: "0xab1234",
           href: "/0xab1234",
+          user: "0xab1234",
         },
       ],
       links: {

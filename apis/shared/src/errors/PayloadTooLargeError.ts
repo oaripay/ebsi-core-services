@@ -5,9 +5,9 @@ import { ProblemDetailsError } from "./ProblemDetailsError.js";
  */
 
 export class PayloadTooLargeError extends ProblemDetailsError {
-  static statusCode = 413;
-
   static defaultTitle = "Payload Too Large";
+
+  static statusCode = 413;
 
   /**
    * @param title A short, human-readable summary of the problem type. It SHOULD NOT change from occurrence to occurrence of the problem, except for purposes of localization.
@@ -20,10 +20,10 @@ export class PayloadTooLargeError extends ProblemDetailsError {
   constructor(
     title: string = PayloadTooLargeError.defaultTitle,
     options?: {
-      type?: string;
       detail?: string;
-      instance?: string;
       extensions?: Record<string, unknown>;
+      instance?: string;
+      type?: string;
     },
   ) {
     super(PayloadTooLargeError.statusCode, title, options);

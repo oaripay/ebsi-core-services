@@ -1,20 +1,21 @@
-import { describe, it, expect } from "vitest";
-import { ethers } from "ethers";
 import { Tir } from "@ebsiint-sc/trusted-issuers-registry";
+import { ethers } from "ethers";
+import { describe, expect, it } from "vitest";
+
 import {
-  formatIssuers,
   formatAttributes,
+  formatIssuers,
   formatProxies,
 } from "./issuers.formatter.js";
 import { AttributeObject } from "./issuers.interface.js";
 
 describe("formatIssuers", () => {
   const issuers = {
-    prev: ethers.BigNumber.from("1"),
-    next: ethers.BigNumber.from("3"),
-    items: ["0x001", "0x002", "0x003"],
-    total: ethers.BigNumber.from("42"),
     howMany: ethers.BigNumber.from("3"),
+    items: ["0x001", "0x002", "0x003"],
+    next: ethers.BigNumber.from("3"),
+    prev: ethers.BigNumber.from("1"),
+    total: ethers.BigNumber.from("42"),
   } as Awaited<ReturnType<Tir["getIssuers"]>>;
 
   it("should use the values returned by the smart contract (except pageSize)", () => {
@@ -54,109 +55,109 @@ describe("formatIssuers", () => {
 describe("formatAttributes", () => {
   const attributes: AttributeObject[] = [
     {
+      body: "abc",
       hash: "0x001",
-      body: "abc",
       issuerType: "TI",
-      tao: "did:ebsi:123",
       rootTao: "did:ebsi:123",
+      tao: "did:ebsi:123",
     },
     {
+      body: "abc",
       hash: "0x002",
-      body: "abc",
       issuerType: "TI",
-      tao: "did:ebsi:123",
       rootTao: "did:ebsi:123",
+      tao: "did:ebsi:123",
     },
     {
+      body: "abc",
       hash: "0x003",
-      body: "abc",
       issuerType: "TI",
-      tao: "did:ebsi:123",
       rootTao: "did:ebsi:123",
+      tao: "did:ebsi:123",
     },
     {
+      body: "abc",
       hash: "0x004",
-      body: "abc",
       issuerType: "TI",
-      tao: "did:ebsi:123",
       rootTao: "did:ebsi:123",
+      tao: "did:ebsi:123",
     },
     {
+      body: "abc",
       hash: "0x005",
-      body: "abc",
       issuerType: "TI",
-      tao: "did:ebsi:123",
       rootTao: "did:ebsi:123",
+      tao: "did:ebsi:123",
     },
     {
+      body: "abc",
       hash: "0x006",
-      body: "abc",
       issuerType: "TI",
-      tao: "did:ebsi:123",
       rootTao: "did:ebsi:123",
+      tao: "did:ebsi:123",
     },
     {
+      body: "abc",
       hash: "0x007",
-      body: "abc",
       issuerType: "TI",
-      tao: "did:ebsi:123",
       rootTao: "did:ebsi:123",
+      tao: "did:ebsi:123",
     },
     {
+      body: "abc",
       hash: "0x008",
-      body: "abc",
       issuerType: "TI",
-      tao: "did:ebsi:123",
       rootTao: "did:ebsi:123",
+      tao: "did:ebsi:123",
     },
     {
+      body: "abc",
       hash: "0x009",
-      body: "abc",
       issuerType: "TI",
-      tao: "did:ebsi:123",
       rootTao: "did:ebsi:123",
+      tao: "did:ebsi:123",
     },
     {
+      body: "abc",
       hash: "0x00A",
-      body: "abc",
       issuerType: "TI",
-      tao: "did:ebsi:123",
       rootTao: "did:ebsi:123",
+      tao: "did:ebsi:123",
     },
     {
+      body: "abc",
       hash: "0x00B",
-      body: "abc",
       issuerType: "TI",
-      tao: "did:ebsi:123",
       rootTao: "did:ebsi:123",
+      tao: "did:ebsi:123",
     },
     {
+      body: "abc",
       hash: "0x00C",
-      body: "abc",
       issuerType: "TI",
-      tao: "did:ebsi:123",
       rootTao: "did:ebsi:123",
+      tao: "did:ebsi:123",
     },
     {
+      body: "abc",
       hash: "0x00D",
-      body: "abc",
       issuerType: "TI",
-      tao: "did:ebsi:123",
       rootTao: "did:ebsi:123",
+      tao: "did:ebsi:123",
     },
     {
+      body: "abc",
       hash: "0x00E",
-      body: "abc",
       issuerType: "TI",
-      tao: "did:ebsi:123",
       rootTao: "did:ebsi:123",
+      tao: "did:ebsi:123",
     },
     {
-      hash: "0x00F",
       body: "abc",
+      hash: "0x00F",
       issuerType: "TI",
-      tao: "did:ebsi:123",
       rootTao: "did:ebsi:123",
+      tao: "did:ebsi:123",
     },
   ];
 
@@ -256,12 +257,12 @@ describe("formatProxies", () => {
     expect(formatProxies(proxies, baseUrl)).toStrictEqual({
       items: [
         {
-          proxyId: "0xProxy1",
           href: "/0xProxy1",
+          proxyId: "0xProxy1",
         },
         {
-          proxyId: "0xProxy2",
           href: "/0xProxy2",
+          proxyId: "0xProxy2",
         },
       ],
       total: proxies.length,

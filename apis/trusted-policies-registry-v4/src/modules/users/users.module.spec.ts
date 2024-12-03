@@ -1,21 +1,23 @@
-import { vi, describe, beforeAll, afterAll, it, expect } from "vitest";
-import request from "supertest";
-import { ethers } from "ethers";
-import { Test } from "@nestjs/testing";
-import { ValidationPipe, Logger } from "@nestjs/common";
+import type { RawServerDefault } from "fastify";
+
+import { methodNotAllowed } from "@ebsiint-api/shared";
+import { fastifyAccepts } from "@fastify/accepts";
+import { Logger, ValidationPipe } from "@nestjs/common";
 import {
   FastifyAdapter,
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import type { RawServerDefault } from "fastify";
-import { fastifyAccepts } from "@fastify/accepts";
-import { methodNotAllowed } from "@ebsiint-api/shared";
-import { UsersModule } from "./users.module.js";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
-import { setupTestEnv } from "../../../tests/utils/trustedPoliciesRegistry.js";
-import { LedgerService } from "../ledger/ledger.service.js";
-import { graphServer } from "../../../tests/utils/graphServer.js";
+import { Test } from "@nestjs/testing";
+import { ethers } from "ethers";
+import request from "supertest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+
 import { USERS_TOTAL } from "../../../tests/utils/data.js";
+import { graphServer } from "../../../tests/utils/graphServer.js";
+import { setupTestEnv } from "../../../tests/utils/trustedPoliciesRegistry.js";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
+import { LedgerService } from "../ledger/ledger.service.js";
+import { UsersModule } from "./users.module.js";
 
 describe("Policies Module", () => {
   let app: NestFastifyApplication;
@@ -76,19 +78,19 @@ describe("Policies Module", () => {
 
       const response = await request(server).get("/users");
       expect(response.body).toStrictEqual({
-        self: expect.stringContaining("/users?page[after]=1&page[size]=10"),
         items: expect.arrayContaining([]),
-        pageSize: 10,
         links: {
           first: expect.stringContaining("/users?page[after]=1&page[size]=10"),
-          prev: expect.stringContaining("/users?page[after]=1&page[size]=10"),
           next: expect.stringContaining(
             `/users?page[after]=${Math.min(
               Math.ceil(USERS_TOTAL / 10),
               2,
             )}&page[size]=10`,
           ),
+          prev: expect.stringContaining("/users?page[after]=1&page[size]=10"),
         },
+        pageSize: 10,
+        self: expect.stringContaining("/users?page[after]=1&page[size]=10"),
       });
       expect((response.body as { items: string }).items).toHaveLength(
         Math.min(10, USERS_TOTAL),
@@ -101,14 +103,14 @@ describe("Policies Module", () => {
 
       const response1 = await request(server).get("/users?page[size]=3");
       expect(response1.body).toStrictEqual({
-        self: expect.stringContaining("/users?page[after]=1&page[size]=3"),
         items: expect.arrayContaining([]),
-        pageSize: 3,
         links: {
           first: expect.stringContaining("/users?page[after]=1&page[size]=3"),
-          prev: expect.stringContaining("/users?page[after]=1&page[size]=3"),
           next: expect.stringContaining("/users?page[after]=2&page[size]=3"),
+          prev: expect.stringContaining("/users?page[after]=1&page[size]=3"),
         },
+        pageSize: 3,
+        self: expect.stringContaining("/users?page[after]=1&page[size]=3"),
       });
       expect((response1.body as { items: string }).items).toHaveLength(3);
       expect(response1.status).toBe(200);
@@ -118,14 +120,14 @@ describe("Policies Module", () => {
         "/users?page[after]=2&page[size]=3",
       );
       expect(response2.body).toStrictEqual({
-        self: expect.stringContaining("/users"),
         items: expect.arrayContaining([]),
-        pageSize: 3,
         links: {
           first: expect.stringContaining("/users?page[after]=1&page[size]=3"),
-          prev: expect.stringContaining("/users?page[after]=1&page[size]=3"),
           next: expect.stringContaining("/users?page[after]=3&page[size]=3"),
+          prev: expect.stringContaining("/users?page[after]=1&page[size]=3"),
         },
+        pageSize: 3,
+        self: expect.stringContaining("/users"),
       });
       expect((response2.body as { items: string }).items).toHaveLength(3);
       expect(response2.status).toBe(200);
@@ -135,15 +137,15 @@ describe("Policies Module", () => {
         "/users?page[after]=100&page[size]=3",
       );
       expect(response3.body).toStrictEqual({
-        self: expect.stringContaining("/users?page[after]=100&page[size]=3"),
         items: expect.arrayContaining([]),
-        pageSize: 3,
         links: {
           first: expect.stringContaining("/users?page[after]=1&page[size]=3"),
-          prev: expect.stringContaining("/users?page[after]=99&page[size]=3"),
-          next: expect.stringContaining("/users?page[after]=100&page[size]=3"),
           last: expect.stringContaining("/users?page[after]=100&page[size]=3"),
+          next: expect.stringContaining("/users?page[after]=100&page[size]=3"),
+          prev: expect.stringContaining("/users?page[after]=99&page[size]=3"),
         },
+        pageSize: 3,
+        self: expect.stringContaining("/users?page[after]=100&page[size]=3"),
       });
       expect((response3.body as { items: string }).items).toHaveLength(0);
       expect(response3.status).toBe(200);
@@ -151,14 +153,14 @@ describe("Policies Module", () => {
       // page after defined but page size undefined
       const response4 = await request(server).get("/users?page[after]=1");
       expect(response4.body).toStrictEqual({
-        self: expect.stringContaining("/users"),
         items: expect.arrayContaining([]),
-        pageSize: 10,
         links: {
           first: expect.stringContaining("/users?page[after]=1&page[size]=10"),
-          prev: expect.stringContaining("/users?page[after]=1&page[size]=10"),
           next: expect.stringContaining("/users?page[after]=2&page[size]=10"),
+          prev: expect.stringContaining("/users?page[after]=1&page[size]=10"),
         },
+        pageSize: 10,
+        self: expect.stringContaining("/users"),
       });
       expect((response4.body as { items: string }).items).toHaveLength(10);
       expect(response4.status).toBe(200);
@@ -169,37 +171,37 @@ describe("Policies Module", () => {
 
       const response1 = await request(server).get("/users?page[size]=100");
       expect(response1.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
         detail: '["page[size] must not be greater than 50"]',
+        status: 400,
+        title: "Bad Request",
         type: "about:blank",
       });
       expect(response1.status).toBe(400);
 
       const response2 = await request(server).get("/users?page[size]=0");
       expect(response2.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
         detail: '["page[size] must not be less than 1"]',
+        status: 400,
+        title: "Bad Request",
         type: "about:blank",
       });
       expect(response2.status).toBe(400);
 
       const response3 = await request(server).get("/users?page[after]=0");
       expect(response3.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
         detail: '["page[after] must not be less than 1"]',
+        status: 400,
+        title: "Bad Request",
         type: "about:blank",
       });
       expect(response3.status).toBe(400);
 
       const response4 = await request(server).get("/users?page[after]=abc");
       expect(response4.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
         detail:
           '["page[after] must not be less than 1","page[after] must be a number conforming to the specified constraints"]',
+        status: 400,
+        title: "Bad Request",
         type: "about:blank",
       });
       expect(response4.status).toBe(400);
@@ -212,16 +214,9 @@ describe("Policies Module", () => {
         "/users?attribute=policyName1",
       );
       expect(response.body).toStrictEqual({
-        self: expect.stringContaining(
-          "/users?page[after]=1&page[size]=10&attribute=policyName1",
-        ),
         items: expect.arrayContaining([]),
-        pageSize: 10,
         links: {
           first: expect.stringContaining(
-            "/users?page[after]=1&page[size]=10&attribute=policyName1",
-          ),
-          prev: expect.stringContaining(
             "/users?page[after]=1&page[size]=10&attribute=policyName1",
           ),
           next: expect.stringContaining(
@@ -230,7 +225,14 @@ describe("Policies Module", () => {
               2,
             )}&page[size]=10&attribute=policyName1`,
           ),
+          prev: expect.stringContaining(
+            "/users?page[after]=1&page[size]=10&attribute=policyName1",
+          ),
         },
+        pageSize: 10,
+        self: expect.stringContaining(
+          "/users?page[after]=1&page[size]=10&attribute=policyName1",
+        ),
       });
       expect((response.body as { items: string }).items).toHaveLength(
         Math.min(10, USERS_TOTAL),
@@ -249,8 +251,8 @@ describe("Policies Module", () => {
       const response = await request(server).get(`/users/${user.user}`);
 
       expect(response.body).toStrictEqual({
-        user: user.user,
         attributes: user.attributes,
+        user: user.user,
       });
       expect(response.status).toBe(200);
     });
@@ -261,9 +263,9 @@ describe("Policies Module", () => {
       const response = await request(server).get("/users/bad-address");
 
       expect(response.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
         detail: `["user must be an Ethereum address"]`,
+        status: 400,
+        title: "Bad Request",
         type: "about:blank",
       });
       expect(response.status).toBe(400);
@@ -276,9 +278,9 @@ describe("Policies Module", () => {
       const response = await request(server).get(`/users/${randomAddress}`);
 
       expect(response.body).toStrictEqual({
-        title: "User Not Found",
-        status: 404,
         detail: expect.stringContaining(`User ${randomAddress} not found`),
+        status: 404,
+        title: "User Not Found",
         type: "about:blank",
       });
       expect(response.status).toBe(404);

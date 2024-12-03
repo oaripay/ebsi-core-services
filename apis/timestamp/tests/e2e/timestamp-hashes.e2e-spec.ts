@@ -1,24 +1,27 @@
-import { describe, beforeAll, it, expect, afterAll } from "vitest";
-import crypto from "node:crypto";
-import request from "supertest";
-import { Test } from "@nestjs/testing";
-import { ValidationPipe, Logger } from "@nestjs/common";
-import {
-  FastifyAdapter,
-  type NestFastifyApplication,
-} from "@nestjs/platform-fastify";
-import { ConfigService } from "@nestjs/config";
 import type { RawServerDefault } from "fastify";
-import { fastifyAccepts } from "@fastify/accepts";
-import { fastifyHelmet } from "@fastify/helmet";
+
 import {
   methodNotAllowed,
   multibase,
   multihashEncode,
 } from "@ebsiint-api/shared";
+import { fastifyAccepts } from "@fastify/accepts";
+import { fastifyHelmet } from "@fastify/helmet";
+import { Logger, ValidationPipe } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import {
+  FastifyAdapter,
+  type NestFastifyApplication,
+} from "@nestjs/platform-fastify";
+import { Test } from "@nestjs/testing";
+import crypto from "node:crypto";
+import request from "supertest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
+
+import type { ApiConfig } from "../../src/config/configuration.js";
+
 import { AppModule } from "../../src/app.module.js";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
-import type { ApiConfig } from "../../src/config/configuration.js";
 import { getServer } from "../utils/getServer.js";
 
 describe("Timestamp API v3 - Timestamp (e2e)", () => {
@@ -77,22 +80,22 @@ describe("Timestamp API v3 - Timestamp (e2e)", () => {
 
       const response = await request(server).get("/timestamps");
       expect(response.body).toStrictEqual({
-        self: expect.stringContaining(
-          "/timestamps?page[after]=1&page[size]=10",
-        ),
         items: expect.arrayContaining([]),
-        total: expect.any(Number),
-        pageSize: 10,
         links: {
           first: expect.stringContaining(
             "/timestamps?page[after]=1&page[size]=10",
           ),
+          last: expect.stringContaining("/timestamps?page[after]="),
+          next: expect.stringContaining("/timestamps?page[after]="),
           prev: expect.stringContaining(
             "/timestamps?page[after]=1&page[size]=10",
           ),
-          next: expect.stringContaining("/timestamps?page[after]="),
-          last: expect.stringContaining("/timestamps?page[after]="),
         },
+        pageSize: 10,
+        self: expect.stringContaining(
+          "/timestamps?page[after]=1&page[size]=10",
+        ),
+        total: expect.any(Number),
       });
       expect(response.status).toBe(200);
     });
@@ -109,9 +112,9 @@ describe("Timestamp API v3 - Timestamp (e2e)", () => {
       const response = await request(server).get(`/timestamps/${timestampId}`);
 
       expect(response.body).toStrictEqual({
-        title: "Timestamp Not Found",
-        status: 404,
         detail: `Timestamp ${timestampId} not found`,
+        status: 404,
+        title: "Timestamp Not Found",
         type: "about:blank",
       });
       expect(response.status).toBe(404);

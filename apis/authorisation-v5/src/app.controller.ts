@@ -1,11 +1,11 @@
-import { Controller, Get } from "@nestjs/common";
 import { Accepts, Log } from "@ebsiint-api/shared";
+import { Controller, Get } from "@nestjs/common";
 
 @Controller()
 export class AppController {
-  @Log({ logRequest: false })
   @Accepts("text/plain")
   @Get()
+  @Log({ logRequest: false })
   root(): string {
     return "ok";
   }

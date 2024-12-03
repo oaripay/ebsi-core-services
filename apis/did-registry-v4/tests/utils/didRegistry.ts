@@ -1,10 +1,12 @@
-// eslint-disable-next-line @typescript-eslint/triple-slash-reference
-/// <reference path="../../../../contracts/did-registry-v2/src/types/hardhat.d.ts" />
+import "../../../../contracts/did-registry-v2/src/types/hardhat.d.ts";
+
 import hre from "hardhat";
-import { FactoryOptions } from "hardhat/types";
-import "@nomiclabs/hardhat-ethers";
-import { Contract, ethers } from "ethers";
+
 import { DidRegistry, PolicyRegistryMock } from "@ebsiint-sc/did-registry-v2";
+import { Contract, ethers } from "ethers";
+import "@nomiclabs/hardhat-ethers";
+import { FactoryOptions } from "hardhat/types";
+
 import { createUser, UserDetails } from "./data.js";
 import { setupTestEnv as setupTestEnvV1 } from "./didRegistryV1.js";
 
@@ -16,6 +18,10 @@ const deployContract = async (
   const contract = await factory.deploy();
   return contract.address;
 };
+
+export interface SetupOptions {
+  didDocumentsTotal?: number;
+}
 
 export async function deployDidRegistryContract(
   testDidV3Address: string,
@@ -53,25 +59,26 @@ export async function deployDidRegistryContract(
     "DidRegistry",
     {
       libraries: {
+        ControllersLib: await deployContract(
+          "ControllersLib",
+          linkLibPagination,
+        ),
         DidDocumentLib: await deployContract("DidDocumentLib", {
           libraries: {
             Pagination: paginationAddress,
             VRelationshipsLib: vRelationshipsLibAddress,
           },
         }),
-        ControllersLib: await deployContract(
-          "ControllersLib",
-          linkLibPagination,
-        ),
         VRelationshipsLib: vRelationshipsLibAddress,
       },
     },
   );
 
-  const didRegistryContract = (await didRegistryContractFactory.deploy(
+  const didRegistryContract = await didRegistryContractFactory.deploy(
     testTprAddress,
     testDidV3Address,
-  )) as DidRegistry;
+  );
+
   await didRegistryContract.initialize(1);
   await didRegistryContract.setRegistryAddresses();
 
@@ -117,18 +124,14 @@ export async function insertDidDocument(
   return user;
 }
 
-export interface SetupOptions {
-  didDocumentsTotal?: number;
-}
-
 export async function setupTestEnv({
   didDocumentsTotal = 1,
 }: SetupOptions = {}): Promise<{
-  provider: ethers.providers.JsonRpcProvider;
   didRegistryContract: DidRegistry;
   policyContractMock: Contract;
-  users: UserDetails[];
+  provider: ethers.providers.JsonRpcProvider;
   setupV1: Awaited<ReturnType<typeof setupTestEnvV1>>;
+  users: UserDetails[];
 }> {
   const ethersProvider = hre.ethers.provider;
   const users: UserDetails[] = [];
@@ -139,20 +142,16 @@ export async function setupTestEnv({
   const { didRegistryContract, policyContractMock } =
     await deployDidRegistryContract(setupV1.didRegistryV1Contract.address);
 
-  users.push(
-    ...(await Promise.all(
-      Array(didDocumentsTotal)
-        .fill(0)
-        .map((_, index) => insertDidDocument(didRegistryContract, index)),
-    )),
-  );
+  for (let i = 0; i < didDocumentsTotal; i++) {
+    users.push(await insertDidDocument(didRegistryContract, i));
+  }
 
   // Return test env variables
   return {
-    provider: ethersProvider,
     didRegistryContract,
     policyContractMock,
-    users,
+    provider: ethersProvider,
     setupV1,
+    users,
   };
 }

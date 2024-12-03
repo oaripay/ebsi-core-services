@@ -5,9 +5,9 @@ import { ProblemDetailsError } from "./ProblemDetailsError.js";
  */
 
 export class ProxyAuthenticationRequiredError extends ProblemDetailsError {
-  static statusCode = 407;
-
   static defaultTitle = "Proxy Authentication Required";
+
+  static statusCode = 407;
 
   /**
    * @param title A short, human-readable summary of the problem type. It SHOULD NOT change from occurrence to occurrence of the problem, except for purposes of localization.
@@ -20,10 +20,10 @@ export class ProxyAuthenticationRequiredError extends ProblemDetailsError {
   constructor(
     title: string = ProxyAuthenticationRequiredError.defaultTitle,
     options?: {
-      type?: string;
       detail?: string;
-      instance?: string;
       extensions?: Record<string, unknown>;
+      instance?: string;
+      type?: string;
     },
   ) {
     super(ProxyAuthenticationRequiredError.statusCode, title, options);

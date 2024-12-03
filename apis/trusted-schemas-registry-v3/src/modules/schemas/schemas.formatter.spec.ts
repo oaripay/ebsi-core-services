@@ -1,8 +1,9 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
+
 import {
-  formatSchemas,
-  formatSchemaRevisions,
   formatSchemaRevisionMetadataList,
+  formatSchemaRevisions,
+  formatSchemas,
 } from "./schemas.formatter.js";
 import { ItemsList } from "./schemas.interface.js";
 
@@ -21,12 +22,12 @@ describe("formatSchemas", () => {
     expect(formatSchemas(schemas, page, pageSize, "")).toStrictEqual({
       items: [
         {
-          schemaId: "z2PM",
           href: "/z2PM",
+          schemaId: "z2PM",
         },
         {
-          schemaId: "z7af",
           href: "/z7af",
+          schemaId: "z7af",
         },
       ],
       links: {
@@ -59,12 +60,12 @@ describe("formatSchemaRevisions", () => {
     ).toStrictEqual({
       items: [
         {
-          schemaRevisionId: "rev-id",
           href: "/rev-id",
+          schemaRevisionId: "rev-id",
         },
         {
-          schemaRevisionId: "rev-id-2",
           href: "/rev-id-2",
+          schemaRevisionId: "rev-id-2",
         },
       ],
       links: {
@@ -86,12 +87,12 @@ describe("formatSchemaRevisions", () => {
     ).toStrictEqual({
       items: [
         {
-          schemaRevisionId: "rev-id",
           href: "/rev-id",
+          schemaRevisionId: "rev-id",
         },
         {
-          schemaRevisionId: "rev-id-2",
           href: "/rev-id-2",
+          schemaRevisionId: "rev-id-2",
         },
       ],
       links: {
@@ -129,12 +130,12 @@ describe("formatSchemaRevisionMetadataList", () => {
     ).toStrictEqual({
       items: [
         {
-          metadataId: "meta-id",
           href: "/meta-id",
+          metadataId: "meta-id",
         },
         {
-          metadataId: "meta-id-2",
           href: "/meta-id-2",
+          metadataId: "meta-id-2",
         },
       ],
       links: {

@@ -1,14 +1,16 @@
-// eslint-disable-next-line @typescript-eslint/triple-slash-reference
-/// <reference path="../../../../contracts/did-registry-v4/src/types/hardhat.d.ts" />
+import "../../../../contracts/did-registry-v4/src/types/hardhat.d.ts";
+
 import hre from "hardhat";
-import { FactoryOptions } from "hardhat/types";
-import "@nomiclabs/hardhat-ethers";
-import { Contract, ethers } from "ethers";
+
 import {
   DidRegistry,
   DidRegistry__factory,
   PolicyRegistryMock,
 } from "@ebsiint-sc/did-registry-v4";
+import "@nomiclabs/hardhat-ethers";
+import { Contract, ethers } from "ethers";
+import { FactoryOptions } from "hardhat/types";
+
 import { createUser, UserDetails } from "./data.js";
 
 const deployContract = async (
@@ -19,6 +21,10 @@ const deployContract = async (
   const contract = await factory.deploy();
   return contract.address;
 };
+
+export interface SetupOptions {
+  didDocumentsTotal?: number;
+}
 
 export async function deployDidRegistryContract(): Promise<{
   didRegistryContract: DidRegistry;
@@ -48,12 +54,12 @@ export async function deployDidRegistryContract(): Promise<{
     "DidRegistry",
     {
       libraries: {
+        ControllersLib: await deployContract("ControllersLib"),
         DidDocumentLib: await deployContract("DidDocumentLib", {
           libraries: {
             VRelationshipsLib: vRelationshipsLibAddress,
           },
         }),
-        ControllersLib: await deployContract("ControllersLib"),
       },
     },
   )) as DidRegistry__factory;
@@ -103,16 +109,12 @@ export async function insertDidDocument(
   return user;
 }
 
-export interface SetupOptions {
-  didDocumentsTotal?: number;
-}
-
 export async function setupTestEnv({
   didDocumentsTotal = 1,
 }: SetupOptions = {}): Promise<{
-  provider: ethers.providers.JsonRpcProvider;
   didRegistryContract: DidRegistry;
   policyContractMock: Contract;
+  provider: ethers.providers.JsonRpcProvider;
   users: UserDetails[];
 }> {
   const ethersProvider = hre.ethers.provider;
@@ -122,19 +124,15 @@ export async function setupTestEnv({
   const { didRegistryContract, policyContractMock } =
     await deployDidRegistryContract();
 
-  users.push(
-    ...(await Promise.all(
-      Array(didDocumentsTotal)
-        .fill(0)
-        .map((_, index) => insertDidDocument(didRegistryContract, index)),
-    )),
-  );
+  for (let i = 0; i < didDocumentsTotal; i++) {
+    users.push(await insertDidDocument(didRegistryContract, i));
+  }
 
   // Return test env variables
   return {
-    provider: ethersProvider,
     didRegistryContract,
     policyContractMock,
+    provider: ethersProvider,
     users,
   };
 }

@@ -1,7 +1,15 @@
-import type { HardhatRuntimeEnvironment } from "hardhat/types";
 import type { DeployFunction } from "hardhat-deploy/types";
+import type { HardhatRuntimeEnvironment } from "hardhat/types";
+
 import { ethers } from "hardhat";
+
 import dependencies from "./dependencies.json";
+
+function validateChainId(
+  chainId: string,
+): asserts chainId is keyof typeof dependencies {
+  if (!(chainId in dependencies)) throw new Error(`Invalid chainId ${chainId}`);
+}
 
 const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   const { deployments, getNamedAccounts } = hre;
@@ -9,9 +17,20 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   const { deployer } = await getNamedAccounts();
 
   // get Proxy of TPR
-  const { chainId } = await ethers.provider.getNetwork();
+  const chainId = `${(await ethers.provider.getNetwork()).chainId}`;
+
+  validateChainId(chainId);
+
   console.log(`chain id ${chainId}`);
-  let tprAddress = dependencies[chainId]?.tprV2Address;
+
+  const deps = dependencies[chainId];
+
+  if (!("tprV2Address" in deps)) {
+    throw new Error("tprV2Address does not exist");
+  }
+
+  let tprAddress = deps.tprV2Address;
+
   if (!ethers.utils.isAddress(tprAddress)) {
     console.log(`Deploying TPR for testnet`);
     // deploy for testnet
@@ -44,10 +63,10 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   console.log(`VRelationships lib deployed`);
   const optsPagVrel = {
     from: deployer,
-    log: true,
     libraries: {
       VRelationshipsLib: vRelation.address,
     },
+    log: true,
   };
   const didDocument = await deployments.deploy("DidDocumentLib", {
     ...optsPagVrel,
@@ -58,10 +77,10 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   console.log(`Did Document deployed;`);
 
   const ts = await deployments.deploy("DidRegistryV3", {
-    from: deployer,
+    args: [tprAddress],
     contract:
       "contracts/did-registry-v3/did-registry/DidRegistry.sol:DidRegistry",
-    args: [tprAddress],
+    from: deployer,
     libraries: {
       ControllersLib: controller.address,
       DidDocumentLib: didDocument.address,

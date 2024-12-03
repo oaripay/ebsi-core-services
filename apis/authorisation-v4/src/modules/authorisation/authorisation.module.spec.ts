@@ -1,27 +1,9 @@
-import {
-  vi,
-  describe,
-  beforeAll,
-  afterAll,
-  it,
-  expect,
-  beforeEach,
-  afterEach,
-} from "vitest";
-import { randomUUID, randomBytes } from "node:crypto";
-import { URLSearchParams } from "node:url";
-import request from "supertest";
-import { http, HttpResponse } from "msw";
-import { setupServer } from "msw/node";
 import type { PaginatedList } from "@ebsiint-api/shared";
-import { Test } from "@nestjs/testing";
-import { Logger } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
-import type { RawServerDefault } from "fastify";
 import type { PresentationSubmission } from "@sphereon/pex-models";
-import { decodeJWT, createJWT, ES256KSigner } from "did-jwt";
-import { EbsiWallet } from "@cef-ebsi/wallet-lib";
+import type { RawServerDefault } from "fastify";
+
+import { fromUrl } from "@cef-ebsi/ebsi-uri";
 import {
   createVerifiableCredentialJwt,
   type EbsiEnvConfiguration,
@@ -32,29 +14,56 @@ import {
   createVerifiablePresentationJwt,
   type EbsiVerifiablePresentation,
 } from "@cef-ebsi/verifiable-presentation";
-import { calculateJwkThumbprint, importJWK, jwtVerify, type JWK } from "jose";
+import { EbsiWallet } from "@cef-ebsi/wallet-lib";
+import { Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { Test } from "@nestjs/testing";
+import { createJWT, decodeJWT, ES256KSigner } from "did-jwt";
+import { calculateJwkThumbprint, importJWK, type JWK, jwtVerify } from "jose";
+import { http, HttpResponse } from "msw";
+import { setupServer } from "msw/node";
+import { randomBytes, randomUUID } from "node:crypto";
+import { URLSearchParams } from "node:url";
 import qs from "qs";
-import { fromUrl } from "@cef-ebsi/ebsi-uri";
-import { AuthorisationModule } from "./authorisation.module.js";
+import request from "supertest";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
+
+import type { ApiConfig } from "../../config/configuration.js";
 import type {
   Access,
   JsonWebKeySet,
   Scope,
   TokenResponse,
 } from "./authorisation.interfaces.js";
-import type { ApiConfig } from "../../config/configuration.js";
+
+import { configureApp } from "../../../tests/utils/app.js";
+import {
+  createDidDocument,
+  createLegalEntity,
+  createPresentationSubmission,
+  type LegalEntity,
+} from "../../../tests/utils/data.js";
 import {
   CUSTOM_SCOPES,
   DIDR_INVITE_PRESENTATION_DEFINITION,
   DIDR_INVITE_SCOPE,
   DIDR_WRITE_PRESENTATION_DEFINITION,
   DIDR_WRITE_SCOPE,
+  TIMESTAMP_WRITE_PRESENTATION_DEFINITION,
+  TIMESTAMP_WRITE_SCOPE,
   TIR_INVITE_PRESENTATION_DEFINITION,
   TIR_INVITE_SCOPE,
   TIR_WRITE_PRESENTATION_DEFINITION,
   TIR_WRITE_SCOPE,
-  TIMESTAMP_WRITE_PRESENTATION_DEFINITION,
-  TIMESTAMP_WRITE_SCOPE,
   TNT_AUTHORISE_PRESENTATION_DEFINITION,
   TNT_AUTHORISE_SCOPE,
   TNT_CREATE_PRESENTATION_DEFINITION,
@@ -66,13 +75,7 @@ import {
   TSR_WRITE_PRESENTATION_DEFINITION,
   TSR_WRITE_SCOPE,
 } from "./authorisation.constants.js";
-import {
-  createDidDocument,
-  createLegalEntity,
-  createPresentationSubmission,
-  type LegalEntity,
-} from "../../../tests/utils/data.js";
-import { configureApp } from "../../../tests/utils/app.js";
+import { AuthorisationModule } from "./authorisation.module.js";
 import { CreateAccessTokenDto } from "./dto/index.js";
 
 vi.mock("did-jwt", async () => {
@@ -88,7 +91,7 @@ vi.mock("did-jwt", async () => {
  * @see https://github.com/mswjs/msw/discussions/739#discussioncomment-2524732
  */
 function escapeDid(url: string) {
-  return url.replace("did:ebsi:", "did\\:ebsi\\:");
+  return url.replace("did:ebsi:", String.raw`did\:ebsi\:`);
 }
 
 describe.each(["EBSI URI", "URL"] as const)(
@@ -99,9 +102,9 @@ describe.each(["EBSI URI", "URL"] as const)(
     let configService: ConfigService<ApiConfig, true>;
     let domain: string;
     let serviceEndpoint: string;
-    let credentialIssuer: LegalEntity<"ES256" | "EdDSA">;
+    let credentialIssuer: LegalEntity<"EdDSA" | "ES256">;
     let credentialIssuerAccreditationUrl: string;
-    let credentialSubject: LegalEntity<"ES256" | "ES256K" | "EdDSA">;
+    let credentialSubject: LegalEntity<"EdDSA" | "ES256" | "ES256K">;
     let ebsiEnvConfig: EbsiEnvConfiguration;
     const mockServer = setupServer();
 
@@ -139,8 +142,8 @@ describe.each(["EBSI URI", "URL"] as const)(
       serviceEndpoint = `${domain}${apiUrlPrefix}`;
       const ebsiAuthority = domain.replace(/^https?:\/\//, ""); // remove http protocol scheme
       ebsiEnvConfig = {
-        network: "test",
         hosts: [ebsiAuthority],
+        network: "test",
         services: {
           "did-registry": "v5",
           "trusted-issuers-registry": "v5",
@@ -184,38 +187,6 @@ describe.each(["EBSI URI", "URL"] as const)(
       const expirationDate = new Date(exp * 1000).toISOString();
       const accreditation = {
         "@context": ["https://www.w3.org/2018/credentials/v1"],
-        type: [
-          "VerifiableCredential",
-          "VerifiableAttestation",
-          "VerifiableAccreditation",
-          "VerifiableAccreditationToAttest",
-        ],
-        id: jti,
-        issuanceDate,
-        expirationDate,
-        issued: issuanceDate,
-        validFrom: issuanceDate,
-        validUntil: expirationDate,
-        issuer: credentialIssuer.did,
-        credentialSubject: {
-          id: credentialIssuer.did,
-          accreditedFor: [
-            {
-              schemaId: authorisationCredentialSchema,
-              types: [
-                "VerifiableCredential",
-                "VerifiableAttestation",
-                "VerifiableAuthorisationForTrustChain",
-              ],
-              policies: [
-                {
-                  type: "ebsiPilot2023",
-                  uri: "{uri to EBSI gov documents}",
-                },
-              ],
-            },
-          ],
-        },
         credentialSchema: {
           id:
             uriType === "EBSI URI"
@@ -223,16 +194,48 @@ describe.each(["EBSI URI", "URL"] as const)(
               : authorisationCredentialSchema,
           type: "FullJsonSchemaValidator2021",
         },
+        credentialSubject: {
+          accreditedFor: [
+            {
+              policies: [
+                {
+                  type: "ebsiPilot2023",
+                  uri: "{uri to EBSI gov documents}",
+                },
+              ],
+              schemaId: authorisationCredentialSchema,
+              types: [
+                "VerifiableCredential",
+                "VerifiableAttestation",
+                "VerifiableAuthorisationForTrustChain",
+              ],
+            },
+          ],
+          id: credentialIssuer.did,
+        },
+        expirationDate,
+        id: jti,
+        issuanceDate,
+        issued: issuanceDate,
+        issuer: credentialIssuer.did,
+        type: [
+          "VerifiableCredential",
+          "VerifiableAttestation",
+          "VerifiableAccreditation",
+          "VerifiableAccreditationToAttest",
+        ],
+        validFrom: issuanceDate,
+        validUntil: expirationDate,
       } satisfies EbsiVerifiableAttestation;
 
       const accreditationVcJwt = await createJWT(
         {
+          exp,
           iat,
+          iss: accreditation.issuer,
           jti,
           nbf: iat,
-          exp,
           sub: accreditation.credentialSubject.id,
-          iss: accreditation.issuer,
           vc: accreditation,
         },
         {
@@ -241,8 +244,8 @@ describe.each(["EBSI URI", "URL"] as const)(
         },
         {
           alg: credentialIssuer.keys.ES256.alg,
-          typ: "JWT",
           kid: credentialIssuer.keys.ES256.kid,
+          typ: "JWT",
         },
       );
 
@@ -272,34 +275,34 @@ describe.each(["EBSI URI", "URL"] as const)(
         );
 
         expect(response.body).toStrictEqual({
-          issuer: expect.any(String),
           authorization_endpoint: `${serviceEndpoint}/authorize`,
-          token_endpoint: `${serviceEndpoint}/token`,
-          presentation_definition_endpoint: `${serviceEndpoint}/presentation-definitions`,
-          jwks_uri: `${serviceEndpoint}/jwks`,
-          scopes_supported: ["openid", ...CUSTOM_SCOPES],
-          response_types_supported: ["token"],
-          subject_types_supported: ["public"],
+          grant_types_supported: ["vp_token"],
           id_token_signing_alg_values_supported: ["none"],
+          id_token_types_supported: ["subject_signed_id_token"],
+          issuer: expect.any(String),
+          jwks_uri: `${serviceEndpoint}/jwks`,
+          presentation_definition_endpoint: `${serviceEndpoint}/presentation-definitions`,
+          response_types_supported: ["token"],
+          scopes_supported: ["openid", ...CUSTOM_SCOPES],
           subject_syntax_types_supported: ["did:ebsi", "did:key"],
+          subject_trust_frameworks_supported: ["ebsi"],
+          subject_types_supported: ["public"],
+          token_endpoint: `${serviceEndpoint}/token`,
           token_endpoint_auth_methods_supported: ["private_key_jwt"],
           vp_formats_supported: {
-            jwt_vp: {
-              alg_values_supported: ["ES256"],
-            },
-            jwt_vp_json: {
-              alg_values_supported: ["ES256"],
-            },
             jwt_vc: {
               alg_values_supported: ["ES256"],
             },
             jwt_vc_json: {
               alg_values_supported: ["ES256"],
             },
+            jwt_vp: {
+              alg_values_supported: ["ES256"],
+            },
+            jwt_vp_json: {
+              alg_values_supported: ["ES256"],
+            },
           },
-          grant_types_supported: ["vp_token"],
-          subject_trust_frameworks_supported: ["ebsi"],
-          id_token_types_supported: ["subject_signed_id_token"],
         });
 
         expect(response.status).toBe(200);
@@ -315,12 +318,12 @@ describe.each(["EBSI URI", "URL"] as const)(
         expect(response.body).toStrictEqual({
           keys: expect.arrayContaining([
             {
-              kty: "EC",
-              crv: "P-256",
               alg: "ES256",
+              crv: "P-256",
+              kid: expect.any(String),
+              kty: "EC",
               x: expect.any(String),
               y: expect.any(String),
-              kid: expect.any(String),
             },
           ]),
         });
@@ -614,11 +617,11 @@ describe.each(["EBSI URI", "URL"] as const)(
 
           const vpPayload = {
             "@context": ["https://www.w3.org/2018/credentials/v1"],
-            type: ["VerifiablePresentation"],
-            id: randomUUID(),
             // 'verifiableCredential' is missing
             // verifiableCredential: [],
             holder: credentialSubject.did,
+            id: randomUUID(),
+            type: ["VerifiablePresentation"],
           };
 
           const presentationSubmission = createPresentationSubmission(
@@ -633,13 +636,13 @@ describe.each(["EBSI URI", "URL"] as const)(
           const vpJwt = await createJWT(
             {
               aud: serviceEndpoint,
-              sub: credentialIssuer.did,
-              iat: now,
-              nbf: now,
               exp: now + 60, // 1 minute expiration
-              vp: vpPayload,
-              nonce: randomUUID(),
+              iat: now,
               iss: credentialIssuer.did,
+              nbf: now,
+              nonce: randomUUID(),
+              sub: credentialIssuer.did,
+              vp: vpPayload,
             },
             {
               issuer: credentialIssuer.keys.ES256.did,
@@ -647,8 +650,8 @@ describe.each(["EBSI URI", "URL"] as const)(
             },
             {
               alg: credentialIssuer.keys.ES256.alg,
-              typ: "JWT",
               kid: credentialIssuer.keys.ES256.kid,
+              typ: "JWT",
             },
           );
 
@@ -658,9 +661,9 @@ describe.each(["EBSI URI", "URL"] as const)(
             .send(
               new URLSearchParams({
                 grant_type: "vp_token",
+                presentation_submission: JSON.stringify(presentationSubmission),
                 scope,
                 vp_token: vpJwt,
-                presentation_submission: JSON.stringify(presentationSubmission),
               } satisfies CreateAccessTokenDto).toString(),
             );
 
@@ -698,17 +701,6 @@ describe.each(["EBSI URI", "URL"] as const)(
               );
               vcPayload = {
                 "@context": ["https://www.w3.org/2018/credentials/v1"],
-                id: `urn:uuid:${randomUUID()}`,
-                type: ["VerifiableCredential", "VerifiableAttestation"],
-                issuer: credentialIssuer.did,
-                issuanceDate: `${issuanceDate.toISOString().slice(0, -5)}Z`,
-                issued: `${issuanceDate.toISOString().slice(0, -5)}Z`,
-                validFrom: `${issuanceDate.toISOString().slice(0, -5)}Z`,
-                expirationDate: `${expirationDate.toISOString().slice(0, -5)}Z`,
-                credentialSubject: {
-                  id: credentialSubject.did,
-                  type: "same-device",
-                },
                 credentialSchema: {
                   id:
                     uriType === "EBSI URI"
@@ -716,6 +708,15 @@ describe.each(["EBSI URI", "URL"] as const)(
                       : testOidSchemaUrl,
                   type: "FullJsonSchemaValidator2021",
                 },
+                credentialSubject: {
+                  id: credentialSubject.did,
+                  type: "same-device",
+                },
+                expirationDate: `${expirationDate.toISOString().slice(0, -5)}Z`,
+                id: `urn:uuid:${randomUUID()}`,
+                issuanceDate: `${issuanceDate.toISOString().slice(0, -5)}Z`,
+                issued: `${issuanceDate.toISOString().slice(0, -5)}Z`,
+                issuer: credentialIssuer.did,
                 termsOfUse: {
                   id:
                     uriType === "EBSI URI"
@@ -723,6 +724,8 @@ describe.each(["EBSI URI", "URL"] as const)(
                       : credentialIssuerAccreditationUrl,
                   type: "IssuanceCertificate",
                 },
+                type: ["VerifiableCredential", "VerifiableAttestation"],
+                validFrom: `${issuanceDate.toISOString().slice(0, -5)}Z`,
               };
 
               if (customScope === TIR_INVITE_SCOPE) {
@@ -736,10 +739,10 @@ describe.each(["EBSI URI", "URL"] as const)(
 
               vpPayload = {
                 "@context": ["https://www.w3.org/2018/credentials/v1"],
-                type: ["VerifiablePresentation"],
-                id: randomUUID(),
-                verifiableCredential: [],
                 holder: credentialSubject.did,
+                id: randomUUID(),
+                type: ["VerifiablePresentation"],
+                verifiableCredential: [],
               };
 
               // Reset to valid presentation submission before each test
@@ -778,23 +781,23 @@ describe.each(["EBSI URI", "URL"] as const)(
                     ),
                     () =>
                       HttpResponse.json({
-                        did: credentialSubject.did,
                         attributes: [
                           {
-                            hash: "c5f705998e64792887cca48553f57b67b2a511fc271c2a49e677a4c995320aa4",
                             body: "",
+                            hash: "c5f705998e64792887cca48553f57b67b2a511fc271c2a49e677a4c995320aa4",
                             issuerType: "RootTAO",
-                            tao: credentialIssuer.did,
                             rootTao: credentialIssuer.did,
+                            tao: credentialIssuer.did,
                           },
                           {
-                            hash: "04647216cf99e4ea91c5ee230129bededf92c349663d4d99945ac510c4897a12",
                             body: "",
+                            hash: "04647216cf99e4ea91c5ee230129bededf92c349663d4d99945ac510c4897a12",
                             issuerType: "RootTAO",
-                            tao: credentialIssuer.did,
                             rootTao: credentialIssuer.did,
+                            tao: credentialIssuer.did,
                           },
                         ],
+                        did: credentialSubject.did,
                       }),
                   ),
                 );
@@ -808,23 +811,23 @@ describe.each(["EBSI URI", "URL"] as const)(
                     ),
                     () =>
                       HttpResponse.json({
-                        did: credentialSubject.did,
                         attributes: [
                           {
-                            hash: "c5f705998e64792887cca48553f57b67b2a511fc271c2a49e677a4c995320aa4",
                             body: "eyJhbGciOiJFUzI1NiI...",
+                            hash: "c5f705998e64792887cca48553f57b67b2a511fc271c2a49e677a4c995320aa4",
                             issuerType: "RootTAO",
-                            tao: credentialIssuer.did,
                             rootTao: credentialIssuer.did,
+                            tao: credentialIssuer.did,
                           },
                           {
-                            hash: "04647216cf99e4ea91c5ee230129bededf92c349663d4d99945ac510c4897a12",
                             body: "eyJhbGciOiJFUzI1NiI...",
+                            hash: "04647216cf99e4ea91c5ee230129bededf92c349663d4d99945ac510c4897a12",
                             issuerType: "RootTAO",
-                            tao: credentialIssuer.did,
                             rootTao: credentialIssuer.did,
+                            tao: credentialIssuer.did,
                           },
                         ],
+                        did: credentialSubject.did,
                       }),
                   ),
                 );
@@ -836,8 +839,8 @@ describe.each(["EBSI URI", "URL"] as const)(
                     `${domain}/trusted-policies-registry/v3/users/${credentialSubject.address}`,
                     () =>
                       HttpResponse.json({
-                        user: credentialSubject.address,
                         attributes: ["TNT:authoriseDid"],
+                        user: credentialSubject.address,
                       }),
                   ),
                 );
@@ -882,10 +885,10 @@ describe.each(["EBSI URI", "URL"] as const)(
                   "authentication-service-v3",
                   {
                     ...ebsiEnvConfig,
-                    skipValidation: true,
-                    nonce: randomUUID(),
-                    nbf: now,
                     exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
+                    nbf: now,
+                    nonce: randomUUID(),
+                    skipValidation: true,
                   },
                 );
 
@@ -895,11 +898,11 @@ describe.each(["EBSI URI", "URL"] as const)(
                   .send(
                     new URLSearchParams({
                       grant_type: "vp_token",
-                      scope,
-                      vp_token: vpJwt,
                       presentation_submission: JSON.stringify(
                         presentationSubmission,
                       ),
+                      scope,
+                      vp_token: vpJwt,
                     } satisfies CreateAccessTokenDto).toString(),
                   );
 
@@ -940,10 +943,10 @@ describe.each(["EBSI URI", "URL"] as const)(
                   serviceEndpoint,
                   {
                     ...ebsiEnvConfig,
-                    skipValidation: true,
-                    nonce: randomUUID(),
-                    nbf: now,
                     exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
+                    nbf: now,
+                    nonce: randomUUID(),
+                    skipValidation: true,
                   },
                 );
 
@@ -954,7 +957,7 @@ describe.each(["EBSI URI", "URL"] as const)(
                 const vpTokenTampered = await createJWT(
                   vpJwtDecoded.payload,
                   {
-                    issuer: vpJwtDecoded.payload.iss as string,
+                    issuer: vpJwtDecoded.payload.iss!,
                     signer: ES256KSigner(randomBytes(32)),
                   },
                   {
@@ -968,11 +971,11 @@ describe.each(["EBSI URI", "URL"] as const)(
                   .send(
                     new URLSearchParams({
                       grant_type: "vp_token",
-                      scope,
-                      vp_token: vpTokenTampered,
                       presentation_submission: JSON.stringify(
                         presentationSubmission,
                       ),
+                      scope,
+                      vp_token: vpTokenTampered,
                     } satisfies CreateAccessTokenDto).toString(),
                   );
 
@@ -1012,11 +1015,11 @@ describe.each(["EBSI URI", "URL"] as const)(
                   serviceEndpoint,
                   {
                     ...ebsiEnvConfig,
-                    skipValidation: true,
-                    nonce: randomUUID(),
                     // Override "exp" and "nbf"
                     exp: Math.floor(Date.now() / 1000) - 100,
                     nbf: Math.floor(Date.now() / 1000) - 1000,
+                    nonce: randomUUID(),
+                    skipValidation: true,
                   },
                 );
 
@@ -1026,11 +1029,11 @@ describe.each(["EBSI URI", "URL"] as const)(
                   .send(
                     new URLSearchParams({
                       grant_type: "vp_token",
-                      scope,
-                      vp_token: vpJwt,
                       presentation_submission: JSON.stringify(
                         presentationSubmission,
                       ),
+                      scope,
+                      vp_token: vpJwt,
                     } satisfies CreateAccessTokenDto).toString(),
                   );
 
@@ -1071,11 +1074,11 @@ describe.each(["EBSI URI", "URL"] as const)(
                   serviceEndpoint,
                   {
                     ...ebsiEnvConfig,
-                    skipValidation: true,
-                    nonce: randomUUID(),
                     // Override "exp" and "nbf"
                     exp: now + 120,
                     nbf: now + 100,
+                    nonce: randomUUID(),
+                    skipValidation: true,
                   },
                 );
 
@@ -1085,11 +1088,11 @@ describe.each(["EBSI URI", "URL"] as const)(
                   .send(
                     new URLSearchParams({
                       grant_type: "vp_token",
-                      scope,
-                      vp_token: vpJwt,
                       presentation_submission: JSON.stringify(
                         presentationSubmission,
                       ),
+                      scope,
+                      vp_token: vpJwt,
                     } satisfies CreateAccessTokenDto).toString(),
                   );
 
@@ -1131,10 +1134,10 @@ describe.each(["EBSI URI", "URL"] as const)(
                   serviceEndpoint,
                   {
                     ...ebsiEnvConfig,
-                    skipValidation: true,
+                    exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
                     // We don't add any nonce
                     nbf: now,
-                    exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
+                    skipValidation: true,
                   },
                 );
 
@@ -1145,11 +1148,11 @@ describe.each(["EBSI URI", "URL"] as const)(
                   .send(
                     new URLSearchParams({
                       grant_type: "vp_token",
-                      scope,
-                      vp_token: vpJwt,
                       presentation_submission: JSON.stringify(
                         presentationSubmission,
                       ),
+                      scope,
+                      vp_token: vpJwt,
                     } satisfies CreateAccessTokenDto).toString(),
                   );
 
@@ -1189,13 +1192,13 @@ describe.each(["EBSI URI", "URL"] as const)(
                 const vpJwt = await createJWT(
                   {
                     aud: serviceEndpoint,
-                    sub: credentialIssuer.did,
-                    iat: now,
-                    nbf: now,
                     exp: now + 60, // 1 minute expiration
-                    vp: vpPayload,
-                    nonce: randomUUID(),
+                    iat: now,
                     iss: credentialIssuer.did,
+                    nbf: now,
+                    nonce: randomUUID(),
+                    sub: credentialIssuer.did,
+                    vp: vpPayload,
                   },
                   {
                     issuer: credentialIssuer.keys.ES256.did,
@@ -1203,8 +1206,8 @@ describe.each(["EBSI URI", "URL"] as const)(
                   },
                   {
                     alg: credentialIssuer.keys.ES256.alg,
-                    typ: "JWT",
                     kid: credentialIssuer.keys.ES256.kid,
+                    typ: "JWT",
                   },
                 );
 
@@ -1214,11 +1217,11 @@ describe.each(["EBSI URI", "URL"] as const)(
                   .send(
                     new URLSearchParams({
                       grant_type: "vp_token",
-                      scope,
-                      vp_token: vpJwt,
                       presentation_submission: JSON.stringify(
                         presentationSubmission,
                       ),
+                      scope,
+                      vp_token: vpJwt,
                     } satisfies CreateAccessTokenDto).toString(),
                   );
 
@@ -1229,11 +1232,11 @@ describe.each(["EBSI URI", "URL"] as const)(
                   .send(
                     new URLSearchParams({
                       grant_type: "vp_token",
-                      scope,
-                      vp_token: vpJwt,
                       presentation_submission: JSON.stringify(
                         presentationSubmission,
                       ),
+                      scope,
+                      vp_token: vpJwt,
                     } satisfies CreateAccessTokenDto).toString(),
                   );
 
@@ -1254,8 +1257,8 @@ describe.each(["EBSI URI", "URL"] as const)(
                 if (
                   [
                     DIDR_WRITE_SCOPE,
-                    TIR_WRITE_SCOPE,
                     TIMESTAMP_WRITE_SCOPE,
+                    TIR_WRITE_SCOPE,
                     TNT_CREATE_SCOPE,
                     TNT_WRITE_SCOPE,
                     TPR_WRITE_SCOPE,
@@ -1274,10 +1277,10 @@ describe.each(["EBSI URI", "URL"] as const)(
                   serviceEndpoint,
                   {
                     ...ebsiEnvConfig,
-                    skipValidation: true,
-                    nonce: randomUUID(),
-                    nbf: now,
                     exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
+                    nbf: now,
+                    nonce: randomUUID(),
+                    skipValidation: true,
                   },
                 );
 
@@ -1287,11 +1290,11 @@ describe.each(["EBSI URI", "URL"] as const)(
                   .send(
                     new URLSearchParams({
                       grant_type: "vp_token",
-                      scope,
-                      vp_token: vpJwt,
                       presentation_submission: JSON.stringify(
                         presentationSubmission,
                       ),
+                      scope,
+                      vp_token: vpJwt,
                     } satisfies CreateAccessTokenDto).toString(),
                   );
 
@@ -1336,10 +1339,10 @@ describe.each(["EBSI URI", "URL"] as const)(
                 serviceEndpoint,
                 {
                   ...ebsiEnvConfig,
-                  skipValidation: true,
-                  nonce,
-                  nbf: now,
                   exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
+                  nbf: now,
+                  nonce,
+                  skipValidation: true,
                 },
               );
 
@@ -1348,9 +1351,9 @@ describe.each(["EBSI URI", "URL"] as const)(
                 .set("Content-Type", "application/json")
                 .send({
                   grant_type: "vp_token",
+                  presentation_submission: presentationSubmission,
                   scope,
                   vp_token: vpJwt,
-                  presentation_submission: presentationSubmission,
                 });
 
               expect(response.body).toStrictEqual({
@@ -1381,20 +1384,20 @@ describe.each(["EBSI URI", "URL"] as const)(
 
             it("should return an error if the presentation submission is not a JSON string", async () => {
               presentationSubmission = {
-                id: randomUUID(),
                 definition_id: "openid_presentation",
                 descriptor_map: [
                   {
+                    format: vpFormat,
                     id: "same-device-in-time-credential",
                     path: "$",
-                    format: vpFormat,
                     path_nested: {
-                      id: randomUUID(),
                       format: vcFormat,
+                      id: randomUUID(),
                       path: "$vp.verifiableCredential[0]", // wrong path
                     },
                   },
                 ],
+                id: randomUUID(),
               };
 
               if (
@@ -1424,10 +1427,10 @@ describe.each(["EBSI URI", "URL"] as const)(
                 serviceEndpoint,
                 {
                   ...ebsiEnvConfig,
-                  skipValidation: true,
-                  nonce: randomUUID(),
-                  nbf: now,
                   exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
+                  nbf: now,
+                  nonce: randomUUID(),
+                  skipValidation: true,
                 },
               );
 
@@ -1437,9 +1440,9 @@ describe.each(["EBSI URI", "URL"] as const)(
                 .send(
                   qs.stringify({
                     grant_type: "vp_token",
+                    presentation_submission: presentationSubmission,
                     scope,
                     vp_token: vpJwt,
-                    presentation_submission: presentationSubmission,
                   }),
                 );
 
@@ -1453,20 +1456,20 @@ describe.each(["EBSI URI", "URL"] as const)(
 
             it("should return an error if the presentation submission is invalid (including error details)", async () => {
               presentationSubmission = {
-                id: randomUUID(),
                 definition_id: "openid_presentation",
                 descriptor_map: [
                   {
+                    format: vpFormat,
                     id: "same-device-in-time-credential",
                     path: "$",
-                    format: vpFormat,
                     path_nested: {
-                      id: randomUUID(),
                       format: vcFormat,
+                      id: randomUUID(),
                       path: "$vp.verifiableCredential[0]", // wrong path
                     },
                   },
                 ],
+                id: randomUUID(),
               };
 
               if (
@@ -1495,10 +1498,10 @@ describe.each(["EBSI URI", "URL"] as const)(
                 serviceEndpoint,
                 {
                   ...ebsiEnvConfig,
-                  skipValidation: true,
-                  nonce: randomUUID(),
-                  nbf: now,
                   exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
+                  nbf: now,
+                  nonce: randomUUID(),
+                  skipValidation: true,
                 },
               );
 
@@ -1508,11 +1511,11 @@ describe.each(["EBSI URI", "URL"] as const)(
                 .send(
                   new URLSearchParams({
                     grant_type: "vp_token",
-                    scope,
-                    vp_token: vpJwt,
                     presentation_submission: JSON.stringify(
                       presentationSubmission,
                     ),
+                    scope,
+                    vp_token: vpJwt,
                   } satisfies CreateAccessTokenDto).toString(),
                 );
 
@@ -1528,20 +1531,20 @@ describe.each(["EBSI URI", "URL"] as const)(
               ).toBe("application/json; charset=utf-8");
 
               presentationSubmission = {
-                id: randomUUID(),
                 definition_id: "openid_presentation",
                 descriptor_map: [
                   {
+                    format: vpFormat,
                     id: "same-device-in-time-credential",
                     path: "$",
-                    format: vpFormat,
                     path_nested: {
-                      id: randomUUID(),
                       format: vcFormat,
+                      id: randomUUID(),
                       path: "$.vp.verifiableCredential[1]", // no credential at this index
                     },
                   },
                 ],
+                id: randomUUID(),
               };
 
               vpJwt = await createVerifiablePresentationJwt(
@@ -1550,10 +1553,10 @@ describe.each(["EBSI URI", "URL"] as const)(
                 serviceEndpoint,
                 {
                   ...ebsiEnvConfig,
-                  skipValidation: true,
-                  nonce: randomUUID(),
-                  nbf: now,
                   exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
+                  nbf: now,
+                  nonce: randomUUID(),
+                  skipValidation: true,
                 },
               );
 
@@ -1563,11 +1566,11 @@ describe.each(["EBSI URI", "URL"] as const)(
                 .send(
                   new URLSearchParams({
                     grant_type: "vp_token",
-                    scope,
-                    vp_token: vpJwt,
                     presentation_submission: JSON.stringify(
                       presentationSubmission,
                     ),
+                    scope,
+                    vp_token: vpJwt,
                   } satisfies CreateAccessTokenDto).toString(),
                 );
 
@@ -1582,20 +1585,20 @@ describe.each(["EBSI URI", "URL"] as const)(
               ).toBe("application/json; charset=utf-8");
 
               presentationSubmission = {
-                id: randomUUID(),
                 definition_id: "openid_presentation",
                 descriptor_map: [
                   {
+                    format: vpFormat,
                     id: "same-device-in-time-credential",
                     path: "$.vp", // wrong path
-                    format: vpFormat,
                     path_nested: {
-                      id: randomUUID(),
                       format: vcFormat,
+                      id: randomUUID(),
                       path: "$.vc.verifiableCredential[0]", // wrong path
                     },
                   },
                 ],
+                id: randomUUID(),
               };
 
               vpJwt = await createVerifiablePresentationJwt(
@@ -1604,10 +1607,10 @@ describe.each(["EBSI URI", "URL"] as const)(
                 serviceEndpoint,
                 {
                   ...ebsiEnvConfig,
-                  skipValidation: true,
-                  nonce: randomUUID(),
-                  nbf: now,
                   exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
+                  nbf: now,
+                  nonce: randomUUID(),
+                  skipValidation: true,
                 },
               );
 
@@ -1617,11 +1620,11 @@ describe.each(["EBSI URI", "URL"] as const)(
                 .send(
                   new URLSearchParams({
                     grant_type: "vp_token",
-                    scope,
-                    vp_token: vpJwt,
                     presentation_submission: JSON.stringify(
                       presentationSubmission,
                     ),
+                    scope,
+                    vp_token: vpJwt,
                   } satisfies CreateAccessTokenDto).toString(),
                 );
 
@@ -1641,10 +1644,10 @@ describe.each(["EBSI URI", "URL"] as const)(
                 serviceEndpoint,
                 {
                   ...ebsiEnvConfig,
-                  skipValidation: true,
-                  nonce: randomUUID(),
-                  nbf: now,
                   exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
+                  nbf: now,
+                  nonce: randomUUID(),
+                  skipValidation: true,
                 },
               );
 
@@ -1654,18 +1657,18 @@ describe.each(["EBSI URI", "URL"] as const)(
                 .send(
                   new URLSearchParams({
                     grant_type: "vp_token",
+                    presentation_submission: JSON.stringify({ foo: "bar" }), // invalid json
                     scope,
                     vp_token: vpJwt,
-                    presentation_submission: JSON.stringify({ foo: "bar" }), // invalid json
                   } satisfies CreateAccessTokenDto).toString(),
                 );
 
               expect(response.body).toStrictEqual({
                 error: "invalid_request",
                 error_description: `Invalid Presentation Submission:
-- Validation error. Path: 'presentation_submission.id'. Reason: Required
 - Validation error. Path: 'presentation_submission.definition_id'. Reason: Required
-- Validation error. Path: 'presentation_submission.descriptor_map'. Reason: Required`,
+- Validation error. Path: 'presentation_submission.descriptor_map'. Reason: Required
+- Validation error. Path: 'presentation_submission.id'. Reason: Required`,
               });
               expect(response.status).toBe(400);
               expect(
@@ -1678,10 +1681,10 @@ describe.each(["EBSI URI", "URL"] as const)(
                 serviceEndpoint,
                 {
                   ...ebsiEnvConfig,
-                  skipValidation: true,
-                  nonce: randomUUID(),
-                  nbf: now,
                   exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
+                  nbf: now,
+                  nonce: randomUUID(),
+                  skipValidation: true,
                 },
               );
 
@@ -1698,11 +1701,11 @@ describe.each(["EBSI URI", "URL"] as const)(
                 .send(
                   new URLSearchParams({
                     grant_type: "vp_token",
-                    scope,
-                    vp_token: vpJwt,
                     presentation_submission: JSON.stringify(
                       invalidPresentationSubmission,
                     ),
+                    scope,
+                    vp_token: vpJwt,
                   } satisfies CreateAccessTokenDto).toString(),
                 );
 
@@ -1722,10 +1725,10 @@ describe.each(["EBSI URI", "URL"] as const)(
                 serviceEndpoint,
                 {
                   ...ebsiEnvConfig,
-                  skipValidation: true,
-                  nonce: randomUUID(),
-                  nbf: now,
                   exp: now + 600, // Expire in 10 minutes (more than the 5 minutes limit)
+                  nbf: now,
+                  nonce: randomUUID(),
+                  skipValidation: true,
                 },
               );
 
@@ -1735,11 +1738,11 @@ describe.each(["EBSI URI", "URL"] as const)(
                 .send(
                   new URLSearchParams({
                     grant_type: "vp_token",
-                    scope,
-                    vp_token: vpJwt,
                     presentation_submission: JSON.stringify(
                       presentationSubmission,
                     ),
+                    scope,
+                    vp_token: vpJwt,
                   } satisfies CreateAccessTokenDto).toString(),
                 );
 
@@ -1789,6 +1792,26 @@ describe.each(["EBSI URI", "URL"] as const)(
                   expectedErrorMessage = `Invalid Verifiable Presentation: Unable to resolve ${vpSigner.did}. Error: notFound. Not Found | Registry used: ${domain}/did-registry/v5/identifiers`;
                   break;
                 }
+                case TIMESTAMP_WRITE_SCOPE:
+                case TPR_WRITE_SCOPE:
+                case TSR_WRITE_SCOPE: {
+                  // VP Signer is not registered in the DIDR
+                  const legalEntity = await createLegalEntity(["ES256"]);
+                  vpSigner = legalEntity.keys.ES256;
+                  vpPayload.holder = vpSigner.did;
+
+                  mockServer.use(
+                    http.get(
+                      escapeDid(
+                        `${domain}/did-registry/v5/identifiers/${vpSigner.did}`,
+                      ),
+                      () => HttpResponse.text("Not found", { status: 404 }),
+                    ),
+                  );
+
+                  expectedErrorMessage = `Invalid Verifiable Presentation: Unable to resolve ${vpSigner.did}. Error: notFound. Not Found | Registry used: ${domain}/did-registry/v5/identifiers`;
+                  break;
+                }
                 case TIR_INVITE_SCOPE: {
                   // Present a VC without any of VerifiableAuthorisationForTrustChain, VerifiableAccreditationToAttest or VerifiableAccreditationToAccredit
                   vcPayload.type = [
@@ -1823,26 +1846,6 @@ describe.each(["EBSI URI", "URL"] as const)(
                   expectedErrorMessage = `Invalid Verifiable Presentation: DID ${vpSigner.did} is not registered in the Trusted Issuers Registry`;
                   break;
                 }
-                case TIMESTAMP_WRITE_SCOPE:
-                case TPR_WRITE_SCOPE:
-                case TSR_WRITE_SCOPE: {
-                  // VP Signer is not registered in the DIDR
-                  const legalEntity = await createLegalEntity(["ES256"]);
-                  vpSigner = legalEntity.keys.ES256;
-                  vpPayload.holder = vpSigner.did;
-
-                  mockServer.use(
-                    http.get(
-                      escapeDid(
-                        `${domain}/did-registry/v5/identifiers/${vpSigner.did}`,
-                      ),
-                      () => HttpResponse.text("Not found", { status: 404 }),
-                    ),
-                  );
-
-                  expectedErrorMessage = `Invalid Verifiable Presentation: Unable to resolve ${vpSigner.did}. Error: notFound. Not Found | Registry used: ${domain}/did-registry/v5/identifiers`;
-                  break;
-                }
                 case TNT_AUTHORISE_SCOPE: {
                   // Present a VC without VerifiableAuthorisationToOnboard
                   vcPayload.type = [
@@ -1866,7 +1869,7 @@ describe.each(["EBSI URI", "URL"] as const)(
                         );
 
                         if (creator === vpSigner.did) {
-                          return new HttpResponse(null, { status: 404 });
+                          return new HttpResponse(undefined, { status: 404 });
                         }
 
                         throw new Error(
@@ -1891,15 +1894,15 @@ describe.each(["EBSI URI", "URL"] as const)(
                         if (subject === vpSigner.did) {
                           return HttpResponse.json(
                             {
-                              self: "",
                               items: [],
-                              total: 0,
                               links: {
                                 first: "",
-                                prev: "",
-                                next: "",
                                 last: "",
+                                next: "",
+                                prev: "",
                               },
+                              self: "",
+                              total: 0,
                             } satisfies PaginatedList<Access>,
                             { status: 200 },
                           );
@@ -1946,10 +1949,10 @@ describe.each(["EBSI URI", "URL"] as const)(
                 serviceEndpoint,
                 {
                   ...ebsiEnvConfig,
-                  skipValidation: true,
-                  nonce,
-                  nbf: now,
                   exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
+                  nbf: now,
+                  nonce,
+                  skipValidation: true,
                 },
               );
 
@@ -1959,11 +1962,11 @@ describe.each(["EBSI URI", "URL"] as const)(
                 .send(
                   new URLSearchParams({
                     grant_type: "vp_token",
-                    scope,
-                    vp_token: vpJwt,
                     presentation_submission: JSON.stringify(
                       presentationSubmission,
                     ),
+                    scope,
+                    vp_token: vpJwt,
                   } satisfies CreateAccessTokenDto).toString(),
                 );
 
@@ -2009,7 +2012,7 @@ describe.each(["EBSI URI", "URL"] as const)(
                       );
 
                       if (creator === vpPayload.holder) {
-                        return new HttpResponse(null, { status: 204 });
+                        return new HttpResponse(undefined, { status: 204 });
                       }
 
                       throw new Error(
@@ -2032,17 +2035,17 @@ describe.each(["EBSI URI", "URL"] as const)(
                       if (subject === vpPayload.holder) {
                         return HttpResponse.json(
                           {
-                            self: "",
                             items: [
                               {
                                 documentId: "0x00",
-                                subject,
                                 grantedBy: "did:ebsi:1234",
                                 permission: "write",
+                                subject,
                               },
                             ],
+                            links: { first: "", last: "", next: "", prev: "" },
+                            self: "",
                             total: 1,
-                            links: { first: "", prev: "", next: "", last: "" },
                           } satisfies PaginatedList<Access>,
                           { status: 200 },
                         );
@@ -2063,10 +2066,10 @@ describe.each(["EBSI URI", "URL"] as const)(
                 serviceEndpoint,
                 {
                   ...ebsiEnvConfig,
-                  skipValidation: true,
-                  nonce,
-                  nbf: now,
                   exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
+                  nbf: now,
+                  nonce,
+                  skipValidation: true,
                 },
               );
 
@@ -2076,11 +2079,11 @@ describe.each(["EBSI URI", "URL"] as const)(
                 .send(
                   new URLSearchParams({
                     grant_type: "vp_token",
-                    scope,
-                    vp_token: vpJwt,
                     presentation_submission: JSON.stringify(
                       presentationSubmission,
                     ),
+                    scope,
+                    vp_token: vpJwt,
                   } satisfies CreateAccessTokenDto).toString(),
                 );
 
@@ -2097,8 +2100,8 @@ describe.each(["EBSI URI", "URL"] as const)(
               if (
                 [
                   DIDR_WRITE_SCOPE,
-                  TIR_WRITE_SCOPE,
                   TIMESTAMP_WRITE_SCOPE,
+                  TIR_WRITE_SCOPE,
                   TNT_CREATE_SCOPE,
                   TNT_WRITE_SCOPE,
                   TPR_WRITE_SCOPE,
@@ -2136,10 +2139,10 @@ describe.each(["EBSI URI", "URL"] as const)(
                 serviceEndpoint,
                 {
                   ...ebsiEnvConfig,
-                  skipValidation: true,
-                  nonce,
-                  nbf: now,
                   exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
+                  nbf: now,
+                  nonce,
+                  skipValidation: true,
                 },
               );
 
@@ -2149,11 +2152,11 @@ describe.each(["EBSI URI", "URL"] as const)(
                 .send(
                   new URLSearchParams({
                     grant_type: "vp_token",
-                    scope,
-                    vp_token: vpJwt,
                     presentation_submission: JSON.stringify(
                       presentationSubmission,
                     ),
+                    scope,
+                    vp_token: vpJwt,
                   } satisfies CreateAccessTokenDto).toString(),
                 );
 
@@ -2170,8 +2173,8 @@ describe.each(["EBSI URI", "URL"] as const)(
               if (
                 [
                   DIDR_WRITE_SCOPE,
-                  TIR_WRITE_SCOPE,
                   TIMESTAMP_WRITE_SCOPE,
+                  TIR_WRITE_SCOPE,
                   TNT_CREATE_SCOPE,
                   TNT_WRITE_SCOPE,
                   TPR_WRITE_SCOPE,
@@ -2209,10 +2212,10 @@ describe.each(["EBSI URI", "URL"] as const)(
                 serviceEndpoint,
                 {
                   ...ebsiEnvConfig,
-                  skipValidation: true,
-                  nonce,
-                  nbf: now,
                   exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
+                  nbf: now,
+                  nonce,
+                  skipValidation: true,
                 },
               );
 
@@ -2222,11 +2225,11 @@ describe.each(["EBSI URI", "URL"] as const)(
                 .send(
                   new URLSearchParams({
                     grant_type: "vp_token",
-                    scope,
-                    vp_token: vpJwt,
                     presentation_submission: JSON.stringify(
                       presentationSubmission,
                     ),
+                    scope,
+                    vp_token: vpJwt,
                   } satisfies CreateAccessTokenDto).toString(),
                 );
 
@@ -2243,8 +2246,8 @@ describe.each(["EBSI URI", "URL"] as const)(
               if (
                 [
                   DIDR_WRITE_SCOPE,
-                  TIR_WRITE_SCOPE,
                   TIMESTAMP_WRITE_SCOPE,
+                  TIR_WRITE_SCOPE,
                   TNT_CREATE_SCOPE,
                   TNT_WRITE_SCOPE,
                   TPR_WRITE_SCOPE,
@@ -2280,10 +2283,10 @@ describe.each(["EBSI URI", "URL"] as const)(
                 serviceEndpoint,
                 {
                   ...ebsiEnvConfig,
-                  skipValidation: true,
-                  nonce,
-                  nbf: now,
                   exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
+                  nbf: now,
+                  nonce,
+                  skipValidation: true,
                 },
               );
 
@@ -2293,11 +2296,11 @@ describe.each(["EBSI URI", "URL"] as const)(
                 .send(
                   new URLSearchParams({
                     grant_type: "vp_token",
-                    scope,
-                    vp_token: vpJwt,
                     presentation_submission: JSON.stringify(
                       presentationSubmission,
                     ),
+                    scope,
+                    vp_token: vpJwt,
                   } satisfies CreateAccessTokenDto).toString(),
                 );
 
@@ -2314,8 +2317,8 @@ describe.each(["EBSI URI", "URL"] as const)(
               if (
                 [
                   DIDR_WRITE_SCOPE,
-                  TIR_WRITE_SCOPE,
                   TIMESTAMP_WRITE_SCOPE,
+                  TIR_WRITE_SCOPE,
                   TNT_CREATE_SCOPE,
                   TNT_WRITE_SCOPE,
                   TPR_WRITE_SCOPE,
@@ -2354,10 +2357,10 @@ describe.each(["EBSI URI", "URL"] as const)(
                 serviceEndpoint,
                 {
                   ...ebsiEnvConfig,
-                  skipValidation: true,
-                  nonce,
-                  nbf: now,
                   exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
+                  nbf: now,
+                  nonce,
+                  skipValidation: true,
                 },
               );
 
@@ -2367,11 +2370,11 @@ describe.each(["EBSI URI", "URL"] as const)(
                 .send(
                   new URLSearchParams({
                     grant_type: "vp_token",
-                    scope,
-                    vp_token: vpJwt,
                     presentation_submission: JSON.stringify(
                       presentationSubmission,
                     ),
+                    scope,
+                    vp_token: vpJwt,
                   } satisfies CreateAccessTokenDto).toString(),
                 );
 
@@ -2388,8 +2391,8 @@ describe.each(["EBSI URI", "URL"] as const)(
               if (
                 [
                   DIDR_WRITE_SCOPE,
-                  TIR_WRITE_SCOPE,
                   TIMESTAMP_WRITE_SCOPE,
+                  TIR_WRITE_SCOPE,
                   TNT_CREATE_SCOPE,
                   TNT_WRITE_SCOPE,
                   TPR_WRITE_SCOPE,
@@ -2428,10 +2431,10 @@ describe.each(["EBSI URI", "URL"] as const)(
                 serviceEndpoint,
                 {
                   ...ebsiEnvConfig,
-                  skipValidation: true,
-                  nonce,
-                  nbf: now,
                   exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
+                  nbf: now,
+                  nonce,
+                  skipValidation: true,
                 },
               );
 
@@ -2441,11 +2444,11 @@ describe.each(["EBSI URI", "URL"] as const)(
                 .send(
                   new URLSearchParams({
                     grant_type: "vp_token",
-                    scope,
-                    vp_token: vpJwt,
                     presentation_submission: JSON.stringify(
                       presentationSubmission,
                     ),
+                    scope,
+                    vp_token: vpJwt,
                   } satisfies CreateAccessTokenDto).toString(),
                 );
 
@@ -2462,8 +2465,8 @@ describe.each(["EBSI URI", "URL"] as const)(
               if (
                 [
                   DIDR_WRITE_SCOPE,
-                  TIR_WRITE_SCOPE,
                   TIMESTAMP_WRITE_SCOPE,
+                  TIR_WRITE_SCOPE,
                   TNT_CREATE_SCOPE,
                   TNT_WRITE_SCOPE,
                   TPR_WRITE_SCOPE,
@@ -2502,10 +2505,10 @@ describe.each(["EBSI URI", "URL"] as const)(
                 serviceEndpoint,
                 {
                   ...ebsiEnvConfig,
-                  skipValidation: true,
-                  nonce,
-                  nbf: now,
                   exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
+                  nbf: now,
+                  nonce,
+                  skipValidation: true,
                 },
               );
 
@@ -2515,11 +2518,11 @@ describe.each(["EBSI URI", "URL"] as const)(
                 .send(
                   new URLSearchParams({
                     grant_type: "vp_token",
-                    scope,
-                    vp_token: vpJwt,
                     presentation_submission: JSON.stringify(
                       presentationSubmission,
                     ),
+                    scope,
+                    vp_token: vpJwt,
                   } satisfies CreateAccessTokenDto).toString(),
                 );
 
@@ -2568,7 +2571,7 @@ describe.each(["EBSI URI", "URL"] as const)(
                       );
 
                       if (creator === vpPayload.holder) {
-                        return new HttpResponse(null, { status: 204 });
+                        return new HttpResponse(undefined, { status: 204 });
                       }
 
                       throw new Error(
@@ -2591,17 +2594,17 @@ describe.each(["EBSI URI", "URL"] as const)(
                       if (subject === vpPayload.holder) {
                         return HttpResponse.json(
                           {
-                            self: "",
                             items: [
                               {
                                 documentId: "0x00",
-                                subject,
                                 grantedBy: "did:ebsi:1234",
                                 permission: "write",
+                                subject,
                               },
                             ],
+                            links: { first: "", last: "", next: "", prev: "" },
+                            self: "",
                             total: 1,
-                            links: { first: "", prev: "", next: "", last: "" },
                           } satisfies PaginatedList<Access>,
                           { status: 200 },
                         );
@@ -2622,10 +2625,10 @@ describe.each(["EBSI URI", "URL"] as const)(
                 serviceEndpoint,
                 {
                   ...ebsiEnvConfig,
-                  skipValidation: true,
-                  nonce,
-                  nbf: now,
                   exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
+                  nbf: now,
+                  nonce,
+                  skipValidation: true,
                 },
               );
 
@@ -2635,11 +2638,11 @@ describe.each(["EBSI URI", "URL"] as const)(
                 .send(
                   new URLSearchParams({
                     grant_type: "vp_token",
-                    scope,
-                    vp_token: vpJwt,
                     presentation_submission: JSON.stringify(
                       presentationSubmission,
                     ),
+                    scope,
+                    vp_token: vpJwt,
                   } satisfies CreateAccessTokenDto).toString(),
                 );
 
@@ -2710,8 +2713,8 @@ describe.each(["EBSI URI", "URL"] as const)(
                 iat: expect.any(Number),
                 iss: `${domain}/authorisation/v4`,
                 jti: expect.any(String),
-                sub: credentialSubject.did,
                 nonce,
+                sub: credentialSubject.did,
               });
 
               await expect(
@@ -2735,21 +2738,6 @@ describe.each(["EBSI URI", "URL"] as const)(
           });
           const vcPayload = {
             "@context": ["https://www.w3.org/2018/credentials/v1"],
-            id: `urn:uuid:${randomUUID()}`,
-            type: [
-              "VerifiableCredential",
-              "VerifiableAttestation",
-              "VerifiableAuthorisationToOnboard",
-            ],
-            issuer: credentialIssuer.did,
-            issuanceDate: `${issuanceDate.toISOString().slice(0, -5)}Z`,
-            issued: `${issuanceDate.toISOString().slice(0, -5)}Z`,
-            validFrom: `${issuanceDate.toISOString().slice(0, -5)}Z`,
-            expirationDate: `${expirationDate.toISOString().slice(0, -5)}Z`,
-            credentialSubject: {
-              id: credentialSubject.did,
-              type: "same-device",
-            },
             credentialSchema: {
               id:
                 uriType === "EBSI URI"
@@ -2757,6 +2745,15 @@ describe.each(["EBSI URI", "URL"] as const)(
                   : testOidSchemaUrl,
               type: "FullJsonSchemaValidator2021",
             },
+            credentialSubject: {
+              id: credentialSubject.did,
+              type: "same-device",
+            },
+            expirationDate: `${expirationDate.toISOString().slice(0, -5)}Z`,
+            id: `urn:uuid:${randomUUID()}`,
+            issuanceDate: `${issuanceDate.toISOString().slice(0, -5)}Z`,
+            issued: `${issuanceDate.toISOString().slice(0, -5)}Z`,
+            issuer: credentialIssuer.did,
             termsOfUse: {
               id:
                 uriType === "EBSI URI"
@@ -2764,6 +2761,12 @@ describe.each(["EBSI URI", "URL"] as const)(
                   : credentialIssuerAccreditationUrl,
               type: "IssuanceCertificate",
             },
+            type: [
+              "VerifiableCredential",
+              "VerifiableAttestation",
+              "VerifiableAuthorisationToOnboard",
+            ],
+            validFrom: `${issuanceDate.toISOString().slice(0, -5)}Z`,
           } satisfies EbsiVerifiableAttestation;
 
           const vcJwt = await createVerifiableCredentialJwt(
@@ -2777,10 +2780,10 @@ describe.each(["EBSI URI", "URL"] as const)(
 
           const vpPayload = {
             "@context": ["https://www.w3.org/2018/credentials/v1"],
-            type: ["VerifiablePresentation"],
-            id: randomUUID(),
-            verifiableCredential: [vcJwt],
             holder: credentialSubject.did,
+            id: randomUUID(),
+            type: ["VerifiablePresentation"],
+            verifiableCredential: [vcJwt],
           } satisfies EbsiVerifiablePresentation;
 
           // Reset to valid presentation submission before each test
@@ -2816,10 +2819,10 @@ describe.each(["EBSI URI", "URL"] as const)(
             serviceEndpoint,
             {
               ...ebsiEnvConfig,
-              skipValidation: true,
-              nonce,
-              nbf: now,
               exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
+              nbf: now,
+              nonce,
+              skipValidation: true,
             },
           );
 
@@ -2829,9 +2832,9 @@ describe.each(["EBSI URI", "URL"] as const)(
             .send(
               new URLSearchParams({
                 grant_type: "vp_token",
+                presentation_submission: JSON.stringify(presentationSubmission),
                 scope,
                 vp_token: vpJwt,
-                presentation_submission: JSON.stringify(presentationSubmission),
               } satisfies CreateAccessTokenDto).toString(),
             );
 
@@ -2859,21 +2862,6 @@ describe.each(["EBSI URI", "URL"] as const)(
           });
           const vcPayload = {
             "@context": ["https://www.w3.org/2018/credentials/v1"],
-            id: `urn:uuid:${randomUUID()}`,
-            type: [
-              "VerifiableCredential",
-              "VerifiableAttestation",
-              "VerifiableAuthorisationToOnboard",
-            ],
-            issuer: credentialIssuer.did,
-            issuanceDate: `${issuanceDate.toISOString().slice(0, -5)}Z`,
-            issued: `${issuanceDate.toISOString().slice(0, -5)}Z`,
-            validFrom: `${issuanceDate.toISOString().slice(0, -5)}Z`,
-            expirationDate: `${expirationDate.toISOString().slice(0, -5)}Z`,
-            credentialSubject: {
-              id: credentialSubject.did,
-              type: "same-device",
-            },
             credentialSchema: {
               id:
                 uriType === "EBSI URI"
@@ -2881,6 +2869,15 @@ describe.each(["EBSI URI", "URL"] as const)(
                   : testOidSchemaUrl,
               type: "FullJsonSchemaValidator2021",
             },
+            credentialSubject: {
+              id: credentialSubject.did,
+              type: "same-device",
+            },
+            expirationDate: `${expirationDate.toISOString().slice(0, -5)}Z`,
+            id: `urn:uuid:${randomUUID()}`,
+            issuanceDate: `${issuanceDate.toISOString().slice(0, -5)}Z`,
+            issued: `${issuanceDate.toISOString().slice(0, -5)}Z`,
+            issuer: credentialIssuer.did,
             termsOfUse: {
               id:
                 uriType === "EBSI URI"
@@ -2888,6 +2885,12 @@ describe.each(["EBSI URI", "URL"] as const)(
                   : credentialIssuerAccreditationUrl,
               type: "IssuanceCertificate",
             },
+            type: [
+              "VerifiableCredential",
+              "VerifiableAttestation",
+              "VerifiableAuthorisationToOnboard",
+            ],
+            validFrom: `${issuanceDate.toISOString().slice(0, -5)}Z`,
           } satisfies EbsiVerifiableAttestation;
 
           const vcJwt = await createVerifiableCredentialJwt(
@@ -2901,10 +2904,10 @@ describe.each(["EBSI URI", "URL"] as const)(
 
           const vpPayload = {
             "@context": ["https://www.w3.org/2018/credentials/v1"],
-            type: ["VerifiablePresentation"],
-            id: randomUUID(),
-            verifiableCredential: [vcJwt],
             holder: credentialSubject.did,
+            id: randomUUID(),
+            type: ["VerifiablePresentation"],
+            verifiableCredential: [vcJwt],
           } satisfies EbsiVerifiablePresentation;
 
           // Reset to valid presentation submission before each test
@@ -2942,10 +2945,10 @@ describe.each(["EBSI URI", "URL"] as const)(
             serviceEndpoint,
             {
               ...ebsiEnvConfig,
-              skipValidation: true,
-              nonce,
-              nbf: now,
               exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
+              nbf: now,
+              nonce,
+              skipValidation: true,
             },
           );
 
@@ -2956,9 +2959,9 @@ describe.each(["EBSI URI", "URL"] as const)(
             .send(
               new URLSearchParams({
                 grant_type: "vp_token",
+                presentation_submission: JSON.stringify(presentationSubmission),
                 scope,
                 vp_token: vpJwt,
-                presentation_submission: JSON.stringify(presentationSubmission),
               } satisfies CreateAccessTokenDto).toString(),
             );
 
@@ -2977,10 +2980,10 @@ describe.each(["EBSI URI", "URL"] as const)(
             serviceEndpoint,
             {
               ...ebsiEnvConfig,
-              skipValidation: true,
-              nonce,
-              nbf: now,
               exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
+              nbf: now,
+              nonce,
+              skipValidation: true,
             },
           );
 
@@ -2998,9 +3001,9 @@ describe.each(["EBSI URI", "URL"] as const)(
             .send(
               new URLSearchParams({
                 grant_type: "vp_token",
+                presentation_submission: JSON.stringify(presentationSubmission),
                 scope,
                 vp_token: vpJwt,
-                presentation_submission: JSON.stringify(presentationSubmission),
               } satisfies CreateAccessTokenDto).toString(),
             );
 
@@ -3019,10 +3022,10 @@ describe.each(["EBSI URI", "URL"] as const)(
             serviceEndpoint,
             {
               ...ebsiEnvConfig,
-              skipValidation: true,
-              nonce,
-              nbf: now,
               exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
+              nbf: now,
+              nonce,
+              skipValidation: true,
             },
           );
 
@@ -3032,8 +3035,8 @@ describe.each(["EBSI URI", "URL"] as const)(
               `${domain}/trusted-policies-registry/v3/users/${credentialSubject.address}`,
               () =>
                 HttpResponse.json({
-                  user: credentialSubject.address,
                   attributes: ["not TNT attribute"],
+                  user: credentialSubject.address,
                 }),
             ),
           );
@@ -3044,9 +3047,9 @@ describe.each(["EBSI URI", "URL"] as const)(
             .send(
               new URLSearchParams({
                 grant_type: "vp_token",
+                presentation_submission: JSON.stringify(presentationSubmission),
                 scope,
                 vp_token: vpJwt,
-                presentation_submission: JSON.stringify(presentationSubmission),
               } satisfies CreateAccessTokenDto).toString(),
             );
 
@@ -3086,17 +3089,6 @@ describe.each(["EBSI URI", "URL"] as const)(
         });
         const vcPayload: EbsiVerifiableAttestation = {
           "@context": ["https://www.w3.org/2018/credentials/v1"],
-          id: `urn:uuid:${randomUUID()}`,
-          type: ["VerifiableCredential", "VerifiableAttestation"],
-          issuer: credentialIssuer.did,
-          issuanceDate: `${issuanceDate.toISOString().slice(0, -5)}Z`,
-          issued: `${issuanceDate.toISOString().slice(0, -5)}Z`,
-          validFrom: `${issuanceDate.toISOString().slice(0, -5)}Z`,
-          expirationDate: `${expirationDate.toISOString().slice(0, -5)}Z`,
-          credentialSubject: {
-            id: credentialSubject.did,
-            type: "same-device",
-          },
           credentialSchema: {
             id:
               uriType === "EBSI URI"
@@ -3104,6 +3096,15 @@ describe.each(["EBSI URI", "URL"] as const)(
                 : testOidSchemaUrl,
             type: "FullJsonSchemaValidator2021",
           },
+          credentialSubject: {
+            id: credentialSubject.did,
+            type: "same-device",
+          },
+          expirationDate: `${expirationDate.toISOString().slice(0, -5)}Z`,
+          id: `urn:uuid:${randomUUID()}`,
+          issuanceDate: `${issuanceDate.toISOString().slice(0, -5)}Z`,
+          issued: `${issuanceDate.toISOString().slice(0, -5)}Z`,
+          issuer: credentialIssuer.did,
           termsOfUse: {
             id:
               uriType === "EBSI URI"
@@ -3111,6 +3112,8 @@ describe.each(["EBSI URI", "URL"] as const)(
                 : credentialIssuerAccreditationUrl,
             type: "IssuanceCertificate",
           },
+          type: ["VerifiableCredential", "VerifiableAttestation"],
+          validFrom: `${issuanceDate.toISOString().slice(0, -5)}Z`,
         };
 
         if (customScope === TIR_INVITE_SCOPE) {
@@ -3124,10 +3127,10 @@ describe.each(["EBSI URI", "URL"] as const)(
 
         const vpPayload = {
           "@context": ["https://www.w3.org/2018/credentials/v1"],
+          holder: credentialSubject.did,
           id: randomUUID(),
           type: ["VerifiablePresentation"],
           verifiableCredential: [] as string[],
-          holder: credentialSubject.did,
         };
 
         // Reset to valid presentation submission before each test
@@ -3189,10 +3192,10 @@ describe.each(["EBSI URI", "URL"] as const)(
           serviceEndpoint,
           {
             ...ebsiEnvConfig,
-            skipValidation: true,
-            nonce,
-            nbf: now,
             exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
+            nbf: now,
+            nonce,
+            skipValidation: true,
           },
         );
 
@@ -3202,9 +3205,9 @@ describe.each(["EBSI URI", "URL"] as const)(
           .send(
             new URLSearchParams({
               grant_type: "vp_token",
+              presentation_submission: JSON.stringify(presentationSubmission),
               scope,
               vp_token: vpJwt,
-              presentation_submission: JSON.stringify(presentationSubmission),
             } satisfies CreateAccessTokenDto).toString(),
           );
 

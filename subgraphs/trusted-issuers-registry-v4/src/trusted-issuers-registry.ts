@@ -1,27 +1,32 @@
 import { store } from "@graphprotocol/graph-ts";
-import {
-  AttributeMetadataUpdated,
-  AttributeDataUpdated,
-  ProxyUpdated,
-  ProxyRemoved,
-} from "../generated/TrustedIssuersRegistry/TrustedIssuersRegistry";
-import { Issuer, Attribute, Revision, Proxy } from "../generated/schema";
 
-function getIssuerType(i: i32): string {
-  switch (i) {
-    case 0:
-      return "Undefined";
-    case 1:
-      return "RootTAO";
-    case 2:
-      return "TAO";
-    case 3:
-      return "TI";
-    case 4:
-      return "Revoked";
-    default:
-      return "Undefined";
-  }
+import { Attribute, Issuer, Proxy, Revision } from "../generated/schema";
+import {
+  AttributeDataUpdated,
+  AttributeMetadataUpdated,
+  ProxyRemoved,
+  ProxyUpdated,
+} from "../generated/TrustedIssuersRegistry/TrustedIssuersRegistry";
+
+export function handleAttributeDataUpdated(event: AttributeDataUpdated): void {
+  const attribute = Attribute.load(event.params.attributeMetadata.attributeId);
+  if (!attribute) return;
+
+  const revision = new Revision(event.params.newRevisionId);
+
+  attribute.lastRevision = revision.id;
+  const revisions = attribute.revisions;
+  revisions.push(revision.id);
+  attribute.revisions = revisions;
+  attribute.save();
+
+  revision.issuerType = getIssuerType(
+    event.params.attributeMetadata.issuerType,
+  );
+  revision.tao = event.params.attributeMetadata.taoDid;
+  revision.rootTao = event.params.attributeMetadata.rootTaoDid;
+  revision.data = event.params.attributeData.toString();
+  revision.save();
 }
 
 export function handleAttributeMetadataUpdated(
@@ -63,25 +68,21 @@ export function handleAttributeMetadataUpdated(
   revision.save();
 }
 
-export function handleAttributeDataUpdated(event: AttributeDataUpdated): void {
-  const attribute = Attribute.load(event.params.attributeMetadata.attributeId);
-  if (!attribute) return;
+export function handleProxyRemoved(event: ProxyRemoved): void {
+  const issuer = Issuer.load(event.params.did);
+  if (!issuer) return;
 
-  const revision = new Revision(event.params.newRevisionId);
+  const proxies = issuer.proxies;
+  for (let i = 0; i < proxies.length; i += 1) {
+    if (proxies[i].toHexString() == event.params.proxyId.toHexString()) {
+      proxies.splice(i, 1);
+      break;
+    }
+  }
+  issuer.proxies = proxies;
+  issuer.save();
 
-  attribute.lastRevision = revision.id;
-  const revisions = attribute.revisions;
-  revisions.push(revision.id);
-  attribute.revisions = revisions;
-  attribute.save();
-
-  revision.issuerType = getIssuerType(
-    event.params.attributeMetadata.issuerType,
-  );
-  revision.tao = event.params.attributeMetadata.taoDid;
-  revision.rootTao = event.params.attributeMetadata.rootTaoDid;
-  revision.data = event.params.attributeData.toString();
-  revision.save();
+  store.remove("Proxy", event.params.proxyId.toHexString());
 }
 
 export function handleProxyUpdated(event: ProxyUpdated): void {
@@ -102,19 +103,25 @@ export function handleProxyUpdated(event: ProxyUpdated): void {
   proxy.save();
 }
 
-export function handleProxyRemoved(event: ProxyRemoved): void {
-  const issuer = Issuer.load(event.params.did);
-  if (!issuer) return;
-
-  const proxies = issuer.proxies;
-  for (let i = 0; i < proxies.length; i += 1) {
-    if (proxies[i].toHexString() == event.params.proxyId.toHexString()) {
-      proxies.splice(i, 1);
-      break;
+function getIssuerType(i: i32): string {
+  switch (i) {
+    case 0: {
+      return "Undefined";
+    }
+    case 1: {
+      return "RootTAO";
+    }
+    case 2: {
+      return "TAO";
+    }
+    case 3: {
+      return "TI";
+    }
+    case 4: {
+      return "Revoked";
+    }
+    default: {
+      return "Undefined";
     }
   }
-  issuer.proxies = proxies;
-  issuer.save();
-
-  store.remove("Proxy", event.params.proxyId.toHexString());
 }

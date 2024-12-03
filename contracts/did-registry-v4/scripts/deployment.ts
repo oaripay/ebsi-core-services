@@ -1,8 +1,9 @@
-import fs from "node:fs";
-import path from "path";
+import type { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry-v3";
+import type { Artifact } from "hardhat/types";
+
 import { ethers } from "hardhat";
-import { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry-v3";
-import { DidRegistry } from "../src/types";
+import fs from "node:fs";
+import path from "node:path";
 
 async function main() {
   const artifact = JSON.parse(
@@ -16,7 +17,7 @@ async function main() {
       ),
       { encoding: "utf8" },
     ),
-  );
+  ) as unknown as Artifact;
   const policyRegistryFactory = await ethers.getContractFactoryFromArtifact(
     artifact,
     {},
@@ -48,15 +49,16 @@ async function main() {
 
   const contractFactory = await ethers.getContractFactory("DidRegistry", {
     libraries: {
-      DidDocumentLib: didDocumentLib.address,
       ControllersLib: controllersLib.address,
+      DidDocumentLib: didDocumentLib.address,
     },
   });
-  const ts = (await contractFactory.deploy()) as DidRegistry;
+
+  const ts = await contractFactory.deploy(policyContract.address);
   await ts.initialize(16);
 
   console.log("DID Registry deployed at:", ts.address);
-  console.log(`Contract version set to: ${await ts.version()}`);
+  console.log(`Contract version set to: ${(await ts.version()).toString()}`);
 }
 
 main()

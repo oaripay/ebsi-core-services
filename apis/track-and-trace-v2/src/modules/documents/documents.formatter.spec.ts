@@ -1,4 +1,5 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
+
 import {
   formatDocumentAccesses,
   formatDocumentEvents,
@@ -87,25 +88,25 @@ describe("formatDocumentAccesses", () => {
   const accesses = {
     items: [
       {
-        subject: "did:ebsi:zbymX5AX8D2ibRy6EgxQVEu",
         documentId:
           "0xd06f39f1b07bdb5040665111ca96c63b100165f8e06ab2787d273d25ad6bb169",
         grantedBy: "did:ebsi:zbymX5AX8D2ibRy6EgxQVEu",
         permission: "creator" as const,
+        subject: "did:ebsi:zbymX5AX8D2ibRy6EgxQVEu",
       },
       {
-        subject: "did:ebsi:zhbiAY9JHxAxao5vGUCq2RT",
         documentId:
           "0xd06f39f1b07bdb5040665111ca96c63b100165f8e06ab2787d273d25ad6bb169",
         grantedBy: "did:ebsi:zbymX5AX8D2ibRy6EgxQVEu",
         permission: "delegate" as const,
+        subject: "did:ebsi:zhbiAY9JHxAxao5vGUCq2RT",
       },
       {
-        subject: "did:ebsi:zhbiAY9JHxAxao5vGUCq2RT",
         documentId:
           "0xd06f39f1b07bdb5040665111ca96c63b100165f8e06ab2787d273d25ad6bb169",
         grantedBy: "did:ebsi:zbymX5AX8D2ibRy6EgxQVEu",
         permission: "write" as const,
+        subject: "did:ebsi:zhbiAY9JHxAxao5vGUCq2RT",
       },
     ],
   };
@@ -120,18 +121,18 @@ describe("formatDocumentAccesses", () => {
     expect(formatDocumentAccesses(accesses, page, pageSize, "")).toStrictEqual({
       items: [
         {
-          subject: "did:ebsi:zbymX5AX8D2ibRy6EgxQVEu",
           documentId:
             "0xd06f39f1b07bdb5040665111ca96c63b100165f8e06ab2787d273d25ad6bb169",
           grantedBy: "did:ebsi:zbymX5AX8D2ibRy6EgxQVEu",
           permission: "creator",
+          subject: "did:ebsi:zbymX5AX8D2ibRy6EgxQVEu",
         },
         {
-          subject: "did:ebsi:zhbiAY9JHxAxao5vGUCq2RT",
           documentId:
             "0xd06f39f1b07bdb5040665111ca96c63b100165f8e06ab2787d273d25ad6bb169",
           grantedBy: "did:ebsi:zbymX5AX8D2ibRy6EgxQVEu",
           permission: "delegate",
+          subject: "did:ebsi:zhbiAY9JHxAxao5vGUCq2RT",
         },
       ],
       links: {

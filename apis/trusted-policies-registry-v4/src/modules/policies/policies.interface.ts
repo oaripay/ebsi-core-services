@@ -1,11 +1,11 @@
-export interface PolicyResponseObject {
-  policyId: string;
-  description: string;
+export interface PolicyLink {
+  href: string;
   policyName: string;
-  status: boolean;
 }
 
-export interface PolicyLink {
+export interface PolicyResponseObject {
+  description: string;
+  policyId: string;
   policyName: string;
-  href: string;
+  status: boolean;
 }

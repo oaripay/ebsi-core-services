@@ -1,26 +1,28 @@
-import { vi, describe, beforeAll, afterAll, it, expect } from "vitest";
-import crypto from "node:crypto";
-import request from "supertest";
-import { ethers } from "ethers";
-import { Test } from "@nestjs/testing";
-import { ValidationPipe, Logger } from "@nestjs/common";
+import type { RawServerDefault } from "fastify";
+
+import { methodNotAllowed } from "@ebsiint-api/shared";
+import { fastifyAccepts } from "@fastify/accepts";
+import { Logger, ValidationPipe } from "@nestjs/common";
 import {
   FastifyAdapter,
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import type { RawServerDefault } from "fastify";
-import { fastifyAccepts } from "@fastify/accepts";
-import { methodNotAllowed } from "@ebsiint-api/shared";
-import { SchemasModule } from "./schemas.module.js";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
-import { setupTestEnv } from "../../../tests/utils/schemaRegistry.js";
-import { LedgerService } from "../ledger/ledger.service.js";
-import { hexToMultibaseBase58Btc } from "./schemas.utils.js";
-import { graphServer } from "../../../tests/utils/graphServer.js";
+import { Test } from "@nestjs/testing";
+import { ethers } from "ethers";
+import crypto from "node:crypto";
+import request from "supertest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+
 import {
-  SCHEMAS_TOTAL,
   SCHEMA_REVISIONS_TOTAL,
+  SCHEMAS_TOTAL,
 } from "../../../tests/utils/data.js";
+import { graphServer } from "../../../tests/utils/graphServer.js";
+import { setupTestEnv } from "../../../tests/utils/schemaRegistry.js";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
+import { LedgerService } from "../ledger/ledger.service.js";
+import { SchemasModule } from "./schemas.module.js";
+import { hexToMultibaseBase58Btc } from "./schemas.utils.js";
 
 describe("Schemas Module", () => {
   let app: NestFastifyApplication;
@@ -51,9 +53,9 @@ describe("Schemas Module", () => {
     app.useGlobalFilters(new AllExceptionsFilter());
     app.useGlobalPipes(
       new ValidationPipe({
+        forbidNonWhitelisted: true,
         transform: true,
         whitelist: true,
-        forbidNonWhitelisted: true,
       }),
     );
 
@@ -88,25 +90,25 @@ describe("Schemas Module", () => {
       const response = await request(server).get("/schemas");
 
       expect(response.body).toStrictEqual({
-        self: expect.stringContaining("/schemas?page[after]=1&page[size]=10"),
         items: expect.arrayContaining(
           testEnv.schemas.map((schema) => {
             const schemaId = hexToMultibaseBase58Btc(schema.schemaId);
             return {
-              schemaId,
               href: expect.stringContaining(`/schemas/${schemaId}`),
+              schemaId,
             };
           }),
         ),
-        pageSize: 10,
         links: {
           first: expect.stringContaining(
             "/schemas?page[after]=1&page[size]=10",
           ),
-          prev: expect.stringContaining("/schemas?page[after]=1&page[size]=10"),
-          next: expect.stringContaining("/schemas?page[after]=1&page[size]=10"),
           last: expect.stringContaining("/schemas?page[after]=1&page[size]=10"),
+          next: expect.stringContaining("/schemas?page[after]=1&page[size]=10"),
+          prev: expect.stringContaining("/schemas?page[after]=1&page[size]=10"),
         },
+        pageSize: 10,
+        self: expect.stringContaining("/schemas?page[after]=1&page[size]=10"),
       });
       expect((response.body as { items: string }).items).toHaveLength(
         SCHEMAS_TOTAL,
@@ -119,14 +121,14 @@ describe("Schemas Module", () => {
 
       const response1 = await request(server).get("/schemas?page[size]=2");
       expect(response1.body).toStrictEqual({
-        self: expect.stringContaining("/schemas?page[after]=1&page[size]=2"),
         items: expect.arrayContaining([]),
-        pageSize: 2,
         links: {
           first: expect.stringContaining("/schemas?page[after]=1&page[size]=2"),
-          prev: expect.stringContaining("/schemas?page[after]=1&page[size]=2"),
           next: expect.stringContaining("/schemas?page[after]=2&page[size]=2"),
+          prev: expect.stringContaining("/schemas?page[after]=1&page[size]=2"),
         },
+        pageSize: 2,
+        self: expect.stringContaining("/schemas?page[after]=1&page[size]=2"),
       });
       expect((response1.body as { items: string }).items).toHaveLength(2);
       expect(response1.status).toBe(200);
@@ -136,15 +138,15 @@ describe("Schemas Module", () => {
         "/schemas?page[after]=2&page[size]=2",
       );
       expect(response2.body).toStrictEqual({
-        self: expect.stringContaining("/schemas?page[after]=2&page[size]=2"),
         items: expect.arrayContaining([]),
-        pageSize: 2,
         links: {
           first: expect.stringContaining("/schemas?page[after]=1&page[size]=2"),
-          prev: expect.stringContaining("/schemas?page[after]=1&page[size]=2"),
-          next: expect.stringContaining("/schemas?page[after]=2&page[size]=2"),
           last: expect.stringContaining("/schemas?page[after]=2&page[size]=2"),
+          next: expect.stringContaining("/schemas?page[after]=2&page[size]=2"),
+          prev: expect.stringContaining("/schemas?page[after]=1&page[size]=2"),
         },
+        pageSize: 2,
+        self: expect.stringContaining("/schemas?page[after]=2&page[size]=2"),
       });
       expect((response2.body as { items: string }).items).toHaveLength(1);
       expect(response2.status).toBe(200);
@@ -154,19 +156,19 @@ describe("Schemas Module", () => {
         "/schemas?page[after]=100&page[size]=2",
       );
       expect(response3.body).toStrictEqual({
-        self: expect.stringContaining("/schemas?page[after]=100&page[size]=2"),
         items: expect.arrayContaining([]),
-        pageSize: 2,
         links: {
           first: expect.stringContaining("/schemas?page[after]=1&page[size]=2"),
-          prev: expect.stringContaining("/schemas?page[after]=99&page[size]=2"),
-          next: expect.stringContaining(
-            "/schemas?page[after]=100&page[size]=2",
-          ),
           last: expect.stringContaining(
             "/schemas?page[after]=100&page[size]=2",
           ),
+          next: expect.stringContaining(
+            "/schemas?page[after]=100&page[size]=2",
+          ),
+          prev: expect.stringContaining("/schemas?page[after]=99&page[size]=2"),
         },
+        pageSize: 2,
+        self: expect.stringContaining("/schemas?page[after]=100&page[size]=2"),
       });
       expect((response3.body as { items: string }).items).toHaveLength(0);
       expect(response3.status).toBe(200);
@@ -174,17 +176,17 @@ describe("Schemas Module", () => {
       // page["after"] defined but page["size"] undefined
       const response4 = await request(server).get("/schemas?page[after]=1");
       expect(response4.body).toStrictEqual({
-        self: expect.stringContaining("/schemas?page[after]=1&page[size]=10"),
         items: expect.arrayContaining([]),
-        pageSize: 10,
         links: {
           first: expect.stringContaining(
             "/schemas?page[after]=1&page[size]=10",
           ),
-          prev: expect.stringContaining("/schemas?page[after]=1&page[size]=10"),
-          next: expect.stringContaining("/schemas?page[after]=1&page[size]=10"),
           last: expect.stringContaining("/schemas?page[after]=1&page[size]=10"),
+          next: expect.stringContaining("/schemas?page[after]=1&page[size]=10"),
+          prev: expect.stringContaining("/schemas?page[after]=1&page[size]=10"),
         },
+        pageSize: 10,
+        self: expect.stringContaining("/schemas?page[after]=1&page[size]=10"),
       });
       expect((response4.body as { items: string }).items).toHaveLength(
         SCHEMAS_TOTAL,
@@ -198,9 +200,9 @@ describe("Schemas Module", () => {
       const response = await request(server).get("/schemas?invalid-query=abc");
 
       expect(response.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
         detail: '["property invalid-query should not exist"]',
+        status: 400,
+        title: "Bad Request",
         type: "about:blank",
       });
       expect(response.status).toBe(400);
@@ -211,9 +213,9 @@ describe("Schemas Module", () => {
 
       const response1 = await request(server).get("/schemas?page[size]=100");
       expect(response1.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
         detail: '["page[size] must not be greater than 50"]',
+        status: 400,
+        title: "Bad Request",
         type: "about:blank",
       });
       expect(response1.status).toBe(400);
@@ -223,9 +225,9 @@ describe("Schemas Module", () => {
 
       const response2 = await request(server).get("/schemas?page[size]=0");
       expect(response2.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
         detail: '["page[size] must not be less than 1"]',
+        status: 400,
+        title: "Bad Request",
         type: "about:blank",
       });
       expect(response2.status).toBe(400);
@@ -235,9 +237,9 @@ describe("Schemas Module", () => {
 
       const response3 = await request(server).get("/schemas?page[after]=0");
       expect(response3.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
         detail: '["page[after] must not be less than 1"]',
+        status: 400,
+        title: "Bad Request",
         type: "about:blank",
       });
       expect(response3.status).toBe(400);
@@ -247,10 +249,10 @@ describe("Schemas Module", () => {
 
       const response4 = await request(server).get("/schemas?page[after]=abc");
       expect(response4.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
         detail:
           '["page[after] must not be less than 1","page[after] must be a number conforming to the specified constraints"]',
+        status: 400,
+        title: "Bad Request",
         type: "about:blank",
       });
       expect(response4.status).toBe(400);
@@ -306,9 +308,9 @@ describe("Schemas Module", () => {
       const response = await request(server).get(`/schemas/${schemaId}`);
 
       expect(response.body).toStrictEqual({
-        title: "Schema Not Found",
-        status: 404,
         detail: `Schema ${schemaId} not found`,
+        status: 404,
+        title: "Schema Not Found",
         type: "about:blank",
       });
       expect(response.status).toBe(404);
@@ -326,9 +328,9 @@ describe("Schemas Module", () => {
       const response = await request(server).get(`/schemas/${schemaId}`);
 
       expect(response.body).toStrictEqual({
-        title: "Schema Not Found",
-        status: 404,
         detail: `Schema ${schemaId} not found`,
+        status: 404,
+        title: "Schema Not Found",
         type: "about:blank",
       });
       expect(response.status).toBe(404);
@@ -396,9 +398,9 @@ describe("Schemas Module", () => {
       );
 
       expect(response.body).toStrictEqual({
-        title: "Schema Not Found",
-        status: 404,
         detail: `Schema ${schemaId} not found`,
+        status: 404,
+        title: "Schema Not Found",
         type: "about:blank",
       });
       expect(response.status).toBe(404);
@@ -417,9 +419,9 @@ describe("Schemas Module", () => {
         `/schemas/${schemaId}/revisions?page[size]=100`,
       );
       expect(response1.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
         detail: '["page[size] must not be greater than 50"]',
+        status: 400,
+        title: "Bad Request",
         type: "about:blank",
       });
       expect(response1.status).toBe(400);
@@ -431,9 +433,9 @@ describe("Schemas Module", () => {
         `/schemas/${schemaId}/revisions?page[size]=0`,
       );
       expect(response2.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
         detail: '["page[size] must not be less than 1"]',
+        status: 400,
+        title: "Bad Request",
         type: "about:blank",
       });
       expect(response2.status).toBe(400);
@@ -445,9 +447,9 @@ describe("Schemas Module", () => {
         `/schemas/${schemaId}/revisions?page[after]=0`,
       );
       expect(response3.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
         detail: '["page[after] must not be less than 1"]',
+        status: 400,
+        title: "Bad Request",
         type: "about:blank",
       });
       expect(response3.status).toBe(400);
@@ -459,10 +461,10 @@ describe("Schemas Module", () => {
         `/schemas/${schemaId}/revisions?page[after]=abc`,
       );
       expect(response4.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
         detail:
           '["page[after] must not be less than 1","page[after] must be a number conforming to the specified constraints"]',
+        status: 400,
+        title: "Bad Request",
         type: "about:blank",
       });
       expect(response4.status).toBe(400);
@@ -481,9 +483,9 @@ describe("Schemas Module", () => {
       );
 
       expect(response.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
         detail: '["valid-at must be a valid ISO 8601 date string"]',
+        status: 400,
+        title: "Bad Request",
         type: "about:blank",
       });
       expect(response.status).toBe(400);
@@ -535,10 +537,10 @@ describe("Schemas Module", () => {
           first: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`,
           ),
-          next: expect.stringContaining(
+          last: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`,
           ),
-          last: expect.stringContaining(
+          next: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`,
           ),
           prev: expect.stringContaining(
@@ -621,22 +623,22 @@ describe("Schemas Module", () => {
         `/schemas/${schema.schemaId}/revisions?page[size]=2`,
       );
       expect(response1.body).toStrictEqual({
-        self: expect.stringContaining(
-          `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=2`,
-        ),
         items: expect.arrayContaining([]),
-        pageSize: 2,
         links: {
           first: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=2`,
-          ),
-          prev: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=2`,
           ),
           next: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions?page[after]=2&page[size]=2`,
           ),
+          prev: expect.stringContaining(
+            `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=2`,
+          ),
         },
+        pageSize: 2,
+        self: expect.stringContaining(
+          `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=2`,
+        ),
       });
       expect((response1.body as { items: string }).items).toHaveLength(2);
       expect(response1.status).toBe(200);
@@ -646,25 +648,25 @@ describe("Schemas Module", () => {
         `/schemas/${schema.schemaId}/revisions?page[after]=2&page[size]=2`,
       );
       expect(response2.body).toStrictEqual({
-        self: expect.stringContaining(
-          `/schemas/${schema.schemaId}/revisions?page[after]=2&page[size]=2`,
-        ),
         items: expect.arrayContaining([]),
-        pageSize: 2,
         links: {
           first: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=2`,
           ),
-          prev: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=2`,
+          last: expect.stringContaining(
+            `/schemas/${schema.schemaId}/revisions?page[after]=2&page[size]=2`,
           ),
           next: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions?page[after]=2&page[size]=2`,
           ),
-          last: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions?page[after]=2&page[size]=2`,
+          prev: expect.stringContaining(
+            `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=2`,
           ),
         },
+        pageSize: 2,
+        self: expect.stringContaining(
+          `/schemas/${schema.schemaId}/revisions?page[after]=2&page[size]=2`,
+        ),
       });
       expect((response2.body as { items: string }).items).toHaveLength(1);
       expect(response2.status).toBe(200);
@@ -674,25 +676,25 @@ describe("Schemas Module", () => {
         `/schemas/${schema.schemaId}/revisions?page[after]=100&page[size]=2`,
       );
       expect(response3.body).toStrictEqual({
-        self: expect.stringContaining(
-          `/schemas/${schema.schemaId}/revisions?page[after]=100&page[size]=2`,
-        ),
         items: expect.arrayContaining([]),
-        pageSize: 2,
         links: {
           first: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=2`,
           ),
-          prev: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions?page[after]=99&page[size]=2`,
+          last: expect.stringContaining(
+            `/schemas/${schema.schemaId}/revisions?page[after]=100&page[size]=2`,
           ),
           next: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions?page[after]=100&page[size]=2`,
           ),
-          last: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions?page[after]=100&page[size]=2`,
+          prev: expect.stringContaining(
+            `/schemas/${schema.schemaId}/revisions?page[after]=99&page[size]=2`,
           ),
         },
+        pageSize: 2,
+        self: expect.stringContaining(
+          `/schemas/${schema.schemaId}/revisions?page[after]=100&page[size]=2`,
+        ),
       });
       expect((response3.body as { items: string }).items).toHaveLength(0);
       expect(response3.status).toBe(200);
@@ -702,25 +704,25 @@ describe("Schemas Module", () => {
         `/schemas/${schema.schemaId}/revisions?page[after]=1`,
       );
       expect(response4.body).toStrictEqual({
-        self: expect.stringContaining(
-          `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`,
-        ),
         items: expect.arrayContaining([]),
-        pageSize: 10,
         links: {
           first: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`,
-          ),
-          prev: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`,
-          ),
-          next: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`,
           ),
           last: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`,
           ),
+          next: expect.stringContaining(
+            `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`,
+          ),
+          prev: expect.stringContaining(
+            `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`,
+          ),
         },
+        pageSize: 10,
+        self: expect.stringContaining(
+          `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`,
+        ),
       });
       expect((response4.body as { items: string }).items).toHaveLength(
         SCHEMA_REVISIONS_TOTAL,
@@ -762,9 +764,9 @@ describe("Schemas Module", () => {
       );
 
       expect(response.body).toStrictEqual({
-        title: "Schema Not Found",
-        status: 404,
         detail: `Schema ${schemaId} not found`,
+        status: 404,
+        title: "Schema Not Found",
         type: "about:blank",
       });
       expect(response.status).toBe(404);
@@ -784,7 +786,7 @@ describe("Schemas Module", () => {
 
       expect(response.body).toStrictEqual({
         detail:
-          '["schemaRevisionId must be longer than or equal to 66 characters","schemaRevisionId must be a hexadecimal number","schemaRevisionId must start with 0x"]',
+          '["schemaRevisionId must start with 0x","schemaRevisionId must be longer than or equal to 66 characters","schemaRevisionId must be a hexadecimal number"]',
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -807,9 +809,9 @@ describe("Schemas Module", () => {
       );
 
       expect(response.body).toStrictEqual({
-        title: "Revision Not Found",
-        status: 404,
         detail: `Revision ${schemaRevisionId} not found`,
+        status: 404,
+        title: "Revision Not Found",
         type: "about:blank",
       });
       expect(response.status).toBe(404);
@@ -845,22 +847,22 @@ describe("Schemas Module", () => {
         `/schemas/${schema.schemaId}/revisions?page[size]=2`,
       );
       expect(response1.body).toStrictEqual({
-        self: expect.stringContaining(
-          `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=2`,
-        ),
         items: expect.arrayContaining([]),
-        pageSize: 2,
         links: {
           first: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=2`,
-          ),
-          prev: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=2`,
           ),
           next: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions?page[after]=2&page[size]=2`,
           ),
+          prev: expect.stringContaining(
+            `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=2`,
+          ),
         },
+        pageSize: 2,
+        self: expect.stringContaining(
+          `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=2`,
+        ),
       });
       expect((response1.body as { items: string }).items).toHaveLength(2);
       expect(response1.status).toBe(200);
@@ -870,25 +872,25 @@ describe("Schemas Module", () => {
         `/schemas/${schema.schemaId}/revisions?page[after]=2&page[size]=2`,
       );
       expect(response2.body).toStrictEqual({
-        self: expect.stringContaining(
-          `/schemas/${schema.schemaId}/revisions?page[after]=2&page[size]=2`,
-        ),
         items: expect.arrayContaining([]),
-        pageSize: 2,
         links: {
           first: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=2`,
           ),
-          prev: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=2`,
+          last: expect.stringContaining(
+            `/schemas/${schema.schemaId}/revisions?page[after]=2&page[size]=2`,
           ),
           next: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions?page[after]=2&page[size]=2`,
           ),
-          last: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions?page[after]=2&page[size]=2`,
+          prev: expect.stringContaining(
+            `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=2`,
           ),
         },
+        pageSize: 2,
+        self: expect.stringContaining(
+          `/schemas/${schema.schemaId}/revisions?page[after]=2&page[size]=2`,
+        ),
       });
       expect((response2.body as { items: string }).items).toHaveLength(1);
       expect(response2.status).toBe(200);
@@ -898,25 +900,25 @@ describe("Schemas Module", () => {
         `/schemas/${schema.schemaId}/revisions?page[after]=100&page[size]=2`,
       );
       expect(response3.body).toStrictEqual({
-        self: expect.stringContaining(
-          `/schemas/${schema.schemaId}/revisions?page[after]=100&page[size]=2`,
-        ),
         items: expect.arrayContaining([]),
-        pageSize: 2,
         links: {
           first: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=2`,
           ),
-          prev: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions?page[after]=99&page[size]=2`,
+          last: expect.stringContaining(
+            `/schemas/${schema.schemaId}/revisions?page[after]=100&page[size]=2`,
           ),
           next: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions?page[after]=100&page[size]=2`,
           ),
-          last: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions?page[after]=100&page[size]=2`,
+          prev: expect.stringContaining(
+            `/schemas/${schema.schemaId}/revisions?page[after]=99&page[size]=2`,
           ),
         },
+        pageSize: 2,
+        self: expect.stringContaining(
+          `/schemas/${schema.schemaId}/revisions?page[after]=100&page[size]=2`,
+        ),
       });
       expect((response3.body as { items: string }).items).toHaveLength(0);
       expect(response3.status).toBe(200);
@@ -926,25 +928,25 @@ describe("Schemas Module", () => {
         `/schemas/${schema.schemaId}/revisions?page[after]=1`,
       );
       expect(response4.body).toStrictEqual({
-        self: expect.stringContaining(
-          `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`,
-        ),
         items: expect.arrayContaining([]),
-        pageSize: 10,
         links: {
           first: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`,
-          ),
-          prev: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`,
-          ),
-          next: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`,
           ),
           last: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`,
           ),
+          next: expect.stringContaining(
+            `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`,
+          ),
+          prev: expect.stringContaining(
+            `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`,
+          ),
         },
+        pageSize: 10,
+        self: expect.stringContaining(
+          `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`,
+        ),
       });
       expect((response4.body as { items: string }).items).toHaveLength(
         SCHEMA_REVISIONS_TOTAL,
@@ -986,9 +988,9 @@ describe("Schemas Module", () => {
       );
 
       expect(response.body).toStrictEqual({
-        title: "Schema Not Found",
-        status: 404,
         detail: `Schema ${schemaId} not found`,
+        status: 404,
+        title: "Schema Not Found",
         type: "about:blank",
       });
       expect(response.status).toBe(404);
@@ -1008,7 +1010,7 @@ describe("Schemas Module", () => {
 
       expect(response.body).toStrictEqual({
         detail:
-          '["schemaRevisionId must be longer than or equal to 66 characters","schemaRevisionId must be a hexadecimal number","schemaRevisionId must start with 0x"]',
+          '["schemaRevisionId must start with 0x","schemaRevisionId must be longer than or equal to 66 characters","schemaRevisionId must be a hexadecimal number"]',
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -1031,9 +1033,9 @@ describe("Schemas Module", () => {
       );
 
       expect(response.body).toStrictEqual({
-        title: "Revision Not Found",
-        status: 404,
         detail: `Revision ${schemaRevisionId} not found`,
+        status: 404,
+        title: "Revision Not Found",
         type: "about:blank",
       });
       expect(response.status).toBe(404);
@@ -1108,22 +1110,22 @@ describe("Schemas Module", () => {
         `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[size]=2`,
       );
       expect(response1.body).toStrictEqual({
-        self: expect.stringContaining(
-          `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=1&page[size]=2`,
-        ),
         items: expect.arrayContaining([]),
-        pageSize: 2,
         links: {
           first: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=1&page[size]=2`,
-          ),
-          prev: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=1&page[size]=2`,
           ),
           next: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=2&page[size]=2`,
           ),
+          prev: expect.stringContaining(
+            `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=1&page[size]=2`,
+          ),
         },
+        pageSize: 2,
+        self: expect.stringContaining(
+          `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=1&page[size]=2`,
+        ),
       });
       expect((response1.body as { items: string }).items).toHaveLength(2);
       expect(response1.status).toBe(200);
@@ -1133,25 +1135,25 @@ describe("Schemas Module", () => {
         `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=2&page[size]=2`,
       );
       expect(response2.body).toStrictEqual({
-        self: expect.stringContaining(
-          `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=2&page[size]=2`,
-        ),
         items: expect.arrayContaining([]),
-        pageSize: 2,
         links: {
           first: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=1&page[size]=2`,
           ),
-          prev: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=1&page[size]=2`,
+          last: expect.stringContaining(
+            `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=2&page[size]=2`,
           ),
           next: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=2&page[size]=2`,
           ),
-          last: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=2&page[size]=2`,
+          prev: expect.stringContaining(
+            `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=1&page[size]=2`,
           ),
         },
+        pageSize: 2,
+        self: expect.stringContaining(
+          `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=2&page[size]=2`,
+        ),
       });
       expect((response2.body as { items: string }).items).toHaveLength(1);
       expect(response2.status).toBe(200);
@@ -1161,25 +1163,25 @@ describe("Schemas Module", () => {
         `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=100&page[size]=2`,
       );
       expect(response3.body).toStrictEqual({
-        self: expect.stringContaining(
-          `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=100&page[size]=2`,
-        ),
         items: expect.arrayContaining([]),
-        pageSize: 2,
         links: {
           first: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=1&page[size]=2`,
           ),
-          prev: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=99&page[size]=2`,
+          last: expect.stringContaining(
+            `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=100&page[size]=2`,
           ),
           next: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=100&page[size]=2`,
           ),
-          last: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=100&page[size]=2`,
+          prev: expect.stringContaining(
+            `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=99&page[size]=2`,
           ),
         },
+        pageSize: 2,
+        self: expect.stringContaining(
+          `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=100&page[size]=2`,
+        ),
       });
       expect((response3.body as { items: string }).items).toHaveLength(0);
       expect(response3.status).toBe(200);
@@ -1189,25 +1191,25 @@ describe("Schemas Module", () => {
         `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=1`,
       );
       expect(response4.body).toStrictEqual({
-        self: expect.stringContaining(
-          `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=1&page[size]=10`,
-        ),
         items: expect.arrayContaining([]),
-        pageSize: 10,
         links: {
           first: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=1&page[size]=10`,
-          ),
-          prev: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=1&page[size]=10`,
-          ),
-          next: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=1&page[size]=10`,
           ),
           last: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=1&page[size]=10`,
           ),
+          next: expect.stringContaining(
+            `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=1&page[size]=10`,
+          ),
+          prev: expect.stringContaining(
+            `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=1&page[size]=10`,
+          ),
         },
+        pageSize: 10,
+        self: expect.stringContaining(
+          `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=1&page[size]=10`,
+        ),
       });
       expect((response4.body as { items: string }).items).toHaveLength(
         SCHEMA_REVISIONS_TOTAL,
@@ -1251,9 +1253,9 @@ describe("Schemas Module", () => {
       );
 
       expect(response.body).toStrictEqual({
-        title: "Schema Not Found",
-        status: 404,
         detail: `Schema ${schemaId} not found`,
+        status: 404,
+        title: "Schema Not Found",
         type: "about:blank",
       });
       expect(response.status).toBe(404);
@@ -1274,7 +1276,7 @@ describe("Schemas Module", () => {
 
       expect(response.body).toStrictEqual({
         detail:
-          '["schemaRevisionId must be longer than or equal to 66 characters","schemaRevisionId must be a hexadecimal number","schemaRevisionId must start with 0x"]',
+          '["schemaRevisionId must start with 0x","schemaRevisionId must be longer than or equal to 66 characters","schemaRevisionId must be a hexadecimal number"]',
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -1314,9 +1316,9 @@ describe("Schemas Module", () => {
       );
 
       expect(response.body).toStrictEqual({
-        title: "Revision Not Found",
-        status: 404,
         detail: `Revision ${schemaRevisionId} not found`,
+        status: 404,
+        title: "Revision Not Found",
         type: "about:blank",
       });
       expect(response.status).toBe(404);
@@ -1338,7 +1340,7 @@ describe("Schemas Module", () => {
 
       expect(response.body).toStrictEqual({
         detail:
-          '["metadataId must be longer than or equal to 66 characters","metadataId must be a hexadecimal number","metadataId must start with 0x"]',
+          '["metadataId must start with 0x","metadataId must be longer than or equal to 66 characters","metadataId must be a hexadecimal number"]',
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -1377,9 +1379,9 @@ describe("Schemas Module", () => {
       );
 
       expect(response.body).toStrictEqual({
-        title: "Metadata Not Found",
-        status: 404,
         detail: `Metadata ${metadataId} not found`,
+        status: 404,
+        title: "Metadata Not Found",
         type: "about:blank",
       });
       expect(response.status).toBe(404);

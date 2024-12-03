@@ -1,29 +1,30 @@
-import {
-  describe,
-  beforeAll,
-  afterAll,
-  it,
-  expect,
-  afterEach,
-  vi,
-} from "vitest";
-import request from "supertest";
-import { Test } from "@nestjs/testing";
-import { ValidationPipe, Logger } from "@nestjs/common";
+import { frameworkErrors, methodNotAllowed } from "@ebsiint-api/shared";
+import { DidRegistry__factory } from "@ebsiint-sc/did-registry-v4";
+import { fastifyAccepts } from "@fastify/accepts";
+import { fastifyHelmet } from "@fastify/helmet";
+import { Logger, ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import {
   FastifyAdapter,
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
+import { Test } from "@nestjs/testing";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
-import { frameworkErrors, methodNotAllowed } from "@ebsiint-api/shared";
-import { DidRegistry__factory } from "@ebsiint-sc/did-registry-v4";
-import { fastifyHelmet } from "@fastify/helmet";
-import { fastifyAccepts } from "@fastify/accepts";
+import request from "supertest";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
+
 import { AppModule } from "./app.module.js";
+import { type ApiConfig, DEPENDENCIES } from "./config/configuration.js";
 import { AllExceptionsFilter } from "./filters/http-exception.filter.js";
-import { DEPENDENCIES, type ApiConfig } from "./config/configuration.js";
 import { createLogger } from "./logger/logger.js";
 
 describe("App Module", () => {
@@ -118,9 +119,9 @@ describe("App Module", () => {
       );
 
       const mockedLogger = {
+        error: vi.fn(),
         log: vi.fn(),
         warn: vi.fn(),
-        error: vi.fn(),
       };
       Logger.overrideLogger(mockedLogger);
 
@@ -171,9 +172,9 @@ describe("App Module", () => {
       );
 
       const mockedLogger = {
+        error: vi.fn(),
         log: vi.fn(),
         warn: vi.fn(),
-        error: vi.fn(),
       };
       Logger.overrideLogger(mockedLogger);
 
@@ -226,9 +227,9 @@ describe("App Module", () => {
 
   describe("Generic tests", () => {
     const mockedLogger = {
+      error: vi.fn(),
       log: vi.fn(),
       warn: vi.fn(),
-      error: vi.fn(),
     };
 
     async function startApp() {
@@ -336,9 +337,9 @@ describe("App Module", () => {
         const response = await request(server).get("/%91").send();
 
         expect(response.body).toStrictEqual({
-          title: "Bad Request",
           detail: "/%91 is not a valid url component",
           status: 400,
+          title: "Bad Request",
           type: "about:blank",
         });
         expect(response.status).toBe(400);
@@ -347,7 +348,7 @@ describe("App Module", () => {
       });
 
       it("should return an error 405 if called with a method different from GET", async () => {
-        expect.assertions(17);
+        expect.assertions(16);
 
         const app = await startApp();
         const server = app.getHttpServer();
@@ -356,12 +357,12 @@ describe("App Module", () => {
         let response = await request(server).post("/liveness");
 
         expect(response.body).toStrictEqual({
-          detail: "Cannot POST /liveness. Allowed HTTP methods: GET",
+          detail: "Cannot POST /liveness. Allowed HTTP methods: GET, HEAD",
           status: 405,
           title: "Method Not Allowed",
           type: "about:blank",
         });
-        expect(response.headers["allow"]).toStrictEqual("GET");
+        expect(response.headers["allow"]).toStrictEqual("GET, HEAD");
         expect(response.headers["content-type"]).toStrictEqual(
           "application/problem+json; charset=utf-8",
         );
@@ -371,22 +372,21 @@ describe("App Module", () => {
         response = await request(server).head("/liveness");
 
         expect(response.body).toStrictEqual({}); // HEAD response body is empty
-        expect(response.headers["allow"]).toStrictEqual("GET");
         expect(response.headers["content-type"]).toStrictEqual(
-          "application/problem+json; charset=utf-8",
+          "text/plain; charset=utf-8",
         );
-        expect(response.status).toBe(405);
+        expect(response.status).toBe(200);
 
         // PUT
         response = await request(server).put("/liveness");
 
         expect(response.body).toStrictEqual({
-          detail: "Cannot PUT /liveness. Allowed HTTP methods: GET",
+          detail: "Cannot PUT /liveness. Allowed HTTP methods: GET, HEAD",
           status: 405,
           title: "Method Not Allowed",
           type: "about:blank",
         });
-        expect(response.headers["allow"]).toStrictEqual("GET");
+        expect(response.headers["allow"]).toStrictEqual("GET, HEAD");
         expect(response.headers["content-type"]).toStrictEqual(
           "application/problem+json; charset=utf-8",
         );
@@ -396,12 +396,12 @@ describe("App Module", () => {
         response = await request(server).patch("/liveness");
 
         expect(response.body).toStrictEqual({
-          detail: "Cannot PATCH /liveness. Allowed HTTP methods: GET",
+          detail: "Cannot PATCH /liveness. Allowed HTTP methods: GET, HEAD",
           status: 405,
           title: "Method Not Allowed",
           type: "about:blank",
         });
-        expect(response.headers["allow"]).toStrictEqual("GET");
+        expect(response.headers["allow"]).toStrictEqual("GET, HEAD");
         expect(response.headers["content-type"]).toStrictEqual(
           "application/problem+json; charset=utf-8",
         );
@@ -410,28 +410,21 @@ describe("App Module", () => {
         // Check logs
         expect(mockedLogger.error.mock.calls).toStrictEqual([
           [
-            "Cannot POST /liveness. Allowed HTTP methods: GET",
+            "Cannot POST /liveness. Allowed HTTP methods: GET, HEAD",
             expect.stringContaining(
               "MethodNotAllowedError: Method Not Allowed",
             ),
             "AllExceptionsFilter",
           ],
           [
-            "Cannot HEAD /liveness. Allowed HTTP methods: GET",
+            "Cannot PUT /liveness. Allowed HTTP methods: GET, HEAD",
             expect.stringContaining(
               "MethodNotAllowedError: Method Not Allowed",
             ),
             "AllExceptionsFilter",
           ],
           [
-            "Cannot PUT /liveness. Allowed HTTP methods: GET",
-            expect.stringContaining(
-              "MethodNotAllowedError: Method Not Allowed",
-            ),
-            "AllExceptionsFilter",
-          ],
-          [
-            "Cannot PATCH /liveness. Allowed HTTP methods: GET",
+            "Cannot PATCH /liveness. Allowed HTTP methods: GET, HEAD",
             expect.stringContaining(
               "MethodNotAllowedError: Method Not Allowed",
             ),

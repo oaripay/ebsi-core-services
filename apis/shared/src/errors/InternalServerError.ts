@@ -5,9 +5,9 @@ import { ProblemDetailsError } from "./ProblemDetailsError.js";
  */
 
 export class InternalServerError extends ProblemDetailsError {
-  static statusCode = 500;
-
   static defaultTitle = "Internal Server Error";
+
+  static statusCode = 500;
 
   /**
    * @param title A short, human-readable summary of the problem type. It SHOULD NOT change from occurrence to occurrence of the problem, except for purposes of localization.
@@ -20,10 +20,10 @@ export class InternalServerError extends ProblemDetailsError {
   constructor(
     title: string = InternalServerError.defaultTitle,
     options?: {
-      type?: string;
       detail?: string;
-      instance?: string;
       extensions?: Record<string, unknown>;
+      instance?: string;
+      type?: string;
     },
   ) {
     super(InternalServerError.statusCode, title, options);

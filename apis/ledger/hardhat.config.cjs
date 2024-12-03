@@ -13,13 +13,13 @@ const config = {
     },
   },
   solidity: {
-    version: "0.8.12",
     settings: {
       optimizer: {
         enabled: true,
         runs: 10,
       },
     },
+    version: "0.8.12",
   },
 };
 

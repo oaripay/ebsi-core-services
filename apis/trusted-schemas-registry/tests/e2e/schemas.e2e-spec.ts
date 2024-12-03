@@ -1,21 +1,24 @@
-import { describe, beforeAll, it, expect, afterAll } from "vitest";
-import crypto from "node:crypto";
-import request from "supertest";
-import { Test } from "@nestjs/testing";
-import { ValidationPipe, Logger } from "@nestjs/common";
+import type { JSONSchema } from "@apidevtools/json-schema-ref-parser/dist/lib/types";
+import type { RawServerDefault } from "fastify";
+
+import { computeId, methodNotAllowed } from "@ebsiint-api/shared";
+import { fastifyAccepts } from "@fastify/accepts";
+import { fastifyHelmet } from "@fastify/helmet";
+import { Logger, ValidationPipe } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import {
   FastifyAdapter,
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import { ConfigService } from "@nestjs/config";
-import type { RawServerDefault } from "fastify";
-import { fastifyAccepts } from "@fastify/accepts";
-import { fastifyHelmet } from "@fastify/helmet";
-import type { JSONSchema } from "@apidevtools/json-schema-ref-parser/dist/lib/types";
-import { computeId, methodNotAllowed } from "@ebsiint-api/shared";
+import { Test } from "@nestjs/testing";
+import crypto from "node:crypto";
+import request from "supertest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
+
+import type { ApiConfig } from "../../src/config/configuration.js";
+
 import { AppModule } from "../../src/app.module.js";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
-import type { ApiConfig } from "../../src/config/configuration.js";
 import { createVerifiableAuthorisationSchema } from "../utils/data.js";
 import { getServer } from "../utils/getServer.js";
 
@@ -71,7 +74,8 @@ describe("TSR API v2 - Schemas (e2e)", () => {
       configService.get<string>("testVaSchemaUrl"),
     );
 
-    schemaId = `0x${(await computeId(rawSchema)).toString("hex")}`;
+    const schemaIdBuffer = await computeId(rawSchema);
+    schemaId = `0x${schemaIdBuffer.toString("hex")}`;
   });
 
   afterAll(async () => {
@@ -85,18 +89,18 @@ describe("TSR API v2 - Schemas (e2e)", () => {
       const response = await request(server).get("/schemas");
 
       expect(response.body).toStrictEqual({
-        self: expect.stringContaining("/schemas?page[after]=1&page[size]=10"),
         items: expect.arrayContaining([]),
-        total: expect.any(Number),
-        pageSize: 10,
         links: {
           first: expect.stringContaining(
             "/schemas?page[after]=1&page[size]=10",
           ),
-          prev: expect.stringContaining("/schemas?page[after]=1&page[size]=10"),
-          next: expect.stringContaining("/schemas?page[after]="),
           last: expect.stringContaining("/schemas?page[after]="),
+          next: expect.stringContaining("/schemas?page[after]="),
+          prev: expect.stringContaining("/schemas?page[after]=1&page[size]=10"),
         },
+        pageSize: 10,
+        self: expect.stringContaining("/schemas?page[after]=1&page[size]=10"),
+        total: expect.any(Number),
       });
       expect(response.status).toBe(200);
     });
@@ -111,9 +115,9 @@ describe("TSR API v2 - Schemas (e2e)", () => {
       const response = await request(server).get(`/schemas/${fakeId}`);
 
       expect(response.body).toStrictEqual({
-        title: "Schema Not Found",
-        status: 404,
         detail: `Schema ${fakeId} not found`,
+        status: 404,
+        title: "Schema Not Found",
         type: "about:blank",
       });
       expect(response.status).toBe(404);
@@ -152,9 +156,9 @@ describe("TSR API v2 - Schemas (e2e)", () => {
       );
 
       expect(response.body).toStrictEqual({
-        title: "Schema Not Found",
-        status: 404,
         detail: `Schema ${fakeId} not found`,
+        status: 404,
+        title: "Schema Not Found",
         type: "about:blank",
       });
       expect(response.status).toBe(404);
@@ -171,9 +175,9 @@ describe("TSR API v2 - Schemas (e2e)", () => {
       );
 
       expect(response.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
         detail: '["valid-at must be a valid ISO 8601 date string"]',
+        status: 400,
+        title: "Bad Request",
         type: "about:blank",
       });
       expect(response.status).toBe(400);
@@ -189,9 +193,9 @@ describe("TSR API v2 - Schemas (e2e)", () => {
         `/schemas/${schemaId}/revisions?page[size]=100`,
       );
       expect(response1.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
         detail: '["page[size] must not be greater than 50"]',
+        status: 400,
+        title: "Bad Request",
         type: "about:blank",
       });
       expect(response1.status).toBe(400);
@@ -203,9 +207,9 @@ describe("TSR API v2 - Schemas (e2e)", () => {
         `/schemas/${schemaId}/revisions?page[size]=0`,
       );
       expect(response2.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
         detail: '["page[size] must not be less than 1"]',
+        status: 400,
+        title: "Bad Request",
         type: "about:blank",
       });
       expect(response2.status).toBe(400);
@@ -217,9 +221,9 @@ describe("TSR API v2 - Schemas (e2e)", () => {
         `/schemas/${schemaId}/revisions?page[after]=0`,
       );
       expect(response3.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
         detail: '["page[after] must not be less than 1"]',
+        status: 400,
+        title: "Bad Request",
         type: "about:blank",
       });
       expect(response3.status).toBe(400);
@@ -231,10 +235,10 @@ describe("TSR API v2 - Schemas (e2e)", () => {
         `/schemas/${schemaId}/revisions?page[after]=abc`,
       );
       expect(response4.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
         detail:
           '["page[after] must not be less than 1","page[after] must be a number conforming to the specified constraints"]',
+        status: 400,
+        title: "Bad Request",
         type: "about:blank",
       });
       expect(response4.status).toBe(400);
@@ -281,9 +285,9 @@ describe("TSR API v2 - Schemas (e2e)", () => {
       );
 
       expect(response.body).toStrictEqual({
-        title: "Schema Not Found",
-        status: 404,
         detail: `Schema ${fakeSchemaId} not found`,
+        status: 404,
+        title: "Schema Not Found",
         type: "about:blank",
       });
       expect(response.status).toBe(404);
@@ -303,7 +307,7 @@ describe("TSR API v2 - Schemas (e2e)", () => {
 
       expect(response.body).toStrictEqual({
         detail:
-          '["schemaRevisionId must be a hexadecimal number","schemaRevisionId must match /^0x/ regular expression"]',
+          '["schemaRevisionId must match /^0x/ regular expression","schemaRevisionId must be a hexadecimal number"]',
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -352,9 +356,9 @@ describe("TSR API v2 - Schemas (e2e)", () => {
       );
 
       expect(response.body).toStrictEqual({
-        title: "Schema Not Found",
-        status: 404,
         detail: `Schema ${fakeSchemaId} not found`,
+        status: 404,
+        title: "Schema Not Found",
         type: "about:blank",
       });
       expect(response.status).toBe(404);
@@ -374,7 +378,7 @@ describe("TSR API v2 - Schemas (e2e)", () => {
 
       expect(response.body).toStrictEqual({
         detail:
-          '["schemaRevisionId must be a hexadecimal number","schemaRevisionId must match /^0x/ regular expression"]',
+          '["schemaRevisionId must match /^0x/ regular expression","schemaRevisionId must be a hexadecimal number"]',
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -430,9 +434,9 @@ describe("TSR API v2 - Schemas (e2e)", () => {
       );
 
       expect(response.body).toStrictEqual({
-        title: "Schema Not Found",
-        status: 404,
         detail: `Schema ${fakeSchemaId} not found`,
+        status: 404,
+        title: "Schema Not Found",
         type: "about:blank",
       });
       expect(response.status).toBe(404);
@@ -455,7 +459,7 @@ describe("TSR API v2 - Schemas (e2e)", () => {
 
       expect(response.body).toStrictEqual({
         detail:
-          '["schemaRevisionId must be a hexadecimal number","schemaRevisionId must match /^0x/ regular expression"]',
+          '["schemaRevisionId must match /^0x/ regular expression","schemaRevisionId must be a hexadecimal number"]',
         status: 400,
         title: "Bad Request",
         type: "about:blank",

@@ -1,7 +1,15 @@
-import type { HardhatRuntimeEnvironment } from "hardhat/types";
 import type { DeployFunction } from "hardhat-deploy/types";
+import type { HardhatRuntimeEnvironment } from "hardhat/types";
+
 import { ethers } from "hardhat";
+
 import dependencies from "./dependencies.json";
+
+function validateChainId(
+  chainId: string,
+): asserts chainId is keyof typeof dependencies {
+  if (!(chainId in dependencies)) throw new Error(`Invalid chainId ${chainId}`);
+}
 
 const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   const { deployments, getNamedAccounts } = hre;
@@ -13,17 +21,34 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   };
 
   // get Proxy of TPR
-  const { chainId } = await ethers.provider.getNetwork();
+  const chainId = `${(await ethers.provider.getNetwork()).chainId}`;
+
+  validateChainId(chainId);
+
   console.log(`chain id ${chainId}`);
-  let tprAddress = dependencies[chainId]?.tprV1Address;
-  let didV1Address = dependencies[chainId]?.didV1Address;
+
+  const deps = dependencies[chainId];
+
+  if (!("tprV1Address" in deps)) {
+    throw new Error("tprV1Address does not exist");
+  }
+
+  let tprAddress = deps.tprV1Address;
+
   if (!ethers.utils.isAddress(tprAddress)) {
     console.log(`Deploying TPR for testnet`);
     // deploy for testnet
     await deployments.run("PolicyRegistry");
     tprAddress = (await deployments.get("PolicyRegistry")).address;
   }
+
   console.log(`Trusted Policy Registry Address is ${tprAddress}`);
+
+  if (!("didV1Address" in deps)) {
+    throw new Error("tprV1Address does not exist");
+  }
+
+  let didV1Address = deps.didV1Address;
 
   if (!ethers.utils.isAddress(didV1Address)) {
     console.log(`Deploying DidRegistry for testnet`);
@@ -31,6 +56,7 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     await deployments.run("DidRegistry");
     didV1Address = (await deployments.get("DidRegistry")).address;
   }
+
   console.log(`DidRegistry Address is ${didV1Address}`);
 
   const pagination = await deployments.deploy("Pagination", {
@@ -39,10 +65,10 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   });
   const optsPagination = {
     from: deployer,
-    log: true,
     libraries: {
       Pagination: pagination.address,
     },
+    log: true,
   };
 
   const controller = await deployments.deploy("ControllersLib", {
@@ -61,11 +87,11 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   console.log(`Custom Pagination deployed;`);
   const optsv = {
     from: deployer,
-    log: true,
     libraries: {
-      Pagination: pagination.address,
       CustomPagination: customPagination.address,
+      Pagination: pagination.address,
     },
+    log: true,
   };
   const vRelation = await deployments.deploy("VRelationshipsLib", {
     ...optsv,
@@ -75,11 +101,11 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   console.log(`VRelationships lib deployed`);
   const optsPagVrel = {
     from: deployer,
-    log: true,
     libraries: {
       Pagination: pagination.address,
       VRelationshipsLib: vRelation.address,
     },
+    log: true,
   };
   const didDocument = await deployments.deploy("DidDocumentLib", {
     contract:
@@ -90,16 +116,16 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   console.log(`Did Document deployed;`);
 
   const ts = await deployments.deploy("DidRegistryV2", {
-    from: deployer,
+    args: [tprAddress, didV1Address],
     contract:
       "contracts/did-registry-v2/did-registry/DidRegistry.sol:DidRegistry",
-    args: [tprAddress, didV1Address],
+    from: deployer,
     libraries: {
       ControllersLib: controller.address,
       CustomPagination: customPagination.address,
       DidDocumentLib: didDocument.address,
-      VRelationshipsLib: vRelation.address,
       Pagination: pagination.address,
+      VRelationshipsLib: vRelation.address,
     },
   });
 

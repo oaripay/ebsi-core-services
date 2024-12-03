@@ -5,9 +5,9 @@ import { ProblemDetailsError } from "./ProblemDetailsError.js";
  */
 
 export class GoneError extends ProblemDetailsError {
-  static statusCode = 410;
-
   static defaultTitle = "Gone";
+
+  static statusCode = 410;
 
   /**
    * @param title A short, human-readable summary of the problem type. It SHOULD NOT change from occurrence to occurrence of the problem, except for purposes of localization.
@@ -20,10 +20,10 @@ export class GoneError extends ProblemDetailsError {
   constructor(
     title: string = GoneError.defaultTitle,
     options?: {
-      type?: string;
       detail?: string;
-      instance?: string;
       extensions?: Record<string, unknown>;
+      instance?: string;
+      type?: string;
     },
   ) {
     super(GoneError.statusCode, title, options);

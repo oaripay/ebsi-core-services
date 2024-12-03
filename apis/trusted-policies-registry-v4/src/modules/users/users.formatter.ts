@@ -2,6 +2,7 @@ import {
   PaginatedListWithoutTotal,
   paginateWithoutTotal,
 } from "@ebsiint-api/shared";
+
 import { UserLink } from "./users.interface.js";
 
 export function formatUsers(
@@ -14,8 +15,8 @@ export function formatUsers(
   // Reshape items
   const items = users.items.map((user) => {
     return {
-      user,
       href: `${baseUrl}/${user}`,
+      user,
     };
   });
 

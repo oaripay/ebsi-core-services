@@ -16,9 +16,9 @@ export type HttpMethod = (typeof HTTP_METHODS)[number];
  */
 
 export class MethodNotAllowedError extends ProblemDetailsError {
-  static statusCode = 405;
-
   static defaultTitle = "Method Not Allowed";
+
+  static statusCode = 405;
 
   /**
    * @param title A short, human-readable summary of the problem type. It SHOULD NOT change from occurrence to occurrence of the problem, except for purposes of localization.
@@ -33,10 +33,10 @@ export class MethodNotAllowedError extends ProblemDetailsError {
     title: string,
     allow: HttpMethod[],
     options?: {
-      type?: string;
       detail?: string;
-      instance?: string;
       extensions?: Record<string, unknown>;
+      instance?: string;
+      type?: string;
     },
   ) {
     super(MethodNotAllowedError.statusCode, title, options);

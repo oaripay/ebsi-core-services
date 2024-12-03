@@ -1,19 +1,20 @@
-import { assert, describe, test, clearStore, afterAll } from "matchstick-as";
 import { Bytes } from "@graphprotocol/graph-ts";
+import { afterAll, assert, clearStore, describe, test } from "matchstick-as";
+
 import {
+  handleAccessGranted,
+  handleAccessRevoked,
   handleDidEbsiAuthorised,
   handleDocumentCreated,
   handleDocumentRemoved,
-  handleAccessGranted,
-  handleAccessRevoked,
   handleEventWritten,
 } from "../src/track-and-trace";
 import {
+  createAccessGrantedEvent,
+  createAccessRevokedEvent,
   createDidEbsiAuthorisedEvent,
   createDocumentCreatedEvent,
   createDocumentRemovedEvent,
-  createAccessGrantedEvent,
-  createAccessRevokedEvent,
   createEventWrittenEvent,
 } from "./track-and-trace-utils";
 
@@ -30,7 +31,7 @@ describe("Track and Trace - entity assertions", () => {
     "0x6469643a656273693a7a323536617342576d4842736a325a4e567847354d686b70";
   const docId =
     "0x698214a0fde86449d48c93cca9bb939f3d8af451646b36162727c16b1ab02fce";
-  const docTimeNumber = 1722930142;
+  const docTimeNumber = 1_722_930_142;
   const docTime = "1722930142";
   const docProof =
     "0x0000000000000000000000000000000000000000000000000000000000b874b2";
@@ -291,7 +292,7 @@ describe("Track and Trace - entity assertions", () => {
       creatorHex,
       "metadata2",
       "origin1",
-      1722931438,
+      1_722_931_438,
       "block",
       "0xb87554",
     );

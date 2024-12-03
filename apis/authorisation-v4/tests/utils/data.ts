@@ -1,37 +1,46 @@
-import { randomUUID } from "node:crypto";
-import { ethers } from "ethers";
-import { EbsiWallet } from "@cef-ebsi/wallet-lib";
-import type { DIDDocument, JsonWebKey } from "did-resolver";
 import type { EbsiIssuer } from "@cef-ebsi/verifiable-credential";
 import type { PresentationSubmission } from "@sphereon/pex-models";
+import type { DIDDocument, JsonWebKey } from "did-resolver";
+
+import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import {
   generatePrivateKey,
   getPublicKeyJwk,
   getSigner,
 } from "@ebsiint-api/shared";
+import { ethers } from "ethers";
+import { randomUUID } from "node:crypto";
+
 import {
   CUSTOM_SCOPES,
   DIDR_INVITE_PRESENTATION_DEFINITION,
   DIDR_INVITE_SCOPE,
   DIDR_WRITE_PRESENTATION_DEFINITION,
   DIDR_WRITE_SCOPE,
+  TIMESTAMP_WRITE_PRESENTATION_DEFINITION,
+  TIMESTAMP_WRITE_SCOPE,
   TIR_INVITE_PRESENTATION_DEFINITION,
   TIR_INVITE_SCOPE,
   TIR_WRITE_PRESENTATION_DEFINITION,
   TIR_WRITE_SCOPE,
-  TIMESTAMP_WRITE_PRESENTATION_DEFINITION,
-  TIMESTAMP_WRITE_SCOPE,
   TNT_AUTHORISE_PRESENTATION_DEFINITION,
   TNT_AUTHORISE_SCOPE,
-  TNT_CREATE_SCOPE,
   TNT_CREATE_PRESENTATION_DEFINITION,
-  TNT_WRITE_SCOPE,
+  TNT_CREATE_SCOPE,
   TNT_WRITE_PRESENTATION_DEFINITION,
-  TPR_WRITE_SCOPE,
+  TNT_WRITE_SCOPE,
   TPR_WRITE_PRESENTATION_DEFINITION,
-  TSR_WRITE_SCOPE,
+  TPR_WRITE_SCOPE,
   TSR_WRITE_PRESENTATION_DEFINITION,
+  TSR_WRITE_SCOPE,
 } from "../../src/modules/authorisation/authorisation.constants.js";
+
+export interface LegalEntity<T extends "EdDSA" | "ES256" | "ES256K"> {
+  address: string;
+  did: string;
+  didDocument: DIDDocument;
+  keys: Record<T, EbsiIssuer & { publicKeyJwk: JsonWebKey }>;
+}
 
 export function createDidDocument(
   did: string,
@@ -43,46 +52,37 @@ export function createDidDocument(
       "https://www.w3.org/ns/did/v1",
       "https://w3id.org/security/suites/jws-2020/v1",
     ],
+    assertionMethod: kids,
+    authentication: kids,
+    capabilityInvocation: kids,
     id: did,
     verificationMethod: Object.keys(keys).map((alg) => ({
-      id: keys[alg]!.kid,
-      type: "JsonWebKey2020",
       controller: did,
+      id: keys[alg]!.kid,
       publicKeyJwk: keys[alg]!.publicKeyJwk,
+      type: "JsonWebKey2020",
     })),
-    authentication: kids,
-    assertionMethod: kids,
-    capabilityInvocation: kids,
   };
 }
 
-export interface LegalEntity<T extends "ES256" | "ES256K" | "EdDSA"> {
-  did: string;
-  keys: Record<T, EbsiIssuer & { publicKeyJwk: JsonWebKey }>;
-  didDocument: DIDDocument;
-  address: string;
-}
-
-export async function createLegalEntity<T extends "ES256" | "ES256K" | "EdDSA">(
+export async function createLegalEntity<T extends "EdDSA" | "ES256" | "ES256K">(
   algs: T[],
-  did?: string | undefined,
+  did?: string,
 ): Promise<LegalEntity<T>> {
   const legalEntityDid = did ?? EbsiWallet.createDid();
 
   const keys: Record<string, EbsiIssuer & { publicKeyJwk: JsonWebKey }> = {};
   let address = "";
 
-  /* eslint-disable no-await-in-loop */
-  // eslint-disable-next-line no-restricted-syntax
   for (const alg of algs) {
     const privateKey = generatePrivateKey(alg);
     const publicKeyJwk = await getPublicKeyJwk(privateKey, alg);
     const kid = `${legalEntityDid}#${publicKeyJwk.kid}`;
 
     keys[alg] = {
+      alg,
       did: legalEntityDid,
       kid,
-      alg,
       publicKeyJwk,
       signer: getSigner(privateKey, alg),
     };
@@ -92,15 +92,14 @@ export async function createLegalEntity<T extends "ES256" | "ES256K" | "EdDSA">(
       address = wallet.address;
     }
   }
-  /* eslint-enable no-await-in-loop */
 
   const didDocument = createDidDocument(legalEntityDid, keys);
 
   return {
-    keys,
+    address,
     did: legalEntityDid,
     didDocument,
-    address,
+    keys,
   };
 }
 
@@ -111,9 +110,9 @@ export function createPresentationSubmission(
 ): PresentationSubmission {
   // Note that there are no .vc or .vp in path or path_nested below.
   const testPresentationSubmission: PresentationSubmission = {
-    id: randomUUID(),
     definition_id: "",
     descriptor_map: [],
+    id: randomUUID(),
   };
 
   switch (scope) {
@@ -122,12 +121,12 @@ export function createPresentationSubmission(
         DIDR_INVITE_PRESENTATION_DEFINITION.id;
 
       testPresentationSubmission.descriptor_map.push({
-        id: DIDR_INVITE_PRESENTATION_DEFINITION.input_descriptors[0].id,
         format: vpFormat,
+        id: DIDR_INVITE_PRESENTATION_DEFINITION.input_descriptors[0].id,
         path: "$",
         path_nested: {
-          id: DIDR_INVITE_PRESENTATION_DEFINITION.input_descriptors[0].id,
           format: vcFormat,
+          id: DIDR_INVITE_PRESENTATION_DEFINITION.input_descriptors[0].id,
           path: "$.vp.verifiableCredential[0]",
         },
       });
@@ -140,17 +139,23 @@ export function createPresentationSubmission(
 
       break;
     }
+    case TIMESTAMP_WRITE_SCOPE: {
+      testPresentationSubmission.definition_id =
+        TIMESTAMP_WRITE_PRESENTATION_DEFINITION.id;
+
+      break;
+    }
     case TIR_INVITE_SCOPE: {
       testPresentationSubmission.definition_id =
         TIR_INVITE_PRESENTATION_DEFINITION.id;
 
       testPresentationSubmission.descriptor_map.push({
-        id: TIR_INVITE_PRESENTATION_DEFINITION.input_descriptors[0].id,
         format: vpFormat,
+        id: TIR_INVITE_PRESENTATION_DEFINITION.input_descriptors[0].id,
         path: "$",
         path_nested: {
-          id: TIR_INVITE_PRESENTATION_DEFINITION.input_descriptors[0].id,
           format: vcFormat,
+          id: TIR_INVITE_PRESENTATION_DEFINITION.input_descriptors[0].id,
           path: "$.vp.verifiableCredential[0]",
         },
       });
@@ -163,23 +168,17 @@ export function createPresentationSubmission(
 
       break;
     }
-    case TIMESTAMP_WRITE_SCOPE: {
-      testPresentationSubmission.definition_id =
-        TIMESTAMP_WRITE_PRESENTATION_DEFINITION.id;
-
-      break;
-    }
     case TNT_AUTHORISE_SCOPE: {
       testPresentationSubmission.definition_id =
         TNT_AUTHORISE_PRESENTATION_DEFINITION.id;
 
       testPresentationSubmission.descriptor_map.push({
-        id: TNT_AUTHORISE_PRESENTATION_DEFINITION.input_descriptors[0].id,
         format: vpFormat,
+        id: TNT_AUTHORISE_PRESENTATION_DEFINITION.input_descriptors[0].id,
         path: "$",
         path_nested: {
-          id: TNT_AUTHORISE_PRESENTATION_DEFINITION.input_descriptors[0].id,
           format: vcFormat,
+          id: TNT_AUTHORISE_PRESENTATION_DEFINITION.input_descriptors[0].id,
           path: "$.vp.verifiableCredential[0]",
         },
       });

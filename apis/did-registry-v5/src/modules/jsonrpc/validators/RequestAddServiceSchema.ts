@@ -1,7 +1,8 @@
 import { isDidV1 } from "@ebsiint-api/shared";
-import { ZodError, z } from "zod";
-import { jsonRpcSchema } from "./JsonRpcSchema.js";
+import { z, ZodError } from "zod";
+
 import { baseParamSchema } from "./BaseParamSchema.js";
+import { jsonRpcSchema } from "./JsonRpcSchema.js";
 
 const credentialRegistryServiceEndpointSchema = z.object({
   byId: z.string().optional(),
@@ -14,29 +15,29 @@ const serviceSchema = z.object({
    * https://www.w3.org/TR/did-core/#services
    */
   id: z.string(),
-  type: z.string().or(z.set(z.string().min(1))),
   serviceEndpoint: z
     .string()
     .or(credentialRegistryServiceEndpointSchema)
     .or(z.set(z.string().or(z.object({})))),
+  type: z.string().or(z.set(z.string().min(1))),
 });
 
 function isServiceDocument(
   value: string,
-): { success: true } | { success: false; error: string | ZodError } {
-  let documentService = null;
+): { error: string | ZodError; success: false } | { success: true } {
+  let documentService;
   try {
     documentService = JSON.parse(value) as unknown;
-  } catch (ex) {
-    return { success: false, error: "Unable to parse JSON" };
+  } catch {
+    return { error: "Unable to parse JSON", success: false };
   }
 
   const parsedServiceSchema = serviceSchema.safeParse(documentService);
 
   if (!parsedServiceSchema.success) {
     return {
-      success: false,
       error: parsedServiceSchema.error,
+      success: false,
     };
   }
 
@@ -48,8 +49,8 @@ function isServiceDocument(
 
     if (!parsedServiceRegistrySchema.success) {
       return {
-        success: false,
         error: parsedServiceRegistrySchema.error,
+        success: false,
       };
     }
   }
@@ -72,12 +73,11 @@ export const addServiceSchema = baseParamSchema.merge(
       const serviceValidation = isServiceDocument(val);
       if (!serviceValidation.success) {
         if (serviceValidation.error instanceof ZodError) {
-          serviceValidation.error.errors.forEach((error) =>
+          for (const error of serviceValidation.error.errors)
             ctx.addIssue({
               ...error,
               path: [...error.path],
-            }),
-          );
+            });
         } else {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,

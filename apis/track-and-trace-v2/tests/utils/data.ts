@@ -1,18 +1,18 @@
+import { util } from "@cef-ebsi/key-did-resolver";
+import { EbsiWallet } from "@cef-ebsi/wallet-lib";
+import { encode } from "@ebsiint-api/shared";
+import { ethers } from "ethers";
 /**
  * Collection of functions for generating fake data to be used in the tests.
  */
 import { randomBytes } from "node:crypto";
-import { ethers } from "ethers";
-import { util } from "@cef-ebsi/key-did-resolver";
-import { EbsiWallet } from "@cef-ebsi/wallet-lib";
-import { encode } from "@ebsiint-api/shared";
+
 import {
-  Document,
   Creator,
-  Operator,
-  Invitation,
+  Document,
   Event,
-  // eslint-disable-next-line import/extensions, import/no-relative-packages
+  Invitation,
+  Operator,
 } from "../../.graphclient/index.js";
 import { didToHex } from "../../src/shared/utils.js";
 
@@ -21,9 +21,9 @@ export interface InvitationWithWallet extends Invitation {
 }
 
 export interface TestDocument {
+  didEbsiCreator: string;
   documentHash: string;
   documentMetadata: string;
-  didEbsiCreator: string;
   events: TestDocumentEvent[];
   timestamp: {
     datetime: string;
@@ -35,9 +35,9 @@ export interface TestDocumentEvent {
   documentHash: string;
   eventHash: string;
   externalHash: string;
-  sender: string;
-  origin: string;
   metadata: string;
+  origin: string;
+  sender: string;
   timestamp: {
     datetime: string;
     proof: string;
@@ -52,9 +52,9 @@ export function createDocument(
   const documentMetadata = "metadata";
 
   return {
+    didEbsiCreator,
     documentHash,
     documentMetadata,
-    didEbsiCreator,
     events: [],
     ...(externalSource
       ? {
@@ -88,9 +88,9 @@ export function createEvent(
     documentHash,
     eventHash,
     externalHash,
-    sender,
-    origin,
     metadata,
+    origin,
+    sender,
     timestamp: {
       datetime: "0x00",
       proof: "0x00",
@@ -108,109 +108,112 @@ export const DOCUMENTS_WITH_BLOCK_SOURCE = 3;
 export const DOCUMENTS_WITH_EXTERNAL_SOURCE = 3;
 export const DOCUMENT_EVENTS = 3;
 
-const creators: Creator[] = Array(CREATORS_TOTAL)
-  .fill(undefined)
-  .map(() => ({
-    id: EbsiWallet.createDid(),
-    active: true,
-    documents: [],
-  }));
+const creators = Array.from({ length: CREATORS_TOTAL }).map(
+  () =>
+    ({
+      active: true,
+      documents: [] as Document[],
+      id: EbsiWallet.createDid(),
+    }) satisfies Creator,
+);
 
-const documentsWithBlockSource: Document[] = Array(DOCUMENTS_WITH_BLOCK_SOURCE)
-  .fill(undefined)
-  .map(() => ({
-    id: `0x${randomBytes(32).toString("hex")}`,
-    creator: creators[0]!.id,
-    metadata: `metadata-${randomBytes(5).toString("hex")}`,
-    proof: `0x${randomBytes(32).toString("hex")}`,
-    source: "block",
-    timestamp: Math.floor(Date.now() / 1000).toString(),
-    invitations: [],
-    events: [],
-  }));
+const documentsWithBlockSource = Array.from({
+  length: DOCUMENTS_WITH_BLOCK_SOURCE,
+}).map(
+  () =>
+    ({
+      creator: creators[0]!.id,
+      events: [] as Event[],
+      id: `0x${randomBytes(32).toString("hex")}`,
+      invitations: [],
+      metadata: `metadata-${randomBytes(5).toString("hex")}`,
+      proof: `0x${randomBytes(32).toString("hex")}`,
+      source: "block",
+      timestamp: Math.floor(Date.now() / 1000).toString(),
+    }) satisfies Document,
+);
 
-const documentsWithExternalSource: Document[] = Array(
-  DOCUMENTS_WITH_EXTERNAL_SOURCE,
-)
-  .fill(undefined)
-  .map(() => ({
-    id: `0x${randomBytes(32).toString("hex")}`,
-    creator: creators[0]!.id,
-    metadata: `metadata-${randomBytes(5).toString("hex")}`,
-    proof: `0x${randomBytes(32).toString("hex")}`,
-    source: "external",
-    timestamp: Math.floor(Date.now() / 1000).toString(),
-    invitations: [],
-    events: [],
-  }));
+const documentsWithExternalSource = Array.from({
+  length: DOCUMENTS_WITH_EXTERNAL_SOURCE,
+}).map(
+  () =>
+    ({
+      creator: creators[0]!.id,
+      events: [] as Event[],
+      id: `0x${randomBytes(32).toString("hex")}`,
+      invitations: [] as Invitation[],
+      metadata: `metadata-${randomBytes(5).toString("hex")}`,
+      proof: `0x${randomBytes(32).toString("hex")}`,
+      source: "external",
+      timestamp: Math.floor(Date.now() / 1000).toString(),
+    }) satisfies Document,
+);
 
 const documents = [...documentsWithBlockSource, ...documentsWithExternalSource];
 
 creators[0]!.documents = documents;
 
-const invitations: InvitationWithWallet[] = await Promise.all(
-  Array(INVITATIONS_TOTAL)
-    .fill(undefined)
-    .map(async (_, i) => {
-      let subject: string;
-      const wallet = ethers.Wallet.createRandom();
-      if (i % 2 === 0) {
-        const publicKeyJwk = encode.publicKey.fromHexToJWK(wallet.publicKey);
-        subject = util.createDid(publicKeyJwk);
-      } else {
-        subject = EbsiWallet.createDid();
-      }
-      const subjectHex = await didToHex(subject);
-      const grantedBy = `0x${Buffer.from(creators[0]!.id).toString("hex")}`;
-      if (i === 0) {
-        return {
-          id: `${documents[0]!.id}${subjectHex}1`,
-          grantedBy,
-          subject: grantedBy,
-          type: "creator",
-          document: documents[0]!,
-          children: [],
-          wallet,
-        };
-      }
-
+const invitations = await Promise.all(
+  Array.from({ length: INVITATIONS_TOTAL }).map(async (_, i) => {
+    let subject: string;
+    const wallet = ethers.Wallet.createRandom();
+    if (i % 2 === 0) {
+      const publicKeyJwk = encode.publicKey.fromHexToJWK(wallet.publicKey);
+      subject = util.createDid(publicKeyJwk);
+    } else {
+      subject = EbsiWallet.createDid();
+    }
+    const subjectHex = await didToHex(subject);
+    const grantedBy = `0x${Buffer.from(creators[0]!.id).toString("hex")}`;
+    if (i === 0) {
       return {
-        id: `${documents[0]!.id}${subjectHex}1`,
-        grantedBy,
-        subject: subjectHex,
-        type: i % 2 === 0 ? "write" : "delegate",
-        document: documents[0]!,
         children: [],
+        document: documents[0]!,
+        grantedBy,
+        id: `${documents[0]!.id}${subjectHex}1`,
+        subject: grantedBy,
+        type: "creator",
         wallet,
-      };
-    }),
+      } satisfies InvitationWithWallet;
+    }
+
+    return {
+      children: [],
+      document: documents[0]!,
+      grantedBy,
+      id: `${documents[0]!.id}${subjectHex}1`,
+      subject: subjectHex,
+      type: i % 2 === 0 ? "write" : "delegate",
+      wallet,
+    } satisfies InvitationWithWallet;
+  }),
 );
+
 documents[0]!.invitations = invitations;
 
 const operators: Operator[] = [];
-invitations.forEach((invitation) => {
+for (const invitation of invitations) {
   operators.push({
     id: invitation.subject,
     invitations: [invitation],
   });
+}
+
+const events = Array.from({ length: DOCUMENT_EVENTS }).map(() => {
+  const id = `0x${randomBytes(32).toString("hex")}`;
+  return {
+    externalHash: `0x${randomBytes(32).toString("hex")}`,
+    hash: id,
+    id,
+    metadata: `event-metadata-${randomBytes(5).toString("hex")}`,
+    origin: `origin-${randomBytes(5).toString("hex")}`,
+    proof: `0x${randomBytes(32).toString("hex")}`,
+    sender: operators[0]!.id,
+    source: "block",
+    timestamp: Math.floor(Date.now() / 1000).toString(),
+  } satisfies Event;
 });
 
-const events: Event[] = Array(DOCUMENT_EVENTS)
-  .fill(undefined)
-  .map(() => {
-    const id = `0x${randomBytes(32).toString("hex")}`;
-    return {
-      id,
-      hash: id,
-      externalHash: `0x${randomBytes(32).toString("hex")}`,
-      metadata: `event-metadata-${randomBytes(5).toString("hex")}`,
-      origin: `origin-${randomBytes(5).toString("hex")}`,
-      proof: `0x${randomBytes(32).toString("hex")}`,
-      sender: operators[0]!.id,
-      source: "block",
-      timestamp: Math.floor(Date.now() / 1000).toString(),
-    };
-  });
 documents[0]!.events = events;
 
 export const dummyData = {
@@ -218,7 +221,7 @@ export const dummyData = {
   documents,
   documentsWithBlockSource,
   documentsWithExternalSource,
+  events,
   invitations,
   operators,
-  events,
 };

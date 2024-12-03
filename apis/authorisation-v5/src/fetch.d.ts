@@ -9,18 +9,18 @@ declare global {
     Response,
   }: typeof import("undici-types");
 
+  type BodyInit = undici.BodyInit;
   type FormData = undici.FormData;
   type Headers = undici.Headers;
   type HeadersInit = undici.HeadersInit;
-  type BodyInit = undici.BodyInit;
+  type ReferrerPolicy = undici.ReferrerPolicy;
   type Request = undici.Request;
-  type RequestInit = undici.RequestInit;
-  type RequestInfo = undici.RequestInfo;
-  type RequestMode = undici.RequestMode;
-  type RequestRedirect = undici.RequestRedirect;
   type RequestCredentials = undici.RequestCredentials;
   type RequestDestination = undici.RequestDestination;
-  type ReferrerPolicy = undici.ReferrerPolicy;
+  type RequestInfo = undici.RequestInfo;
+  type RequestInit = undici.RequestInit;
+  type RequestMode = undici.RequestMode;
+  type RequestRedirect = undici.RequestRedirect;
   type Response = undici.Response;
   type ResponseInit = undici.ResponseInit;
   type ResponseType = undici.ResponseType;

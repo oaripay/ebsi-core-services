@@ -8,27 +8,27 @@ export const networks: NetworksUserConfig = {
 
   // goerli
   goerli: {
-    url: "https://goerli.infura.io/v3/YOUR-INFURA-KEY",
-    chainId: 5,
     accounts: {
+      count: 10,
+      initialIndex: 0,
       mnemonic: "oh my dear",
       path: "m/44'/60'/0'/0",
-      initialIndex: 0,
-      count: 10,
     },
+    chainId: 5,
     gas: "auto",
-    gasPrice: 1000000000, // 1 gwei
     gasMultiplier: 1.5,
+    gasPrice: 1_000_000_000, // 1 gwei
+    url: "https://goerli.infura.io/v3/YOUR-INFURA-KEY",
   },
 
   // Mainnet
   mainnet: {
-    url: "https://mainnet.infura.io/v3/YOUR-INFURA-KEY",
-    chainId: 1,
     accounts: ["0xaaaa"],
+    chainId: 1,
     gas: "auto",
-    gasPrice: 50000000000,
     gasMultiplier: 1.5,
+    gasPrice: 50_000_000_000,
+    url: "https://mainnet.infura.io/v3/YOUR-INFURA-KEY",
   },
 };
 

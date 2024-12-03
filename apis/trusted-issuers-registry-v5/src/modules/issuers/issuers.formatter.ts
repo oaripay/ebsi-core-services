@@ -1,11 +1,31 @@
-import { Tir } from "@ebsiint-sc/trusted-issuers-registry-v3";
 import { paginate, PaginatedList } from "@ebsiint-api/shared";
+import { Tir } from "@ebsiint-sc/trusted-issuers-registry-v3";
+
 import {
   AttributeObject,
-  IdLink,
   DidLink,
+  IdLink,
   ProxyLink,
 } from "./issuers.interface.js";
+
+export function formatAttributes(
+  attributes: AttributeObject[],
+  page: number,
+  pageSize: number,
+  baseUrl: string,
+): PaginatedList<IdLink> {
+  const total = attributes.length;
+
+  // Extract and reshape items
+  const items = attributes
+    .slice((page - 1) * pageSize, page * pageSize)
+    .map((attr) => ({
+      href: `${baseUrl}/${attr.hash}`,
+      id: attr.hash,
+    }));
+
+  return paginate<IdLink>(items, baseUrl, total, page, pageSize);
+}
 
 export function formatIssuers(
   issuers: Awaited<ReturnType<Tir["getIssuers"]>>,
@@ -24,23 +44,20 @@ export function formatIssuers(
   return paginate<DidLink>(items, baseUrl, total, page, pageSize);
 }
 
-export function formatAttributes(
-  attributes: AttributeObject[],
-  page: number,
-  pageSize: number,
+export function formatProxies(
+  issuerProxies: Awaited<ReturnType<Tir["getIssuerProxies"]>>,
   baseUrl: string,
-): PaginatedList<IdLink> {
-  const total = attributes.length;
+): PaginatedList<ProxyLink> {
+  const items: ProxyLink[] = issuerProxies.map((proxy) => ({
+    href: `${baseUrl}/${proxy}`,
+    proxyId: proxy,
+  }));
+  const total = items.length;
 
-  // Extract and reshape items
-  const items = attributes
-    .slice((page - 1) * pageSize, page * pageSize)
-    .map((attr) => ({
-      id: attr.hash,
-      href: `${baseUrl}/${attr.hash}`,
-    }));
-
-  return paginate<IdLink>(items, baseUrl, total, page, pageSize);
+  return {
+    items,
+    total,
+  };
 }
 
 export function formatRevisions(
@@ -51,20 +68,4 @@ export function formatRevisions(
   baseUrl: string,
 ): PaginatedList<AttributeObject> {
   return paginate<AttributeObject>(revisions, baseUrl, total, page, pageSize);
-}
-
-export function formatProxies(
-  issuerProxies: Awaited<ReturnType<Tir["getIssuerProxies"]>>,
-  baseUrl: string,
-): PaginatedList<ProxyLink> {
-  const items: ProxyLink[] = issuerProxies.map((proxy) => ({
-    proxyId: proxy,
-    href: `${baseUrl}/${proxy}`,
-  }));
-  const total = items.length;
-
-  return {
-    items,
-    total,
-  };
 }

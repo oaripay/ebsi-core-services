@@ -1,19 +1,20 @@
-import { describe, it, expect } from "vitest";
-import { ethers } from "ethers";
 import { DidRegistry } from "@ebsiint-sc/did-registry-v3";
+import { ethers } from "ethers";
+import { describe, expect, it } from "vitest";
+
 import { formatIdentifiers } from "./identifiers.formatter.js";
 
 describe("formatIdentifiers", () => {
   const identifiers = {
-    prev: ethers.BigNumber.from("1"),
-    next: ethers.BigNumber.from("3"),
+    howMany: ethers.BigNumber.from("3"),
     items: [
       "did:ebsi:z224tCapjMEJEdLU6n1iG2yH",
       "did:ebsi:zsG1AGXCuZ46tSAE2UT6kdE",
       "did:ebsi:zjNQGmQjYQ6Wo3o5A7QnjR9",
     ],
+    next: ethers.BigNumber.from("3"),
+    prev: ethers.BigNumber.from("1"),
     total: ethers.BigNumber.from("42"),
-    howMany: ethers.BigNumber.from("3"),
   } as Awaited<ReturnType<DidRegistry["getDids"]>>;
 
   it("should use the values returned by the smart contract (except pageSize)", () => {

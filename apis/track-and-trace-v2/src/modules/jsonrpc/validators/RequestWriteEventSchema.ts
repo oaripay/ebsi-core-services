@@ -1,12 +1,12 @@
-import { z } from "zod";
 import {
   BigNumber,
-  isBigNumberish,
   type BigNumberish,
-  // eslint-disable-next-line import/extensions
+  isBigNumberish,
 } from "@ethersproject/bignumber/lib/bignumber.js";
-import { jsonRpcSchema } from "./JsonRpcSchema.js";
+import { z } from "zod";
+
 import { baseParamSchema } from "./BaseParamSchema.js";
+import { jsonRpcSchema } from "./JsonRpcSchema.js";
 import { refinements } from "./utils.js";
 
 const { isHexadecimal, isSender } = refinements;
@@ -22,9 +22,9 @@ export const writeEventSchema = baseParamSchema.merge(
       externalHash: z.string(),
 
       /**
-       * sender is the did:key or did:ebsi that had permission with "write" for the given Document.
+       * metadata is a free text field.
        */
-      sender: z.string().superRefine(isSender),
+      metadata: z.string(),
 
       /**
        * origin is most of the times empty field, while it may be a string containing company name,
@@ -33,9 +33,9 @@ export const writeEventSchema = baseParamSchema.merge(
       origin: z.string(),
 
       /**
-       * metadata is a free text field.
+       * sender is the did:key or did:ebsi that had permission with "write" for the given Document.
        */
-      metadata: z.string(),
+      sender: z.string().superRefine(isSender),
     }),
 
     /**

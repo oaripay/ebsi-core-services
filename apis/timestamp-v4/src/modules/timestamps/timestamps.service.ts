@@ -1,15 +1,17 @@
-import { Injectable, Logger } from "@nestjs/common";
-import type { HashName } from "multihashes";
 import type { ethers } from "ethers";
-import { Timestamp } from "@ebsiint-sc/timestamp-v2";
+import type { HashName } from "multihashes";
+
 import {
-  multibase,
-  multihashEncode,
-  multihashDecode,
   InternalServerError,
-  NotFoundError,
   isEthersError,
+  multibase,
+  multihashDecode,
+  multihashEncode,
+  NotFoundError,
 } from "@ebsiint-api/shared";
+import { Timestamp } from "@ebsiint-sc/timestamp-v2";
+import { Injectable, Logger } from "@nestjs/common";
+
 import { LedgerService } from "../ledger/ledger.service.js";
 import { TimestampResponseObject } from "./timestamps.interface.js";
 
@@ -18,24 +20,6 @@ export default class TimestampsService {
   private readonly logger = new Logger(TimestampsService.name);
 
   constructor(private ledgerService: LedgerService) {}
-
-  async getTimestamps(
-    page: number,
-    pageSize: number,
-  ): ReturnType<Timestamp["getTimestamps"]> {
-    try {
-      return await this.ledgerService
-        .getContract()
-        .getTimestamps(page, pageSize);
-    } catch (error) {
-      if (isEthersError(error)) {
-        this.logger.error(error, error.stack);
-      }
-      throw new NotFoundError("No timestamps found", {
-        detail: "No timestamps found",
-      });
-    }
-  }
 
   async getTimestamp(timestampId: string): Promise<TimestampResponseObject> {
     let timestamp: Awaited<ReturnType<Timestamp["getTimestamp"]>>;
@@ -54,7 +38,7 @@ export default class TimestampsService {
       });
     }
 
-    const { hash, timestampedBy, blockNumber, data } = timestamp;
+    const { blockNumber, data, hash, timestampedBy } = timestamp;
 
     try {
       // Parallelize SC calls
@@ -101,7 +85,7 @@ export default class TimestampsService {
         let parsedTx: ethers.utils.TransactionDescription;
         try {
           parsedTx = contractInterface.parseTransaction(tx);
-        } catch (e) {
+        } catch {
           return false;
         }
 
@@ -133,11 +117,11 @@ export default class TimestampsService {
       transactionHash = transaction.hash;
 
       return {
-        hash: multihashEncodedHash,
-        timestampedBy,
         blockNumber: blockNumber.toNumber(),
-        timestamp: new Date(block.timestamp * 1000).toISOString(),
         data,
+        hash: multihashEncodedHash,
+        timestamp: new Date(block.timestamp * 1000).toISOString(),
+        timestampedBy,
         transactionHash,
       };
     } catch (error) {
@@ -149,6 +133,24 @@ export default class TimestampsService {
         });
       }
       throw error;
+    }
+  }
+
+  async getTimestamps(
+    page: number,
+    pageSize: number,
+  ): ReturnType<Timestamp["getTimestamps"]> {
+    try {
+      return await this.ledgerService
+        .getContract()
+        .getTimestamps(page, pageSize);
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error, error.stack);
+      }
+      throw new NotFoundError("No timestamps found", {
+        detail: "No timestamps found",
+      });
     }
   }
 }

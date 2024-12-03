@@ -1,29 +1,31 @@
-import {
-  vi,
-  describe,
-  beforeAll,
-  it,
-  expect,
-  afterEach,
-  afterAll,
-} from "vitest";
-import request from "supertest";
-import { Test } from "@nestjs/testing";
-import { ValidationPipe, Logger } from "@nestjs/common";
-import { HealthIndicatorResult } from "@nestjs/terminus";
+import type { RawServerDefault } from "fastify";
+
+import { methodNotAllowed } from "@ebsiint-api/shared";
+import { fastifyAccepts } from "@fastify/accepts";
 import { HttpService } from "@nestjs/axios";
+import { Logger, ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import {
   FastifyAdapter,
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import type { RawServerDefault } from "fastify";
-import { fastifyAccepts } from "@fastify/accepts";
+import { HealthIndicatorResult } from "@nestjs/terminus";
+import { Test } from "@nestjs/testing";
 import { graphql, http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
-import { methodNotAllowed } from "@ebsiint-api/shared";
+import request from "supertest";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
+
+import { type ApiConfig, DEPENDENCIES } from "../../config/configuration.js";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
-import { DEPENDENCIES, type ApiConfig } from "../../config/configuration.js";
 import { HealthModule } from "./health.module.js";
 
 describe("Health Module", () => {
@@ -114,11 +116,11 @@ describe("Health Module", () => {
       const response = await request(server).get("/health").send();
 
       // Expect httpService.request to have been called for every dependency
-      dependencies.forEach((dependency) => {
+      for (const dependency of dependencies) {
         expect(spy).toHaveBeenCalledWith({
           url: `${localOrigin}${DEPENDENCIES[dependency]}`,
         });
-      });
+      }
       expect(spy).toHaveBeenCalledWith({
         url: configService.get<string>("besuReadinessEndpoint"),
       });
@@ -162,11 +164,11 @@ describe("Health Module", () => {
       const response = await request(server).get("/health").send();
 
       // Expect httpService.request to have been called for every dependency
-      dependencies.forEach((dependency) => {
+      for (const dependency of dependencies) {
         expect(spy).toHaveBeenCalledWith({
           url: `${localOrigin}${DEPENDENCIES[dependency]}`,
         });
-      });
+      }
       expect(spy).toHaveBeenCalledWith({
         url: configService.get<string>("besuReadinessEndpoint"),
       });
@@ -224,11 +226,11 @@ describe("Health Module", () => {
       const response = await request(server).get("/health").send();
 
       // Expect httpService.request to have been called for every dependency
-      dependencies.forEach((dependency) => {
+      for (const dependency of dependencies) {
         expect(spy).toHaveBeenCalledWith({
           url: `${localOrigin}${DEPENDENCIES[dependency]}`,
         });
-      });
+      }
       expect(spy).toHaveBeenCalledWith({
         url: configService.get<string>("besuReadinessEndpoint"),
       });
@@ -288,11 +290,11 @@ describe("Health Module", () => {
       const response = await request(server).get("/health").send();
 
       // Expect httpService.request to have been called for every dependency
-      dependencies.forEach((dependency) => {
+      for (const dependency of dependencies) {
         expect(spy).toHaveBeenCalledWith({
           url: `${localOrigin}${DEPENDENCIES[dependency]}`,
         });
-      });
+      }
 
       // Expect all the dependencies to be up except Besu
       const expectedStatuses: Record<string, unknown> = (
@@ -303,8 +305,8 @@ describe("Health Module", () => {
         }))
         .reduce((acc, currentVal) => ({ ...acc, ...currentVal }), {});
       expectedStatuses["TSR Subgraph"] = {
-        status: "down",
         message: "Not synchronized",
+        status: "down",
       };
 
       const { "TSR Subgraph": errorStatus, ...otherStatuses } =

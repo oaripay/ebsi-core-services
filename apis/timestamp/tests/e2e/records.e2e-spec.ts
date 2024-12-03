@@ -1,29 +1,50 @@
-import { describe, beforeAll, it, expect, afterAll } from "vitest";
-import crypto from "node:crypto";
-import request from "supertest";
-import { Test } from "@nestjs/testing";
-import { ValidationPipe, Logger } from "@nestjs/common";
+import type { RawServerDefault } from "fastify";
+
+import { methodNotAllowed, multibase } from "@ebsiint-api/shared";
+import { fastifyAccepts } from "@fastify/accepts";
+import { fastifyHelmet } from "@fastify/helmet";
+import { Logger, ValidationPipe } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import {
   FastifyAdapter,
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import { ConfigService } from "@nestjs/config";
-import type { RawServerDefault } from "fastify";
-import { fastifyAccepts } from "@fastify/accepts";
-import { fastifyHelmet } from "@fastify/helmet";
-import { methodNotAllowed, multibase } from "@ebsiint-api/shared";
-import { AppModule } from "../../src/app.module.js";
-import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
-import {
+import { Test } from "@nestjs/testing";
+import crypto from "node:crypto";
+import request from "supertest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
+
+import type { ApiConfig } from "../../src/config/configuration.js";
+import type {
   RecordLink,
   VersionLink,
 } from "../../src/modules/records/records.interface.js";
-import type { ApiConfig } from "../../src/config/configuration.js";
+
+import { AppModule } from "../../src/app.module.js";
+import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
 import { getServer } from "../utils/getServer.js";
 
 describe("Timestamp API v3 - Records (e2e)", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault | string;
+
+  const getFirstRecordId = async () => {
+    const respRecords = await request(server).get("/records");
+    const { recordId } = (respRecords.body as { items: RecordLink[] })
+      .items[0]!;
+    return recordId;
+  };
+
+  const getRecordVersions = async (recordId: string) => {
+    const respRecords = await request(server).get(
+      `/records/${recordId}/versions`,
+    );
+    const { items, total } = respRecords.body as {
+      items: VersionLink[];
+      total: number;
+    };
+    return { items, total };
+  };
 
   beforeAll(async () => {
     const moduleFixture = await Test.createTestingModule({
@@ -77,18 +98,18 @@ describe("Timestamp API v3 - Records (e2e)", () => {
 
       const response = await request(server).get("/records");
       expect(response.body).toStrictEqual({
-        self: expect.stringContaining("/records?page[after]=1&page[size]=10"),
         items: expect.arrayContaining([]),
-        total: expect.any(Number),
-        pageSize: 10,
         links: {
           first: expect.stringContaining(
             "/records?page[after]=1&page[size]=10",
           ),
-          prev: expect.stringContaining("/records?page[after]=1&page[size]=10"),
-          next: expect.stringContaining("/records?page[after]="),
           last: expect.stringContaining("/records?page[after]="),
+          next: expect.stringContaining("/records?page[after]="),
+          prev: expect.stringContaining("/records?page[after]=1&page[size]=10"),
         },
+        pageSize: 10,
+        self: expect.stringContaining("/records?page[after]=1&page[size]=10"),
+        total: expect.any(Number),
       });
       expect(response.status).toBe(200);
     });
@@ -107,10 +128,10 @@ describe("Timestamp API v3 - Records (e2e)", () => {
       const response = await request(server).get(`/records/${recordId}`);
 
       expect(response.body).toStrictEqual({
-        ownerIds: expect.arrayContaining([]),
-        revokedOwnerIds: expect.arrayContaining([]),
         firstVersionTimestamps: expect.arrayContaining([]),
         lastVersionTimestamps: expect.arrayContaining([]),
+        ownerIds: expect.arrayContaining([]),
+        revokedOwnerIds: expect.arrayContaining([]),
         totalVersions: expect.any(Number),
       });
       expect(response.status).toBe(200);
@@ -124,9 +145,9 @@ describe("Timestamp API v3 - Records (e2e)", () => {
       const response = await request(server).get(`/records/${recordId}`);
 
       expect(response.body).toStrictEqual({
-        title: "Record Not Found",
-        status: 404,
         detail: `Record ${recordId} not found`,
+        status: 404,
+        title: "Record Not Found",
         type: "about:blank",
       });
       expect(response.status).toBe(404);
@@ -134,16 +155,6 @@ describe("Timestamp API v3 - Records (e2e)", () => {
   });
 
   describe("GET /records/{recordId}/versions", () => {
-    const getFirstRecordId = async () => {
-      const respRecords = await request(server).get("/records");
-      const { recordId } = (
-        respRecords.body as {
-          items: RecordLink[];
-        }
-      ).items[0]!;
-      return recordId;
-    };
-
     it("should return a paginated collection of versions", async () => {
       expect.assertions(2);
 
@@ -153,53 +164,32 @@ describe("Timestamp API v3 - Records (e2e)", () => {
         `/records/${recordId}/versions`,
       );
       expect(response.body).toStrictEqual({
-        self: expect.stringContaining(
-          `/records/${recordId}/versions?page[after]=1&page[size]=10`,
-        ),
         items: expect.arrayContaining([]),
-        total: expect.any(Number),
-        pageSize: 10,
         links: {
           first: expect.stringContaining(
             `/records/${recordId}/versions?page[after]=1&page[size]=10`,
           ),
-          prev: expect.stringContaining(
-            `/records/${recordId}/versions?page[after]=1&page[size]=10`,
+          last: expect.stringContaining(
+            `/records/${recordId}/versions?page[after]=`,
           ),
           next: expect.stringContaining(
             `/records/${recordId}/versions?page[after]=`,
           ),
-          last: expect.stringContaining(
-            `/records/${recordId}/versions?page[after]=`,
+          prev: expect.stringContaining(
+            `/records/${recordId}/versions?page[after]=1&page[size]=10`,
           ),
         },
+        pageSize: 10,
+        self: expect.stringContaining(
+          `/records/${recordId}/versions?page[after]=1&page[size]=10`,
+        ),
+        total: expect.any(Number),
       });
       expect(response.status).toBe(200);
     });
   });
 
   describe("GET /records/{recordId}/versions/{versionId}", () => {
-    const getFirstRecordId = async () => {
-      const respRecords = await request(server).get("/records");
-      const { recordId } = (
-        respRecords.body as {
-          items: RecordLink[];
-        }
-      ).items[0]!;
-      return recordId;
-    };
-
-    const getRecordVersions = async (recordId: string) => {
-      const respRecords = await request(server).get(
-        `/records/${recordId}/versions`,
-      );
-      const { items, total } = respRecords.body as {
-        items: VersionLink[];
-        total: number;
-      };
-      return { items, total };
-    };
-
     it("should return a specific version", async () => {
       expect.assertions(2);
 
@@ -226,9 +216,9 @@ describe("Timestamp API v3 - Records (e2e)", () => {
       );
 
       expect(response.body).toStrictEqual({
-        title: "Record Not Found",
-        status: 404,
         detail: `Record ${randomRecordId} not found`,
+        status: 404,
+        title: "Record Not Found",
         type: "about:blank",
       });
       expect(response.status).toBe(404);
@@ -246,9 +236,9 @@ describe("Timestamp API v3 - Records (e2e)", () => {
       );
 
       expect(response.body).toStrictEqual({
-        title: "Version Not Found",
-        status: 404,
         detail: `Version ${versionId} not found`,
+        status: 404,
+        title: "Version Not Found",
         type: "about:blank",
       });
       expect(response.status).toBe(404);

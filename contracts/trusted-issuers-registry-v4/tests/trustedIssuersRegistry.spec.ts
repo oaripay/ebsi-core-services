@@ -1,14 +1,17 @@
-import { randomBytes } from "node:crypto";
-import { ethers, network, upgrades } from "hardhat";
-import { Contract, ContractFactory } from "ethers";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { expect } from "chai";
-import { TrustedIssuersRegistry } from "../src/types";
-import { testTprAddress, testDidrAddress } from "./testAddress";
+import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import type { ContractFactory } from "ethers";
 
-function randomBytesHex(length: number) {
-  return `0x${randomBytes(length).toString("hex")}`;
-}
+import { expect } from "chai";
+import { ethers, network, upgrades } from "hardhat";
+import { randomBytes } from "node:crypto";
+
+import type {
+  DidRegistryMock,
+  PolicyRegistryMock,
+  TrustedIssuersRegistry,
+} from "../src/types";
+
+import { testDidrAddress, testTprAddress } from "./testAddress";
 
 enum IssuerType {
   Undefined,
@@ -18,14 +21,18 @@ enum IssuerType {
   Revoked,
 }
 
+function randomBytesHex(length: number) {
+  return `0x${randomBytes(length).toString("hex")}`;
+}
+
 const createData = (did: string) => {
   const issuer = {
-    did,
-    attributeId: randomBytesHex(32),
     attributeData: randomBytesHex(100),
+    attributeId: randomBytesHex(32),
+    did,
     proxyData: `{ test - ${randomBytes(10).toString("base64")} }`,
-    revisionId: "",
     proxyId: "",
+    revisionId: "",
   };
   issuer.revisionId = ethers.utils.sha256(issuer.attributeData);
   issuer.proxyId = ethers.utils.sha256(Buffer.from(issuer.proxyData));
@@ -39,9 +46,9 @@ const ti1 = createData("did:ebsi:ti1");
 const ti2 = createData("did:ebsi:ti2");
 
 describe("Trusted Issuers Registry", () => {
-  let tir: ethers.Contract;
-  let tprMock: Contract;
-  let didrMock: Contract;
+  let tir: TrustedIssuersRegistry;
+  let tprMock: PolicyRegistryMock;
+  let didrMock: DidRegistryMock;
   let contractFactory: ContractFactory;
   let upgrader: SignerWithAddress;
   let admin: SignerWithAddress;
@@ -149,11 +156,11 @@ describe("Trusted Issuers Registry", () => {
         .to.emit(tir, "AttributeMetadataUpdated")
         .withArgs(
           {
-            did: rootTao1.did,
             attributeId: rootTao1.attributeId,
+            did: rootTao1.did,
             issuerType: IssuerType.RootTAO,
-            taoDid: rootTao1.did,
             rootTaoDid: rootTao1.did,
+            taoDid: rootTao1.did,
           },
           attributeId,
         );
@@ -199,11 +206,11 @@ describe("Trusted Issuers Registry", () => {
         .to.emit(tir, "AttributeMetadataUpdated")
         .withArgs(
           {
-            did: tao1.did,
             attributeId: tao1.attributeId,
+            did: tao1.did,
             issuerType: IssuerType.TAO,
-            taoDid: rootTao1.did,
             rootTaoDid: rootTao1.did,
+            taoDid: rootTao1.did,
           },
           tao1.attributeId,
         );
@@ -221,11 +228,11 @@ describe("Trusted Issuers Registry", () => {
         .to.emit(tir, "AttributeMetadataUpdated")
         .withArgs(
           {
-            did: tao2.did,
             attributeId: tao2.attributeId,
+            did: tao2.did,
             issuerType: IssuerType.TAO,
-            taoDid: rootTao1.did,
             rootTaoDid: rootTao1.did,
+            taoDid: rootTao1.did,
           },
           tao1.attributeId,
         );
@@ -245,11 +252,11 @@ describe("Trusted Issuers Registry", () => {
         .to.emit(tir, "AttributeMetadataUpdated")
         .withArgs(
           {
-            did: ti1.did,
             attributeId: ti1.attributeId,
+            did: ti1.did,
             issuerType: IssuerType.TI,
-            taoDid: tao1.did,
             rootTaoDid: rootTao1.did,
+            taoDid: tao1.did,
           },
           tao1.attributeId,
         );
@@ -324,11 +331,11 @@ describe("Trusted Issuers Registry", () => {
         .to.emit(tir, "AttributeMetadataUpdated")
         .withArgs(
           {
-            did: tao1.did,
             attributeId: tao1.attributeId,
+            did: tao1.did,
             issuerType: IssuerType.Revoked,
-            taoDid: rootTao1.did,
             rootTaoDid: rootTao1.did,
+            taoDid: rootTao1.did,
           },
           "",
         );
@@ -348,11 +355,11 @@ describe("Trusted Issuers Registry", () => {
         .to.emit(tir, "AttributeMetadataUpdated")
         .withArgs(
           {
-            did: rootTao1.did,
             attributeId: rootTao1.attributeId,
+            did: rootTao1.did,
             issuerType: IssuerType.Revoked,
-            taoDid: rootTao1.did,
             rootTaoDid: rootTao1.did,
+            taoDid: rootTao1.did,
           },
           // TODO: chai is not verifying the second argument
           "",
@@ -360,7 +367,7 @@ describe("Trusted Issuers Registry", () => {
     });
   });
 
-  describe("Set attribute data", async () => {
+  describe("Set attribute data", () => {
     it("should revert impersonations", async () => {
       await didrMock.setDidResult(false); // impersonation (not ti1)
       await expect(
@@ -389,11 +396,11 @@ describe("Trusted Issuers Registry", () => {
         .to.emit(tir, "AttributeDataUpdated")
         .withArgs(
           {
-            did: ti1.did,
             attributeId: ti1.attributeId,
+            did: ti1.did,
             issuerType: IssuerType.TI,
-            taoDid: tao1.did,
             rootTaoDid: rootTao1.did,
+            taoDid: tao1.did,
           },
           "",
           ti1.attributeData,
@@ -408,11 +415,11 @@ describe("Trusted Issuers Registry", () => {
         .to.emit(tir, "AttributeDataUpdated")
         .withArgs(
           {
-            did: ti1.did,
             attributeId: ti1.attributeId,
+            did: ti1.did,
             issuerType: IssuerType.TI,
-            taoDid: tao1.did,
             rootTaoDid: rootTao1.did,
+            taoDid: tao1.did,
           },
           "",
           ti1.attributeData,
@@ -420,7 +427,7 @@ describe("Trusted Issuers Registry", () => {
     });
   });
 
-  describe("Proxies", async () => {
+  describe("Proxies", () => {
     it("should revert unknown dids", async () => {
       await didrMock.setDidResult(true);
       await expect(

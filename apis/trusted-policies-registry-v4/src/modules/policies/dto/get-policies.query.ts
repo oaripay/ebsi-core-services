@@ -1,9 +1,9 @@
-import { IsIn, IsOptional } from "class-validator";
 import { PaginationQuery } from "@ebsiint-api/shared";
+import { IsIn, IsOptional } from "class-validator";
 
 export class GetPoliciesQuery extends PaginationQuery {
-  @IsOptional()
   @IsIn(["true", "false"])
+  @IsOptional()
   "status": string;
 }
 

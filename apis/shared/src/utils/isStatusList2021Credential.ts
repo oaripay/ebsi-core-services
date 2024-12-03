@@ -1,7 +1,7 @@
 import {
-  verifyCredentialJwt,
   type EbsiEnvConfiguration,
   type EbsiVerifiableAttestation,
+  verifyCredentialJwt,
   type VerifyCredentialOptions,
 } from "@cef-ebsi/verifiable-credential";
 import Joi from "joi";
@@ -14,13 +14,13 @@ export interface StatusList2021Credential extends EbsiVerifiableAttestation {
     "https://w3id.org/vc/status-list/2021/v1",
     ...string[],
   ];
-  type: ["VerifiableCredential", ...string[]];
   credentialSubject: {
-    id: string;
-    type: "StatusList2021";
-    statusPurpose: "revocation" | "suspension";
     encodedList: string;
+    id: string;
+    statusPurpose: "revocation" | "suspension";
+    type: "StatusList2021";
   };
+  type: ["VerifiableCredential", ...string[]];
 }
 
 export const statusList2021CredentialSchema = Joi.object({
@@ -30,6 +30,14 @@ export const statusList2021CredentialSchema = Joi.object({
       Joi.string().valid("https://w3id.org/vc/status-list/2021/v1").required(),
     )
     .items(Joi.string().uri())
+    .required(),
+  credentialSubject: Joi.object({
+    encodedList: Joi.string().required(),
+    id: Joi.string().uri().required(),
+    statusPurpose: Joi.string().valid("revocation", "suspension").required(),
+    type: Joi.string().valid("StatusList2021").required(),
+  })
+    .unknown(true)
     .required(),
   type: Joi.array()
     .ordered(
@@ -42,14 +50,6 @@ export const statusList2021CredentialSchema = Joi.object({
       Joi.string(),
     )
     .required(),
-  credentialSubject: Joi.object({
-    id: Joi.string().uri().required(),
-    type: Joi.string().valid("StatusList2021").required(),
-    statusPurpose: Joi.string().valid("revocation", "suspension").required(),
-    encodedList: Joi.string().required(),
-  })
-    .unknown(true)
-    .required(),
 })
   // Allow additional properties
   .unknown(true);
@@ -57,13 +57,13 @@ export const statusList2021CredentialSchema = Joi.object({
 export async function checkStatusList2021Credential(
   credentialJwt: unknown,
   ebsiEnvConfig: EbsiEnvConfiguration,
-  options?: Omit<VerifyCredentialOptions, "network" | "hosts" | "services">,
-): Promise<{ success: true } | { success: false; error: string }> {
+  options?: Omit<VerifyCredentialOptions, "hosts" | "network" | "services">,
+): Promise<{ error: string; success: false } | { success: true }> {
   // Note: we only support VC JWT for now -> the StatusList2021Credential must be a JWT
   if (!credentialJwt || typeof credentialJwt !== "string") {
     return {
-      success: false,
       error: "JWT is not a string",
+      success: false,
     };
   }
 
@@ -83,8 +83,8 @@ export async function checkStatusList2021Credential(
     }
 
     return {
-      success: false,
       error: errorMessage,
+      success: false,
     };
   }
 
@@ -94,11 +94,15 @@ export async function checkStatusList2021Credential(
 export async function isStatusList2021Credential(
   credentialJwt: unknown,
   ebsiEnvConfig: EbsiEnvConfiguration,
-  options?: Omit<VerifyCredentialOptions, "network" | "hosts">,
+  options?: Omit<VerifyCredentialOptions, "hosts" | "network">,
 ): Promise<boolean> {
-  return (
-    await checkStatusList2021Credential(credentialJwt, ebsiEnvConfig, options)
-  ).success;
+  const { success } = await checkStatusList2021Credential(
+    credentialJwt,
+    ebsiEnvConfig,
+    options,
+  );
+
+  return success;
 }
 
 export default isStatusList2021Credential;

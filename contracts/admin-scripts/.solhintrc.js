@@ -2,12 +2,12 @@ module.exports = {
   extends: "solhint:recommended",
 
   rules: {
-    "compiler-version": ["error", "^0.8.12"],
-    // inline are needed to store data at a specific location see *Storage.sol
-    "no-inline-assembly": "off",
-    // we use library wich trigger to often this rule
-    "mark-callable-contracts": "off",
-    // conflict with prettier
+    // conflicts with prettier
     "bracket-align": "off",
+    "compiler-version": ["error", "^0.8.12"],
+    // we use libraries which trigger this rule too often
+    "mark-callable-contracts": "off",
+    // inline assembly is needed to store data at a specific location see *Storage.sol
+    "no-inline-assembly": "off",
   },
 };

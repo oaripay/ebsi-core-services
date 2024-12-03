@@ -1,4 +1,4 @@
-import { IsDidV1, IsBaseDocument } from "@ebsiint-api/shared";
+import { IsBaseDocument, IsDidV1 } from "@ebsiint-api/shared";
 
 export class ArgsUpdateBaseDocument {
   @IsDidV1()

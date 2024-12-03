@@ -1,23 +1,24 @@
-import {
-  assert,
-  describe,
-  test,
-  clearStore,
-  afterAll,
-} from "matchstick-as/assembly/index";
 import { BigInt, Bytes } from "@graphprotocol/graph-ts";
 import {
+  afterAll,
+  assert,
+  clearStore,
+  describe,
+  test,
+} from "matchstick-as/assembly/index";
+
+import {
+  appendRecordVersionHashes,
+  detachRecordVersionHash,
   insertHashAlgorithm,
-  updateHashAlgorithm,
+  insertRecordOwner,
+  insertRecordVersionInfo,
+  revokeRecordOwner,
   timestampHashes,
   timestampRecordHashes,
-  timestampVersionHashes,
   timestampRecordVersionHashes,
-  appendRecordVersionHashes,
-  insertRecordVersionInfo,
-  detachRecordVersionHash,
-  insertRecordOwner,
-  revokeRecordOwner,
+  timestampVersionHashes,
+  updateHashAlgorithm,
 } from "./timestamp-utils";
 
 const defaultSender = "0xa16081f360e3847006db660bae1c6d1b2e17ec2a";

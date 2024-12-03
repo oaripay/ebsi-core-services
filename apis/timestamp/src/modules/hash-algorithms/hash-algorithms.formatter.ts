@@ -1,5 +1,6 @@
+import { paginate, PaginatedList } from "@ebsiint-api/shared";
 import { Timestamp } from "@ebsiint-sc/timestamp";
-import { PaginatedList, paginate } from "@ebsiint-api/shared";
+
 import { HashAlgorithmLink } from "./hash-algorithms.interface.js";
 
 export function formatHashAlgorithms(

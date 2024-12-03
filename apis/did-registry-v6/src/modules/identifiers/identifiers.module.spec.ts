@@ -1,23 +1,21 @@
-import { vi, describe, beforeAll, afterAll, it, expect } from "vitest";
-import request from "supertest";
-import { Test } from "@nestjs/testing";
-import { ValidationPipe, Logger } from "@nestjs/common";
+import type { RawServerDefault } from "fastify";
+
+import { EbsiWallet } from "@cef-ebsi/wallet-lib";
+import { methodNotAllowed } from "@ebsiint-api/shared";
+import { DidRegistry__factory } from "@ebsiint-sc/did-registry-v4";
+import { fastifyAccepts } from "@fastify/accepts";
+import { Logger, ValidationPipe } from "@nestjs/common";
 import {
   FastifyAdapter,
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import type { RawServerDefault } from "fastify";
-import { fastifyAccepts } from "@fastify/accepts";
+import { Test } from "@nestjs/testing";
 import { ethers } from "ethers";
-import { EbsiWallet } from "@cef-ebsi/wallet-lib";
-import { DidRegistry__factory } from "@ebsiint-sc/did-registry-v4";
-import { methodNotAllowed } from "@ebsiint-api/shared";
-import { graphServer } from "../../../tests/mocks/node.js";
+import request from "supertest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+
 import { dids } from "../../../tests/mocks/handlers.js";
-import { IdentifiersModule } from "./identifiers.module.js";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
-import { setupTestEnv } from "../../../tests/utils/didRegistry.js";
-import { UserDetails } from "../../../tests/utils/data.js";
+import { graphServer } from "../../../tests/mocks/node.js";
 import {
   did1,
   did2,
@@ -25,6 +23,10 @@ import {
   did3,
   didDocument,
 } from "../../../tests/utils/constants.js";
+import { UserDetails } from "../../../tests/utils/data.js";
+import { setupTestEnv } from "../../../tests/utils/didRegistry.js";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
+import { IdentifiersModule } from "./identifiers.module.js";
 
 const DID_DOCUMENTS = 3;
 
@@ -64,9 +66,9 @@ describe("Identifiers Module", () => {
     app.useGlobalFilters(new AllExceptionsFilter());
     app.useGlobalPipes(
       new ValidationPipe({
+        forbidNonWhitelisted: true,
         transform: true,
         whitelist: true,
-        forbidNonWhitelisted: true,
       }),
     );
 
@@ -94,16 +96,12 @@ describe("Identifiers Module", () => {
 
       const response = await request(server).get("/identifiers");
       expect(response.body).toStrictEqual({
-        self: expect.stringContaining(
-          "/identifiers?page[after]=1&page[size]=10",
-        ),
         items: expect.arrayContaining(
           dids.map((did) => ({
             did: did.didDocument.id,
             href: expect.stringContaining(`/identifiers/${did.didDocument.id}`),
           })),
         ),
-        pageSize: 10,
         links: {
           first: expect.stringContaining(
             "/identifiers?page[after]=1&page[size]=10",
@@ -118,6 +116,10 @@ describe("Identifiers Module", () => {
             "/identifiers?page[after]=1&page[size]=10",
           ),
         },
+        pageSize: 10,
+        self: expect.stringContaining(
+          "/identifiers?page[after]=1&page[size]=10",
+        ),
       });
       expect((response.body as { items: string }).items).toHaveLength(
         dids.length,
@@ -133,9 +135,9 @@ describe("Identifiers Module", () => {
       );
 
       expect(response.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
         detail: '["property invalid-query should not exist"]',
+        status: 400,
+        title: "Bad Request",
         type: "about:blank",
       });
       expect(response.status).toBe(400);
@@ -151,15 +153,15 @@ describe("Identifiers Module", () => {
       );
       const selfLink = `/identifiers?page[after]=1&page[size]=10&controller=${encodeURIComponent(controller)}`;
       expect(response.body).toStrictEqual({
-        self: expect.stringContaining(selfLink),
         items: [],
-        pageSize: 10,
         links: {
           first: expect.stringContaining(selfLink),
           last: expect.stringContaining(selfLink),
-          prev: expect.stringContaining(selfLink),
           next: expect.stringContaining(selfLink),
+          prev: expect.stringContaining(selfLink),
         },
+        pageSize: 10,
+        self: expect.stringContaining(selfLink),
       });
       expect(response.status).toBe(200);
     });
@@ -174,20 +176,20 @@ describe("Identifiers Module", () => {
       );
       const selfLink = `/identifiers?page[after]=1&page[size]=10&controller=${encodeURIComponent(controller)}`;
       expect(response.body).toStrictEqual({
-        self: expect.stringContaining(selfLink),
         items: [
           {
             did: controller,
             href: expect.any(String),
           },
         ],
-        pageSize: 10,
         links: {
           first: expect.stringContaining(selfLink),
           last: expect.stringContaining(selfLink),
-          prev: expect.stringContaining(selfLink),
           next: expect.stringContaining(selfLink),
+          prev: expect.stringContaining(selfLink),
         },
+        pageSize: 10,
+        self: expect.stringContaining(selfLink),
       });
       expect(response.status).toBe(200);
     });
@@ -200,20 +202,20 @@ describe("Identifiers Module", () => {
       const response = await request(server).get(`/identifiers?${extraQuery}`);
       const selfLink = `/identifiers?page[after]=1&page[size]=10&${extraQuery}`;
       expect(response.body).toStrictEqual({
-        self: expect.stringContaining(selfLink),
         items: [
           {
             did: "did:ebsi:z23FGxCRmGZmei6uY3KCseXA",
             href: expect.any(String),
           },
         ],
-        pageSize: 10,
         links: {
           first: expect.stringContaining(selfLink),
           last: expect.stringContaining(selfLink),
-          prev: expect.stringContaining(selfLink),
           next: expect.stringContaining(selfLink),
+          prev: expect.stringContaining(selfLink),
         },
+        pageSize: 10,
+        self: expect.stringContaining(selfLink),
       });
       expect(response.status).toBe(200);
     });
@@ -223,22 +225,22 @@ describe("Identifiers Module", () => {
 
       const response1 = await request(server).get("/identifiers?page[size]=2");
       expect(response1.body).toStrictEqual({
-        self: expect.stringContaining(
-          "/identifiers?page[after]=1&page[size]=2",
-        ),
         items: expect.arrayContaining([]),
-        pageSize: 2,
         links: {
           first: expect.stringContaining(
-            "/identifiers?page[after]=1&page[size]=2",
-          ),
-          prev: expect.stringContaining(
             "/identifiers?page[after]=1&page[size]=2",
           ),
           next: expect.stringContaining(
             "/identifiers?page[after]=2&page[size]=2",
           ),
+          prev: expect.stringContaining(
+            "/identifiers?page[after]=1&page[size]=2",
+          ),
         },
+        pageSize: 2,
+        self: expect.stringContaining(
+          "/identifiers?page[after]=1&page[size]=2",
+        ),
       });
       expect((response1.body as { items: string }).items).toHaveLength(2);
       expect(response1.status).toBe(200);
@@ -248,22 +250,22 @@ describe("Identifiers Module", () => {
         "/identifiers?page[after]=2&page[size]=2",
       );
       expect(response2.body).toStrictEqual({
-        self: expect.stringContaining(
-          "/identifiers?page[after]=2&page[size]=2",
-        ),
         items: expect.arrayContaining([]),
-        pageSize: 2,
         links: {
           first: expect.stringContaining(
-            "/identifiers?page[after]=1&page[size]=2",
-          ),
-          prev: expect.stringContaining(
             "/identifiers?page[after]=1&page[size]=2",
           ),
           next: expect.stringContaining(
             "/identifiers?page[after]=3&page[size]=2",
           ),
+          prev: expect.stringContaining(
+            "/identifiers?page[after]=1&page[size]=2",
+          ),
         },
+        pageSize: 2,
+        self: expect.stringContaining(
+          "/identifiers?page[after]=2&page[size]=2",
+        ),
       });
       expect((response2.body as { items: string }).items).toHaveLength(2);
       expect(response2.status).toBe(200);
@@ -273,22 +275,22 @@ describe("Identifiers Module", () => {
         "/identifiers?page[after]=100&page[size]=2",
       );
       expect(response3.body).toStrictEqual({
-        self: expect.stringContaining(
-          "/identifiers?page[after]=100&page[size]=2",
-        ),
         items: expect.arrayContaining([]),
-        pageSize: 2,
         links: {
           first: expect.stringContaining(
             "/identifiers?page[after]=1&page[size]=2",
           ),
-          prev: expect.stringContaining(
-            "/identifiers?page[after]=99&page[size]=2",
-          ),
           next: expect.stringContaining(
             "/identifiers?page[after]=101&page[size]=2",
           ),
+          prev: expect.stringContaining(
+            "/identifiers?page[after]=99&page[size]=2",
+          ),
         },
+        pageSize: 2,
+        self: expect.stringContaining(
+          "/identifiers?page[after]=100&page[size]=2",
+        ),
       });
       expect((response3.body as { items: string }).items).toHaveLength(2);
       expect(response3.status).toBe(200);
@@ -296,25 +298,25 @@ describe("Identifiers Module", () => {
       // page["after"] defined but page["size"] undefined
       const response4 = await request(server).get("/identifiers?page[after]=1");
       expect(response4.body).toStrictEqual({
-        self: expect.stringContaining(
-          "/identifiers?page[after]=1&page[size]=10",
-        ),
         items: expect.arrayContaining([]),
-        pageSize: 10,
         links: {
           first: expect.stringContaining(
-            "/identifiers?page[after]=1&page[size]=10",
-          ),
-          prev: expect.stringContaining(
-            "/identifiers?page[after]=1&page[size]=10",
-          ),
-          next: expect.stringContaining(
             "/identifiers?page[after]=1&page[size]=10",
           ),
           last: expect.stringContaining(
             "/identifiers?page[after]=1&page[size]=10",
           ),
+          next: expect.stringContaining(
+            "/identifiers?page[after]=1&page[size]=10",
+          ),
+          prev: expect.stringContaining(
+            "/identifiers?page[after]=1&page[size]=10",
+          ),
         },
+        pageSize: 10,
+        self: expect.stringContaining(
+          "/identifiers?page[after]=1&page[size]=10",
+        ),
       });
       expect((response4.body as { items: string }).items).toHaveLength(3);
       expect(response4.status).toBe(200);
@@ -327,27 +329,27 @@ describe("Identifiers Module", () => {
         "/identifiers?page[size]=100",
       );
       expect(response1.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
         detail: '["page[size] must not be greater than 50"]',
+        status: 400,
+        title: "Bad Request",
         type: "about:blank",
       });
       expect(response1.status).toBe(400);
 
       const response2 = await request(server).get("/identifiers?page[size]=0");
       expect(response2.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
         detail: '["page[size] must not be less than 1"]',
+        status: 400,
+        title: "Bad Request",
         type: "about:blank",
       });
       expect(response2.status).toBe(400);
 
       const response3 = await request(server).get("/identifiers?page[after]=0");
       expect(response3.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
         detail: '["page[after] must not be less than 1"]',
+        status: 400,
+        title: "Bad Request",
         type: "about:blank",
       });
       expect(response3.status).toBe(400);
@@ -356,10 +358,10 @@ describe("Identifiers Module", () => {
         "/identifiers?page[after]=abc",
       );
       expect(response4.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
         detail:
           '["page[after] must not be less than 1","page[after] must be a number conforming to the specified constraints"]',
+        status: 400,
+        title: "Bad Request",
         type: "about:blank",
       });
       expect(response4.status).toBe(400);
@@ -405,9 +407,9 @@ describe("Identifiers Module", () => {
         `/identifiers/${did2}?valid-at=1023-11-14`,
       );
       expect(response.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
         detail: "valid-at cannot be before 1970-01-01",
+        status: 400,
+        title: "Bad Request",
         type: "about:blank",
       });
       expect(response.status).toBe(400);
@@ -429,9 +431,9 @@ describe("Identifiers Module", () => {
       const response = await request(server).get("/identifiers/invalid");
 
       expect(response.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
         detail: '["did must be a valid DID v1"]',
+        status: 400,
+        title: "Bad Request",
         type: "about:blank",
       });
       expect(response.status).toBe(400);
@@ -444,9 +446,9 @@ describe("Identifiers Module", () => {
       const response = await request(server).get(`/identifiers/${randomDid}`);
 
       expect(response.body).toStrictEqual({
-        title: "Identifier Not Found",
-        status: 404,
         detail: `Identifier ${randomDid} not found`,
+        status: 404,
+        title: "Identifier Not Found",
         type: "about:blank",
       });
       expect(response.status).toBe(404);
@@ -458,9 +460,9 @@ describe("Identifiers Module", () => {
       let response = await request(server).get(`/identifiers/${did1}`);
 
       expect(response.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
         detail: `Identifier ${did1} contains an invalid base document. Unexpected token 'b', "bad base document" is not valid JSON`,
+        status: 400,
+        title: "Bad Request",
         type: "about:blank",
       });
       expect(response.status).toBe(400);
@@ -468,11 +470,11 @@ describe("Identifiers Module", () => {
       response = await request(server).get(`/identifiers/${did3}`);
 
       expect(response.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
         detail: expect.stringContaining(
           `Identifier ${did3} contains an invalid public key in a verification method.`,
         ),
+        status: 400,
+        title: "Bad Request",
         type: "about:blank",
       });
       expect(response.status).toBe(400);
@@ -486,15 +488,15 @@ describe("Identifiers Module", () => {
       let response = await request(server)
         .post(`/identifiers/${did2}/actions`)
         .send({
+          id: 123,
           jsonrpc: "2.0",
           method: "checkController",
           params: [did2Address],
-          id: 123,
         });
 
       expect(response.body).toStrictEqual({
-        jsonrpc: "2.0",
         id: 123,
+        jsonrpc: "2.0",
         result: true,
       });
       expect(response.status).toBe(200);
@@ -503,15 +505,15 @@ describe("Identifiers Module", () => {
       response = await request(server)
         .post(`/identifiers/${did2}/actions`)
         .send({
+          id: 123,
           jsonrpc: "2.0",
           method: "checkController",
           params: [randomAddress],
-          id: 123,
         });
 
       expect(response.body).toStrictEqual({
-        jsonrpc: "2.0",
         id: 123,
+        jsonrpc: "2.0",
         result: false,
       });
       expect(response.status).toBe(200);
@@ -543,9 +545,10 @@ describe("Identifiers Module", () => {
 
       expect(response.body).toStrictEqual({
         error: {
-          code: -32600,
+          code: -32_600,
           message: "JSON-RPC payload must be an object",
         },
+        // eslint-disable-next-line unicorn/no-null
         id: null,
         jsonrpc: "2.0",
       });
@@ -560,12 +563,13 @@ describe("Identifiers Module", () => {
         });
 
       expect(response.body).toStrictEqual({
-        jsonrpc: "2.0",
         error: {
-          code: -32600,
+          code: -32_600,
           message: "The method 'bad method' is invalid",
         },
+        // eslint-disable-next-line unicorn/no-null
         id: null,
+        jsonrpc: "2.0",
       });
       expect(response.status).toBe(400);
 
@@ -578,12 +582,13 @@ describe("Identifiers Module", () => {
         });
 
       expect(response.body).toStrictEqual({
-        jsonrpc: "2.0",
         error: {
-          code: -32600,
+          code: -32_600,
           message: "Invalid 'params.0': Invalid Ethereum address",
         },
+        // eslint-disable-next-line unicorn/no-null
         id: null,
+        jsonrpc: "2.0",
       });
       expect(response.status).toBe(400);
 
@@ -597,12 +602,13 @@ describe("Identifiers Module", () => {
         });
 
       expect(response.body).toStrictEqual({
-        jsonrpc: "2.0",
         error: {
-          code: -32600,
+          code: -32_600,
           message: "Identifier Not Found",
         },
+        // eslint-disable-next-line unicorn/no-null
         id: null,
+        jsonrpc: "2.0",
       });
       expect(response.status).toBe(400);
     });

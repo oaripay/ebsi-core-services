@@ -1,8 +1,11 @@
-import { ethers, network } from "hardhat";
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+
 import { expect } from "chai";
-import { testTprAddress } from "./testAddress";
+import { ethers, network } from "hardhat";
+
 import type { PolicyRegistryMock, Timestamp } from "../src/types";
+
+import { testTprAddress } from "./testAddress";
 
 describe("Record Hashes", () => {
   let ts: Timestamp;
@@ -40,8 +43,8 @@ describe("Record Hashes", () => {
     const contractFactory = await ethers.getContractFactory("Timestamp", {
       libraries: {
         HashAlgoLib: haLib.address,
-        TimestampLib: tsLib.address,
         RecordLib: rsLib.address,
+        TimestampLib: tsLib.address,
       },
     });
     ts = await contractFactory.deploy(testTprAddress);
@@ -306,7 +309,6 @@ describe("Record Hashes", () => {
     )
       .to.emit(ts, "TimestampedHashes")
       .withNamedArgs({
-        timestampIds: tsIds,
         hashAlgorithmIds: [0, 1, 2],
         hashValues: [
           ethers.utils.hexlify(hash1),
@@ -314,6 +316,7 @@ describe("Record Hashes", () => {
           ethers.utils.hexlify(hash3),
         ],
         timestampData: [],
+        timestampIds: tsIds,
       });
 
     const receipt = await ts.getTimestamps(1, 10);
@@ -407,7 +410,6 @@ describe("Record Hashes", () => {
     )
       .to.emit(ts, "TimestampedHashes")
       .withNamedArgs({
-        timestampIds: tsIds,
         hashAlgorithmIds: [0, 1, 2],
         hashValues: [
           ethers.utils.hexlify(hash1),
@@ -415,6 +417,7 @@ describe("Record Hashes", () => {
           ethers.utils.hexlify(hash3),
         ],
         timestampData: [],
+        timestampIds: tsIds,
       });
 
     const receipt = await ts.getTimestamps(1, 10);
@@ -659,12 +662,12 @@ describe("Record Hashes", () => {
     expect(ids.items).to.have.length(1);
   });
 
-  it("timestampRecordHashes should suceed with same info twice because recordId contains blocknumber", async () => {
+  it("timestampRecordHashes should succeed with same info twice because recordId contains blocknumber", async () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
     const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
     const hash3 = ethers.utils.toUtf8Bytes("38862f7");
 
-    ts.timestampRecordHashes(
+    await ts.timestampRecordHashes(
       [0, 1, 2],
       [hash1, hash2, hash3],
       [
@@ -1068,9 +1071,11 @@ describe("Record Hashes", () => {
     expect(vd0.hashAlgorithmIds[1]).to.equal(1);
     expect(vd0.hashAlgorithmIds[2]).to.equal(2);
     expect(vd0.hashValues).to.have.length(3);
-    vd0.hashValues.forEach((el: unknown, id: number) => {
+
+    for (const [id, el] of vd0.hashValues.entries()) {
       expect(el).to.equal(ethers.utils.hexlify(hashValues[id]));
-    });
+    }
+
     // expect(vd0.hashValues).to.equal([hash1, hash2, hash3]);
     expect(vd0.infoIds).to.have.length(1);
     expect(vd0.infoIds[0]).to.equal(
@@ -1087,9 +1092,11 @@ describe("Record Hashes", () => {
     expect(vd1.hashAlgorithmIds[1]).to.equal(0);
     expect(vd1.hashAlgorithmIds[2]).to.equal(1);
     expect(vd1.hashValues).to.have.length(3);
-    vd1.hashValues.forEach((el: unknown, id: number) => {
+
+    for (const [id, el] of vd1.hashValues.entries()) {
       expect(el).to.equal(ethers.utils.hexlify(hashPrimeValues[id]));
-    });
+    }
+
     // expect(vd0.hashValues).to.equal([hash1, hash2, hash3]);
     expect(vd1.infoIds).to.have.length(1);
     expect(vd1.infoIds[0]).to.equal(ethers.utils.sha256(versionInfoPrime));
@@ -1158,9 +1165,11 @@ describe("Record Hashes", () => {
     expect(vd0.hashAlgorithmIds[1]).to.equal(1);
     expect(vd0.hashAlgorithmIds[2]).to.equal(2);
     expect(vd0.hashValues).to.have.length(3);
-    vd0.hashValues.forEach((el: unknown, id: number) => {
+
+    for (const [id, el] of vd0.hashValues.entries()) {
       expect(el).to.equal(ethers.utils.hexlify(hashValues[id]));
-    });
+    }
+
     // expect(vd0.hashValues).to.equal([hash1, hash2, hash3]);
     expect(vd0.infoIds).to.have.length(1);
     expect(vd0.infoIds[0]).to.equal(
@@ -1177,9 +1186,11 @@ describe("Record Hashes", () => {
     expect(vd1.hashAlgorithmIds[1]).to.equal(0);
     expect(vd1.hashAlgorithmIds[2]).to.equal(1);
     expect(vd1.hashValues).to.have.length(3);
-    vd1.hashValues.forEach((el: unknown, id: number) => {
+
+    for (const [id, el] of vd1.hashValues.entries()) {
       expect(el).to.equal(ethers.utils.hexlify(hashPrimeValues[id]));
-    });
+    }
+
     // expect(vd0.hashValues).to.equal([hash1, hash2, hash3]);
     expect(vd1.infoIds).to.have.length(1);
     expect(vd1.infoIds[0]).to.equal(ethers.utils.sha256(versionInfoPrime));
@@ -1262,8 +1273,8 @@ describe("Record Hashes", () => {
     expect(r1.revokedOwnerIds).to.deep.equal([]);
     expect(r1.totalVersions).to.equal(2);
     /// add ownerdIds and revoke some
-    const notBefore = new Date().getTime();
-    const notAfter = notBefore + 1000000;
+    const notBefore = Date.now();
+    const notAfter = notBefore + 1_000_000;
     await ts.insertRecordOwner(recordId, "anotherownerId", notBefore, notAfter);
     const r2 = await ts.getRecord(recordId);
     expect(r2.ownerIds).to.deep.equal([
@@ -1308,7 +1319,7 @@ describe("Record Hashes", () => {
       const hash1Value = ethers.utils.toUtf8Bytes(`value-1-${i}`);
       const hash2Value = ethers.utils.toUtf8Bytes(`value-2-${i}`);
       const hash3Value = ethers.utils.toUtf8Bytes(`value-3-${i}`);
-      // eslint-disable-next-line no-await-in-loop
+
       let blockNumber = await ethers.provider.getBlockNumber();
       blockNumber += 1;
       //  recordId = sha256(abi.encode(msg.sender, block.number, hashValue));
@@ -1319,7 +1330,7 @@ describe("Record Hashes", () => {
         ),
       );
       // INSERT SHOULD BE DONE IN ORDER !!!
-      // eslint-disable-next-line no-await-in-loop
+
       await ts.timestampRecordHashes(
         [0, 1, 2],
         [hash1Value, hash2Value, hash3Value],
@@ -1335,9 +1346,10 @@ describe("Record Hashes", () => {
 
     const r0 = await ts.getRecordIds(1, 1);
     expect(r0.items).to.have.length(1);
-    r0.items.forEach((el: unknown, id: number) => {
+
+    for (const [id, el] of r0.items.entries()) {
       expect(el).to.equal(recIds.slice(0, 1)[id]);
-    });
+    }
 
     expect(r0.total).to.equal(11);
     expect(r0.howMany).to.equal(1);
@@ -1346,9 +1358,11 @@ describe("Record Hashes", () => {
 
     const r = await ts.getRecordIds(1, 11);
     expect(r.items).to.have.length(11);
-    r.items.forEach((el: unknown, id: number) => {
+
+    for (const [id, el] of r.items.entries()) {
       expect(el).to.equal(recIds[id]);
-    });
+    }
+
     expect(r.total).to.equal(11);
     expect(r.howMany).to.equal(11);
     expect(r.prev).to.equal(1);
@@ -1409,7 +1423,7 @@ describe("Record Hashes", () => {
       ),
     );
 
-    ts.timestampRecordHashes(
+    await ts.timestampRecordHashes(
       [0, 1, 2],
       [hash1, hash2, hash3],
       [
@@ -1435,7 +1449,7 @@ describe("Record Hashes", () => {
         [admin.address, blockNumber, hash2],
       ),
     );
-    ts.timestampRecordHashes(
+    await ts.timestampRecordHashes(
       [0, 1],
       [hash2, hash3],
       [ethers.utils.toUtf8Bytes("yolo")],
@@ -1498,13 +1512,13 @@ describe("Record Hashes", () => {
     )
       .to.emit(ts, "TimestampedHashes")
       .withNamedArgs({
-        timestampIds: tsIds,
         hashAlgorithmIds: [2, 0],
         hashValues: [
           ethers.utils.hexlify(hash1prime),
           ethers.utils.hexlify(hash2prime),
         ],
         timestampData: [],
+        timestampIds: tsIds,
       });
 
     const receipt = await ts.getTimestamps(1, 10);
@@ -1526,9 +1540,11 @@ describe("Record Hashes", () => {
     expect(vd0.hashAlgorithmIds[1]).to.equal(1);
     expect(vd0.hashAlgorithmIds[2]).to.equal(2);
     expect(vd0.hashValues).to.have.length(3);
-    vd0.hashValues.forEach((el: unknown, id: number) => {
+
+    for (const [id, el] of vd0.hashValues.entries()) {
       expect(el).to.equal(ethers.utils.hexlify(hashValues[id]));
-    });
+    }
+
     // expect(vd0.hashValues).to.equal([hash1, hash2, hash3]);
     expect(vd0.infoIds).to.have.length(1);
     expect(vd0.infoIds[0]).to.equal(
@@ -1544,9 +1560,11 @@ describe("Record Hashes", () => {
     expect(vd1.hashAlgorithmIds[0]).to.equal(2);
     expect(vd1.hashAlgorithmIds[1]).to.equal(0);
     expect(vd1.hashValues).to.have.length(2);
-    vd1.hashValues.forEach((el: unknown, id: number) => {
+
+    for (const [id, el] of vd1.hashValues.entries()) {
       expect(el).to.equal(ethers.utils.hexlify(hashValuesPrime[id]));
-    });
+    }
+
     expect(vd1.infoIds).to.have.length(0);
     expect(vd1.total).to.equal(2);
     expect(vd1.howMany).to.equal(2);
@@ -1633,18 +1651,18 @@ describe("Record Hashes", () => {
     const versionInfoPrime = ethers.utils.toUtf8Bytes(
       "PRIME info: btc to the moon",
     );
-    await expect(
-      ts.timestampVersionHashes(
-        hash1,
-        [2, 0],
-        hashValuesPrime,
-        [
-          ethers.utils.toUtf8Bytes("btcprime"),
-          ethers.utils.toUtf8Bytes("new prime"),
-        ],
-        versionInfoPrime,
-      ),
+
+    await ts.timestampVersionHashes(
+      hash1,
+      [2, 0],
+      hashValuesPrime,
+      [
+        ethers.utils.toUtf8Bytes("btcprime"),
+        ethers.utils.toUtf8Bytes("new prime"),
+      ],
+      versionInfoPrime,
     );
+
     const infoPrime = await ts.getRecordVersionInfo(
       ethers.utils.sha256(versionInfoPrime),
     );
@@ -1833,9 +1851,10 @@ describe("Record Hashes", () => {
     expect(vd0.hashAlgorithmIds[3]).to.equal(2);
     expect(vd0.hashAlgorithmIds[4]).to.equal(0);
     expect(vd0.hashValues).to.have.length(5);
-    vd0.hashValues.forEach((el: unknown, id: number) => {
+
+    for (const [id, el] of vd0.hashValues.entries()) {
       expect(el).to.equal(ethers.utils.hexlify(hashValues[id]));
-    });
+    }
 
     expect(vd0.infoIds).to.have.length(2);
     expect(vd0.infoIds[0]).to.equal(
@@ -1919,9 +1938,10 @@ describe("Record Hashes", () => {
     expect(vd0.hashAlgorithmIds[3]).to.equal(2);
     expect(vd0.hashAlgorithmIds[4]).to.equal(0);
     expect(vd0.hashValues).to.have.length(5);
-    vd0.hashValues.forEach((el: unknown, id: number) => {
+
+    for (const [id, el] of vd0.hashValues.entries()) {
       expect(el).to.equal(ethers.utils.hexlify(hashValues[id]));
-    });
+    }
 
     expect(vd0.infoIds).to.have.length(2);
     expect(vd0.infoIds[0]).to.equal(
@@ -2063,9 +2083,10 @@ describe("Record Hashes", () => {
     expect(vd0.hashAlgorithmIds[1]).to.equal(1);
     expect(vd0.hashAlgorithmIds[2]).to.equal(2);
     expect(vd0.hashValues).to.have.length(3);
-    vd0.hashValues.forEach((el: unknown, id: number) => {
+
+    for (const [id, el] of vd0.hashValues.entries()) {
       expect(el).to.equal(ethers.utils.hexlify(hashValues[id]));
-    });
+    }
 
     expect(vd0.infoIds).to.have.length(2);
     expect(vd0.infoIds[0]).to.equal(
@@ -2264,8 +2285,8 @@ describe("Record Hashes", () => {
     expect(r1.revokedOwnerIds).to.deep.equal([]);
     expect(r1.totalVersions).to.equal(2);
     /// add ownerdIds and revoke some
-    const notBefore = new Date().getTime();
-    const notAfter = notBefore + 1000000;
+    const notBefore = Date.now();
+    const notAfter = notBefore + 1_000_000;
     await ts.insertRecordOwner(recordId, "anotherownerId", notBefore, notAfter);
     const r2 = await ts.getRecord(recordId);
     expect(r2.ownerIds).to.deep.equal([
@@ -2346,8 +2367,8 @@ describe("Record Hashes", () => {
       ethers.utils.toUtf8Bytes("info: btc to the moon"),
     );
     // add ownerdIds and revoke some
-    const notBefore = new Date().getTime();
-    const notAfter = notBefore + 1000000;
+    const notBefore = Date.now();
+    const notAfter = notBefore + 1_000_000;
     await ts.insertRecordOwner(recordId, "anotherownerId", notBefore, notAfter);
     const r0 = await ts.getRecord(recordId);
     expect(r0.ownerIds).to.deep.equal([
@@ -2388,8 +2409,8 @@ describe("Record Hashes", () => {
       ethers.utils.toUtf8Bytes("info: btc to the moon"),
     );
     // add ownerdIds and revoke some
-    const notBefore = new Date().getTime();
-    const notAfter = notBefore + 1000000;
+    const notBefore = Date.now();
+    const notAfter = notBefore + 1_000_000;
     await ts.insertRecordOwner(recordId, "anotherownerId", notBefore, notAfter);
     const r0 = await ts.getRecord(recordId);
     expect(r0.ownerIds).to.deep.equal([
@@ -2537,7 +2558,7 @@ describe("Record Hashes", () => {
     expect(r1.revokedOwnerIds).to.deep.equal([]);
     expect(r1.totalVersions).to.equal(1);
 
-    await ts.insertRecordOwner(recordId, "anotherOwnerId", 112345646787, 0);
+    await ts.insertRecordOwner(recordId, "anotherOwnerId", 112_345_646_787, 0);
     const r2 = await ts.getRecord(recordId);
     expect(r2.ownerIds).to.deep.equal([
       admin.address.toLowerCase(),
@@ -2620,8 +2641,8 @@ describe("Record Hashes", () => {
     expect(inf1.revoked).to.be.false;
 
     // add ownerdIds and revoke some
-    const notBefore = new Date().getTime();
-    const notAfter = notBefore + 1000000;
+    const notBefore = Date.now();
+    const notAfter = notBefore + 1_000_000;
     await ts.insertRecordOwner(recordId, "anotherownerId", notBefore, notAfter);
     const inf2 = await ts.getRecordOwnerInfo(recordId, "anotherownerId");
     expect(inf2.notBefore).to.equal(notBefore);

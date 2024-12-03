@@ -1,4 +1,8 @@
+import { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
+import { isStatusList2021Credential } from "@ebsiint-api/shared";
 import { Injectable } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import axios from "axios";
 import {
   buildMessage,
   ValidationArguments,
@@ -6,55 +10,27 @@ import {
   ValidatorConstraintInterface,
 } from "class-validator";
 import validator from "validator";
-import axios from "axios";
-import { ConfigService } from "@nestjs/config";
-import { isStatusList2021Credential } from "@ebsiint-api/shared";
-import { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
+
 import type { ApiConfig } from "../../config/configuration.js";
 
 const validators = validator.default;
 
 export const IS_ISSUER_PROXY = "isIssuerProxy";
 
-const allowedRequestHeaders = [
-  /**
-   * Authentication
-   * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers#authentication
-   */
-  "Authorization",
-  /**
-   * Caching
-   * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers#caching
-   */
-  "Cache-Control",
-].map((i) => i.toLowerCase());
-
-function isRequestHeaders(
-  headers: unknown,
-): headers is Record<string, string | number | boolean> {
-  if (!headers || typeof headers !== "object") return false;
-
-  if (
-    Object.values(headers).some(
-      (val) =>
-        typeof val !== "string" &&
-        typeof val !== "number" &&
-        typeof val !== "boolean",
-    )
-  ) {
-    return false;
-  }
-
-  if (
-    !Object.keys(headers).every((key) =>
-      allowedRequestHeaders.includes(key.toLowerCase()),
-    )
-  ) {
-    return false;
-  }
-
-  return true;
-}
+const allowedRequestHeaders = new Set(
+  [
+    /**
+     * Authentication
+     * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers#authentication
+     */
+    "Authorization",
+    /**
+     * Caching
+     * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers#caching
+     */
+    "Cache-Control",
+  ].map((i) => i.toLowerCase()),
+);
 
 export async function isIssuerProxy(
   value: unknown,
@@ -68,7 +44,7 @@ export async function isIssuerProxy(
 
     if (!proxyAsObject || typeof proxyAsObject !== "object") return false;
 
-    const { prefix, headers, testSuffix } = proxyAsObject as Record<
+    const { headers, prefix, testSuffix } = proxyAsObject as Record<
       string,
       unknown
     >;
@@ -79,10 +55,10 @@ export async function isIssuerProxy(
       typeof prefix !== "string" ||
       // Only allow URLs with https protocol and without query components or fragments
       !validators.isURL(prefix, {
-        protocols: ["https"],
-        require_protocol: true,
         allow_fragments: false,
         allow_query_components: false,
+        protocols: ["https"],
+        require_protocol: true,
       })
     ) {
       return false;
@@ -98,10 +74,10 @@ export async function isIssuerProxy(
       !testSuffix ||
       typeof testSuffix !== "string" ||
       !validators.isURL(prefix + testSuffix, {
-        protocols: ["https"],
-        require_protocol: true,
         allow_fragments: false, // do not allow fragments in testSuffix
         allow_query_components: true, // allow query components in testSuffix
+        protocols: ["https"],
+        require_protocol: true,
       })
     ) {
       return false;
@@ -128,8 +104,35 @@ export async function isIssuerProxy(
   return true;
 }
 
-@ValidatorConstraint({ name: IS_ISSUER_PROXY, async: true })
+function isRequestHeaders(
+  headers: unknown,
+): headers is Record<string, boolean | number | string> {
+  if (!headers || typeof headers !== "object") return false;
+
+  if (
+    Object.values(headers).some(
+      (val) =>
+        typeof val !== "string" &&
+        typeof val !== "number" &&
+        typeof val !== "boolean",
+    )
+  ) {
+    return false;
+  }
+
+  if (
+    !Object.keys(headers).every((key) =>
+      allowedRequestHeaders.has(key.toLowerCase()),
+    )
+  ) {
+    return false;
+  }
+
+  return true;
+}
+
 @Injectable()
+@ValidatorConstraint({ async: true, name: IS_ISSUER_PROXY })
 export class IsIssuerProxy implements ValidatorConstraintInterface {
   private ebsiEnvConfig: EbsiEnvConfiguration;
 
@@ -140,8 +143,8 @@ export class IsIssuerProxy implements ValidatorConstraintInterface {
     const ebsiAuthority = domain.replace(/^https?:\/\//, ""); // remove http protocol scheme
     const trustedHostnames = configService.get<string[]>("trustedHostnames");
     this.ebsiEnvConfig = {
-      network: configService.get("network", { infer: true }),
       hosts: [ebsiAuthority, ...trustedHostnames],
+      network: configService.get("network", { infer: true }),
       services: {
         "did-registry": "v4",
         "trusted-issuers-registry": "v4",
@@ -152,14 +155,14 @@ export class IsIssuerProxy implements ValidatorConstraintInterface {
     this.timeout = configService.get<number>("requestTimeout");
   }
 
-  async validate(value: unknown) {
-    return isIssuerProxy(value, this.ebsiEnvConfig, this.timeout);
-  }
-
   defaultMessage(validationArguments?: ValidationArguments) {
     return buildMessage(
       (eachPrefix) =>
         `${eachPrefix}$property must be a valid issuer proxy (stringified JSON document)`,
     )(validationArguments);
+  }
+
+  async validate(value: unknown) {
+    return isIssuerProxy(value, this.ebsiEnvConfig, this.timeout);
   }
 }
