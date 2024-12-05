@@ -1,3 +1,5 @@
+import type { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
+
 import {
   extractNamedAttributes,
   getErrorMessage,
@@ -107,7 +109,7 @@ export class JsonRpcService {
         "trusted-policies-registry": "v4",
         "trusted-schemas-registry": "v4",
       },
-    };
+    } satisfies EbsiEnvConfiguration;
 
     this.addIssuerProxySchema = createAddIssuerProxySchema(
       ebsiEnvConfig,
