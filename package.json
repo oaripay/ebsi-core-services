@@ -75,7 +75,8 @@
       "**/matchstick-as",
       "**/vite",
       "**/vitest",
-      "**/@sphereon/**"
+      "**/@sphereon/**",
+      "**/@tsconfig/*"
     ]
   },
   "resolutions": {

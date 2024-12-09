@@ -189,7 +189,7 @@ describeWriteOps()("DID Registry API v6 - JSON-RPC (e2e)", () => {
         } satisfies InsertDidDocumentSchema;
 
         const responseBuild: SupertestJsonRpcResponse = await request(server)
-          .post("/")
+          .post("")
           .auth(user.token, { type: "bearer" })
           .send({
             id: 1,
@@ -226,7 +226,7 @@ describeWriteOps()("DID Registry API v6 - JSON-RPC (e2e)", () => {
         const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
 
         const responseSend: SupertestJsonRpcResponse = await request(server)
-          .post("/")
+          .post("")
           .auth(user.token, { type: "bearer" })
           .send({
             id: "45",
@@ -449,7 +449,7 @@ describeWriteOps()("DID Registry API v6 - JSON-RPC (e2e)", () => {
         }
 
         const responseBuild: SupertestJsonRpcResponse = await request(server)
-          .post("/")
+          .post("")
           .auth(user.token, { type: "bearer" })
           .send({
             id: 1,
@@ -486,7 +486,7 @@ describeWriteOps()("DID Registry API v6 - JSON-RPC (e2e)", () => {
         const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
 
         const responseSend: SupertestJsonRpcResponse = await request(server)
-          .post("/")
+          .post("")
           .auth(user.token, { type: "bearer" })
           .send({
             id: "45",

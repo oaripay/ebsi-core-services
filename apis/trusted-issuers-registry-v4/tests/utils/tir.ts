@@ -8,8 +8,6 @@ import { StatusList2021Credential } from "@ebsiint-api/shared";
 import { Tir } from "@ebsiint-sc/trusted-issuers-registry";
 import { Contract, ethers } from "ethers";
 import crypto from "node:crypto";
-import { range } from "rxjs";
-import { mergeMap, toArray } from "rxjs/operators";
 
 import { IssuerType } from "../../src/modules/issuers/issuers.constants.js";
 
@@ -276,11 +274,9 @@ export async function setupTestEnv({
     );
 
   // Create as many issuers as requested
-  issuers.push(
-    ...((await range(0, issuersTotal - 3)
-      .pipe(mergeMap(insertIssuerAsTI), toArray())
-      .toPromise()) ?? []),
-  );
+  for (let i = 0; i < issuersTotal - 3; i++) {
+    issuers.push(await insertIssuerAsTI());
+  }
 
   // Return test env variables
   return {

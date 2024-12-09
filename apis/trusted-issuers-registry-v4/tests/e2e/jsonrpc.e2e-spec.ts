@@ -102,7 +102,7 @@ async function getEbsiIssuer(privateKeyHex: string, did: string, kid?: string) {
   const issuer: EbsiIssuer = {
     alg: "ES256K",
     did,
-    kid: kid ?? publicKeyJwk.kid,
+    kid: kid ?? `${did}#${publicKeyJwk.kid}`,
     signer: getSigner(privateKey, "ES256K"),
   };
   return issuer;

@@ -6,8 +6,6 @@ import "@nomiclabs/hardhat-ethers";
 import { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry";
 import { ethers } from "ethers";
 import crypto from "node:crypto";
-import { range } from "rxjs";
-import { mergeMap, toArray } from "rxjs/operators";
 
 import {
   ATTRIBUTE_OPERATIONS,
@@ -201,19 +199,15 @@ export async function setupTestEnv(opts: SetupOptions): Promise<{
     return insertUser(policiesRegistryContract);
   };
 
-  const policies =
-    policiesTotal >= 1
-      ? (await range(0, policiesTotal)
-          .pipe(mergeMap(createPolicy), toArray())
-          .toPromise())!
-      : [];
+  const policies: PolicyObject[] = [];
+  for (let i = 0; i < policiesTotal; i++) {
+    policies.push(await createPolicy(i));
+  }
 
-  const users =
-    usersTotal >= 1
-      ? (await range(0, usersTotal)
-          .pipe(mergeMap(createUser), toArray())
-          .toPromise())!
-      : [];
+  const users: UserObject[] = [];
+  for (let i = 0; i < usersTotal; i++) {
+    users.push(await createUser());
+  }
 
   // Return test env variables
   return {

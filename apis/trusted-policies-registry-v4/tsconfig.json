@@ -1,5 +1,5 @@
 {
-  "extends": "@tsconfig/node22/tsconfig",
+  "extends": "@tsconfig/node22/tsconfig.json",
   "compilerOptions": {
     // Inlined from @tsconfig/node22, must be explicitly defined otherwise @graphprotocol/client-cli will generate CJS module
     "module": "Node16",

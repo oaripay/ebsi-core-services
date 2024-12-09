@@ -357,7 +357,7 @@ describe("App Module", () => {
         const app = await startApp();
         const server = app.getHttpServer();
 
-        const response = await request(server).get("/");
+        const response = await request(server).get("");
 
         expect(response.text).toBe("ok");
         expect(response.status).toBe(200);
@@ -407,7 +407,7 @@ describe("App Module", () => {
         const server = app.getHttpServer();
 
         // POST
-        let response = await request(server).post("/");
+        let response = await request(server).post("");
 
         expect(response.body).toStrictEqual({
           detail: "Cannot POST /. Allowed HTTP methods: GET, HEAD",
@@ -422,7 +422,7 @@ describe("App Module", () => {
         expect(response.status).toBe(405);
 
         // HEAD
-        response = await request(server).head("/");
+        response = await request(server).head("");
 
         expect(response.body).toStrictEqual({}); // HEAD response body is empty
         expect(response.headers["content-type"]).toStrictEqual(
@@ -431,7 +431,7 @@ describe("App Module", () => {
         expect(response.status).toBe(200);
 
         // PUT
-        response = await request(server).put("/");
+        response = await request(server).put("");
 
         expect(response.body).toStrictEqual({
           detail: "Cannot PUT /. Allowed HTTP methods: GET, HEAD",
@@ -446,7 +446,7 @@ describe("App Module", () => {
         expect(response.status).toBe(405);
 
         // PATCH
-        response = await request(server).patch("/");
+        response = await request(server).patch("");
 
         expect(response.body).toStrictEqual({
           detail: "Cannot PATCH /. Allowed HTTP methods: GET, HEAD",

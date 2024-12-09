@@ -70,10 +70,10 @@ describe("Authorisation API v3 - Generic tests (e2e)", () => {
       expect.assertions(15);
 
       // POST
-      let response = await request(server).post("/");
+      let response = await request(server).post("");
 
       expect(response.body).toStrictEqual({
-        detail: "Cannot POST /. Allowed HTTP methods: GET, HEAD",
+        detail: `Cannot POST ${typeof server === "string" ? apiUrlPrefix : "/"}. Allowed HTTP methods: GET, HEAD`,
         status: 405,
         title: "Method Not Allowed",
         type: "about:blank",
@@ -85,7 +85,7 @@ describe("Authorisation API v3 - Generic tests (e2e)", () => {
       expect(response.status).toBe(405);
 
       // HEAD
-      response = await request(server).head("/");
+      response = await request(server).head("");
 
       expect(response.body).toStrictEqual({}); // HEAD response body is empty
       expect(response.headers["content-type"]).toStrictEqual(
@@ -94,10 +94,10 @@ describe("Authorisation API v3 - Generic tests (e2e)", () => {
       expect(response.status).toBe(200);
 
       // PUT
-      response = await request(server).put("/");
+      response = await request(server).put("");
 
       expect(response.body).toStrictEqual({
-        detail: "Cannot PUT /. Allowed HTTP methods: GET, HEAD",
+        detail: `Cannot PUT ${typeof server === "string" ? apiUrlPrefix : "/"}. Allowed HTTP methods: GET, HEAD`,
         status: 405,
         title: "Method Not Allowed",
         type: "about:blank",
@@ -109,10 +109,10 @@ describe("Authorisation API v3 - Generic tests (e2e)", () => {
       expect(response.status).toBe(405);
 
       // PATCH
-      response = await request(server).patch("/");
+      response = await request(server).patch("");
 
       expect(response.body).toStrictEqual({
-        detail: "Cannot PATCH /. Allowed HTTP methods: GET, HEAD",
+        detail: `Cannot PATCH ${typeof server === "string" ? apiUrlPrefix : "/"}. Allowed HTTP methods: GET, HEAD`,
         status: 405,
         title: "Method Not Allowed",
         type: "about:blank",
@@ -128,7 +128,7 @@ describe("Authorisation API v3 - Generic tests (e2e)", () => {
       expect.assertions(3);
 
       const response = await request(server)
-        .get("/")
+        .get("")
         .set("Accept", "application/xml");
 
       expect(response.body).toStrictEqual({

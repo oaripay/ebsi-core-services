@@ -102,7 +102,7 @@ async function getEbsiIssuer(
   const issuer: EbsiIssuer = {
     alg,
     did,
-    kid: kid ?? publicKeyJwk.kid,
+    kid: kid ?? `${did}#${publicKeyJwk.kid}`,
     signer: getSigner(privateKey, alg),
   };
   return issuer;

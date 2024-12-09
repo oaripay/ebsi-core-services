@@ -103,7 +103,7 @@ describe("DID Registry API v6 - Generic tests (e2e)", () => {
       let response = await request(server).post("/liveness");
 
       expect(response.body).toStrictEqual({
-        detail: "Cannot POST /liveness. Allowed HTTP methods: GET, HEAD",
+        detail: `Cannot POST ${apiUrlPrefix}/liveness. Allowed HTTP methods: GET, HEAD`,
         status: 405,
         title: "Method Not Allowed",
         type: "about:blank",
@@ -127,7 +127,7 @@ describe("DID Registry API v6 - Generic tests (e2e)", () => {
       response = await request(server).put("/liveness");
 
       expect(response.body).toStrictEqual({
-        detail: "Cannot PUT /liveness. Allowed HTTP methods: GET, HEAD",
+        detail: `Cannot PUT ${apiUrlPrefix}/liveness. Allowed HTTP methods: GET, HEAD`,
         status: 405,
         title: "Method Not Allowed",
         type: "about:blank",
@@ -142,7 +142,7 @@ describe("DID Registry API v6 - Generic tests (e2e)", () => {
       response = await request(server).patch("/liveness");
 
       expect(response.body).toStrictEqual({
-        detail: "Cannot PATCH /liveness. Allowed HTTP methods: GET, HEAD",
+        detail: `Cannot PATCH ${apiUrlPrefix}/liveness. Allowed HTTP methods: GET, HEAD`,
         status: 405,
         title: "Method Not Allowed",
         type: "about:blank",

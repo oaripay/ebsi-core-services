@@ -618,7 +618,7 @@ describe("TSR API v3 - Schemas (e2e)", () => {
         expect.assertions(3);
 
         const response = await request(server).get(
-          `/schemas/${schemaId}/revisions?valid-at${new Date().toISOString()}`,
+          `/schemas/${schemaId}/revisions?valid-at=${new Date().toISOString()}`,
         );
 
         const revisionId2 = ethers.utils.sha256(
