@@ -89,11 +89,11 @@ Please refer to services' `README` files for more information regarding specific
 
 ## License
 
-Copyright (c) 2019 European Commission
-Licensed under the EUPL, Version 1.2 or - as soon they will be approved by the European Commission - subsequent versions of the EUPL (the "Licence");
-You may not use this work except in compliance with the Licence.
-You may obtain a copy of the Licence at:
+Copyright (C) 2024 European Union
 
-- <https://joinup.ec.europa.eu/page/eupl-text-11-12>
+This program is free software: you can redistribute it and/or modify it under the terms of the EUROPEAN UNION PUBLIC LICENCE v. 1.2 as published by the European Union.
 
-Unless required by applicable law or agreed to in writing, software distributed under the Licence is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the Licence for the specific language governing permissions and limitations under the Licence.
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the EUROPEAN UNION PUBLIC LICENCE v. 1.2 for further details.
+
+You should have received a copy of the EUROPEAN UNION PUBLIC LICENCE v. 1.2. along with this program. If not, see <https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12>.
