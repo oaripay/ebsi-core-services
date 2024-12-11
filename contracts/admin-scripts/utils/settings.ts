@@ -1,4 +1,3 @@
-import hre from "hardhat";
 import * as fs from "node:fs";
 
 interface Options {
@@ -18,7 +17,12 @@ export class Settings {
 
   #tag: string | undefined;
 
-  constructor(fileName: string, tag?: string, options?: Options) {
+  constructor(
+    fileName: string,
+    network: string,
+    tag?: string,
+    options?: Options,
+  ) {
     const { basePath } = {
       basePath: "./settings",
       ...options,
@@ -26,7 +30,7 @@ export class Settings {
 
     this.#basePath = basePath;
 
-    this.#network = hre.network.name;
+    this.#network = network;
 
     this.#tag = tag;
     this.#fileName = fileName;

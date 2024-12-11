@@ -1,6 +1,6 @@
 import { task } from "hardhat/config";
 
-import type { Timestamp } from "../src/types/contracts/timestamp-v3/timestamp/index.js";
+import type { Timestamp } from "../src/types/contracts/timestamp-v3/timestamp";
 
 import { Settings } from "../utils/settings";
 
@@ -13,12 +13,12 @@ task("timestampV3", "Deploy contract Track And Trace")
         tpr: string;
         upgrader: string;
       },
-      { ethers, run, upgrades },
+      { ethers, network, run, upgrades },
     ) => {
       // compile
       await run("compile", { quiet: true });
 
-      const settings = new Settings("timestamp-v3");
+      const settings = new Settings("timestamp-v3", network.name);
 
       const hashAlgoLibFactory = await ethers.getContractFactory(
         "contracts/timestamp-v3/timestamp/HashAlgoLib.sol:HashAlgoLib",
@@ -65,11 +65,11 @@ task("timestampV3", "Deploy contract Track And Trace")
   );
 
 task("timestampV3Upgrade", "Upgrade Timestamp").setAction(
-  async (_, { ethers, run, upgrades }) => {
+  async (_, { ethers, network, run, upgrades }) => {
     // compile
     await run("compile", { force: true });
 
-    const settings = new Settings("timestamp-v3");
+    const settings = new Settings("timestamp-v3", network.name);
     const proxyAddress = settings.mustGet("timestamp");
     console.log(proxyAddress);
 

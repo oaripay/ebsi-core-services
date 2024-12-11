@@ -13,12 +13,15 @@ task("trustedIssuersRegistryV4", "Deploy contract Track And Trace")
         tpr: string;
         upgrader: string;
       },
-      { ethers, run, upgrades },
+      { ethers, network, run, upgrades },
     ) => {
       // compile
       await run("compile", { quiet: true });
 
-      const settings = new Settings("trusted-issuers-registry-v4");
+      const settings = new Settings(
+        "trusted-issuers-registry-v4",
+        network.name,
+      );
 
       const tirV4Factory = await ethers.getContractFactory(
         "contracts/trusted-issuers-registry-v4/tir/TrustedIssuersRegistry.sol:TrustedIssuersRegistry",

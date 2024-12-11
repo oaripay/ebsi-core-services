@@ -11,12 +11,12 @@ task("trustedSchemaRegistryV3", "Deploy contract Track And Trace")
         tpr: string;
         upgrader: string;
       },
-      { ethers, run, upgrades },
+      { ethers, network, run, upgrades },
     ) => {
       // compile
       await run("compile", { quiet: true });
 
-      const settings = new Settings("trusted-schema-registry-v3");
+      const settings = new Settings("trusted-schema-registry-v3", network.name);
 
       const tsrV3Factory = await ethers.getContractFactory(
         "contracts/trusted-schemas-registry-v3/trusted-schemas-registry/TrustedSchemasRegistry.sol:TrustedSchemasRegistry",

@@ -17,12 +17,13 @@ task("trackAndTrace", "Deploy contract Track And Trace")
         tpr: string;
         upgrader: string;
       },
-      { ethers, run, upgrades },
+
+      { ethers, network, run, upgrades },
     ) => {
       // compile
       await run("compile", { quiet: true });
 
-      const settings = new Settings("track-and-trace");
+      const settings = new Settings("track-and-trace", network.name);
 
       // get contract
       const trackAndTraceLibFactory = await ethers.getContractFactory(
@@ -56,11 +57,11 @@ task("trackAndTrace", "Deploy contract Track And Trace")
   );
 
 task("trackAndTraceUpgrade", "Deploy contract Track And Trace").setAction(
-  async (_, { ethers, run, upgrades }) => {
+  async (_, { ethers, network, run, upgrades }) => {
     // compile
     await run("compile", { force: true });
 
-    const settings = new Settings("track-and-trace");
+    const settings = new Settings("track-and-trace", network.name);
     const proxyAddress = settings.mustGet("trackAndTraceAddress");
     console.log(proxyAddress);
 
@@ -100,48 +101,50 @@ task(
   "Deploy contract Track And Trace and reinitialize with v2",
 )
   .addParam("tpr", "Tpr Proxy Address")
-  .setAction(async (taskArgs: { tpr: string }, { ethers, run, upgrades }) => {
-    // compile
-    await run("compile", { force: true });
+  .setAction(
+    async (taskArgs: { tpr: string }, { ethers, network, run, upgrades }) => {
+      // compile
+      await run("compile", { force: true });
 
-    const settings = new Settings("track-and-trace");
-    const proxyAddress = settings.mustGet("trackAndTraceAddress");
-    settings.set("tprAddress", taskArgs.tpr);
-    console.log(proxyAddress);
+      const settings = new Settings("track-and-trace", network.name);
+      const proxyAddress = settings.mustGet("trackAndTraceAddress");
+      settings.set("tprAddress", taskArgs.tpr);
+      console.log(proxyAddress);
 
-    // get contract
-    const trackAndTraceLibFactory = await ethers.getContractFactory(
-      "TrackAndTraceLib",
-      {},
-    );
-    const trackAndTraceLibContract = await trackAndTraceLibFactory.deploy();
+      // get contract
+      const trackAndTraceLibFactory = await ethers.getContractFactory(
+        "TrackAndTraceLib",
+        {},
+      );
+      const trackAndTraceLibContract = await trackAndTraceLibFactory.deploy();
 
-    // get contract
-    const trackAndTraceFactory = await ethers.getContractFactory(
-      "TrackAndTrace",
-      { libraries: { TrackAndTraceLib: trackAndTraceLibContract.address } },
-    );
+      // get contract
+      const trackAndTraceFactory = await ethers.getContractFactory(
+        "TrackAndTrace",
+        { libraries: { TrackAndTraceLib: trackAndTraceLibContract.address } },
+      );
 
-    // forceImport
-    await upgrades.forceImport(proxyAddress, trackAndTraceFactory);
+      // forceImport
+      await upgrades.forceImport(proxyAddress, trackAndTraceFactory);
 
-    console.log(`factory loaded`);
+      console.log(`factory loaded`);
 
-    // deploy
-    const trackAndTrace = (await upgrades.upgradeProxy(
-      proxyAddress,
-      trackAndTraceFactory,
-      {
-        redeployImplementation: "always",
-        unsafeAllowLinkedLibraries: true,
-      },
-    )) as TrackAndTrace;
-    console.log(
-      `new contract deployed, beginning reinit with tpr address ${taskArgs.tpr}`,
-    );
-    await (await trackAndTrace.initializeV2(taskArgs.tpr)).wait(1);
+      // deploy
+      const trackAndTrace = (await upgrades.upgradeProxy(
+        proxyAddress,
+        trackAndTraceFactory,
+        {
+          redeployImplementation: "always",
+          unsafeAllowLinkedLibraries: true,
+        },
+      )) as TrackAndTrace;
+      console.log(
+        `new contract deployed, beginning reinit with tpr address ${taskArgs.tpr}`,
+      );
+      await (await trackAndTrace.initializeV2(taskArgs.tpr)).wait(1);
 
-    console.log(
-      `TrackAndTrace contract upgraded and reinitialized to ${await trackAndTrace.getImplementation()}`,
-    );
-  });
+      console.log(
+        `TrackAndTrace contract upgraded and reinitialized to ${await trackAndTrace.getImplementation()}`,
+      );
+    },
+  );

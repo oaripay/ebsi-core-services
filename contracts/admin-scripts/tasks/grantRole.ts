@@ -1,7 +1,7 @@
 import { task } from "hardhat/config";
 import "@nomiclabs/hardhat-waffle";
 
-import type { PolicyRegistry } from "../src/types/index.js";
+import type { PolicyRegistry } from "../src/types";
 
 task("grantRole", "add new operator on Trusted Policy Registry")
   .addParam("proxy", "The proxy address of tpr")

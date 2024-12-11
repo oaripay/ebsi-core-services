@@ -15,12 +15,12 @@ task("trackAndTraceV2", "Deploy contract Track And Trace")
         tpr: string;
         upgrader: string;
       },
-      { ethers, run, upgrades },
+      { ethers, network, run, upgrades },
     ) => {
       // compile
       await run("compile", { quiet: true });
 
-      const settings = new Settings("track-and-trace-v2");
+      const settings = new Settings("track-and-trace-v2", network.name);
 
       // get contract
       const trackAndTraceLibFactory = await ethers.getContractFactory(
