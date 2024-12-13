@@ -3,6 +3,7 @@
   "name": "@ebsiint-subgraph/trusted-policies-registry-v3",
   "version": "0.0.0-rc.0",
   "type": "module",
+  "license": "EUPL-1.2",
   "scripts": {
     "deploy": "node ./scripts/prepare.mjs && node ./scripts/deploy.mjs",
     "lint": "eslint .",

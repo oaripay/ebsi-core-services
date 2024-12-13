@@ -3,6 +3,7 @@
   "name": "@ebsiint-subgraph/subgraphs-deployer",
   "version": "0.0.0-rc.0",
   "type": "module",
+  "license": "EUPL-1.2",
   "scripts": {
     "docker:build": "docker build . -t ebsi/subgraphs-deployer:${GIT_COMMIT} --build-arg DOCKER_TAG=${GIT_COMMIT}",
     "prepare": "exit 0"

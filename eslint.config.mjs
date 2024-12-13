@@ -99,6 +99,19 @@ export default tseslint.config(
     },
   },
 
+  // Scripts (ESM)
+  {
+    // eslint-disable-next-line import/no-named-as-default-member
+    extends: [tseslint.configs.disableTypeChecked],
+    files: ["scripts/*.mjs"],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+      },
+      sourceType: "module",
+    },
+  },
+
   //////////
   // APIS //
   //////////

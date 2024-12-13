@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
-const { EOL } = require("os");
-const { spawnSync } = require("child_process");
-const { writeFileSync } = require("fs");
+const { spawnSync } = require("node:child_process");
+const { writeFileSync } = require("node:fs");
+const { EOL } = require("node:os");
 
 /**
  * The script below should prepare a list of affected (modified) services and apps managed through Docker containers.
@@ -10,7 +10,7 @@ const { writeFileSync } = require("fs");
  * Git commit hash values should be used consistently throughout the rest of the toolchain managing the manifested resources.
  */
 
-const deprecatedServices = [
+const deprecatedServices = new Set([
   "@ebsiint-api/authorisation-api-v2",
   "@ebsiint-api/did-registry-api-v3",
   "@ebsiint-api/trusted-apps-registry-api-v3",
@@ -18,13 +18,13 @@ const deprecatedServices = [
   "@ebsiint-api/trusted-issuers-registry-api-v3",
   "@ebsiint-sc/trusted-apps-registry",
   "@ebsiint-sc/trusted-apps-registry-v3",
-];
+]);
 
 // for the jenkins pipeline, read GIT_PREVIOUS_SUCCESSFUL_COMMIT so that the diff is done between last succesful build and HEAD
 // otherwise, if the variable is not present, make the diff with the previous commit
 const baseCommit = process.env["GIT_PREVIOUS_SUCCESSFUL_COMMIT"] ?? "main~1";
 
-console.log("Comparing HEAD to commit: ", baseCommit);
+console.log("Comparing HEAD to commit:", baseCommit);
 
 const processResult = spawnSync("sh", [
   "-c",
@@ -44,7 +44,7 @@ try {
     // NOT service utilities
     .filter((project) => project !== "@ebsiint-api/shared")
     // Filter out deprecated services
-    .filter((project) => !deprecatedServices.includes(project))
+    .filter((project) => !deprecatedServices.has(project))
     .map((project) => {
       const [scope, packageName] = project.split("/");
       return packageName;
@@ -62,7 +62,7 @@ try {
   console.log("affected services", affected);
 
   const updates = affected
-    .map((pkg) => `version_tag::${pkg}: ${process.env.GIT_COMMIT}`)
+    .map((pkg) => `version_tag::${pkg}: ${process.env["GIT_COMMIT"]}`)
     .join(EOL);
 
   writeFileSync("affected.yaml", updates);
