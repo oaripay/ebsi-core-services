@@ -18,3 +18,4 @@ import "./trackAndTraceV2";
 import "./trustedSchemaRegistryV3SC";
 import "./trustedIssuersRegistryV4SC";
 import "./timestampV3";
+import "./bootstrap";

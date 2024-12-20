@@ -52,11 +52,13 @@ output=`yarn hardhat deploy --network box --tags OwnedUpgradeabilityProxy --rese
 tsrRegistry=`echo $output | grep -o '\b0x[a-fA-F0-9]\{40\}\b'`
 yarn hardhat initProxy --network box --proxy $tsrRegistry --implementation SchemaSCRegistryV2
 
+# generate operator wallets
+
 
 # output
-echo "DIDRegistry V4: $DIDRegistryProxy" >> deployments.txt
-echo "TimestampProxy V3: $TimestampProxy" >> deployments.txt
-echo "TrackAndTraceProxy V2: $TrackAndTraceProxy" >> deployments.txt
-echo "TrustedIssuersRegistry V4: $tirRegistry" >> deployments.txt
-echo "TrustedPolicyRegistry V3: $tprProxy" >> deployments.txt
-echo "TrustedSchemasRegistry V3: $tsrRegistry" >> deployments.txt
+echo "DIDR_SC_V4_ADDRESS=$DIDRegistryProxy" >> deployments.env
+echo "TIMESTAMP_SC_V3_ADDRESS=$TimestampProxy" >> deployments.env
+echo "TNT_SC_V2_ADDRESS=$TrackAndTraceProxy" >> deployments.env
+echo "TIR_SC_V4_ADDRESS=$tirRegistry" >> deployments.env
+echo "TPR_SC_V3_ADDRESS=$tprProxy" >> deployments.env
+echo "TSR_SC_V3_ADDRESS=$tsrRegistry" >> deployments.env
