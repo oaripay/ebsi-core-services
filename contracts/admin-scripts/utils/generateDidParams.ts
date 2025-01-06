@@ -1,20 +1,18 @@
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import elliptic from "elliptic";
 import { ethers } from "ethers";
-import { base64url } from "multiformats/bases/base64";
 import { calculateJwkThumbprint, importJWK, JWK, KeyLike } from "jose";
+import { base64url } from "multiformats/bases/base64";
 const EC = elliptic.ec;
 
 export interface UserData {
   baseDocument: string;
   did: string;
-  notAfter: number;
-  notBefore: number;
   ES256: {
     privateKey: KeyLike | Uint8Array;
     privateKeyJwk: JWK;
-    publicKeyJwk: JWK;
     publicKeyHex: string;
+    publicKeyJwk: JWK;
     vMethodId: string;
   };
   ES256K: {
@@ -24,32 +22,8 @@ export interface UserData {
     publicKeyJwk: JWK;
     vMethodId: string;
   };
-}
-
-export function removePrefix0x(key: string): string {
-  return key.startsWith("0x") ? key.slice(2) : key;
-}
-
-export function getJwks(privateKeyHex: string, alg: "ES256" | "ES256K") {
-  const ec = alg === "ES256" ? new EC("p256") : new EC("secp256k1");
-  const privateKey = removePrefix0x(privateKeyHex);
-  const keyPair = ec.keyFromPrivate(privateKey, "hex");
-  const validation = keyPair.validate();
-  if (validation.result === false) {
-    throw new Error(validation.reason);
-  }
-  const pubPoint = keyPair.getPublic();
-  const publicKeyJwk = {
-    kty: "EC",
-    crv: "P-256",
-    x: base64url.baseEncode(pubPoint.getX().toBuffer("be", 32)),
-    y: base64url.baseEncode(pubPoint.getY().toBuffer("be", 32)),
-  };
-  const privateKeyJwk = {
-    ...publicKeyJwk,
-    d: base64url.baseEncode(Buffer.from(privateKey, "hex")),
-  };
-  return { publicKeyJwk, privateKeyJwk };
+  notAfter: number;
+  notBefore: number;
 }
 
 export async function generateDidParams(
@@ -69,8 +43,6 @@ export async function generateDidParams(
   return {
     baseDocument,
     did,
-    notAfter,
-    notBefore,
     ES256: {
       ...jwksES256,
       privateKey: await importJWK(jwksES256.privateKeyJwk, "ES256"),
@@ -86,5 +58,34 @@ export async function generateDidParams(
         "sha256",
       ),
     },
+    notAfter,
+    notBefore,
   };
+}
+
+export function getJwks(privateKeyHex: string, alg: "ES256" | "ES256K") {
+  const ec = alg === "ES256" ? new EC("p256") : new EC("secp256k1");
+  const privateKey = removePrefix0x(privateKeyHex);
+  const keyPair = ec.keyFromPrivate(privateKey, "hex");
+  const validation = keyPair.validate();
+  if (validation.result === false) {
+    throw new Error(validation.reason);
+  }
+  const pubPoint = keyPair.getPublic();
+  const curve = alg === "ES256" ? "P-256" : "secp256k1";
+  const publicKeyJwk = {
+    crv: curve,
+    kty: "EC",
+    x: base64url.baseEncode(pubPoint.getX().toBuffer("be", 32)),
+    y: base64url.baseEncode(pubPoint.getY().toBuffer("be", 32)),
+  };
+  const privateKeyJwk = {
+    ...publicKeyJwk,
+    d: base64url.baseEncode(Buffer.from(privateKey, "hex")),
+  };
+  return { privateKeyJwk, publicKeyJwk };
+}
+
+export function removePrefix0x(key: string): string {
+  return key.startsWith("0x") ? key.slice(2) : key;
 }

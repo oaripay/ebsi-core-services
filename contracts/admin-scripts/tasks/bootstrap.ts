@@ -59,9 +59,7 @@ import schema49 from "@cef-ebsi/vcdm2.0-w3id-traceability-commercial-invoice-cre
 import { generateDidParams, UserData } from "../utils/generateDidParams";
 
 const pathName = __dirname + "/../wallets.env";
-const deployments = __dirname + "/../deployments.env";
-dotenv.config({ path: pathName });
-dotenv.config({ path: deployments });
+dotenv.config();
 
 const schemas = [
   schema1,
