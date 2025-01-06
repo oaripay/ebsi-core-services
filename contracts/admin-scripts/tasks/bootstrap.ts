@@ -470,8 +470,8 @@ task(
         .connect(soSigner)
         .insertSchema(
           metadata.id.base16,
-          `0x${Buffer.from(JSON.stringify(schema))}`,
-          `0x${Buffer.from(JSON.stringify({ created: new Date().toISOString() }))}`,
+          `0x${Buffer.from(JSON.stringify(schema)).toString("hex")}`,
+          `0x${Buffer.from(JSON.stringify({ created: new Date().toISOString() })).toString("hex")}`,
         );
     } catch (error) {
       const schemaTitle = schema["title"] as string;
