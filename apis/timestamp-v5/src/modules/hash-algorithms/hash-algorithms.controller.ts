@@ -26,7 +26,7 @@ export class HashAlgorithmsController {
     @Query() query: GetHashAlgorithmsDto,
   ): Promise<PaginatedListWithoutTotal<HashAlgorithmLink>> {
     const where: HashAlgo_filter = {
-      ...(query.iananame && { iananame: query.iananame }),
+      ...(query.iananame && { ianaName: query.iananame }),
       ...(query.multihash && { multiHash: query.multihash }),
       ...(query.oid && { oid: query.oid }),
       ...(query["output-length"] && { outputLength: query["output-length"] }),

@@ -256,6 +256,8 @@ export class IssuersService {
       throw new InternalServerError();
     }
 
+    if (!res.issuers) return { items: [] };
+
     const dids = res.issuers.map((i) => i.id);
     return { items: dids };
   }

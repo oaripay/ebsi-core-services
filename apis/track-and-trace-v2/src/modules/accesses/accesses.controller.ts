@@ -1,4 +1,8 @@
-import { Accepts, paginateWithoutTotal } from "@ebsiint-api/shared";
+import {
+  Accepts,
+  BadRequestError,
+  paginateWithoutTotal,
+} from "@ebsiint-api/shared";
 import { Controller, Get, Head, HttpCode, Query } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
@@ -6,6 +10,7 @@ import type { ApiConfig } from "../../config/configuration.js";
 import type { Access } from "./accesses.interface.js";
 
 import { Invitation_filter } from "../../../.graphclient/index.js";
+import { didToHex } from "../../shared/utils.js";
 import AccessesService from "./accesses.service.js";
 import { HeadAccessesDto, SubjectAccessesDto } from "./dto/index.js";
 
@@ -21,9 +26,21 @@ export default class AccessesController {
   async getAccessesBySubject(@Query() query: SubjectAccessesDto) {
     const { "page[after]": pageAfter, "page[size]": pageSize, subject } = query;
 
+    let grantedBy: string | undefined;
+
+    try {
+      if (query["granted-by"]) {
+        grantedBy = await didToHex(query["granted-by"]);
+      }
+    } catch {
+      throw new BadRequestError(BadRequestError.defaultTitle, {
+        detail: "granted-by must be a DID",
+      });
+    }
+
     const where: Invitation_filter = {
       ...(query.permission && { type: query.permission }),
-      ...(query["granted-by"] && { grantedBy: query["granted-by"] }),
+      ...(grantedBy && { grantedBy }),
     };
 
     const accesses = await this.accessesService.getAccessesBySubject(

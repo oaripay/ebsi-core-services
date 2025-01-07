@@ -212,6 +212,8 @@ export default class DocumentsService {
       throw new InternalServerError();
     }
 
+    if (!res.documents) return { items: [] };
+
     const items = res.documents.map((d) => d.id);
     return { items };
   }

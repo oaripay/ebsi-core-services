@@ -44,6 +44,7 @@ export class PoliciesService {
         skip,
         where,
       });
+      if (!res.policies) return { items: [] };
       const policyNames = res.policies.map((p) => p.policyName);
       return { items: policyNames };
     } catch {

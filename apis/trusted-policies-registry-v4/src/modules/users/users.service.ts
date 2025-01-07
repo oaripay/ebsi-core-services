@@ -39,6 +39,7 @@ export class UsersService {
       // get one more item to clarify next pages in pagination
       const queryPageSize = pagesize + 1;
       const res = await sdk.GetUsers({ pagesize: queryPageSize, skip, where });
+      if (!res.users) return { items: [] };
       const users = res.users.map((u) => u.id);
       return { items: users };
     } catch {

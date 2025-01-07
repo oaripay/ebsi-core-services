@@ -1,5 +1,5 @@
 import { PaginationQuery } from "@ebsiint-api/shared";
-import { IsOptional, IsString } from "class-validator";
+import { IsIn, IsNumberString, IsOptional, IsString } from "class-validator";
 
 export class GetHashAlgorithmsDto extends PaginationQuery {
   @IsOptional()
@@ -15,11 +15,11 @@ export class GetHashAlgorithmsDto extends PaginationQuery {
   oid?: string;
 
   @IsOptional()
-  @IsString()
+  @IsNumberString({ no_symbols: true })
   "output-length"?: string;
 
   @IsOptional()
-  @IsString()
+  @IsIn(["active", "revoked", "undefined"])
   status?: "active" | "revoked" | "undefined";
 }
 

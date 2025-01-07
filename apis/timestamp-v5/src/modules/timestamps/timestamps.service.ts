@@ -110,6 +110,8 @@ export default class TimestampsService {
       throw new InternalServerError();
     }
 
+    if (!res.timestampSets) return { items: [] };
+
     const items = res.timestampSets.map((t) => t.id);
     return { items };
   }

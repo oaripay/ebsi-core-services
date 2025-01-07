@@ -266,6 +266,7 @@ export default class IdentifiersService {
               vMethodId,
               vRelationship,
             });
+          if (!res.didDocuments) return { items: [] };
 
           const identifiers = res.didDocuments.map((d) => d.id);
           return { items: identifiers };
@@ -285,6 +286,7 @@ export default class IdentifiersService {
           pagesize: queryPageSize,
           skip,
         });
+        if (!res.didDocuments) return { items: [] };
 
         const identifiers = res.didDocuments.map((d) => d.id);
         return { items: identifiers };
@@ -315,6 +317,7 @@ export default class IdentifiersService {
           vMethodId,
           vRelationship,
         });
+        if (!res.didDocuments) return { items: [] };
 
         const identifiers = res.didDocuments.map((d) => d.id);
         return { items: identifiers };
@@ -327,6 +330,7 @@ export default class IdentifiersService {
 
     try {
       const res = await sdk.GetDids({ pagesize: queryPageSize, skip });
+      if (!res.didDocuments) return { items: [] };
 
       const identifiers = res.didDocuments.map((d) => d.id);
       return { items: identifiers };

@@ -229,6 +229,9 @@ paths:
           in: query
           schema:
             type: string
+            enum:
+              - block
+              - external
           description: Filter events by source.
       responses:
         "200":

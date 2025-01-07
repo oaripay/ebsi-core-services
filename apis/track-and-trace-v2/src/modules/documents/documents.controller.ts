@@ -1,4 +1,8 @@
-import { Accepts, PaginatedListWithoutTotal } from "@ebsiint-api/shared";
+import {
+  Accepts,
+  BadRequestError,
+  PaginatedListWithoutTotal,
+} from "@ebsiint-api/shared";
 import { Controller, Get, Param, Query } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
@@ -16,6 +20,7 @@ import {
   Event_filter,
   Invitation_filter,
 } from "../../../.graphclient/index.js";
+import { didToHex } from "../../shared/utils.js";
 import {
   formatDocumentAccesses,
   formatDocumentEvents,
@@ -57,10 +62,33 @@ export default class DocumentsController {
   ): Promise<PaginatedListWithoutTotal<Access>> {
     const { documentId } = params;
 
+    let grantedBy: string | undefined;
+    let subject: string | undefined;
+
+    try {
+      if (query["granted-by"]) {
+        grantedBy = await didToHex(query["granted-by"]);
+      }
+    } catch {
+      throw new BadRequestError(BadRequestError.defaultTitle, {
+        detail: "granted-by must be a DID",
+      });
+    }
+
+    try {
+      if (query.subject) {
+        subject = await didToHex(query.subject);
+      }
+    } catch {
+      throw new BadRequestError(BadRequestError.defaultTitle, {
+        detail: "subject must be a DID",
+      });
+    }
+
     const where: Invitation_filter = {
       ...(query.permission && { type: query.permission }),
-      ...(query["granted-by"] && { grantedBy: query["granted-by"] }),
-      ...(query.subject && { subject: query.subject }),
+      ...(grantedBy && { grantedBy }),
+      ...(subject && { subject }),
     };
 
     const accesses = await this.documentsService.getDocumentAccesses(
@@ -121,10 +149,22 @@ export default class DocumentsController {
   ): Promise<PaginatedListWithoutTotal<DocumentEventsLink>> {
     const { documentId } = params;
 
+    let sender: string | undefined;
+
+    try {
+      if (query.sender) {
+        sender = await didToHex(query.sender);
+      }
+    } catch {
+      throw new BadRequestError(BadRequestError.defaultTitle, {
+        detail: "sender must be a DID",
+      });
+    }
+
     const where: Event_filter = {
       ...(query["external-hash"] && { externalHash: query["external-hash"] }),
       ...(query.origin && { origin: query.origin }),
-      ...(query.sender && { sender: query.sender }),
+      ...(sender && { sender }),
       ...(query.source && { source: query.source }),
     };
 

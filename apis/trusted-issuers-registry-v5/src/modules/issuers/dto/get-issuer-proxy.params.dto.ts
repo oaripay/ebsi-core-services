@@ -5,7 +5,7 @@ import { GetIssuerParamsDto } from "./get-issuer.params.dto.js";
 export class GetIssuerProxyParamsDto extends GetIssuerParamsDto {
   @Matches(/^0x/, { message: "proxyId must start with 0x" })
   @IsHexadecimal()
-  @Length(66, 66)
+  @Length(66, 66, { message: "proxyId must have 66 characters" })
   "proxyId": string;
 
   @IsOptional()

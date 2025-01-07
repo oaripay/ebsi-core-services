@@ -96,6 +96,8 @@ export default class RecordsService {
       throw new InternalServerError();
     }
 
+    if (!res.records) return { items: [] };
+
     const items = res.records.map((r) => r.id);
     return { items };
   }
@@ -123,6 +125,8 @@ export default class RecordsService {
       );
       throw new InternalServerError();
     }
+
+    if (!res.timestampSet) return { items: [] };
 
     const ids = res.timestampSet.recordIdsFirstVersion.map((r) => r.id);
     return { items: ids };

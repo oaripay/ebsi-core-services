@@ -311,6 +311,8 @@ export class SchemasService {
       throw new InternalServerError();
     }
 
+    if (!res.schemas) return { items: [] };
+
     const schemasIds = res.schemas.map((s) => s.id);
     return { items: schemasIds };
   }

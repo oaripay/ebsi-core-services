@@ -4,7 +4,7 @@ import { GetSchemaParams } from "./get-schema.params.js";
 
 export class GetSchemaRevisionParams extends GetSchemaParams {
   @IsHexadecimal()
-  @Length(66, 66)
+  @Length(66, 66, { message: "schemaRevisionId must have 66 characters" })
   @Matches(/^0x/, { message: "schemaRevisionId must start with 0x" })
   schemaRevisionId!: string;
 }

@@ -10,7 +10,7 @@ import {
 export class GetSchemaRevisionsQuery extends PaginationQuery {
   @IsHexadecimal()
   @IsOptional()
-  @Length(66, 66)
+  @Length(66, 66, { message: "metadata-id must have 66 characters" })
   @Matches(/^0x/, { message: "metadata-id must start with 0x" })
   "metadata-id": string;
 

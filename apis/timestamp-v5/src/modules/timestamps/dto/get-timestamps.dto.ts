@@ -1,13 +1,19 @@
 import { PaginationQuery } from "@ebsiint-api/shared";
-import { IsOptional, IsString } from "class-validator";
+import {
+  IsHexadecimal,
+  IsNumberString,
+  IsOptional,
+  Matches,
+} from "class-validator";
 
 export class GetTimestampsDto extends PaginationQuery {
   @IsOptional()
-  @IsString()
+  @IsHexadecimal()
+  @Matches(/^0x/, { message: "must start with 0x" })
   creator?: string;
 
   @IsOptional()
-  @IsString()
+  @IsNumberString({ no_symbols: true })
   "hash-algorithm-id"?: string;
 }
 

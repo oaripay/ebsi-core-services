@@ -72,6 +72,8 @@ export class HashAlgorithmsService {
       throw new InternalServerError();
     }
 
+    if (!res.hashAlgos) return { items: [] };
+
     const ids = res.hashAlgos.map((h) => Number(h.id));
     return { items: ids };
   }

@@ -786,7 +786,7 @@ describe("Schemas Module", () => {
 
       expect(response.body).toStrictEqual({
         detail:
-          '["schemaRevisionId must start with 0x","schemaRevisionId must be longer than or equal to 66 characters","schemaRevisionId must be a hexadecimal number"]',
+          '["schemaRevisionId must start with 0x","schemaRevisionId must have 66 characters","schemaRevisionId must be a hexadecimal number"]',
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -1010,7 +1010,7 @@ describe("Schemas Module", () => {
 
       expect(response.body).toStrictEqual({
         detail:
-          '["schemaRevisionId must start with 0x","schemaRevisionId must be longer than or equal to 66 characters","schemaRevisionId must be a hexadecimal number"]',
+          '["schemaRevisionId must start with 0x","schemaRevisionId must have 66 characters","schemaRevisionId must be a hexadecimal number"]',
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -1276,7 +1276,7 @@ describe("Schemas Module", () => {
 
       expect(response.body).toStrictEqual({
         detail:
-          '["schemaRevisionId must start with 0x","schemaRevisionId must be longer than or equal to 66 characters","schemaRevisionId must be a hexadecimal number"]',
+          '["schemaRevisionId must start with 0x","schemaRevisionId must have 66 characters","schemaRevisionId must be a hexadecimal number"]',
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -1291,8 +1291,7 @@ describe("Schemas Module", () => {
       );
 
       expect(response.body).toStrictEqual({
-        detail:
-          '["schemaRevisionId must be longer than or equal to 66 characters"]',
+        detail: '["schemaRevisionId must have 66 characters"]',
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -1340,7 +1339,7 @@ describe("Schemas Module", () => {
 
       expect(response.body).toStrictEqual({
         detail:
-          '["metadataId must start with 0x","metadataId must be longer than or equal to 66 characters","metadataId must be a hexadecimal number"]',
+          '["metadataId must start with 0x","metadataId must have 66 characters","metadataId must be a hexadecimal number"]',
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -1355,7 +1354,7 @@ describe("Schemas Module", () => {
       );
 
       expect(response.body).toStrictEqual({
-        detail: '["metadataId must be longer than or equal to 66 characters"]',
+        detail: '["metadataId must have 66 characters"]',
         status: 400,
         title: "Bad Request",
         type: "about:blank",
