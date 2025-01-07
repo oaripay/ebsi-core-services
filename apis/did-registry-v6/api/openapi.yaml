@@ -56,6 +56,12 @@ paths:
           description: Parameter to be used in conjunction with controller and verification-method-id for a fine filter.
           schema:
             type: string
+            enum:
+              - authentication
+              - assertionMethod
+              - keyAgreement
+              - capabilityInvocation
+              - capabilityDelegation
       responses:
         "200":
           description: Success
