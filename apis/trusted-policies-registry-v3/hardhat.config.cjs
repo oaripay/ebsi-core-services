@@ -3,7 +3,7 @@
  * https://hardhat.org/hardhat-runner/docs/advanced/using-esm#hardhat-support-for-es-modules
  */
 const path = require("node:path");
-require("@nomiclabs/hardhat-ethers");
+require("@nomicfoundation/hardhat-ethers");
 
 const tprScPath = path.resolve(
   require.resolve("@ebsiint-sc/trusted-policies-registry-v2"),

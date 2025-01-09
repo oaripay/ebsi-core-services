@@ -11,10 +11,10 @@ export function formatHashAlgorithms(
   extraQuery?: string,
 ): PaginatedList<HashAlgorithmLink> {
   // Reshape items
-  const total = hashAlgorithms.total.toNumber();
+  const total = Number(hashAlgorithms.total);
   const items = hashAlgorithms.items.map((hashAlgorithmId) => ({
-    hashAlgorithmId: hashAlgorithmId.toNumber(),
-    href: `${baseUrl}/${hashAlgorithmId.toNumber()}`,
+    hashAlgorithmId: Number(hashAlgorithmId),
+    href: `${baseUrl}/${Number(hashAlgorithmId)}`,
   }));
 
   return paginate<HashAlgorithmLink>(

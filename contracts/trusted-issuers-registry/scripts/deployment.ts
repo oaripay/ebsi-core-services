@@ -13,16 +13,16 @@ async function main() {
     "PolicyRegistry",
     {
       libraries: {
-        Pagination: pagination.address,
+        Pagination: await pagination.getAddress(),
       },
     },
   )) as PolicyRegistry__factory;
   const policyContract = await policyRegistryFactory.deploy();
-  await policyContract.deployed();
+  await policyContract.waitForDeployment();
 
-  console.log("Policy deployed at :", policyContract.address);
+  console.log("Policy deployed at :", await policyContract.getAddress());
 
-  await policyContract.initialize(ethers.BigNumber.from(1));
+  await policyContract.initialize(1n);
 
   const hashAlgoFactory = await ethers.getContractFactory("HashAlgoLib", {});
   const hashAlgoLib = await hashAlgoFactory.deploy();
@@ -33,40 +33,42 @@ async function main() {
 
   const didRecordFactory = (await ethers.getContractFactory("DidRecordLib", {
     libraries: {
-      Pagination: pagination.address,
+      Pagination: await pagination.getAddress(),
     },
   })) as DidRecordLib__factory;
   const didRecordLib = await didRecordFactory.deploy();
 
   const policyFactory = await ethers.getContractFactory("PolicyLib", {
     libraries: {
-      Pagination: pagination.address,
+      Pagination: await pagination.getAddress(),
     },
   });
   const policyLib = await policyFactory.deploy();
 
   const didContractFactory = (await ethers.getContractFactory("DidRegistry", {
     libraries: {
-      DidRecordLib: didRecordLib.address,
-      DidTimestampLib: didTimestampLib.address,
-      HashAlgoLib: hashAlgoLib.address,
-      PolicyLib: policyLib.address,
+      DidRecordLib: await didRecordLib.getAddress(),
+      DidTimestampLib: await didTimestampLib.getAddress(),
+      HashAlgoLib: await hashAlgoLib.getAddress(),
+      PolicyLib: await policyLib.getAddress(),
     },
   })) as DidRegistry__factory;
-  const didContract = await didContractFactory.deploy(policyContract.address);
+  const didContract = await didContractFactory.deploy(
+    await policyContract.getAddress(),
+  );
   await didContract.initialize(16);
   await didContract.setTrustedPoliciesRegistryAddress();
 
   const tirFactory = await ethers.getContractFactory("Tir", {});
   const tir = await tirFactory.deploy(
-    policyContract.address,
-    didContract.address,
+    await policyContract.getAddress(),
+    await didContract.getAddress(),
   );
 
   await tir.initialize(25);
   await tir.setRegistryAddresses();
 
-  console.log("Trusted Issuers Registry deployed at :", tir.address);
+  console.log("Trusted Issuers Registry deployed at :", await tir.getAddress());
   console.log(`Contract version set to: ${(await tir.version()).toString()}`);
 }
 

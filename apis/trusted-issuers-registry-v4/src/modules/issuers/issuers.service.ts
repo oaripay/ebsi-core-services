@@ -1,3 +1,5 @@
+import type { Tir } from "@ebsiint-sc/trusted-issuers-registry";
+
 import { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
 import {
   BadRequestError,
@@ -8,20 +10,19 @@ import {
   prefixWith0x,
   remove0xPrefix,
 } from "@ebsiint-api/shared";
-import { Tir } from "@ebsiint-sc/trusted-issuers-registry";
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import axios, { type AxiosResponse } from "axios";
 
 import type { ApiConfig } from "../../config/configuration.js";
-
-import { LedgerService } from "../ledger/ledger.service.js";
-import { IssuerTypeNames } from "./issuers.constants.js";
-import {
+import type {
   AttributeObject,
   IssuerProxyResponseObject,
   IssuerResponseObject,
 } from "./issuers.interface.js";
+
+import { LedgerService } from "../ledger/ledger.service.js";
+import { IssuerTypeNames } from "./issuers.constants.js";
 
 @Injectable()
 export class IssuersService {
@@ -122,7 +123,7 @@ export class IssuersService {
         .getIssuerAttributeRevisions(hash, 1, 1);
 
       // use total revisions to get the latest attribute revision
-      const totalRevisions = revisionHashes.total.toNumber();
+      const totalRevisions = Number(revisionHashes.total);
       revisionHashes = await this.ledgerService
         .getContract()
         .getIssuerAttributeRevisions(hash, totalRevisions, 1);
@@ -166,7 +167,7 @@ export class IssuersService {
     return {
       body: attributeData,
       hash: hash.slice(2),
-      issuerType: IssuerTypeNames[issuerType]!,
+      issuerType: IssuerTypeNames[Number(issuerType)]!,
       rootTao,
       tao,
     };
@@ -228,7 +229,7 @@ export class IssuersService {
         }),
       );
 
-      return { revisions, total: revisionHashes.total.toNumber() };
+      return { revisions, total: Number(revisionHashes.total) };
     } catch (error) {
       if (isEthersError(error)) {
         this.logger.error(error, error.stack);

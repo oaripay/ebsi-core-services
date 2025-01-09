@@ -34,13 +34,13 @@ task("trustedIssuersRegistryV4", "Deploy contract Track And Trace")
         taskArgs.did,
       ]);
 
-      settings.set("trustedIssuersRegistryV4Address", tirV4.address);
+      settings.set("trustedIssuersRegistryV4Address", await tirV4.getAddress());
       settings.set("upgraderAddress", taskArgs.upgrader);
       settings.set("trustedPolicyRegistryAddress", taskArgs.tpr);
       settings.set("didRegistryAddress", taskArgs.did);
 
       console.log(
-        `TrustedSchemasRegistryV3 contract deployed to ${tirV4.address}`,
+        `TrustedSchemasRegistryV3 contract deployed to ${await tirV4.getAddress()}`,
       );
     },
   );

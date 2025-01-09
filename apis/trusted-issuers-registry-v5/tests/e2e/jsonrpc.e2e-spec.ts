@@ -88,7 +88,7 @@ interface SupertestJsonRpcResponse {
 interface TestIssuer {
   info: EbsiIssuer;
   token: string;
-  wallet: ethers.Wallet;
+  wallet: ethers.BaseWallet;
 }
 
 async function getEbsiIssuer(
@@ -420,7 +420,7 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
                   isSecp256k1: true,
                   notAfter: in6months,
                   notBefore: now,
-                  publicKey: newIssuerWallet.publicKey,
+                  publicKey: newIssuerWallet.signingKey.publicKey,
                   vMethodId: newIssuerInfo.kid.split("#")[1],
                 },
               ],
@@ -433,9 +433,14 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
               JSON.stringify(unsignedTransaction),
             ) as UnsignedTransaction,
           );
-          uTx.chainId = Number(uTx.chainId);
+
           let sgnTx = await adminIssuer.wallet.signTransaction(uTx);
-          let parsedTx = ethers.utils.parseTransaction(sgnTx);
+          let parsedTx = ethers.Transaction.from(sgnTx).signature;
+
+          if (!parsedTx) {
+            throw new Error("Signature not found");
+          }
+
           let responseSend: SupertestJsonRpcResponse = await request(
             didRegistryApiUrl,
           )
@@ -489,9 +494,14 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
               JSON.stringify(unsignedTransaction),
             ) as UnsignedTransaction,
           );
-          uTx.chainId = Number(uTx.chainId);
+
           sgnTx = await adminIssuer.wallet.signTransaction(uTx);
-          parsedTx = ethers.utils.parseTransaction(sgnTx);
+          parsedTx = ethers.Transaction.from(sgnTx).signature;
+
+          if (!parsedTx) {
+            throw new Error("Signature not found");
+          }
+
           responseSend = await request(didRegistryApiUrl)
             .post("/jsonrpc")
             .auth(didWriteAccessToken, { type: "bearer" })
@@ -542,9 +552,14 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
               JSON.stringify(unsignedTransaction),
             ) as UnsignedTransaction,
           );
-          uTx.chainId = Number(uTx.chainId);
+
           sgnTx = await adminIssuer.wallet.signTransaction(uTx);
-          parsedTx = ethers.utils.parseTransaction(sgnTx);
+          parsedTx = ethers.Transaction.from(sgnTx).signature;
+
+          if (!parsedTx) {
+            throw new Error("Signature not found");
+          }
+
           responseSend = await request(didRegistryApiUrl)
             .post("/jsonrpc")
             .auth(didWriteAccessToken, { type: "bearer" })
@@ -595,9 +610,14 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
               JSON.stringify(unsignedTransaction),
             ) as UnsignedTransaction,
           );
-          uTx.chainId = Number(uTx.chainId);
+
           sgnTx = await adminIssuer.wallet.signTransaction(uTx);
-          parsedTx = ethers.utils.parseTransaction(sgnTx);
+          parsedTx = ethers.Transaction.from(sgnTx).signature;
+
+          if (!parsedTx) {
+            throw new Error("Signature not found");
+          }
+
           responseSend = await request(didRegistryApiUrl)
             .post("/jsonrpc")
             .auth(didWriteAccessToken, { type: "bearer" })
@@ -647,9 +667,14 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
               JSON.stringify(unsignedTransaction),
             ) as UnsignedTransaction,
           );
-          uTx.chainId = Number(uTx.chainId);
+
           sgnTx = await adminIssuer.wallet.signTransaction(uTx);
-          parsedTx = ethers.utils.parseTransaction(sgnTx);
+          parsedTx = ethers.Transaction.from(sgnTx).signature;
+
+          if (!parsedTx) {
+            throw new Error("Signature not found");
+          }
+
           responseSend = await request(server)
             .post("/jsonrpc")
             .auth(adminIssuer.token, { type: "bearer" })
@@ -865,7 +890,7 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
           case "setAttributeData": {
             const newAttributeData = `test - ${new Date().toISOString()}`;
             const newAttributeDataBuffer = Buffer.from(newAttributeData);
-            const newAttributeId = ethers.utils.sha256(newAttributeDataBuffer);
+            const newAttributeId = ethers.sha256(newAttributeDataBuffer);
 
             params = {
               attributeData: `0x${newAttributeDataBuffer.toString("hex")}`,
@@ -955,9 +980,13 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
             JSON.stringify(unsignedTransaction),
           ) as UnsignedTransaction,
         );
-        uTx.chainId = Number(uTx.chainId);
+
         const sgnTx = await sender.wallet.signTransaction(uTx);
-        const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+        const signature = ethers.Transaction.from(sgnTx).signature;
+        if (!signature) {
+          throw new Error("Signature not found");
+        }
+        const { r, s, v } = signature;
 
         const responseSend: SupertestJsonRpcResponse = await request(server)
           .post("/jsonrpc")
@@ -973,7 +1002,7 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
                 s,
                 signedRawTransaction: sgnTx,
                 unsignedTransaction,
-                v: `0x${Number(v).toString(16)}`,
+                v: `0x${v.toString(16)}`,
               },
             ],
           });
@@ -991,7 +1020,7 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
           responseSend.body.result as string,
         );
         expect(receipt.revertReason).toBeUndefined();
-        expect(receipt.status).toBe(1);
+        expect(receipt.status).toBe("0x1");
         sampleTransaction = responseSend.body.result as string;
 
         // Extra test
@@ -1065,9 +1094,13 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
             JSON.stringify(unsignedTransaction),
           ) as UnsignedTransaction,
         );
-        uTx.chainId = Number(uTx.chainId);
+
         const sgnTx = await sender.wallet.signTransaction(uTx);
-        const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+        const signature = ethers.Transaction.from(sgnTx).signature;
+        if (!signature) {
+          throw new Error("Signature not found");
+        }
+        const { r, s, v } = signature;
 
         const responseSend: SupertestJsonRpcResponse = await request(server)
           .post("/jsonrpc")
@@ -1083,7 +1116,7 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
                 s,
                 signedRawTransaction: sgnTx,
                 unsignedTransaction,
-                v: `0x${Number(v).toString(16)}`,
+                v: `0x${v.toString(16)}`,
               },
             ],
           });
@@ -1109,7 +1142,7 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
         expect(receipt).toStrictEqual(
           expect.objectContaining({
             revertReason: expect.stringContaining(expectedRevertReason),
-            status: 0,
+            status: "0x0",
           }),
         );
       });
@@ -1237,9 +1270,13 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
                 JSON.stringify(unsignedTransaction),
               ) as UnsignedTransaction,
             );
-            uTx.chainId = Number(uTx.chainId);
+
             const sgnTx = await testIssuerWithProxyWallet.signTransaction(uTx);
-            const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+            const signature = ethers.Transaction.from(sgnTx).signature;
+            if (!signature) {
+              throw new Error("Signature not found");
+            }
+            const { r, s, v } = signature;
 
             const responseSend: SupertestJsonRpcResponse = await request(server)
               .post("/jsonrpc")
@@ -1255,7 +1292,7 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
                     s,
                     signedRawTransaction: sgnTx,
                     unsignedTransaction,
-                    v: `0x${Number(v).toString(16)}`,
+                    v: `0x${v.toString(16)}`,
                   },
                 ],
               });
@@ -1272,7 +1309,7 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
               ledgerApi,
               responseSend.body.result as string,
             );
-            expect(receipt.status).toBe(1);
+            expect(receipt.status).toBe("0x1");
             sampleTransaction = responseSend.body.result as string;
 
             // Extra test

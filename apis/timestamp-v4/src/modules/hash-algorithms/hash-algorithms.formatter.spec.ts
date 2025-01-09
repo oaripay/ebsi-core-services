@@ -1,16 +1,15 @@
 import { Timestamp } from "@ebsiint-sc/timestamp-v2";
-import { ethers } from "ethers";
 import { describe, expect, it } from "vitest";
 
 import { formatHashAlgorithms } from "./hash-algorithms.formatter.js";
 
 describe("formatHashAlgorithms", () => {
   const hashAlgorithms = {
-    howMany: ethers.BigNumber.from("2"),
-    items: [ethers.BigNumber.from("1"), ethers.BigNumber.from("2")],
-    next: ethers.BigNumber.from("0"),
-    prev: ethers.BigNumber.from("0"),
-    total: ethers.BigNumber.from("42"),
+    howMany: 2n,
+    items: [1n, 2n],
+    next: 0n,
+    prev: 0n,
+    total: 42n,
   } as Awaited<ReturnType<Timestamp["getHashAlgorithms"]>>;
 
   it("should use the values returned by the smart contract (except pageSize)", () => {

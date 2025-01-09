@@ -23,7 +23,10 @@ const sendSignedTransactionSchema = z.object({
   s: z.string().regex(/^0x/),
   signedRawTransaction: z.string().regex(/^0x/),
   unsignedTransaction: unsignedTransactionSchema,
-  v: z.string().regex(/^0x/),
+  v: z
+    .string()
+    .regex(/^0x/)
+    .refine((v) => [27, 28].includes(Number(v))),
 });
 
 export type SendSignedTransactionParamsSchema = z.infer<

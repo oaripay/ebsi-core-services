@@ -38,9 +38,9 @@ export default class DocumentsService {
       events: document.eventHashes,
       metadata: document.documentMetadata,
       timestamp: {
-        datetime: document.documentTimestamp.timestamp.toHexString(),
+        datetime: `0x${document.documentTimestamp.timestamp.toString(16)}`,
         proof: document.documentTimestamp.proof,
-        source: document.documentTimestamp.source === 0 ? "block" : "external",
+        source: document.documentTimestamp.source === 0n ? "block" : "external",
       },
     } satisfies Document;
   }
@@ -102,18 +102,18 @@ export default class DocumentsService {
       documentAccesses.push(...fetchedDocumentAccesses.flat());
 
       currentPage += 1;
-    } while (invitedUsers.total.gt((currentPage - 1) * pageSize));
+    } while (Number(invitedUsers.total) > (currentPage - 1) * pageSize);
 
     return documentAccesses;
   }
 
   async getDocumentEvent(documentId: string, eventId: string): Promise<Event> {
-    let event: Awaited<ReturnType<TrackAndTrace["getEvent"]>>;
-
+    let event;
     try {
-      event = await this.ledgerService
-        .getContract()
-        .getEvent(documentId, eventId);
+      event = await this.ledgerService.getContract().getFunction("getEvent")(
+        documentId,
+        eventId,
+      );
     } catch (error) {
       if (isEthersError(error)) {
         this.logger.error(error, error.stack);
@@ -140,9 +140,9 @@ export default class DocumentsService {
       origin: event.origin,
       sender: hexToDid(event.sender),
       timestamp: {
-        datetime: event.eventTimestamp.timestamp.toHexString(),
+        datetime: `0x${event.eventTimestamp.timestamp.toString(16)}`,
         proof: event.eventTimestamp.proof,
-        source: event.eventTimestamp.source === 0 ? "block" : "external",
+        source: event.eventTimestamp.source === 0n ? "block" : "external",
       },
     } satisfies Event;
   }

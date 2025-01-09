@@ -1,14 +1,14 @@
 import {
+  decodeResult,
   getErrorMessage,
   InvalidRequestJsonRpcError,
   isEthersError,
   logAxiosError,
 } from "@ebsiint-api/shared";
-import { BigNumberish } from "@ethersproject/bignumber/lib/bignumber.js";
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import axios, { isAxiosError } from "axios";
-import { BigNumber, ethers } from "ethers";
+import { ethers } from "ethers";
 
 import type { ApiConfig } from "../../config/configuration.js";
 
@@ -75,29 +75,6 @@ const sdk = getBuiltGraphSDK();
 // Cache algorithms' output lengths for 30 minutes
 const ALGORITHMS_EXP = 30 * 60 * 1000; // 30 minutes
 
-/**
- * Extract named attributes from a mixed array (array with named keys and number keys) as returned by ethers.js parseTransaction
- */
-function extractNamedAttributes(mixedArray: unknown): Record<string, unknown> {
-  if (
-    !mixedArray ||
-    typeof mixedArray !== "object" ||
-    !Array.isArray(mixedArray)
-  ) {
-    throw new Error("Not a mixed array");
-  }
-
-  const keys = Object.keys(mixedArray).filter((key) =>
-    Number.isNaN(Number.parseInt(key, 10)),
-  );
-
-  return keys.reduce((obj, key) => {
-    // @ts-expect-error Element implicitly has an 'any' type because index expression is not of type 'number'.ts(7015)
-    const value: unknown = mixedArray[key];
-    return { ...obj, [key]: value };
-  }, {});
-}
-
 @Injectable()
 export class JsonRpcService {
   private algIdsToOutputLength: Record<
@@ -129,27 +106,25 @@ export class JsonRpcService {
     params: string,
   ): Promise<UnsignedTransaction> {
     const nonceInt = await this.ledgerService
-      .getContract()
-      .provider.getTransactionCount(from);
+      .getEthersProvider()
+      .getTransactionCount(from);
 
-    const unsignedTransaction: UnsignedTransaction = {
+    const unsignedTransaction = {
       chainId: await this.getChainId(),
       data: params,
       from,
       gasLimit: "0x1000000",
       gasPrice: "0x0",
-      nonce: ethers.BigNumber.from(nonceInt).toHexString(),
+      nonce: `0x${BigInt(nonceInt).toString(16)}`,
       to: this.contractAddress,
       value: "0x0",
-    };
+    } satisfies UnsignedTransaction;
 
-    let gasEstimation: ethers.BigNumber | string = "unset";
+    let gasEstimation: bigint | string = "unset";
 
     try {
       gasEstimation = await this.estimateGas(unsignedTransaction);
-      unsignedTransaction.gasLimit = ethers.BigNumber.from(
-        Math.ceil(1.4 * Number(gasEstimation)),
-      ).toHexString();
+      unsignedTransaction.gasLimit = `0x${((gasEstimation * 14n) / 10n).toString(16)}`;
     } catch {
       this.logger.warn(
         `Gas could not be estimated.${
@@ -525,7 +500,7 @@ export class JsonRpcService {
   }
 
   async checkHashes(
-    hashAlgorithmIds: BigNumberish[],
+    hashAlgorithmIds: ethers.BigNumberish[],
     hashValues: string[],
   ): Promise<void> {
     if (hashAlgorithmIds.length !== hashValues.length) {
@@ -539,32 +514,28 @@ export class JsonRpcService {
 
     await Promise.all(
       uniqHashAlgorithmIds.map(async (algId) => {
-        if (
-          this.algIdsToOutputLength[BigNumber.from(algId).toNumber()] &&
-          this.algIdsToOutputLength[BigNumber.from(algId).toNumber()]!.exp > now
-        ) {
+        const algIdNumber = Number(ethers.getBigInt(algId));
+        const outputLength = this.algIdsToOutputLength[algIdNumber];
+        if (outputLength && outputLength.exp > now) {
           // Use cached result
           return;
         }
 
         // Get hash algorithm corresponding to algId
-        const hashAlgoNumber = BigNumber.from(algId).toNumber();
         try {
           const res = await sdk.GetHashAlgorithm({
-            hashAlgorithmId: hashAlgoNumber.toString(),
+            hashAlgorithmId: algIdNumber.toString(),
           });
           if (!res.hashAlgo) throw new Error("hash algorithm not found");
 
           const outputLength = Number(res.hashAlgo.outputLength);
 
-          this.algIdsToOutputLength[hashAlgoNumber] = {
+          this.algIdsToOutputLength[algIdNumber] = {
             exp: now + ALGORITHMS_EXP,
             outputLength,
           };
         } catch {
-          throw new Error(
-            `Can't find hash algorithm with ID: ${hashAlgoNumber}`,
-          );
+          throw new Error(`Can't find hash algorithm with ID: ${algIdNumber}`);
         }
       }),
     );
@@ -572,9 +543,9 @@ export class JsonRpcService {
     // Compare lengths
     for (const [index, hashValue] of hashValues.entries()) {
       const algId = hashAlgorithmIds[index]!;
+      const algIdNumber = Number(ethers.getBigInt(algId));
       const expectedOutputLength =
-        this.algIdsToOutputLength[BigNumber.from(algId).toNumber()]!
-          .outputLength;
+        this.algIdsToOutputLength[algIdNumber]!.outputLength;
       const hashLength =
         Buffer.from(hashValue.replace("0x", ""), "hex").byteLength * 8;
       if (hashLength !== expectedOutputLength) {
@@ -585,13 +556,11 @@ export class JsonRpcService {
     }
   }
 
-  async estimateGas(
-    transaction: UnsignedTransaction,
-  ): Promise<ethers.BigNumber> {
+  async estimateGas(transaction: UnsignedTransaction): Promise<bigint> {
     const { data, from, to, value } = transaction;
 
     try {
-      return await this.ledgerService.getContract().provider.estimateGas({
+      return await this.ledgerService.getEthersProvider().estimateGas({
         data,
         from,
         to,
@@ -609,9 +578,9 @@ export class JsonRpcService {
     if (!this.chainId) {
       try {
         const { chainId } = await this.ledgerService
-          .getContract()
-          .provider.getNetwork();
-        this.chainId = ethers.BigNumber.from(chainId).toHexString();
+          .getEthersProvider()
+          .getNetwork();
+        this.chainId = `0x${BigInt(chainId).toString(16)}`;
       } catch (error) {
         if (isEthersError(error)) {
           this.logger.error(error, error.stack);
@@ -661,13 +630,22 @@ export class JsonRpcService {
       await this.verifyEthereumAddress(signer, user);
 
       const tx = await this.ledgerService
-        .getContract()
-        .provider.sendTransaction(request.signedRawTransaction);
+        .getEthersProvider()
+        .broadcastTransaction(request.signedRawTransaction);
       return tx.hash;
     } catch (error_) {
       if (isEthersError(error_)) {
         this.logger.error(error_, error_.stack); // Log the original error with all ethers.js details for internal debugging
-        throw new InvalidRequestJsonRpcError(error_.reason, id); // throw simplified ethers error to the user
+        throw new InvalidRequestJsonRpcError(
+          error_.error?.message ?? error_.shortMessage,
+          id,
+          undefined,
+          error_.error &&
+          "code" in error_.error &&
+          typeof error_.error.code === "number"
+            ? error_.error.code
+            : undefined,
+        );
       }
 
       if (error_ instanceof Error) {
@@ -703,7 +681,7 @@ export class JsonRpcService {
   }
 
   async verifyTransaction(param: SendSignedTransactionParamsSchema): Promise<{
-    args: ethers.utils.Result;
+    args: ethers.Result;
     functionName: string;
     signer: string;
   }> {
@@ -713,21 +691,22 @@ export class JsonRpcService {
     const signature = formatEthersSignature(r, s, v);
 
     // Serialize transaction with and without signature
-    const serializedTransaction = ethers.utils.serializeTransaction(unsignedTx);
-    const serializedTransactionSigned = ethers.utils.serializeTransaction(
-      unsignedTx,
+    const unsignedSerializedTransaction =
+      ethers.Transaction.from(unsignedTx).unsignedSerialized;
+    const signedSerializedTransaction = ethers.Transaction.from({
+      ...unsignedTx,
       signature,
-    );
+    }).serialized;
 
-    if (serializedTransactionSigned !== signedRawTransaction) {
+    if (signedSerializedTransaction !== signedRawTransaction) {
       throw new Error(
-        `The unsigned transaction + signature (${serializedTransactionSigned}) does not match with the signedRawTransaction (${signedRawTransaction})`,
+        `The unsigned transaction + signature (${signedSerializedTransaction}) does not match with the signedRawTransaction (${signedRawTransaction})`,
       );
     }
 
     // recover address used to sign
-    const digest = ethers.utils.keccak256(serializedTransaction);
-    const signer = ethers.utils.recoverAddress(digest, signature).toLowerCase();
+    const digest = ethers.keccak256(unsignedSerializedTransaction);
+    const signer = ethers.recoverAddress(digest, signature).toLowerCase();
 
     if (signer !== unsignedTransaction.from.toLowerCase()) {
       throw new Error(
@@ -749,17 +728,24 @@ export class JsonRpcService {
     }
 
     // verify function and parameters encoded in unsignedTransaction.data
-    const { args, functionFragment } = this.ledgerService
+    const parsedTransaction = this.ledgerService
       .getContract()
       .interface.parseTransaction(unsignedTransaction);
 
+    if (!parsedTransaction) {
+      throw new Error("Invalid unsignedTransaction.data");
+    }
+
+    const { args, fragment } = parsedTransaction;
+
     // Extract named args from args (args is a mixed array with named and unnamed values)
     const argsObject = {
-      ...extractNamedAttributes(args),
+      // @ts-expect-error Error due to CommonJS vs ESM modules imports
+      ...decodeResult(args),
       from: unsignedTransaction.from,
     };
 
-    switch (functionFragment.name) {
+    switch (fragment.name) {
       case "appendRecordVersionHashes": {
         const castArgs =
           await appendRecordVersionHashesSchema.parseAsync(argsObject);
@@ -815,14 +801,15 @@ export class JsonRpcService {
       }
       default: {
         throw new Error(
-          `The function name ${functionFragment.name} can not be used in this context`,
+          `The function name ${fragment.name} can not be used in this context`,
         );
       }
     }
 
     return {
+      // @ts-expect-error Error due to contracts using CommonJS modules
       args,
-      functionName: functionFragment.name,
+      functionName: fragment.name,
       signer,
     };
   }

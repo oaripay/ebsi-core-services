@@ -64,7 +64,7 @@ import { didToHex } from "./shared/utils.js";
 
 interface Actor {
   did: string;
-  wallet: ethers.Wallet;
+  wallet: ethers.BaseWallet;
 }
 
 interface SupertestJsonRpcResponse {
@@ -95,7 +95,7 @@ describe("App Module", () => {
         // Bypass local requests
         if (new URL(url).hostname === "127.0.0.1") return;
 
-        print.warning();
+        print.error();
       },
     });
   });
@@ -767,8 +767,10 @@ describe("App Module", () => {
 
     const { trackAndTraceContract } = testEnv;
 
+    const trackAndTraceContractAddress =
+      await trackAndTraceContract.getAddress();
     vi.spyOn(LedgerService.prototype, "getContractAddress").mockImplementation(
-      () => trackAndTraceContract.address,
+      () => trackAndTraceContractAddress,
     );
 
     // Mock TrackAndTrace contract
@@ -818,6 +820,10 @@ describe("App Module", () => {
 
     vi.spyOn(ledgerService, "getContract").mockImplementation(
       () => trackAndTraceContract,
+    );
+    vi.spyOn(ledgerService, "getEthersProvider").mockImplementation(
+      // @ts-expect-error Error due to a mismatch between ESM and CommonJS modules
+      () => testEnv.provider,
     );
 
     // Generate key pair for Authorisation API v4
@@ -918,16 +924,20 @@ describe("App Module", () => {
       unsignedTransaction,
     }: {
       accessToken: string;
-      signer: ethers.Wallet;
+      signer: ethers.BaseWallet;
       unsignedTransaction: unknown;
     }) {
       const uTx = formatEthersUnsignedTransaction(
         // eslint-disable-next-line unicorn/prefer-structured-clone
         JSON.parse(JSON.stringify(unsignedTransaction)) as UnsignedTransaction,
       );
-      uTx.chainId = Number(uTx.chainId);
+
       const sgnTx = await signer.signTransaction(uTx);
-      const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+      const signature = ethers.Transaction.from(sgnTx).signature;
+      if (!signature) {
+        throw new Error("Signature not found");
+      }
+      const { r, s, v } = signature;
 
       const responseSend: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")
@@ -943,7 +953,7 @@ describe("App Module", () => {
               s,
               signedRawTransaction: sgnTx,
               unsignedTransaction,
-              v: `0x${Number(v).toString(16)}`,
+              v: `0x${v.toString(16)}`,
             },
           ],
         });
@@ -1032,7 +1042,16 @@ describe("App Module", () => {
     let receipt = await hre.ethers.provider.getTransactionReceipt(
       responseSend.body.result as string,
     );
+
+    if (!receipt) {
+      throw new Error("Receipt not found");
+    }
+
     let block = await hre.ethers.provider.getBlock(receipt.blockHash);
+
+    if (!block) {
+      throw new Error("Block not found");
+    }
 
     // Extract datetime and proof from block
     document1.timestamp.datetime = `0x${block.timestamp.toString(16)}`;
@@ -1101,14 +1120,23 @@ describe("App Module", () => {
     receipt = await hre.ethers.provider.getTransactionReceipt(
       responseSend.body.result as string,
     );
+
+    if (!receipt) {
+      throw new Error("Receipt not found");
+    }
+
     block = await hre.ethers.provider.getBlock(receipt.blockHash);
+
+    if (!block) {
+      throw new Error("Block not found");
+    }
 
     // Extract datetime and proof from block
     document1Event1.timestamp.datetime = `0x${block.timestamp.toString(16)}`;
     document1Event1.timestamp.proof = `0x${block.number.toString(16).padStart(64, "0")}`;
 
     // Event hash is `keccak256(bytes(eventParams.externalHash))`
-    document1Event1.hash = ethers.utils.keccak256(
+    document1Event1.hash = ethers.keccak256(
       Buffer.from(document1Event1.externalHash, "utf8"), // Note: externalHash is treated as an UTF-8 string
     );
 
@@ -1260,7 +1288,7 @@ describe("App Module", () => {
     expect(responseSend.status).toBe(200);
 
     // Event hash is `keccak256(bytes(eventParams.externalHash))`
-    document1Event2.hash = ethers.utils.keccak256(
+    document1Event2.hash = ethers.keccak256(
       Buffer.from(document1Event2.externalHash, "utf8"), // Note: externalHash is treated as an UTF-8 string
     );
 
@@ -1498,7 +1526,7 @@ describe("App Module", () => {
     expect(responseSend.status).toBe(200);
 
     // Event hash is `keccak256(bytes(eventParams.externalHash))`
-    document1Event3.hash = ethers.utils.keccak256(
+    document1Event3.hash = ethers.keccak256(
       Buffer.from(document1Event3.externalHash, "utf8"), // Note: externalHash is treated as an UTF-8 string
     );
 

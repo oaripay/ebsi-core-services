@@ -1,29 +1,8 @@
-import { BigNumber } from "ethers";
+import type { ethers } from "ethers";
 
-export function getEthObject(o: unknown): unknown {
-  if (BigNumber.isBigNumber(o)) {
-    return o.toString();
-  }
-
-  if (!Array.isArray(o)) {
-    return o;
-  }
-
-  const obj = o as Record<string, unknown> & string[];
-  const keys = Object.keys(obj);
-  if (keys.some((k) => Number.isNaN(Number(k)))) {
-    // is an object
-    const result: Record<string, unknown> = {};
-    for (const [i, k] of keys.entries()) {
-      if (i >= keys.length / 2) {
-        result[k] = getEthObject(obj[k]);
-      }
-    }
-    return result;
-  }
-
-  // is an array
-  return keys.map((k) => getEthObject(obj[k]));
+export function decodeResult(result: unknown): Record<string, unknown> {
+  // Recursively fix the result object
+  return fixObject((result as ethers.Result).toObject(true));
 }
 
 export function rollArgs(
@@ -48,4 +27,36 @@ export function rollArgs(
   };
 }
 
-export default getEthObject;
+function fixObject(result: Record<string, unknown>): Record<string, unknown> {
+  const keys = Object.keys(result);
+
+  const res: Record<string, unknown> = {};
+  for (const key of keys) {
+    const val = result[key];
+    res[key] = fixValue(val);
+  }
+
+  return res;
+}
+
+function fixValue(val: unknown): unknown {
+  if (typeof val !== "object" || val === null) {
+    return val;
+  }
+
+  if (Array.isArray(val)) {
+    return val.map((v) => fixValue(v));
+  }
+
+  // Replace empty objects with empty arrays
+  if (Object.keys(val).length === 0) {
+    return [];
+  }
+
+  // When ethers.js returns an object with only one key "_", it should be converted into a single-item array
+  if (Object.keys(val).length === 1 && "_" in val) {
+    return [fixValue(val._)];
+  }
+
+  return fixObject(val as Record<string, unknown>);
+}

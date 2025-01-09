@@ -191,7 +191,7 @@ export class SchemasService {
 
       return {
         items: metadata.items,
-        total: metadata.total.toNumber(),
+        total: Number(metadata.total),
       };
     } catch (error) {
       if (isEthersError(error)) {
@@ -236,7 +236,7 @@ export class SchemasService {
           .getContract()
           .getSchemaRevisionIds(hexSchemaId, 1, MAX_RESULTS_PER_PAGE);
         allRevisionsIds.push(...revisions.items);
-        const total = revisions.total.toNumber();
+        const total = Number(revisions.total);
 
         const limit = pLimit(MAX_CONCURRENT_PROMISES); // Limit concurrent promises
 
@@ -320,7 +320,7 @@ export class SchemasService {
 
       return {
         items: revisions.items,
-        total: revisions.total.toNumber(),
+        total: Number(revisions.total),
       };
     } catch (error) {
       if (isEthersError(error)) {
@@ -340,7 +340,7 @@ export class SchemasService {
 
       return {
         items: result.items,
-        total: result.total.toNumber(),
+        total: Number(result.total),
       };
     } catch (error) {
       if (isEthersError(error)) {

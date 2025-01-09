@@ -41,6 +41,7 @@ COPY ./contracts/did-registry/package.json ./contracts/did-registry/
 COPY ./contracts/did-registry-v2/package.json ./contracts/did-registry-v2/
 COPY ./contracts/did-registry-v3/package.json ./contracts/did-registry-v3/
 COPY ./contracts/did-registry-v4/package.json ./contracts/did-registry-v4/
+COPY ./contracts/proxy/package.json ./contracts/proxy/
 COPY ./contracts/track-and-trace/package.json ./contracts/track-and-trace/
 COPY ./contracts/track-and-trace-v2/package.json ./contracts/track-and-trace-v2/
 COPY ./contracts/timestamp/package.json ./contracts/timestamp/

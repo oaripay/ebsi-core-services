@@ -1,13 +1,10 @@
+import type { Result } from "ethers";
+
 import { expect } from "chai";
 import { ethers, network, upgrades } from "hardhat";
 import crypto from "node:crypto";
 
-import type {
-  DidRegistryMock,
-  PolicyRegistryMock,
-  Tir,
-  TirDetailed,
-} from "../src/types";
+import type { DidRegistryMock, PolicyRegistryMock, Tir } from "../src/types";
 
 import { testDidrAddress, testTprAddress } from "./testAddress";
 
@@ -18,14 +15,44 @@ enum IssuerType {
   TI,
   Revoked,
 }
-function getEthObject(o: unknown): Record<string, unknown> {
-  const obj = o as Record<string, unknown> & string[];
-  const keys = Object.keys(obj);
-  const result: Record<string, unknown> = {};
-  for (const [i, k] of keys.entries()) {
-    if (i >= keys.length / 2) result[k] = obj[k];
+
+export function decodeResult(result: unknown): Record<string, unknown> {
+  // Recursively fix the result object
+  return fixObject((result as Result).toObject(true));
+}
+
+function fixObject(result: Record<string, unknown>): Record<string, unknown> {
+  const keys = Object.keys(result);
+
+  const res: Record<string, unknown> = {};
+  for (const key of keys) {
+    const val = result[key];
+    res[key] = fixValue(val);
   }
-  return result;
+
+  return res;
+}
+
+function fixValue(val: unknown): unknown {
+  if (typeof val !== "object" || val === null) {
+    return val;
+  }
+
+  if (Array.isArray(val)) {
+    return val.map((v) => fixValue(v));
+  }
+
+  // Replace empty objects with empty arrays
+  if (Object.keys(val).length === 0) {
+    return [];
+  }
+
+  // When ethers.js returns an object with only one key "_", it should be converted into a single-item array
+  if (Object.keys(val).length === 1 && "_" in val) {
+    return [fixValue(val._)];
+  }
+
+  return fixObject(val as Record<string, unknown>);
 }
 
 function randomDid(): string {
@@ -58,7 +85,7 @@ describe("Issuers", () => {
     did: "did:ebsi:roottao1",
     revisionId: "",
   };
-  rootTAO1.revisionId = ethers.utils.sha256(rootTAO1.attribute);
+  rootTAO1.revisionId = ethers.sha256(rootTAO1.attribute);
 
   const tao1 = {
     attribute: `0x${crypto.randomBytes(10).toString("hex")}`,
@@ -66,7 +93,7 @@ describe("Issuers", () => {
     did: "did:ebsi:tao1",
     revisionId: "",
   };
-  tao1.revisionId = ethers.utils.sha256(tao1.attribute);
+  tao1.revisionId = ethers.sha256(tao1.attribute);
 
   const tao2 = {
     attribute: `0x${crypto.randomBytes(10).toString("hex")}`,
@@ -75,7 +102,7 @@ describe("Issuers", () => {
     proxyData: randomProxy(),
     revisionId: "",
   };
-  tao2.revisionId = ethers.utils.sha256(tao2.attribute);
+  tao2.revisionId = ethers.sha256(tao2.attribute);
 
   const ti1 = {
     attribute1: `0x${crypto.randomBytes(10).toString("hex")}`,
@@ -86,8 +113,8 @@ describe("Issuers", () => {
     revisionId1: "",
     revisionId2: "",
   };
-  ti1.revisionId1 = ethers.utils.sha256(ti1.attribute1);
-  ti1.revisionId2 = ethers.utils.sha256(ti1.attribute2);
+  ti1.revisionId1 = ethers.sha256(ti1.attribute1);
+  ti1.revisionId2 = ethers.sha256(ti1.attribute2);
 
   const proxyData1 = randomProxy();
   const didIssuer = "did:ebsi:issuer";
@@ -96,37 +123,43 @@ describe("Issuers", () => {
     const policyRegistryFactory =
       await ethers.getContractFactory("PolicyRegistryMock");
     const tempPolicyContract = await policyRegistryFactory.deploy();
-    await tempPolicyContract.deployed();
+
     const bytecodeTpr = await ethers.provider.getCode(
-      tempPolicyContract.address,
+      await tempPolicyContract.getAddress(),
     );
     await network.provider.send("hardhat_setCode", [
       testTprAddress,
       bytecodeTpr,
     ]);
-    policyContractMock = policyRegistryFactory.attach(testTprAddress);
+    policyContractMock = policyRegistryFactory.attach(
+      testTprAddress,
+    ) as PolicyRegistryMock;
     await policyContractMock.setPolicyResult(true);
 
     const didRegistryFactory =
       await ethers.getContractFactory("DidRegistryMock");
     const tempDidContract = await didRegistryFactory.deploy();
-    await tempDidContract.deployed();
-    const bytecodeDid = await ethers.provider.getCode(tempDidContract.address);
+    await tempDidContract.waitForDeployment();
+    const bytecodeDid = await ethers.provider.getCode(
+      await tempDidContract.getAddress(),
+    );
     await network.provider.send("hardhat_setCode", [
       testDidrAddress,
       bytecodeDid,
     ]);
 
-    didContractMock = didRegistryFactory.attach(testDidrAddress);
+    didContractMock = didRegistryFactory.attach(
+      testDidrAddress,
+    ) as DidRegistryMock;
     await didContractMock.setDidResult(false);
   });
 
   beforeEach(async () => {
     const contractFactory = await ethers.getContractFactory("Tir", {});
     tir = await contractFactory.deploy(testTprAddress, testDidrAddress);
-    await tir.deployed();
+    await tir.waitForDeployment();
     // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-    expect(tir.address).to.properAddress;
+    expect(await tir.getAddress()).to.properAddress;
   });
 
   async function registerRootTAO1() {
@@ -148,18 +181,18 @@ describe("Issuers", () => {
     let issuerHashes = await tir.getIssuer(rootTAO1.did);
     expect(issuerHashes).to.eql([rootTAO1.attributeId]);
     let issuerAttr = await tir.getIssuerAttributeByHash(issuerHashes[0]);
-    expect(getEthObject(issuerAttr)).to.eql({
+    expect(decodeResult(issuerAttr)).to.deep.equal({
       attribData: "0x",
       did: rootTAO1.did,
-      issuerType: IssuerType.RootTAO,
+      issuerType: IssuerType.RootTAO.toString(),
       rootTao: rootTAO1.did,
       tao: rootTAO1.did,
     });
 
     expect(
-      (
-        await tir.getIssuerAttributeRevisions(issuerHashes[0], 1, 2)
-      ).total.toNumber(),
+      Number(
+        (await tir.getIssuerAttributeRevisions(issuerHashes[0], 1, 2)).total,
+      ),
     ).to.eq(1);
 
     await policyContractMock.setPolicyResult(false); // not admin
@@ -178,10 +211,10 @@ describe("Issuers", () => {
     issuerHashes = await tir.getIssuer(rootTAO1.did);
     expect(issuerHashes).to.eql([rootTAO1.revisionId]);
     issuerAttr = await tir.getIssuerAttributeByHash(issuerHashes[0]);
-    expect(getEthObject(issuerAttr)).to.eql({
+    expect(decodeResult(issuerAttr)).to.deep.equal({
       attribData: rootTAO1.attribute,
       did: rootTAO1.did,
-      issuerType: IssuerType.RootTAO,
+      issuerType: IssuerType.RootTAO.toString(),
       rootTao: rootTAO1.did,
       tao: rootTAO1.did,
     });
@@ -211,10 +244,10 @@ describe("Issuers", () => {
     const issuerHashes = await tir.getIssuer(tao1.did);
     expect(issuerHashes).to.eql([tao1.revisionId]);
     const issuerAttr = await tir.getIssuerAttributeByHash(issuerHashes[0]);
-    expect(getEthObject(issuerAttr)).to.eql({
+    expect(decodeResult(issuerAttr)).to.deep.equal({
       attribData: tao1.attribute,
       did: tao1.did,
-      issuerType: IssuerType.TAO,
+      issuerType: IssuerType.TAO.toString(),
       rootTao: rootTAO1.did,
       tao: rootTAO1.did,
     });
@@ -244,10 +277,10 @@ describe("Issuers", () => {
     const issuerHashes = await tir.getIssuer(tao2.did);
     expect(issuerHashes).to.eql([tao2.revisionId]);
     const issuerAttr = await tir.getIssuerAttributeByHash(issuerHashes[0]);
-    expect(getEthObject(issuerAttr)).to.eql({
+    expect(decodeResult(issuerAttr)).to.deep.equal({
       attribData: tao2.attribute,
       did: tao2.did,
-      issuerType: IssuerType.TAO,
+      issuerType: IssuerType.TAO.toString(),
       rootTao: rootTAO1.did,
       tao: rootTAO1.did,
     });
@@ -277,10 +310,10 @@ describe("Issuers", () => {
     const issuerHashes = await tir.getIssuer(ti1.did);
     expect(issuerHashes).to.eql([ti1.revisionId1]);
     const issuerAttr = await tir.getIssuerAttributeByHash(issuerHashes[0]);
-    expect(getEthObject(issuerAttr)).to.eql({
+    expect(decodeResult(issuerAttr)).to.deep.equal({
       attribData: ti1.attribute1,
       did: ti1.did,
-      issuerType: IssuerType.TI,
+      issuerType: IssuerType.TI.toString(),
       rootTao: rootTAO1.did,
       tao: tao1.did,
     });
@@ -328,10 +361,10 @@ describe("Issuers", () => {
       // get TAO attribute
       const issuerHashes = await tir.getIssuer(tao1.did);
       const issuerAttr = await tir.getIssuerAttributeByHash(issuerHashes[0]);
-      expect(getEthObject(issuerAttr)).to.eql({
+      expect(decodeResult(issuerAttr)).to.deep.equal({
         attribData: "0x",
         did: tao1.did,
-        issuerType: IssuerType.Revoked,
+        issuerType: IssuerType.Revoked.toString(),
         rootTao: rootTAO1.did,
         tao: rootTAO1.did,
       });
@@ -345,30 +378,30 @@ describe("Issuers", () => {
 
     it("should initialize if proxy", async () => {
       const contractFactory = await ethers.getContractFactory("Tir", {});
-      const tsProxy = (await upgrades.deployProxy(contractFactory, [42], {
+      const tsProxy = await upgrades.deployProxy(contractFactory, [42], {
         constructorArgs: [testTprAddress, testDidrAddress],
         unsafeAllow: [
           "constructor",
           "external-library-linking",
           "state-variable-immutable",
         ],
-      })) as Tir;
-      await tsProxy.deployed();
+      });
+      await tsProxy.waitForDeployment();
       expect((await tsProxy.version()).toString()).to.equal("42");
     });
 
     it("should fail to call init on TirDetailed", async () => {
       const contractFactory = await ethers.getContractFactory("Tir", {});
-      const tsProxy = (await upgrades.deployProxy(contractFactory, [42], {
+      const tsProxy = await upgrades.deployProxy(contractFactory, [42], {
         constructorArgs: [testTprAddress, testDidrAddress],
         unsafeAllow: [
           "constructor",
           "external-library-linking",
           "state-variable-immutable",
         ],
-      })) as Tir;
+      });
 
-      await tsProxy.deployed();
+      await tsProxy.waitForDeployment();
 
       // FIXME: this test should be awaited, but it fails with another message
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
@@ -385,12 +418,9 @@ describe("Issuers", () => {
 
     it("should fail to init", async () => {
       const contractFactory = await ethers.getContractFactory("TirDetailed");
-      const tirDetailedProxy = (await upgrades.deployProxy(
-        contractFactory,
-        [],
-      )) as TirDetailed;
+      const tirDetailedProxy = await upgrades.deployProxy(contractFactory, []);
 
-      await tirDetailedProxy.deployed();
+      await tirDetailedProxy.waitForDeployment();
 
       await expect(tirDetailedProxy.init(42)).to.be.revertedWith(
         "Initializable: contract is not initializing",
@@ -401,10 +431,7 @@ describe("Issuers", () => {
       const contractFactory = await ethers.getContractFactory("Tir", {});
       await expect(
         upgrades.deployProxy(contractFactory, [42], {
-          constructorArgs: [
-            ethers.constants.AddressZero,
-            ethers.constants.AddressZero,
-          ],
+          constructorArgs: [ethers.ZeroAddress, ethers.ZeroAddress],
           unsafeAllow: [
             "constructor",
             "external-library-linking",
@@ -454,42 +481,42 @@ describe("Issuers", () => {
 
       // get issuers: page 1
       let issPagination = await tir.getIssuers(1, 5);
-      expect(getEthObject(issPagination)).to.eql({
-        howMany: ethers.BigNumber.from(5),
+      expect(decodeResult(issPagination)).to.eql({
+        howMany: BigInt(5),
         items: issuers.slice(0, 5),
-        next: ethers.BigNumber.from(2),
-        prev: ethers.BigNumber.from(1),
-        total: ethers.BigNumber.from(18),
+        next: 2n,
+        prev: 1n,
+        total: BigInt(18),
       });
 
       // get issuers: page 2
       issPagination = await tir.getIssuers(2, 5);
-      expect(getEthObject(issPagination)).to.eql({
-        howMany: ethers.BigNumber.from(5),
+      expect(decodeResult(issPagination)).to.eql({
+        howMany: BigInt(5),
         items: issuers.slice(5, 10),
-        next: ethers.BigNumber.from(3),
-        prev: ethers.BigNumber.from(1),
-        total: ethers.BigNumber.from(18),
+        next: BigInt(3),
+        prev: 1n,
+        total: BigInt(18),
       });
 
       // get issuers: page 3
       issPagination = await tir.getIssuers(3, 5);
-      expect(getEthObject(issPagination)).to.eql({
-        howMany: ethers.BigNumber.from(5),
+      expect(decodeResult(issPagination)).to.eql({
+        howMany: BigInt(5),
         items: issuers.slice(10, 15),
-        next: ethers.BigNumber.from(4),
-        prev: ethers.BigNumber.from(2),
-        total: ethers.BigNumber.from(18),
+        next: BigInt(4),
+        prev: 2n,
+        total: BigInt(18),
       });
 
       // get issuers: page 4
       issPagination = await tir.getIssuers(4, 5);
-      expect(getEthObject(issPagination)).to.eql({
-        howMany: ethers.BigNumber.from(3),
+      expect(decodeResult(issPagination)).to.eql({
+        howMany: BigInt(3),
         items: issuers.slice(15, 20),
-        next: ethers.BigNumber.from(4),
-        prev: ethers.BigNumber.from(3),
-        total: ethers.BigNumber.from(18),
+        next: BigInt(4),
+        prev: BigInt(3),
+        total: BigInt(18),
       });
     });
 
@@ -518,10 +545,10 @@ describe("Issuers", () => {
 
       // get the second attribute
       const issuerAttr = await tir.getIssuerAttributeByHash(issuerHashes[0]);
-      expect(getEthObject(issuerAttr)).to.eql({
+      expect(decodeResult(issuerAttr)).to.deep.equal({
         attribData: attr,
         did: rootTAO1.did,
-        issuerType: IssuerType.Revoked,
+        issuerType: IssuerType.Revoked.toString(),
         rootTao: rootTAO1.did,
         tao: rootTAO1.did,
       });
@@ -548,10 +575,10 @@ describe("Issuers", () => {
 
       // get the second attribute
       const issuerAttr = await tir.getIssuerAttributeByHash(issuerHashes[0]);
-      expect(getEthObject(issuerAttr)).to.eql({
+      expect(decodeResult(issuerAttr)).to.deep.equal({
         attribData: "0x",
         did: rootTAO1.did,
-        issuerType: IssuerType.Revoked,
+        issuerType: IssuerType.Revoked.toString(),
         rootTao: rootTAO1.did,
         tao: rootTAO1.did,
       });

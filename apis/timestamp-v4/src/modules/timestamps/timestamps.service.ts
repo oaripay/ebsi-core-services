@@ -1,4 +1,3 @@
-import type { ethers } from "ethers";
 import type { HashName } from "multihashes";
 
 import {
@@ -11,6 +10,7 @@ import {
 } from "@ebsiint-api/shared";
 import { Timestamp } from "@ebsiint-sc/timestamp-v2";
 import { Injectable, Logger } from "@nestjs/common";
+import { ethers } from "ethers";
 
 import { LedgerService } from "../ledger/ledger.service.js";
 import { TimestampResponseObject } from "./timestamps.interface.js";
@@ -45,11 +45,17 @@ export default class TimestampsService {
       const [hashAlgorithm, block] = await Promise.all([
         this.ledgerService
           .getContract()
-          .getHashAlgorithmById(hash.algorithm.toNumber()),
+          .getHashAlgorithmById(Number(hash.algorithm)),
         this.ledgerService
-          .getContract()
-          .provider.getBlockWithTransactions(blockNumber.toNumber()),
+          .getEthersProvider()
+          .getBlock(Number(blockNumber), true),
       ]);
+
+      if (!block) {
+        throw new NotFoundError("Timestamp Not Found", {
+          detail: `Timestamp ${timestampId} not found`,
+        });
+      }
 
       // Multi-hash (multibase base64url)
       const { multiHash, outputLength } = hashAlgorithm;
@@ -57,16 +63,14 @@ export default class TimestampsService {
         multihashEncode(
           timestamp.hash.value,
           multiHash as HashName,
-          outputLength.toNumber() / 8,
+          Number(outputLength) / 8,
         ),
       );
 
       // Find correct tx hash
-      let transactionHash = "";
-
       if (block.transactions.length === 0) {
         this.logger.error(
-          `Timestamp ${timestampId} refers to an empty block: ${blockNumber.toNumber()}`,
+          `Timestamp ${timestampId} refers to an empty block: ${Number(blockNumber)}`,
         );
         throw new InternalServerError(InternalServerError.defaultTitle, {
           detail: "Invalid record",
@@ -81,10 +85,14 @@ export default class TimestampsService {
       //   hashValues: [..., hash.value, ...],
       //   ...
       // }
-      const transaction = block.transactions.find((tx) => {
-        let parsedTx: ethers.utils.TransactionDescription;
+
+      const transaction = block.prefetchedTransactions.find((tx) => {
+        let parsedTx: ReturnType<typeof contractInterface.parseTransaction>;
         try {
-          parsedTx = contractInterface.parseTransaction(tx);
+          parsedTx = contractInterface.parseTransaction(
+            ethers.Transaction.from(tx),
+          );
+          if (!parsedTx) return false;
         } catch {
           return false;
         }
@@ -101,7 +109,7 @@ export default class TimestampsService {
         return parsedTx.args["hashAlgorithmIds"].some(
           (hashAlgId, index) =>
             // Compare hash algorithm ID
-            hash.algorithm.eq(hashAlgId as ethers.BigNumberish) &&
+            Number(hash.algorithm) === Number(hashAlgId) &&
             // Compare hash value
             index in parsedTx.args["hashValues"] &&
             (parsedTx.args["hashValues"] as string[])[index] === hash.value,
@@ -114,10 +122,16 @@ export default class TimestampsService {
         });
       }
 
-      transactionHash = transaction.hash;
+      const transactionHash = ethers.Transaction.from(transaction).hash;
+
+      if (!transactionHash) {
+        throw new InternalServerError(InternalServerError.defaultTitle, {
+          detail: "Unable to find the corresponding transaction",
+        });
+      }
 
       return {
-        blockNumber: blockNumber.toNumber(),
+        blockNumber: Number(blockNumber),
         data,
         hash: multihashEncodedHash,
         timestamp: new Date(block.timestamp * 1000).toISOString(),

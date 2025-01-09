@@ -9,28 +9,28 @@ async function main() {
     "PolicyRegistry",
     {
       libraries: {
-        Pagination: pagination.address,
+        Pagination: await pagination.getAddress(),
       },
     },
   );
 
   const policyContract =
     (await policyRegistryFactory.deploy()) as PolicyRegistry;
-  await policyContract.deployed();
+  await policyContract.waitForDeployment();
 
-  console.log("Policy deployed at :", policyContract.address);
+  console.log("Policy deployed at :", await policyContract.getAddress());
 
-  await policyContract.initialize(ethers.BigNumber.from(1));
+  await policyContract.initialize(1n);
 
   const tirFactory = await ethers.getContractFactory("Tir", {});
 
   // FIXME
   // @ts-expect-error DIDR address is missing
-  const tir = await tirFactory.deploy(policyContract.address);
+  const tir = await tirFactory.deploy(await policyContract.getAddress());
 
   await tir.initialize(25);
 
-  console.log("Trusted Issuers Registry deployed at :", tir.address);
+  console.log("Trusted Issuers Registry deployed at :", await tir.getAddress());
   console.log(`Contract version set to: ${(await tir.version()).toString()}`);
 }
 

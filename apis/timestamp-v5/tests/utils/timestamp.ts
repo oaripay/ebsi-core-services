@@ -2,11 +2,14 @@ import "../../../../contracts/timestamp-v3/src/types/hardhat.d.ts";
 
 import hre from "hardhat";
 
+import type { HardhatEthersProvider } from "@nomicfoundation/hardhat-ethers/internal/hardhat-ethers-provider.js";
+
+import "@nomicfoundation/hardhat-ethers";
+
 import type { HashName } from "multihashes";
 
-import "@nomiclabs/hardhat-ethers";
-import { Timestamp } from "@ebsiint-sc/timestamp-v3";
-import { type Contract, type ContractTransaction, ethers } from "ethers";
+import { PolicyRegistryMock, Timestamp } from "@ebsiint-sc/timestamp-v3";
+import { ethers } from "ethers";
 import { createHash, randomBytes } from "node:crypto";
 
 import { dummyData } from "./data.js";
@@ -70,7 +73,10 @@ interface HashObject {
   hashAlgorithmIds: number[];
   hashValues: string[];
   timestampData: string[];
-  tx: ContractTransaction;
+  tx: {
+    blockNumber: string;
+    hash: string;
+  };
 }
 
 interface RecordObject {
@@ -82,7 +88,7 @@ interface RecordObject {
 }
 
 export async function deployTimestampContract(): Promise<{
-  policyContractMock: Contract;
+  policyContractMock: PolicyRegistryMock;
   timestampContract: Timestamp;
 }> {
   const [upgrader] = await hre.ethers.getSigners();
@@ -90,15 +96,17 @@ export async function deployTimestampContract(): Promise<{
   const policyRegistryFactory =
     await hre.ethers.getContractFactory("PolicyRegistryMock");
   const tempPolicyContract = await policyRegistryFactory.deploy();
-  await tempPolicyContract.deployed();
+
   const bytecode = await hre.ethers.provider.getCode(
-    tempPolicyContract.address,
+    await tempPolicyContract.getAddress(),
   );
   await hre.network.provider.send("hardhat_setCode", [
     testTprAddress,
     bytecode,
   ]);
-  const policyContractMock = policyRegistryFactory.attach(testTprAddress);
+  const policyContractMock = policyRegistryFactory.attach(
+    testTprAddress,
+  ) as PolicyRegistryMock;
 
   // Deploy libs
   const stringManipFactory = await hre.ethers.getContractFactory("StringManip");
@@ -112,7 +120,7 @@ export async function deployTimestampContract(): Promise<{
 
   const rsFactory = await hre.ethers.getContractFactory("RecordLib", {
     libraries: {
-      StringManip: stringManipLib.address,
+      StringManip: await stringManipLib.getAddress(),
     },
   });
   const rsLib = await rsFactory.deploy();
@@ -121,18 +129,18 @@ export async function deployTimestampContract(): Promise<{
     "Timestamp",
     {
       libraries: {
-        HashAlgoLib: haLib.address,
-        RecordLib: rsLib.address,
-        TimestampLib: tsLib.address,
+        HashAlgoLib: await haLib.getAddress(),
+        RecordLib: await rsLib.getAddress(),
+        TimestampLib: await tsLib.getAddress(),
       },
     },
   );
 
-  const timestampContract = (await hre.upgrades.deployProxy(
+  const timestampContract = await hre.upgrades.deployProxy(
     timestampContractFactory,
     [upgrader!.address, testTprAddress],
     { unsafeAllowLinkedLibraries: true },
-  )) as unknown as Timestamp;
+  );
 
   await policyContractMock.setPolicyResult(true);
 
@@ -162,6 +170,7 @@ export async function insertHash(
     hashAlgorithmIds,
     hashValues,
     timestampData,
+    // @ts-expect-error Error due to contracts using CommonJS modules
     tx,
   };
 }
@@ -223,8 +232,8 @@ export async function insertRecord(
 
   const types = ["address", "uint256", "bytes"];
   const values = [sender, blockNumber, hashValues[0]];
-  const enc = ethers.utils.defaultAbiCoder.encode(types, values);
-  const recordId = ethers.utils.sha256(enc);
+  const enc = ethers.AbiCoder.defaultAbiCoder().encode(types, values);
+  const recordId = ethers.sha256(enc);
 
   return {
     hashAlgorithmIds,
@@ -238,14 +247,15 @@ export async function insertRecord(
 export async function setupTestEnv(): Promise<{
   hashAlgorithms: HashAlgorithmObject[];
   hashes: HashObject[];
-  policyContractMock: Contract;
-  provider: ethers.providers.JsonRpcProvider;
+  policyContractMock: PolicyRegistryMock;
+  provider: HardhatEthersProvider;
   records: RecordObject[];
   sender: string;
   timestampContract: Timestamp;
 }> {
   const ethersProvider = hre.ethers.provider;
-  const sender = await ethersProvider.getSigner().getAddress();
+  const signer = await ethersProvider.getSigner();
+  const sender = await signer.getAddress();
 
   // Deploy contract
   const { policyContractMock, timestampContract } =
@@ -284,7 +294,7 @@ export async function setupTestEnv(): Promise<{
     tx: {
       blockNumber: t.blockNumber,
       hash: t.transactionHash,
-    } as unknown as ContractTransaction,
+    },
   }));
 
   // Return test env variables

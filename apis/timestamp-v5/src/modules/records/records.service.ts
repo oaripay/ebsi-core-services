@@ -112,7 +112,7 @@ export default class RecordsService {
     try {
       // get one more item to clarify next pages in pagination
       const queryPageSize = pagesize + 1;
-      const timestampId = ethers.utils.sha256(firstVersion);
+      const timestampId = ethers.sha256(firstVersion);
       res = await sdk.GetTimestampRecordIdsFirstVersion({
         pagesize: queryPageSize,
         skip,

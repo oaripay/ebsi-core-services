@@ -1,10 +1,11 @@
+import type { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry-v2";
+
 import { isEthersError, NotFoundError } from "@ebsiint-api/shared";
-import { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry-v2";
 import { Injectable, Logger } from "@nestjs/common";
-import { ethers } from "ethers";
+
+import type { UserResponseObject } from "./users.interface.js";
 
 import { LedgerService } from "../ledger/ledger.service.js";
-import { UserResponseObject } from "./users.interface.js";
 
 @Injectable()
 export class UsersService {
@@ -17,9 +18,7 @@ export class UsersService {
       const userAttributes = await this.ledgerService
         .getContract()
         .getUserAttributes(address, page, 50);
-      const nextPage = Number(
-        ethers.BigNumber.from(userAttributes.next).toString(),
-      );
+      const nextPage = Number(BigInt(userAttributes.next).toString());
       if (nextPage > page) {
         return [
           ...userAttributes.items,

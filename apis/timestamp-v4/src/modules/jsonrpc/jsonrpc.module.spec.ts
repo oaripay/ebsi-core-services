@@ -1,4 +1,4 @@
-import type { TransactionRequest } from "@ethersproject/abstract-provider";
+import type { HardhatEthersProvider } from "@nomicfoundation/hardhat-ethers/internal/hardhat-ethers-provider.js";
 import type { RawServerDefault } from "fastify";
 
 import { methodNotAllowed } from "@ebsiint-api/shared";
@@ -96,7 +96,7 @@ describe("JsonRpc Module", () => {
   let secondHashValue: string;
   let recordId: string;
   let blockNumber = 0;
-  let provider: ethers.providers.JsonRpcProvider;
+  let provider: HardhatEthersProvider;
   let newUserTimestampWriteAccessToken: string;
   let adminUserTimestampWriteAccessToken: string;
   let fakeUserTimestampWriteAccessToken: string;
@@ -129,7 +129,7 @@ describe("JsonRpc Module", () => {
         // Bypass local requests
         if (new URL(url).hostname === "127.0.0.1") return;
 
-        print.warning();
+        print.error();
       },
     });
 
@@ -138,8 +138,9 @@ describe("JsonRpc Module", () => {
     timestampContract = testEnv.timestampContract;
     provider = testEnv.provider;
 
+    const timestampContractAddress = await timestampContract.getAddress();
     vi.spyOn(LedgerService.prototype, "getContractAddress").mockImplementation(
-      () => timestampContract.address,
+      () => timestampContractAddress,
     );
 
     newUser = await createUser();
@@ -236,6 +237,10 @@ describe("JsonRpc Module", () => {
     ledgerService = moduleFixture.get<LedgerService>(LedgerService);
     vi.spyOn(ledgerService, "getContract").mockImplementation(
       () => timestampContract,
+    );
+    vi.spyOn(ledgerService, "getEthersProvider").mockImplementation(
+      // @ts-expect-error Error due to a mismatch between ESM and CommonJS modules
+      () => testEnv.provider,
     );
 
     // Mock Auth API
@@ -455,9 +460,13 @@ describe("JsonRpc Module", () => {
         JSON.stringify(unsignedTransaction),
       ) as unknown as UnsignedTransactionSchema,
     );
-    uTx.chainId = Number(uTx.chainId);
+
     const sgnTx = await testAdmin.wallet.signTransaction(uTx);
-    const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+    const signature = ethers.Transaction.from(sgnTx).signature;
+    if (!signature) {
+      throw new Error("Signature not found");
+    }
+    const { r, s, v } = signature;
 
     const responseSend = await request(server)
       .post("/jsonrpc")
@@ -473,7 +482,7 @@ describe("JsonRpc Module", () => {
             s,
             signedRawTransaction: sgnTx,
             unsignedTransaction,
-            v: `0x${Number(v).toString(16)}`,
+            v: `0x${v.toString(16)}`,
           },
         ],
       });
@@ -543,7 +552,7 @@ describe("JsonRpc Module", () => {
       gasLimit: "0x1000000",
       gasPrice: "0x00",
       nonce: "0x00",
-      to: timestampContract.address,
+      to: await timestampContract.getAddress(),
       value: "0x00",
     };
 
@@ -553,11 +562,15 @@ describe("JsonRpc Module", () => {
         JSON.stringify(transaction),
       ) as unknown as UnsignedTransactionSchema,
     );
-    uTx.chainId = Number(uTx.chainId);
+
     const sgnTx = await testUser.wallet.signTransaction(
-      uTx as TransactionRequest,
+      uTx as ethers.TransactionLike,
     );
-    const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+    const signature = ethers.Transaction.from(sgnTx).signature;
+    if (!signature) {
+      throw new Error("Signature not found");
+    }
+    const { r, s, v } = signature;
 
     const responseSend = await request(server)
       .post("/jsonrpc")
@@ -573,13 +586,13 @@ describe("JsonRpc Module", () => {
             s,
             signedRawTransaction: sgnTx,
             unsignedTransaction: transaction,
-            v: `0x${Number(v).toString(16)}`,
+            v: `0x${v.toString(16)}`,
           },
         ],
       });
 
-    const { chainId } = await timestampContract.provider.getNetwork();
-    const actualChainId = ethers.BigNumber.from(chainId).toHexString();
+    const { chainId } = await provider.getNetwork();
+    const actualChainId = `0x${BigInt(chainId).toString(16)}`;
 
     expect(responseSend.body).toStrictEqual({
       error: {
@@ -639,8 +652,8 @@ describe("JsonRpc Module", () => {
 
       switch (method) {
         case "appendRecordVersionHashes": {
-          recordId = ethers.utils.sha256(
-            ethers.utils.defaultAbiCoder.encode(
+          recordId = ethers.sha256(
+            ethers.AbiCoder.defaultAbiCoder().encode(
               ["address", "uint256", "bytes"],
               [testAdmin.wallet.address, blockNumber, firstHashValue],
             ),
@@ -664,8 +677,8 @@ describe("JsonRpc Module", () => {
           break;
         }
         case "detachRecordVersionHash": {
-          recordId = ethers.utils.sha256(
-            ethers.utils.defaultAbiCoder.encode(
+          recordId = ethers.sha256(
+            ethers.AbiCoder.defaultAbiCoder().encode(
               ["address", "uint256", "bytes"],
               [testAdmin.wallet.address, blockNumber, firstHashValue],
             ),
@@ -690,8 +703,8 @@ describe("JsonRpc Module", () => {
           break;
         }
         case "insertRecordOwner": {
-          recordId = ethers.utils.sha256(
-            ethers.utils.defaultAbiCoder.encode(
+          recordId = ethers.sha256(
+            ethers.AbiCoder.defaultAbiCoder().encode(
               ["address", "uint256", "bytes"],
               [testAdmin.wallet.address, blockNumber, firstHashValue],
             ),
@@ -706,8 +719,8 @@ describe("JsonRpc Module", () => {
           break;
         }
         case "insertRecordVersionInfo": {
-          recordId = ethers.utils.sha256(
-            ethers.utils.defaultAbiCoder.encode(
+          recordId = ethers.sha256(
+            ethers.AbiCoder.defaultAbiCoder().encode(
               ["address", "uint256", "bytes"],
               [testAdmin.wallet.address, blockNumber, firstHashValue],
             ),
@@ -724,8 +737,8 @@ describe("JsonRpc Module", () => {
           break;
         }
         case "revokeRecordOwner": {
-          recordId = ethers.utils.sha256(
-            ethers.utils.defaultAbiCoder.encode(
+          recordId = ethers.sha256(
+            ethers.AbiCoder.defaultAbiCoder().encode(
               ["address", "uint256", "bytes"],
               [testAdmin.wallet.address, blockNumber, firstHashValue],
             ),
@@ -768,8 +781,8 @@ describe("JsonRpc Module", () => {
           break;
         }
         case "timestampRecordVersionHashes": {
-          recordId = ethers.utils.sha256(
-            ethers.utils.defaultAbiCoder.encode(
+          recordId = ethers.sha256(
+            ethers.AbiCoder.defaultAbiCoder().encode(
               ["address", "uint256", "bytes"],
               [testAdmin.wallet.address, blockNumber, firstHashValue],
             ),
@@ -859,11 +872,15 @@ describe("JsonRpc Module", () => {
           JSON.stringify(unsignedTransaction),
         ) as unknown as UnsignedTransactionSchema,
       );
-      uTx.chainId = Number(uTx.chainId);
+
       const sgnTx = await testAdmin.wallet.signTransaction(
-        uTx as TransactionRequest,
+        uTx as ethers.TransactionLike,
       );
-      const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+      const signature = ethers.Transaction.from(sgnTx).signature;
+      if (!signature) {
+        throw new Error("Signature not found");
+      }
+      const { r, s, v } = signature;
 
       const responseSend = await request(server)
         .post("/jsonrpc")
@@ -879,7 +896,7 @@ describe("JsonRpc Module", () => {
               s,
               signedRawTransaction: sgnTx,
               unsignedTransaction,
-              v: `0x${Number(v).toString(16)}`,
+              v: `0x${v.toString(16)}`,
             },
           ],
         });
@@ -1199,7 +1216,7 @@ describe("JsonRpc Module", () => {
           } satisfies InsertHashAlgorithmSchema;
 
           expectedErrorMessage2 =
-            "Invalid 'params.0.status': Number must be less than or equal to 2";
+            "Invalid 'params.0.status': Status must be equal to 1 (active) or 2 (revoked)";
 
           param3 = {
             from: testAdmin.wallet.address,
@@ -1627,8 +1644,8 @@ describe("JsonRpc Module", () => {
 
       switch (method) {
         case "appendRecordVersionHashes": {
-          recordId = ethers.utils.sha256(
-            ethers.utils.defaultAbiCoder.encode(
+          recordId = ethers.sha256(
+            ethers.AbiCoder.defaultAbiCoder().encode(
               ["address", "uint256", "bytes"],
               [testAdmin.wallet.address, blockNumber, firstHashValue],
             ),
@@ -1671,8 +1688,8 @@ describe("JsonRpc Module", () => {
           break;
         }
         case "detachRecordVersionHash": {
-          recordId = ethers.utils.sha256(
-            ethers.utils.defaultAbiCoder.encode(
+          recordId = ethers.sha256(
+            ethers.AbiCoder.defaultAbiCoder().encode(
               ["address", "uint256", "bytes"],
               [testAdmin.wallet.address, blockNumber, firstHashValue],
             ),
@@ -1716,8 +1733,8 @@ describe("JsonRpc Module", () => {
           break;
         }
         case "insertRecordOwner": {
-          recordId = ethers.utils.sha256(
-            ethers.utils.defaultAbiCoder.encode(
+          recordId = ethers.sha256(
+            ethers.AbiCoder.defaultAbiCoder().encode(
               ["address", "uint256", "bytes"],
               [testAdmin.wallet.address, blockNumber, firstHashValue],
             ),
@@ -1742,8 +1759,8 @@ describe("JsonRpc Module", () => {
           break;
         }
         case "insertRecordVersionInfo": {
-          recordId = ethers.utils.sha256(
-            ethers.utils.defaultAbiCoder.encode(
+          recordId = ethers.sha256(
+            ethers.AbiCoder.defaultAbiCoder().encode(
               ["address", "uint256", "bytes"],
               [testAdmin.wallet.address, blockNumber, firstHashValue],
             ),
@@ -1771,8 +1788,8 @@ describe("JsonRpc Module", () => {
           break;
         }
         case "revokeRecordOwner": {
-          recordId = ethers.utils.sha256(
-            ethers.utils.defaultAbiCoder.encode(
+          recordId = ethers.sha256(
+            ethers.AbiCoder.defaultAbiCoder().encode(
               ["address", "uint256", "bytes"],
               [testAdmin.wallet.address, blockNumber, firstHashValue],
             ),
@@ -1851,8 +1868,8 @@ describe("JsonRpc Module", () => {
           break;
         }
         case "timestampRecordVersionHashes": {
-          recordId = ethers.utils.sha256(
-            ethers.utils.defaultAbiCoder.encode(
+          recordId = ethers.sha256(
+            ethers.AbiCoder.defaultAbiCoder().encode(
               ["address", "uint256", "bytes"],
               [testAdmin.wallet.address, blockNumber, firstHashValue],
             ),
@@ -1987,11 +2004,15 @@ describe("JsonRpc Module", () => {
           JSON.stringify(transaction1),
         ) as unknown as UnsignedTransactionSchema,
       );
-      uTx.chainId = Number(uTx.chainId);
+
       const sgnTx1 = await testUser.wallet.signTransaction(
-        uTx as TransactionRequest,
+        uTx as ethers.TransactionLike,
       );
-      const { r, s, v } = ethers.utils.parseTransaction(sgnTx1);
+      const signature = ethers.Transaction.from(sgnTx1).signature;
+      if (!signature) {
+        throw new Error("Signature not found");
+      }
+      const { r, s, v } = signature;
 
       // Tampering signatures
       const responseSend1 = await request(server)
@@ -2008,7 +2029,7 @@ describe("JsonRpc Module", () => {
               s,
               signedRawTransaction: sgnTx1,
               unsignedTransaction: transaction2,
-              v: `0x${Number(v).toString(16)}`,
+              v: `0x${v.toString(16)}`,
             },
           ],
         });
@@ -2040,7 +2061,7 @@ describe("JsonRpc Module", () => {
               s,
               signedRawTransaction: sgnTx1,
               unsignedTransaction: transaction1,
-              v: `0x${Number(v).toString(16)}`,
+              v: `0x${v.toString(16)}`,
             },
           ],
         });
@@ -2075,8 +2096,8 @@ describe("JsonRpc Module", () => {
 
         switch (method) {
           case "appendRecordVersionHashes": {
-            recordId = ethers.utils.sha256(
-              ethers.utils.defaultAbiCoder.encode(
+            recordId = ethers.sha256(
+              ethers.AbiCoder.defaultAbiCoder().encode(
                 ["address", "uint256", "bytes"],
                 [testAdmin.wallet.address, blockNumber, secondHashValue],
               ),
@@ -2115,8 +2136,8 @@ describe("JsonRpc Module", () => {
             break;
           }
           case "timestampRecordVersionHashes": {
-            recordId = ethers.utils.sha256(
-              ethers.utils.defaultAbiCoder.encode(
+            recordId = ethers.sha256(
+              ethers.AbiCoder.defaultAbiCoder().encode(
                 ["address", "uint256", "bytes"],
                 [testAdmin.wallet.address, blockNumber, secondHashValue],
               ),
@@ -2184,11 +2205,15 @@ describe("JsonRpc Module", () => {
             JSON.stringify(unsignedTransaction),
           ) as unknown as UnsignedTransactionSchema,
         );
-        uTx.chainId = Number(uTx.chainId);
+
         const sgnTx = await testAdmin.wallet.signTransaction(
-          uTx as TransactionRequest,
+          uTx as ethers.TransactionLike,
         );
-        const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+        const signature = ethers.Transaction.from(sgnTx).signature;
+        if (!signature) {
+          throw new Error("Signature not found");
+        }
+        const { r, s, v } = signature;
 
         const responseSend = await request(server)
           .post("/jsonrpc")
@@ -2204,7 +2229,7 @@ describe("JsonRpc Module", () => {
                 s,
                 signedRawTransaction: sgnTx,
                 unsignedTransaction,
-                v: `0x${Number(v).toString(16)}`,
+                v: `0x${v.toString(16)}`,
               },
             ],
           });

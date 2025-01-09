@@ -1,9 +1,5 @@
-import { isDidV1 } from "@ebsiint-api/shared";
-import {
-  BigNumber,
-  type BigNumberish,
-  isBigNumberish,
-} from "@ethersproject/bignumber/lib/bignumber.js";
+import { isBigNumberish, isDidV1 } from "@ebsiint-api/shared";
+import { ethers } from "ethers";
 import { z } from "zod";
 
 import { baseParamSchema } from "./BaseParamSchema.js";
@@ -27,8 +23,8 @@ export const createDocumentSchema = baseParamSchema.merge(
     documentMetadata: z.string(),
     timestamp: z.optional(
       z
-        .custom<BigNumberish>((val) => isBigNumberish(val))
-        .refine((val) => BigNumber.from(val).gt(0), {
+        .custom<ethers.BigNumberish>((val) => isBigNumberish(val))
+        .refine((val) => ethers.getBigInt(val) >= 0n, {
           message: "Number must be greater than 0",
         }),
     ),

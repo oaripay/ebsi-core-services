@@ -1,6 +1,5 @@
 import { task } from "hardhat/config";
 import * as fs from "node:fs";
-import "@nomiclabs/hardhat-waffle";
 
 task("get-code", "gets the code of an address")
   .addPositionalParam("address", "The address of the contract")

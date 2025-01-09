@@ -7,16 +7,16 @@ async function main() {
     "PolicyRegistry",
     {
       libraries: {
-        Pagination: pagination.address,
+        Pagination: await pagination.getAddress(),
       },
     },
   );
   const policyContract = await policyRegistryFactory.deploy();
-  await policyContract.deployed();
+  await policyContract.waitForDeployment();
 
-  console.log("Policy deployed at :", policyContract.address);
+  console.log("Policy deployed at :", await policyContract.getAddress());
 
-  await policyContract.initialize(ethers.BigNumber.from(1));
+  await policyContract.initialize(1n);
 
   console.log(
     `Policy contract version set to: ${(await policyContract.version()).toString()}`,

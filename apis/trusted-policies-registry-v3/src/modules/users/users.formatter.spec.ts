@@ -1,16 +1,16 @@
-import { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry-v2";
-import { ethers } from "ethers";
+import type { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry-v2";
+
 import { describe, expect, it } from "vitest";
 
 import { formatUsers } from "./users.formatter.js";
 
 describe("formatUsers", () => {
   const users = {
-    howMany: ethers.BigNumber.from("3"),
+    howMany: 3n,
     items: ["0x123456", "0xab1234", "0xcd1234"],
-    next: ethers.BigNumber.from("3"),
-    prev: ethers.BigNumber.from("1"),
-    total: ethers.BigNumber.from("42"),
+    next: 3n,
+    prev: 1n,
+    total: 42n,
   } as Awaited<ReturnType<PolicyRegistry["getPolicyNames"]>>;
 
   it("should use the values returned by the smart contract (except pageSize)", () => {

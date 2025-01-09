@@ -11,7 +11,7 @@ export function formatRecords(
   extraQuery?: string,
 ): PaginatedList<RecordLink> {
   // Reshape items
-  const total = records.total.toNumber();
+  const total = Number(records.total);
   const items = records.items.map((recordId) => {
     const multibaseBase64urlRecordId = multibase.base64url.encode(
       Buffer.from(recordId.replace(/^0x/, ""), "hex"),

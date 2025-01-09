@@ -1,6 +1,5 @@
 import type { JSONSchema } from "@apidevtools/json-schema-ref-parser/dist/lib/types";
 import type { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
-import type { TransactionRequest } from "@ethersproject/abstract-provider";
 import type { RawServerDefault } from "fastify";
 
 import {
@@ -190,7 +189,7 @@ describe("TSR API v4 - Schemas (e2e)", () => {
 
     serializedSchema = JSON.stringify(rawSchema);
     serializedSchemaBuffer = Buffer.from(serializedSchema);
-    schemaRevisionId = ethers.utils.sha256(serializedSchemaBuffer);
+    schemaRevisionId = ethers.sha256(serializedSchemaBuffer);
 
     rawUpdatedSchema = {
       ...rawSchema,
@@ -207,7 +206,7 @@ describe("TSR API v4 - Schemas (e2e)", () => {
     };
     serializedMetadata = JSON.stringify(rawMetadata);
     serializedMetadataBuffer = Buffer.from(serializedMetadata);
-    schemaRevisionMetadataId = ethers.utils.sha256(serializedMetadataBuffer);
+    schemaRevisionMetadataId = ethers.sha256(serializedMetadataBuffer);
 
     rawMetadata2 = {
       data: crypto.randomBytes(16).toString("hex"),
@@ -304,11 +303,15 @@ describe("TSR API v4 - Schemas (e2e)", () => {
             JSON.stringify(unsignedTransaction),
           ) as unknown as UnsignedTransaction,
         );
-        uTx.chainId = Number(uTx.chainId);
+
         const sgnTx = await adminTestWallet.signTransaction(
-          uTx as TransactionRequest,
+          uTx as ethers.TransactionLike,
         );
-        const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+        const signature = ethers.Transaction.from(sgnTx).signature;
+        if (!signature) {
+          throw new Error("Signature not found");
+        }
+        const { r, s, v } = signature;
 
         const responseSend: SupertestJsonRpcResponse = await request(server)
           .post("/jsonrpc")
@@ -324,7 +327,7 @@ describe("TSR API v4 - Schemas (e2e)", () => {
                 s,
                 signedRawTransaction: sgnTx,
                 unsignedTransaction,
-                v: `0x${Number(v).toString(16)}`,
+                v: `0x${v.toString(16)}`,
               },
             ],
           });
@@ -341,7 +344,7 @@ describe("TSR API v4 - Schemas (e2e)", () => {
           ledgerApi,
           responseSend.body.result as string,
         );
-        expect(receipt.status).toBe(1);
+        expect(receipt.status).toBe("0x1");
         sampleTransaction = responseSend.body.result as string;
       });
 
@@ -572,9 +575,7 @@ describe("TSR API v4 - Schemas (e2e)", () => {
           `/schemas/${schemaId}/revisions`,
         );
 
-        const revisionId2 = ethers.utils.sha256(
-          Buffer.from(serializedUpdatedSchema),
-        );
+        const revisionId2 = ethers.sha256(Buffer.from(serializedUpdatedSchema));
 
         expect(response.body).toStrictEqual({
           items: expect.arrayContaining([
@@ -623,9 +624,7 @@ describe("TSR API v4 - Schemas (e2e)", () => {
           `/schemas/${schemaId}/revisions?valid-at=${new Date().toISOString()}`,
         );
 
-        const revisionId2 = ethers.utils.sha256(
-          Buffer.from(serializedUpdatedSchema),
-        );
+        const revisionId2 = ethers.sha256(Buffer.from(serializedUpdatedSchema));
 
         expect(response.body).toStrictEqual({
           items: expect.arrayContaining([

@@ -1,8 +1,5 @@
-import { BigNumber } from "ethers";
-import "@nomiclabs/hardhat-waffle";
 import { task } from "hardhat/config";
 
-import { OwnedUpgradeabilityProxy } from "../src/types";
 import { getDiamondStorage } from "../utils/getDiamondStorage";
 
 task("changeImplementation", "change proxy implementation")
@@ -18,27 +15,27 @@ task("changeImplementation", "change proxy implementation")
     ) => {
       const proxyDeployedAddr = taskArgs.proxy;
       const storage = getDiamondStorage(taskArgs.implementation);
-      const TSC_DIAMOND_STORAGE_SLOT = ethers.utils.keccak256(
-        ethers.utils.toUtf8Bytes(storage),
+      const TSC_DIAMOND_STORAGE_SLOT = ethers.keccak256(
+        ethers.toUtf8Bytes(storage),
       );
 
-      const IMPLEMENTATION_SLOT = ethers.utils.keccak256(
-        ethers.utils.toUtf8Bytes("diamond.standard.diamond.storage.proxy"),
+      const IMPLEMENTATION_SLOT = ethers.keccak256(
+        ethers.toUtf8Bytes("diamond.standard.diamond.storage.proxy"),
       );
 
-      const proxyCtr = (await ethers.getContractAt(
+      const proxyCtr = await ethers.getContractAt(
         `OwnedUpgradeabilityProxy`,
         proxyDeployedAddr,
-      )) as OwnedUpgradeabilityProxy;
+      );
 
       // these infos are not easily accessible as they are restricted by an onlyAdmin modifier
       // to retrieve them we use the low level getStorage call
-      const adminAddr = BigNumber.from(
-        await ethers.provider.getStorageAt(
-          proxyCtr.address,
+      const adminAddr = BigInt(
+        await ethers.provider.getStorage(
+          await proxyCtr.getAddress(),
           IMPLEMENTATION_SLOT,
         ),
-      ).toHexString();
+      ).toString(16);
       console.log(`Proxy admin address: ${adminAddr}`);
       const [signers] = await ethers.getSigners();
       console.log(`Deployer address: ${signers.address}`);
@@ -47,22 +44,22 @@ task("changeImplementation", "change proxy implementation")
         process.exit(0);
       }
       // the implementation is in the next storage slot as it is part of the same struct
-      const implementationAddr = BigNumber.from(
-        await ethers.provider.getStorageAt(
-          proxyCtr.address,
-          BigNumber.from(IMPLEMENTATION_SLOT).add(1),
+      const implementationAddr = BigInt(
+        await ethers.provider.getStorage(
+          await proxyCtr.getAddress(),
+          BigInt(IMPLEMENTATION_SLOT) + 1n,
         ),
-      ).toHexString();
+      ).toString(16);
       console.log(
         `Proxy current implementation address: ${implementationAddr}`,
       );
 
-      const version = BigNumber.from(
-        await ethers.provider.getStorageAt(
-          proxyCtr.address,
+      const version = BigInt(
+        await ethers.provider.getStorage(
+          await proxyCtr.getAddress(),
           TSC_DIAMOND_STORAGE_SLOT,
         ),
-      ).toHexString();
+      ).toString(16);
       console.log(`current version : ${version}`);
 
       await deployments.run(taskArgs.implementation, {
@@ -73,20 +70,20 @@ task("changeImplementation", "change proxy implementation")
       console.log(`will upgrade to: ${ts.address}`);
       const receipt = await (await proxyCtr.upgradeTo(ts.address)).wait(1);
 
-      const newImplementationAddr = BigNumber.from(
-        await ethers.provider.getStorageAt(
-          proxyCtr.address,
-          BigNumber.from(IMPLEMENTATION_SLOT).add(1),
+      const newImplementationAddr = BigInt(
+        await ethers.provider.getStorage(
+          await proxyCtr.getAddress(),
+          BigInt(IMPLEMENTATION_SLOT) + 1n,
         ),
-      ).toHexString();
+      ).toString(16);
       console.log(`Proxy new implementation address: ${newImplementationAddr}`);
 
-      const newVersion = BigNumber.from(
-        await ethers.provider.getStorageAt(
-          proxyCtr.address,
+      const newVersion = BigInt(
+        await ethers.provider.getStorage(
+          await proxyCtr.getAddress(),
           TSC_DIAMOND_STORAGE_SLOT,
         ),
-      ).toHexString();
+      ).toString(16);
       console.log(`new version : ${newVersion}`);
       console.log(
         "Initialization:",

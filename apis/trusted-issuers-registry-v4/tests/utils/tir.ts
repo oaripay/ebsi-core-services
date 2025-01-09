@@ -2,11 +2,18 @@ import "../../../../contracts/trusted-issuers-registry/src/types/hardhat.d.ts";
 
 import hre from "hardhat";
 
-import "@nomiclabs/hardhat-ethers";
+import "@nomicfoundation/hardhat-ethers";
+
+import type { HardhatEthersProvider } from "@nomicfoundation/hardhat-ethers/internal/hardhat-ethers-provider.js";
+
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { StatusList2021Credential } from "@ebsiint-api/shared";
-import { Tir } from "@ebsiint-sc/trusted-issuers-registry";
-import { Contract, ethers } from "ethers";
+import {
+  DidRegistryMock,
+  PolicyRegistryMock,
+  Tir,
+} from "@ebsiint-sc/trusted-issuers-registry";
+import { ethers } from "ethers";
 import crypto from "node:crypto";
 
 import { IssuerType } from "../../src/modules/issuers/issuers.constants.js";
@@ -57,7 +64,7 @@ export function createIssuer(
   });
   const attributeBuffer = Buffer.from(attributeUtf8);
   const attributeHex = `0x${attributeBuffer.toString("hex")}`;
-  const attributeId = ethers.utils.sha256(attributeBuffer);
+  const attributeId = ethers.sha256(attributeBuffer);
   const attribute = {
     buffer: attributeBuffer,
     hex: attributeHex,
@@ -88,7 +95,7 @@ export function createIssuer(
     testSuffix: "/cred/1",
   };
   const proxyUtf8 = JSON.stringify(proxyObject);
-  const proxyId = ethers.utils.sha256(Buffer.from(proxyUtf8));
+  const proxyId = ethers.sha256(Buffer.from(proxyUtf8));
   const statusList2021Credential: StatusList2021Credential = {
     "@context": [
       "https://www.w3.org/2018/credentials/v1",
@@ -136,8 +143,8 @@ export function createIssuer(
 }
 
 export async function deployTirContract(): Promise<{
-  didContractMock: Contract;
-  policyContractMock: Contract;
+  didContractMock: DidRegistryMock;
+  policyContractMock: PolicyRegistryMock;
   tirContract: Tir;
 }> {
   // mock trusted policies registry
@@ -147,29 +154,33 @@ export async function deployTirContract(): Promise<{
     await hre.ethers.getContractFactory("PolicyRegistryMock");
 
   const tempPolicyContract = await policyRegistryFactory.deploy();
-  await tempPolicyContract.deployed();
+
   const bytecode = await hre.ethers.provider.getCode(
-    tempPolicyContract.address,
+    await tempPolicyContract.getAddress(),
   );
   await hre.network.provider.send("hardhat_setCode", [
     testTprAddress,
     bytecode,
   ]);
-  const policyContractMock = policyRegistryFactory.attach(testTprAddress);
+  const policyContractMock = policyRegistryFactory.attach(
+    testTprAddress,
+  ) as PolicyRegistryMock;
   await policyContractMock.setPolicyResult(true);
 
   const didRegistryFactory =
     await hre.ethers.getContractFactory("DidRegistryMock");
   const tempDidContract = await didRegistryFactory.deploy();
-  await tempDidContract.deployed();
+  await tempDidContract.waitForDeployment();
   const bytecodeDid = await hre.ethers.provider.getCode(
-    tempDidContract.address,
+    await tempDidContract.getAddress(),
   );
   await hre.network.provider.send("hardhat_setCode", [
     testDidrAddress,
     bytecodeDid,
   ]);
-  const didContractMock = didRegistryFactory.attach(testDidrAddress);
+  const didContractMock = didRegistryFactory.attach(
+    testDidrAddress,
+  ) as DidRegistryMock;
   await didContractMock.setDidResult(true);
 
   // Deploy libs
@@ -178,7 +189,7 @@ export async function deployTirContract(): Promise<{
 
   const tirFactory = await hre.ethers.getContractFactory("Tir", {
     libraries: {
-      Pagination: pagination.address,
+      Pagination: await pagination.getAddress(),
     },
   });
   const tirContract = await tirFactory.deploy(testTprAddress, testDidrAddress);
@@ -229,9 +240,9 @@ export async function insertIssuer(
 export async function setupTestEnv({
   issuersTotal = 0,
 }: SetupOptions = {}): Promise<{
-  didContractMock: Contract;
+  didContractMock: DidRegistryMock;
   issuers: IssuerObject[];
-  provider: ethers.providers.JsonRpcProvider;
+  provider: HardhatEthersProvider;
   tirContract: Tir;
 }> {
   const ethersProvider = hre.ethers.provider;

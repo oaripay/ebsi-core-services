@@ -1,12 +1,15 @@
 import { task } from "hardhat/config";
-import "@nomiclabs/hardhat-waffle";
 
 task("tx", "Prints the detail for the transaction hash")
   .addParam("hash", "The transaction's hash")
   .setAction(async (taskArgs: { hash: string }, { ethers }) => {
     await ethers.provider
       .getTransactionReceipt(taskArgs.hash)
-      .then((receipt) => {
+      .then(async (receipt) => {
+        if (!receipt) {
+          throw new Error("Receipt not found");
+        }
+
         console.log(receipt);
         console.log(`
         From: ${receipt.from}
@@ -14,6 +17,6 @@ task("tx", "Prints the detail for the transaction hash")
         Status: ${receipt.status === 1 ? "Ok" : "Error"}
         BlockNumber: ${receipt.blockNumber}
         GasUsed: ${receipt.gasUsed.toString()}
-        Confirmations: ${receipt.confirmations}`);
+        Confirmations: ${await receipt.confirmations()}`);
       });
   });

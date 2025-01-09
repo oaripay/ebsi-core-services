@@ -74,7 +74,7 @@ interface TestUser {
   };
   info: EbsiIssuer;
   vcOnboard: string;
-  wallet: ethers.Wallet;
+  wallet: ethers.BaseWallet;
 }
 
 describeWriteOps()("Track and Trace - JSON-RPC (e2e)", () => {
@@ -181,7 +181,7 @@ describeWriteOps()("Track and Trace - JSON-RPC (e2e)", () => {
         signer: getSigner(creatorPrivateKey, "ES256K"),
       },
       vcOnboard: "",
-      wallet: new ethers.Wallet(creatorPrivateKey),
+      wallet: new ethers.Wallet(new ethers.SigningKey(creatorPrivateKey)),
     };
     creator.accessToken.didInvite = await getDidrInviteAccessToken(
       creatorDid,
@@ -200,7 +200,7 @@ describeWriteOps()("Track and Trace - JSON-RPC (e2e)", () => {
       isSecp256k1: true,
       notAfter: in6months,
       notBefore: now,
-      publicKey: creator.wallet.publicKey,
+      publicKey: creator.wallet.signingKey.publicKey,
       vMethodId: creatorThumbprint,
     };
 
@@ -224,9 +224,13 @@ describeWriteOps()("Track and Trace - JSON-RPC (e2e)", () => {
 
     const unsignedTransaction = responseBuild.data.result;
     const uTx = formatEthersUnsignedTransaction(unsignedTransaction);
-    uTx.chainId = Number(uTx.chainId);
+
     const sgnTx = await creator.wallet.signTransaction(uTx);
-    const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+    const signature = ethers.Transaction.from(sgnTx).signature;
+    if (!signature) {
+      throw new Error("Signature not found");
+    }
+    const { r, s, v } = signature;
 
     const responseSend = await axios.post<JsonRpcResponseObject<string>>(
       `${domain}/did-registry/v5/jsonrpc`,
@@ -241,7 +245,7 @@ describeWriteOps()("Track and Trace - JSON-RPC (e2e)", () => {
             s,
             signedRawTransaction: sgnTx,
             unsignedTransaction,
-            v: `0x${Number(v).toString(16)}`,
+            v: `0x${v.toString(16)}`,
           },
         ],
       },
@@ -476,9 +480,13 @@ describeWriteOps()("Track and Trace - JSON-RPC (e2e)", () => {
         const unsignedTransaction = responseBuild.body
           .result as UnsignedTransaction;
         const uTx = formatEthersUnsignedTransaction(unsignedTransaction);
-        uTx.chainId = Number(uTx.chainId);
+
         const sgnTx = await user.wallet.signTransaction(uTx);
-        const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+        const signature = ethers.Transaction.from(sgnTx).signature;
+        if (!signature) {
+          throw new Error("Signature not found");
+        }
+        const { r, s, v } = signature;
 
         const responseSend: SupertestJsonRpcResponse = await request(server)
           .post("/jsonrpc")
@@ -494,7 +502,7 @@ describeWriteOps()("Track and Trace - JSON-RPC (e2e)", () => {
                 s,
                 signedRawTransaction: sgnTx,
                 unsignedTransaction,
-                v: `0x${Number(v).toString(16)}`,
+                v: `0x${v.toString(16)}`,
               },
             ],
           });
@@ -511,7 +519,7 @@ describeWriteOps()("Track and Trace - JSON-RPC (e2e)", () => {
           ledgerApi,
           responseSend.body.result as string,
         );
-        expect(receipt.status).toBe(1);
+        expect(receipt.status).toBe("0x1");
       });
     });
   });

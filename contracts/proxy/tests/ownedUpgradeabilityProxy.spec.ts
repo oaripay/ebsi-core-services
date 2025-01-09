@@ -1,11 +1,11 @@
-import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import type { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
 
 import { assert, expect } from "chai";
 import { ethers } from "hardhat";
 
-const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
+import type { OwnedUpgradeabilityProxy, Tir, TirV1 } from "../src/types";
 
-const { parseUnits } = ethers.utils;
+const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 const initializeData = async (pauser: SignerWithAddress) => {
   const tirFactory = await ethers.getContractFactory("Tir");
@@ -23,19 +23,27 @@ const setupProxy = async (
   const proxyFactory = await ethers.getContractFactory(
     "OwnedUpgradeabilityProxy",
   );
-  const proxy = await proxyFactory.connect(proxyOwner).deploy();
-  await proxy.deployed();
+  const proxy = (await proxyFactory
+    .connect(proxyOwner)
+    .deploy()) as OwnedUpgradeabilityProxy;
+  await proxy.waitForDeployment();
 
-  const implV0 = await (await ethers.getContractFactory("Tir")).deploy();
-  const implV1 = await (await ethers.getContractFactory("TirV1")).deploy();
+  const implV0 = (await (
+    await ethers.getContractFactory("Tir")
+  ).deploy()) as Tir;
+  const implV1 = (await (
+    await ethers.getContractFactory("TirV1")
+  ).deploy()) as TirV1;
 
-  const tir = (await ethers.getContractFactory("Tir")).attach(proxy.address);
+  const tir = (await ethers.getContractFactory("Tir")).attach(
+    await proxy.getAddress(),
+  ) as Tir;
   const tirV1 = (await ethers.getContractFactory("TirV1")).attach(
-    proxy.address,
-  );
+    await proxy.getAddress(),
+  ) as TirV1;
 
   await proxy["initialize(address,address,bytes)"](
-    implV0.address,
+    await implV0.getAddress(),
     proxyAdmin.address,
     initializeDataString,
   );
@@ -59,7 +67,7 @@ describe("ownedUpgradeabilityProxy", () => {
         proxyAdmin,
       );
 
-      const owner = await proxy.connect(proxyAdmin).callStatic.admin();
+      const owner = await proxy.connect(proxyAdmin).admin.staticCall();
 
       assert.equal(owner, proxyAdmin.address);
     });
@@ -79,13 +87,13 @@ describe("transferOwnership", () => {
         );
         const newOwner = anotherAccount;
 
-        const currentOwner = await proxy.connect(proxyAdmin).callStatic.admin();
+        const currentOwner = await proxy.connect(proxyAdmin).admin.staticCall();
         assert.equal(currentOwner, proxyAdmin.address);
 
         // transfer admin to newOwner(anotherAccount)
         await proxy.connect(proxyAdmin).changeAdmin(newOwner.address);
 
-        const owner = await proxy.connect(newOwner).callStatic.admin();
+        const owner = await proxy.connect(newOwner).admin.staticCall();
 
         assert.equal(owner, newOwner.address);
       });
@@ -100,13 +108,24 @@ describe("transferOwnership", () => {
         );
         const newOwner = anotherAccount;
 
-        const { logs } = await (
+        const receipt = await (
           await proxy.connect(proxyAdmin).changeAdmin(newOwner.address)
         ).wait();
+
+        if (!receipt) {
+          throw new Error("No receipt");
+        }
+
+        const { logs } = receipt;
 
         assert.lengthOf(logs, 1);
 
         const parsedLog = proxy.interface.parseLog(logs[0]);
+
+        if (!parsedLog) {
+          throw new Error("No parsed log");
+        }
+
         assert.equal(parsedLog.name, "AdminChanged");
         assert.equal(parsedLog.args.previousAdmin, proxyAdmin.address);
         assert.equal(parsedLog.args.newAdmin, newOwner.address);
@@ -128,7 +147,7 @@ describe("transferOwnership", () => {
           proxyAdmin,
         );
 
-        await proxy.connect(proxyAdmin).upgradeTo(implV1.address);
+        await proxy.connect(proxyAdmin).upgradeTo(await implV1.getAddress());
 
         await expect(
           proxy.connect(tirOperator).changeAdmin(anotherAccount.address),
@@ -146,7 +165,7 @@ describe("transferOwnership", () => {
           proxyAdmin,
         );
 
-        await proxy.connect(proxyAdmin).upgradeTo(implV1.address);
+        await proxy.connect(proxyAdmin).upgradeTo(await implV1.getAddress());
         await expect(
           proxy.connect(anotherAccount).changeAdmin(anotherAccount.address),
         ).to.be.reverted;
@@ -181,9 +200,9 @@ describe("implementation", () => {
 
       const implementation = await proxy
         .connect(proxyAdmin)
-        .callStatic.implementation();
+        .implementation.staticCall();
 
-      assert.equal(implementation, implV0.address);
+      assert.equal(implementation, await implV0.getAddress());
     });
 
     it("can't be initialized twice", async () => {
@@ -196,16 +215,16 @@ describe("implementation", () => {
 
       const implementation = await proxy
         .connect(proxyAdmin)
-        .callStatic.implementation();
+        .implementation.staticCall();
 
-      assert.equal(implementation, implV0.address);
+      assert.equal(implementation, await implV0.getAddress());
 
       await expect(
         proxy
           .connect(proxyOwner)
           [
             "initialize(address,address,bytes)"
-          ](implV1.address, proxyAdmin.address, await initializeData(anchorOwner)),
+          ](await implV1.getAddress(), proxyAdmin.address, await initializeData(anchorOwner)),
       ).to.be.revertedWith("implementation must be zero");
     });
   });
@@ -222,14 +241,14 @@ describe("upgrade", () => {
             "OwnedUpgradeabilityProxy",
           );
           const proxy = await proxyFactory.connect(proxyOwner).deploy();
-          await proxy.deployed();
+          await proxy.waitForDeployment();
 
           const implV0 = await (
             await ethers.getContractFactory("Tir")
           ).deploy();
 
           await expect(
-            proxy.connect(proxyAdmin).upgradeTo(implV0.address),
+            proxy.connect(proxyAdmin).upgradeTo(await implV0.getAddress()),
           ).to.be.revertedWith("Can't fallback admin not set");
         });
       });
@@ -246,9 +265,11 @@ describe("upgrade", () => {
               proxyAdmin,
             );
 
-            await proxy.connect(proxyAdmin).upgradeTo(implV1.address);
+            await proxy
+              .connect(proxyAdmin)
+              .upgradeTo(await implV1.getAddress());
             await expect(
-              proxy.connect(proxyAdmin).upgradeTo(implV1.address),
+              proxy.connect(proxyAdmin).upgradeTo(await implV1.getAddress()),
             ).to.be.revertedWith("implementation is the same");
           });
         });
@@ -262,13 +283,15 @@ describe("upgrade", () => {
               proxyOwner,
               proxyAdmin,
             );
-            await proxy.connect(proxyAdmin).upgradeTo(implV1.address);
+            await proxy
+              .connect(proxyAdmin)
+              .upgradeTo(await implV1.getAddress());
 
             const implementation = await proxy
               .connect(proxyAdmin)
-              .callStatic.implementation();
+              .implementation.staticCall();
 
-            assert.equal(implementation, implV1.address);
+            assert.equal(implementation, await implV1.getAddress());
           });
         });
       });
@@ -284,8 +307,9 @@ describe("upgrade", () => {
           proxyAdmin,
         );
 
-        await expect(proxy.connect(anotherAccount).upgradeTo(implV1.address)).to
-          .be.reverted;
+        await expect(
+          proxy.connect(anotherAccount).upgradeTo(await implV1.getAddress()),
+        ).to.be.reverted;
       });
     });
   });
@@ -299,7 +323,7 @@ describe("upgrade", () => {
         proxyAdmin,
       );
 
-      await proxy.connect(proxyAdmin).upgradeTo(implV1.address);
+      await proxy.connect(proxyAdmin).upgradeTo(await implV1.getAddress());
       await expect(
         proxy.connect(proxyAdmin).upgradeTo(ZERO_ADDRESS, {}),
       ).to.be.revertedWith("implementation must be contract");
@@ -329,7 +353,7 @@ describe("upgrade and call", () => {
           proxyAdmin,
         );
 
-        const adm = await proxy.connect(proxyAdmin).callStatic.admin();
+        const adm = await proxy.connect(proxyAdmin).admin.staticCall();
 
         assert.equal(adm, proxyAdmin.address);
 
@@ -338,7 +362,7 @@ describe("upgrade and call", () => {
 
         assert.deepStrictEqual(v0, v1);
 
-        await proxy.connect(proxyAdmin).upgradeTo(implV1.address);
+        await proxy.connect(proxyAdmin).upgradeTo(await implV1.getAddress());
 
         const did = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
 
@@ -360,20 +384,20 @@ describe("upgrade and call", () => {
 
         await proxy
           .connect(proxyAdmin)
-          .upgradeToAndCall(implV1.address, initializeDataV1);
+          .upgradeToAndCall(await implV1.getAddress(), initializeDataV1);
 
         const v2 = await tirV1.version.call({ from: anotherAccount });
 
         assert.equal(
-          parseUnits(v2.toString(), 0).toString(),
+          ethers.parseUnits(v2.toString(), 0).toString(),
           initializeDataV1Version,
         );
 
         const implementation = await proxy
           .connect(proxyAdmin)
-          .callStatic.implementation();
+          .implementation.staticCall();
 
-        assert.equal(implementation, implV1.address);
+        assert.equal(implementation, await implV1.getAddress());
       });
     });
 
@@ -390,7 +414,7 @@ describe("upgrade and call", () => {
         await expect(
           proxy
             .connect(anotherAccount)
-            .upgradeToAndCall(implV1.address, initializeDataV1),
+            .upgradeToAndCall(await implV1.getAddress(), initializeDataV1),
         ).to.be.reverted;
       });
     });
@@ -444,11 +468,11 @@ describe("delegatecall", () => {
         "OwnedUpgradeabilityProxy",
       );
       const proxy = await proxyFactory.connect(proxyOwner).deploy();
-      await proxy.deployed();
+      await proxy.waitForDeployment();
 
       const tir = (await ethers.getContractFactory("Tir")).attach(
-        proxy.address,
-      );
+        await proxy.getAddress(),
+      ) as Tir;
 
       await expect(tir.version.call({ from: anotherAccount })).to.be.reverted;
     });
@@ -497,7 +521,7 @@ describe("delegatecall", () => {
           proxyAdmin,
         );
         const did = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
-        await proxy.connect(proxyAdmin).upgradeTo(implV1.address);
+        await proxy.connect(proxyAdmin).upgradeTo(await implV1.getAddress());
 
         await tir.connect(anotherAccount).pushDid(did);
 

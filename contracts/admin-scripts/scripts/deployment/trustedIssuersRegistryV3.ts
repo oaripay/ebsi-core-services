@@ -31,7 +31,7 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
 
   let tprAddress = deps.tprV2Address;
 
-  if (!ethers.utils.isAddress(tprAddress)) {
+  if (!ethers.isAddress(tprAddress)) {
     console.log(`Deploying TPR for testnet`);
     // deploy for testnet
     await deployments.run("PolicyRegistryV2");
@@ -44,7 +44,7 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
 
   let didAddress = deps.didV3Address;
 
-  if (!ethers.utils.isAddress(didAddress)) {
+  if (!ethers.isAddress(didAddress)) {
     console.log(`Deploying DIDr for testnet`);
     // deploy for testnet
     await deployments.run("DidRegistryV3");

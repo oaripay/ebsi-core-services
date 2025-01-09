@@ -12,10 +12,12 @@ import { ethers } from "ethers";
 export interface UserDetails extends EbsiIssuer {
   didDocument: DIDDocument;
   thumbprint: string;
-  wallet: ethers.Wallet;
+  wallet: ethers.BaseWallet;
 }
 
-export async function createUser(wallet?: ethers.Wallet): Promise<UserDetails> {
+export async function createUser(
+  wallet?: ethers.BaseWallet,
+): Promise<UserDetails> {
   const did = EbsiWallet.createDid();
   const w = wallet ?? ethers.Wallet.createRandom();
   const privateKey = hexToBytes(w.privateKey);

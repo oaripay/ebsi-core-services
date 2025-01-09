@@ -23,7 +23,11 @@ task("deploy", "Deploy contract Track And Trace")
 
       const trackAndTraceFactory = await ethers.getContractFactory(
         "TrackAndTrace",
-        { libraries: { TrackAndTraceLib: trackAndTraceLibContract.address } },
+        {
+          libraries: {
+            TrackAndTraceLib: await trackAndTraceLibContract.getAddress(),
+          },
+        },
       );
 
       const didMockFactory = await ethers.getContractFactory("DidRegistryMock");
@@ -35,13 +39,18 @@ task("deploy", "Deploy contract Track And Trace")
       // deploy
       const trackAndTrace = await upgrades.deployProxy(
         trackAndTraceFactory,
-        [taskArgs.admin, taskArgs.upgrader, tpr.address, didRegistry.address],
+        [
+          taskArgs.admin,
+          taskArgs.upgrader,
+          await tpr.getAddress(),
+          await didRegistry.getAddress(),
+        ],
         { unsafeAllowLinkedLibraries: true },
       );
       console.log(
-        `TrackAndTrace contract deployed to ${trackAndTrace.address}`,
-        `\n with tpr ${tpr.address}`,
-        `\n and didRegistry ${didRegistry.address}`,
+        `TrackAndTrace contract deployed to ${await trackAndTrace.getAddress()}`,
+        `\n with tpr ${await tpr.getAddress()}`,
+        `\n and didRegistry ${await didRegistry.getAddress()}`,
       );
     },
   );

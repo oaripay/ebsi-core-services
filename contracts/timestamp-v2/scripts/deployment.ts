@@ -23,16 +23,16 @@ async function main() {
 
   const rsFactory = await ethers.getContractFactory("RecordLib", {
     libraries: {
-      StringManip: stringManipLib.address,
+      StringManip: await stringManipLib.getAddress(),
     },
   });
   const rsLib = await rsFactory.deploy();
 
   const contractFactory = await ethers.getContractFactory("Timestamp", {
     libraries: {
-      HashAlgoLib: haLib.address,
-      RecordLib: rsLib.address,
-      TimestampLib: tsLib.address,
+      HashAlgoLib: await haLib.getAddress(),
+      RecordLib: await rsLib.getAddress(),
+      TimestampLib: await tsLib.getAddress(),
     },
   });
 
@@ -40,11 +40,11 @@ async function main() {
   const ts = await contractFactory.deploy();
 
   console.log(
-    `Timestamp deployed to: ${ts.address}
-   HashAlgoLib deployed to: ${haLib.address}
-   TimestampLib deployed to: ${tsLib.address}
-   RecordLib deployed to: ${rsLib.address}
-   stringManipLib deployed to: ${stringManipLib.address}`,
+    `Timestamp deployed to: ${await ts.getAddress()}
+   HashAlgoLib deployed to: ${await haLib.getAddress()}
+   TimestampLib deployed to: ${await tsLib.getAddress()}
+   RecordLib deployed to: ${await rsLib.getAddress()}
+   stringManipLib deployed to: ${await stringManipLib.getAddress()}`,
   );
 }
 

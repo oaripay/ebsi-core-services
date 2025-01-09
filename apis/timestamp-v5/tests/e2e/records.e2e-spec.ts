@@ -2,7 +2,6 @@ import type {
   EbsiEnvConfiguration,
   EbsiIssuer,
 } from "@cef-ebsi/verifiable-credential";
-import type { TransactionRequest } from "@ethersproject/abstract-provider";
 import type { RawServerDefault } from "fastify";
 
 import {
@@ -75,7 +74,7 @@ const multihashToNodeHashAlg = {
 interface TestUser {
   info: EbsiIssuer;
   token: string;
-  wallet: ethers.Wallet;
+  wallet: ethers.BaseWallet;
 }
 
 describe("Timestamp API v5 - Records (e2e)", () => {
@@ -427,8 +426,8 @@ describe("Timestamp API v5 - Records (e2e)", () => {
       let param: JsonRpcParams;
       switch (method) {
         case "appendRecordVersionHashes": {
-          const recordId = ethers.utils.sha256(
-            ethers.utils.defaultAbiCoder.encode(
+          const recordId = ethers.sha256(
+            ethers.AbiCoder.defaultAbiCoder().encode(
               ["address", "uint256", "bytes"],
               [testUser.wallet.address, blockNumber1, hashValue1],
             ),
@@ -457,8 +456,8 @@ describe("Timestamp API v5 - Records (e2e)", () => {
           break;
         }
         case "detachRecordVersionHash": {
-          const recordId = ethers.utils.sha256(
-            ethers.utils.defaultAbiCoder.encode(
+          const recordId = ethers.sha256(
+            ethers.AbiCoder.defaultAbiCoder().encode(
               ["address", "uint256", "bytes"],
               [testUser.wallet.address, blockNumber1, hashValue1],
             ),
@@ -472,8 +471,8 @@ describe("Timestamp API v5 - Records (e2e)", () => {
           break;
         }
         case "insertRecordOwner": {
-          const recordId = ethers.utils.sha256(
-            ethers.utils.defaultAbiCoder.encode(
+          const recordId = ethers.sha256(
+            ethers.AbiCoder.defaultAbiCoder().encode(
               ["address", "uint256", "bytes"],
               [testUser.wallet.address, blockNumber1, hashValue1],
             ),
@@ -489,8 +488,8 @@ describe("Timestamp API v5 - Records (e2e)", () => {
           break;
         }
         case "insertRecordVersionInfo": {
-          const recordId = ethers.utils.sha256(
-            ethers.utils.defaultAbiCoder.encode(
+          const recordId = ethers.sha256(
+            ethers.AbiCoder.defaultAbiCoder().encode(
               ["address", "uint256", "bytes"],
               [testUser.wallet.address, blockNumber1, hashValue1],
             ),
@@ -508,8 +507,8 @@ describe("Timestamp API v5 - Records (e2e)", () => {
           break;
         }
         case "revokeRecordOwner": {
-          const recordId = ethers.utils.sha256(
-            ethers.utils.defaultAbiCoder.encode(
+          const recordId = ethers.sha256(
+            ethers.AbiCoder.defaultAbiCoder().encode(
               ["address", "uint256", "bytes"],
               [testUser.wallet.address, blockNumber1, hashValue1],
             ),
@@ -542,8 +541,8 @@ describe("Timestamp API v5 - Records (e2e)", () => {
           break;
         }
         case "timestampRecordVersionHashes": {
-          const recordId = ethers.utils.sha256(
-            ethers.utils.defaultAbiCoder.encode(
+          const recordId = ethers.sha256(
+            ethers.AbiCoder.defaultAbiCoder().encode(
               ["address", "uint256", "bytes"],
               [testUser.wallet.address, blockNumber1, hashValue1],
             ),
@@ -628,11 +627,15 @@ describe("Timestamp API v5 - Records (e2e)", () => {
           JSON.stringify(unsignedTransaction),
         ) as unknown as UnsignedTransactionSchema,
       );
-      uTx.chainId = Number(uTx.chainId);
+
       const sgnTx = await testUser.wallet.signTransaction(
-        uTx as TransactionRequest,
+        uTx as ethers.TransactionLike,
       );
-      const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+      const signature = ethers.Transaction.from(sgnTx).signature;
+      if (!signature) {
+        throw new Error("Signature not found");
+      }
+      const { r, s, v } = signature;
 
       const responseSend: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")
@@ -648,7 +651,7 @@ describe("Timestamp API v5 - Records (e2e)", () => {
               s,
               signedRawTransaction: sgnTx,
               unsignedTransaction,
-              v: `0x${Number(v).toString(16)}`,
+              v: `0x${v.toString(16)}`,
             },
           ],
         });
@@ -671,7 +674,7 @@ describe("Timestamp API v5 - Records (e2e)", () => {
         // created by timestampRecordHashes
         blockNumber1 = receipt.blockNumber;
       }
-      expect(receipt.status).toBe(1);
+      expect(receipt.status).toBe("0x1");
     });
 
     it("should work with empty data", async () => {
@@ -681,8 +684,8 @@ describe("Timestamp API v5 - Records (e2e)", () => {
 
       switch (method) {
         case "appendRecordVersionHashes": {
-          const recordId = ethers.utils.sha256(
-            ethers.utils.defaultAbiCoder.encode(
+          const recordId = ethers.sha256(
+            ethers.AbiCoder.defaultAbiCoder().encode(
               ["address", "uint256", "bytes"],
               [testUser.wallet.address, blockNumber2, hashValue3],
             ),
@@ -729,8 +732,8 @@ describe("Timestamp API v5 - Records (e2e)", () => {
           break;
         }
         case "timestampRecordVersionHashes": {
-          const recordId = ethers.utils.sha256(
-            ethers.utils.defaultAbiCoder.encode(
+          const recordId = ethers.sha256(
+            ethers.AbiCoder.defaultAbiCoder().encode(
               ["address", "uint256", "bytes"],
               [testUser.wallet.address, blockNumber2, hashValue3],
             ),
@@ -799,11 +802,15 @@ describe("Timestamp API v5 - Records (e2e)", () => {
           JSON.stringify(unsignedTransaction),
         ) as unknown as UnsignedTransactionSchema,
       );
-      uTx.chainId = Number(uTx.chainId);
+
       const sgnTx = await testUser.wallet.signTransaction(
-        uTx as TransactionRequest,
+        uTx as ethers.TransactionLike,
       );
-      const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+      const signature = ethers.Transaction.from(sgnTx).signature;
+      if (!signature) {
+        throw new Error("Signature not found");
+      }
+      const { r, s, v } = signature;
 
       const responseSend: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")
@@ -819,7 +826,7 @@ describe("Timestamp API v5 - Records (e2e)", () => {
               s,
               signedRawTransaction: sgnTx,
               unsignedTransaction,
-              v: `0x${Number(v).toString(16)}`,
+              v: `0x${v.toString(16)}`,
             },
           ],
         });
@@ -841,7 +848,7 @@ describe("Timestamp API v5 - Records (e2e)", () => {
         // created by timestampRecordHashes
         blockNumber2 = receipt.blockNumber;
       }
-      expect(receipt.status).toBe(1);
+      expect(receipt.status).toBe("0x1");
     });
   });
 
@@ -855,8 +862,8 @@ describe("Timestamp API v5 - Records (e2e)", () => {
       let param: JsonRpcParams;
       switch (method) {
         case "appendRecordVersionHashes": {
-          const recordId = ethers.utils.sha256(
-            ethers.utils.defaultAbiCoder.encode(
+          const recordId = ethers.sha256(
+            ethers.AbiCoder.defaultAbiCoder().encode(
               ["address", "uint256", "bytes"],
               [testUser.wallet.address, blockNumber1, hashValue1],
             ),
@@ -885,8 +892,8 @@ describe("Timestamp API v5 - Records (e2e)", () => {
           break;
         }
         case "timestampRecordVersionHashes": {
-          const recordId = ethers.utils.sha256(
-            ethers.utils.defaultAbiCoder.encode(
+          const recordId = ethers.sha256(
+            ethers.AbiCoder.defaultAbiCoder().encode(
               ["address", "uint256", "bytes"],
               [testUser.wallet.address, blockNumber1, hashValue1],
             ),
@@ -950,11 +957,15 @@ describe("Timestamp API v5 - Records (e2e)", () => {
           JSON.stringify(unsignedTransaction),
         ) as unknown as UnsignedTransactionSchema,
       );
-      uTx.chainId = Number(uTx.chainId);
+
       const sgnTx = await adminUser.wallet.signTransaction(
-        uTx as TransactionRequest,
+        uTx as ethers.TransactionLike,
       );
-      const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+      const signature = ethers.Transaction.from(sgnTx).signature;
+      if (!signature) {
+        throw new Error("Signature not found");
+      }
+      const { r, s, v } = signature;
 
       const responseSend: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")
@@ -970,7 +981,7 @@ describe("Timestamp API v5 - Records (e2e)", () => {
               s,
               signedRawTransaction: sgnTx,
               unsignedTransaction,
-              v: `0x${Number(v).toString(16)}`,
+              v: `0x${v.toString(16)}`,
             },
           ],
         });
@@ -989,7 +1000,7 @@ describe("Timestamp API v5 - Records (e2e)", () => {
       );
 
       expect(receipt.revertReason).toBe(`sender is not listed as owner`);
-      expect(receipt.status).toBe(0);
+      expect(receipt.status).toBe("0x0");
     });
   });
 
@@ -1033,11 +1044,15 @@ describe("Timestamp API v5 - Records (e2e)", () => {
           JSON.stringify(unsignedTransaction),
         ) as unknown as UnsignedTransactionSchema,
       );
-      uTx.chainId = Number(uTx.chainId);
+
       const sgnTx = await adminUser.wallet.signTransaction(
-        uTx as TransactionRequest,
+        uTx as ethers.TransactionLike,
       );
-      const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+      const signature = ethers.Transaction.from(sgnTx).signature;
+      if (!signature) {
+        throw new Error("Signature not found");
+      }
+      const { r, s, v } = signature;
 
       const responseSend: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")
@@ -1053,7 +1068,7 @@ describe("Timestamp API v5 - Records (e2e)", () => {
               s,
               signedRawTransaction: sgnTx,
               unsignedTransaction,
-              v: `0x${Number(v).toString(16)}`,
+              v: `0x${v.toString(16)}`,
             },
           ],
         });
@@ -1123,10 +1138,14 @@ describe("Timestamp API v5 - Records (e2e)", () => {
       );
       insertUTx.chainId = Number(insertUTx.chainId);
       const insertSgnTx = await adminUser.wallet.signTransaction(
-        insertUTx as TransactionRequest,
+        insertUTx as ethers.TransactionLike,
       );
       const parseTransactionResponse =
-        ethers.utils.parseTransaction(insertSgnTx);
+        ethers.Transaction.from(insertSgnTx).signature;
+
+      if (!parseTransactionResponse) {
+        throw new Error("Signature not found");
+      }
 
       const insertResponseSend: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")
@@ -1154,8 +1173,8 @@ describe("Timestamp API v5 - Records (e2e)", () => {
         ledgerApi,
         insertResponseSend.body.result as string,
       );
-      const decodedRecordId = ethers.utils.sha256(
-        ethers.utils.defaultAbiCoder.encode(
+      const decodedRecordId = ethers.sha256(
+        ethers.AbiCoder.defaultAbiCoder().encode(
           ["address", "uint256", "bytes"],
           [receiptNewRecord.from, receiptNewRecord.blockNumber, hashValue1],
         ),
@@ -1285,11 +1304,15 @@ describe("Timestamp API v5 - Records (e2e)", () => {
           JSON.stringify(unsignedTransaction),
         ) as unknown as UnsignedTransactionSchema,
       );
-      uTx.chainId = Number(uTx.chainId);
+
       const sgnTx = await testUser.wallet.signTransaction(
-        uTx as TransactionRequest,
+        uTx as ethers.TransactionLike,
       );
-      const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+      const signature = ethers.Transaction.from(sgnTx).signature;
+      if (!signature) {
+        throw new Error("Signature not found");
+      }
+      const { r, s, v } = signature;
 
       const responseSend: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")
@@ -1305,7 +1328,7 @@ describe("Timestamp API v5 - Records (e2e)", () => {
               s,
               signedRawTransaction: sgnTx,
               unsignedTransaction,
-              v: `0x${Number(v).toString(16)}`,
+              v: `0x${v.toString(16)}`,
             },
           ],
         });
@@ -1320,7 +1343,7 @@ describe("Timestamp API v5 - Records (e2e)", () => {
           revertReason: expect.stringContaining(
             `sender is not listed as owner`,
           ),
-          status: 0,
+          status: "0x0",
         }),
       );
     });

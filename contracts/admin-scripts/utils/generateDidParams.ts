@@ -3,6 +3,7 @@ import elliptic from "elliptic";
 import { ethers } from "ethers";
 import { calculateJwkThumbprint, importJWK, JWK, KeyLike } from "jose";
 import { base64url } from "multiformats/bases/base64";
+
 const EC = elliptic.ec;
 
 export interface UserData {
@@ -27,7 +28,7 @@ export interface UserData {
 }
 
 export async function generateDidParams(
-  wallet: ethers.Wallet,
+  wallet: ethers.BaseWallet,
 ): Promise<UserData> {
   const did = EbsiWallet.createDid();
   const baseDocument = JSON.stringify({
@@ -52,7 +53,7 @@ export async function generateDidParams(
     ES256K: {
       ...jwksES256K,
       privateKey: await importJWK(jwksES256K.privateKeyJwk, "ES256K"),
-      publicKeyHex: wallet.publicKey,
+      publicKeyHex: wallet.signingKey.publicKey,
       vMethodId: await calculateJwkThumbprint(
         jwksES256K.publicKeyJwk,
         "sha256",

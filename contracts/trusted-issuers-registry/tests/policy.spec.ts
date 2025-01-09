@@ -1,4 +1,4 @@
-import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import type { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
 
 import { expect } from "chai";
 import { ethers } from "hardhat";
@@ -7,16 +7,7 @@ import crypto from "node:crypto";
 import type { Tir } from "../src/types";
 
 import { testDidrAddress, testTprAddress } from "./testAddress";
-
-function getEthObject(o: unknown): Record<string, unknown> {
-  const obj = o as Record<string, unknown> & string[];
-  const keys = Object.keys(obj);
-  const result: Record<string, unknown> = {};
-  for (const [i, k] of keys.entries()) {
-    if (i >= keys.length / 2) result[k] = obj[k];
-  }
-  return result;
-}
+import { decodeResult } from "./utils";
 
 function randomPolicyData(): string {
   return `0x${crypto.randomBytes(10).toString("hex")}`;
@@ -33,12 +24,8 @@ describe("Policies", () => {
   const policyName = randomPolicyName();
   const policyData1 = randomPolicyData();
   const policyData2 = randomPolicyData();
-  const policyHash1 = ethers.utils.sha256(
-    Buffer.from(policyData1.slice(2), "hex"),
-  );
-  const policyHash2 = ethers.utils.sha256(
-    Buffer.from(policyData2.slice(2), "hex"),
-  );
+  const policyHash1 = ethers.sha256(Buffer.from(policyData1.slice(2), "hex"));
+  const policyHash2 = ethers.sha256(Buffer.from(policyData2.slice(2), "hex"));
 
   beforeEach(async () => {
     [, user] = await ethers.getSigners();
@@ -47,7 +34,7 @@ describe("Policies", () => {
 
     const contractFactory = await ethers.getContractFactory("Tir", {
       libraries: {
-        Pagination: paginationLib.address,
+        Pagination: await paginationLib.getAddress(),
       },
     });
     ts = await contractFactory.deploy(testTprAddress, testDidrAddress);
@@ -55,7 +42,7 @@ describe("Policies", () => {
     const initialVersion = await ts.version();
     expect(initialVersion).to.equal(42);
     // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-    expect(ts.address).to.properAddress;
+    expect(await ts.getAddress()).to.properAddress;
   });
 
   it("should insert/update a policy as user", async () => {
@@ -84,12 +71,12 @@ describe("Policies", () => {
 
     // the policy should have 2 revisions
     const policyRevisions = await tsUser.getPolicyRevisions(policyName, 1, 10);
-    expect(getEthObject(policyRevisions)).to.eql({
-      howMany: ethers.BigNumber.from(2),
+    expect(decodeResult(policyRevisions)).to.eql({
+      howMany: 2n,
       items: [policyHash1, policyHash2],
-      next: ethers.BigNumber.from(1),
-      prev: ethers.BigNumber.from(1),
-      total: ethers.BigNumber.from(2),
+      next: 1n,
+      prev: 1n,
+      total: 2n,
     });
   });
 
@@ -104,42 +91,42 @@ describe("Policies", () => {
 
     // get policies: page 1
     let issPagination = await ts.getPolicies(1, 5);
-    expect(getEthObject(issPagination)).to.eql({
-      howMany: ethers.BigNumber.from(5),
+    expect(decodeResult(issPagination)).to.eql({
+      howMany: BigInt(5),
       items: policies.slice(0, 5),
-      next: ethers.BigNumber.from(2),
-      prev: ethers.BigNumber.from(1),
-      total: ethers.BigNumber.from(18),
+      next: 2n,
+      prev: 1n,
+      total: BigInt(18),
     });
 
     // get policies: page 2
     issPagination = await ts.getPolicies(2, 5);
-    expect(getEthObject(issPagination)).to.eql({
-      howMany: ethers.BigNumber.from(5),
+    expect(decodeResult(issPagination)).to.eql({
+      howMany: BigInt(5),
       items: policies.slice(5, 10),
-      next: ethers.BigNumber.from(3),
-      prev: ethers.BigNumber.from(1),
-      total: ethers.BigNumber.from(18),
+      next: BigInt(3),
+      prev: 1n,
+      total: BigInt(18),
     });
 
     // get policies: page 3
     issPagination = await ts.getPolicies(3, 5);
-    expect(getEthObject(issPagination)).to.eql({
-      howMany: ethers.BigNumber.from(5),
+    expect(decodeResult(issPagination)).to.eql({
+      howMany: BigInt(5),
       items: policies.slice(10, 15),
-      next: ethers.BigNumber.from(4),
-      prev: ethers.BigNumber.from(2),
-      total: ethers.BigNumber.from(18),
+      next: BigInt(4),
+      prev: 2n,
+      total: BigInt(18),
     });
 
     // get policies: page 4
     issPagination = await ts.getPolicies(4, 5);
-    expect(getEthObject(issPagination)).to.eql({
-      howMany: ethers.BigNumber.from(3),
+    expect(decodeResult(issPagination)).to.eql({
+      howMany: BigInt(3),
       items: policies.slice(15, 20),
-      next: ethers.BigNumber.from(4),
-      prev: ethers.BigNumber.from(3),
-      total: ethers.BigNumber.from(18),
+      next: BigInt(4),
+      prev: BigInt(3),
+      total: BigInt(18),
     });
   });
 

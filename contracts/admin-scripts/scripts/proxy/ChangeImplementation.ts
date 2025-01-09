@@ -1,16 +1,15 @@
-import { BigNumber } from "ethers";
 import { ethers } from "hardhat";
 
 async function main() {
   const proxyDeployedAddr = `0x7FC3C7805095a6863243bFc73Da563A1E1CA2763`;
 
-  const TSC_DIAMOND_STORAGE_SLOT = ethers.utils.keccak256(
-    ethers.utils.toUtf8Bytes(
+  const TSC_DIAMOND_STORAGE_SLOT = ethers.keccak256(
+    ethers.toUtf8Bytes(
       "diamond.standard.trusted.ledger.smart.contracts.storage",
     ),
   );
-  const IMPLEMENTATION_SLOT = ethers.utils.keccak256(
-    ethers.utils.toUtf8Bytes("diamond.standard.diamond.storage.proxy"),
+  const IMPLEMENTATION_SLOT = ethers.keccak256(
+    ethers.toUtf8Bytes("diamond.standard.diamond.storage.proxy"),
   );
 
   const [deployer, user] = await ethers.getSigners();
@@ -23,41 +22,44 @@ async function main() {
 
   // these infos are not easily accessible as they are restricted by an onlyAdmin modifier
   // to retrieve them we use the low level getStorage call
-  const adminAddr = BigNumber.from(
-    await ethers.provider.getStorageAt(proxyCtr.address, IMPLEMENTATION_SLOT),
-  ).toHexString();
+  const adminAddr = BigInt(
+    await ethers.provider.getStorage(
+      await proxyCtr.getAddress(),
+      IMPLEMENTATION_SLOT,
+    ),
+  ).toString(16);
   console.log(`Proxy admin address: ${adminAddr}`);
   // the implementation is in the next storage slot as it is part of the same struct
-  const implementationAddr = BigNumber.from(
-    await ethers.provider.getStorageAt(
-      proxyCtr.address,
-      BigNumber.from(IMPLEMENTATION_SLOT).add(1),
+  const implementationAddr = BigInt(
+    await ethers.provider.getStorage(
+      await proxyCtr.getAddress(),
+      BigInt(IMPLEMENTATION_SLOT) + 1n,
     ),
-  ).toHexString();
+  ).toString(16);
   console.log(`Proxy implementation address: ${implementationAddr}`);
 
-  const version = BigNumber.from(
-    await ethers.provider.getStorageAt(
-      proxyCtr.address,
+  const version = BigInt(
+    await ethers.provider.getStorage(
+      await proxyCtr.getAddress(),
       TSC_DIAMOND_STORAGE_SLOT,
     ),
-  ).toHexString();
+  ).toString(16);
   console.log(`version : ${version}`);
 
-  const newImplementationAddr = BigNumber.from(
-    await ethers.provider.getStorageAt(
-      proxyCtr.address,
-      BigNumber.from(IMPLEMENTATION_SLOT).add(1),
+  const newImplementationAddr = BigInt(
+    await ethers.provider.getStorage(
+      await proxyCtr.getAddress(),
+      BigInt(IMPLEMENTATION_SLOT) + 1n,
     ),
-  ).toHexString();
+  ).toString(16);
   console.log(`Proxy new implementation address: ${newImplementationAddr}`);
 
-  const newVersion = BigNumber.from(
-    await ethers.provider.getStorageAt(
-      proxyCtr.address,
+  const newVersion = BigInt(
+    await ethers.provider.getStorage(
+      await proxyCtr.getAddress(),
       TSC_DIAMOND_STORAGE_SLOT,
     ),
-  ).toHexString();
+  ).toString(16);
   console.log(`new version : ${newVersion}`);
 }
 

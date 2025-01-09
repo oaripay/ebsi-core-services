@@ -1,5 +1,4 @@
 import { task } from "hardhat/config";
-import "@nomiclabs/hardhat-waffle";
 
 import type { Timestamp } from "../src/types";
 
@@ -15,7 +14,7 @@ task(
       taskArgs.contract,
       taskArgs.proxy,
       admin,
-    )) as Timestamp;
+    )) as unknown as Timestamp;
 
     console.log(
       `deployer:${deployer.address}

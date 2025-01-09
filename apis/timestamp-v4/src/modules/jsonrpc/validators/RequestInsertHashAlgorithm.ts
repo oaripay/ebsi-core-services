@@ -1,8 +1,5 @@
-import {
-  BigNumber,
-  type BigNumberish,
-  isBigNumberish,
-} from "@ethersproject/bignumber/lib/bignumber.js";
+import { isBigNumberish } from "@ebsiint-api/shared";
+import { ethers } from "ethers";
 import { z } from "zod";
 
 import { baseParamSchema } from "./BaseParamSchema.js";
@@ -17,11 +14,21 @@ export const insertHashAlgorithmSchema = baseParamSchema.merge(
     multiHash: z.string().superRefine(isMultihash),
     oid: z.string().optional(),
     outputLength: z
-      .custom<BigNumberish>((val) => isBigNumberish(val))
-      .refine((val) => BigNumber.from(val).gte(0), {
+      .custom<ethers.BigNumberish>((val) => isBigNumberish(val))
+      .refine((val) => ethers.getBigInt(val) >= 0n, {
         message: "Number must be greater than or equal to 0",
       }),
-    status: z.number().int().min(1).max(2),
+    status: z
+      .custom<ethers.BigNumberish>((val) => isBigNumberish(val))
+      .refine(
+        (val) => {
+          const v = ethers.getBigInt(val);
+          return v == 1n || v === 2n;
+        },
+        {
+          message: "Status must be equal to 1 (active) or 2 (revoked)",
+        },
+      ),
   }),
 );
 

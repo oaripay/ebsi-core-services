@@ -43,7 +43,7 @@ describe("Issuers Module", () => {
   const randomDid = EbsiWallet.createDid();
 
   beforeAll(async () => {
-    // Spin up test blockchain (ganache)
+    // Spin up test blockchain
     testEnv = await setupTestEnv({
       issuersTotal: ISSUERS_TOTAL,
     });

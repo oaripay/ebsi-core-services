@@ -1,6 +1,5 @@
 import type { Artifact } from "hardhat/types";
 
-import { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry-v2";
 import { ethers } from "hardhat";
 import fs from "node:fs";
 import path from "node:path";
@@ -25,17 +24,16 @@ async function main() {
     artifact,
     {
       libraries: {
-        Pagination: pagination.address,
+        Pagination: await pagination.getAddress(),
       },
     },
   );
-  const policyContract =
-    (await policyRegistryFactory.deploy()) as PolicyRegistry;
-  await policyContract.deployed();
+  const policyContract = await policyRegistryFactory.deploy();
+  await policyContract.waitForDeployment();
 
-  console.log("Policy deployed at :", policyContract.address);
+  console.log("Policy deployed at :", await policyContract.getAddress());
 
-  await policyContract.initialize(ethers.BigNumber.from(1));
+  await policyContract.initialize(1n);
 
   const vRelationshipsFactory =
     await ethers.getContractFactory("VRelationshipsLib");
@@ -43,30 +41,30 @@ async function main() {
 
   const didDocumentFactory = await ethers.getContractFactory("DidDocumentLib", {
     libraries: {
-      Pagination: pagination.address,
-      VRelationshipsLib: vRelationshipsLib.address,
+      Pagination: await pagination.getAddress(),
+      VRelationshipsLib: await vRelationshipsLib.getAddress(),
     },
   });
   const didDocumentLib = await didDocumentFactory.deploy();
 
   const controllersFactory = await ethers.getContractFactory("ControllersLib", {
     libraries: {
-      Pagination: pagination.address,
+      Pagination: await pagination.getAddress(),
     },
   });
   const controllersLib = await controllersFactory.deploy();
 
   const contractFactory = await ethers.getContractFactory("DidRegistry", {
     libraries: {
-      ControllersLib: controllersLib.address,
-      DidDocumentLib: didDocumentLib.address,
-      VRelationshipsLib: vRelationshipsLib.address,
+      ControllersLib: await controllersLib.getAddress(),
+      DidDocumentLib: await didDocumentLib.getAddress(),
+      VRelationshipsLib: await vRelationshipsLib.getAddress(),
     },
   });
-  const ts = await contractFactory.deploy(policyContract.address);
+  const ts = await contractFactory.deploy(await policyContract.getAddress());
   await ts.initialize(16);
 
-  console.log("DID Registry deployed at :", ts.address);
+  console.log("DID Registry deployed at :", await ts.getAddress());
   console.log(`Contract version set to: ${(await ts.version()).toString()}`);
 }
 

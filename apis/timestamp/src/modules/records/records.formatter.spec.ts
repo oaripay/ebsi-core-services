@@ -1,6 +1,5 @@
 import { multibase } from "@ebsiint-api/shared";
 import { Timestamp } from "@ebsiint-sc/timestamp";
-import { ethers } from "ethers";
 import crypto from "node:crypto";
 import { describe, expect, it } from "vitest";
 
@@ -8,14 +7,14 @@ import { formatRecords, formatRecordVersions } from "./records.formatter.js";
 
 describe("formatRecords", () => {
   const records = {
-    howMany: ethers.BigNumber.from("2"),
+    howMany: 2n,
     items: [
       `0x${crypto.randomBytes(32).toString("hex")}`,
       `0x${crypto.randomBytes(32).toString("hex")}`,
     ],
-    next: ethers.BigNumber.from("0"),
-    prev: ethers.BigNumber.from("0"),
-    total: ethers.BigNumber.from("42"),
+    next: 0n,
+    prev: 0n,
+    total: 42n,
   } as Awaited<ReturnType<Timestamp["getRecordIds"]>>;
 
   it("should use the values returned by the smart contract (except pageSize)", () => {

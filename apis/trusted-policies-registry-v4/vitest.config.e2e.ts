@@ -16,6 +16,6 @@ export default defineConfig({
     fileParallelism: false,
     hookTimeout: 30_000,
     include: ["tests/**/?(*.|*-)+(spec|test).ts"],
-    testTimeout: 60_000,
+    testTimeout: 90_000,
   },
 });

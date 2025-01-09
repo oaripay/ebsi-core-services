@@ -5,6 +5,8 @@
 // Runtime Environment's members available in the global scope.
 import { ethers } from "hardhat";
 
+import type { Timestamp } from "../src/types";
+
 async function main() {
   // Hardhat always runs the compile task when running scripts with its command
   // line interface.
@@ -25,7 +27,7 @@ async function main() {
     },
     signer: admin,
   });
-  const ts = contractFactory.attach(proxyAddress);
+  const ts = contractFactory.attach(proxyAddress) as Timestamp;
 
   console.log(
     `deployer:${deployer.address}

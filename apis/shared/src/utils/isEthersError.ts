@@ -1,33 +1,38 @@
-import { errors as EthersErrorCodes, Transaction } from "ethers";
+import type { EthersError } from "ethers";
 
-export interface EthersError extends Error {
-  address?: string;
-  args?: unknown[];
-  cancelled?: boolean;
-  // Properties from code logic
-  code: EthersErrorCodes;
-  errorArgs?: unknown[];
-  errorSignature?: string;
-  hash?: string;
-  method?: string;
-  reason: string;
-  receipt?: unknown;
-
-  replacement?: unknown;
-  /**
-   * Properties documented
-   * @see https://github.com/ethers-io/ethers.js/blob/master/packages/logger/src.ts/index.ts#L113-L148
-   */
-  transaction?: Transaction;
-  // Properties from actual error returned
-  transactionHash?: string;
-
-  version?: string;
-}
+const errorsCodes = [
+  // Generic Errors
+  "UNKNOWN_ERROR",
+  "NOT_IMPLEMENTED",
+  "UNSUPPORTED_OPERATION",
+  "NETWORK_ERROR",
+  "SERVER_ERROR",
+  "TIMEOUT",
+  "BAD_DATA",
+  "CANCELLED",
+  // Operational Errors
+  "BUFFER_OVERRUN",
+  "NUMERIC_FAULT",
+  // Argument Errors
+  "INVALID_ARGUMENT",
+  "MISSING_ARGUMENT",
+  "UNEXPECTED_ARGUMENT",
+  "VALUE_MISMATCH",
+  // Blockchain Errors
+  "CALL_EXCEPTION",
+  "INSUFFICIENT_FUNDS",
+  "NONCE_EXPIRED",
+  "REPLACEMENT_UNDERPRICED",
+  "TRANSACTION_REPLACED",
+  "UNCONFIGURED_NAME",
+  "OFFCHAIN_FAULT",
+  // User Interaction
+  "ACTION_REJECTED",
+];
 
 export function isEthersError(err: unknown): err is EthersError {
-  if (err instanceof Error && "code" in err && "reason" in err) {
-    return Object.values(EthersErrorCodes).includes((err as EthersError).code);
+  if (err instanceof Error && "code" in err && typeof err.code === "string") {
+    return Object.values(errorsCodes).includes(err.code);
   }
   return false;
 }

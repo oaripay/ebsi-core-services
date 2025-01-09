@@ -461,7 +461,7 @@ describe(
 
         const user = await createUser();
         const publicKeyJwk1 = encode.publicKey.fromHexToJWK(
-          user.wallet.publicKey,
+          user.wallet.signingKey.publicKey,
         );
         const thumbprint1 = user.thumbprint;
         const publicKeyJwk2 = {
@@ -483,7 +483,7 @@ describe(
           user.did,
           JSON.stringify({ "@context": user.didDocument["@context"] }),
           thumbprint1,
-          user.wallet.publicKey,
+          user.wallet.signingKey.publicKey,
           true,
           new Date("2022-01-01").getTime() / 1000,
           new Date("2030-01-01").getTime() / 1000,
@@ -712,7 +712,7 @@ describe(
           user.did,
           "bad base document",
           user.thumbprint,
-          user.wallet.publicKey,
+          user.wallet.signingKey.publicKey,
           true,
           now,
           now + 3600,

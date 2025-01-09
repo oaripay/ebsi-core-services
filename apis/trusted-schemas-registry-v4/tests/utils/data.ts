@@ -308,7 +308,7 @@ export const createMetadata = () => {
   const content = JSON.stringify({
     test: crypto.randomBytes(32).toString("hex"),
   });
-  const metadataId = ethers.utils.sha256(Buffer.from(content));
+  const metadataId = ethers.sha256(Buffer.from(content));
   return { content, id: metadataId };
 };
 
@@ -319,7 +319,7 @@ export const dummySchemas = Array.from({ length: SCHEMAS_TOTAL }).map(() => {
   const content = JSON.stringify(createSchema());
   const lastRevision = {
     content,
-    id: ethers.utils.sha256(Buffer.from(content)),
+    id: ethers.sha256(Buffer.from(content)),
     metadata: [createMetadata(), createMetadata(), createMetadata()],
   };
   return {
@@ -330,7 +330,7 @@ export const dummySchemas = Array.from({ length: SCHEMAS_TOTAL }).map(() => {
         const contentRevision = JSON.stringify(createSchema());
         return {
           content: contentRevision,
-          id: ethers.utils.sha256(Buffer.from(contentRevision)),
+          id: ethers.sha256(Buffer.from(contentRevision)),
           metadata: [createMetadata(), createMetadata(), createMetadata()],
         };
       }),

@@ -1,8 +1,5 @@
-import {
-  BigNumber,
-  type BigNumberish,
-  isBigNumberish,
-} from "@ethersproject/bignumber/lib/bignumber.js";
+import { isBigNumberish } from "@ebsiint-api/shared";
+import { ethers } from "ethers";
 import { z } from "zod";
 
 import { baseParamSchema } from "./BaseParamSchema.js";
@@ -16,8 +13,8 @@ export const detachRecordVersionHashSchema = baseParamSchema.merge(
     hashValue: z.string().superRefine(isHexadecimal),
     recordId: z.string().superRefine(isHexadecimal),
     versionId: z
-      .custom<BigNumberish>((val) => isBigNumberish(val))
-      .refine((val) => BigNumber.from(val).gte(0), {
+      .custom<ethers.BigNumberish>((val) => isBigNumberish(val))
+      .refine((val) => ethers.getBigInt(val) >= 0n, {
         message: "Number must be greater than or equal to 0",
       }),
   }),

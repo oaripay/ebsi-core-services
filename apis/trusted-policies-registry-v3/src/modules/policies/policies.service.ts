@@ -1,10 +1,11 @@
+import type { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry-v2";
+
 import { isEthersError, NotFoundError } from "@ebsiint-api/shared";
-import { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry-v2";
 import { Injectable, Logger } from "@nestjs/common";
-import { ethers } from "ethers";
+
+import type { PolicyResponseObject } from "./policies.interface.js";
 
 import { LedgerService } from "../ledger/ledger.service.js";
-import { PolicyResponseObject } from "./policies.interface.js";
 
 @Injectable()
 export class PoliciesService {
@@ -30,7 +31,7 @@ export class PoliciesService {
 
     return {
       description: policy.description,
-      policyId: ethers.BigNumber.from(policy.policyId).toString(),
+      policyId: BigInt(policy.policyId).toString(),
       policyName: policy.policyName,
       status: policy.status,
     };

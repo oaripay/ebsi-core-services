@@ -1,7 +1,8 @@
-import { paginate, PaginatedList } from "@ebsiint-api/shared";
-import { SchemaSCRegistry } from "@ebsiint-sc/trusted-schemas-registry";
+import type { SchemaSCRegistry } from "@ebsiint-sc/trusted-schemas-registry";
 
-import {
+import { paginate, type PaginatedList } from "@ebsiint-api/shared";
+
+import type {
   PolicyLink,
   PolicyResponseObject,
   PolicyRevisions,
@@ -13,7 +14,7 @@ export function formatPolicies(
   pageSize: number,
   baseUrl: string,
 ): PaginatedList<PolicyLink> {
-  const total = policies.total.toNumber();
+  const total = Number(policies.total);
 
   // Reshape items
   const items = policies.items.map((policyId) => ({

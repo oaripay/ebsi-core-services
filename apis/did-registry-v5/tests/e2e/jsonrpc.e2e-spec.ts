@@ -3,7 +3,6 @@ import type { RawServerDefault } from "fastify";
 import type { JWK } from "jose";
 
 import { methodNotAllowed, waitToBeMined } from "@ebsiint-api/shared";
-import { TransactionRequest } from "@ethersproject/abstract-provider";
 import { fastifyAccepts } from "@fastify/accepts";
 import { fastifyHelmet } from "@fastify/helmet";
 import { Logger, ValidationPipe } from "@nestjs/common";
@@ -68,7 +67,7 @@ interface TestUser {
   info: EbsiIssuer;
   thumbprint: string;
   token: string;
-  wallet: ethers.Wallet;
+  wallet: ethers.BaseWallet;
 }
 
 describeWriteOps()("DID Registry API v5 - JSON-RPC (e2e)", () => {
@@ -185,7 +184,7 @@ describeWriteOps()("DID Registry API v5 - JSON-RPC (e2e)", () => {
           isSecp256k1: true,
           notAfter: in6months,
           notBefore: now,
-          publicKey: user.wallet.publicKey,
+          publicKey: user.wallet.signingKey.publicKey,
           vMethodId: user.thumbprint,
         } satisfies InsertDidDocumentSchema;
 
@@ -221,10 +220,14 @@ describeWriteOps()("DID Registry API v5 - JSON-RPC (e2e)", () => {
           JSON.parse(
             JSON.stringify(unsignedTransaction),
           ) as UnsignedTransaction,
-        ) as TransactionRequest;
-        uTx.chainId = Number(uTx.chainId);
+        );
+
         const sgnTx = await user.wallet.signTransaction(uTx);
-        const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+        const signature = ethers.Transaction.from(sgnTx).signature;
+        if (!signature) {
+          throw new Error("Signature not found");
+        }
+        const { r, s, v } = signature;
 
         const responseSend: SupertestJsonRpcResponse = await request(server)
           .post("/jsonrpc")
@@ -240,7 +243,7 @@ describeWriteOps()("DID Registry API v5 - JSON-RPC (e2e)", () => {
                 s,
                 signedRawTransaction: sgnTx,
                 unsignedTransaction,
-                v: `0x${Number(v).toString(16)}`,
+                v: `0x${v.toString(16)}`,
               },
             ],
           });
@@ -257,7 +260,7 @@ describeWriteOps()("DID Registry API v5 - JSON-RPC (e2e)", () => {
           ledgerApi,
           responseSend.body.result as string,
         );
-        expect(receipt.status).toBe(1);
+        expect(receipt.status).toBe("0x1");
       });
     });
   });
@@ -476,10 +479,14 @@ describeWriteOps()("DID Registry API v5 - JSON-RPC (e2e)", () => {
           JSON.parse(
             JSON.stringify(unsignedTransaction),
           ) as UnsignedTransaction,
-        ) as TransactionRequest;
-        uTx.chainId = Number(uTx.chainId);
+        );
+
         const sgnTx = await user.wallet.signTransaction(uTx);
-        const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+        const signature = ethers.Transaction.from(sgnTx).signature;
+        if (!signature) {
+          throw new Error("Signature not found");
+        }
+        const { r, s, v } = signature;
 
         const responseSend: SupertestJsonRpcResponse = await request(server)
           .post("/jsonrpc")
@@ -495,7 +502,7 @@ describeWriteOps()("DID Registry API v5 - JSON-RPC (e2e)", () => {
                 s,
                 signedRawTransaction: sgnTx,
                 unsignedTransaction,
-                v: `0x${Number(v).toString(16)}`,
+                v: `0x${v.toString(16)}`,
               },
             ],
           });
@@ -512,7 +519,7 @@ describeWriteOps()("DID Registry API v5 - JSON-RPC (e2e)", () => {
           ledgerApi,
           responseSend.body.result as string,
         );
-        expect(receipt.status).toBe(1);
+        expect(receipt.status).toBe("0x1");
       });
     });
   });

@@ -2,10 +2,15 @@ import "../../../../contracts/did-registry/src/types/hardhat.d.ts";
 
 import hre from "hardhat";
 
-import { DidRegistry as DidRegistryV1 } from "@ebsiint-sc/did-registry";
+import type { HardhatEthersProvider } from "@nomicfoundation/hardhat-ethers/internal/hardhat-ethers-provider.js";
+
+import {
+  DidRegistry as DidRegistryV1,
+  PolicyRegistryMock,
+} from "@ebsiint-sc/did-registry";
 import canonicalize from "canonicalize";
-import { Contract, ethers } from "ethers";
-import "@nomiclabs/hardhat-ethers";
+import "@nomicfoundation/hardhat-ethers";
+import { ethers } from "ethers";
 import { Artifact, FactoryOptions } from "hardhat/types";
 import { HashName } from "multihashes";
 import crypto from "node:crypto";
@@ -18,7 +23,7 @@ interface DidDocument {
   canonicalizedDidDocument: string;
   canonicalizedDidDocumentBuffer: Buffer;
   canonicalizedDidDocumentHash: string;
-  controller: ethers.Wallet;
+  controller: ethers.HDNodeWallet;
   did: string;
   didDocument: Record<string, unknown>;
   didDocumentBuffer: Buffer;
@@ -91,7 +96,7 @@ const deployContract = async (
 ): Promise<string> => {
   const factory = await hre.ethers.getContractFactory(name, opts);
   const contract = await factory.deploy();
-  return contract.address;
+  return contract.getAddress();
 };
 
 const deployContractV1 = async (
@@ -104,7 +109,7 @@ const deployContractV1 = async (
     opts,
   );
   const contract = await factory.deploy();
-  return contract.address;
+  return contract.getAddress();
 };
 
 export interface SetupOptions {
@@ -114,22 +119,24 @@ export interface SetupOptions {
 
 export async function deployDidRegistryContract(): Promise<{
   didRegistryV1Contract: DidRegistryV1;
-  policyContractMock: Contract;
+  policyContractMock: PolicyRegistryMock;
 }> {
   // mock trusted policies registry
   const testTprAddress = "0xb2a560271ce08135e245F490b8794794A13a1208";
   const policyRegistryFactory =
     await hre.ethers.getContractFactory("PolicyRegistryMock");
   const tempPolicyContract = await policyRegistryFactory.deploy();
-  await tempPolicyContract.deployed();
+
   const bytecode = await hre.ethers.provider.getCode(
-    tempPolicyContract.address,
+    await tempPolicyContract.getAddress(),
   );
   await hre.network.provider.send("hardhat_setCode", [
     testTprAddress,
     bytecode,
   ]);
-  const policyContractMock = policyRegistryFactory.attach(testTprAddress);
+  const policyContractMock = policyRegistryFactory.attach(
+    testTprAddress,
+  ) as PolicyRegistryMock;
 
   const paginationAddress = await deployContract("Pagination");
   const linkLibPagination = {
@@ -155,7 +162,7 @@ export async function deployDidRegistryContract(): Promise<{
 
   const didRegistryV1Contract = (await didRegistryV1ContractFactory.deploy(
     testTprAddress,
-  )) as DidRegistryV1;
+  )) as unknown as DidRegistryV1;
   await didRegistryV1Contract.initialize(1);
   await didRegistryV1Contract.setTrustedPoliciesRegistryAddress();
 
@@ -169,10 +176,10 @@ export async function deployDidRegistryContract(): Promise<{
 
 export async function insertDidDocument(
   contract: DidRegistryV1,
-  ethersProvider: ethers.providers.JsonRpcProvider,
+  ethersProvider: HardhatEthersProvider,
   did: string,
   hashAlgorithmIanaName: string,
-  defaultController?: ethers.Wallet,
+  defaultController?: ethers.HDNodeWallet,
 ): Promise<DidDocument> {
   const didDocument = createDidDocument(did);
   const didDocumentBuffer = Buffer.from(JSON.stringify(didDocument));
@@ -202,7 +209,10 @@ export async function insertDidDocument(
   const didVersionMetadataHex = `0x${didVersionMetadataBuffer.toString("hex")}`;
 
   const controller =
-    defaultController ?? ethers.Wallet.createRandom().connect(ethersProvider);
+    defaultController ??
+    ethers.Wallet.createRandom().connect(
+      ethersProvider as unknown as ethers.Provider,
+    );
 
   await contract.insertDidDocument(
     identifier,
@@ -266,12 +276,12 @@ export async function setupTestEnv({
   didDocumentsTotal = 1,
   hashAlgorithmsTotal = 1,
 }: SetupOptions = {}): Promise<{
-  defaultController: ethers.Wallet;
+  defaultController: ethers.HDNodeWallet;
   didDocuments: DidDocument[];
   didRegistryV1Contract: DidRegistryV1;
   hashAlgorithms: HashAlgorithmObject[];
-  policyContractMock: Contract;
-  provider: ethers.providers.JsonRpcProvider;
+  policyContractMock: PolicyRegistryMock;
+  provider: HardhatEthersProvider;
 }> {
   const ethersProvider = hre.ethers.provider;
   const hashAlgorithms: HashAlgorithmObject[] = [];

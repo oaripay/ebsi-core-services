@@ -85,7 +85,7 @@ export default class IdentifiersService {
             (v) => v.id === `${did}#${relationship.vMethodId}`,
           );
           if (vMethod) {
-            const vMethodAddress = ethers.utils.computeAddress(
+            const vMethodAddress = ethers.computeAddress(
               vMethod.publicKey as string,
             );
             if (vMethodAddress.toLowerCase() === address.toLowerCase()) {
@@ -271,11 +271,15 @@ export default class IdentifiersService {
           const identifiers = res.didDocuments.map((d) => d.id);
           return { items: identifiers };
         } catch (error) {
-          if ((error as Error).message.includes(`"controller doesn't exist"`)) {
+          if (
+            error instanceof Error &&
+            error.message.includes("controller doesn't exist")
+          ) {
             throw new NotFoundError(NotFoundError.defaultTitle, {
               detail: `Controller ${controller} not found`,
             });
           }
+
           throw new Error(getErrorMessage(error));
         }
       }
@@ -291,11 +295,15 @@ export default class IdentifiersService {
         const identifiers = res.didDocuments.map((d) => d.id);
         return { items: identifiers };
       } catch (error) {
-        if ((error as Error).message.includes(`"controller doesn't exist"`)) {
+        if (
+          error instanceof Error &&
+          error.message.includes("controller doesn't exist")
+        ) {
           throw new NotFoundError(NotFoundError.defaultTitle, {
             detail: `Controller ${controller} not found`,
           });
         }
+
         throw new Error(getErrorMessage(error));
       }
     }

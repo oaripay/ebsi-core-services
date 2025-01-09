@@ -6,7 +6,7 @@ import {
   NotFoundError,
 } from "@ebsiint-api/shared";
 import { Injectable, Logger } from "@nestjs/common";
-import { utils } from "ethers";
+import { ethers } from "ethers";
 
 import type { Access } from "./accesses.interface.js";
 
@@ -43,7 +43,7 @@ export default class AccessesService {
         // do not update documentIds
         break;
       }
-    } while (accessesBySubject.total.gt((currentPage - 1) * pageSize));
+    } while (Number(accessesBySubject.total) > (currentPage - 1) * pageSize);
 
     const accesses: Access[] = [];
     await Promise.all(
@@ -80,7 +80,7 @@ export default class AccessesService {
     try {
       res = await this.ledgerService
         .getContract()
-        .isCreator(utils.toUtf8Bytes(did));
+        .isCreator(ethers.toUtf8Bytes(did));
     } catch (error) {
       if (isEthersError(error)) {
         this.logger.error(error, error.stack);

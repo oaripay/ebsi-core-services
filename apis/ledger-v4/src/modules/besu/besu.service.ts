@@ -78,7 +78,10 @@ const jsonRpcErrorCodeToHttpCode = (code: number): number => {
 
 @Injectable()
 export class BesuService implements OnModuleDestroy {
-  private ethersProvider: ethers.providers.JsonRpcProvider | undefined;
+  private ethersProvider:
+    | ethers.JsonRpcProvider
+    | ethers.WebSocketProvider
+    | undefined;
 
   private readonly logger = new Logger(BesuService.name);
 
@@ -112,19 +115,22 @@ export class BesuService implements OnModuleDestroy {
     // Useful for local testing
     if (besuRpcNode.startsWith("http")) {
       const { origin, password, pathname, username } = new URL(besuRpcNode);
-      this.ethersProvider = new ethers.providers.JsonRpcProvider({
-        timeout: this.timeout,
-        url: `${origin}${pathname}`,
-        ...(username &&
-          password && {
-            password,
-            user: username,
-          }),
-      });
+      const fetchRequest = new ethers.FetchRequest(`${origin}${pathname}`);
+      fetchRequest.timeout = this.timeout;
+      if (username && password) {
+        fetchRequest.setCredentials(username, password);
+      }
+      this.ethersProvider = new ethers.JsonRpcProvider(
+        fetchRequest,
+        undefined,
+        {
+          staticNetwork: true, // Do not request chain ID on requests to validate the underlying chain has not changed
+        },
+      );
       return;
     }
 
-    this.ethersProvider = new ethers.providers.WebSocketProvider(besuRpcNode);
+    this.ethersProvider = new ethers.WebSocketProvider(besuRpcNode);
     /* global NodeJS */
     let pingTimeout: NodeJS.Timeout;
     let keepAliveInterval: NodeJS.Timeout;
@@ -132,9 +138,7 @@ export class BesuService implements OnModuleDestroy {
     // Reconnect WS on accidental close
     // Inspired by https://github.com/ethers-io/ethers.js/issues/1053#issuecomment-808736570
 
-    const websocket = (
-      this.ethersProvider as ethers.providers.WebSocketProvider
-    )._websocket as WebSocket;
+    const websocket = this.ethersProvider.websocket as WebSocket;
 
     if (!websocket) {
       // Allow websocket to be undefined during unit tests
@@ -177,7 +181,7 @@ export class BesuService implements OnModuleDestroy {
   async onModuleDestroy(): Promise<void> {
     if (
       this.ethersProvider &&
-      this.ethersProvider instanceof ethers.providers.WebSocketProvider &&
+      this.ethersProvider instanceof ethers.WebSocketProvider &&
       this.ethersProvider.destroy
     ) {
       this.reconnectWebSocket = false;

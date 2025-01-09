@@ -14,7 +14,7 @@ import { ethers } from "ethers";
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
-import { createUser, UserDetails } from "../../../tests/utils/data.js";
+import { createUser, type UserDetails } from "../../../tests/utils/data.js";
 import { setupTestEnv } from "../../../tests/utils/didRegistry.js";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
 import { LedgerService } from "../ledger/ledger.service.js";
@@ -431,7 +431,7 @@ describe("Identifiers Module", () => {
 
       const user = await createUser();
       const publicKeyJwk1 = encode.publicKey.fromHexToJWK(
-        user.wallet.publicKey,
+        user.wallet.signingKey.publicKey,
       );
       const thumbprint1 = user.thumbprint;
       const publicKeyJwk2 = {
@@ -453,7 +453,7 @@ describe("Identifiers Module", () => {
         user.did,
         JSON.stringify({ "@context": user.didDocument["@context"] }),
         thumbprint1,
-        user.wallet.publicKey,
+        user.wallet.signingKey.publicKey,
         true,
         new Date("2022-01-01").getTime() / 1000,
         new Date("2030-01-01").getTime() / 1000,
@@ -682,7 +682,7 @@ describe("Identifiers Module", () => {
         user.did,
         "bad base document",
         user.thumbprint,
-        user.wallet.publicKey,
+        user.wallet.signingKey.publicKey,
         true,
         now,
         now + 3600,
@@ -704,7 +704,7 @@ describe("Identifiers Module", () => {
         user.did,
         JSON.stringify(user.didDocument["@context"]),
         user.thumbprint,
-        user.wallet.publicKey,
+        user.wallet.signingKey.publicKey,
         true,
         now,
         now + 3600,
@@ -784,6 +784,7 @@ describe("Identifiers Module", () => {
     it("should throw an error for bad use of actions", async () => {
       const randomAddress = ethers.Wallet.createRandom().address;
       const { did } = users[0]!;
+
       let response = await request(server)
         .post(`/identifiers/bad-did/actions`)
         .send({

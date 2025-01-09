@@ -1,6 +1,7 @@
-import "@typechain/hardhat";
-import "@nomiclabs/hardhat-waffle";
+import "@gnosis-guild/typechain-hardhat";
+import "@nomicfoundation/hardhat-chai-matchers";
 import "@nomiclabs/hardhat-solhint";
+import "@nomicfoundation/hardhat-ethers";
 import "hardhat-abi-exporter";
 import "solidity-coverage";
 import { HardhatUserConfig, task } from "hardhat/config";
@@ -59,7 +60,7 @@ const config: HardhatUserConfig = {
   },
   typechain: {
     outDir: "src/types",
-    target: "ethers-v5",
+    target: require.resolve("@gnosis-guild/typechain-ethers-v6"),
   },
 };
 

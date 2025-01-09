@@ -2,10 +2,16 @@ import "../../../../contracts/trusted-schemas-registry/src/types/hardhat.d.ts";
 
 import hre from "hardhat";
 
-import "@nomiclabs/hardhat-ethers";
+import "@nomicfoundation/hardhat-ethers";
+
+import type {
+  PolicyRegistryMock,
+  SchemaSCRegistry,
+} from "@ebsiint-sc/trusted-schemas-registry";
+import type { HardhatEthersProvider } from "@nomicfoundation/hardhat-ethers/internal/hardhat-ethers-provider.js";
+
 import { computeId } from "@ebsiint-api/shared";
-import { SchemaSCRegistry } from "@ebsiint-sc/trusted-schemas-registry";
-import { Contract, ethers } from "ethers";
+import { ethers } from "ethers";
 import crypto from "node:crypto";
 
 import { createDid, createSchema } from "./data.js";
@@ -39,33 +45,35 @@ interface SchemaObject {
 
 interface User {
   did: string;
-  wallet: ethers.Wallet;
+  wallet: ethers.BaseWallet;
 }
 
 export async function deploySchemasRegistryContract(): Promise<{
-  policyContractMock: Contract;
+  policyContractMock: PolicyRegistryMock;
   schemasRegistryContract: SchemaSCRegistry;
 }> {
   const testTprAddress = "0xb2a560271ce08135e245F490b8794794A13a1208";
   const policyRegistryFactory =
     await hre.ethers.getContractFactory("PolicyRegistryMock");
   const tempPolicyContract = await policyRegistryFactory.deploy();
-  await tempPolicyContract.deployed();
+
   const bytecode = await hre.ethers.provider.getCode(
-    tempPolicyContract.address,
+    await tempPolicyContract.getAddress(),
   );
   await hre.network.provider.send("hardhat_setCode", [
     testTprAddress,
     bytecode,
   ]);
-  const policyContractMock = policyRegistryFactory.attach(testTprAddress);
+  const policyContractMock = policyRegistryFactory.attach(
+    testTprAddress,
+  ) as PolicyRegistryMock;
 
   const paginationFactory = await hre.ethers.getContractFactory("Pagination");
   const pagination = await paginationFactory.deploy();
 
   const schemaLibFactory = await hre.ethers.getContractFactory("SchemaLib", {
     libraries: {
-      Pagination: pagination.address,
+      Pagination: await pagination.getAddress(),
     },
   });
   const schemaLib = await schemaLibFactory.deploy();
@@ -74,8 +82,8 @@ export async function deploySchemasRegistryContract(): Promise<{
     "SchemaSCRegistry",
     {
       libraries: {
-        Pagination: pagination.address,
-        SchemaLib: schemaLib.address,
+        Pagination: await pagination.getAddress(),
+        SchemaLib: await schemaLib.getAddress(),
       },
     },
   );
@@ -100,7 +108,7 @@ export async function insertPolicy(
   };
 
   const policyBuffer = Buffer.from(JSON.stringify(policyData));
-  const policyHash = ethers.utils.sha256(policyBuffer);
+  const policyHash = ethers.sha256(policyBuffer);
 
   await contract.insertPolicy(policyId, policyBuffer);
 
@@ -138,9 +146,9 @@ export async function insertSchema(
 
 export async function setupTestEnv(opts: SetupOptions): Promise<{
   policies: PolicyObject[];
-  policyContractMock: Contract;
+  policyContractMock: PolicyRegistryMock;
   policyRevisions: Record<string, PolicyObject[]>;
-  provider: ethers.providers.JsonRpcProvider;
+  provider: HardhatEthersProvider;
   schemaMetadata: SchemaMetadataObject[];
   schemaRevisions: SchemaObject[];
   schemas: SchemaObject[];
@@ -170,6 +178,7 @@ export async function setupTestEnv(opts: SetupOptions): Promise<{
   // Insert fake data
   const createWallet = () => {
     // Create random wallet and connect it so we can use it later to send transactions
+    // @ts-expect-error Error due to contracts using CommonJS modules
     const wallet = ethers.Wallet.createRandom().connect(ethersProvider);
     const did = createDid();
     return { did, wallet };
@@ -189,7 +198,7 @@ export async function setupTestEnv(opts: SetupOptions): Promise<{
     );
   }
 
-  const schemaRevisionId = ethers.utils.sha256(schemas[0]!.serializedSchema);
+  const schemaRevisionId = ethers.sha256(schemas[0]!.serializedSchema);
   const schemaMetadata: SchemaMetadataObject[] = [];
   for (let i = 0, k = Math.max(0, schemaMetadataTotal - 1); i < k; i++) {
     schemaMetadata.push(
@@ -268,7 +277,7 @@ export async function updatePolicy(
   };
 
   const policyBuffer = Buffer.from(JSON.stringify(policyData));
-  const policyHash = ethers.utils.sha256(policyBuffer);
+  const policyHash = ethers.sha256(policyBuffer);
 
   await contract.updatePolicy(policyId, policyBuffer);
 

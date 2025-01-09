@@ -1,7 +1,8 @@
-import { paginate, PaginatedList } from "@ebsiint-api/shared";
-import { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry";
+import type { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry";
 
-import { PolicyLink } from "./policies.interface.js";
+import { paginate, type PaginatedList } from "@ebsiint-api/shared";
+
+import type { PolicyLink } from "./policies.interface.js";
 
 export function formatPolicies(
   policies: Awaited<ReturnType<PolicyRegistry["getPolicyNames"]>>,
@@ -9,7 +10,7 @@ export function formatPolicies(
   pageSize: number,
   baseUrl: string,
 ): PaginatedList<PolicyLink> {
-  const total = policies.total.toNumber();
+  const total = Number(policies.total);
 
   // Reshape items
   const items = policies.items.map((policyName) => {

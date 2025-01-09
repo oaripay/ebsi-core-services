@@ -26,7 +26,7 @@ describe("Policies Module", () => {
   let ledgerService: LedgerService;
 
   beforeAll(async () => {
-    // Spin up test blockchain (ganache)
+    // Spin up test blockchain
     testEnv = await setupTestEnv({
       policiesRevisionsTotal: POLICIES_REVISIONS_TOTAL,
       policiesTotal: POLICIES_TOTAL,

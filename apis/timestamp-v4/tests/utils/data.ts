@@ -15,7 +15,7 @@ export interface UserDetails {
   privateKeyJwk: JsonWebKey;
   publicKeyJwk: JsonWebKey;
   thumbprint: string;
-  wallet: ethers.Wallet;
+  wallet: ethers.BaseWallet;
 }
 
 export async function createUser(wallet?: ethers.Wallet): Promise<UserDetails> {
@@ -25,7 +25,7 @@ export async function createUser(wallet?: ethers.Wallet): Promise<UserDetails> {
     w.privateKey,
   ) as unknown as JsonWebKey;
   const publicKeyJwk = encode.publicKey.fromHexToJWK(
-    w.publicKey,
+    w.signingKey.publicKey,
   ) as unknown as JsonWebKey;
   const thumbprint = await calculateJwkThumbprint(publicKeyJwk, "sha256");
 

@@ -1,15 +1,18 @@
+import type { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
+import type { BytesLike, HDNodeWallet, Result, Wallet } from "ethers";
 import type { HardhatNetworkHDAccountsConfig } from "hardhat/types";
 
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { getImplementationAddress } from "@openzeppelin/upgrades-core";
 import { expect } from "chai";
-import { BytesLike, Wallet } from "ethers";
+import { Mnemonic } from "ethers";
 import { config, ethers, upgrades } from "hardhat";
 import { randomBytes } from "node:crypto";
 
-import type { TrackAndTrace } from "../src/types";
-
-import { DidRegistryMock, PolicyRegistryMock } from "../dist";
+import type {
+  DidRegistryMock,
+  PolicyRegistryMock,
+  TrackAndTrace,
+} from "../src/types";
 
 const DELEGATE_ACCESS = 0;
 const WRITE_ACCESS = 1;
@@ -17,29 +20,43 @@ const CREATOR_ACCESS = 2;
 const DID_EBSI_ACCOUNT_TYPE = 0;
 const DID_KEY_ACCOUNT_TYPE = 1;
 
-function getEthObject(o: unknown): Record<string, unknown> | unknown[] {
-  const obj = o as Record<string, unknown> & string[];
-  const keys = Object.keys(obj);
+function decodeResult(result: unknown): Record<string, unknown> {
+  // Recursively fix the result object
+  return fixObject((result as Result).toObject(true));
+}
 
-  // check if it is a string
-  if (typeof obj === "string") return obj;
+function fixObject(result: Record<string, unknown>): Record<string, unknown> {
+  const keys = Object.keys(result);
 
-  // check if it is an array
-  if (keys.at(-1) === String(keys.length - 1)) {
-    return (o as unknown[]).map((item) => getEthObject(item));
+  const res: Record<string, unknown> = {};
+  for (const key of keys) {
+    const val = result[key];
+    res[key] = fixValue(val);
   }
 
-  // check if it is a buffer
-  if (keys[0] !== "0") return obj;
+  return res;
+}
 
-  // treat it as object. ["alice", "name": "alice"] ==> { "name" : "alice" }
-  const result: Record<string, unknown> = {};
-  for (const [i, k] of keys.entries()) {
-    if (i < keys.length / 2) continue;
-
-    result[k] = typeof obj[k] === "object" ? getEthObject(obj[k]) : obj[k];
+function fixValue(val: unknown): unknown {
+  if (typeof val !== "object" || val === null) {
+    return val;
   }
-  return result;
+
+  if (Array.isArray(val)) {
+    return val.map((v) => fixValue(v));
+  }
+
+  // Replace empty objects with empty arrays
+  if (Object.keys(val).length === 0) {
+    return [];
+  }
+
+  // When ethers.js returns an object with only one key "_", it should be converted into a single-item array
+  if (Object.keys(val).length === 1 && "_" in val) {
+    return [fixValue(val._)];
+  }
+
+  return fixObject(val as Record<string, unknown>);
 }
 
 describe("TrackAndTrace - tests", () => {
@@ -50,7 +67,7 @@ describe("TrackAndTrace - tests", () => {
   const creatorAccount = "didEbsi";
   const writerAccount = "didWriter";
   const delegateAccount = "didDelegate";
-  let randomWallet: Wallet;
+  let randomWallet: HDNodeWallet;
   let randomWalletWithSigner: Wallet;
   let trackAndTrace: TrackAndTrace;
   let didRegistryMock: DidRegistryMock;
@@ -100,30 +117,32 @@ describe("TrackAndTrace - tests", () => {
 
     const trackAndTraceFactory = await ethers.getContractFactory(
       "TrackAndTrace",
-      { libraries: { TrackAndTraceLib: trackAndTraceLibContract.address } },
+      {
+        libraries: {
+          TrackAndTraceLib: await trackAndTraceLibContract.getAddress(),
+        },
+      },
     );
 
     // deploy TPR mock
     const policyRegistryFactory =
       await ethers.getContractFactory("PolicyRegistryMock");
-    tprMock =
-      (await policyRegistryFactory.deploy()) as unknown as PolicyRegistryMock;
+    tprMock = await policyRegistryFactory.deploy();
 
     // deploy DID mock
     const didMockFactory = await ethers.getContractFactory("DidRegistryMock");
-    didRegistryMock =
-      (await didMockFactory.deploy()) as unknown as DidRegistryMock;
+    didRegistryMock = await didMockFactory.deploy();
 
-    trackAndTrace = (await upgrades.deployProxy(
+    trackAndTrace = await upgrades.deployProxy(
       trackAndTraceFactory,
       [
         admin.address,
         upgrader.address,
-        tprMock.address,
-        didRegistryMock.address,
+        await tprMock.getAddress(),
+        await didRegistryMock.getAddress(),
       ],
       { unsafeAllowLinkedLibraries: true },
-    )) as unknown as TrackAndTrace;
+    );
 
     await didRegistryMock.setDidResult(true);
     await tprMock.setPolicyResult(true);
@@ -139,17 +158,16 @@ describe("TrackAndTrace - tests", () => {
         trackAndTrace.initialize(
           admin.address,
           upgrader.address,
-          tprMock.address,
-          didRegistryMock.address,
+          await tprMock.getAddress(),
+          await didRegistryMock.getAddress(),
         ),
       ).to.be.revertedWith("Initializable: contract is already initialized");
     });
 
     it("should reinitialize", async () => {
-      await expect(trackAndTrace.initializeV2(tprMock.address)).to.emit(
-        trackAndTrace,
-        "ContractReinitialized",
-      );
+      await expect(
+        trackAndTrace.initializeV2(await tprMock.getAddress()),
+      ).to.emit(trackAndTrace, "ContractReinitialized");
     });
 
     it("should be reverted if the wallet is not controller of did ebsi", async () => {
@@ -158,7 +176,7 @@ describe("TrackAndTrace - tests", () => {
         trackAndTrace
           .connect(broadcaster)
           .authoriseDid("didebsi", creatorAccount, true),
-      ).to.be.revertedWith("NotDidController");
+      ).to.be.revertedWithCustomError(trackAndTrace, "NotDidController");
     });
 
     it("should revert if user not upgrader", async () => {
@@ -170,7 +188,11 @@ describe("TrackAndTrace - tests", () => {
 
       const trackAndTraceFactory = await ethers.getContractFactory(
         "TrackAndTrace",
-        { libraries: { TrackAndTraceLib: trackAndTraceLibContract.address } },
+        {
+          libraries: {
+            TrackAndTraceLib: await trackAndTraceLibContract.getAddress(),
+          },
+        },
       );
       const newTrackAndTraceImplementation =
         await trackAndTraceFactory.deploy();
@@ -178,14 +200,14 @@ describe("TrackAndTrace - tests", () => {
       await expect(
         trackAndTrace
           .connect(broadcaster)
-          .upgradeTo(newTrackAndTraceImplementation.address),
-      ).to.be.revertedWith("NotUpgrader");
+          .upgradeTo(await newTrackAndTraceImplementation.getAddress()),
+      ).to.be.revertedWithCustomError(trackAndTrace, "NotUpgrader");
     });
 
     it("should revert if the external timestamp is zero", async () => {
       await didRegistryMock.setDidResult(true);
-      const documentHash = ethers.utils.formatBytes32String("e68905e6");
-      const proof = ethers.utils.formatBytes32String("ab4567");
+      const documentHash = ethers.encodeBytes32String("e68905e6");
+      const proof = ethers.encodeBytes32String("ab4567");
       const metadata = "metadata";
       await expect(
         trackAndTrace
@@ -193,7 +215,7 @@ describe("TrackAndTrace - tests", () => {
           [
             "createDocument(bytes32,string,string,uint256,bytes32)"
           ](documentHash, metadata, creatorAccount, 0, proof),
-      ).to.revertedWith("InvalidTimestamp");
+      ).to.be.revertedWithCustomError(trackAndTrace, "InvalidTimestamp");
     });
 
     it("should restrict authorizeDid function to only users with TPR attributes", async () => {
@@ -209,7 +231,7 @@ describe("TrackAndTrace - tests", () => {
     });
 
     it("should create document", async () => {
-      const documentHash = ethers.utils.formatBytes32String("e68905e6");
+      const documentHash = ethers.encodeBytes32String("e68905e6");
       const metadata = "metadata";
       await didRegistryMock.setDidResult(true);
       await expect(
@@ -222,7 +244,7 @@ describe("TrackAndTrace - tests", () => {
     });
 
     it("should remove document", async () => {
-      const documentHash = ethers.utils.formatBytes32String("remove01");
+      const documentHash = ethers.encodeBytes32String("remove01");
       await didRegistryMock.setDidResult(true);
       await createDocument(documentHash);
       await trackAndTrace.connect(broadcaster).removeDocument(documentHash);
@@ -237,7 +259,7 @@ describe("TrackAndTrace - tests", () => {
       const implInContract = await trackAndTrace.getImplementation();
       const implAddress = await getImplementationAddress(
         ethers.provider,
-        trackAndTrace.address,
+        await trackAndTrace.getAddress(),
       );
       expect(implInContract).to.be.equal(implAddress);
     });
@@ -247,33 +269,33 @@ describe("TrackAndTrace - tests", () => {
       for (let i = 0; i < 10; ) {
         i += 1;
 
-        await createDocument(ethers.utils.formatBytes32String(`randomDoc${i}`));
+        await createDocument(ethers.encodeBytes32String(`randomDoc${i}`));
       }
       const docs = await trackAndTrace.getDocuments(1, 1);
       expect(docs).to.be.deep.equal([
-        [ethers.utils.formatBytes32String("e68905e6")],
-        ethers.BigNumber.from(11),
-        ethers.BigNumber.from(1),
-        ethers.BigNumber.from(1),
-        ethers.BigNumber.from(2),
+        [ethers.encodeBytes32String("e68905e6")],
+        BigInt(11),
+        1n,
+        1n,
+        2n,
       ]);
-      const docHash = ethers.utils.formatBytes32String("e68905e6");
+      const docHash = ethers.encodeBytes32String("e68905e6");
       const doc = await trackAndTrace.getDocument(docHash);
       expect(doc.creator).to.be.equal("didEbsi");
     });
 
     it("should grant delegate access to a did ebsi", async () => {
-      const documentHash = ethers.utils.formatBytes32String("delegate01");
+      const documentHash = ethers.encodeBytes32String("delegate01");
       await createDocument(documentHash);
       await didRegistryMock.setDidResult(true);
-      const subjectAccount = ethers.utils.toUtf8Bytes(delegateAccount);
+      const subjectAccount = ethers.toUtf8Bytes(delegateAccount);
 
       await expect(
         trackAndTrace
           .connect(broadcaster)
           .grantAccess(
             documentHash,
-            ethers.utils.toUtf8Bytes(creatorAccount),
+            ethers.toUtf8Bytes(creatorAccount),
             subjectAccount,
             DID_EBSI_ACCOUNT_TYPE,
             DID_EBSI_ACCOUNT_TYPE,
@@ -283,8 +305,8 @@ describe("TrackAndTrace - tests", () => {
         .to.emit(trackAndTrace, "AccessGranted")
         .withArgs(
           documentHash,
-          ethers.utils.hexlify(subjectAccount),
-          ethers.utils.hexlify(ethers.utils.toUtf8Bytes(creatorAccount)),
+          ethers.hexlify(subjectAccount),
+          ethers.hexlify(ethers.toUtf8Bytes(creatorAccount)),
           0,
         );
       const accesses = await trackAndTrace.getAccessesByDocument(
@@ -294,36 +316,36 @@ describe("TrackAndTrace - tests", () => {
       );
       expect(accesses).to.be.deep.equal([
         [
-          ethers.utils.hexlify(ethers.utils.toUtf8Bytes(creatorAccount)),
-          ethers.utils.hexlify(subjectAccount),
+          ethers.hexlify(ethers.toUtf8Bytes(creatorAccount)),
+          ethers.hexlify(subjectAccount),
         ],
-        ethers.BigNumber.from(2),
-        ethers.BigNumber.from(2),
-        ethers.BigNumber.from(1),
-        ethers.BigNumber.from(1),
+        2n,
+        2n,
+        1n,
+        1n,
       ]);
       const accessesBySubject = await trackAndTrace.getAccessesBySubject(
-        ethers.utils.toUtf8Bytes(creatorAccount),
+        ethers.toUtf8Bytes(creatorAccount),
         1,
         1,
       );
       expect(accessesBySubject.items[0]).to.be.equal(
-        ethers.utils.formatBytes32String("e68905e6"),
+        ethers.encodeBytes32String("e68905e6"),
       );
     });
 
     it("should check if did is creator", async () => {
       expect(
-        await trackAndTrace.isCreator(ethers.utils.toUtf8Bytes(creatorAccount)),
+        await trackAndTrace.isCreator(ethers.toUtf8Bytes(creatorAccount)),
       ).to.be.equal(true);
     });
 
     it("should grant delegate access to a did key", async () => {
-      const documentHash = ethers.utils.formatBytes32String("delegate02");
+      const documentHash = ethers.encodeBytes32String("delegate02");
       await didRegistryMock.setDidResult(true);
       await createDocument(documentHash);
-      const creatorAcc = ethers.utils.toUtf8Bytes(creatorAccount);
-      const subjectAccount = ethers.utils.toUtf8Bytes(delegateAccount);
+      const creatorAcc = ethers.toUtf8Bytes(creatorAccount);
+      const subjectAccount = ethers.toUtf8Bytes(delegateAccount);
 
       await expect(
         trackAndTrace
@@ -340,18 +362,18 @@ describe("TrackAndTrace - tests", () => {
         .to.emit(trackAndTrace, "AccessGranted")
         .withArgs(
           documentHash,
-          ethers.utils.hexlify(subjectAccount),
-          ethers.utils.hexlify(creatorAcc),
+          ethers.hexlify(subjectAccount),
+          ethers.hexlify(creatorAcc),
           0,
         );
     });
 
     it("should give write access with did key", async () => {
-      const documentHash = ethers.utils.formatBytes32String("delegate03");
+      const documentHash = ethers.encodeBytes32String("delegate03");
       await didRegistryMock.setDidResult(true);
       await createDocument(documentHash);
-      const creatorAcc = ethers.utils.toUtf8Bytes(creatorAccount);
-      const subjectKeyAccount = randomWallet.publicKey;
+      const creatorAcc = ethers.toUtf8Bytes(creatorAccount);
+      const subjectKeyAccount = randomWallet.signingKey.publicKey;
 
       await trackAndTrace
         .connect(broadcaster)
@@ -384,7 +406,7 @@ describe("TrackAndTrace - tests", () => {
     });
 
     it("should grant write access with delegate account", async () => {
-      const documentHash = ethers.utils.formatBytes32String("write01");
+      const documentHash = ethers.encodeBytes32String("write01");
       await didRegistryMock.setDidResult(true);
       await tprMock.setPolicyResult(true);
       await createDocument(documentHash);
@@ -395,13 +417,13 @@ describe("TrackAndTrace - tests", () => {
       );
       await grantAccess(
         documentHash,
-        ethers.utils.toUtf8Bytes(creatorAccount),
-        ethers.utils.toUtf8Bytes(delegateAccount),
+        ethers.toUtf8Bytes(creatorAccount),
+        ethers.toUtf8Bytes(delegateAccount),
         DELEGATE_ACCESS,
       );
 
-      const creatorAcc = ethers.utils.toUtf8Bytes(delegateAccount);
-      const subjectAcc = ethers.utils.toUtf8Bytes(writerAccount);
+      const creatorAcc = ethers.toUtf8Bytes(delegateAccount);
+      const subjectAcc = ethers.toUtf8Bytes(writerAccount);
 
       // FIXME: this test doesn't work as expected
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
@@ -423,8 +445,8 @@ describe("TrackAndTrace - tests", () => {
       const documentHash = `0x${randomBytes(32).toString("hex")}`;
       await didRegistryMock.setDidResult(true);
       await createDocument(documentHash);
-      const creatorAcc = ethers.utils.toUtf8Bytes(creatorAccount);
-      const subjectAccount = ethers.utils.toUtf8Bytes(delegateAccount);
+      const creatorAcc = ethers.toUtf8Bytes(creatorAccount);
+      const subjectAccount = ethers.toUtf8Bytes(delegateAccount);
       await grantAccess(
         documentHash,
         creatorAcc,
@@ -443,15 +465,15 @@ describe("TrackAndTrace - tests", () => {
             subjectAccount,
             DELEGATE_ACCESS,
           ),
-      ).to.be.revertedWith("OnlyAccessGranter");
+      ).to.be.revertedWithCustomError(trackAndTrace, "OnlyAccessGranter");
     });
 
     it("should revoke delegate account", async () => {
-      const documentHash = ethers.utils.formatBytes32String("delegate04");
+      const documentHash = ethers.encodeBytes32String("delegate04");
       await didRegistryMock.setDidResult(true);
       await createDocument(documentHash);
-      const creatorAcc = ethers.utils.toUtf8Bytes(creatorAccount);
-      const subjectAccount = ethers.utils.toUtf8Bytes(delegateAccount);
+      const creatorAcc = ethers.toUtf8Bytes(creatorAccount);
+      const subjectAccount = ethers.toUtf8Bytes(delegateAccount);
       await grantAccess(
         documentHash,
         creatorAcc,
@@ -472,16 +494,16 @@ describe("TrackAndTrace - tests", () => {
         .to.emit(trackAndTrace, "AccessRevoked")
         .withArgs(
           documentHash,
-          ethers.utils.hexlify(subjectAccount),
-          ethers.utils.hexlify(creatorAcc),
+          ethers.hexlify(subjectAccount),
+          ethers.hexlify(creatorAcc),
         );
     });
 
     it("should revoke write account", async () => {
-      const documentHash = ethers.utils.formatBytes32String("write02");
+      const documentHash = ethers.encodeBytes32String("write02");
       await createDocument(documentHash);
-      const creatorAcc = ethers.utils.toUtf8Bytes(creatorAccount);
-      const subjectAccount = ethers.utils.toUtf8Bytes(writerAccount);
+      const creatorAcc = ethers.toUtf8Bytes(creatorAccount);
+      const subjectAccount = ethers.toUtf8Bytes(writerAccount);
       await grantAccess(documentHash, creatorAcc, subjectAccount, WRITE_ACCESS);
 
       await expect(
@@ -492,15 +514,15 @@ describe("TrackAndTrace - tests", () => {
         .to.emit(trackAndTrace, "AccessRevoked")
         .withArgs(
           documentHash,
-          ethers.utils.hexlify(subjectAccount),
-          ethers.utils.hexlify(creatorAcc),
+          ethers.hexlify(subjectAccount),
+          ethers.hexlify(creatorAcc),
         );
     });
 
     it("should write event and get events", async () => {
-      const documentHash = ethers.utils.formatBytes32String("writeEvent01");
+      const documentHash = ethers.encodeBytes32String("writeEvent01");
       const externalHash = "externalHash";
-      const sender = ethers.utils.toUtf8Bytes(creatorAccount);
+      const sender = ethers.toUtf8Bytes(creatorAccount);
       const origin = "origin";
       const metadata = "metadata";
       await createDocument(documentHash);
@@ -516,19 +538,16 @@ describe("TrackAndTrace - tests", () => {
             sender,
           }),
       ).to.emit(trackAndTrace, "EventWritten");
+
       const events = await trackAndTrace.getEvents(documentHash, 1, 1);
 
-      expect(events).to.deep.equal([
-        [ethers.utils.keccak256(ethers.utils.toUtf8Bytes(externalHash))],
-        ethers.BigNumber.from(1),
-        ethers.BigNumber.from(1),
-        ethers.BigNumber.from(1),
-        ethers.BigNumber.from(1),
-      ]);
+      const eventHash = ethers.keccak256(ethers.toUtf8Bytes(externalHash));
 
-      const event = await trackAndTrace.getEvent(
+      expect(events).to.deep.equal([[eventHash], 1n, 1n, 1n, 1n]);
+
+      const event = await trackAndTrace.getFunction("getEvent")(
         documentHash,
-        ethers.utils.keccak256(ethers.utils.toUtf8Bytes(externalHash)),
+        eventHash,
       );
 
       expect(event.externalHash).to.be.equal(externalHash);
@@ -543,7 +562,7 @@ describe("TrackAndTrace - tests", () => {
             origin,
             sender,
           }),
-      ).to.be.revertedWith("ExternalHashExist");
+      ).to.be.revertedWithCustomError(trackAndTrace, "ExternalHashExist");
 
       const longMetadata = metadata.repeat(4000);
 
@@ -557,19 +576,19 @@ describe("TrackAndTrace - tests", () => {
             origin,
             sender,
           }),
-      ).to.be.revertedWith("InvalidMetadata");
+      ).to.be.revertedWithCustomError(trackAndTrace, "InvalidMetadata");
     });
 
     it("should write event using a did:key", async () => {
-      const documentHash = ethers.utils.formatBytes32String("writeEvent02");
-      const creatorAcc = ethers.utils.toUtf8Bytes(creatorAccount);
+      const documentHash = ethers.encodeBytes32String("writeEvent02");
+      const creatorAcc = ethers.toUtf8Bytes(creatorAccount);
       const externalHash = "externalHash";
 
       const { mnemonic, path } = config.networks.hardhat
         .accounts as HardhatNetworkHDAccountsConfig;
 
-      const walletDidKeyWithoutProvider = ethers.Wallet.fromMnemonic(
-        mnemonic,
+      const walletDidKeyWithoutProvider = ethers.HDNodeWallet.fromMnemonic(
+        Mnemonic.fromPhrase(mnemonic),
         `${path}/3`,
       );
       const walletDidKey = new ethers.Wallet(
@@ -577,7 +596,7 @@ describe("TrackAndTrace - tests", () => {
         broadcaster.provider,
       );
 
-      const pubDidKey = walletDidKey.publicKey;
+      const pubDidKey = walletDidKey.signingKey.publicKey;
       const origin = "origin";
       const metadata = "metadata";
       await createDocument(documentHash);
@@ -603,17 +622,15 @@ describe("TrackAndTrace - tests", () => {
     });
 
     it("should write event using a did:key not sliced", async () => {
-      const documentHash = ethers.utils.formatBytes32String(
-        "writeEvent02-notsliced",
-      );
-      const creatorAcc = ethers.utils.toUtf8Bytes(creatorAccount);
+      const documentHash = ethers.encodeBytes32String("writeEvent02-notsliced");
+      const creatorAcc = ethers.toUtf8Bytes(creatorAccount);
       const externalHash = "externalHash";
 
       const { mnemonic, path } = config.networks.hardhat
         .accounts as HardhatNetworkHDAccountsConfig;
 
-      const walletDidKeyWithoutProvider = ethers.Wallet.fromMnemonic(
-        mnemonic,
+      const walletDidKeyWithoutProvider = ethers.HDNodeWallet.fromMnemonic(
+        Mnemonic.fromPhrase(mnemonic),
         `${path}/3`,
       );
       const walletDidKey = new ethers.Wallet(
@@ -621,7 +638,7 @@ describe("TrackAndTrace - tests", () => {
         broadcaster.provider,
       );
 
-      const pubDidKey = `${walletDidKey.publicKey}`;
+      const pubDidKey = walletDidKey.signingKey.publicKey;
       const origin = "origin";
       const metadata = "metadata";
       await createDocument(documentHash);
@@ -647,7 +664,7 @@ describe("TrackAndTrace - tests", () => {
     });
 
     it("should not duplicate document IDs in getAccessesBySubject", async () => {
-      const documentHash = ethers.utils.formatBytes32String("document0");
+      const documentHash = ethers.encodeBytes32String("document0");
       const creatorBuffer = Buffer.from(creatorAccount);
       await createDocument(documentHash);
       const subjectAccount = ethers.Wallet.createRandom().publicKey;
@@ -677,17 +694,17 @@ describe("TrackAndTrace - tests", () => {
         1,
         10,
       );
-      expect(getEthObject(documents)).to.eql({
-        howMany: ethers.BigNumber.from(1),
+      expect(decodeResult(documents)).to.eql({
+        howMany: 1n,
         items: [documentHash],
-        next: ethers.BigNumber.from(1),
-        prev: ethers.BigNumber.from(1),
-        total: ethers.BigNumber.from(1),
+        next: 1n,
+        prev: 1n,
+        total: 1n,
       });
     });
 
     it("should grant, revoke and get accesses", async () => {
-      const documentHash = ethers.utils.formatBytes32String("document1");
+      const documentHash = ethers.encodeBytes32String("document1");
       await didRegistryMock.setDidResult(true);
       await createDocument(documentHash);
       const creatorAcc = `0x${Buffer.from(creatorAccount).toString("hex")}`;
@@ -722,12 +739,12 @@ describe("TrackAndTrace - tests", () => {
         1,
         10,
       );
-      expect(getEthObject(documents)).to.eql({
-        howMany: ethers.BigNumber.from(1),
+      expect(decodeResult(documents)).to.eql({
+        howMany: 1n,
         items: [documentHash],
-        next: ethers.BigNumber.from(1),
-        prev: ethers.BigNumber.from(1),
-        total: ethers.BigNumber.from(1),
+        next: 1n,
+        prev: 1n,
+        total: 1n,
       });
 
       let accesses = await trackAndTrace.getGrantedBy(
@@ -735,7 +752,8 @@ describe("TrackAndTrace - tests", () => {
         subjectKeyAccount,
         [DELEGATE_ACCESS, WRITE_ACCESS, CREATOR_ACCESS],
       );
-      expect(getEthObject(accesses)).to.eql([
+
+      expect(accesses).to.deep.equal([
         // granted by
         [creatorAcc, creatorAcc, "0x"],
         // granted by type
@@ -753,12 +771,14 @@ describe("TrackAndTrace - tests", () => {
           subjectKeyAccount,
           DELEGATE_ACCESS,
         );
+
       accesses = await trackAndTrace.getGrantedBy(
         documentHash,
         subjectKeyAccount,
         [DELEGATE_ACCESS, WRITE_ACCESS, CREATOR_ACCESS],
       );
-      expect(getEthObject(accesses)).to.eql([
+
+      expect(accesses).to.deep.equal([
         // granted by
         ["0x", creatorAcc, "0x"],
         // granted by type
@@ -776,12 +796,14 @@ describe("TrackAndTrace - tests", () => {
           subjectKeyAccount,
           WRITE_ACCESS,
         );
+
       accesses = await trackAndTrace.getGrantedBy(
         documentHash,
         subjectKeyAccount,
         [DELEGATE_ACCESS, WRITE_ACCESS, CREATOR_ACCESS],
       );
-      expect(getEthObject(accesses)).to.eql([
+
+      expect(accesses).to.deep.equal([
         // granted by
         ["0x", "0x", "0x"],
         // granted by type
@@ -795,7 +817,7 @@ describe("TrackAndTrace - tests", () => {
       await didRegistryMock.setDidResult(true);
       const creator = "did:ebsi:creator1";
       const creatorBuffer = `0x${Buffer.from(creator).toString("hex")}`;
-      const documentHash = ethers.utils.formatBytes32String("document2");
+      const documentHash = ethers.encodeBytes32String("document2");
       await trackAndTrace.authoriseDid(supportOfficeAccount, creator, true);
       await trackAndTrace["createDocument(bytes32,string,string)"](
         documentHash,
@@ -830,12 +852,13 @@ describe("TrackAndTrace - tests", () => {
         1,
         10,
       );
-      expect(getEthObject(documents)).to.eql({
-        howMany: ethers.BigNumber.from(1),
+
+      expect(decodeResult(documents)).to.eql({
+        howMany: 1n,
         items: [documentHash],
-        next: ethers.BigNumber.from(1),
-        prev: ethers.BigNumber.from(1),
-        total: ethers.BigNumber.from(1),
+        next: 1n,
+        prev: 1n,
+        total: 1n,
       });
 
       let accesses = await trackAndTrace.getGrantedBy(
@@ -843,7 +866,8 @@ describe("TrackAndTrace - tests", () => {
         creatorBuffer,
         [DELEGATE_ACCESS, WRITE_ACCESS, CREATOR_ACCESS],
       );
-      expect(getEthObject(accesses)).to.eql([
+
+      expect(accesses).to.deep.equal([
         // granted by
         [creatorBuffer, creatorBuffer, creatorBuffer],
         // granted by type
@@ -861,12 +885,14 @@ describe("TrackAndTrace - tests", () => {
           creatorBuffer,
           DELEGATE_ACCESS,
         );
+
       accesses = await trackAndTrace.getGrantedBy(documentHash, creatorBuffer, [
         DELEGATE_ACCESS,
         WRITE_ACCESS,
         CREATOR_ACCESS,
       ]);
-      expect(getEthObject(accesses)).to.eql([
+
+      expect(accesses).to.deep.equal([
         // granted by
         ["0x", creatorBuffer, creatorBuffer],
         // granted by type
@@ -879,12 +905,14 @@ describe("TrackAndTrace - tests", () => {
       await trackAndTrace
         .connect(broadcaster)
         .revokeAccess(documentHash, creatorBuffer, creatorBuffer, WRITE_ACCESS);
+
       accesses = await trackAndTrace.getGrantedBy(documentHash, creatorBuffer, [
         DELEGATE_ACCESS,
         WRITE_ACCESS,
         CREATOR_ACCESS,
       ]);
-      expect(getEthObject(accesses)).to.eql([
+
+      expect(accesses).to.deep.equal([
         // granted by
         ["0x", "0x", creatorBuffer],
         // granted by type
@@ -950,7 +978,10 @@ describe("TrackAndTrace - tests", () => {
           DID_EBSI_ACCOUNT_TYPE,
           WRITE_ACCESS,
         ),
-      ).to.be.revertedWith("TooManyDelegatedChildren");
+      ).to.be.revertedWithCustomError(
+        trackAndTrace,
+        "TooManyDelegatedChildren",
+      );
     });
 
     it("should revoke in cascade (did:ebsi)", async () => {
@@ -995,7 +1026,8 @@ describe("TrackAndTrace - tests", () => {
         WRITE_ACCESS,
         CREATOR_ACCESS,
       ]);
-      expect(getEthObject(accesses)).to.eql([
+
+      expect(accesses).to.deep.equal([
         // granted by
         [creatorAcc, "0x", "0x"],
         // granted by type
@@ -1011,7 +1043,7 @@ describe("TrackAndTrace - tests", () => {
             WRITE_ACCESS,
             CREATOR_ACCESS,
           ]);
-          expect(getEthObject(accesses)).to.eql([
+          expect(accesses).to.deep.equal([
             // granted by
             ["0x", delegatee, "0x"],
             // granted by type
@@ -1037,7 +1069,7 @@ describe("TrackAndTrace - tests", () => {
         WRITE_ACCESS,
         CREATOR_ACCESS,
       ]);
-      expect(getEthObject(accesses)).to.eql(noAccess);
+      expect(accesses).to.deep.equal(noAccess);
 
       await Promise.all(
         accounts.map(async (account) => {
@@ -1046,7 +1078,7 @@ describe("TrackAndTrace - tests", () => {
             WRITE_ACCESS,
             CREATOR_ACCESS,
           ]);
-          expect(getEthObject(accesses)).to.eql(noAccess);
+          expect(accesses).to.deep.equal(noAccess);
         }),
       );
     });
@@ -1058,15 +1090,15 @@ describe("TrackAndTrace - tests", () => {
       const { mnemonic, path } = config.networks.hardhat
         .accounts as HardhatNetworkHDAccountsConfig;
 
-      const walletNoProvider = ethers.Wallet.fromMnemonic(
-        mnemonic,
+      const walletNoProvider = ethers.HDNodeWallet.fromMnemonic(
+        Mnemonic.fromPhrase(mnemonic),
         `${path}/3`,
       );
       const keyWallet = new ethers.Wallet(
         walletNoProvider.privateKey,
         broadcaster.provider,
       );
-      const delegatee = keyWallet.publicKey;
+      const delegatee = keyWallet.signingKey.publicKey;
       const accounts: string[] = [];
       for (let i = 0; i < 10; i += 1)
         accounts.push(`0x${randomBytes(5).toString("hex")}`);
@@ -1107,7 +1139,8 @@ describe("TrackAndTrace - tests", () => {
         WRITE_ACCESS,
         CREATOR_ACCESS,
       ]);
-      expect(getEthObject(accesses)).to.eql([
+
+      expect(accesses).to.deep.equal([
         // granted by
         [creatorAcc, "0x", "0x"],
         // granted by type
@@ -1123,7 +1156,7 @@ describe("TrackAndTrace - tests", () => {
             WRITE_ACCESS,
             CREATOR_ACCESS,
           ]);
-          expect(getEthObject(accesses)).to.eql([
+          expect(accesses).to.deep.equal([
             // granted by
             ["0x", delegatee, "0x"],
             // granted by type
@@ -1149,7 +1182,8 @@ describe("TrackAndTrace - tests", () => {
         WRITE_ACCESS,
         CREATOR_ACCESS,
       ]);
-      expect(getEthObject(accesses)).to.eql(noAccess);
+
+      expect(accesses).to.deep.equal(noAccess);
 
       await Promise.all(
         accounts.map(async (account) => {
@@ -1158,7 +1192,7 @@ describe("TrackAndTrace - tests", () => {
             WRITE_ACCESS,
             CREATOR_ACCESS,
           ]);
-          expect(getEthObject(accesses)).to.eql(noAccess);
+          expect(accesses).to.deep.equal(noAccess);
         }),
       );
     });

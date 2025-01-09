@@ -30,7 +30,7 @@ describe("Schemas Module", () => {
   let ledgerService: LedgerService;
 
   beforeAll(async () => {
-    // Spin up test blockchain (ganache)
+    // Spin up test blockchain
     testEnv = await setupTestEnv({
       schemaMetadataTotal: SCHEMA_METADATA_TOTAL,
       schemaRevisionsTotal: SCHEMA_REVISIONS_TOTAL,
@@ -509,13 +509,9 @@ describe("Schemas Module", () => {
         `/schemas/${schema.schemaId}/revisions`,
       );
 
-      const revisionId1 = ethers.utils.sha256(schema.serializedSchema);
-      const revisionId2 = ethers.utils.sha256(
-        schemaRevisions[0]!.serializedSchema,
-      );
-      const revisionId3 = ethers.utils.sha256(
-        schemaRevisions[1]!.serializedSchema,
-      );
+      const revisionId1 = ethers.sha256(schema.serializedSchema);
+      const revisionId2 = ethers.sha256(schemaRevisions[0]!.serializedSchema);
+      const revisionId3 = ethers.sha256(schemaRevisions[1]!.serializedSchema);
 
       expect(response.body).toStrictEqual({
         items: expect.arrayContaining([
@@ -575,13 +571,9 @@ describe("Schemas Module", () => {
         `/schemas/${schema.schemaId}/revisions?valid-at=${validAt}`,
       );
 
-      const revisionId1 = ethers.utils.sha256(schema.serializedSchema);
-      const revisionId2 = ethers.utils.sha256(
-        schemaRevisions[0]!.serializedSchema,
-      );
-      const revisionId3 = ethers.utils.sha256(
-        schemaRevisions[1]!.serializedSchema,
-      );
+      const revisionId1 = ethers.sha256(schema.serializedSchema);
+      const revisionId2 = ethers.sha256(schemaRevisions[0]!.serializedSchema);
+      const revisionId3 = ethers.sha256(schemaRevisions[1]!.serializedSchema);
 
       expect(response.body).toStrictEqual({
         items: expect.arrayContaining([
@@ -848,7 +840,7 @@ describe("Schemas Module", () => {
 
       const schema = testEnv.schemas[0]!;
       const { schemaId } = schema;
-      const schemaRevisionId = ethers.utils.sha256(schema.serializedSchema);
+      const schemaRevisionId = ethers.sha256(schema.serializedSchema);
 
       const response = await request(server).get(
         `/schemas/${schemaId}/revisions/${schemaRevisionId}`,
@@ -1078,15 +1070,11 @@ describe("Schemas Module", () => {
       expect.assertions(3);
 
       const schema = testEnv.schemas[0]!;
-      const revisionId = ethers.utils.sha256(schema.serializedSchema);
-      const metadataId = ethers.utils.sha256(schema.serializedMetadata);
+      const revisionId = ethers.sha256(schema.serializedSchema);
+      const metadataId = ethers.sha256(schema.serializedMetadata);
       const { schemaMetadata } = testEnv;
-      const metadataId2 = ethers.utils.sha256(
-        schemaMetadata[0]!.serializedMetadata,
-      );
-      const metadataId3 = ethers.utils.sha256(
-        schemaMetadata[1]!.serializedMetadata,
-      );
+      const metadataId2 = ethers.sha256(schemaMetadata[0]!.serializedMetadata);
+      const metadataId3 = ethers.sha256(schemaMetadata[1]!.serializedMetadata);
 
       const response = await request(server).get(
         `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata`,
@@ -1143,7 +1131,7 @@ describe("Schemas Module", () => {
       expect.assertions(12);
 
       const schema = testEnv.schemas[0]!;
-      const revisionId = ethers.utils.sha256(schema.serializedSchema);
+      const revisionId = ethers.sha256(schema.serializedSchema);
 
       const response1 = await request(server).get(
         `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[size]=2`,
@@ -1362,7 +1350,7 @@ describe("Schemas Module", () => {
 
       const schema = testEnv.schemas[0]!;
       const { schemaId } = schema;
-      const schemaRevisionId = ethers.utils.sha256(schema.serializedSchema);
+      const schemaRevisionId = ethers.sha256(schema.serializedSchema);
 
       const response = await request(server).get(
         `/schemas/${schemaId}/revisions/${schemaRevisionId}/metadata/no-metadata`,
@@ -1410,8 +1398,8 @@ describe("Schemas Module", () => {
 
       const schema = testEnv.schemas[0]!;
       const { schemaId } = schema;
-      const schemaRevisionId = ethers.utils.sha256(schema.serializedSchema);
-      const metadataId = ethers.utils.sha256(schema.serializedMetadata);
+      const schemaRevisionId = ethers.sha256(schema.serializedSchema);
+      const metadataId = ethers.sha256(schema.serializedMetadata);
 
       const response = await request(server).get(
         `/schemas/${schemaId}/revisions/${schemaRevisionId}/metadata/${metadataId}`,

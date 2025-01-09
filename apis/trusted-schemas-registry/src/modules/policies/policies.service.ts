@@ -1,14 +1,16 @@
+import type { SchemaSCRegistry } from "@ebsiint-sc/trusted-schemas-registry";
+
 import {
   generateMultihash,
   isEthersError,
   NotFoundError,
   remove0xPrefix,
 } from "@ebsiint-api/shared";
-import { SchemaSCRegistry } from "@ebsiint-sc/trusted-schemas-registry";
 import { Injectable, Logger } from "@nestjs/common";
 
+import type { PolicyRevisions } from "./policies.interface.js";
+
 import { LedgerService } from "../ledger/ledger.service.js";
-import { PolicyRevisions } from "./policies.interface.js";
 
 @Injectable()
 export class PoliciesService {
@@ -102,7 +104,7 @@ export class PoliciesService {
         policy: policies[index]!,
         policyId,
       })),
-      total: revisions.total.toNumber(),
+      total: Number(revisions.total),
     };
   }
 }

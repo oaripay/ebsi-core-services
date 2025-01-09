@@ -1,4 +1,4 @@
-import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import type { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
 
 import { expect } from "chai";
 import { ethers } from "hardhat";
@@ -19,12 +19,11 @@ describe("UserAttributesManagement", () => {
       {},
     );
     policyContract = await policyRegistryFactory.deploy();
-    await policyContract.deployed();
 
     await policyContract.initialize(10);
     expect(await policyContract.version()).to.equal(10);
     // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-    expect(policyContract.address).to.properAddress;
+    expect(await policyContract.getAddress()).to.properAddress;
 
     await policyContract.insertPolicy("test policy 2", "registry 2");
     [user, user2] = await ethers.getSigners();
@@ -45,7 +44,7 @@ describe("UserAttributesManagement", () => {
       await expect(
         policyContract
           .connect(user2)
-          .insertUserAttributes(ethers.constants.AddressZero, ["attr"]),
+          .insertUserAttributes(ethers.ZeroAddress, ["attr"]),
       ).to.be.revertedWith(
         `AccessControl: account ${user2.address.toLowerCase()} is missing role 0x97667070c54ef182b0f5858b034beac1b6f3089aa2d3188bb1e8929f4fa9b929`,
       );
@@ -53,9 +52,7 @@ describe("UserAttributesManagement", () => {
 
     it("Should fail for empty user", async () => {
       await expect(
-        policyContract.insertUserAttributes(ethers.constants.AddressZero, [
-          "attr",
-        ]),
+        policyContract.insertUserAttributes(ethers.ZeroAddress, ["attr"]),
       ).to.be.revertedWith("Policy: invalid user address");
     });
 
@@ -102,10 +99,7 @@ describe("UserAttributesManagement", () => {
 
     it("Should fail for invalid user address", async () => {
       await expect(
-        policyContract.deleteUserAttribute(
-          ethers.constants.AddressZero,
-          "attr1",
-        ),
+        policyContract.deleteUserAttribute(ethers.ZeroAddress, "attr1"),
       ).to.be.revertedWith("Policy: invalid user address");
     });
 

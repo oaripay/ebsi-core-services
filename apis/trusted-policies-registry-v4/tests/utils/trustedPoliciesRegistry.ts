@@ -2,7 +2,10 @@ import "../../../../contracts/trusted-policies-registry-v3/src/types/hardhat.d.t
 
 import hre from "hardhat";
 
-import "@nomiclabs/hardhat-ethers";
+import "@nomicfoundation/hardhat-ethers";
+
+import type { HardhatEthersProvider } from "@nomicfoundation/hardhat-ethers/internal/hardhat-ethers-provider.js";
+
 import { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry-v3";
 import { ethers } from "ethers";
 
@@ -48,10 +51,10 @@ export async function insertUser(
 }
 
 export async function setupTestEnv(): Promise<{
-  adminWallet: ethers.Wallet;
+  adminWallet: ethers.BaseWallet;
   policies: PolicyObject[];
   policiesRegistryContract: PolicyRegistry;
-  provider: ethers.providers.JsonRpcProvider;
+  provider: HardhatEthersProvider;
   users: UserObject[];
 }> {
   const ethersProvider = hre.ethers.provider;

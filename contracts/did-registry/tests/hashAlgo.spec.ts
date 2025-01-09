@@ -13,10 +13,14 @@ describe("Hash Algorithm", () => {
     const policyRegistryFactory =
       await ethers.getContractFactory("PolicyRegistryMock");
     const tempPolicyContract = await policyRegistryFactory.deploy();
-    await tempPolicyContract.deployed();
-    const bytecode = await ethers.provider.getCode(tempPolicyContract.address);
+
+    const bytecode = await ethers.provider.getCode(
+      await tempPolicyContract.getAddress(),
+    );
     await network.provider.send("hardhat_setCode", [testTprAddress, bytecode]);
-    policyContractMock = policyRegistryFactory.attach(testTprAddress);
+    policyContractMock = policyRegistryFactory.attach(
+      testTprAddress,
+    ) as PolicyRegistryMock;
   });
 
   beforeEach(async () => {
@@ -31,16 +35,16 @@ describe("Hash Algorithm", () => {
 
     const didRecordFactory = await ethers.getContractFactory("DidRecordLib", {
       libraries: {
-        Pagination: paginationLib.address,
+        Pagination: await paginationLib.getAddress(),
       },
     });
     const didRecordLib = await didRecordFactory.deploy();
 
     const contractFactory = await ethers.getContractFactory("DidRegistry", {
       libraries: {
-        DidRecordLib: didRecordLib.address,
-        DidTimestampLib: didTimestampLib.address,
-        HashAlgoLib: hashAlgoLib.address,
+        DidRecordLib: await didRecordLib.getAddress(),
+        DidTimestampLib: await didTimestampLib.getAddress(),
+        HashAlgoLib: await hashAlgoLib.getAddress(),
       },
     });
     ts = await contractFactory.deploy(testTprAddress);
@@ -49,7 +53,7 @@ describe("Hash Algorithm", () => {
     const initialVersion = await ts.version();
     expect(initialVersion).to.equal(42);
     // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-    expect(ts.address).to.properAddress;
+    expect(await ts.getAddress()).to.properAddress;
   });
 
   it("should reject no authenticated users", async () => {

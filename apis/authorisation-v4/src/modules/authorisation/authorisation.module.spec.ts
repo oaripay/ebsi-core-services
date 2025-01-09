@@ -115,7 +115,7 @@ describe.each(["EBSI URI", "URL"] as const)(
           // Bypass local requests
           if (new URL(url).hostname === "127.0.0.1") return;
 
-          print.warning();
+          print.error();
         },
       });
 

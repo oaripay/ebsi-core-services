@@ -49,7 +49,7 @@ export class PoliciesService {
       }
       case "UINT256": {
         // Decode hex -> integer
-        return ethers.BigNumber.from(value).toString();
+        return BigInt(value).toString();
       }
       default: {
         this.logger.error(`Unsupported type ${typeOfValue}`);
@@ -76,15 +76,16 @@ export class PoliciesService {
 
     return {
       description: policy.description,
-      operationType: OPERATION_TYPES[policy.opType]!,
+      operationType: OPERATION_TYPES[Number(policy.opType)]!,
       policyConditions: policy.policyConditions.map((condition) => ({
         attributeName: condition.attributeName,
-        attributeOperation: ATTRIBUTE_OPERATIONS[condition.attributeOperation]!,
+        attributeOperation:
+          ATTRIBUTE_OPERATIONS[Number(condition.attributeOperation)]!,
         name: condition.name,
-        typeOfValue: ATTRIBUTE_TYPES[condition.typeOfValue]!,
-        value: this.formatValue(condition.value, condition.typeOfValue),
+        typeOfValue: ATTRIBUTE_TYPES[Number(condition.typeOfValue)]!,
+        value: this.formatValue(condition.value, Number(condition.typeOfValue)),
       })),
-      policyId: ethers.BigNumber.from(policy.policyId).toString(),
+      policyId: BigInt(policy.policyId).toString(),
       policyName: policy.policyName,
       status: policy.status,
     };

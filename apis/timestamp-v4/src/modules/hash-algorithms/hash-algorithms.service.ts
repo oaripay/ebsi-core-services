@@ -35,9 +35,9 @@ export class HashAlgorithmsService {
       ianaName,
       multihash: multiHash,
       oid,
-      outputLengthBits: outputLength.toNumber(),
+      outputLengthBits: Number(outputLength),
       // 1: active - 2: revoked
-      status: status === 1 ? "active" : "revoked",
+      status: status === 1n ? "active" : "revoked",
     };
   }
 

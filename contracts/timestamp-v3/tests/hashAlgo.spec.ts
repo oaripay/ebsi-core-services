@@ -1,13 +1,10 @@
-import StringManipArtifact from "@ebsiint-sc/bootstrap-v2/artifacts/contracts/utils/StringManip.sol/StringManip.json";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
 import { expect } from "chai";
-import { ethers, network, upgrades, waffle } from "hardhat";
+import { ethers, network, upgrades } from "hardhat";
 
 import type { PolicyRegistryMock, Timestamp } from "../src/types";
 
 import { testTprAddress } from "./testAddress";
-
-const { deployContract } = waffle;
 
 describe("Hash Algorithm", () => {
   let ts: Timestamp;
@@ -18,14 +15,20 @@ describe("Hash Algorithm", () => {
     const policyRegistryFactory =
       await ethers.getContractFactory("PolicyRegistryMock");
     const tempPolicyContract = await policyRegistryFactory.deploy();
-    const bytecode = await ethers.provider.getCode(tempPolicyContract.address);
+    const bytecode = await ethers.provider.getCode(
+      await tempPolicyContract.getAddress(),
+    );
     await network.provider.send("hardhat_setCode", [testTprAddress, bytecode]);
-    policyContractMock = policyRegistryFactory.attach(testTprAddress);
+    policyContractMock = policyRegistryFactory.attach(
+      testTprAddress,
+    ) as unknown as PolicyRegistryMock;
   });
 
   beforeEach(async () => {
     [admin] = await ethers.getSigners();
-    const stringManipLib = await deployContract(admin, StringManipArtifact, []);
+
+    const stringManipFactory = await ethers.getContractFactory("StringManip");
+    const stringManipLib = await stringManipFactory.deploy();
 
     const haFactory = await ethers.getContractFactory("HashAlgoLib", {});
     const haLib = await haFactory.deploy();
@@ -35,27 +38,27 @@ describe("Hash Algorithm", () => {
 
     const rsFactory = await ethers.getContractFactory("RecordLib", {
       libraries: {
-        StringManip: stringManipLib.address,
+        StringManip: await stringManipLib.getAddress(),
       },
     });
     const rsLib = await rsFactory.deploy();
 
     const contractFactory = await ethers.getContractFactory("Timestamp", {
       libraries: {
-        HashAlgoLib: haLib.address,
-        RecordLib: rsLib.address,
-        TimestampLib: tsLib.address,
+        HashAlgoLib: await haLib.getAddress(),
+        RecordLib: await rsLib.getAddress(),
+        TimestampLib: await tsLib.getAddress(),
       },
     });
 
-    ts = (await upgrades.deployProxy(
+    ts = await upgrades.deployProxy(
       contractFactory,
       [admin.address, testTprAddress],
       { unsafeAllowLinkedLibraries: true },
-    )) as Timestamp;
+    );
 
     // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-    expect(ts.address).to.properAddress;
+    expect(await ts.getAddress()).to.properAddress;
     await policyContractMock.setPolicyResult(true);
   });
 

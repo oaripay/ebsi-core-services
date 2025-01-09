@@ -42,7 +42,7 @@ export async function getPublicKey(_privateKey: string): Promise<{
 }
 
 export function getPublicKeyId(publicKeyPem: string): string {
-  return ethers.utils.sha256(Buffer.from(publicKeyPem, "utf8"));
+  return ethers.sha256(Buffer.from(publicKeyPem, "utf8"));
 }
 
 export function hex2base64url(dataHex: string): string {

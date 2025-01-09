@@ -17,7 +17,7 @@ const KEEP_ALIVE_CHECK_INTERVAL = 7500;
 
 @Injectable()
 export class LedgerService implements OnModuleDestroy {
-  private ethersProvider: ethers.providers.JsonRpcProvider | undefined;
+  private ethersProvider: ethers.Provider | undefined;
 
   private readonly logger = new Logger(LedgerService.name);
 
@@ -43,6 +43,7 @@ export class LedgerService implements OnModuleDestroy {
 
     this.tprContract = PolicyRegistry__factory.connect(
       this.tprAddress,
+      // @ts-expect-error Error due to contracts using CommonJS modules
       provider,
     );
 
@@ -53,22 +54,22 @@ export class LedgerService implements OnModuleDestroy {
     return this.tprAddress;
   }
 
+  getEthersProvider() {
+    if (!this.ethersProvider) {
+      this.initBesuProvider();
+    }
+    return this.ethersProvider!;
+  }
+
   async onModuleDestroy() {
     if (
       this.ethersProvider &&
-      this.ethersProvider instanceof ethers.providers.WebSocketProvider &&
+      this.ethersProvider instanceof ethers.WebSocketProvider &&
       this.ethersProvider.destroy
     ) {
       this.reconnectWebSocket = false;
       await this.ethersProvider.destroy();
     }
-  }
-
-  private getEthersProvider() {
-    if (!this.ethersProvider) {
-      this.initBesuProvider();
-    }
-    return this.ethersProvider!;
   }
 
   private initBesuProvider(): void {
@@ -81,30 +82,29 @@ export class LedgerService implements OnModuleDestroy {
     // Useful for local testing
     if (besuRpcNode.startsWith("http")) {
       const { origin, password, pathname, username } = new URL(besuRpcNode);
-      this.ethersProvider = new ethers.providers.JsonRpcProvider({
-        timeout: this.timeout,
-        url: `${origin}${pathname}`,
-        ...(username &&
-          password && {
-            password,
-            user: username,
-          }),
-      });
+      const fetchRequest = new ethers.FetchRequest(`${origin}${pathname}`);
+      fetchRequest.timeout = this.timeout;
+      if (username && password) {
+        fetchRequest.setCredentials(username, password);
+      }
+      this.ethersProvider = new ethers.JsonRpcProvider(
+        fetchRequest,
+        undefined,
+        {
+          batchMaxSize: 1, // Ledger API doesn't support batch request
+          staticNetwork: true, // Do not request chain ID on requests to validate the underlying chain has not changed
+        },
+      );
       return;
     }
 
-    this.ethersProvider = new ethers.providers.WebSocketProvider(besuRpcNode);
-
-    /* global NodeJS */
-    let pingTimeout: NodeJS.Timeout;
-    let keepAliveInterval: NodeJS.Timeout;
+    this.ethersProvider = new ethers.WebSocketProvider(besuRpcNode);
 
     // Reconnect WS on accidental close
     // Inspired by https://github.com/ethers-io/ethers.js/issues/1053#issuecomment-808736570
 
-    const websocket = (
-      this.ethersProvider as ethers.providers.WebSocketProvider
-    )._websocket as WebSocket;
+    const websocket = (this.ethersProvider as ethers.WebSocketProvider)
+      .websocket as WebSocket;
 
     if (!websocket) {
       // Allow websocket to be undefined during unit tests
@@ -124,6 +124,10 @@ export class LedgerService implements OnModuleDestroy {
         );
       }, KEEP_ALIVE_CHECK_INTERVAL);
     });
+
+    /* global NodeJS */
+    let pingTimeout: NodeJS.Timeout;
+    let keepAliveInterval: NodeJS.Timeout;
 
     websocket.on("close", (err: unknown) => {
       this.logger.warn(

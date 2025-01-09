@@ -2,7 +2,6 @@ import type {
   EbsiEnvConfiguration,
   EbsiIssuer,
 } from "@cef-ebsi/verifiable-credential";
-import type { TransactionRequest } from "@ethersproject/abstract-provider";
 import type { RawServerDefault } from "fastify";
 
 import {
@@ -56,7 +55,7 @@ interface SupertestJsonRpcResponse {
 interface TestUser {
   info: EbsiIssuer;
   token: string;
-  wallet: ethers.Wallet;
+  wallet: ethers.BaseWallet;
 }
 
 const multihashToNodeHashAlg = {
@@ -312,11 +311,15 @@ describe("Timestamp API v4 - Timestamp (e2e)", () => {
             JSON.stringify(unsignedTransaction),
           ) as unknown as UnsignedTransactionSchema,
         );
-        uTx.chainId = Number(uTx.chainId);
+
         const sgnTx = await testUser.wallet.signTransaction(
-          uTx as TransactionRequest,
+          uTx as ethers.TransactionLike,
         );
-        const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+        const signature = ethers.Transaction.from(sgnTx).signature;
+        if (!signature) {
+          throw new Error("Signature not found");
+        }
+        const { r, s, v } = signature;
 
         const responseSend: SupertestJsonRpcResponse = await request(server)
           .post("/jsonrpc")
@@ -332,7 +335,7 @@ describe("Timestamp API v4 - Timestamp (e2e)", () => {
                 s,
                 signedRawTransaction: sgnTx,
                 unsignedTransaction,
-                v: `0x${Number(v).toString(16)}`,
+                v: `0x${v.toString(16)}`,
               },
             ],
           });
@@ -349,7 +352,7 @@ describe("Timestamp API v4 - Timestamp (e2e)", () => {
           ledgerApi,
           responseSend.body.result as string,
         );
-        expect(receipt.status).toBe(1);
+        expect(receipt.status).toBe("0x1");
         sampleTransaction = responseSend.body.result as string;
       });
 
@@ -405,11 +408,15 @@ describe("Timestamp API v4 - Timestamp (e2e)", () => {
             JSON.stringify(unsignedTransaction),
           ) as unknown as UnsignedTransactionSchema,
         );
-        uTx.chainId = Number(uTx.chainId);
+
         const sgnTx = await testUser.wallet.signTransaction(
-          uTx as TransactionRequest,
+          uTx as ethers.TransactionLike,
         );
-        const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+        const signature = ethers.Transaction.from(sgnTx).signature;
+        if (!signature) {
+          throw new Error("Signature not found");
+        }
+        const { r, s, v } = signature;
 
         const responseSend: SupertestJsonRpcResponse = await request(server)
           .post("/jsonrpc")
@@ -425,7 +432,7 @@ describe("Timestamp API v4 - Timestamp (e2e)", () => {
                 s,
                 signedRawTransaction: sgnTx,
                 unsignedTransaction,
-                v: `0x${Number(v).toString(16)}`,
+                v: `0x${v.toString(16)}`,
               },
             ],
           });
@@ -442,7 +449,7 @@ describe("Timestamp API v4 - Timestamp (e2e)", () => {
           ledgerApi,
           responseSend.body.result as string,
         );
-        expect(receipt.status).toBe(1);
+        expect(receipt.status).toBe("0x1");
       });
 
       it("should reject impersonating transactions: admin wallet using jwt from user", async () => {
@@ -491,11 +498,15 @@ describe("Timestamp API v4 - Timestamp (e2e)", () => {
             JSON.stringify(unsignedTransaction),
           ) as unknown as UnsignedTransactionSchema,
         );
-        uTx.chainId = Number(uTx.chainId);
+
         const sgnTx = await adminUser.wallet.signTransaction(
-          uTx as TransactionRequest,
+          uTx as ethers.TransactionLike,
         );
-        const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+        const signature = ethers.Transaction.from(sgnTx).signature;
+        if (!signature) {
+          throw new Error("Signature not found");
+        }
+        const { r, s, v } = signature;
 
         const responseSend: SupertestJsonRpcResponse = await request(server)
           .post("/jsonrpc")
@@ -511,7 +522,7 @@ describe("Timestamp API v4 - Timestamp (e2e)", () => {
                 s,
                 signedRawTransaction: sgnTx,
                 unsignedTransaction,
-                v: `0x${Number(v).toString(16)}`,
+                v: `0x${v.toString(16)}`,
               },
             ],
           });
@@ -580,7 +591,7 @@ describe("Timestamp API v4 - Timestamp (e2e)", () => {
 
         const timestampId = multibase.base64url.encode(
           multihashEncode(
-            ethers.utils.sha256(hashValue1).replace(/^0x/, ""),
+            ethers.sha256(hashValue1).replace(/^0x/, ""),
             "sha2-256",
             32,
           ),

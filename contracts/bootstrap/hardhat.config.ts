@@ -1,6 +1,5 @@
 import { HardhatUserConfig, task } from "hardhat/config";
-import "@typechain/hardhat";
-import "@nomiclabs/hardhat-waffle";
+import "@gnosis-guild/typechain-hardhat";
 import "@nomiclabs/hardhat-solhint";
 import "hardhat-abi-exporter";
 import "solidity-coverage";
@@ -39,14 +38,19 @@ task("tx", "Prints the detail for the transaction hash")
   .setAction(async (taskArgs: { hash: string }, { ethers }) => {
     await ethers.provider
       .getTransactionReceipt(taskArgs.hash)
-      .then((receipt) => {
+      .then(async (receipt) => {
+        if (!receipt) {
+          console.log("Receipt not found");
+          return;
+        }
+
         console.log(`
         From: ${receipt.from}
         To: ${receipt.to}
         Status: ${receipt.status === 1 ? "Ok" : "Error"}
         BlockNumber: ${receipt.blockNumber}
         GasUsed: ${receipt.gasUsed.toString()}
-        Confirmations: ${receipt.confirmations}`);
+        Confirmations: ${await receipt.confirmations()}`);
       });
   });
 // Some of the settings should be defined in `./config.js`.
@@ -87,7 +91,7 @@ const config: HardhatUserConfig = {
   },
   typechain: {
     outDir: "src/types",
-    target: "ethers-v5",
+    target: require.resolve("@gnosis-guild/typechain-ethers-v6"),
   },
 };
 

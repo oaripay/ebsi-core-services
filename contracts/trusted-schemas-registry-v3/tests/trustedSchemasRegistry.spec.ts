@@ -1,4 +1,4 @@
-import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import type { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
 
 import { expect } from "chai";
 import { ethers, network, upgrades } from "hardhat";
@@ -29,17 +29,21 @@ describe("Trusted Schemas Registry", () => {
       "TrustedPoliciesRegistryMock",
     );
     const tempPolicyContract = await policyRegistryFactory.deploy();
-    const bytecode = await ethers.provider.getCode(tempPolicyContract.address);
+    const bytecode = await ethers.provider.getCode(
+      await tempPolicyContract.getAddress(),
+    );
     await network.provider.send("hardhat_setCode", [testTprAddress, bytecode]);
-    tprMock = policyRegistryFactory.attach(testTprAddress);
+    tprMock = policyRegistryFactory.attach(
+      testTprAddress,
+    ) as TrustedPoliciesRegistryMock;
 
     contractFactory = await ethers.getContractFactory("TrustedSchemasRegistry");
     tsr = (
-      (await upgrades.deployProxy(
+      await upgrades.deployProxy(
         contractFactory,
         [upgrader.address, testTprAddress],
         { unsafeAllowLinkedLibraries: true },
-      )) as unknown as TrustedSchemasRegistry
+      )
     ).connect(admin);
   });
 
@@ -58,15 +62,15 @@ describe("Trusted Schemas Registry", () => {
   describe("Upgrade contract", () => {
     it("should fail if user is not upgrader", async () => {
       const newImplementation = await contractFactory.deploy();
-      await expect(tsr.upgradeTo(newImplementation.address)).to.be.revertedWith(
-        "not upgrader",
-      );
+      await expect(
+        tsr.upgradeTo(await newImplementation.getAddress()),
+      ).to.be.revertedWith("not upgrader");
     });
 
     it("should upgrade contract with a new implementation", async () => {
       const newImplementation = await contractFactory.deploy();
       const tsrWithUpgrader = tsr.connect(upgrader);
-      await tsrWithUpgrader.upgradeTo(newImplementation.address);
+      await tsrWithUpgrader.upgradeTo(await newImplementation.getAddress());
     });
   });
 
@@ -105,8 +109,8 @@ describe("Trusted Schemas Registry", () => {
       const schemaId = randomBytesHex(10);
       const content = randomBytesHex(100);
       const metadata = randomBytesHex(10);
-      const revisionId = ethers.utils.sha256(content);
-      const metadataId = ethers.utils.sha256(metadata);
+      const revisionId = ethers.sha256(content);
+      const metadataId = ethers.sha256(metadata);
       await expect(tsr.insertSchema(schemaId, content, metadata))
         .to.emit(tsr, "SchemaInserted")
         .withArgs(schemaId, revisionId, metadataId, content, metadata);
@@ -152,8 +156,8 @@ describe("Trusted Schemas Registry", () => {
     it("should update a schema and emit event", async () => {
       const newContent = randomBytesHex(100);
       const newMetadata = randomBytesHex(10);
-      const revisionId = ethers.utils.sha256(newContent);
-      const metadataId = ethers.utils.sha256(newMetadata);
+      const revisionId = ethers.sha256(newContent);
+      const metadataId = ethers.sha256(newMetadata);
       await expect(tsr.updateSchema(schemaId, newContent, newMetadata))
         .to.emit(tsr, "SchemaUpdated")
         .withArgs(schemaId, revisionId, metadataId, newContent, newMetadata);
@@ -164,7 +168,7 @@ describe("Trusted Schemas Registry", () => {
     const schemaId = randomBytesHex(10);
     const content = randomBytesHex(100);
     const metadata = randomBytesHex(10);
-    const revisionId = ethers.utils.sha256(content);
+    const revisionId = ethers.sha256(content);
 
     before(async () => {
       await tsr.insertSchema(schemaId, content, metadata);
@@ -186,7 +190,7 @@ describe("Trusted Schemas Registry", () => {
 
     it("should update the metadata of a revision and emit event", async () => {
       const newMetadata = randomBytesHex(10);
-      const metadataId = ethers.utils.sha256(newMetadata);
+      const metadataId = ethers.sha256(newMetadata);
       await expect(tsr.updateMetadata(revisionId, newMetadata))
         .to.emit(tsr, "MetadataUpdated")
         .withArgs(revisionId, metadataId, newMetadata);

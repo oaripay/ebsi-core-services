@@ -29,7 +29,7 @@ task("timestampV3", "Deploy contract Track And Trace")
       const stringManipContract = await stringManipFactory.deploy();
       const recordLibFactory = await ethers.getContractFactory(
         "contracts/timestamp-v3/timestamp/RecordLib.sol:RecordLib",
-        { libraries: { StringManip: stringManipContract.address } },
+        { libraries: { StringManip: await stringManipContract.getAddress() } },
       );
       const timestampLibFactory = await ethers.getContractFactory(
         "contracts/timestamp-v3/timestamp/TimestampLib.sol:TimestampLib",
@@ -42,9 +42,9 @@ task("timestampV3", "Deploy contract Track And Trace")
         "contracts/timestamp-v3/timestamp/Timestamp.sol:Timestamp",
         {
           libraries: {
-            HashAlgoLib: hashAlgoLib.address,
-            RecordLib: recordLib.address,
-            TimestampLib: timestampLib.address,
+            HashAlgoLib: await hashAlgoLib.getAddress(),
+            RecordLib: await recordLib.getAddress(),
+            TimestampLib: await timestampLib.getAddress(),
           },
         },
       );
@@ -56,11 +56,13 @@ task("timestampV3", "Deploy contract Track And Trace")
         { unsafeAllowLinkedLibraries: true },
       );
 
-      settings.set("timestamp", timestamp.address);
+      settings.set("timestamp", await timestamp.getAddress());
       settings.set("upgraderAddress", taskArgs.upgrader);
       settings.set("tprAddress", taskArgs.tpr);
 
-      console.log(`TrackAndTrace contract deployed to ${timestamp.address}`);
+      console.log(
+        `TrackAndTrace contract deployed to ${await timestamp.getAddress()}`,
+      );
     },
   );
 
@@ -82,7 +84,7 @@ task("timestampV3Upgrade", "Upgrade Timestamp").setAction(
     const stringManipContract = await stringManipFactory.deploy();
     const recordLibFactory = await ethers.getContractFactory(
       "contracts/timestamp-v3/timestamp/RecordLib.sol:RecordLib",
-      { libraries: { StringManip: stringManipContract.address } },
+      { libraries: { StringManip: await stringManipContract.getAddress() } },
     );
     const timestampLibFactory = await ethers.getContractFactory(
       "contracts/timestamp-v3/timestamp/TimestampLib.sol:TimestampLib",
@@ -95,9 +97,9 @@ task("timestampV3Upgrade", "Upgrade Timestamp").setAction(
       "contracts/timestamp-v3/timestamp/Timestamp.sol:Timestamp",
       {
         libraries: {
-          HashAlgoLib: hashAlgoLib.address,
-          RecordLib: recordLib.address,
-          TimestampLib: timestampLib.address,
+          HashAlgoLib: await hashAlgoLib.getAddress(),
+          RecordLib: await recordLib.getAddress(),
+          TimestampLib: await timestampLib.getAddress(),
         },
       },
     );
@@ -112,7 +114,7 @@ task("timestampV3Upgrade", "Upgrade Timestamp").setAction(
       proxyAddress,
       timestampFactory,
       { redeployImplementation: "always", unsafeAllowLinkedLibraries: true },
-    )) as Timestamp;
+    )) as unknown as Timestamp;
 
     console.log(
       `TrackAndTrace contract upgraded to ${await timestamp.getImplementation()}`,

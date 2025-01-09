@@ -1,7 +1,8 @@
-import { paginate, PaginatedList } from "@ebsiint-api/shared";
-import { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry-v2";
+import type { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry-v2";
 
-import { UserLink } from "./users.interface.js";
+import { paginate, type PaginatedList } from "@ebsiint-api/shared";
+
+import type { UserLink } from "./users.interface.js";
 
 export function formatUsers(
   users: Awaited<ReturnType<PolicyRegistry["getUsers"]>>,
@@ -9,7 +10,7 @@ export function formatUsers(
   pageSize: number,
   baseUrl: string,
 ): PaginatedList<UserLink> {
-  const total = users.total.toNumber();
+  const total = Number(users.total);
 
   // Reshape items
   const items = users.items.map((user) => {

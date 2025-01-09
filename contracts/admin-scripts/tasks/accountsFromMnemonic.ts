@@ -1,5 +1,5 @@
+import { HDNodeWallet, Mnemonic } from "ethers";
 import { task } from "hardhat/config";
-import "@nomiclabs/hardhat-waffle";
 
 // "m/44'/60'/0'/0/0" first account
 const getPathForIndex = (index: number) => `m/44'/60'/0'/0/${index}`;
@@ -12,14 +12,15 @@ task("accountsFromMnemonic", "prints the first few accounts of a mnemonic")
     "mnemonic",
     "The mnemonic used for BIP39 key derivation: See https://iancoleman.io/bip39",
   )
-  .setAction(async (taskArgs: { mnemonic: string }, { ethers }) => {
+  .setAction(async (taskArgs: { mnemonic: string }) => {
     const { mnemonic } = taskArgs;
 
     if (!mnemonic) {
       throw new Error(`Missing task argument --mnemonic `);
     }
+
     const masterKey = await Promise.resolve(
-      ethers.utils.HDNode.fromMnemonic(mnemonic),
+      HDNodeWallet.fromMnemonic(Mnemonic.fromPhrase(mnemonic)),
     );
 
     for (const [index, _] of Array.from({ length: 5 }).entries()) {

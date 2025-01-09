@@ -2,10 +2,17 @@ import "../../../../contracts/trusted-schemas-registry-v3/src/types/hardhat.d.ts
 
 import hre from "hardhat";
 
-import "@nomiclabs/hardhat-ethers";
+import type {
+  TrustedPoliciesRegistryMock,
+  TrustedSchemasRegistry,
+} from "@ebsiint-sc/trusted-schemas-registry-v3";
+
+import "@nomicfoundation/hardhat-ethers";
+
+import type { HardhatEthersProvider } from "@nomicfoundation/hardhat-ethers/internal/hardhat-ethers-provider.js";
+
 import { computeId } from "@ebsiint-api/shared";
-import { TrustedSchemasRegistry } from "@ebsiint-sc/trusted-schemas-registry-v3";
-import { Contract, ethers } from "ethers";
+import { ethers } from "ethers";
 import crypto from "node:crypto";
 
 import { createDid, createSchema, dummySchemas } from "./data.js";
@@ -31,11 +38,11 @@ interface SchemaObject {
 
 interface User {
   did: string;
-  wallet: ethers.Wallet;
+  wallet: ethers.BaseWallet;
 }
 
 export async function deploySchemasRegistryContract(): Promise<{
-  policyContractMock: Contract;
+  policyContractMock: TrustedPoliciesRegistryMock;
   schemasRegistryContract: TrustedSchemasRegistry;
 }> {
   const [upgrader] = await hre.ethers.getSigners();
@@ -45,24 +52,26 @@ export async function deploySchemasRegistryContract(): Promise<{
     "TrustedPoliciesRegistryMock",
   );
   const tempPolicyContract = await policyRegistryFactory.deploy();
-  await tempPolicyContract.deployed();
+
   const bytecode = await hre.ethers.provider.getCode(
-    tempPolicyContract.address,
+    await tempPolicyContract.getAddress(),
   );
   await hre.network.provider.send("hardhat_setCode", [
     testTprAddress,
     bytecode,
   ]);
-  const policyContractMock = policyRegistryFactory.attach(testTprAddress);
+  const policyContractMock = policyRegistryFactory.attach(
+    testTprAddress,
+  ) as TrustedPoliciesRegistryMock;
 
   const contractFactory = await hre.ethers.getContractFactory(
     "TrustedSchemasRegistry",
   );
-  const schemasRegistry = (await hre.upgrades.deployProxy(
+  const schemasRegistry = await hre.upgrades.deployProxy(
     contractFactory,
     [upgrader!.address, testTprAddress],
     { unsafeAllowLinkedLibraries: true },
-  )) as unknown as TrustedSchemasRegistry;
+  );
 
   await policyContractMock.setPolicyResult(true);
 
@@ -99,8 +108,8 @@ export async function insertSchema(
 }
 
 export async function setupTestEnv(): Promise<{
-  policyContractMock: Contract;
-  provider: ethers.providers.JsonRpcProvider;
+  policyContractMock: TrustedPoliciesRegistryMock;
+  provider: HardhatEthersProvider;
   schemaMetadata: SchemaMetadataObject[];
   schemaRevisions: SchemaObject[];
   schemas: SchemaObject[];
@@ -116,6 +125,7 @@ export async function setupTestEnv(): Promise<{
   // Insert fake data
   const createWallet = () => {
     // Create random wallet and connect it so we can use it later to send transactions
+    // @ts-expect-error Error due to contracts using CommonJS modules
     const wallet = ethers.Wallet.createRandom().connect(ethersProvider);
     const did = createDid();
     return { did, wallet };

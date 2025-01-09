@@ -1,5 +1,4 @@
 import { TrackAndTrace } from "@ebsiint-sc/track-and-trace";
-import { ethers } from "ethers";
 import { describe, expect, it } from "vitest";
 
 import type { DocumentAccesses } from "./documents.interface.js";
@@ -12,13 +11,13 @@ import {
 
 describe("formatDocuments", () => {
   const documents = {
-    howMany: ethers.BigNumber.from("3"),
+    howMany: 3n,
     items: [
       "0xd06f39f1b07bdb5040665111ca96c63b100165f8e06ab2787d273d25ad6bb169",
       "0x99ab5f3cfc581c53a9210fc4588416fbc84b3ff09950ddc84e0efd1e2b2e147a",
       "0x4ed9c02a2c28de4ebfb274f8036d961062b05d8ea7a06682725d36224718e03e",
     ],
-    total: ethers.BigNumber.from("42"),
+    total: 42n,
   } as Awaited<ReturnType<TrackAndTrace["getDocuments"]>>;
 
   it("should use the values returned by the smart contract (except pageSize)", () => {
@@ -60,13 +59,13 @@ describe("formatDocuments", () => {
 
 describe("formatDocumentEvents", () => {
   const events = {
-    howMany: ethers.BigNumber.from("3"),
+    howMany: 3n,
     items: [
       "0xd06f39f1b07bdb5040665111ca96c63b100165f8e06ab2787d273d25ad6bb169",
       "0x99ab5f3cfc581c53a9210fc4588416fbc84b3ff09950ddc84e0efd1e2b2e147a",
       "0x4ed9c02a2c28de4ebfb274f8036d961062b05d8ea7a06682725d36224718e03e",
     ],
-    total: ethers.BigNumber.from("42"),
+    total: 42n,
   } as Awaited<ReturnType<TrackAndTrace["getDocuments"]>>;
 
   it("should use the values returned by the smart contract (except pageSize)", () => {

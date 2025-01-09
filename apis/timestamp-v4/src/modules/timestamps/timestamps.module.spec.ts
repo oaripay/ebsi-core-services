@@ -81,6 +81,10 @@ describe("Timestamps Module", () => {
     vi.spyOn(ledgerService, "getContract").mockImplementation(
       () => timestampContract,
     );
+    vi.spyOn(ledgerService, "getEthersProvider").mockImplementation(
+      // @ts-expect-error Error due to a mismatch between ESM and CommonJS modules
+      () => testEnv.provider,
+    );
   });
 
   afterAll(async () => {
@@ -299,7 +303,7 @@ describe("Timestamps Module", () => {
       const hashValue = hash.hashValues[0]!;
       const timestampId = multibase.base64url.encode(
         multihashEncode(
-          ethers.utils.sha256(hashValue).replace(/^0x/, ""),
+          ethers.sha256(hashValue).replace(/^0x/, ""),
           "sha2-256",
           32,
         ),
@@ -377,12 +381,17 @@ describe("Timestamps Module", () => {
       await testEnv.provider.send("evm_setAutomine", [true]);
 
       // Get block numbers
-      const { blockNumber: blockNumberTx1 } =
-        await testEnv.provider.getTransaction(hash1.tx.hash);
-      const { blockNumber: blockNumberTx2 } =
-        await testEnv.provider.getTransaction(hash2.tx.hash);
-      const { blockNumber: blockNumberTx3 } =
-        await testEnv.provider.getTransaction(hash3.tx.hash);
+      const tx1 = await testEnv.provider.getTransaction(hash1.tx.hash);
+      const tx2 = await testEnv.provider.getTransaction(hash2.tx.hash);
+      const tx3 = await testEnv.provider.getTransaction(hash3.tx.hash);
+
+      if (!tx1 || !tx2 || !tx3) {
+        throw new Error("Failed to get transaction");
+      }
+
+      const { blockNumber: blockNumberTx1 } = tx1;
+      const { blockNumber: blockNumberTx2 } = tx2;
+      const { blockNumber: blockNumberTx3 } = tx3;
 
       // Make sure all the transactions are in the same block
       expect(blockNumberTx1).not.toBeNull();
@@ -392,7 +401,7 @@ describe("Timestamps Module", () => {
       // Get second hash data
       const timestampId = multibase.base64url.encode(
         multihashEncode(
-          ethers.utils.sha256(hash2.hashValues[0]!).replace(/^0x/, ""),
+          ethers.sha256(hash2.hashValues[0]!).replace(/^0x/, ""),
           "sha2-256",
           32,
         ),
@@ -401,6 +410,7 @@ describe("Timestamps Module", () => {
       const response = await request(server).get(`/timestamps/${timestampId}`);
 
       // Verify response (especially "transactionHash")
+      const signer = await testEnv.provider.getSigner();
       expect(response.body).toStrictEqual({
         blockNumber: blockNumberTx1,
         data: hash2.timestampData[0],
@@ -411,7 +421,7 @@ describe("Timestamps Module", () => {
           ),
         ),
         timestamp: expect.any(String),
-        timestampedBy: await testEnv.timestampContract.signer.getAddress(),
+        timestampedBy: await signer.getAddress(),
         transactionHash: hash2.tx.hash,
       });
       expect(response.status).toBe(200);

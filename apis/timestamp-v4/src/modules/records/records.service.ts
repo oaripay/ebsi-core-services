@@ -8,7 +8,6 @@ import {
 } from "@ebsiint-api/shared";
 import { Timestamp } from "@ebsiint-sc/timestamp-v2";
 import { Injectable, Logger } from "@nestjs/common";
-import { ethers } from "ethers";
 
 import { LedgerService } from "../ledger/ledger.service.js";
 import {
@@ -36,7 +35,7 @@ export default class RecordsService {
       params,
       1,
     );
-    const lastPage = Math.ceil(total.toNumber() / 50);
+    const lastPage = Math.ceil(Number(total) / 50);
     const promisesNextPages = Array.from(
       { length: lastPage - 1 },
       (_, i) => i + 2,
@@ -48,7 +47,7 @@ export default class RecordsService {
     for (const pagItems of hashValuesNextPages) {
       hashValues.splice(hashValues.length, 0, ...pagItems);
     }
-    return { hashValues, infoIds, totalHashes: total.toNumber() };
+    return { hashValues, infoIds, totalHashes: Number(total) };
   }
 
   async getPage(
@@ -58,7 +57,7 @@ export default class RecordsService {
   ): Promise<{
     hashValues: string[];
     infoIds: string[];
-    total: ethers.BigNumber;
+    total: bigint;
   }> {
     switch (fnName) {
       case "getRecordVersion": {
@@ -113,7 +112,7 @@ export default class RecordsService {
 
     const { hashValues: lastVersionTimestamps } = await this.getAllPages(
       "getRecordVersion",
-      [recordId, totalVersions.toNumber() - 1],
+      [recordId, Number(totalVersions) - 1],
     );
 
     return {
@@ -121,7 +120,7 @@ export default class RecordsService {
       lastVersionTimestamps,
       ownerIds,
       revokedOwnerIds,
-      totalVersions: totalVersions.toNumber(),
+      totalVersions: Number(totalVersions),
     };
   }
 
@@ -251,6 +250,6 @@ export default class RecordsService {
       });
     }
 
-    return record.totalVersions.toNumber();
+    return Number(record.totalVersions);
   }
 }

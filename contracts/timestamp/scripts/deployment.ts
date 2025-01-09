@@ -21,16 +21,16 @@ async function main() {
     "PolicyRegistry",
     {
       libraries: {
-        Pagination: pagination.address,
+        Pagination: await pagination.getAddress(),
       },
     },
   )) as PolicyRegistry__factory;
   const policyContract = await policyRegistryFactory.deploy();
-  await policyContract.deployed();
+  await policyContract.waitForDeployment();
 
-  console.log("Policy deployed at :", policyContract.address);
+  console.log("Policy deployed at :", await policyContract.getAddress());
 
-  await policyContract.initialize(ethers.BigNumber.from(1));
+  await policyContract.initialize(1n);
 
   // We get the contract to deploy
   const haFactory = await ethers.getContractFactory("HashAlgoLib");
@@ -42,27 +42,27 @@ async function main() {
 
   const rsFactory = await ethers.getContractFactory("RecordLib", {
     libraries: {
-      StringManip: stringManipLib.address,
+      StringManip: await stringManipLib.getAddress(),
     },
   });
   const rsLib = await rsFactory.deploy();
 
   const contractFactory = await ethers.getContractFactory("Timestamp", {
     libraries: {
-      HashAlgoLib: haLib.address,
-      RecordLib: rsLib.address,
-      TimestampLib: tsLib.address,
+      HashAlgoLib: await haLib.getAddress(),
+      RecordLib: await rsLib.getAddress(),
+      TimestampLib: await tsLib.getAddress(),
     },
   });
 
-  const ts = await contractFactory.deploy(policyContract.address);
+  const ts = await contractFactory.deploy(await policyContract.getAddress());
 
   console.log(
-    `Timestamp deployed to: ${ts.address}
-   HashAlgoLib deployed to: ${haLib.address}
-   TimestampLib deployed to: ${tsLib.address}
-   RecordLib deployed to: ${rsLib.address}
-   stringManipLib deployed to: ${stringManipLib.address}`,
+    `Timestamp deployed to: ${await ts.getAddress()}
+   HashAlgoLib deployed to: ${await haLib.getAddress()}
+   TimestampLib deployed to: ${await tsLib.getAddress()}
+   RecordLib deployed to: ${await rsLib.getAddress()}
+   stringManipLib deployed to: ${await stringManipLib.getAddress()}`,
   );
 }
 

@@ -1,11 +1,10 @@
-import "@nomiclabs/hardhat-waffle";
 import "@nomiclabs/hardhat-solhint";
-import "@typechain/hardhat";
+import "@gnosis-guild/typechain-hardhat";
 import "hardhat-deploy";
 import "hardhat-deploy-ethers";
 import "hardhat-abi-exporter";
 
-import type { TypechainUserConfig } from "@typechain/hardhat/dist/types";
+import type { TypechainUserConfig } from "@gnosis-guild/typechain-hardhat/dist/types";
 import type { AbiExporterUserConfig } from "hardhat-abi-exporter";
 import type { HardhatUserConfig } from "hardhat/config";
 
@@ -49,7 +48,7 @@ const config: HardhatUserConfig & {
   },
   typechain: {
     outDir: "src/types",
-    target: "ethers-v5",
+    target: require.resolve("@gnosis-guild/typechain-ethers-v6"),
   },
 };
 

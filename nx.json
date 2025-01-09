@@ -90,6 +90,12 @@
       "dependsOn": ["^build", "prepare"]
     },
     "compile": {
+      "outputs": [
+        "{projectRoot}/artifacts",
+        "{projectRoot}/dist",
+        "{projectRoot}/src"
+      ],
+      "dependsOn": ["prepare"],
       "cache": true
     },
     "prepare-contracts": {

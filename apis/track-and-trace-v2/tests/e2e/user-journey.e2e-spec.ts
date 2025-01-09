@@ -53,7 +53,7 @@ import { getServer } from "../utils/getServer.js";
 
 interface Actor {
   info: EbsiIssuer;
-  wallet: ethers.Wallet;
+  wallet: ethers.BaseWallet;
 }
 
 interface SupertestJsonRpcResponse {
@@ -259,16 +259,20 @@ describeWriteOps()("Track and Trace - User Journey (e2e)", () => {
       unsignedTransaction,
     }: {
       accessToken: string;
-      signer: ethers.Wallet;
+      signer: ethers.BaseWallet;
       unsignedTransaction: unknown;
     }) {
       const uTx = formatEthersUnsignedTransaction(
         // eslint-disable-next-line unicorn/prefer-structured-clone
         JSON.parse(JSON.stringify(unsignedTransaction)) as UnsignedTransaction,
       );
-      uTx.chainId = Number(uTx.chainId);
+
       const sgnTx = await signer.signTransaction(uTx);
-      const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+      const signature = ethers.Transaction.from(sgnTx).signature;
+      if (!signature) {
+        throw new Error("Signature not found");
+      }
+      const { r, s, v } = signature;
 
       const responseSend: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")
@@ -284,7 +288,7 @@ describeWriteOps()("Track and Trace - User Journey (e2e)", () => {
               s,
               signedRawTransaction: sgnTx,
               unsignedTransaction,
-              v: `0x${Number(v).toString(16)}`,
+              v: `0x${v.toString(16)}`,
             },
           ],
         });
@@ -348,7 +352,7 @@ describeWriteOps()("Track and Trace - User Journey (e2e)", () => {
       ledgerApi,
       responseSend.body.result as string,
     );
-    expect(receipt.status).toBe(1);
+    expect(receipt.status).toBe("0x1");
 
     // Wait 3 seconds for the results to become available in The Graph
     await new Promise<void>((resolve) => {
@@ -408,11 +412,18 @@ describeWriteOps()("Track and Trace - User Journey (e2e)", () => {
       ledgerApi,
       responseSend.body.result as string,
     );
-    expect(receipt.status).toBe(1);
+    expect(receipt.status).toBe("0x1");
 
     // Get block containing the transaction
-    const provider = new ethers.providers.JsonRpcProvider(ledgerApi);
+    const provider = new ethers.JsonRpcProvider(ledgerApi, undefined, {
+      batchMaxSize: 1, // Ledger API doesn't support batch request
+      staticNetwork: true, // Do not request chain ID on requests to validate the underlying chain has not changed
+    });
     let block = await provider.getBlock(receipt.blockHash);
+
+    if (!block) {
+      throw new Error("Block not found");
+    }
 
     // Extract datetime and proof from block
     document1.timestamp.datetime = `0x${block.timestamp.toString(16)}`;
@@ -489,17 +500,21 @@ describeWriteOps()("Track and Trace - User Journey (e2e)", () => {
       ledgerApi,
       responseSend.body.result as string,
     );
-    expect(receipt.status).toBe(1);
+    expect(receipt.status).toBe("0x1");
 
     // Get block containing the transaction
     block = await provider.getBlock(receipt.blockHash);
+
+    if (!block) {
+      throw new Error("Block not found");
+    }
 
     // Extract datetime and proof from block
     document1Event1.timestamp.datetime = `0x${block.timestamp.toString(16)}`;
     document1Event1.timestamp.proof = `0x${block.number.toString(16).padStart(64, "0")}`;
 
     // Event hash is `keccak256(bytes(eventParams.externalHash))`
-    document1Event1.hash = ethers.utils.keccak256(
+    document1Event1.hash = ethers.keccak256(
       Buffer.from(document1Event1.externalHash, "utf8"), // Note: externalHash is treated as an UTF-8 string
     );
 
@@ -572,7 +587,7 @@ describeWriteOps()("Track and Trace - User Journey (e2e)", () => {
       ledgerApi,
       responseSend.body.result as string,
     );
-    expect(receipt.status).toBe(1);
+    expect(receipt.status).toBe("0x1");
 
     // Wait 3 seconds for the results to become available in The Graph
     await new Promise<void>((resolve) => {
@@ -658,7 +673,7 @@ describeWriteOps()("Track and Trace - User Journey (e2e)", () => {
       ledgerApi,
       responseSend.body.result as string,
     );
-    expect(receipt.status).toBe(1);
+    expect(receipt.status).toBe("0x1");
 
     // Wait 3 seconds for the results to become available in The Graph
     await new Promise<void>((resolve) => {
@@ -765,10 +780,10 @@ describeWriteOps()("Track and Trace - User Journey (e2e)", () => {
       ledgerApi,
       responseSend.body.result as string,
     );
-    expect(receipt.status).toBe(1);
+    expect(receipt.status).toBe("0x1");
 
     // Event hash is `keccak256(bytes(eventParams.externalHash))`
-    document1Event2.hash = ethers.utils.keccak256(
+    document1Event2.hash = ethers.keccak256(
       Buffer.from(document1Event2.externalHash, "utf8"), // Note: externalHash is treated as an UTF-8 string
     );
 
@@ -842,7 +857,7 @@ describeWriteOps()("Track and Trace - User Journey (e2e)", () => {
       ledgerApi,
       responseSend.body.result as string,
     );
-    expect(receipt.status).toBe(1);
+    expect(receipt.status).toBe("0x1");
 
     // Wait 3 seconds for the results to become available in The Graph
     await new Promise<void>((resolve) => {
@@ -919,7 +934,7 @@ describeWriteOps()("Track and Trace - User Journey (e2e)", () => {
       ledgerApi,
       responseSend.body.result as string,
     );
-    expect(receipt.status).toBe(1);
+    expect(receipt.status).toBe("0x1");
 
     // Wait 3 seconds for the results to become available in The Graph
     await new Promise<void>((resolve) => {
@@ -987,7 +1002,7 @@ describeWriteOps()("Track and Trace - User Journey (e2e)", () => {
       ledgerApi,
       responseSend.body.result as string,
     );
-    expect(receipt.status).toBe(1);
+    expect(receipt.status).toBe("0x1");
 
     // Wait 3 seconds for the results to become available in The Graph
     await new Promise<void>((resolve) => {

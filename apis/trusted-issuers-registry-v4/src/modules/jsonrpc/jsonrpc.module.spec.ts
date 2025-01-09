@@ -103,7 +103,7 @@ describe("JsonRpc Module", () => {
 
   function createParam(
     method: string,
-    signer: ethers.Wallet,
+    signer: ethers.BaseWallet,
     updateAttribute: boolean,
     tamper = false,
   ) {
@@ -205,11 +205,11 @@ describe("JsonRpc Module", () => {
         // Bypass local requests
         if (new URL(url).hostname === "127.0.0.1") return;
 
-        print.warning();
+        print.error();
       },
     });
 
-    // Spin up test blockchain (ganache)
+    // Spin up test blockchain
     testEnv = await setupTestEnv({
       issuersTotal: 5,
     });
@@ -226,10 +226,10 @@ describe("JsonRpc Module", () => {
     );
 
     tirContract = testEnv.tirContract;
-    tirContractAddress = tirContract.address;
+    tirContractAddress = await tirContract.getAddress();
 
     vi.spyOn(LedgerService.prototype, "getContractAddress").mockImplementation(
-      () => tirContract.address,
+      () => tirContractAddress,
     );
 
     // Start server
@@ -378,6 +378,10 @@ describe("JsonRpc Module", () => {
     vi.spyOn(ledgerService, "getContract").mockImplementation(
       () => tirContract,
     );
+    vi.spyOn(ledgerService, "getEthersProvider").mockImplementation(
+      // @ts-expect-error Error due to a mismatch between ESM and CommonJS modules
+      () => testEnv.provider,
+    );
 
     // For the tests, we assume that the DID is controlled by the signer
     isDidControlledByAddressMock = vi.spyOn(
@@ -470,9 +474,13 @@ describe("JsonRpc Module", () => {
       // eslint-disable-next-line unicorn/prefer-structured-clone
       JSON.parse(JSON.stringify(unsignedTransaction)) as UnsignedTransaction,
     );
-    uTx.chainId = Number(uTx.chainId);
+
     const sgnTx = await signer.signTransaction(uTx);
-    const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+    const signature = ethers.Transaction.from(sgnTx).signature;
+    if (!signature) {
+      throw new Error("Signature not found");
+    }
+    const { r, s, v } = signature;
 
     const responseSend = await request(server)
       .post("/jsonrpc")
@@ -488,7 +496,7 @@ describe("JsonRpc Module", () => {
             s,
             signedRawTransaction: sgnTx,
             unsignedTransaction,
-            v: `0x${Number(v).toString(16)}`,
+            v: `0x${v.toString(16)}`,
           },
         ],
       });
@@ -642,9 +650,13 @@ describe("JsonRpc Module", () => {
       // eslint-disable-next-line unicorn/prefer-structured-clone
       JSON.parse(JSON.stringify(transaction)) as UnsignedTransaction,
     );
-    uTx.chainId = Number(uTx.chainId);
+
     const sgnTx = await wallet.signTransaction(uTx);
-    const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+    const signature = ethers.Transaction.from(sgnTx).signature;
+    if (!signature) {
+      throw new Error("Signature not found");
+    }
+    const { r, s, v } = signature;
 
     const responseSend = await request(server)
       .post("/jsonrpc")
@@ -660,13 +672,13 @@ describe("JsonRpc Module", () => {
             s,
             signedRawTransaction: sgnTx,
             unsignedTransaction: transaction,
-            v: `0x${Number(v).toString(16)}`,
+            v: `0x${v.toString(16)}`,
           },
         ],
       });
 
-    const { chainId } = await tirContract.provider.getNetwork();
-    const actualChainId = ethers.BigNumber.from(chainId).toHexString();
+    const { chainId } = await testEnv.provider.getNetwork();
+    const actualChainId = `0x${BigInt(chainId).toString(16)}`;
 
     expect(responseSend.body).toStrictEqual({
       error: {
@@ -755,9 +767,13 @@ describe("JsonRpc Module", () => {
       // eslint-disable-next-line unicorn/prefer-structured-clone
       JSON.parse(JSON.stringify(unsignedTransaction)) as UnsignedTransaction,
     );
-    uTx.chainId = Number(uTx.chainId);
+
     const sgnTx = await signer.signTransaction(uTx);
-    const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+    const signature = ethers.Transaction.from(sgnTx).signature;
+    if (!signature) {
+      throw new Error("Signature not found");
+    }
+    const { r, s, v } = signature;
 
     const responseSend = await request(server)
       .post("/jsonrpc")
@@ -773,7 +789,7 @@ describe("JsonRpc Module", () => {
             s,
             signedRawTransaction: sgnTx,
             unsignedTransaction,
-            v: `0x${Number(v).toString(16)}`,
+            v: `0x${v.toString(16)}`,
           },
         ],
       });
@@ -850,9 +866,13 @@ describe("JsonRpc Module", () => {
             JSON.stringify(unsignedTransaction),
           ) as UnsignedTransaction,
         );
-        uTx.chainId = Number(uTx.chainId);
+
         const sgnTx = await signer.signTransaction(uTx);
-        const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+        const signature = ethers.Transaction.from(sgnTx).signature;
+        if (!signature) {
+          throw new Error("Signature not found");
+        }
+        const { r, s, v } = signature;
 
         const responseSend = await request(server)
           .post("/jsonrpc")
@@ -868,7 +888,7 @@ describe("JsonRpc Module", () => {
                 s,
                 signedRawTransaction: sgnTx,
                 unsignedTransaction,
-                v: `0x${Number(v).toString(16)}`,
+                v: `0x${v.toString(16)}`,
               },
             ],
           });
@@ -1098,9 +1118,13 @@ describe("JsonRpc Module", () => {
           // eslint-disable-next-line unicorn/prefer-structured-clone
           JSON.parse(JSON.stringify(transaction1)) as UnsignedTransaction,
         );
-        uTx.chainId = Number(uTx.chainId);
+
         const sgnTx1 = await wallet1.signTransaction(uTx);
-        const { r, s, v } = ethers.utils.parseTransaction(sgnTx1);
+        const signature = ethers.Transaction.from(sgnTx1).signature;
+        if (!signature) {
+          throw new Error("Signature not found");
+        }
+        const { r, s, v } = signature;
 
         // tampering signatures
         const responseSend1 = await request(server)
@@ -1117,7 +1141,7 @@ describe("JsonRpc Module", () => {
                 s,
                 signedRawTransaction: sgnTx1,
                 unsignedTransaction: transaction2,
-                v: `0x${Number(v).toString(16)}`,
+                v: `0x${v.toString(16)}`,
               },
             ],
           });
@@ -1150,7 +1174,7 @@ describe("JsonRpc Module", () => {
                 s,
                 signedRawTransaction: sgnTx1,
                 unsignedTransaction: transaction1,
-                v: `0x${Number(v).toString(16)}`,
+                v: `0x${v.toString(16)}`,
               },
             ],
           });

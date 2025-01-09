@@ -328,9 +328,13 @@ describe("TPR API v4 - JSON RPC (e2e)", () => {
           JSON.stringify(unsignedTransaction),
         ) as unknown as UnsignedTransaction,
       );
-      uTx.chainId = Number(uTx.chainId);
+
       const sgnTx = await signer.signTransaction(uTx);
-      const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+      const signature = ethers.Transaction.from(sgnTx).signature;
+      if (!signature) {
+        throw new Error("Signature not found");
+      }
+      const { r, s, v } = signature;
 
       const responseSend = await request(server)
         .post("/jsonrpc")
@@ -346,7 +350,7 @@ describe("TPR API v4 - JSON RPC (e2e)", () => {
               s,
               signedRawTransaction: sgnTx,
               unsignedTransaction,
-              v: `0x${Number(v).toString(16)}`,
+              v: `0x${v.toString(16)}`,
             },
           ],
         });
@@ -409,9 +413,13 @@ describe("TPR API v4 - JSON RPC (e2e)", () => {
           JSON.stringify(unsignedTransaction),
         ) as unknown as UnsignedTransaction,
       );
-      uTx.chainId = Number(uTx.chainId);
+
       const sgnTx = await signer.signTransaction(uTx);
-      const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+      const signature = ethers.Transaction.from(sgnTx).signature;
+      if (!signature) {
+        throw new Error("Signature not found");
+      }
+      const { r, s, v } = signature;
 
       const responseSend: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")
@@ -427,7 +435,7 @@ describe("TPR API v4 - JSON RPC (e2e)", () => {
               s,
               signedRawTransaction: sgnTx,
               unsignedTransaction,
-              v: `0x${Number(v).toString(16)}`,
+              v: `0x${v.toString(16)}`,
             },
           ],
         });
@@ -439,7 +447,7 @@ describe("TPR API v4 - JSON RPC (e2e)", () => {
       );
 
       // The transaction should have failed
-      expect(receipt.status).toBe(0);
+      expect(receipt.status).toBe("0x0");
     });
 
     // Tests to be repeated for every method
@@ -547,9 +555,13 @@ describe("TPR API v4 - JSON RPC (e2e)", () => {
               JSON.stringify(unsignedTransaction),
             ) as unknown as UnsignedTransaction,
           );
-          uTx.chainId = Number(uTx.chainId);
+
           const sgnTx = await signer.signTransaction(uTx);
-          const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+          const signature = ethers.Transaction.from(sgnTx).signature;
+          if (!signature) {
+            throw new Error("Signature not found");
+          }
+          const { r, s, v } = signature;
 
           const responseSend: SupertestJsonRpcResponse = await request(server)
             .post("/jsonrpc")
@@ -565,7 +577,7 @@ describe("TPR API v4 - JSON RPC (e2e)", () => {
                   s,
                   signedRawTransaction: sgnTx,
                   unsignedTransaction,
-                  v: `0x${Number(v).toString(16)}`,
+                  v: `0x${v.toString(16)}`,
                 },
               ],
             });
@@ -582,10 +594,10 @@ describe("TPR API v4 - JSON RPC (e2e)", () => {
             ledgerApi,
             responseSend.body.result as string,
           );
-          expect(receipt.status).toBe(1);
+          expect(receipt.status).toBe("0x1");
           sampleTransaction = responseSend.body.result as string;
 
-          // wait some seconds until it is catched by the subgraph
+          // wait some seconds until it is caught by the subgraph
           await new Promise((resolve) => {
             setTimeout(resolve, 6000);
           });
@@ -1087,9 +1099,13 @@ describe("TPR API v4 - JSON RPC (e2e)", () => {
             JSON.stringify(transaction1),
           ) as unknown as UnsignedTransaction,
         );
-        uTx.chainId = Number(uTx.chainId);
+
         const sgnTx1 = await randomSigner.signTransaction(uTx);
-        const { r, s, v } = ethers.utils.parseTransaction(sgnTx1);
+        const signature = ethers.Transaction.from(sgnTx1).signature;
+        if (!signature) {
+          throw new Error("Signature not found");
+        }
+        const { r, s, v } = signature;
 
         // Tampering signatures
         const responseSend1 = await request(server)
@@ -1106,7 +1122,7 @@ describe("TPR API v4 - JSON RPC (e2e)", () => {
                 s,
                 signedRawTransaction: sgnTx1,
                 unsignedTransaction: transaction2,
-                v: `0x${Number(v).toString(16)}`,
+                v: `0x${v.toString(16)}`,
               },
             ],
           });
@@ -1139,7 +1155,7 @@ describe("TPR API v4 - JSON RPC (e2e)", () => {
                 s,
                 signedRawTransaction: sgnTx1,
                 unsignedTransaction: transaction1,
-                v: `0x${Number(v).toString(16)}`,
+                v: `0x${v.toString(16)}`,
               },
             ],
           });

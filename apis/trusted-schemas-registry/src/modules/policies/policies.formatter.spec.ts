@@ -1,5 +1,4 @@
 import { SchemaSCRegistry } from "@ebsiint-sc/trusted-schemas-registry";
-import { ethers } from "ethers";
 import { describe, expect, it } from "vitest";
 
 import { formatPolicies, formatRevisions } from "./policies.formatter.js";
@@ -7,11 +6,11 @@ import { PoliciesService } from "./policies.service.js";
 
 describe("formatPolicies", () => {
   const policies = {
-    howMany: ethers.BigNumber.from("3"),
+    howMany: 3n,
     items: ["policy-1:with/specialChars", "policy-2", "policy-3"],
-    next: ethers.BigNumber.from("3"),
-    prev: ethers.BigNumber.from("1"),
-    total: ethers.BigNumber.from("42"),
+    next: 3n,
+    prev: 1n,
+    total: 42n,
   } as Awaited<ReturnType<SchemaSCRegistry["getPolicies"]>>;
 
   it("should use the values returned by the smart contract (except pageSize)", () => {

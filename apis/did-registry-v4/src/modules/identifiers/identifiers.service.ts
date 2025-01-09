@@ -2,6 +2,7 @@ import type { JWK } from "jose";
 
 import {
   BadRequestError,
+  decodeResult,
   encode,
   getErrorMessage,
   InvalidRequestJsonRpcError,
@@ -35,20 +36,66 @@ export default class IdentifiersService {
       const address = body.params[0]!;
       return await contract["checkController(string,address)"](did, address);
     } catch (error_) {
+      if (!(error_ instanceof Error)) {
+        this.logger.error(error_);
+        throw error_;
+      }
+
+      // Try to decode error
+      const errorDescription = this.decodeError(error_);
+      if (
+        errorDescription &&
+        errorDescription.args.length > 0 &&
+        typeof errorDescription.args[0] === "string"
+      ) {
+        throw new InvalidRequestJsonRpcError(errorDescription.args[0], id);
+      }
+
       if (isEthersError(error_)) {
         this.logger.error(error_, error_.stack); // Log the original error with all ethers.js details for internal debugging
-        throw new InvalidRequestJsonRpcError(error_.reason, id); // throw simplified ethers error to the user
+        throw new InvalidRequestJsonRpcError(
+          error_.error?.message ?? error_.shortMessage,
+          id,
+          undefined,
+          error_.error &&
+          "code" in error_.error &&
+          typeof error_.error.code === "number"
+            ? error_.error.code
+            : undefined,
+        );
       }
-      if (error_ instanceof Error) {
-        const error = new InvalidRequestJsonRpcError(error_.message, id);
 
-        if (error_ instanceof Error && error_.stack) {
-          error.stack = error_.stack;
-        }
+      const error = new InvalidRequestJsonRpcError(error_.message, id);
 
-        throw error;
+      if (error_ instanceof Error && error_.stack) {
+        error.stack = error_.stack;
       }
-      throw error_;
+
+      throw error;
+    }
+  }
+
+  decodeError(error: unknown) {
+    if (
+      !error ||
+      typeof error !== "object" ||
+      !("data" in error) ||
+      !error.data ||
+      !(typeof error.data === "string" || error.data instanceof Uint8Array)
+    ) {
+      return;
+    }
+
+    const contract = this.ledgerService.getContract();
+    try {
+      const errorDescription = contract.interface.parseError(error.data);
+
+      if (!errorDescription) return;
+
+      return errorDescription;
+    } catch {
+      // Ignore error
+      return;
     }
   }
 
@@ -179,11 +226,16 @@ export default class IdentifiersService {
         if (isEthersError(error)) {
           this.logger.error(error, error.stack);
         }
-        if ((error as Error).message.includes(`"controller doesn't exist"`)) {
+
+        if (
+          error instanceof Error &&
+          error.message.includes("controller doesn't exist")
+        ) {
           throw new NotFoundError(NotFoundError.defaultTitle, {
             detail: `Controller ${controller} not found`,
           });
         }
+
         throw new Error(getErrorMessage(error));
       }
     }
@@ -211,17 +263,18 @@ export default class IdentifiersService {
         const now = Math.floor(Date.now() / 1000);
         for (const didWithPeriod of didsWithPeriod.items) {
           if (
-            didWithPeriod.notBefore.toNumber() <= now &&
-            now <= didWithPeriod.notAfter.toNumber()
+            Number(didWithPeriod.notBefore) <= now &&
+            now <= Number(didWithPeriod.notAfter)
           ) {
             dids.push(didWithPeriod.did);
           }
         }
-        const { items, ...details } = didsWithPeriod;
-        return await ({
+
+        return {
+          // @ts-expect-error Error due to CommonJS vs ESM modules imports
+          ...decodeResult(didsWithPeriod),
           items: dids,
-          ...details,
-        } as unknown as ReturnType<DidRegistry["getDids"]>);
+        } as unknown as ReturnType<DidRegistry["getDids"]>;
       } catch (error) {
         if (isEthersError(error)) {
           this.logger.error(error, error.stack);

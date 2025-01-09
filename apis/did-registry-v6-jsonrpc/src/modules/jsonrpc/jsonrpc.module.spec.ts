@@ -107,7 +107,7 @@ describe("JsonRpc Module", () => {
         // Bypass local requests
         if (new URL(url).hostname === "127.0.0.1") return;
 
-        print.warning();
+        print.error();
       },
     });
 
@@ -118,8 +118,9 @@ describe("JsonRpc Module", () => {
 
     didRegistryContract = testEnv.didRegistryContract;
 
+    const didRegistryContractAddress = await didRegistryContract.getAddress();
     vi.spyOn(LedgerService.prototype, "getContractAddress").mockImplementation(
-      () => didRegistryContract.address,
+      () => didRegistryContractAddress,
     );
 
     // Mock DidRegistry contract
@@ -181,6 +182,10 @@ describe("JsonRpc Module", () => {
 
     vi.spyOn(ledgerService, "getContract").mockImplementation(
       () => didRegistryContract,
+    );
+    vi.spyOn(ledgerService, "getEthersProvider").mockImplementation(
+      // @ts-expect-error Error due to a mismatch between ESM and CommonJS modules
+      () => testEnv.provider,
     );
 
     // Generate key pair for Authorisation API v3 and create access token
@@ -445,7 +450,7 @@ describe("JsonRpc Module", () => {
         isSecp256k1: true,
         notAfter,
         notBefore,
-        publicKey: newUser.wallet.publicKey,
+        publicKey: newUser.wallet.signingKey.publicKey,
         vMethodId: newUser.thumbprint,
       } satisfies InsertDidDocumentSchema;
 
@@ -458,7 +463,7 @@ describe("JsonRpc Module", () => {
         isSecp256k1: true,
         notAfter: notAfter + 1,
         notBefore,
-        publicKey: newUser.wallet.publicKey,
+        publicKey: newUser.wallet.signingKey.publicKey,
         vMethodId: newUser.thumbprint,
       } satisfies InsertDidDocumentSchema;
 
@@ -495,9 +500,13 @@ describe("JsonRpc Module", () => {
         // eslint-disable-next-line unicorn/prefer-structured-clone
         JSON.parse(JSON.stringify(transaction1)) as UnsignedTransaction,
       );
-      uTx.chainId = Number(uTx.chainId);
+
       const sgnTx1 = await randomSigner.signTransaction(uTx);
-      const { r, s, v } = ethers.utils.parseTransaction(sgnTx1);
+      const signature = ethers.Transaction.from(sgnTx1).signature;
+      if (!signature) {
+        throw new Error("Signature not found");
+      }
+      const { r, s, v } = signature;
 
       // Tampering signatures
       const responseSend1 = await request(server)
@@ -514,7 +523,7 @@ describe("JsonRpc Module", () => {
               s,
               signedRawTransaction: sgnTx1,
               unsignedTransaction: transaction2,
-              v: `0x${Number(v).toString(16)}`,
+              v: `0x${v.toString(16)}`,
             },
           ],
         });
@@ -548,7 +557,7 @@ describe("JsonRpc Module", () => {
               s,
               signedRawTransaction: sgnTx1,
               unsignedTransaction: transaction1,
-              v: `0x${Number(v).toString(16)}`,
+              v: `0x${v.toString(16)}`,
             },
           ],
         });
@@ -584,7 +593,7 @@ describe("JsonRpc Module", () => {
         isSecp256k1: true,
         notAfter,
         notBefore,
-        publicKey: testUser.wallet.publicKey,
+        publicKey: testUser.wallet.signingKey.publicKey,
         vMethodId: testUser.thumbprint,
       } satisfies InsertDidDocumentSchema;
 
@@ -615,9 +624,13 @@ describe("JsonRpc Module", () => {
         // eslint-disable-next-line unicorn/prefer-structured-clone
         JSON.parse(JSON.stringify(unsignedTransaction)) as UnsignedTransaction,
       );
-      uTx.chainId = Number(uTx.chainId);
+
       const sgnTx = await testUser.wallet.signTransaction(uTx);
-      const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+      const signature = ethers.Transaction.from(sgnTx).signature;
+      if (!signature) {
+        throw new Error("Signature not found");
+      }
+      const { r, s, v } = signature;
 
       let responseSend = await request(server)
         .post("/")
@@ -633,7 +646,7 @@ describe("JsonRpc Module", () => {
               s,
               signedRawTransaction: sgnTx,
               unsignedTransaction,
-              v: `0x${Number(v).toString(16)}`,
+              v: `0x${v.toString(16)}`,
             },
           ],
         });
@@ -660,7 +673,7 @@ describe("JsonRpc Module", () => {
               s,
               signedRawTransaction: sgnTx,
               unsignedTransaction,
-              v: `0x${Number(v).toString(16)}`,
+              v: `0x${v.toString(16)}`,
             },
           ],
         });
@@ -668,7 +681,8 @@ describe("JsonRpc Module", () => {
       expect(responseSend.body).toStrictEqual({
         error: {
           code: -32_600,
-          message: "nonce has already been used",
+          message:
+            "Nonce too low. Expected nonce to be 1 but got 0. Note that transactions can't be queued when automining.",
         },
         id: "45",
         jsonrpc: "2.0",
@@ -691,7 +705,7 @@ describe("JsonRpc Module", () => {
         isSecp256k1: true,
         notAfter: now + 3600,
         notBefore: now,
-        publicKey: newUser.wallet.publicKey,
+        publicKey: newUser.wallet.signingKey.publicKey,
         vMethodId: newUser.thumbprint,
       } satisfies InsertDidDocumentSchema;
 
@@ -728,7 +742,7 @@ describe("JsonRpc Module", () => {
         isSecp256k1: true,
         notAfter: now + 3600,
         notBefore: now,
-        publicKey: newUser.wallet.publicKey,
+        publicKey: newUser.wallet.signingKey.publicKey,
         vMethodId: newUser.thumbprint,
       } satisfies InsertDidDocumentSchema;
 
@@ -852,7 +866,7 @@ describe("JsonRpc Module", () => {
             isSecp256k1: true,
             notAfter: now + 3600,
             notBefore: now,
-            publicKey: newUser.wallet.publicKey,
+            publicKey: newUser.wallet.signingKey.publicKey,
             vMethodId: newUser.thumbprint,
           } satisfies InsertDidDocumentSchema;
           break;
@@ -946,9 +960,13 @@ describe("JsonRpc Module", () => {
         // eslint-disable-next-line unicorn/prefer-structured-clone
         JSON.parse(JSON.stringify(unsignedTransaction)) as UnsignedTransaction,
       );
-      uTx.chainId = Number(uTx.chainId);
+
       const sgnTx = await signer.signTransaction(uTx);
-      const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+      const signature = ethers.Transaction.from(sgnTx).signature;
+      if (!signature) {
+        throw new Error("Signature not found");
+      }
+      const { r, s, v } = signature;
 
       const responseSend = await request(server)
         .post("/")
@@ -964,7 +982,7 @@ describe("JsonRpc Module", () => {
               s,
               signedRawTransaction: sgnTx,
               unsignedTransaction,
-              v: `0x${Number(v).toString(16)}`,
+              v: `0x${v.toString(16)}`,
             },
           ],
         });
@@ -1213,7 +1231,7 @@ Invalid 'params.0.service.type': Invalid input`,
                 isSecp256k1: true,
                 notAfter: now + 3600,
                 notBefore: now,
-                publicKey: newUser.wallet.publicKey,
+                publicKey: newUser.wallet.signingKey.publicKey,
                 vMethodId: newUser.thumbprint,
               } satisfies InsertDidDocumentSchema,
             },
@@ -1230,7 +1248,7 @@ Invalid 'params.0.service.type': Invalid input`,
                 isSecp256k1: true,
                 notAfter: now + 3600,
                 notBefore: now,
-                publicKey: newUser.wallet.publicKey,
+                publicKey: newUser.wallet.signingKey.publicKey,
                 vMethodId: newUser.thumbprint,
               } satisfies InsertDidDocumentSchema,
             },
@@ -1245,7 +1263,7 @@ Invalid 'params.0.service.type': Invalid input`,
                 isSecp256k1: true,
                 notAfter: now + 3600,
                 notBefore: now,
-                publicKey: newUser.wallet.publicKey,
+                publicKey: newUser.wallet.signingKey.publicKey,
                 vMethodId: newUser.thumbprint,
               } satisfies InsertDidDocumentSchema,
             },
@@ -1260,7 +1278,7 @@ Invalid 'params.0.service.type': Invalid input`,
                 isSecp256k1: true,
                 notAfter: now + 3600,
                 notBefore: now,
-                publicKey: newUser.wallet.publicKey,
+                publicKey: newUser.wallet.signingKey.publicKey,
                 vMethodId: newUser.thumbprint,
               } satisfies InsertDidDocumentSchema,
             },
@@ -1279,7 +1297,7 @@ Invalid 'params.0.service.type': Invalid input`,
                 isSecp256k1: true,
                 notAfter: now + 3600,
                 notBefore: now,
-                publicKey: newUser.wallet.publicKey,
+                publicKey: newUser.wallet.signingKey.publicKey,
                 vMethodId: newUser.thumbprint,
               } satisfies InsertDidDocumentSchema,
             },
@@ -1299,7 +1317,7 @@ Invalid 'params.0.service.type': Invalid input`,
                 isSecp256k1: true,
                 notAfter: now + 3600,
                 notBefore: now,
-                publicKey: newUser.wallet.publicKey,
+                publicKey: newUser.wallet.signingKey.publicKey,
                 vMethodId: newUser.thumbprint,
               } satisfies InsertDidDocumentSchema,
             },

@@ -275,7 +275,7 @@ describe("Timestamps Module", () => {
       const hashValue = hash.hashValues[0]!;
       const timestampId = multibase.base64url.encode(
         multihashEncode(
-          ethers.utils.sha256(hashValue).replace(/^0x/, ""),
+          ethers.sha256(hashValue).replace(/^0x/, ""),
           "sha2-256",
           32,
         ),

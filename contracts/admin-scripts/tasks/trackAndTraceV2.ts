@@ -31,7 +31,11 @@ task("trackAndTraceV2", "Deploy contract Track And Trace")
 
       const trackAndTraceFactory = await ethers.getContractFactory(
         "contracts/track-and-trace-v2/TrackAndTrace.sol:TrackAndTrace",
-        { libraries: { TrackAndTraceLib: trackAndTraceLibContract.address } },
+        {
+          libraries: {
+            TrackAndTraceLib: await trackAndTraceLibContract.getAddress(),
+          },
+        },
       );
 
       // deploy
@@ -41,14 +45,14 @@ task("trackAndTraceV2", "Deploy contract Track And Trace")
         { unsafeAllowLinkedLibraries: true },
       );
 
-      settings.set("trackAndTraceAddress", trackAndTrace.address);
+      settings.set("trackAndTraceAddress", await trackAndTrace.getAddress());
       settings.set("adminAddress", taskArgs.admin);
       settings.set("upgraderAddress", taskArgs.upgrader);
       settings.set("tprAddress", taskArgs.tpr);
       settings.set("didRegistryAddress", taskArgs.registry);
 
       console.log(
-        `TrackAndTrace contract deployed to ${trackAndTrace.address}`,
+        `TrackAndTrace contract deployed to ${await trackAndTrace.getAddress()}`,
       );
     },
   );
@@ -72,7 +76,7 @@ task("trackAndTraceV2", "Deploy contract Track And Trace")
 //     // get contract
 //     const trackAndTraceFactory = await ethers.getContractFactory(
 //       "TrackAndTrace",
-//       { libraries: { TrackAndTraceLib: trackAndTraceLibContract.address } },
+//       { libraries: { TrackAndTraceLib: await trackAndTraceLibContract.getAddress() } },
 //     );
 //
 //     // forceImport
@@ -117,7 +121,7 @@ task("trackAndTraceV2", "Deploy contract Track And Trace")
 //     // get contract
 //     const trackAndTraceFactory = await ethers.getContractFactory(
 //       "TrackAndTrace",
-//       { libraries: { TrackAndTraceLib: trackAndTraceLibContract.address } },
+//       { libraries: { TrackAndTraceLib: await trackAndTraceLibContract.getAddress() } },
 //     );
 //
 //     // forceImport

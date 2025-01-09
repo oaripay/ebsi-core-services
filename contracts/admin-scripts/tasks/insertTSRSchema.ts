@@ -1,9 +1,6 @@
 import canonicalize from "canonicalize";
-import "@nomiclabs/hardhat-waffle";
 import { task } from "hardhat/config";
 import { readdir, readFile } from "node:fs/promises";
-
-import type { SchemaSCRegistry } from "../src/types";
 
 // follows ETH/BTC's BIP 39 protocol
 // https://iancoleman.io/bip39/
@@ -13,11 +10,11 @@ task(
   "Insert new schemas in TSR Contract ",
   async (taskArgs: { proxy: string }, { ethers }) => {
     const [deployer, admin] = await ethers.getSigners();
-    const tsr = (await ethers.getContractAt(
+    const tsr = await ethers.getContractAt(
       "SchemaSCRegistry",
       taskArgs.proxy,
       admin,
-    )) as SchemaSCRegistry;
+    );
 
     console.log(
       `deployer:${deployer.address}
@@ -40,8 +37,8 @@ task(
       );
       const json = canonicalize(JSON.parse(jsonFile.toString()));
 
-      const schema = ethers.utils.toUtf8Bytes(json!);
-      const schemaId = ethers.utils.sha256(schema);
+      const schema = ethers.toUtf8Bytes(json!);
+      const schemaId = ethers.sha256(schema);
       const schemaHex = `0x${Buffer.from(JSON.stringify(json), "utf8").toString(
         "hex",
       )}`;

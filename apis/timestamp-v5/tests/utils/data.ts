@@ -24,7 +24,7 @@ export interface UserDetails {
   privateKeyJwk: JsonWebKey;
   publicKeyJwk: JsonWebKey;
   thumbprint: string;
-  wallet: ethers.Wallet;
+  wallet: ethers.BaseWallet;
 }
 
 export async function createUser(wallet?: ethers.Wallet): Promise<UserDetails> {
@@ -34,7 +34,7 @@ export async function createUser(wallet?: ethers.Wallet): Promise<UserDetails> {
     w.privateKey,
   ) as unknown as JsonWebKey;
   const publicKeyJwk = encode.publicKey.fromHexToJWK(
-    w.publicKey,
+    w.signingKey.publicKey,
   ) as unknown as JsonWebKey;
   const thumbprint = await calculateJwkThumbprint(publicKeyJwk, "sha256");
 
@@ -109,7 +109,7 @@ const hashAlgos = [
 
 const timestampSets = Array.from({ length: HASHES_TOTAL }).map(() => {
   const hashValue = `0x${randomBytes(32).toString("hex")}`;
-  const id = ethers.utils.sha256(hashValue);
+  const id = ethers.sha256(hashValue);
   const transactionHash = `0x${randomBytes(32).toString("hex")}`;
   const timestamp = now.toString();
   const timestampData = JSON.stringify({

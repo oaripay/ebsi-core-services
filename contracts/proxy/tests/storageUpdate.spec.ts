@@ -1,7 +1,15 @@
-import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import type { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
 
 import { assert, expect } from "chai";
 import { ethers } from "hardhat";
+
+import type {
+  OwnedUpgradeabilityProxy,
+  Tir,
+  TirV1,
+  TirV2,
+  TirV2Breaking,
+} from "../src/types";
 
 const initializeData = async (pauser: SignerWithAddress) => {
   const tirFactory = await ethers.getContractFactory("Tir");
@@ -19,29 +27,40 @@ const setupProxy = async (
   const proxyFactory = await ethers.getContractFactory(
     "OwnedUpgradeabilityProxy",
   );
-  const proxy = await proxyFactory.connect(proxyOwner).deploy();
-  await proxy.deployed();
+  const proxy = (await proxyFactory
+    .connect(proxyOwner)
+    .deploy()) as OwnedUpgradeabilityProxy;
+  await proxy.waitForDeployment();
 
-  const implV0 = await (await ethers.getContractFactory("Tir")).deploy();
-  const implV1 = await (await ethers.getContractFactory("TirV1")).deploy();
-  const implV2 = await (await ethers.getContractFactory("TirV2")).deploy();
-  const implV2Breaking = await (
+  const implV0 = (await (
+    await ethers.getContractFactory("Tir")
+  ).deploy()) as Tir;
+  const implV1 = (await (
+    await ethers.getContractFactory("TirV1")
+  ).deploy()) as TirV1;
+  const implV2 = (await (
+    await ethers.getContractFactory("TirV2")
+  ).deploy()) as TirV2;
+  const implV2Breaking = (await (
     await ethers.getContractFactory("TirV2Breaking")
-  ).deploy();
+  ).deploy()) as TirV2Breaking;
 
-  const tir = (await ethers.getContractFactory("Tir")).attach(proxy.address);
+  const proxyAddress = await proxy.getAddress();
+  const tir = (await ethers.getContractFactory("Tir")).attach(
+    proxyAddress,
+  ) as Tir;
   const tirV1 = (await ethers.getContractFactory("TirV1")).attach(
-    proxy.address,
-  );
+    proxyAddress,
+  ) as TirV1;
   const tirV2 = (await ethers.getContractFactory("TirV2")).attach(
-    proxy.address,
-  );
+    proxyAddress,
+  ) as TirV2;
   const tirV2Breaking = (
     await ethers.getContractFactory("TirV2Breaking")
-  ).attach(proxy.address);
+  ).attach(proxyAddress) as TirV2Breaking;
 
   await proxy["initialize(address,address,bytes)"](
-    implV0.address,
+    await implV0.getAddress(),
     proxyAdmin.address,
     initializeDataString,
   );
@@ -70,7 +89,7 @@ describe("upgrade and call new version struct", () => {
       proxyAdmin,
     );
 
-    const adm = await proxy.connect(proxyAdmin).callStatic.admin();
+    const adm = await proxy.connect(proxyAdmin).admin.staticCall();
 
     assert.equal(adm, proxyAdmin.address);
 
@@ -79,7 +98,7 @@ describe("upgrade and call new version struct", () => {
 
     assert.deepStrictEqual(v0, v1);
 
-    await proxy.connect(proxyAdmin).upgradeTo(implV1.address);
+    await proxy.connect(proxyAdmin).upgradeTo(await implV1.getAddress());
 
     const did = "did";
 
@@ -88,7 +107,7 @@ describe("upgrade and call new version struct", () => {
     const dids = await tirV1.connect(anotherAccount).getDids();
     assert.deepStrictEqual(dids, ["did"]);
 
-    await proxy.connect(proxyAdmin).upgradeTo(implV2.address);
+    await proxy.connect(proxyAdmin).upgradeTo(await implV2.getAddress());
     await tirV2.connect(anotherAccount).setMessage("1");
     await tirV2.connect(anotherAccount).getMessage();
     await tir.connect(anotherAccount).pushDid("did2");
@@ -122,7 +141,7 @@ describe("upgrade and call new version struct", () => {
         proxyAdmin,
       );
 
-    const adm = await proxy.connect(proxyAdmin).callStatic.admin();
+    const adm = await proxy.connect(proxyAdmin).admin.staticCall();
 
     assert.equal(adm, proxyAdmin.address);
 
@@ -131,7 +150,7 @@ describe("upgrade and call new version struct", () => {
 
     assert.deepStrictEqual(v0, v1);
 
-    await proxy.connect(proxyAdmin).upgradeTo(implV1.address);
+    await proxy.connect(proxyAdmin).upgradeTo(await implV1.getAddress());
 
     const did = "did";
     await tir.connect(anotherAccount).pushDid(did);
@@ -139,7 +158,9 @@ describe("upgrade and call new version struct", () => {
     const firstDid = await tirV1.connect(anotherAccount).getDids();
     assert.deepStrictEqual(firstDid, ["did"]);
 
-    await proxy.connect(proxyAdmin).upgradeTo(implV2Breaking.address);
+    await proxy
+      .connect(proxyAdmin)
+      .upgradeTo(await implV2Breaking.getAddress());
 
     const message = `incredibillylongmesagmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggesincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggesincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggesincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggesincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggesincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggesylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesagges`;
     await proxy.connect(proxyAdmin).implementation();

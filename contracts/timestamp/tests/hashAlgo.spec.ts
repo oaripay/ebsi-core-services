@@ -1,4 +1,4 @@
-import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import type { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
 
 import { expect } from "chai";
 import { ethers, network } from "hardhat";
@@ -16,9 +16,13 @@ describe("Hash Algorithm", () => {
     const policyRegistryFactory =
       await ethers.getContractFactory("PolicyRegistryMock");
     const tempPolicyContract = await policyRegistryFactory.deploy();
-    const bytecode = await ethers.provider.getCode(tempPolicyContract.address);
+    const bytecode = await ethers.provider.getCode(
+      await tempPolicyContract.getAddress(),
+    );
     await network.provider.send("hardhat_setCode", [testTprAddress, bytecode]);
-    policyContractMock = policyRegistryFactory.attach(testTprAddress);
+    policyContractMock = policyRegistryFactory.attach(
+      testTprAddress,
+    ) as PolicyRegistryMock;
   });
 
   beforeEach(async () => {
@@ -34,16 +38,16 @@ describe("Hash Algorithm", () => {
 
     const rsFactory = await ethers.getContractFactory("RecordLib", {
       libraries: {
-        StringManip: stringManipLib.address,
+        StringManip: await stringManipLib.getAddress(),
       },
     });
     const rsLib = await rsFactory.deploy();
 
     const contractFactory = await ethers.getContractFactory("Timestamp", {
       libraries: {
-        HashAlgoLib: haLib.address,
-        RecordLib: rsLib.address,
-        TimestampLib: tsLib.address,
+        HashAlgoLib: await haLib.getAddress(),
+        RecordLib: await rsLib.getAddress(),
+        TimestampLib: await tsLib.getAddress(),
       },
     });
     ts = await contractFactory.deploy(testTprAddress);
@@ -52,7 +56,7 @@ describe("Hash Algorithm", () => {
     const initialVersion = await ts.version();
     expect(initialVersion).to.equal(42);
     // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-    expect(ts.address).to.properAddress;
+    expect(await ts.getAddress()).to.properAddress;
     await policyContractMock.setPolicyResult(true);
   });
 

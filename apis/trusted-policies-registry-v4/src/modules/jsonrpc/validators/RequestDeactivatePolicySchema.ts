@@ -1,7 +1,5 @@
-import {
-  type BigNumberish,
-  isBigNumberish,
-} from "@ethersproject/bignumber/lib/bignumber.js";
+import { isBigNumberish } from "@ebsiint-api/shared";
+import { ethers } from "ethers";
 import { z } from "zod";
 
 import { baseParamSchema } from "./BaseParamSchema.js";
@@ -10,7 +8,7 @@ import { jsonRpcSchema } from "./JsonRpcSchema.js";
 export const deactivatePolicySchema = baseParamSchema.merge(
   z.object({
     policyId: z.optional(
-      z.custom<BigNumberish>((val) => isBigNumberish(val), {
+      z.custom<ethers.BigNumberish>((val) => isBigNumberish(val), {
         message: "Not an integer string",
       }),
     ),

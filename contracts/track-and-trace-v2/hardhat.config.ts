@@ -1,4 +1,4 @@
-import "@typechain/hardhat";
+import "@gnosis-guild/typechain-hardhat";
 import "@nomicfoundation/hardhat-chai-matchers";
 import "@nomiclabs/hardhat-solhint";
 import "hardhat-abi-exporter";
@@ -66,9 +66,8 @@ const config: HardhatUserConfig = {
     version: "0.8.12",
   },
   typechain: {
-    alwaysGenerateOverloads: true,
     outDir: "src/types",
-    target: "ethers-v5",
+    target: require.resolve("@gnosis-guild/typechain-ethers-v6"),
   },
 };
 

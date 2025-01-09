@@ -1,9 +1,10 @@
-import { isBaseDocument, isDidV1, isPublicKeyHex } from "@ebsiint-api/shared";
 import {
-  BigNumber,
-  type BigNumberish,
+  isBaseDocument,
   isBigNumberish,
-} from "@ethersproject/bignumber/lib/bignumber.js";
+  isDidV1,
+  isPublicKeyHex,
+} from "@ebsiint-api/shared";
+import { ethers } from "ethers";
 import { z } from "zod";
 
 import { baseParamSchema } from "./BaseParamSchema.js";
@@ -32,13 +33,13 @@ export const insertDidDocumentSchema = baseParamSchema
       }),
       isSecp256k1: z.literal(true),
       notAfter: z
-        .custom<BigNumberish>((val) => isBigNumberish(val))
-        .refine((val) => BigNumber.from(val).gte(0), {
+        .custom<ethers.BigNumberish>((val) => isBigNumberish(val))
+        .refine((val) => ethers.getBigInt(val) >= 0n, {
           message: "Number must be greater than or equal to 0",
         }),
       notBefore: z
-        .custom<BigNumberish>((val) => isBigNumberish(val))
-        .refine((val) => BigNumber.from(val).gte(0), {
+        .custom<ethers.BigNumberish>((val) => isBigNumberish(val))
+        .refine((val) => ethers.getBigInt(val) >= 0n, {
           message: "Number must be greater than or equal to 0",
         }),
       publicKey: z.string(),

@@ -1,4 +1,5 @@
-import { isDidV1 } from "@ebsiint-api/shared";
+import { isBigNumberish, isDidV1 } from "@ebsiint-api/shared";
+import { ethers } from "ethers";
 import validator from "validator";
 import { z } from "zod";
 
@@ -32,7 +33,18 @@ export const setAttributeMetadataSchema = baseParamSchema.merge(
      * 3: TI
      * 4: Revoked
      */
-    issuerType: z.number().min(0).max(4),
+    issuerType: z
+      .custom<ethers.BigNumberish>((val) => isBigNumberish(val))
+      .refine(
+        (val) => {
+          const v = ethers.getBigInt(val);
+          return [0n, 1n, 2n, 3n, 4n].includes(v);
+        },
+        {
+          message:
+            "issuerType must be equal to 0 (Undefined), 1 (RootTAO), 2 (TAO), 3 (TI) or 4 (Revoked)",
+        },
+      ),
 
     revisionId: z
       .string()

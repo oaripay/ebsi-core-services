@@ -598,7 +598,7 @@ EUPL version.
 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
 
 ========================================================================================
-- @openzeppelin/contracts@^4.9.3
+- @openzeppelin/contracts@^4.9.6
 ------------------------------
 This project is licensed under MIT.
 

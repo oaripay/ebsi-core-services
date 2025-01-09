@@ -1,8 +1,5 @@
-import {
-  BigNumber,
-  type BigNumberish,
-  isBigNumberish,
-} from "@ethersproject/bignumber/lib/bignumber.js";
+import { isBigNumberish } from "@ebsiint-api/shared";
+import { ethers } from "ethers";
 import { z } from "zod";
 
 import { baseParamSchema } from "./BaseParamSchema.js";
@@ -15,9 +12,9 @@ export const revokeAccessSchema = baseParamSchema.merge(
   z.object({
     documentHash: z.string().superRefine(isHexadecimal),
     permission: z
-      .custom<BigNumberish>((val) => isBigNumberish(val))
+      .custom<ethers.BigNumberish>((val) => isBigNumberish(val))
       .refine(
-        (val) => BigNumber.from(val).gte(0) && BigNumber.from(val).lte(1),
+        (val) => ethers.getBigInt(val) === 0n || ethers.getBigInt(val) === 1n,
         {
           message: "Number must be 0 (delegate) or 1 (write)",
         },

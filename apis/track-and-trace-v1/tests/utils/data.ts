@@ -32,7 +32,7 @@ export function createDocument(
   didEbsiCreator: string,
   externalSource = false,
 ): TestDocument {
-  const documentHash = ethers.utils.sha256(randomBytes(32));
+  const documentHash = ethers.sha256(randomBytes(32));
   const documentMetadata = "metadata";
 
   return {
@@ -43,8 +43,8 @@ export function createDocument(
     ...(externalSource
       ? {
           timestamp: {
-            datetime: ethers.utils.hexValue(Date.now()),
-            proof: ethers.utils.sha256(randomBytes(32)),
+            datetime: ethers.toBeHex(Date.now()),
+            proof: ethers.sha256(randomBytes(32)),
           },
         }
       : {
@@ -61,9 +61,7 @@ export function createEvent(
   didEbsiCreator: string,
 ): TestDocumentEvent {
   const externalHash = `externalHash${randomBytes(5).toString("hex")}`;
-  const eventHash = ethers.utils.keccak256(
-    ethers.utils.toUtf8Bytes(externalHash),
-  );
+  const eventHash = ethers.keccak256(ethers.toUtf8Bytes(externalHash));
   const origin = "origin";
   const metadata = "eventMetadata";
   const sender = didEbsiCreator;

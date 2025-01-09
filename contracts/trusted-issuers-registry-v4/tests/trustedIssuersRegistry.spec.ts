@@ -1,6 +1,7 @@
-import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import type { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
 import type { ContractFactory } from "ethers";
 
+import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs";
 import { expect } from "chai";
 import { ethers, network, upgrades } from "hardhat";
 import { randomBytes } from "node:crypto";
@@ -34,8 +35,8 @@ const createData = (did: string) => {
     proxyId: "",
     revisionId: "",
   };
-  issuer.revisionId = ethers.utils.sha256(issuer.attributeData);
-  issuer.proxyId = ethers.utils.sha256(Buffer.from(issuer.proxyData));
+  issuer.revisionId = ethers.sha256(issuer.attributeData);
+  issuer.proxyId = ethers.sha256(Buffer.from(issuer.proxyData));
   return issuer;
 };
 
@@ -59,17 +60,23 @@ describe("Trusted Issuers Registry", () => {
     const policyRegistryFactory =
       await ethers.getContractFactory("PolicyRegistryMock");
     const tempPolicyContract = await policyRegistryFactory.deploy();
-    let bytecode = await ethers.provider.getCode(tempPolicyContract.address);
+    let bytecode = await ethers.provider.getCode(
+      await tempPolicyContract.getAddress(),
+    );
     await network.provider.send("hardhat_setCode", [testTprAddress, bytecode]);
-    tprMock = policyRegistryFactory.attach(testTprAddress);
+    tprMock = policyRegistryFactory.attach(
+      testTprAddress,
+    ) as PolicyRegistryMock;
 
     // deploy DID Registry mock
     const didRegistryFactory =
       await ethers.getContractFactory("DidRegistryMock");
     const tempDidContract = await didRegistryFactory.deploy();
-    bytecode = await ethers.provider.getCode(tempDidContract.address);
+    bytecode = await ethers.provider.getCode(
+      await tempDidContract.getAddress(),
+    );
     await network.provider.send("hardhat_setCode", [testDidrAddress, bytecode]);
-    didrMock = didRegistryFactory.attach(testDidrAddress);
+    didrMock = didRegistryFactory.attach(testDidrAddress) as DidRegistryMock;
 
     contractFactory = await ethers.getContractFactory(
       "TrustedIssuersRegistry",
@@ -101,15 +108,15 @@ describe("Trusted Issuers Registry", () => {
   describe("Upgrade contract", () => {
     it("should fail if user is not upgrader", async () => {
       const newImplementation = await contractFactory.deploy();
-      await expect(tir.upgradeTo(newImplementation.address)).to.be.revertedWith(
-        "not upgrader",
-      );
+      await expect(
+        tir.upgradeTo(await newImplementation.getAddress()),
+      ).to.be.revertedWith("not upgrader");
     });
 
     it("should upgrade contract with a new implementation", async () => {
       const newImplementation = await contractFactory.deploy();
       const tirWithUpgrader = tir.connect(upgrader);
-      await tirWithUpgrader.upgradeTo(newImplementation.address);
+      await tirWithUpgrader.upgradeTo(await newImplementation.getAddress());
     });
   });
 
@@ -143,7 +150,7 @@ describe("Trusted Issuers Registry", () => {
 
     it("should insert a new root tao and emit", async () => {
       await tprMock.setPolicyResult(true);
-      const attributeId = randomBytesHex(32);
+
       await expect(
         tir.setAttributeMetadata(
           rootTao1.did,
@@ -155,14 +162,14 @@ describe("Trusted Issuers Registry", () => {
       )
         .to.emit(tir, "AttributeMetadataUpdated")
         .withArgs(
-          {
-            attributeId: rootTao1.attributeId,
-            did: rootTao1.did,
-            issuerType: IssuerType.RootTAO,
-            rootTaoDid: rootTao1.did,
-            taoDid: rootTao1.did,
-          },
-          attributeId,
+          [
+            rootTao1.did, // did
+            rootTao1.attributeId, // attributeId
+            IssuerType.RootTAO, // issuerType
+            rootTao1.did, // taoDid
+            rootTao1.did, // rootTaoDid
+          ],
+          rootTao1.attributeId,
         );
     });
 
@@ -205,13 +212,13 @@ describe("Trusted Issuers Registry", () => {
       )
         .to.emit(tir, "AttributeMetadataUpdated")
         .withArgs(
-          {
-            attributeId: tao1.attributeId,
-            did: tao1.did,
-            issuerType: IssuerType.TAO,
-            rootTaoDid: rootTao1.did,
-            taoDid: rootTao1.did,
-          },
+          [
+            tao1.did, // did
+            tao1.attributeId, // attributeId
+            IssuerType.TAO, // issuerType
+            rootTao1.did, // taoDid
+            rootTao1.did, // rootTaoDid
+          ],
           tao1.attributeId,
         );
 
@@ -227,14 +234,14 @@ describe("Trusted Issuers Registry", () => {
       )
         .to.emit(tir, "AttributeMetadataUpdated")
         .withArgs(
-          {
-            attributeId: tao2.attributeId,
-            did: tao2.did,
-            issuerType: IssuerType.TAO,
-            rootTaoDid: rootTao1.did,
-            taoDid: rootTao1.did,
-          },
-          tao1.attributeId,
+          [
+            tao2.did, // did
+            tao2.attributeId, // attributeId
+            IssuerType.TAO, // issuerType
+            rootTao1.did, // taoDid
+            rootTao1.did, // rootTaoDid
+          ],
+          tao2.attributeId,
         );
     });
 
@@ -251,14 +258,14 @@ describe("Trusted Issuers Registry", () => {
       )
         .to.emit(tir, "AttributeMetadataUpdated")
         .withArgs(
-          {
-            attributeId: ti1.attributeId,
-            did: ti1.did,
-            issuerType: IssuerType.TI,
-            rootTaoDid: rootTao1.did,
-            taoDid: tao1.did,
-          },
-          tao1.attributeId,
+          [
+            ti1.did, // did
+            ti1.attributeId, // attributeId
+            IssuerType.TI, // issuerType
+            tao1.did, // taoDid
+            rootTao1.did, // rootTaoDid
+          ],
+          ti1.attributeId,
         );
     });
 
@@ -319,6 +326,7 @@ describe("Trusted Issuers Registry", () => {
 
     it("should revoke a tao and emit", async () => {
       await didrMock.setDidResult(true);
+
       await expect(
         tir.setAttributeMetadata(
           tao1.did,
@@ -330,14 +338,14 @@ describe("Trusted Issuers Registry", () => {
       )
         .to.emit(tir, "AttributeMetadataUpdated")
         .withArgs(
-          {
-            attributeId: tao1.attributeId,
-            did: tao1.did,
-            issuerType: IssuerType.Revoked,
-            rootTaoDid: rootTao1.did,
-            taoDid: rootTao1.did,
-          },
-          "",
+          [
+            tao1.did, // did
+            tao1.attributeId, // attributeId
+            IssuerType.Revoked, // issuerType
+            rootTao1.did, // taoDid
+            rootTao1.did, // rootTaoDid
+          ],
+          anyValue, // newRevisionId = sha256(block.timestamp, did, attributeId)
         );
     });
 
@@ -354,15 +362,14 @@ describe("Trusted Issuers Registry", () => {
       )
         .to.emit(tir, "AttributeMetadataUpdated")
         .withArgs(
-          {
-            attributeId: rootTao1.attributeId,
-            did: rootTao1.did,
-            issuerType: IssuerType.Revoked,
-            rootTaoDid: rootTao1.did,
-            taoDid: rootTao1.did,
-          },
-          // TODO: chai is not verifying the second argument
-          "",
+          [
+            rootTao1.did, // did
+            rootTao1.attributeId, // attributeId
+            IssuerType.Revoked, // issuerType
+            rootTao1.did, // taoDid:
+            rootTao1.did, // rootTaoDid
+          ],
+          anyValue, // newRevisionId = sha256(block.timestamp, did, attributeId)
         );
     });
   });
@@ -395,14 +402,14 @@ describe("Trusted Issuers Registry", () => {
       )
         .to.emit(tir, "AttributeDataUpdated")
         .withArgs(
-          {
-            attributeId: ti1.attributeId,
-            did: ti1.did,
-            issuerType: IssuerType.TI,
-            rootTaoDid: rootTao1.did,
-            taoDid: tao1.did,
-          },
-          "",
+          [
+            ti1.did, // did
+            ti1.attributeId, // attributeId
+            IssuerType.TI, // issuerType
+            tao1.did, // taoDid
+            rootTao1.did, // rootTaoDid
+          ],
+          ethers.sha256(ti1.attributeData),
           ti1.attributeData,
         );
     });
@@ -414,14 +421,14 @@ describe("Trusted Issuers Registry", () => {
       )
         .to.emit(tir, "AttributeDataUpdated")
         .withArgs(
-          {
-            attributeId: ti1.attributeId,
-            did: ti1.did,
-            issuerType: IssuerType.TI,
-            rootTaoDid: rootTao1.did,
-            taoDid: tao1.did,
-          },
-          "",
+          [
+            ti1.did, // did
+            ti1.attributeId, // attributeId
+            IssuerType.TI, // issuerType
+            tao1.did, // taoDid
+            rootTao1.did, // rootTaoDid
+          ],
+          ethers.sha256(ti1.attributeData),
           ti1.attributeData,
         );
     });

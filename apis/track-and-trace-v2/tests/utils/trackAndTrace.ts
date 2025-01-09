@@ -2,13 +2,13 @@ import "../../../../contracts/track-and-trace-v2/src/types/hardhat.d.ts";
 
 import hre from "hardhat";
 
-import "@nomiclabs/hardhat-ethers";
+import "@nomicfoundation/hardhat-ethers";
 
-import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers.js";
+import type { HardhatEthersProvider } from "@nomicfoundation/hardhat-ethers/internal/hardhat-ethers-provider.js";
+import type { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers.js";
 
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { TrackAndTrace } from "@ebsiint-sc/track-and-trace-v2";
-import { ethers } from "ethers";
 
 import { Document, Operator } from "../../.graphclient/index.js";
 import { AccountType, Permission } from "../../src/shared/constants.js";
@@ -41,7 +41,15 @@ export async function addEvent(contract: TrackAndTrace, doc: TestDocument) {
 
   const receipt = await tx.wait();
 
+  if (!receipt) {
+    throw new Error("Receipt not found");
+  }
+
   const block = await hre.ethers.provider.getBlock(receipt.blockHash);
+
+  if (!block) {
+    throw new Error("Block not found");
+  }
 
   event.timestamp = {
     datetime: `0x${block.timestamp.toString(16)}`,
@@ -71,7 +79,11 @@ export async function deployTrackAndTraceContract(): Promise<{
 
   const trackAndTraceContractFactory = await hre.ethers.getContractFactory(
     "TrackAndTrace",
-    { libraries: { TrackAndTraceLib: trackAndTraceLibContract.address } },
+    {
+      libraries: {
+        TrackAndTraceLib: await trackAndTraceLibContract.getAddress(),
+      },
+    },
   );
 
   // deploy TPR mock
@@ -83,11 +95,16 @@ export async function deployTrackAndTraceContract(): Promise<{
   const didMockFactory = await hre.ethers.getContractFactory("DidRegistryMock");
   const didRegistryMock = await didMockFactory.deploy();
 
-  const trackAndTraceContract = (await hre.upgrades.deployProxy(
+  const trackAndTraceContract = await hre.upgrades.deployProxy(
     trackAndTraceContractFactory,
-    [admin.address, upgrader.address, tprMock.address, didRegistryMock.address],
+    [
+      admin.address,
+      upgrader.address,
+      await tprMock.getAddress(),
+      await didRegistryMock.getAddress(),
+    ],
     { unsafeAllowLinkedLibraries: true },
-  )) as unknown as TrackAndTrace;
+  );
 
   await didRegistryMock.setDidResult(true);
   await tprMock.setPolicyResult(true);
@@ -142,7 +159,15 @@ export async function insertDocumentWithBlockSource(
 
   const receipt = await tx.wait();
 
+  if (!receipt) {
+    throw new Error("Receipt not found");
+  }
+
   const block = await hre.ethers.provider.getBlock(receipt.blockHash);
+
+  if (!block) {
+    throw new Error("Block not found");
+  }
 
   doc.timestamp = {
     datetime: `0x${block.timestamp.toString(16)}`,
@@ -173,7 +198,7 @@ export async function setupTestEnv(): Promise<{
   documentsWithBlockSource: TestDocument[];
   documentsWithExternalSource: TestDocument[];
   operators: Operator[];
-  provider: ethers.providers.JsonRpcProvider;
+  provider: HardhatEthersProvider;
   trackAndTraceContract: TrackAndTrace;
 }> {
   const ethersProvider = hre.ethers.provider;
@@ -196,7 +221,17 @@ export async function setupTestEnv(): Promise<{
     dummyData.documents[0]!.creator,
   );
   const receipt = await tx.wait();
+
+  if (!receipt) {
+    throw new Error("Receipt not found");
+  }
+
   const block = await hre.ethers.provider.getBlock(receipt.blockHash);
+
+  if (!block) {
+    throw new Error("Block not found");
+  }
+
   dummyData.documents[0]!.timestamp = Number(
     `0x${block.timestamp.toString(16)}`,
   ).toString();

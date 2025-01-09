@@ -9,16 +9,16 @@ async function main() {
     "PolicyRegistry",
     {
       libraries: {
-        Pagination: pagination.address,
+        Pagination: await pagination.getAddress(),
       },
     },
   )) as PolicyRegistry__factory;
   const policyContract = await policyRegistryFactory.deploy();
-  await policyContract.deployed();
+  await policyContract.waitForDeployment();
 
-  console.log("Policy deployed at :", policyContract.address);
+  console.log("Policy deployed at :", await policyContract.getAddress());
 
-  await policyContract.initialize(ethers.BigNumber.from(1));
+  await policyContract.initialize(1n);
 
   const hashAlgoFactory = await ethers.getContractFactory("HashAlgoLib", {});
   const hashAlgoLib = await hashAlgoFactory.deploy();
@@ -29,31 +29,33 @@ async function main() {
 
   const didRecordFactory = await ethers.getContractFactory("DidRecordLib", {
     libraries: {
-      Pagination: pagination.address,
+      Pagination: await pagination.getAddress(),
     },
   });
   const didRecordLib = await didRecordFactory.deploy();
 
   const policyFactory = await ethers.getContractFactory("PolicyLib", {
     libraries: {
-      Pagination: pagination.address,
+      Pagination: await pagination.getAddress(),
     },
   });
   const policyLib = await policyFactory.deploy();
 
   const contractFactory = await ethers.getContractFactory("DidRegistry", {
     libraries: {
-      DidRecordLib: didRecordLib.address,
-      DidTimestampLib: didTimestampLib.address,
-      HashAlgoLib: hashAlgoLib.address,
-      PolicyLib: policyLib.address,
+      DidRecordLib: await didRecordLib.getAddress(),
+      DidTimestampLib: await didTimestampLib.getAddress(),
+      HashAlgoLib: await hashAlgoLib.getAddress(),
+      PolicyLib: await policyLib.getAddress(),
     },
   });
-  const didContract = await contractFactory.deploy(policyContract.address);
+  const didContract = await contractFactory.deploy(
+    await policyContract.getAddress(),
+  );
   await didContract.initialize(16);
   await didContract.setTrustedPoliciesRegistryAddress();
 
-  console.log("DID Registry deployed at :", didContract.address);
+  console.log("DID Registry deployed at :", await didContract.getAddress());
   console.log(
     `Contract version set to: ${(await didContract.version()).toString()}`,
   );

@@ -2,7 +2,7 @@
  * Hardhat doesn't support ESM in TypeScript projects.
  * https://hardhat.org/hardhat-runner/docs/advanced/using-esm#hardhat-support-for-es-modules
  */
-require("@nomiclabs/hardhat-ethers");
+require("@nomicfoundation/hardhat-ethers");
 
 /** @type {import('hardhat/config').HardhatUserConfig} */
 const config = {

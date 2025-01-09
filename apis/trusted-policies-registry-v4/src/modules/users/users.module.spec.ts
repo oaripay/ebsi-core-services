@@ -25,7 +25,7 @@ describe("Policies Module", () => {
   let testEnv: Awaited<ReturnType<typeof setupTestEnv>>;
 
   beforeAll(async () => {
-    // Spin up test blockchain (ganache)
+    // Spin up test blockchain
     testEnv = await setupTestEnv();
     const { policiesRegistryContract } = testEnv;
 

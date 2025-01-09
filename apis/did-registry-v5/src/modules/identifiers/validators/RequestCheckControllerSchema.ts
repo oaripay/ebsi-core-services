@@ -1,4 +1,4 @@
-import { isAddress } from "@ethersproject/address";
+import { isAddress } from "ethers";
 import { z } from "zod";
 
 import { jsonRpcSchema } from "./JsonRpcSchema.js";

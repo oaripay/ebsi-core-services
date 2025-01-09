@@ -1,5 +1,6 @@
-import { paginate, PaginatedList } from "@ebsiint-api/shared";
-import { Tir } from "@ebsiint-sc/trusted-issuers-registry";
+import type { Tir } from "@ebsiint-sc/trusted-issuers-registry";
+
+import { paginate, type PaginatedList } from "@ebsiint-api/shared";
 
 import {
   AttributeObject,
@@ -33,7 +34,7 @@ export function formatIssuers(
   pageSize: number,
   baseUrl: string,
 ): PaginatedList<DidLink> {
-  const total = issuers.total.toNumber();
+  const total = Number(issuers.total);
 
   // Reshape items
   const items = issuers.items.map((did) => ({

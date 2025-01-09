@@ -2,11 +2,14 @@ import "../../../../contracts/timestamp-v2/src/types/hardhat.d.ts";
 
 import hre from "hardhat";
 
+import type { PolicyRegistryMock, Timestamp } from "@ebsiint-sc/timestamp-v2";
+
+import "@nomicfoundation/hardhat-ethers";
+
 import type { HashName } from "multihashes";
 
-import "@nomiclabs/hardhat-ethers";
-import { Timestamp } from "@ebsiint-sc/timestamp-v2";
-import { type Contract, type ContractTransaction, ethers } from "ethers";
+import { HardhatEthersProvider } from "@nomicfoundation/hardhat-ethers/internal/hardhat-ethers-provider.js";
+import { type ContractTransactionResponse, ethers } from "ethers";
 import { createHash, randomBytes } from "node:crypto";
 
 export const validHashAlgorithms = [
@@ -68,7 +71,7 @@ interface HashObject {
   hashAlgorithmIds: number[];
   hashValues: string[];
   timestampData: string[];
-  tx: ContractTransaction;
+  tx: ContractTransactionResponse;
 }
 
 interface RecordObject {
@@ -80,22 +83,24 @@ interface RecordObject {
 }
 
 export async function deployTimestampContract(): Promise<{
-  policyContractMock: Contract;
+  policyContractMock: PolicyRegistryMock;
   timestampContract: Timestamp;
 }> {
   const testTprAddress = "0xb2a560271ce08135e245F490b8794794A13a1208";
   const policyRegistryFactory =
     await hre.ethers.getContractFactory("PolicyRegistryMock");
   const tempPolicyContract = await policyRegistryFactory.deploy();
-  await tempPolicyContract.deployed();
+
   const bytecode = await hre.ethers.provider.getCode(
-    tempPolicyContract.address,
+    await tempPolicyContract.getAddress(),
   );
   await hre.network.provider.send("hardhat_setCode", [
     testTprAddress,
     bytecode,
   ]);
-  const policyContractMock = policyRegistryFactory.attach(testTprAddress);
+  const policyContractMock = policyRegistryFactory.attach(
+    testTprAddress,
+  ) as PolicyRegistryMock;
 
   // Deploy libs
   const stringManipFactory = await hre.ethers.getContractFactory("StringManip");
@@ -109,7 +114,7 @@ export async function deployTimestampContract(): Promise<{
 
   const rsFactory = await hre.ethers.getContractFactory("RecordLib", {
     libraries: {
-      StringManip: stringManipLib.address,
+      StringManip: await stringManipLib.getAddress(),
     },
   });
   const rsLib = await rsFactory.deploy();
@@ -118,9 +123,9 @@ export async function deployTimestampContract(): Promise<{
     "Timestamp",
     {
       libraries: {
-        HashAlgoLib: haLib.address,
-        RecordLib: rsLib.address,
-        TimestampLib: tsLib.address,
+        HashAlgoLib: await haLib.getAddress(),
+        RecordLib: await rsLib.getAddress(),
+        TimestampLib: await tsLib.getAddress(),
       },
     },
   );
@@ -156,7 +161,7 @@ export async function insertHash(
     hashAlgorithmIds,
     hashValues,
     timestampData,
-    tx,
+    tx: tx as unknown as ContractTransactionResponse,
   };
 }
 
@@ -217,8 +222,8 @@ export async function insertRecord(
 
   const types = ["address", "uint256", "bytes"];
   const values = [sender, blockNumber, hashValues[0]];
-  const enc = ethers.utils.defaultAbiCoder.encode(types, values);
-  const recordId = ethers.utils.sha256(enc);
+  const enc = ethers.AbiCoder.defaultAbiCoder().encode(types, values);
+  const recordId = ethers.sha256(enc);
 
   return {
     hashAlgorithmIds,
@@ -232,8 +237,8 @@ export async function insertRecord(
 export async function setupTestEnv(opts?: SetupOptions): Promise<{
   hashAlgorithms: HashAlgorithmObject[];
   hashes: HashObject[];
-  policyContractMock: Contract;
-  provider: ethers.providers.JsonRpcProvider;
+  policyContractMock: PolicyRegistryMock;
+  provider: HardhatEthersProvider;
   records: RecordObject[];
   sender: string;
   timestampContract: Timestamp;
@@ -245,7 +250,8 @@ export async function setupTestEnv(opts?: SetupOptions): Promise<{
     ...opts,
   };
   const ethersProvider = hre.ethers.provider;
-  const sender = await ethersProvider.getSigner().getAddress();
+  const signer = await ethersProvider.getSigner();
+  const sender = await signer.getAddress();
 
   // Deploy contract
   const { policyContractMock, timestampContract } =

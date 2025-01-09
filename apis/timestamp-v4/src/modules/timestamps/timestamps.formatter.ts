@@ -16,7 +16,7 @@ export function formatTimestamps(
   extraQuery?: string,
 ): PaginatedList<TimestampLink> {
   // Reshape items
-  const total = timestamps.total.toNumber();
+  const total = Number(timestamps.total);
   const items = timestamps.items.map((timestampId) => {
     const multibaseBase64urlTimestampId = multibase.base64url.encode(
       multihashEncode(timestampId.replace(/^0x/, ""), "sha2-256", 32),

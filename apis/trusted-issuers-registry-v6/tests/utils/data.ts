@@ -117,7 +117,7 @@ export const dummyIssuers: IssuerGraphObject[] = Array.from({
         prefix: "https://example.net",
         testSuffix: "/cred/1",
       });
-      const id = ethers.utils.sha256(Buffer.from(data));
+      const id = ethers.sha256(Buffer.from(data));
       return { data, id };
     }),
   };

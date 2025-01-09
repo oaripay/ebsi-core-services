@@ -1,9 +1,5 @@
-import { isDidV1, isPublicKeyHex } from "@ebsiint-api/shared";
-import {
-  BigNumber,
-  type BigNumberish,
-  isBigNumberish,
-} from "@ethersproject/bignumber/lib/bignumber.js";
+import { isBigNumberish, isDidV1, isPublicKeyHex } from "@ebsiint-api/shared";
+import { ethers } from "ethers";
 import { z } from "zod";
 
 import { baseParamSchema } from "./BaseParamSchema.js";
@@ -23,19 +19,19 @@ export const rollVerificationMethodSchema = baseParamSchema.merge(
           }
         }),
         duration: z
-          .custom<BigNumberish>((val) => isBigNumberish(val))
-          .refine((val) => BigNumber.from(val).gte(0), {
+          .custom<ethers.BigNumberish>((val) => isBigNumberish(val))
+          .refine((val) => ethers.getBigInt(val) >= 0n, {
             message: "Number must be greater than or equal to 0",
           }),
         isSecp256k1: z.boolean(),
         notAfter: z
-          .custom<BigNumberish>((val) => isBigNumberish(val))
-          .refine((val) => BigNumber.from(val).gte(0), {
+          .custom<ethers.BigNumberish>((val) => isBigNumberish(val))
+          .refine((val) => ethers.getBigInt(val) >= 0n, {
             message: "Number must be greater than or equal to 0",
           }),
         notBefore: z
-          .custom<BigNumberish>((val) => isBigNumberish(val))
-          .refine((val) => BigNumber.from(val).gte(0), {
+          .custom<ethers.BigNumberish>((val) => isBigNumberish(val))
+          .refine((val) => ethers.getBigInt(val) >= 0n, {
             message: "Number must be greater than or equal to 0",
           }),
         oldVMethodId: z.string(),

@@ -2,7 +2,10 @@ import "../../../../contracts/trusted-policies-registry/src/types/hardhat.d.ts";
 
 import hre from "hardhat";
 
-import "@nomiclabs/hardhat-ethers";
+import "@nomicfoundation/hardhat-ethers";
+
+import type { HardhatEthersProvider } from "@nomicfoundation/hardhat-ethers/internal/hardhat-ethers-provider.js";
+
 import { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry";
 import { ethers } from "ethers";
 import crypto from "node:crypto";
@@ -47,7 +50,7 @@ export async function deployPoliciesRegistryContract(): Promise<PolicyRegistry> 
     "PolicyRegistry",
     {
       libraries: {
-        Pagination: pagination.address,
+        Pagination: await pagination.getAddress(),
       },
     },
   );
@@ -69,7 +72,7 @@ export async function insertPolicy(
       expectedValue: "vxc4gdbfgb",
       name: "condition-string",
       typeOfValue: ATTRIBUTE_TYPES.indexOf("STRING"),
-      value: ethers.utils.toUtf8Bytes("vxc4gdbfgb"),
+      value: ethers.toUtf8Bytes("vxc4gdbfgb"),
     },
     {
       attributeName: "any",
@@ -77,7 +80,7 @@ export async function insertPolicy(
       expectedValue: "0x61736461736464", // bytes representation of "asdasdd"
       name: "condition-bytes",
       typeOfValue: ATTRIBUTE_TYPES.indexOf("BYTES"),
-      value: ethers.utils.toUtf8Bytes("asdasdd"),
+      value: ethers.toUtf8Bytes("asdasdd"),
     },
     {
       attributeName: "any",
@@ -93,7 +96,10 @@ export async function insertPolicy(
       expectedValue: true,
       name: "condition-boolean-array",
       typeOfValue: ATTRIBUTE_TYPES.indexOf("BOOLEAN"),
-      value: [...(Array.from({ length: 31 }).fill(0) as number[]), 1],
+      value: new Uint8Array([
+        ...(Array.from({ length: 31 }).fill(0) as number[]),
+        1,
+      ]) satisfies ethers.BytesLike,
     },
     {
       attributeName: "any",
@@ -119,7 +125,7 @@ export async function insertPolicy(
       typeOfValue: ATTRIBUTE_TYPES.indexOf("UINT256"),
       value: `0x${(42).toString(16)}`, // 42 in hex
     },
-  ];
+  ] satisfies PolicyObject["policyConditions"];
   const policyName = `policy-test-${crypto.randomBytes(16).toString("hex")}`;
   const description = crypto.randomBytes(16).toString("hex");
 
@@ -168,10 +174,10 @@ export async function insertUser(
 }
 
 export async function setupTestEnv(opts: SetupOptions): Promise<{
-  adminWallet: ethers.Wallet;
+  adminWallet: ethers.BaseWallet;
   policies: PolicyObject[];
   policiesRegistryContract: PolicyRegistry;
-  provider: ethers.providers.JsonRpcProvider;
+  provider: HardhatEthersProvider;
   users: UserObject[];
 }> {
   const { policiesTotal, usersTotal } = {

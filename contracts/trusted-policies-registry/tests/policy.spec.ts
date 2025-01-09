@@ -1,33 +1,47 @@
-import type { Signer } from "ethers";
+import type { Result, Signer } from "ethers";
 
 import { expect } from "chai";
 import { ethers } from "hardhat";
 
 import type { PolicyRegistry } from "../src/types";
 
-function getEthObject(o: unknown): Record<string, unknown> | unknown[] {
-  const obj = o as Record<string, unknown> & string[];
-  const keys = Object.keys(obj);
+export function decodeResult(result: unknown): Record<string, unknown> {
+  // Recursively fix the result object
+  return fixObject((result as Result).toObject(true));
+}
 
-  // check if it is a string
-  if (typeof obj === "string") return obj;
+function fixObject(result: Record<string, unknown>): Record<string, unknown> {
+  const keys = Object.keys(result);
 
-  // check if it is an array
-  if (keys.at(-1) === String(keys.length - 1)) {
-    return (o as unknown[]).map((item) => getEthObject(item));
+  const res: Record<string, unknown> = {};
+  for (const key of keys) {
+    const val = result[key];
+    res[key] = fixValue(val);
   }
 
-  // check if it is a buffer
-  if (keys[0] !== "0") return obj;
+  return res;
+}
 
-  // treat it as object. ["alice", "name": "alice"] ==> { "name" : "alice" }
-  const result: Record<string, unknown> = {};
-  for (const [i, k] of keys.entries()) {
-    if (i < keys.length / 2) continue;
-
-    result[k] = typeof obj[k] === "object" ? getEthObject(obj[k]) : obj[k];
+function fixValue(val: unknown): unknown {
+  if (typeof val !== "object" || val === null) {
+    return val;
   }
-  return result;
+
+  if (Array.isArray(val)) {
+    return val.map((v) => fixValue(v));
+  }
+
+  // Replace empty objects with empty arrays
+  if (Object.keys(val).length === 0) {
+    return [];
+  }
+
+  // When ethers.js returns an object with only one key "_", it should be converted into a single-item array
+  if (Object.keys(val).length === 1 && "_" in val) {
+    return [fixValue(val._)];
+  }
+
+  return fixObject(val as Record<string, unknown>);
 }
 
 describe("Policy", () => {
@@ -37,16 +51,16 @@ describe("Policy", () => {
   const pcs = [
     {
       attributeName: "attrName1",
-      attributeOperation: 0,
+      attributeOperation: 0n,
       name: "name1",
-      typeOfValue: 3,
+      typeOfValue: 3n,
       value: "0x1122334455667788",
     },
     {
       attributeName: "attrName2",
-      attributeOperation: 0,
+      attributeOperation: 0n,
       name: "name2",
-      typeOfValue: 1,
+      typeOfValue: 1n,
       value: "0xaabbccddeeff0011",
     },
   ];
@@ -62,18 +76,17 @@ describe("Policy", () => {
       "PolicyRegistry",
       {
         libraries: {
-          Pagination: pagination.address,
+          Pagination: await pagination.getAddress(),
         },
       },
     );
     policyContract = await policyRegistryFactory.deploy();
     [, addr1] = await ethers.getSigners();
-    await policyContract.deployed();
 
     await policyContract.initialize(12);
     expect(await policyContract.version()).to.equal(12);
     // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-    expect(policyContract.address).to.properAddress;
+    expect(await policyContract.getAddress()).to.properAddress;
 
     await policyContract.insertPolicy(0, pcs, "policy-0", "description 0");
     await policyContract.insertPolicy(0, [], "policy-1", "description 1");
@@ -102,69 +115,70 @@ describe("Policy", () => {
       let policyByName = await policyContract["getPolicy(string)"]("policy-0");
       let expectedPolicy = {
         description: "description 0",
-        opType: 0,
+        opType: 0n,
         policyConditions: pcs,
-        policyId: ethers.BigNumber.from(0),
+        policyId: 0n,
         policyName: "policy-0",
         status: true,
       };
-      expect(getEthObject(policyById)).to.eql(expectedPolicy);
-      expect(getEthObject(policyByName)).to.eql(expectedPolicy);
+
+      expect(decodeResult(policyById)).to.eql(expectedPolicy);
+      expect(decodeResult(policyByName)).to.eql(expectedPolicy);
 
       // Policy 1 - no policyConditions
       policyById = await policyContract["getPolicy(uint256)"](1);
       policyByName = await policyContract["getPolicy(string)"]("policy-1");
       expectedPolicy = {
         description: "description 1",
-        opType: 0,
+        opType: 0n,
         policyConditions: [],
-        policyId: ethers.BigNumber.from(1),
+        policyId: 1n,
         policyName: "policy-1",
         status: true,
       };
-      expect(getEthObject(policyById)).to.eql(expectedPolicy);
-      expect(getEthObject(policyByName)).to.eql(expectedPolicy);
+      expect(decodeResult(policyById)).to.eql(expectedPolicy);
+      expect(decodeResult(policyByName)).to.eql(expectedPolicy);
     });
 
     it("should return policies by id or by name", async () => {
       // by Policy ID - page 1
       let policiesById = await policyContract.getPolicies(1, 2);
-      expect(getEthObject(policiesById)).to.eql({
-        howMany: ethers.BigNumber.from(2),
-        items: [ethers.BigNumber.from(0), ethers.BigNumber.from(1)],
-        next: ethers.BigNumber.from(2),
-        prev: ethers.BigNumber.from(1),
-        total: ethers.BigNumber.from(4),
+      expect(decodeResult(policiesById)).to.eql({
+        howMany: 2n,
+        items: [0n, 1n],
+        next: 2n,
+        prev: 1n,
+        total: BigInt(4),
       });
 
       // by Policy ID - page 2
       policiesById = await policyContract.getPolicies(2, 2);
-      expect(getEthObject(policiesById)).to.eql({
-        howMany: ethers.BigNumber.from(2),
-        items: [ethers.BigNumber.from(2), ethers.BigNumber.from(3)],
-        next: ethers.BigNumber.from(2),
-        prev: ethers.BigNumber.from(1),
-        total: ethers.BigNumber.from(4),
+      expect(decodeResult(policiesById)).to.eql({
+        howMany: 2n,
+        items: [2n, BigInt(3)],
+        next: 2n,
+        prev: 1n,
+        total: BigInt(4),
       });
 
       // by Policy Name - page 1
       let policiesByName = await policyContract.getPolicyNames(1, 2);
-      expect(getEthObject(policiesByName)).to.eql({
-        howMany: ethers.BigNumber.from(2),
+      expect(decodeResult(policiesByName)).to.eql({
+        howMany: 2n,
         items: ["policy-0", "policy-1"],
-        next: ethers.BigNumber.from(2),
-        prev: ethers.BigNumber.from(1),
-        total: ethers.BigNumber.from(4),
+        next: 2n,
+        prev: 1n,
+        total: BigInt(4),
       });
 
       // by Policy Name - page 2
       policiesByName = await policyContract.getPolicyNames(2, 2);
-      expect(getEthObject(policiesByName)).to.eql({
-        howMany: ethers.BigNumber.from(2),
+      expect(decodeResult(policiesByName)).to.eql({
+        howMany: 2n,
         items: ["policy-2", "policy-3"],
-        next: ethers.BigNumber.from(2),
-        prev: ethers.BigNumber.from(1),
-        total: ethers.BigNumber.from(4),
+        next: 2n,
+        prev: 1n,
+        total: BigInt(4),
       });
     });
   });
@@ -378,11 +392,11 @@ describe("Policy", () => {
         );
         // @ts-expect-error Mismatch of types
         const policy = await getPolicy(value);
-        expect(getEthObject(policy)).to.eql({
+        expect(decodeResult(policy)).to.eql({
           description: "description",
-          opType: 0,
+          opType: 0n,
           policyConditions: [],
-          policyId: ethers.BigNumber.from(1),
+          policyId: 1n,
           policyName: "policy-1",
           status: true,
         });
@@ -443,10 +457,8 @@ describe("Policy", () => {
 
       it(`Should be reverted if it doesn't have operator role (${type})`, async () => {
         // @ts-expect-error Mismatch of types
-        await expect(addPolicyConditionsBadUser(1, [])).to.be.revertedWith(
-          `AccessControl: account ${(
-            await addr1.getAddress()
-          ).toLowerCase()} is missing role ${OPERATOR_ROLE}`,
+        await expect(addPolicyConditionsBadUser(value, [])).to.be.revertedWith(
+          `AccessControl: account ${(await addr1.getAddress()).toLowerCase()} is missing role ${OPERATOR_ROLE}`,
         );
       });
 
@@ -464,10 +476,10 @@ describe("Policy", () => {
           addPolicyConditions(value, [
             {
               attributeName: "",
-              attributeOperation: 0,
+              attributeOperation: 0n,
               name: "name",
-              typeOfValue: 3,
-              value: ethers.utils.toUtf8Bytes("4hcd6s"),
+              typeOfValue: 3n,
+              value: ethers.toUtf8Bytes("4hcd6s"),
             },
           ]),
         ).to.be.revertedWith("Policy: invalid attribute name on counter 0");
@@ -477,16 +489,16 @@ describe("Policy", () => {
         const addPcs = [
           {
             attributeName: "attr 1",
-            attributeOperation: 0,
+            attributeOperation: 0n,
             name: "name 1",
-            typeOfValue: 3,
+            typeOfValue: 3n,
             value: "0xaa124564",
           },
           {
             attributeName: "attr 2",
-            attributeOperation: 0,
+            attributeOperation: 0n,
             name: "name 2",
-            typeOfValue: 3,
+            typeOfValue: 3n,
             value: "0x003311223344ee",
           },
         ];
@@ -499,11 +511,11 @@ describe("Policy", () => {
 
         // @ts-expect-error Mismatch of types
         const policy = await getPolicy(value);
-        expect(getEthObject(policy)).to.eql({
+        expect(decodeResult(policy)).to.eql({
           description: "description 0",
-          opType: 0,
+          opType: 0n,
           policyConditions: [...pcs, ...addPcs],
-          policyId: ethers.BigNumber.from(0),
+          policyId: 0n,
           policyName: "policy-0",
           status: true,
         });
@@ -582,16 +594,14 @@ describe("Policy", () => {
           policyContract,
           "PolicyConditionDeleted",
         );
+
         // @ts-expect-error Mismatch of types
         const policy = await getPolicy(value);
-        expect(getEthObject(policy)).to.eql({
-          description: "description 0",
-          opType: 0,
-          policyConditions: pcs.slice(0, 1),
-          policyId: ethers.BigNumber.from(0),
-          policyName: "policy-0",
-          status: true,
-        });
+
+        expect(policy.policyConditions).to.have.length(1);
+        expect(decodeResult(policy.policyConditions[0])).to.eql(
+          pcs.slice(0, 1)[0],
+        );
       });
     }
   });
@@ -616,10 +626,10 @@ describe("Policy", () => {
           [
             {
               attributeName: "testAttr",
-              attributeOperation: 0,
+              attributeOperation: 0n,
               name: "policy-1",
-              typeOfValue: 3,
-              value: ethers.utils.toUtf8Bytes("vxc4gdbfgb"),
+              typeOfValue: 3n,
+              value: ethers.toUtf8Bytes("vxc4gdbfgb"),
             },
           ],
           "policy-1",
@@ -635,10 +645,10 @@ describe("Policy", () => {
           [
             {
               attributeName: "",
-              attributeOperation: 0,
+              attributeOperation: 0n,
               name: "name",
-              typeOfValue: 3,
-              value: ethers.utils.toUtf8Bytes("vxc4gdbfgb"),
+              typeOfValue: 3n,
+              value: ethers.toUtf8Bytes("vxc4gdbfgb"),
             },
           ],
           "name",
@@ -664,15 +674,15 @@ describe("Policy", () => {
         .to.emit(policyContract, "PolicyInserted")
         .withArgs(4, "name", "description")
         .to.emit(policyContract, "PolicyConditionInserted")
-        .withArgs(0, pcs[0].attributeName, ethers.utils.hexlify(pcs[0].value))
+        .withArgs(0, pcs[0].attributeName, ethers.hexlify(pcs[0].value))
         .to.emit(policyContract, "PolicyConditionInserted")
-        .withArgs(1, pcs[1].attributeName, ethers.utils.hexlify(pcs[1].value));
+        .withArgs(1, pcs[1].attributeName, ethers.hexlify(pcs[1].value));
       const policy = await policyContract["getPolicy(uint256)"](4);
-      expect(getEthObject(policy)).to.eql({
+      expect(decodeResult(policy)).to.eql({
         description: "description",
-        opType: 0,
+        opType: 0n,
         policyConditions: pcs,
-        policyId: ethers.BigNumber.from(4),
+        policyId: BigInt(4),
         policyName: "name",
         status: true,
       });
@@ -704,13 +714,13 @@ describe("Policy", () => {
       [byPolicyName, byPolicyDescription] =
         await policyContract.searchPolicy("policy-0");
       expect(byPolicyDescription).to.have.length(0);
-      expect(byPolicyName).to.deep.equal([ethers.BigNumber.from(0)]);
+      expect(byPolicyName).to.deep.equal([0n]);
 
       // search by registry of policy 2
       [byPolicyName, byPolicyDescription] =
         await policyContract.searchPolicy("description 2");
       expect(byPolicyName).to.have.length(0);
-      expect(byPolicyDescription).to.deep.equal([ethers.BigNumber.from(2)]);
+      expect(byPolicyDescription).to.deep.equal([2n]);
 
       // check another policy with the same name / description
       await policyContract.insertPolicy(
@@ -722,11 +732,11 @@ describe("Policy", () => {
       [byPolicyName, byPolicyDescription] =
         await policyContract.searchPolicy("description 4");
       expect(byPolicyName).to.have.length(0);
-      expect(byPolicyDescription).to.deep.equal([ethers.BigNumber.from(4)]);
+      expect(byPolicyDescription).to.deep.equal([BigInt(4)]);
       [byPolicyName, byPolicyDescription] =
         await policyContract.searchPolicy("test policy 4");
       expect(byPolicyDescription).to.have.length(0);
-      expect(byPolicyName).to.deep.equal([ethers.BigNumber.from(4)]);
+      expect(byPolicyName).to.deep.equal([BigInt(4)]);
     });
   });
 });

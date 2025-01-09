@@ -13,9 +13,13 @@ describe("Schema", () => {
     const policyRegistryFactory =
       await ethers.getContractFactory("PolicyRegistryMock");
     const tempPolicyContract = await policyRegistryFactory.deploy();
-    const bytecode = await ethers.provider.getCode(tempPolicyContract.address);
+    const bytecode = await ethers.provider.getCode(
+      await tempPolicyContract.getAddress(),
+    );
     await network.provider.send("hardhat_setCode", [testTprAddress, bytecode]);
-    policyContractMock = policyRegistryFactory.attach(testTprAddress);
+    policyContractMock = policyRegistryFactory.attach(
+      testTprAddress,
+    ) as PolicyRegistryMock;
   });
 
   beforeEach(async () => {
@@ -24,7 +28,7 @@ describe("Schema", () => {
 
     const schemaLibFactory = await ethers.getContractFactory("SchemaLib", {
       libraries: {
-        Pagination: pagination.address,
+        Pagination: await pagination.getAddress(),
       },
     });
     const schemaLib = await schemaLibFactory.deploy();
@@ -33,8 +37,8 @@ describe("Schema", () => {
       "SchemaSCRegistry",
       {
         libraries: {
-          Pagination: pagination.address,
-          SchemaLib: schemaLib.address,
+          Pagination: await pagination.getAddress(),
+          SchemaLib: await schemaLib.getAddress(),
         },
       },
     );
@@ -44,15 +48,15 @@ describe("Schema", () => {
     const initialVersion = await ts.version();
     expect(initialVersion).to.equal(42);
     // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-    expect(ts.address).to.properAddress;
+    expect(await ts.getAddress()).to.properAddress;
     await policyContractMock.setPolicyResult(true);
   });
 
   it("should fail when user does not have attribute insertSchema", async () => {
     await policyContractMock.setPolicyResult(false);
-    const schemaId = ethers.utils.toUtf8Bytes("schemaId");
-    const schemaRevision = ethers.utils.toUtf8Bytes("revision");
-    const metadata = ethers.utils.toUtf8Bytes("metadata");
+    const schemaId = ethers.toUtf8Bytes("schemaId");
+    const schemaRevision = ethers.toUtf8Bytes("revision");
+    const metadata = ethers.toUtf8Bytes("metadata");
     await expect(
       ts.insertSchema(schemaId, schemaRevision, metadata),
     ).to.be.revertedWith(
@@ -61,27 +65,27 @@ describe("Schema", () => {
   });
 
   it("insertSchema fails for empty params", async () => {
-    const schemaId = ethers.utils.toUtf8Bytes("schemaId");
-    const schemaRevision = ethers.utils.toUtf8Bytes("schema");
-    await expect(ts.insertSchema([], [], [])).to.be.revertedWith(
-      "schema empty",
-    );
-    await expect(ts.insertSchema(schemaId, [], [])).to.be.revertedWith(
-      "revision empty",
-    );
+    const schemaId = ethers.toUtf8Bytes("schemaId");
+    const schemaRevision = ethers.toUtf8Bytes("schema");
     await expect(
-      ts.insertSchema(schemaId, schemaRevision, []),
+      ts.insertSchema(new Uint8Array(), new Uint8Array(), new Uint8Array()),
+    ).to.be.revertedWith("schema empty");
+    await expect(
+      ts.insertSchema(schemaId, new Uint8Array(), new Uint8Array()),
+    ).to.be.revertedWith("revision empty");
+    await expect(
+      ts.insertSchema(schemaId, schemaRevision, new Uint8Array()),
     ).to.be.revertedWith("metadata empty");
   });
 
   it("insertSchema fails when already registered", async () => {
-    const schemaId = ethers.utils.toUtf8Bytes("schemaId");
-    const schemaRevision = ethers.utils.toUtf8Bytes("schema");
-    const metadata = ethers.utils.toUtf8Bytes("metadata");
+    const schemaId = ethers.toUtf8Bytes("schemaId");
+    const schemaRevision = ethers.toUtf8Bytes("schema");
+    const metadata = ethers.toUtf8Bytes("metadata");
     await ts.insertSchema(schemaId, schemaRevision, metadata);
 
-    const schemaId2 = ethers.utils.toUtf8Bytes("other schemaId");
-    const metadataId2 = ethers.utils.toUtf8Bytes("other metadata");
+    const schemaId2 = ethers.toUtf8Bytes("other schemaId");
+    const metadataId2 = ethers.toUtf8Bytes("other metadata");
     await expect(
       ts.insertSchema(schemaId, schemaRevision, metadataId2),
     ).to.be.revertedWith("Schema already registered");
@@ -91,26 +95,26 @@ describe("Schema", () => {
   });
 
   it("insertSchema should succeed", async () => {
-    const schemaId = ethers.utils.toUtf8Bytes("schemaId");
-    const schemaRevision = ethers.utils.toUtf8Bytes("revision");
-    const metadata = ethers.utils.toUtf8Bytes("metadata");
+    const schemaId = ethers.toUtf8Bytes("schemaId");
+    const schemaRevision = ethers.toUtf8Bytes("revision");
+    const metadata = ethers.toUtf8Bytes("metadata");
     await expect(ts.insertSchema(schemaId, schemaRevision, metadata))
       .to.emit(ts, "SchemaInserted")
       .withArgs(
-        ethers.utils.hexlify(schemaId),
-        ethers.utils.hexlify(schemaRevision),
-        ethers.utils.hexlify(metadata),
+        ethers.hexlify(schemaId),
+        ethers.hexlify(schemaRevision),
+        ethers.hexlify(metadata),
       );
     const insertedSchema = await ts.getSchemaRevision(
-      ethers.utils.sha256(schemaRevision),
+      ethers.sha256(schemaRevision),
     );
-    expect(insertedSchema).to.equal(ethers.utils.hexlify(schemaRevision));
+    expect(insertedSchema).to.equal(ethers.hexlify(schemaRevision));
   });
 
   it("should fail when user does not have attribute updateSchema", async () => {
-    const schemaId = ethers.utils.toUtf8Bytes("schemaId");
-    const schemaRevision = ethers.utils.toUtf8Bytes("revision");
-    const metadata = ethers.utils.toUtf8Bytes("metadata");
+    const schemaId = ethers.toUtf8Bytes("schemaId");
+    const schemaRevision = ethers.toUtf8Bytes("revision");
+    const metadata = ethers.toUtf8Bytes("metadata");
     await ts.insertSchema(schemaId, schemaRevision, metadata);
     await policyContractMock.setPolicyResult(false);
     await expect(
@@ -121,9 +125,9 @@ describe("Schema", () => {
   });
 
   it("getSchemaIds should fail with wrong page and pageSize", async () => {
-    const schemaId = ethers.utils.toUtf8Bytes("schemaId");
-    const schemaRevision = ethers.utils.toUtf8Bytes("schema");
-    const metadata = ethers.utils.toUtf8Bytes("metadata");
+    const schemaId = ethers.toUtf8Bytes("schemaId");
+    const schemaRevision = ethers.toUtf8Bytes("schema");
+    const metadata = ethers.toUtf8Bytes("metadata");
     await ts.insertSchema(schemaId, schemaRevision, metadata);
 
     // page = 0 should revert
@@ -142,13 +146,13 @@ describe("Schema", () => {
 
   it("getSchemaIds should succeed", async () => {
     const schemaIds: string[] = [];
-    const metadata = ethers.utils.toUtf8Bytes("metadata");
+    const metadata = ethers.toUtf8Bytes("metadata");
     for (let i = 1; i <= 10; i += 1) {
-      const schemaId = ethers.utils.toUtf8Bytes(`schemaId-${i}`);
-      const schemaRevision = ethers.utils.toUtf8Bytes(`schema-${i}`);
+      const schemaId = ethers.toUtf8Bytes(`schemaId-${i}`);
+      const schemaRevision = ethers.toUtf8Bytes(`schema-${i}`);
 
       await ts.insertSchema(schemaId, schemaRevision, metadata);
-      schemaIds.push(ethers.utils.hexlify(schemaId));
+      schemaIds.push(ethers.hexlify(schemaId));
     }
 
     const result = await ts.getSchemaIds(1, 1);
@@ -174,45 +178,43 @@ describe("Schema", () => {
   });
 
   it("getLatestSchemaRevision fails for missing parameter", async () => {
-    await expect(ts.getLatestSchemaRevision([])).to.be.revertedWith(
-      "schemaId empty",
-    );
+    await expect(
+      ts.getLatestSchemaRevision(new Uint8Array()),
+    ).to.be.revertedWith("schemaId empty");
   });
 
   it("getLatestSchemaRevision fails for unknown revision", async () => {
-    const metadata = ethers.utils.toUtf8Bytes("metadata");
-    const schemaId = ethers.utils.toUtf8Bytes("schemaId");
-    const schemaRevision = ethers.utils.toUtf8Bytes(`schema`);
+    const metadata = ethers.toUtf8Bytes("metadata");
+    const schemaId = ethers.toUtf8Bytes("schemaId");
+    const schemaRevision = ethers.toUtf8Bytes(`schema`);
     await ts.insertSchema(schemaId, schemaRevision, metadata);
-    const schemaId1 = ethers.utils.toUtf8Bytes("schemaId1");
+    const schemaId1 = ethers.toUtf8Bytes("schemaId1");
     await expect(ts.getLatestSchemaRevision(schemaId1)).to.be.revertedWith(
       "No revision",
     );
   });
 
   it("getLatestSchemaRevision succeeds", async () => {
-    const metadata = ethers.utils.toUtf8Bytes("metadata");
-    const schemaId = ethers.utils.toUtf8Bytes("schemaId");
+    const metadata = ethers.toUtf8Bytes("metadata");
+    const schemaId = ethers.toUtf8Bytes("schemaId");
     for (let i = 1; i <= 3; i += 1) {
-      const schemaRevision = ethers.utils.toUtf8Bytes(`schema-${i}`);
+      const schemaRevision = ethers.toUtf8Bytes(`schema-${i}`);
       await (i > 1
         ? ts.updateSchema(schemaId, schemaRevision, metadata)
         : ts.insertSchema(schemaId, schemaRevision, metadata));
     }
     const result = await ts.getLatestSchemaRevision(schemaId);
-    expect(result).to.be.equal(
-      ethers.utils.hexlify(ethers.utils.toUtf8Bytes(`schema-3`)),
-    );
+    expect(result).to.be.equal(ethers.hexlify(ethers.toUtf8Bytes(`schema-3`)));
   });
 
   it("getSchemaRevisionIds fails for empty schemaId", async () => {
-    await expect(ts.getSchemaRevisionIds([], 1, 1)).to.be.revertedWith(
-      "schemaId empty",
-    );
+    await expect(
+      ts.getSchemaRevisionIds(new Uint8Array(), 1, 1),
+    ).to.be.revertedWith("schemaId empty");
   });
 
   it("getSchemaRevisionIds fails for invalid page and pageSize", async () => {
-    const schemaId = ethers.utils.toUtf8Bytes("schemaId");
+    const schemaId = ethers.toUtf8Bytes("schemaId");
     await expect(ts.getSchemaRevisionIds(schemaId, 0, 1)).to.be.revertedWith(
       "Page must be > 0",
     );
@@ -225,15 +227,15 @@ describe("Schema", () => {
   });
 
   it("getSchemaRevisionIds succeeds", async () => {
-    const metadata = ethers.utils.toUtf8Bytes("metadata");
-    const schemaId = ethers.utils.toUtf8Bytes("schemaId");
+    const metadata = ethers.toUtf8Bytes("metadata");
+    const schemaId = ethers.toUtf8Bytes("schemaId");
     const revisionsIds: string[] = [];
     for (let i = 1; i <= 10; i += 1) {
-      const schemaRevision = ethers.utils.toUtf8Bytes(`schema-${i}`);
+      const schemaRevision = ethers.toUtf8Bytes(`schema-${i}`);
       await (i > 1
         ? ts.updateSchema(schemaId, schemaRevision, metadata)
         : ts.insertSchema(schemaId, schemaRevision, metadata));
-      revisionsIds.push(ethers.utils.sha256(schemaRevision));
+      revisionsIds.push(ethers.sha256(schemaRevision));
     }
 
     const r = await ts.getSchemaRevisionIds(schemaId, 1, 2);
@@ -259,122 +261,120 @@ describe("Schema", () => {
   });
 
   it("getSchemaRevision fails for empty parameter", async () => {
-    await expect(
-      ts.getSchemaRevision(ethers.constants.HashZero),
-    ).to.be.revertedWith("SchemaRevisionId empty");
+    await expect(ts.getSchemaRevision(ethers.ZeroHash)).to.be.revertedWith(
+      "SchemaRevisionId empty",
+    );
   });
 
   it("getSchemaRevision fails for missing revision", async () => {
-    const metadata = ethers.utils.toUtf8Bytes("metadata");
-    const schemaId = ethers.utils.toUtf8Bytes("schemaId");
-    const schemaRevision = ethers.utils.toUtf8Bytes("schema");
+    const metadata = ethers.toUtf8Bytes("metadata");
+    const schemaId = ethers.toUtf8Bytes("schemaId");
+    const schemaRevision = ethers.toUtf8Bytes("schema");
     await ts.insertSchema(schemaId, schemaRevision, metadata);
-    const schemaRevision2 = ethers.utils.toUtf8Bytes("schema2");
+    const schemaRevision2 = ethers.toUtf8Bytes("schema2");
     await expect(
-      ts.getSchemaRevision(ethers.utils.sha256(schemaRevision2)),
+      ts.getSchemaRevision(ethers.sha256(schemaRevision2)),
     ).to.be.revertedWith("No revision");
   });
 
   it("getSchemaRevision succeeds", async () => {
-    const metadata = ethers.utils.toUtf8Bytes("metadata");
-    const schemaId = ethers.utils.toUtf8Bytes("schemaId");
-    const schemaRevision = ethers.utils.toUtf8Bytes("schema");
+    const metadata = ethers.toUtf8Bytes("metadata");
+    const schemaId = ethers.toUtf8Bytes("schemaId");
+    const schemaRevision = ethers.toUtf8Bytes("schema");
     await ts.insertSchema(schemaId, schemaRevision, metadata);
 
-    const result = await ts.getSchemaRevision(
-      ethers.utils.sha256(schemaRevision),
-    );
-    expect(result).to.be.equal(ethers.utils.hexlify(schemaRevision));
+    const result = await ts.getSchemaRevision(ethers.sha256(schemaRevision));
+    expect(result).to.be.equal(ethers.hexlify(schemaRevision));
   });
 
   it("getLatestSchemaRevisionMetadataByRevisionId fails for empty parameter", async () => {
     await expect(
-      ts.getLatestSchemaRevisionMetadataByRevisionId(ethers.constants.HashZero),
+      ts.getLatestSchemaRevisionMetadataByRevisionId(ethers.ZeroHash),
     ).to.be.revertedWith("SchemaRevisionId empty");
   });
 
   it("getLatestSchemaRevisionMetadataByRevisionId fails for unknown revisionId", async () => {
-    const metadata = ethers.utils.toUtf8Bytes("metadata");
-    const schemaId = ethers.utils.toUtf8Bytes("schemaId");
-    const schemaRevision = ethers.utils.toUtf8Bytes("schema");
+    const metadata = ethers.toUtf8Bytes("metadata");
+    const schemaId = ethers.toUtf8Bytes("schemaId");
+    const schemaRevision = ethers.toUtf8Bytes("schema");
     await ts.insertSchema(schemaId, schemaRevision, metadata);
-    const schemaRevision2 = ethers.utils.toUtf8Bytes("schema2");
+    const schemaRevision2 = ethers.toUtf8Bytes("schema2");
     await expect(
       ts.getLatestSchemaRevisionMetadataByRevisionId(
-        ethers.utils.sha256(schemaRevision2),
+        ethers.sha256(schemaRevision2),
       ),
     ).to.be.revertedWith("No metadata");
   });
 
   it("should fail when user does not have attribute updateMetadata", async () => {
-    const metadata = ethers.utils.toUtf8Bytes("metadata");
-    const schemaId = ethers.utils.toUtf8Bytes("schemaId");
-    const schemaRevision1 = ethers.utils.toUtf8Bytes("schema1");
-    const schemaRevision2 = ethers.utils.toUtf8Bytes("schema2");
+    const metadata = ethers.toUtf8Bytes("metadata");
+    const schemaId = ethers.toUtf8Bytes("schemaId");
+    const schemaRevision1 = ethers.toUtf8Bytes("schema1");
+    const schemaRevision2 = ethers.toUtf8Bytes("schema2");
     await ts.insertSchema(schemaId, schemaRevision1, metadata);
     await policyContractMock.setPolicyResult(false);
     await expect(
-      ts.updateMetadata(ethers.utils.sha256(schemaRevision2), metadata),
+      ts.updateMetadata(ethers.sha256(schemaRevision2), metadata),
     ).to.be.revertedWith(
       "Policy error: sender doesn't have the attribute TSR:updateMetadata",
     );
   });
 
   it("updateMetadata fails when register is not registered", async () => {
-    const metadata = ethers.utils.toUtf8Bytes("metadata");
-    const schemaId = ethers.utils.toUtf8Bytes("schemaId");
-    const schemaRevision1 = ethers.utils.toUtf8Bytes("schema1");
-    const schemaRevision2 = ethers.utils.toUtf8Bytes("schema2");
+    const metadata = ethers.toUtf8Bytes("metadata");
+    const schemaId = ethers.toUtf8Bytes("schemaId");
+    const schemaRevision1 = ethers.toUtf8Bytes("schema1");
+    const schemaRevision2 = ethers.toUtf8Bytes("schema2");
     await ts.insertSchema(schemaId, schemaRevision1, metadata);
     await expect(
-      ts.updateMetadata(ethers.utils.sha256(schemaRevision2), metadata),
+      ts.updateMetadata(ethers.sha256(schemaRevision2), metadata),
     ).to.be.revertedWith("schema not registered");
   });
 
   it("updateMetadata fails for empty parameters", async () => {
-    const metadata = ethers.utils.toUtf8Bytes("metadata");
-    const schemaRevision = ethers.utils.toUtf8Bytes("schema");
+    const metadata = ethers.toUtf8Bytes("metadata");
+    const schemaRevision = ethers.toUtf8Bytes("schema");
     await expect(
-      ts.updateMetadata(ethers.constants.HashZero, metadata),
+      ts.updateMetadata(ethers.ZeroHash, metadata),
     ).to.be.revertedWith("schemaRevisionId empty");
     await expect(
-      ts.updateMetadata(ethers.utils.sha256(schemaRevision), []),
+      ts.updateMetadata(ethers.sha256(schemaRevision), new Uint8Array()),
     ).to.be.revertedWith("metadata empty");
   });
 
   it("getLatestSchemaRevisionMetadataByRevisionId and updateMetadata succeed", async () => {
-    const metadata1 = ethers.utils.toUtf8Bytes("metadata1");
-    const metadata2 = ethers.utils.toUtf8Bytes("metadata2");
-    const schemaId = ethers.utils.toUtf8Bytes("schemaId");
-    const schemaRevision = ethers.utils.toUtf8Bytes("schema");
+    const metadata1 = ethers.toUtf8Bytes("metadata1");
+    const metadata2 = ethers.toUtf8Bytes("metadata2");
+    const schemaId = ethers.toUtf8Bytes("schemaId");
+    const schemaRevision = ethers.toUtf8Bytes("schema");
     await ts.insertSchema(schemaId, schemaRevision, metadata1);
-    await ts.updateMetadata(ethers.utils.sha256(schemaRevision), metadata2);
+    await ts.updateMetadata(ethers.sha256(schemaRevision), metadata2);
     const metadata = await ts.getLatestSchemaRevisionMetadataByRevisionId(
-      ethers.utils.sha256(schemaRevision),
+      ethers.sha256(schemaRevision),
     );
-    expect(metadata).to.be.equal(ethers.utils.hexlify(metadata2));
+    expect(metadata).to.be.equal(ethers.hexlify(metadata2));
   });
 
   it("updateSchema fails for empty params", async () => {
-    const schemaId = ethers.utils.toUtf8Bytes("schemaId");
-    const schemaRevision = ethers.utils.toUtf8Bytes("schema");
-    await expect(ts.updateSchema([], [], [])).to.be.revertedWith(
-      "schema empty",
-    );
-    await expect(ts.updateSchema(schemaId, [], [])).to.be.revertedWith(
-      "revision empty",
-    );
+    const schemaId = ethers.toUtf8Bytes("schemaId");
+    const schemaRevision = ethers.toUtf8Bytes("schema");
     await expect(
-      ts.updateSchema(schemaId, schemaRevision, []),
+      ts.updateSchema(new Uint8Array(), new Uint8Array(), new Uint8Array()),
+    ).to.be.revertedWith("schema empty");
+    await expect(
+      ts.updateSchema(schemaId, new Uint8Array(), new Uint8Array()),
+    ).to.be.revertedWith("revision empty");
+    await expect(
+      ts.updateSchema(schemaId, schemaRevision, new Uint8Array()),
     ).to.be.revertedWith("metadata empty");
   });
 
   it("updateSchema fails when schema not registered", async () => {
-    const schemaId = ethers.utils.toUtf8Bytes("schemaId");
-    const schemaId1 = ethers.utils.toUtf8Bytes("schemaId1");
-    const schemaRevision = ethers.utils.toUtf8Bytes("schema");
-    const schemaRevision2 = ethers.utils.toUtf8Bytes("schema2");
-    const metadata1 = ethers.utils.toUtf8Bytes("metadata1");
+    const schemaId = ethers.toUtf8Bytes("schemaId");
+    const schemaId1 = ethers.toUtf8Bytes("schemaId1");
+    const schemaRevision = ethers.toUtf8Bytes("schema");
+    const schemaRevision2 = ethers.toUtf8Bytes("schema2");
+    const metadata1 = ethers.toUtf8Bytes("metadata1");
     await ts.insertSchema(schemaId, schemaRevision, metadata1);
     await expect(
       ts.updateSchema(schemaId1, schemaRevision2, metadata1),
@@ -382,10 +382,10 @@ describe("Schema", () => {
   });
 
   it("updateSchema fails when revision already registered", async () => {
-    const schemaId = ethers.utils.toUtf8Bytes("schemaId");
-    const schemaRevision = ethers.utils.toUtf8Bytes("schema");
-    const metadata1 = ethers.utils.toUtf8Bytes("metadata1");
-    const metadata2 = ethers.utils.toUtf8Bytes("metadata2");
+    const schemaId = ethers.toUtf8Bytes("schemaId");
+    const schemaRevision = ethers.toUtf8Bytes("schema");
+    const metadata1 = ethers.toUtf8Bytes("metadata1");
+    const metadata2 = ethers.toUtf8Bytes("metadata2");
     await ts.insertSchema(schemaId, schemaRevision, metadata1);
     await expect(
       ts.updateSchema(schemaId, schemaRevision, metadata2),
@@ -393,35 +393,33 @@ describe("Schema", () => {
   });
 
   it("updateSchema succeeds", async () => {
-    const schemaId = ethers.utils.toUtf8Bytes("schemaId");
-    const schemaRevision1 = ethers.utils.toUtf8Bytes("schema1");
-    const schemaRevision2 = ethers.utils.toUtf8Bytes("schema2");
-    const metadata1 = ethers.utils.toUtf8Bytes("metadata1");
-    const metadata2 = ethers.utils.toUtf8Bytes("metadata2");
+    const schemaId = ethers.toUtf8Bytes("schemaId");
+    const schemaRevision1 = ethers.toUtf8Bytes("schema1");
+    const schemaRevision2 = ethers.toUtf8Bytes("schema2");
+    const metadata1 = ethers.toUtf8Bytes("metadata1");
+    const metadata2 = ethers.toUtf8Bytes("metadata2");
     await ts.insertSchema(schemaId, schemaRevision1, metadata1);
     await expect(ts.updateSchema(schemaId, schemaRevision2, metadata2))
       .to.emit(ts, "SchemaUpdated")
       .withArgs(
-        ethers.utils.hexlify(schemaId),
-        ethers.utils.hexlify(schemaRevision2),
-        ethers.utils.hexlify(metadata2),
+        ethers.hexlify(schemaId),
+        ethers.hexlify(schemaRevision2),
+        ethers.hexlify(metadata2),
       );
     const updatedSchema = await ts.getSchemaRevision(
-      ethers.utils.sha256(schemaRevision2),
+      ethers.sha256(schemaRevision2),
     );
-    expect(updatedSchema).to.equal(ethers.utils.hexlify(schemaRevision2));
+    expect(updatedSchema).to.equal(ethers.hexlify(schemaRevision2));
   });
 
   it("getSchemaRevisionMetadataIds fails for empty schemaRevisionId", async () => {
     await expect(
-      ts.getSchemaRevisionMetadataIds(ethers.constants.HashZero, 1, 1),
+      ts.getSchemaRevisionMetadataIds(ethers.ZeroHash, 1, 1),
     ).to.be.revertedWith("SchemaRevisionId empty");
   });
 
   it("getSchemaRevisionMetadataIds fails for wrong page and pageSize values", async () => {
-    const schemaRevisionId = ethers.utils.sha256(
-      ethers.utils.toUtf8Bytes("schema"),
-    );
+    const schemaRevisionId = ethers.sha256(ethers.toUtf8Bytes("schema"));
     // page = 0 should revert
     await expect(
       ts.getSchemaRevisionMetadataIds(schemaRevisionId, 0, 1),
@@ -439,21 +437,21 @@ describe("Schema", () => {
   });
 
   it("getSchemaRevisionMetadataIds succeeds", async () => {
-    const schemaId = ethers.utils.toUtf8Bytes("schemaId");
-    const schemaRevision = ethers.utils.toUtf8Bytes("schema");
-    const metadata = ethers.utils.toUtf8Bytes("metadata");
+    const schemaId = ethers.toUtf8Bytes("schemaId");
+    const schemaRevision = ethers.toUtf8Bytes("schema");
+    const metadata = ethers.toUtf8Bytes("metadata");
     const metadataIds: string[] = [];
-    const schemaRevisionId = ethers.utils.sha256(schemaRevision);
-    metadataIds.push(ethers.utils.sha256(metadata));
+    const schemaRevisionId = ethers.sha256(schemaRevision);
+    metadataIds.push(ethers.sha256(metadata));
 
     await ts.insertSchema(schemaId, schemaRevision, metadata);
 
     for (let i = 1; i <= 10; i += 1) {
-      const m = ethers.utils.toUtf8Bytes(`metadata+${i}`);
+      const m = ethers.toUtf8Bytes(`metadata+${i}`);
 
       await ts.updateMetadata(schemaRevisionId, m);
 
-      metadataIds.push(ethers.utils.sha256(m));
+      metadataIds.push(ethers.sha256(m));
     }
 
     const r = await ts.getSchemaRevisionMetadataIds(schemaRevisionId, 1, 1);
@@ -477,8 +475,8 @@ describe("Schema", () => {
     expect(r3.prev).to.equal(2);
     expect(r3.next).to.equal(2);
 
-    const schemaRevision1 = ethers.utils.toUtf8Bytes("schema1");
-    const schemaRevisionId1 = ethers.utils.sha256(schemaRevision1);
+    const schemaRevision1 = ethers.toUtf8Bytes("schema1");
+    const schemaRevisionId1 = ethers.sha256(schemaRevision1);
     const r4 = await ts.getSchemaRevisionMetadataIds(schemaRevisionId1, 1, 1);
     expect(r4.items).to.have.length(0);
     expect(r4.howMany).to.equal(0);
@@ -487,29 +485,29 @@ describe("Schema", () => {
 
   it("getSchemaRevisionMetadataByMetadataId fails for empty metadataId", async () => {
     await expect(
-      ts.getSchemaRevisionMetadataByMetadataId(ethers.constants.HashZero),
+      ts.getSchemaRevisionMetadataByMetadataId(ethers.ZeroHash),
     ).to.be.revertedWith("MetadataId empty");
   });
 
   it("getSchemaRevisionMetadataByMetadataId fails unknown metadataId", async () => {
-    const schemaId = ethers.utils.toUtf8Bytes("schemaId");
-    const schemaRevision = ethers.utils.toUtf8Bytes("schema");
-    const metadata1 = ethers.utils.toUtf8Bytes("metadata1");
-    const metadata2 = ethers.utils.toUtf8Bytes("metadata2");
+    const schemaId = ethers.toUtf8Bytes("schemaId");
+    const schemaRevision = ethers.toUtf8Bytes("schema");
+    const metadata1 = ethers.toUtf8Bytes("metadata1");
+    const metadata2 = ethers.toUtf8Bytes("metadata2");
     await ts.insertSchema(schemaId, schemaRevision, metadata1);
     await expect(
-      ts.getSchemaRevisionMetadataByMetadataId(ethers.utils.sha256(metadata2)),
+      ts.getSchemaRevisionMetadataByMetadataId(ethers.sha256(metadata2)),
     ).to.be.revertedWith("No metadata");
   });
 
   it("getSchemaRevisionMetadataByMetadataId succeeds", async () => {
-    const schemaId = ethers.utils.toUtf8Bytes("schemaId");
-    const schemaRevision = ethers.utils.toUtf8Bytes("schema");
-    const metadata = ethers.utils.toUtf8Bytes("metadata");
+    const schemaId = ethers.toUtf8Bytes("schemaId");
+    const schemaRevision = ethers.toUtf8Bytes("schema");
+    const metadata = ethers.toUtf8Bytes("metadata");
     await ts.insertSchema(schemaId, schemaRevision, metadata);
     const r = await ts.getSchemaRevisionMetadataByMetadataId(
-      ethers.utils.sha256(metadata),
+      ethers.sha256(metadata),
     );
-    expect(r).to.equal(ethers.utils.hexlify(metadata));
+    expect(r).to.equal(ethers.hexlify(metadata));
   });
 });

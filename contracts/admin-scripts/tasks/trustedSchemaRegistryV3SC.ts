@@ -28,12 +28,12 @@ task("trustedSchemaRegistryV3", "Deploy contract Track And Trace")
         taskArgs.tpr,
       ]);
 
-      settings.set("trustedSchemaRegistryV3Proxy", tsrV3.address);
+      settings.set("trustedSchemaRegistryV3Proxy", await tsrV3.getAddress());
       settings.set("upgraderAddress", taskArgs.upgrader);
       settings.set("trustedPolicyRegistry", taskArgs.tpr);
 
       console.log(
-        `TrustedSchemasRegistryV3 contract deployed to ${tsrV3.address}`,
+        `TrustedSchemasRegistryV3 contract deployed to ${await tsrV3.getAddress()}`,
       );
     },
   );

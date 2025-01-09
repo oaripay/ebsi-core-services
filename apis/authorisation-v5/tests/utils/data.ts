@@ -88,7 +88,9 @@ export async function createLegalEntity<T extends "EdDSA" | "ES256" | "ES256K">(
     };
 
     if (alg === "ES256K") {
-      const wallet = new ethers.Wallet(privateKey);
+      const wallet = new ethers.Wallet(
+        `0x${Buffer.from(privateKey).toString("hex")}`,
+      );
       address = wallet.address;
     }
   }

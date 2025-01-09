@@ -20,11 +20,16 @@ async function main() {
   const proxy = proxyFactory.attach(dProxy.address) as OwnedUpgradeabilityProxy;
 
   const res = await (await proxy.changeAdmin(multiSig.address)).wait(1);
+
+  if (!res) {
+    throw new Error("Transaction failed");
+  }
+
   console.log(
     `
-    Proxy:${proxy.address}
+    Proxy:${await proxy.getAddress()}
     New admin:${multiSig.address}
-    TransactionHash:${res.transactionHash}
+    TransactionHash:${(await res.getTransaction()).hash}
     Status:${res.status === 1 ? "ok" : "error"}
     `,
   );

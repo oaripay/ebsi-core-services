@@ -1,5 +1,5 @@
 import {
-  extractNamedAttributes,
+  decodeResult,
   getErrorMessage,
   InvalidRequestJsonRpcError,
   isEthersError,
@@ -62,37 +62,26 @@ export class JsonRpcService {
     params: string,
   ): Promise<UnsignedTransaction> {
     const nonceInt = await this.ledgerService
-      .getContract()
-      .provider.getTransactionCount(from);
+      .getEthersProvider()
+      .getTransactionCount(from);
 
-    const unsignedTransaction: UnsignedTransaction = {
+    const unsignedTransaction = {
       chainId: await this.getChainId(),
       data: params,
       from,
       gasLimit: "0x1000000",
       gasPrice: "0x0",
-      nonce: ethers.BigNumber.from(nonceInt).toHexString(),
+      nonce: `0x${BigInt(nonceInt).toString(16)}`,
       to: this.contractAddress,
       value: "0x0",
-    };
-
-    let gasEstimation: ethers.BigNumber | string = "unset";
+    } satisfies UnsignedTransaction;
 
     try {
-      gasEstimation = await this.estimateGas(unsignedTransaction);
+      const gasEstimation = await this.estimateGas(unsignedTransaction);
       // Multiply by 1.4
-      unsignedTransaction.gasLimit = gasEstimation
-        .mul(14)
-        .div(10)
-        .toHexString();
+      unsignedTransaction.gasLimit = `0x${((gasEstimation * 14n) / 10n).toString(16)}`;
     } catch {
-      this.logger.warn(
-        `Gas could not be estimated.${
-          gasEstimation === "unset"
-            ? ""
-            : `Received ${gasEstimation.toString()}.`
-        } Using 0x1000000`,
-      );
+      this.logger.warn("Gas could not be estimated. Using 0x1000000");
       unsignedTransaction.gasLimit = "0x1000000";
     }
 
@@ -289,13 +278,11 @@ export class JsonRpcService {
     }
   }
 
-  async estimateGas(
-    transaction: UnsignedTransaction,
-  ): Promise<ethers.BigNumber> {
+  async estimateGas(transaction: UnsignedTransaction): Promise<bigint> {
     const { data, from, to, value } = transaction;
 
     try {
-      return await this.ledgerService.getContract().provider.estimateGas({
+      return await this.ledgerService.getEthersProvider().estimateGas({
         data,
         from,
         to,
@@ -311,7 +298,7 @@ export class JsonRpcService {
 
   async getBlockNumber(): Promise<number> {
     try {
-      return await this.ledgerService.getContract().provider.getBlockNumber();
+      return await this.ledgerService.getEthersProvider().getBlockNumber();
     } catch (error) {
       if (isEthersError(error)) {
         this.logger.error(error, error.stack);
@@ -324,9 +311,9 @@ export class JsonRpcService {
     if (!this.chainId) {
       try {
         const { chainId } = await this.ledgerService
-          .getContract()
-          .provider.getNetwork();
-        this.chainId = ethers.BigNumber.from(chainId).toHexString();
+          .getEthersProvider()
+          .getNetwork();
+        this.chainId = `0x${BigInt(chainId).toString(16)}`;
       } catch (error) {
         if (isEthersError(error)) {
           this.logger.error(error, error.stack);
@@ -376,13 +363,22 @@ export class JsonRpcService {
       await this.checkDidOwnership(signer, clientId);
 
       const tx = await this.ledgerService
-        .getContract()
-        .provider.sendTransaction(request.signedRawTransaction);
+        .getEthersProvider()
+        .broadcastTransaction(request.signedRawTransaction);
       return tx.hash;
     } catch (error_) {
       if (isEthersError(error_)) {
         this.logger.error(error_, error_.stack); // Log the original error with all ethers.js details for internal debugging
-        throw new InvalidRequestJsonRpcError(error_.reason, id); // throw simplified ethers error to the user
+        throw new InvalidRequestJsonRpcError(
+          error_.error?.message ?? error_.shortMessage,
+          id,
+          undefined,
+          error_.error &&
+          "code" in error_.error &&
+          typeof error_.error.code === "number"
+            ? error_.error.code
+            : undefined,
+        );
       }
 
       if (error_ instanceof Error) {
@@ -418,20 +414,21 @@ export class JsonRpcService {
     const signature = formatEthersSignature(r, s, v);
 
     // Serialize transaction with and without signature
-    const serializedTransaction = ethers.utils.serializeTransaction(unsignedTx);
-    const serializedTransactionSigned = ethers.utils.serializeTransaction(
-      unsignedTx,
+    const unsignedSerializedTransaction =
+      ethers.Transaction.from(unsignedTx).unsignedSerialized;
+    const signedSerializedTransaction = ethers.Transaction.from({
+      ...unsignedTx,
       signature,
-    );
+    }).serialized;
 
-    if (serializedTransactionSigned !== signedRawTransaction)
+    if (signedSerializedTransaction !== signedRawTransaction)
       throw new Error(
-        `The unsigned transaction + signature (${serializedTransactionSigned}) does not match with the signedRawTransaction (${signedRawTransaction})`,
+        `The unsigned transaction + signature (${signedSerializedTransaction}) does not match with the signedRawTransaction (${signedRawTransaction})`,
       );
 
     // recover address used to sign
-    const digest = ethers.utils.keccak256(serializedTransaction);
-    const signer = ethers.utils.recoverAddress(digest, signature);
+    const digest = ethers.keccak256(unsignedSerializedTransaction);
+    const signer = ethers.recoverAddress(digest, signature);
 
     if (signer.toLowerCase() !== unsignedTransaction.from.toLowerCase())
       throw new Error(
@@ -450,17 +447,24 @@ export class JsonRpcService {
       );
 
     // verify function and parameters encoded in unsignedTransaction.data
-    const { args, functionFragment } = this.ledgerService
+    const parsedTransaction = this.ledgerService
       .getContract()
       .interface.parseTransaction(unsignedTransaction);
 
+    if (!parsedTransaction) {
+      throw new Error("Invalid unsignedTransaction.data");
+    }
+
+    const { args, fragment } = parsedTransaction;
+
     // Extract named args from args (args is a mixed array with named and unnamed values)
     const argsObject = {
-      ...extractNamedAttributes(args),
+      // @ts-expect-error Error due to CommonJS vs ESM modules imports
+      ...decodeResult(args),
       from: unsignedTransaction.from,
     };
 
-    switch (functionFragment.name) {
+    switch (fragment.name) {
       case "activatePolicy": {
         await activatePolicySchema.parseAsync(argsObject);
         break;
@@ -487,13 +491,13 @@ export class JsonRpcService {
       }
       default: {
         throw new Error(
-          `The function name ${functionFragment.name} can not be used in this context`,
+          `The function name ${fragment.name} can not be used in this context`,
         );
       }
     }
 
     return {
-      functionName: functionFragment.name,
+      functionName: fragment.name,
       signer,
     };
   }

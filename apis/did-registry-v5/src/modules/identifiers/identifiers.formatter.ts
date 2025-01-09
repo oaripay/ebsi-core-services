@@ -12,7 +12,7 @@ export function formatIdentifiers(
   vMethodId?: string,
   vRelationship?: string,
 ): PaginatedList<DidLink> {
-  const total = identifiers.total.toNumber();
+  const total = Number(identifiers.total);
 
   let extraQuery = controller ? `&controller=${controller}` : "";
   extraQuery +=

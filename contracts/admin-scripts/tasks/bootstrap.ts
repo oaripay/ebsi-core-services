@@ -2,7 +2,7 @@
 /* eslint-disable */
 import { task } from "hardhat/config";
 import "@nomiclabs/hardhat-waffle";
-import { Wallet } from "ethers";
+import { BaseWallet } from "ethers";
 import { randomBytes, randomUUID } from "node:crypto";
 import fs from "node:fs/promises";
 import { SignJWT } from "jose";
@@ -56,6 +56,11 @@ import schema46 from "@cef-ebsi/vcdm2.0-type-extensions-terms-of-use-attestation
 import schema47 from "@cef-ebsi/vcdm2.0-vid-legal-entity-schema";
 import schema48 from "@cef-ebsi/vcdm2.0-vid-natural-person-schema";
 import schema49 from "@cef-ebsi/vcdm2.0-w3id-traceability-commercial-invoice-credential-schema";
+import type { DidRegistry } from "@ebsiint-sc/did-registry-v4";
+import type { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry-v3";
+import type { TrustedIssuersRegistry } from "@ebsiint-sc/trusted-issuers-registry-v4";
+import type { TrustedSchemasRegistry } from "@ebsiint-sc/trusted-schemas-registry-v3";
+
 import { generateDidParams, UserData } from "../utils/generateDidParams";
 
 const pathName = __dirname + "/../wallets.env";
@@ -180,10 +185,10 @@ task(
   const tprSigner = tprOp.connect(ethers.provider);
   const soSigner = soOp.connect(ethers.provider);
 
-  const tprContract = await ethers.getContractAt(
+  const tprContract = (await ethers.getContractAt(
     "contracts/trusted-policies-registry-v3/trusted-policies-registry/PolicyRegistry.sol:PolicyRegistry",
     process.env.TPR_SC_V3_ADDRESS,
-  );
+  )) as unknown as PolicyRegistry;
 
   // move admin to next signer
   const tprContractProxy = await ethers.getContractAt(
@@ -253,12 +258,12 @@ task(
 
   // Register DIDs for tprOp and SO in the did registry
 
-  const didrContract = await ethers.getContractAt(
+  const didrContract = (await ethers.getContractAt(
     "contracts/did-registry-v4/did-registry/DidRegistry.sol:DidRegistry",
     process.env.DIDR_SC_V4_ADDRESS,
-  );
+  )) as unknown as DidRegistry;
 
-  async function registerDidDocument(userData: UserData, signer: Wallet) {
+  async function registerDidDocument(userData: UserData, signer: BaseWallet) {
     try {
       await didrContract
         .connect(signer)
@@ -363,15 +368,15 @@ task(
   }
 
   // register SO as root tao in tir
-  const tirContract = await ethers.getContractAt(
+  const tirContract = (await ethers.getContractAt(
     "contracts/trusted-issuers-registry-v4/tir/TrustedIssuersRegistry.sol:TrustedIssuersRegistry",
     process.env.TIR_SC_V4_ADDRESS,
     tprSigner,
-  );
+  )) as unknown as TrustedIssuersRegistry;
 
   async function registerUserAsSupportOffice(
     userData: UserData,
-    signer: Wallet,
+    signer: BaseWallet,
   ) {
     const reservedAttributeId = randomBytes(32).toString("hex");
     const iat = Math.floor(Date.now() / 1000) - 10;
@@ -459,10 +464,10 @@ task(
   await registerUserAsSupportOffice(soOpDidParams, soSigner);
 
   // register schemas
-  const tsrContract = await ethers.getContractAt(
+  const tsrContract = (await ethers.getContractAt(
     "contracts/trusted-schemas-registry-v3/trusted-schemas-registry/TrustedSchemasRegistry.sol:TrustedSchemasRegistry",
     process.env.TSR_SC_V3_ADDRESS,
-  );
+  )) as unknown as TrustedSchemasRegistry;
   for (let i = 0; i < schemas.length; i += 1) {
     const { schema, metadata } = schemas[i];
     try {

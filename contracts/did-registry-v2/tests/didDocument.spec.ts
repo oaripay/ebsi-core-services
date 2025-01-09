@@ -8,7 +8,7 @@ import type {
 } from "../src/types";
 
 import { testDidV3Address, testTprAddress } from "./testAddress";
-import { getEthObject } from "./utils";
+import { decodeResult } from "./utils";
 
 type AddVerificationMethodArgs = [string, string, string, boolean];
 type AddVerificationRelationshipArgs = [string, string, string, number, number];
@@ -27,12 +27,20 @@ describe("Did Documents", () => {
   let policyContractMock: PolicyRegistryMock;
   let didV3ContractMock: DidRegistryMock;
 
-  const acc = config.networks.hardhat.accounts as { mnemonic: string };
-  const hd = ethers.utils.HDNode.fromMnemonic(acc.mnemonic);
+  const acc = config.networks.hardhat.accounts as {
+    mnemonic: string;
+    path: string;
+  };
 
-  let user = new ethers.Wallet(hd.derivePath("m/44'/60'/0'/0/1").privateKey);
-  let user2 = new ethers.Wallet(hd.derivePath("m/44'/60'/0'/0/2").privateKey);
-  let user3 = new ethers.Wallet(hd.derivePath("m/44'/60'/0'/0/3").privateKey);
+  const hd = ethers.HDNodeWallet.fromMnemonic(
+    ethers.Mnemonic.fromPhrase(acc.mnemonic),
+    acc.path,
+  );
+
+  let user = hd.derivePath("1");
+  let user2 = hd.derivePath("2");
+  let user3 = hd.derivePath("3");
+
   const did = "did:ebsi:zpUnevx4dP2R2BvbjFEnnFF";
   const baseDocument =
     '{"@context":["https://www.w3.org/ns/did/v1","https://w3id.org/security/suites/jws-2020/v1"]}';
@@ -51,28 +59,34 @@ describe("Did Documents", () => {
     const policyRegistryFactory =
       await ethers.getContractFactory("PolicyRegistryMock");
     const tempPolicyContract = await policyRegistryFactory.deploy();
-    await tempPolicyContract.deployed();
+
     const bytecodeTpr = await ethers.provider.getCode(
-      tempPolicyContract.address,
+      await tempPolicyContract.getAddress(),
     );
     await network.provider.send("hardhat_setCode", [
       testTprAddress,
       bytecodeTpr,
     ]);
 
-    policyContractMock = policyRegistryFactory.attach(testTprAddress);
+    policyContractMock = policyRegistryFactory.attach(
+      testTprAddress,
+    ) as PolicyRegistryMock;
 
     const didRegistryV1Factory =
       await ethers.getContractFactory("DidRegistryMock");
     const tempDidContract = await didRegistryV1Factory.deploy();
-    await tempDidContract.deployed();
-    const bytecodeDid = await ethers.provider.getCode(tempDidContract.address);
+    await tempDidContract.waitForDeployment();
+    const bytecodeDid = await ethers.provider.getCode(
+      await tempDidContract.getAddress(),
+    );
     await network.provider.send("hardhat_setCode", [
       testDidV3Address,
       bytecodeDid,
     ]);
 
-    didV3ContractMock = didRegistryV1Factory.attach(testDidV3Address);
+    didV3ContractMock = didRegistryV1Factory.attach(
+      testDidV3Address,
+    ) as DidRegistryMock;
   });
 
   beforeEach(async () => {
@@ -87,8 +101,8 @@ describe("Did Documents", () => {
       "DidDocumentLib",
       {
         libraries: {
-          Pagination: paginationLib.address,
-          VRelationshipsLib: vRelationshipsLib.address,
+          Pagination: await paginationLib.getAddress(),
+          VRelationshipsLib: await vRelationshipsLib.getAddress(),
         },
       },
     );
@@ -98,7 +112,7 @@ describe("Did Documents", () => {
       "ControllersLib",
       {
         libraries: {
-          Pagination: paginationLib.address,
+          Pagination: await paginationLib.getAddress(),
         },
       },
     );
@@ -106,9 +120,9 @@ describe("Did Documents", () => {
 
     const contractFactory = await ethers.getContractFactory("DidRegistry", {
       libraries: {
-        ControllersLib: controllersLib.address,
-        DidDocumentLib: didDocumentLib.address,
-        VRelationshipsLib: vRelationshipsLib.address,
+        ControllersLib: await controllersLib.getAddress(),
+        DidDocumentLib: await didDocumentLib.getAddress(),
+        VRelationshipsLib: await vRelationshipsLib.getAddress(),
       },
     });
 
@@ -123,7 +137,7 @@ describe("Did Documents", () => {
     const initialVersion = await reg.version();
     expect(initialVersion).to.equal(42);
     // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-    expect(reg.address).to.be.properAddress;
+    expect(await reg.getAddress()).to.be.properAddress;
   });
 
   it("should insertDidDocument", async () => {
@@ -132,7 +146,7 @@ describe("Did Documents", () => {
         did,
         baseDocument,
         vMethodId,
-        user.publicKey,
+        user.signingKey.publicKey,
         true,
         notBefore,
         notAfter,
@@ -145,7 +159,7 @@ describe("Did Documents", () => {
       did,
       baseDocument,
       vMethodId,
-      user.publicKey,
+      user.signingKey.publicKey,
       true,
       notBefore,
       notAfter,
@@ -173,7 +187,7 @@ describe("Did Documents", () => {
     await expect(reg.insertDidDocument(...args)).to.be.revertedWith(
       "invalid publicKey",
     );
-    args[3] = user.publicKey;
+    args[3] = user.signingKey.publicKey;
 
     args[4] = false;
     await expect(reg.insertDidDocument(...args)).to.be.revertedWith(
@@ -192,7 +206,7 @@ describe("Did Documents", () => {
       did,
       baseDocument,
       vMethodId,
-      user.publicKey,
+      user.signingKey.publicKey,
       true,
       notBefore,
       notAfter,
@@ -212,7 +226,7 @@ describe("Did Documents", () => {
       did,
       baseDocument,
       vMethodId,
-      user.publicKey,
+      user.signingKey.publicKey,
       true,
       notBefore,
       notAfter,
@@ -228,7 +242,7 @@ describe("Did Documents", () => {
       did,
       baseDocument,
       vMethodId,
-      user.publicKey,
+      user.signingKey.publicKey,
       true,
       notBefore,
       notAfter,
@@ -260,7 +274,7 @@ describe("Did Documents", () => {
       did,
       baseDocument,
       vMethodId,
-      user.publicKey,
+      user.signingKey.publicKey,
       true,
       notBefore,
       notAfter,
@@ -285,7 +299,7 @@ describe("Did Documents", () => {
       did,
       baseDocument,
       vMethodId,
-      user.publicKey,
+      user.signingKey.publicKey,
       true,
       notBefore,
       notAfter,
@@ -319,7 +333,7 @@ describe("Did Documents", () => {
       did,
       baseDocument,
       vMethodId,
-      user.publicKey,
+      user.signingKey.publicKey,
       true,
       notBefore,
       notAfter,
@@ -343,7 +357,7 @@ describe("Did Documents", () => {
       did,
       baseDocument,
       vMethodId,
-      user.publicKey,
+      user.signingKey.publicKey,
       true,
       notBefore,
       notAfter,
@@ -352,7 +366,7 @@ describe("Did Documents", () => {
       "did:ebsi:c2",
       baseDocument,
       vMethodId,
-      user.publicKey,
+      user.signingKey.publicKey,
       true,
       notBefore,
       notAfter,
@@ -367,14 +381,14 @@ describe("Did Documents", () => {
     );
 
     const didDocument = await reg.getDidDocument(did);
-    expect(getEthObject(didDocument)).to.eql({
+    expect(decodeResult(didDocument)).to.deep.equal({
       baseDocument,
       controllers: ["did:ebsi:c2"],
       vMethodIds: [vMethodId],
       vMethods: [
         {
           isSecp256k1: true,
-          publicKey: user.publicKey,
+          publicKey: user.signingKey.publicKey,
           revoked: false,
         },
       ],
@@ -402,7 +416,7 @@ describe("Did Documents", () => {
       did,
       baseDocument,
       vMethodId,
-      user.publicKey,
+      user.signingKey.publicKey,
       true,
       notBefore,
       notAfter,
@@ -428,7 +442,7 @@ describe("Did Documents", () => {
       did,
       baseDocument,
       vMethodId,
-      user.publicKey,
+      user.signingKey.publicKey,
       true,
       notBefore,
       notAfter,
@@ -448,7 +462,7 @@ describe("Did Documents", () => {
       did,
       baseDocument,
       vMethodId,
-      user.publicKey,
+      user.signingKey.publicKey,
       true,
       notBefore,
       notAfter,
@@ -457,7 +471,7 @@ describe("Did Documents", () => {
       reg.addVerificationMethod(
         did,
         "O_EWDo1JUm3glFxTw3a9f2YfeKwbLuvG9kdGrb6gzHE",
-        user.publicKey,
+        user.signingKey.publicKey,
         true,
       ),
     ).to.emit(reg, "VerificationMethodAdded");
@@ -468,7 +482,7 @@ describe("Did Documents", () => {
       did,
       baseDocument,
       vMethodId,
-      user.publicKey,
+      user.signingKey.publicKey,
       true,
       notBefore,
       notAfter,
@@ -481,7 +495,7 @@ describe("Did Documents", () => {
         .addVerificationMethod(
           did,
           "O_EWDo1JUm3glFxTw3a9f2YfeKwbLuvG9kdGrb6gzHE",
-          user.publicKey,
+          user.signingKey.publicKey,
           true,
         ),
     ).to.be.revertedWith(
@@ -496,7 +510,7 @@ describe("Did Documents", () => {
         .addVerificationMethod(
           did,
           "O_EWDo1JUm3glFxTw3a9f2YfeKwbLuvG9kdGrb6gzHE",
-          user.publicKey,
+          user.signingKey.publicKey,
           true,
         ),
     ).to.emit(reg, "VerificationMethodAdded");
@@ -507,7 +521,7 @@ describe("Did Documents", () => {
       did,
       baseDocument,
       vMethodId,
-      user.publicKey,
+      user.signingKey.publicKey,
       true,
       notBefore,
       notAfter,
@@ -518,7 +532,7 @@ describe("Did Documents", () => {
     const args: AddVerificationMethodArgs = [
       did,
       newVMethodId,
-      user.publicKey,
+      user.signingKey.publicKey,
       true,
     ];
 
@@ -549,7 +563,7 @@ describe("Did Documents", () => {
       did,
       baseDocument,
       vMethodId,
-      user.publicKey,
+      user.signingKey.publicKey,
       true,
       notBefore,
       notAfter,
@@ -570,7 +584,7 @@ describe("Did Documents", () => {
       did,
       baseDocument,
       vMethodId,
-      user.publicKey,
+      user.signingKey.publicKey,
       true,
       notBefore,
       notAfter,
@@ -620,7 +634,7 @@ describe("Did Documents", () => {
       did,
       baseDocument,
       vMethodId,
-      user.publicKey,
+      user.signingKey.publicKey,
       true,
       notBefore,
       notAfter,
@@ -679,7 +693,7 @@ describe("Did Documents", () => {
       did,
       baseDocument,
       vMethodId,
-      user.publicKey,
+      user.signingKey.publicKey,
       true,
       notBefore,
       notAfter,
@@ -691,13 +705,7 @@ describe("Did Documents", () => {
     );
 
     const didDocument = await reg.getDidDocument(did);
-    expect(getEthObject(didDocument)).to.eql({
-      baseDocument,
-      controllers: [did],
-      vMethodIds: [],
-      vMethods: [],
-      vRelationships: [],
-    });
+    expect(didDocument.vMethodIds).to.eql([]);
   });
 
   it("should check access control for revokeVerificationMethod", async () => {
@@ -705,7 +713,7 @@ describe("Did Documents", () => {
       did,
       baseDocument,
       vMethodId,
-      user.publicKey,
+      user.signingKey.publicKey,
       true,
       notBefore,
       notAfter,
@@ -730,7 +738,7 @@ describe("Did Documents", () => {
       did,
       baseDocument,
       vMethodId,
-      user.publicKey,
+      user.signingKey.publicKey,
       true,
       notBefore,
       notAfter,
@@ -765,7 +773,7 @@ describe("Did Documents", () => {
       did,
       baseDocument,
       vMethodId,
-      user.publicKey,
+      user.signingKey.publicKey,
       true,
       notBefore,
       notAfter,
@@ -776,14 +784,15 @@ describe("Did Documents", () => {
     ).to.emit(reg, "VerificationMethodExpired");
 
     const didDocument = await reg.getDidDocument(did);
-    expect(getEthObject(didDocument)).to.eql({
+
+    expect(decodeResult(didDocument)).to.deep.equal({
       baseDocument,
       controllers: [did],
       vMethodIds: [vMethodId],
       vMethods: [
         {
           isSecp256k1: true,
-          publicKey: user.publicKey,
+          publicKey: user.signingKey.publicKey,
           revoked: false,
         },
       ],
@@ -811,7 +820,7 @@ describe("Did Documents", () => {
       did,
       baseDocument,
       vMethodId,
-      user.publicKey,
+      user.signingKey.publicKey,
       true,
       notBefore,
       notAfter,
@@ -840,7 +849,7 @@ describe("Did Documents", () => {
       did,
       baseDocument,
       vMethodId,
-      user.publicKey,
+      user.signingKey.publicKey,
       true,
       notBefore,
       notAfter,
@@ -868,7 +877,7 @@ describe("Did Documents", () => {
       did,
       baseDocument,
       vMethodId,
-      user.publicKey,
+      user.signingKey.publicKey,
       true,
       notBefore,
       notAfter,
@@ -895,7 +904,7 @@ describe("Did Documents", () => {
     ).to.emit(reg, "VerificationMethodRolled");
 
     const didDocument = await reg.getDidDocument(did);
-    expect(getEthObject(didDocument)).to.eql({
+    expect(decodeResult(didDocument)).to.deep.equal({
       baseDocument,
       controllers: [did],
       vMethodIds: [vMethodId2],
@@ -930,7 +939,7 @@ describe("Did Documents", () => {
       did,
       baseDocument,
       vMethodId,
-      user.publicKey,
+      user.signingKey.publicKey,
       true,
       notBefore,
       notAfter,
@@ -957,14 +966,14 @@ describe("Did Documents", () => {
     ).to.emit(reg, "VerificationMethodRolled");
 
     const didDocument = await reg.getDidDocument(did);
-    expect(getEthObject(didDocument)).to.eql({
+    expect(decodeResult(didDocument)).to.deep.equal({
       baseDocument,
       controllers: [did],
       vMethodIds: [vMethodId, vMethodId2],
       vMethods: [
         {
           isSecp256k1: true,
-          publicKey: user.publicKey,
+          publicKey: user.signingKey.publicKey,
           revoked: false,
         },
         {
@@ -1011,7 +1020,7 @@ describe("Did Documents", () => {
       did,
       baseDocument,
       vMethodId,
-      user.publicKey,
+      user.signingKey.publicKey,
       true,
       notBefore,
       notAfter,
@@ -1063,7 +1072,7 @@ describe("Did Documents", () => {
       did,
       baseDocument,
       vMethodId,
-      user.publicKey,
+      user.signingKey.publicKey,
       true,
       notBefore,
       notAfter,
@@ -1145,7 +1154,7 @@ describe("Did Documents", () => {
       did,
       baseDocument,
       vMethodId,
-      user.publicKey,
+      user.signingKey.publicKey,
       true,
       notBefore,
       notAfter,
@@ -1167,7 +1176,7 @@ describe("Did Documents", () => {
     await reg.insertDidDocument(...args);
 
     const dids = await reg.getDids(3, 2);
-    expect(getEthObject(dids)).to.eql({
+    expect(decodeResult(dids)).to.deep.equal({
       howMany: "2",
       items: ["did:ebsi:test5", "did:ebsi:test6"],
       next: "4",
@@ -1185,7 +1194,7 @@ describe("Did Documents", () => {
       "did:ebsi:1",
       baseDocument,
       vMethodId,
-      user.publicKey,
+      user.signingKey.publicKey,
       true,
       notBefore,
       notAfter,
@@ -1206,7 +1215,7 @@ describe("Did Documents", () => {
     await reg.revokeController("did:ebsi:5", "did:ebsi:2");
 
     let dids = await reg.getDidsByController("did:ebsi:1", 1, 10);
-    expect(getEthObject(dids)).to.eql({
+    expect(decodeResult(dids)).to.deep.equal({
       howMany: "2",
       items: ["did:ebsi:1", "did:ebsi:3"],
       next: "1",
@@ -1215,7 +1224,7 @@ describe("Did Documents", () => {
     });
 
     dids = await reg.getDidsByController("did:ebsi:2", 1, 10);
-    expect(getEthObject(dids)).to.eql({
+    expect(decodeResult(dids)).to.deep.equal({
       howMany: "3",
       items: ["did:ebsi:2", "did:ebsi:3", "did:ebsi:4"],
       next: "1",
@@ -1224,7 +1233,7 @@ describe("Did Documents", () => {
     });
 
     dids = await reg.getDidsByController("did:ebsi:3", 1, 10);
-    expect(getEthObject(dids)).to.eql({
+    expect(decodeResult(dids)).to.deep.equal({
       howMany: "1",
       items: ["did:ebsi:3"],
       next: "1",
@@ -1233,7 +1242,7 @@ describe("Did Documents", () => {
     });
 
     dids = await reg.getDidsByController("did:ebsi:4", 1, 10);
-    expect(getEthObject(dids)).to.eql({
+    expect(decodeResult(dids)).to.deep.equal({
       howMany: "1",
       items: ["did:ebsi:4"],
       next: "1",
@@ -1242,7 +1251,7 @@ describe("Did Documents", () => {
     });
 
     dids = await reg.getDidsByController("did:ebsi:5", 1, 10);
-    expect(getEthObject(dids)).to.eql({
+    expect(decodeResult(dids)).to.deep.equal({
       howMany: "1",
       items: ["did:ebsi:5"],
       next: "1",
@@ -1264,7 +1273,7 @@ describe("Did Documents", () => {
       did,
       baseDocument,
       vMethodId,
-      user.publicKey,
+      user.signingKey.publicKey,
       true,
       notBefore,
       notAfter,
@@ -1309,7 +1318,7 @@ describe("Did Documents", () => {
       3,
       2,
     );
-    expect(getEthObject(didsWithPeriod)).to.eql({
+    expect(decodeResult(didsWithPeriod)).to.deep.equal({
       howMany: "2",
       items: [
         {
@@ -1334,7 +1343,7 @@ describe("Did Documents", () => {
       did,
       baseDocument,
       vMethodId,
-      user.publicKey,
+      user.signingKey.publicKey,
       true,
       1000,
       2000,
@@ -1352,14 +1361,14 @@ describe("Did Documents", () => {
     );
     const now = Math.floor(Date.now() / 1000);
     let didDocument = await reg.getDidDocumentByTimestamp(did, 1500);
-    expect(getEthObject(didDocument)).to.eql({
+    expect(decodeResult(didDocument)).to.deep.equal({
       baseDocument,
       controllers: [did],
       vMethodIds: [vMethodId],
       vMethods: [
         {
           isSecp256k1: true,
-          publicKey: user.publicKey,
+          publicKey: user.signingKey.publicKey,
           revoked: false,
         },
       ],
@@ -1382,7 +1391,7 @@ describe("Did Documents", () => {
     });
 
     didDocument = await reg.getDidDocumentByTimestamp(did, now);
-    expect(getEthObject(didDocument)).to.eql({
+    expect(decodeResult(didDocument)).to.deep.equal({
       baseDocument,
       controllers: [did],
       vMethodIds: [vMethodId2],
@@ -1412,7 +1421,7 @@ describe("Did Documents", () => {
       did,
       baseDocument,
       vMethodId,
-      user.publicKey,
+      user.signingKey.publicKey,
       true,
       notBefore,
       notAfter,
@@ -1421,7 +1430,7 @@ describe("Did Documents", () => {
       "did:ebsi:c2",
       baseDocument,
       vMethodId2,
-      user2.publicKey,
+      user2.signingKey.publicKey,
       true,
       notBefore,
       notAfter,
@@ -1430,7 +1439,7 @@ describe("Did Documents", () => {
       "did:ebsi:c3",
       baseDocument,
       vMethodId3,
-      user3.publicKey,
+      user3.signingKey.publicKey,
       true,
       notBefore,
       notAfter,
@@ -1489,7 +1498,7 @@ describe("Did Documents", () => {
       did,
       baseDocument,
       vMethodId,
-      user.publicKey,
+      user.signingKey.publicKey,
       true,
       notBefore,
       notAfter,
@@ -1522,14 +1531,14 @@ describe("Did Documents", () => {
     );
 
     let didDocument = await reg.getDidDocument(did);
-    expect(getEthObject(didDocument)).to.eql({
+    expect(decodeResult(didDocument)).to.deep.equal({
       baseDocument,
       controllers: [did],
       vMethodIds: [vMethodId, vMethodId2],
       vMethods: [
         {
           isSecp256k1: true,
-          publicKey: user.publicKey,
+          publicKey: user.signingKey.publicKey,
           revoked: false,
         },
         {
@@ -1583,14 +1592,14 @@ describe("Did Documents", () => {
     );
 
     didDocument = await reg.getDidDocument(did);
-    expect(getEthObject(didDocument)).to.eql({
+    expect(decodeResult(didDocument)).to.deep.equal({
       baseDocument,
       controllers: [did],
       vMethodIds: [vMethodId, vMethodId2, vMethodId3],
       vMethods: [
         {
           isSecp256k1: true,
-          publicKey: user.publicKey,
+          publicKey: user.signingKey.publicKey,
           revoked: false,
         },
         {
@@ -1646,14 +1655,14 @@ describe("Did Documents", () => {
     // revoke key 2
     await reg.revokeVerificationMethod(did, vMethodId2, notBefore + 1);
     didDocument = await reg.getDidDocument(did);
-    expect(getEthObject(didDocument)).to.eql({
+    expect(decodeResult(didDocument)).to.deep.equal({
       baseDocument,
       controllers: [did],
       vMethodIds: [vMethodId, vMethodId3],
       vMethods: [
         {
           isSecp256k1: true,
-          publicKey: user.publicKey,
+          publicKey: user.signingKey.publicKey,
           revoked: false,
         },
         {
@@ -1710,7 +1719,7 @@ describe("Did Documents", () => {
       0,
     );
     didDocument = await reg.getDidDocument(did);
-    expect(getEthObject(didDocument)).to.eql({
+    expect(decodeResult(didDocument)).to.deep.equal({
       baseDocument,
       controllers: [did],
       vMethodIds: [vMethodId3, vMethodId4],

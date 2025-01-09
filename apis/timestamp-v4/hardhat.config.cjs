@@ -3,7 +3,7 @@
  * https://hardhat.org/hardhat-runner/docs/advanced/using-esm#hardhat-support-for-es-modules
  */
 const path = require("node:path");
-require("@nomiclabs/hardhat-ethers");
+require("@nomicfoundation/hardhat-ethers");
 
 const timestampScPath = path.resolve(
   require.resolve("@ebsiint-sc/timestamp-v2"),
@@ -14,7 +14,10 @@ const timestampScPath = path.resolve(
 const config = {
   defaultNetwork: "hardhat",
   networks: {
-    hardhat: { hardfork: "berlin" },
+    hardhat: {
+      gas: "auto", // Required to send multiple transactions 1 block during the tests, see https://github.com/ethers-io/ethers.js/issues/4192#issuecomment-1617725919
+      hardfork: "berlin",
+    },
   },
   paths: {
     artifacts: path.resolve(timestampScPath, "./artifacts"),

@@ -5,7 +5,11 @@ import { ProblemDetailsError } from "../errors/ProblemDetailsError.js";
 import { isEthersError } from "./isEthersError.js";
 
 export function getErrorMessage(error: unknown, defaultErrorMessage?: string) {
-  if (isEthersError(error)) {
+  if (
+    isEthersError(error) &&
+    "reason" in error &&
+    typeof error.reason === "string"
+  ) {
     return error.reason;
   }
 

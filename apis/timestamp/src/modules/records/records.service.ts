@@ -36,7 +36,8 @@ export default class RecordsService {
       params,
       1,
     );
-    const lastPage = Math.ceil(total.toNumber() / 50);
+    const totalNumber = Number(BigInt(total));
+    const lastPage = Math.ceil(totalNumber / 50);
     const promisesNextPages = Array.from(
       { length: lastPage - 1 },
       (_, i) => i + 2,
@@ -48,7 +49,7 @@ export default class RecordsService {
     for (const pagItems of hashValuesNextPages) {
       hashValues.splice(hashValues.length, 0, ...pagItems);
     }
-    return { hashValues, infoIds, totalHashes: total.toNumber() };
+    return { hashValues, infoIds, totalHashes: totalNumber };
   }
 
   async getPage(
@@ -58,7 +59,7 @@ export default class RecordsService {
   ): Promise<{
     hashValues: string[];
     infoIds: string[];
-    total: ethers.BigNumber;
+    total: ethers.BigNumberish;
   }> {
     switch (fnName) {
       case "getRecordVersion": {
@@ -113,7 +114,7 @@ export default class RecordsService {
 
     const { hashValues: lastVersionTimestamps } = await this.getAllPages(
       "getRecordVersion",
-      [recordId, totalVersions.toNumber() - 1],
+      [recordId, Number(totalVersions) - 1],
     );
 
     return {
@@ -121,7 +122,7 @@ export default class RecordsService {
       lastVersionTimestamps,
       ownerIds,
       revokedOwnerIds,
-      totalVersions: totalVersions.toNumber(),
+      totalVersions: Number(totalVersions),
     };
   }
 
@@ -251,6 +252,6 @@ export default class RecordsService {
       });
     }
 
-    return record.totalVersions.toNumber();
+    return Number(record.totalVersions);
   }
 }

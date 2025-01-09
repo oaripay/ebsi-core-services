@@ -14,27 +14,24 @@
     "lint:write": "prettier .  --write && yarn prettier --write --plugin=prettier-plugin-solidity \"contracts/**/*.sol\"",
     "lint:eslint": "eslint .",
     "lint:sol": "solhint \"contracts/**/*.sol\"",
-    "prepare": "exit 0",
+    "prepare": "yarn clean",
     "test": "hardhat test",
     "test:unit": "yarn test",
     "test:ci": "hardhat compile && hardhat test"
   },
   "dependencies": {
-    "@openzeppelin/contracts": "^4.9.3"
+    "@openzeppelin/contracts": "^4.9.6"
   },
   "devDependencies": {
-    "@ethersproject/abi": "^5.7.0",
-    "@ethersproject/providers": "^5.7.0",
-    "@nomiclabs/hardhat-ethers": "^2.2.3",
+    "@gnosis-guild/typechain-ethers-v6": "^0.5.5",
+    "@gnosis-guild/typechain-hardhat": "^9.2.2",
+    "@nomicfoundation/hardhat-chai-matchers": "^2.0.8",
+    "@nomicfoundation/hardhat-ethers": "^3.0.8",
     "@nomiclabs/hardhat-solhint": "^4.0.1",
-    "@nomiclabs/hardhat-waffle": "^2.0.6",
-    "@openzeppelin/hardhat-upgrades": "^1.28.0",
-    "@typechain/ethers-v5": "^11.1.2",
-    "@typechain/hardhat": "^9.1.0",
+    "@openzeppelin/hardhat-upgrades": "^3.8.0",
     "@types/mocha": "^10.0.10",
-    "@types/node": "^22.10.1",
-    "ethereum-waffle": "^4.0.10",
-    "ethers": "^5.7.2",
+    "@types/node": "^22.10.5",
+    "ethers": "^6.13.5",
     "hardhat": "^2.22.17",
     "hardhat-abi-exporter": "^2.10.1",
     "solidity-coverage": "^0.8.14",
@@ -46,7 +43,8 @@
       "build": {
         "outputs": [
           "{projectRoot}/artifacts",
-          "{projectRoot}/dist"
+          "{projectRoot}/dist",
+          "{projectRoot}/src/types"
         ]
       }
     }

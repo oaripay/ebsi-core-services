@@ -28,7 +28,7 @@ export function formatDocumentEvents(
   pageSize: number,
   baseUrl: string,
 ): PaginatedList<DocumentEventsLink> {
-  const total = events.total.toNumber();
+  const total = Number(events.total);
 
   // Reshape items
   const items = events.items.map((eventId) => {
@@ -47,7 +47,7 @@ export function formatDocuments(
   pageSize: number,
   baseUrl: string,
 ): PaginatedList<DocumentsLink> {
-  const total = documents.total.toNumber();
+  const total = Number(documents.total);
 
   // Reshape items
   const items = documents.items.map((documentId) => {

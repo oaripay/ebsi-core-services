@@ -464,7 +464,7 @@ export class AuthorisationService {
         const publicKeyHex = encode.publicKey.fromJWKToHex(
           vMethod.publicKeyJwk!,
         );
-        return ethers.utils.computeAddress(`0x${publicKeyHex}`);
+        return ethers.computeAddress(`0x${publicKeyHex}`);
       });
 
     for (const rel of didDocument.capabilityInvocation) {
@@ -474,7 +474,7 @@ export class AuthorisationService {
         rel.publicKeyJwk.crv === "secp256k1"
       ) {
         const publicKeyHex = encode.publicKey.fromJWKToHex(rel.publicKeyJwk);
-        addresses.push(ethers.utils.computeAddress(`0x${publicKeyHex}`));
+        addresses.push(ethers.computeAddress(`0x${publicKeyHex}`));
       }
     }
 
