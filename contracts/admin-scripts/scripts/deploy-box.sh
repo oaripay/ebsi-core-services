@@ -43,14 +43,13 @@ output=`yarn hardhat --network box trackAndTraceV2 --admin  $account --upgrader 
 TrackAndTraceProxy=`echo $output | grep -o '\b0x[a-fA-F0-9]\{40\}\b' | tail -1`
 
 # TrustedIssuersRegistry
-output=`yarn hardhat deploy --network box --tags OwnedUpgradeabilityProxy --reset`
-tirRegistry=`echo $output | grep -o '\b0x[a-fA-F0-9]\{40\}\b'`
-yarn hardhat initProxy --network box --proxy $tirRegistry --implementation TirV3
+output=`yarn hardhat --network box trustedIssuersRegistryV4 --upgrader $account --tpr $tprProxy --did $DIDRegistryProxy `
+tirRegistry=`echo $output | grep -o '\b0x[a-fA-F0-9]\{40\}\b' | tail -1`
 
 # TrustedSchemasRegistry
-output=`yarn hardhat deploy --network box --tags OwnedUpgradeabilityProxy --reset`
-tsrRegistry=`echo $output | grep -o '\b0x[a-fA-F0-9]\{40\}\b'`
-yarn hardhat initProxy --network box --proxy $tsrRegistry --implementation SchemaSCRegistryV2
+output=`yarn hardhat --network box trustedSchemaRegistryV3 --upgrader $account --tpr $tprProxy`
+tsrRegistry=`echo $output | grep -o '\b0x[a-fA-F0-9]\{40\}\b' | tail -1`
+
 
 # generate operator wallets
 

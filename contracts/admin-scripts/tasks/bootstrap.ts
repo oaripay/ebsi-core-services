@@ -240,7 +240,9 @@ task(
   console.log(`insert policies...`);
   for (const policy of policies) {
     try {
-      await tprContract.connect(tprSigner).insertPolicy(policy, policy);
+      await (
+        await tprContract.connect(tprSigner).insertPolicy(policy, policy)
+      ).wait(1);
     } catch {
       console.log(`policy ${policy} already exists`);
     }
