@@ -112,20 +112,11 @@ export class LedgerService implements OnModuleDestroy {
       });
     }
 
-    // websocket.on("error", (err: unknown) => {
-    //   console.log("websocket error", err);
-    //   throw new InternalServerError(InternalServerError.defaultTitle, {
-    //     detail: "Something went wrong when initializing the WebSocketProvider",
-    //   });
-    // });
-
     /* global NodeJS */
     let pingTimeout: NodeJS.Timeout;
     let keepAliveInterval: NodeJS.Timeout;
 
     websocket.on("open", () => {
-      console.log("websocket open");
-
       keepAliveInterval = setInterval(() => {
         websocket.ping();
         pingTimeout = setTimeout(
@@ -136,8 +127,6 @@ export class LedgerService implements OnModuleDestroy {
     });
 
     websocket.on("close", (err: unknown) => {
-      console.log("websocket closed", err);
-
       this.logger.warn(
         `The ws connection was closed: ${stringify(err, undefined, 2)}`,
       );

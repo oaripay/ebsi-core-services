@@ -619,8 +619,10 @@ export class JsonRpcService {
     scope: string,
   ): Promise<string> {
     try {
+      const chainId = await this.getChainId();
+
       const parsedBody =
-        await requestSendSignedTransactionDtoSchema.parseAsync(body);
+        await requestSendSignedTransactionDtoSchema(chainId).parseAsync(body);
 
       const request = parsedBody.params[0]!;
 

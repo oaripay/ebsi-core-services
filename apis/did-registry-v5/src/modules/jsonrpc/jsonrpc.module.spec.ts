@@ -966,7 +966,8 @@ describe("JsonRpc Module", () => {
       if (!signature) {
         throw new Error("Signature not found");
       }
-      const { r, s, v } = signature;
+
+      const { networkV, r, s, v } = signature;
 
       const responseSend = await request(server)
         .post("/jsonrpc")
@@ -982,7 +983,7 @@ describe("JsonRpc Module", () => {
               s,
               signedRawTransaction: sgnTx,
               unsignedTransaction,
-              v: `0x${v.toString(16)}`,
+              v: `0x${(networkV ?? v).toString(16)}`,
             },
           ],
         });

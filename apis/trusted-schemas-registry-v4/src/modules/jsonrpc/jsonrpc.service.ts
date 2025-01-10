@@ -247,8 +247,10 @@ export class JsonRpcService {
     id: null | number | string | undefined,
   ): Promise<string> {
     try {
+      const chainId = await this.getChainId();
+
       const parsedBody =
-        await requestSendSignedTransactionDtoSchema.parseAsync(body);
+        await requestSendSignedTransactionDtoSchema(chainId).parseAsync(body);
 
       const request = parsedBody.params[0]!;
 
