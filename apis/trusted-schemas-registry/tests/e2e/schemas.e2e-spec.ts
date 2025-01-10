@@ -307,7 +307,7 @@ describe("TSR API v2 - Schemas (e2e)", () => {
 
       expect(response.body).toStrictEqual({
         detail:
-          '["schemaRevisionId must match /^0x/ regular expression","schemaRevisionId must be a hexadecimal number"]',
+          '["schemaRevisionId must start with 0x","schemaRevisionId must have 66 characters","schemaRevisionId must be a hexadecimal number"]',
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -378,7 +378,7 @@ describe("TSR API v2 - Schemas (e2e)", () => {
 
       expect(response.body).toStrictEqual({
         detail:
-          '["schemaRevisionId must match /^0x/ regular expression","schemaRevisionId must be a hexadecimal number"]',
+          '["schemaRevisionId must start with 0x","schemaRevisionId must have 66 characters","schemaRevisionId must be a hexadecimal number"]',
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -459,7 +459,7 @@ describe("TSR API v2 - Schemas (e2e)", () => {
 
       expect(response.body).toStrictEqual({
         detail:
-          '["schemaRevisionId must match /^0x/ regular expression","schemaRevisionId must be a hexadecimal number"]',
+          '["schemaRevisionId must start with 0x","schemaRevisionId must have 66 characters","schemaRevisionId must be a hexadecimal number"]',
         status: 400,
         title: "Bad Request",
         type: "about:blank",

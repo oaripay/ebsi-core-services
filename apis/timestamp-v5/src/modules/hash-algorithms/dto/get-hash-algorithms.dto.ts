@@ -19,8 +19,8 @@ export class GetHashAlgorithmsDto extends PaginationQuery {
   "output-length"?: string;
 
   @IsOptional()
-  @IsIn(["active", "revoked", "undefined"])
-  status?: "active" | "revoked" | "undefined";
+  @IsIn(["active", "revoked"])
+  status?: "active" | "revoked";
 }
 
 export default GetHashAlgorithmsDto;
