@@ -3,9 +3,9 @@
 //
 // When running the script with `hardhat run <script>` you'll find the Hardhat
 // Runtime Environment's members available in the global scope.
-import type { PolicyRegistry__factory } from "@ebsiint-sc/trusted-policies-registry";
-
 import { ethers } from "hardhat";
+
+import type { PolicyRegistry__factory } from "@ebsiint-sc/trusted-policies-registry";
 
 async function main() {
   // Hardhat always runs the compile task when running scripts with its command

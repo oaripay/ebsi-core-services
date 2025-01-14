@@ -1,12 +1,13 @@
+import type { HardhatUserConfig } from "hardhat/config";
+
+import type { TypechainUserConfig } from "@gnosis-guild/typechain-hardhat/dist/types";
+import type { AbiExporterUserConfig } from "hardhat-abi-exporter";
+
 import "@nomiclabs/hardhat-solhint";
 import "@gnosis-guild/typechain-hardhat";
 import "hardhat-deploy";
 import "hardhat-deploy-ethers";
 import "hardhat-abi-exporter";
-
-import type { TypechainUserConfig } from "@gnosis-guild/typechain-hardhat/dist/types";
-import type { AbiExporterUserConfig } from "hardhat-abi-exporter";
-import type { HardhatUserConfig } from "hardhat/config";
 
 // The solhint plugin overrides the check task, runs solhint
 // on the project's sources and prints the report to the console

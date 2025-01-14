@@ -1,7 +1,8 @@
+import { ethers } from "hardhat";
+
 import type { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
 
 import { assert, expect } from "chai";
-import { ethers } from "hardhat";
 
 import type { OwnedUpgradeabilityProxy, Tir, TirV1 } from "../src/types";
 

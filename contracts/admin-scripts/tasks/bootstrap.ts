@@ -1,12 +1,11 @@
-/* eslint-disable unicorn/no-abusive-eslint-disable */
-/* eslint-disable */
 import { task } from "hardhat/config";
-import "@nomiclabs/hardhat-waffle";
-import { BaseWallet } from "ethers";
-import { randomBytes, randomUUID } from "node:crypto";
-import fs from "node:fs/promises";
-import { SignJWT } from "jose";
-import * as dotenv from "dotenv";
+
+import type { DidRegistry } from "@ebsiint-sc/did-registry-v4";
+import type { TrustedIssuersRegistry } from "@ebsiint-sc/trusted-issuers-registry-v4";
+import type { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry-v3";
+import type { TrustedSchemasRegistry } from "@ebsiint-sc/trusted-schemas-registry-v3";
+
+/* eslint-disable perfectionist/sort-imports */
 import schema1 from "@cef-ebsi/vcdm1.1-accreditation-schema";
 import schema2 from "@cef-ebsi/vcdm1.1-alliance-id-schema";
 import schema3 from "@cef-ebsi/vcdm1.1-attestation-schema";
@@ -56,10 +55,12 @@ import schema46 from "@cef-ebsi/vcdm2.0-type-extensions-terms-of-use-attestation
 import schema47 from "@cef-ebsi/vcdm2.0-vid-legal-entity-schema";
 import schema48 from "@cef-ebsi/vcdm2.0-vid-natural-person-schema";
 import schema49 from "@cef-ebsi/vcdm2.0-w3id-traceability-commercial-invoice-credential-schema";
-import type { DidRegistry } from "@ebsiint-sc/did-registry-v4";
-import type { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry-v3";
-import type { TrustedIssuersRegistry } from "@ebsiint-sc/trusted-issuers-registry-v4";
-import type { TrustedSchemasRegistry } from "@ebsiint-sc/trusted-schemas-registry-v3";
+/* eslint-enable perfectionist/sort-imports */
+import * as dotenv from "dotenv";
+import { BaseWallet } from "ethers";
+import { SignJWT } from "jose";
+import { randomBytes, randomUUID } from "node:crypto";
+import fs from "node:fs/promises";
 
 import { generateDidParams, UserData } from "../utils/generateDidParams";
 
@@ -389,29 +390,19 @@ task(
       .slice(0, -5)}Z`;
     const jti = `urn:uuid:${randomUUID()}`;
     const payload = {
+      exp,
       iat,
+      iss: userData.did,
       jti,
       nbf: iat,
-      exp,
-      iss: userData.did,
       sub: userData.did,
       vc: {
         "@context": ["https://www.w3.org/2018/credentials/v1"],
-        id: jti,
-        type: [
-          "VerifiableCredential",
-          "VerifiableAttestation",
-          "VerifiableAccreditation",
-          "VerifiableAccreditationToAttest",
-        ],
-        issuer: userData.did,
-        issuanceDate,
-        issued: issuanceDate,
-        validFrom: issuanceDate,
-        expirationDate,
+        credentialSchema: {
+          id: `${domain}/trusted-schemas-registry/v3/schemas/zjVFNvbEBPAr3a724DttioZpgZmNr75BBtRzZqk7pkDe`,
+          type: "FullJsonSchemaValidator2021",
+        },
         credentialSubject: {
-          id: userData.did,
-          reservedAttributeId,
           accreditedFor: [
             {
               schemaId: `${domain}/trusted-schemas-registry/v3/schemas/z3MgUFUkb722uq4x3dv5yAJmnNmzDFeK5UC8x83QoeLJM`,
@@ -422,17 +413,27 @@ task(
               ],
             },
           ],
+          id: userData.did,
+          reservedAttributeId,
         },
-        credentialSchema: {
-          id: `${domain}/trusted-schemas-registry/v3/schemas/zjVFNvbEBPAr3a724DttioZpgZmNr75BBtRzZqk7pkDe`,
-          type: "FullJsonSchemaValidator2021",
-        },
+        expirationDate,
+        id: jti,
+        issuanceDate,
+        issued: issuanceDate,
+        issuer: userData.did,
+        type: [
+          "VerifiableCredential",
+          "VerifiableAttestation",
+          "VerifiableAccreditation",
+          "VerifiableAccreditationToAttest",
+        ],
+        validFrom: issuanceDate,
       },
     };
     const header = {
       alg: "ES256",
-      typ: "JWT",
       kid: `${userData.did}#${userData.ES256.vMethodId}`,
+      typ: "JWT",
     };
     const vcJwtSelfAttestation = await new SignJWT(payload)
       .setProtectedHeader(header)
@@ -470,8 +471,7 @@ task(
     "contracts/trusted-schemas-registry-v3/trusted-schemas-registry/TrustedSchemasRegistry.sol:TrustedSchemasRegistry",
     process.env.TSR_SC_V3_ADDRESS,
   )) as unknown as TrustedSchemasRegistry;
-  for (let i = 0; i < schemas.length; i += 1) {
-    const { schema, metadata } = schemas[i];
+  for (const { metadata, schema } of schemas) {
     try {
       await tsrContract
         .connect(soSigner)
@@ -481,7 +481,7 @@ task(
           `0x${Buffer.from(JSON.stringify({ created: new Date().toISOString() })).toString("hex")}`,
         );
     } catch (error) {
-      const schemaTitle = schema["title"] as string;
+      const schemaTitle = schema.title as string;
       console.log(`error registering schema ${schemaTitle}`);
       console.error(error);
     }

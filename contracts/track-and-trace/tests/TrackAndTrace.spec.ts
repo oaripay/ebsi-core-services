@@ -1,11 +1,12 @@
+import { config, ethers, upgrades } from "hardhat";
+import type { HardhatNetworkHDAccountsConfig } from "hardhat/types";
+
 import type { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
 import type { BytesLike, HDNodeWallet, Result, Wallet } from "ethers";
-import type { HardhatNetworkHDAccountsConfig } from "hardhat/types";
 
 import { getImplementationAddress } from "@openzeppelin/upgrades-core";
 import { expect } from "chai";
 import { Mnemonic } from "ethers";
-import { config, ethers, upgrades } from "hardhat";
 import { randomBytes } from "node:crypto";
 
 import type {

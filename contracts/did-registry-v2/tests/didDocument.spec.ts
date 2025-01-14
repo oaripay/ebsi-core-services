@@ -1,5 +1,6 @@
-import { expect } from "chai";
 import { config, ethers, network } from "hardhat";
+
+import { expect } from "chai";
 
 import type {
   DidRegistry,

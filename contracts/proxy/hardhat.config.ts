@@ -1,10 +1,12 @@
+import type { HardhatUserConfig } from "hardhat/config";
+import { task } from "hardhat/config";
+
 import "@gnosis-guild/typechain-hardhat";
 import "@nomicfoundation/hardhat-chai-matchers";
 import "@nomiclabs/hardhat-solhint";
 import "@nomicfoundation/hardhat-ethers";
 import "hardhat-abi-exporter";
 import "solidity-coverage";
-import { HardhatUserConfig, task } from "hardhat/config";
 import * as fs from "node:fs";
 
 // The solhint plugin overrides the check task, runs solhint

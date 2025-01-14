@@ -2,14 +2,13 @@ import "../../../../contracts/trusted-schemas-registry/src/types/hardhat.d.ts";
 
 import hre from "hardhat";
 
-import "@nomicfoundation/hardhat-ethers";
-
 import type {
   PolicyRegistryMock,
   SchemaSCRegistry,
 } from "@ebsiint-sc/trusted-schemas-registry";
 import type { HardhatEthersProvider } from "@nomicfoundation/hardhat-ethers/internal/hardhat-ethers-provider.js";
 
+import "@nomicfoundation/hardhat-ethers";
 import { computeId } from "@ebsiint-api/shared";
 import { ethers } from "ethers";
 import crypto from "node:crypto";

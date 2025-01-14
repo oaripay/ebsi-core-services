@@ -1,5 +1,6 @@
-import { assert, expect } from "chai";
 import { ethers } from "hardhat";
+
+import { assert, expect } from "chai";
 
 import type { Anchor } from "../src/types";
 

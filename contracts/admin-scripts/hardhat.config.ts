@@ -1,4 +1,4 @@
-import type { TypechainUserConfig } from "@gnosis-guild/typechain-hardhat/dist/types";
+import type { HardhatUserConfig } from "hardhat/config";
 
 import "@nomiclabs/hardhat-solhint";
 import "@gnosis-guild/typechain-hardhat";
@@ -9,10 +9,10 @@ import "@openzeppelin/hardhat-upgrades";
 
 import "./tasks/index";
 
+import type { TypechainUserConfig } from "@gnosis-guild/typechain-hardhat/dist/types";
 import type { AbiExporterUserConfig } from "hardhat-abi-exporter";
 
 import * as dotenv from "dotenv";
-import { HardhatUserConfig } from "hardhat/config";
 import * as fs from "node:fs";
 import path from "node:path";
 

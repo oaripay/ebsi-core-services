@@ -2,17 +2,16 @@ import "../../../../contracts/trusted-issuers-registry/src/types/hardhat.d.ts";
 
 import hre from "hardhat";
 
-import "@nomicfoundation/hardhat-ethers";
-
-import type { HardhatEthersProvider } from "@nomicfoundation/hardhat-ethers/internal/hardhat-ethers-provider.js";
-
-import { EbsiWallet } from "@cef-ebsi/wallet-lib";
-import { StatusList2021Credential } from "@ebsiint-api/shared";
-import {
+import type {
   DidRegistryMock,
   PolicyRegistryMock,
   Tir,
 } from "@ebsiint-sc/trusted-issuers-registry";
+import type { HardhatEthersProvider } from "@nomicfoundation/hardhat-ethers/internal/hardhat-ethers-provider.js";
+
+import "@nomicfoundation/hardhat-ethers";
+import { EbsiWallet } from "@cef-ebsi/wallet-lib";
+import { StatusList2021Credential } from "@ebsiint-api/shared";
 import { ethers } from "ethers";
 import crypto from "node:crypto";
 

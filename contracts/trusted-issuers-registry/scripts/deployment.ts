@@ -1,10 +1,10 @@
+import { ethers } from "hardhat";
+
 import type {
   DidRecordLib__factory,
   DidRegistry__factory,
 } from "@ebsiint-sc/did-registry";
 import type { PolicyRegistry__factory } from "@ebsiint-sc/trusted-policies-registry";
-
-import { ethers } from "hardhat";
 
 async function main() {
   const paginationFactory = await ethers.getContractFactory("Pagination", {});

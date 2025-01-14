@@ -2,13 +2,12 @@ import "../../../../contracts/track-and-trace/src/types/hardhat.d.ts";
 
 import hre from "hardhat";
 
-import "@nomicfoundation/hardhat-ethers";
-
+import type { TrackAndTrace } from "@ebsiint-sc/track-and-trace";
 import type { HardhatEthersProvider } from "@nomicfoundation/hardhat-ethers/internal/hardhat-ethers-provider.js";
 import type { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers.js";
 
+import "@nomicfoundation/hardhat-ethers";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
-import { TrackAndTrace } from "@ebsiint-sc/track-and-trace";
 import { exportJWK, generateKeyPair, type JWK } from "jose";
 
 import { AccountType, Permission } from "../../src/shared/constants.js";

@@ -139,8 +139,8 @@ export default tseslint.config(
         "error",
         {
           customGroups: {
-            type: { hardhat: "^hardhat$" },
-            value: { hardhat: "^hardhat$" },
+            type: { hardhat: "^hardhat(?:/.*)?$" },
+            value: { hardhat: "^hardhat(?:/.*)?$" },
           },
           groups: [
             "hardhat",
@@ -183,6 +183,27 @@ export default tseslint.config(
       sourceType: "commonjs",
     },
     rules: {
+      // Make sure to import hardhat first
+      "perfectionist/sort-imports": [
+        "error",
+        {
+          customGroups: {
+            type: { hardhat: "^hardhat(?:/.*)?$" },
+            value: { hardhat: "^hardhat(?:/.*)?$" },
+          },
+          groups: [
+            "hardhat",
+            "type",
+            ["builtin", "external"],
+            "internal-type",
+            "internal",
+            ["parent-type", "sibling-type", "index-type"],
+            ["parent", "sibling", "index"],
+            "object",
+            "unknown",
+          ],
+        },
+      ],
       "unicorn/no-await-expression-member": "off",
       "unicorn/prefer-module": "off",
     },

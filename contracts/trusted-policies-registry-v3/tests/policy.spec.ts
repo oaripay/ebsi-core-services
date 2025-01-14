@@ -1,7 +1,8 @@
+import { ethers } from "hardhat";
+
 import type { Result, Signer } from "ethers";
 
 import { expect } from "chai";
-import { ethers } from "hardhat";
 
 import type { PolicyRegistry, PolicyRegistry__factory } from "../src/types";
 

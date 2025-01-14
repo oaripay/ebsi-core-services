@@ -6,11 +6,9 @@ import type {
   TrustedPoliciesRegistryMock,
   TrustedSchemasRegistry,
 } from "@ebsiint-sc/trusted-schemas-registry-v3";
-
-import "@nomicfoundation/hardhat-ethers";
-
 import type { HardhatEthersProvider } from "@nomicfoundation/hardhat-ethers/internal/hardhat-ethers-provider.js";
 
+import "@nomicfoundation/hardhat-ethers";
 import { computeId } from "@ebsiint-api/shared";
 import { ethers } from "ethers";
 import crypto from "node:crypto";

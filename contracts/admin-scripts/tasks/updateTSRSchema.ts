@@ -1,5 +1,6 @@
-import canonicalize from "canonicalize";
 import { task } from "hardhat/config";
+
+import canonicalize from "canonicalize";
 import { readFile } from "node:fs/promises";
 
 // follows ETH/BTC's BIP 39 protocol

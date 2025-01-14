@@ -1,7 +1,9 @@
-import { expect } from "chai";
 import { config, ethers, network } from "hardhat";
 
-import { DidRegistry, PolicyRegistryMock } from "../src/types";
+import { expect } from "chai";
+
+import type { DidRegistry, PolicyRegistryMock } from "../src/types";
+
 import { testTprAddress } from "./testAddress";
 import { decodeResult, rollArgs } from "./utils";
 

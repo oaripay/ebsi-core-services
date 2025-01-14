@@ -1,5 +1,6 @@
-import elliptic from "elliptic";
 import { ethers } from "hardhat";
+
+import elliptic from "elliptic";
 import { importJWK } from "jose";
 import crypto from "node:crypto";
 

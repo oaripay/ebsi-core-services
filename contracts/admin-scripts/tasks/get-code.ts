@@ -1,4 +1,5 @@
 import { task } from "hardhat/config";
+
 import * as fs from "node:fs";
 
 task("get-code", "gets the code of an address")

@@ -1,5 +1,6 @@
-import { HDNodeWallet, Mnemonic } from "ethers";
 import { task } from "hardhat/config";
+
+import { HDNodeWallet, Mnemonic } from "ethers";
 
 // "m/44'/60'/0'/0/0" first account
 const getPathForIndex = (index: number) => `m/44'/60'/0'/0/${index}`;

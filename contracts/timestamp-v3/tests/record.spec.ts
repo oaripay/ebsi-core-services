@@ -1,6 +1,8 @@
-import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/dist/src/signer-with-address";
-import { expect } from "chai";
 import { ethers, network, upgrades } from "hardhat";
+
+import type { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/dist/src/signer-with-address";
+
+import { expect } from "chai";
 import crypto from "node:crypto";
 
 import type { PolicyRegistryMock, Timestamp } from "../src/types";

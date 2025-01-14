@@ -2,13 +2,11 @@ import "../../../../contracts/timestamp-v3/src/types/hardhat.d.ts";
 
 import hre from "hardhat";
 
+import type { PolicyRegistryMock, Timestamp } from "@ebsiint-sc/timestamp-v3";
 import type { HardhatEthersProvider } from "@nomicfoundation/hardhat-ethers/internal/hardhat-ethers-provider.js";
-
-import "@nomicfoundation/hardhat-ethers";
-
 import type { HashName } from "multihashes";
 
-import { PolicyRegistryMock, Timestamp } from "@ebsiint-sc/timestamp-v3";
+import "@nomicfoundation/hardhat-ethers";
 import { ethers } from "ethers";
 import { createHash, randomBytes } from "node:crypto";
 

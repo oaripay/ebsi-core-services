@@ -1,17 +1,17 @@
 import "../../../../contracts/did-registry-v3/src/types/hardhat.d.ts";
 
 import hre from "hardhat";
+import type { FactoryOptions } from "hardhat/types";
 
-import type { HardhatEthersProvider } from "@nomicfoundation/hardhat-ethers/internal/hardhat-ethers-provider.js";
-
-import "@nomicfoundation/hardhat-ethers";
-import {
+import type {
   DidRegistry,
   DidRegistry__factory,
   PolicyRegistryMock,
 } from "@ebsiint-sc/did-registry-v3";
+import type { HardhatEthersProvider } from "@nomicfoundation/hardhat-ethers/internal/hardhat-ethers-provider.js";
+
+import "@nomicfoundation/hardhat-ethers";
 import { ethers } from "ethers";
-import { FactoryOptions } from "hardhat/types";
 
 import { createUser, UserDetails } from "./data.js";
 

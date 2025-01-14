@@ -2,11 +2,10 @@ import "../../../../contracts/trusted-policies-registry-v3/src/types/hardhat.d.t
 
 import hre from "hardhat";
 
-import "@nomicfoundation/hardhat-ethers";
-
+import type { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry-v3";
 import type { HardhatEthersProvider } from "@nomicfoundation/hardhat-ethers/internal/hardhat-ethers-provider.js";
 
-import { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry-v3";
+import "@nomicfoundation/hardhat-ethers";
 import { ethers } from "ethers";
 
 import { dummyPolicies, dummyUsers } from "./data.js";

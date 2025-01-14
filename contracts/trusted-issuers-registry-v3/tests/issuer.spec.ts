@@ -1,7 +1,8 @@
+import { ethers, network, upgrades } from "hardhat";
+
 import type { Result } from "ethers";
 
 import { expect } from "chai";
-import { ethers, network, upgrades } from "hardhat";
 import crypto from "node:crypto";
 
 import type { DidRegistryMock, PolicyRegistryMock, Tir } from "../src/types";

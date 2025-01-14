@@ -1,10 +1,12 @@
+import type { HardhatUserConfig } from "hardhat/config";
+import { task } from "hardhat/config";
+
 import "@gnosis-guild/typechain-hardhat";
 import "@nomicfoundation/hardhat-chai-matchers";
 import "@nomiclabs/hardhat-solhint";
 import "hardhat-abi-exporter";
 import "solidity-coverage";
 import "@openzeppelin/hardhat-upgrades";
-import { HardhatUserConfig, task } from "hardhat/config";
 import * as fs from "node:fs";
 
 import "./tasks/index";

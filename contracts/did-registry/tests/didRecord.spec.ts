@@ -1,6 +1,8 @@
-import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
-import { expect } from "chai";
 import { ethers, network } from "hardhat";
+
+import type { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
+
+import { expect } from "chai";
 
 import type { DidRegistry, PolicyRegistryMock } from "../src/types";
 

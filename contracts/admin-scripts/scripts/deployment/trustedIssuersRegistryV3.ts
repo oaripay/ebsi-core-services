@@ -1,7 +1,7 @@
-import type { DeployFunction } from "hardhat-deploy/types";
+import { ethers } from "hardhat";
 import type { HardhatRuntimeEnvironment } from "hardhat/types";
 
-import { ethers } from "hardhat";
+import type { DeployFunction } from "hardhat-deploy/types";
 
 import dependencies from "./dependencies.json";
 

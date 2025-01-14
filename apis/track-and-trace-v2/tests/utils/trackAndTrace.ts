@@ -2,23 +2,19 @@ import "../../../../contracts/track-and-trace-v2/src/types/hardhat.d.ts";
 
 import hre from "hardhat";
 
-import "@nomicfoundation/hardhat-ethers";
-
+import type { TrackAndTrace } from "@ebsiint-sc/track-and-trace-v2";
 import type { HardhatEthersProvider } from "@nomicfoundation/hardhat-ethers/internal/hardhat-ethers-provider.js";
 import type { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers.js";
 
+import "@nomicfoundation/hardhat-ethers";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
-import { TrackAndTrace } from "@ebsiint-sc/track-and-trace-v2";
 
-import { Document, Operator } from "../../.graphclient/index.js";
+import type { Document, Operator } from "../../.graphclient/index.js";
+import type { TestDocument } from "./data.js";
+
 import { AccountType, Permission } from "../../src/shared/constants.js";
 import { didToHex, hexToDid } from "../../src/shared/utils.js";
-import {
-  createDocument,
-  createEvent,
-  dummyData,
-  type TestDocument,
-} from "./data.js";
+import { createDocument, createEvent, dummyData } from "./data.js";
 
 export interface SetupOptions {
   documentEventsTotal?: number;

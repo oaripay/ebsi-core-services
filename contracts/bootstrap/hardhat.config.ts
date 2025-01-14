@@ -1,4 +1,6 @@
-import { HardhatUserConfig, task } from "hardhat/config";
+import type { HardhatUserConfig } from "hardhat/config";
+import { task } from "hardhat/config";
+
 import "@gnosis-guild/typechain-hardhat";
 import "@nomiclabs/hardhat-solhint";
 import "hardhat-abi-exporter";

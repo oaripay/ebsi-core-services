@@ -1,17 +1,17 @@
 import "../../../../contracts/did-registry/src/types/hardhat.d.ts";
 
 import hre from "hardhat";
+import type { Artifact, FactoryOptions } from "hardhat/types";
 
-import type { HardhatEthersProvider } from "@nomicfoundation/hardhat-ethers/internal/hardhat-ethers-provider.js";
-
-import {
+import type {
   DidRegistry as DidRegistryV1,
   PolicyRegistryMock,
 } from "@ebsiint-sc/did-registry";
-import canonicalize from "canonicalize";
+import type { HardhatEthersProvider } from "@nomicfoundation/hardhat-ethers/internal/hardhat-ethers-provider.js";
+
 import "@nomicfoundation/hardhat-ethers";
+import canonicalize from "canonicalize";
 import { ethers } from "ethers";
-import { Artifact, FactoryOptions } from "hardhat/types";
 import { HashName } from "multihashes";
 import crypto from "node:crypto";
 import fs from "node:fs";

@@ -1,9 +1,10 @@
+import { ethers, network, upgrades } from "hardhat";
+
 import type { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
 import type { ContractFactory } from "ethers";
 
 import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs";
 import { expect } from "chai";
-import { ethers, network, upgrades } from "hardhat";
 import { randomBytes } from "node:crypto";
 
 import type {
