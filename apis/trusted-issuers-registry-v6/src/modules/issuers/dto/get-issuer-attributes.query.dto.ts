@@ -5,7 +5,7 @@ import type { IssuerType } from "../../../../.graphclient/index.js";
 
 export class GetIssuerAttributesQueryDto extends PaginationQuery {
   @IsOptional()
-  @IsIn(["Undefined", "RootTAO", "TAO", "TI", "Revoked"])
+  @IsIn(["RootTAO", "TAO", "TI", "Revoked"])
   "issuer-type"?: IssuerType;
 }
 
