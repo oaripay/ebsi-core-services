@@ -1,6 +1,7 @@
+import type { PaginatedList } from "@ebsiint-api/shared";
 import type { SchemaSCRegistry } from "@ebsiint-sc/trusted-schemas-registry";
 
-import { paginate, type PaginatedList } from "@ebsiint-api/shared";
+import { paginate } from "@ebsiint-api/shared";
 
 import type {
   PolicyLink,

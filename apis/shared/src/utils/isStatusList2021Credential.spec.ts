@@ -83,7 +83,8 @@ describe("isStatusList2021Credential", () => {
         },
         {
           hosts: ["example.net"],
-          network: "test",
+          network: { name: "test" },
+          scheme: "ebsi",
           services: {
             "did-registry": "v5",
             "trusted-issuers-registry": "v5",
@@ -105,7 +106,8 @@ describe("isStatusList2021Credential", () => {
     await expect(
       isStatusList2021Credential("jwt", {
         hosts: ["example.net"],
-        network: "test",
+        network: { name: "test" },
+        scheme: "ebsi",
         services: {
           "did-registry": "v5",
           "trusted-issuers-registry": "v5",
@@ -130,7 +132,8 @@ describe("isStatusList2021Credential", () => {
     await expect(
       isStatusList2021Credential("jwt", {
         hosts: ["example.net"],
-        network: "test",
+        network: { name: "test" },
+        scheme: "ebsi",
         services: {
           "did-registry": "v5",
           "trusted-issuers-registry": "v5",
@@ -151,7 +154,8 @@ describe("isStatusList2021Credential", () => {
     await expect(
       isStatusList2021Credential("jwt", {
         hosts: ["example.net"],
-        network: "test",
+        network: { name: "test" },
+        scheme: "ebsi",
         services: {
           "did-registry": "v5",
           "trusted-issuers-registry": "v5",
@@ -172,7 +176,8 @@ describe("isStatusList2021Credential", () => {
     await expect(
       isStatusList2021Credential("jwt", {
         hosts: ["example.net"],
-        network: "test",
+        network: { name: "test" },
+        scheme: "ebsi",
         services: {
           "did-registry": "v5",
           "trusted-issuers-registry": "v5",

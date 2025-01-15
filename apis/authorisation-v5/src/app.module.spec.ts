@@ -280,14 +280,15 @@ describe("App Module", () => {
       ) as (keyof typeof DEPENDENCIES)[];
 
       const localOrigin =
-        configService.get<string>("localOrigin") ||
-        configService.get<string>("domain");
+        configService.get("localOrigin", { infer: true }) ??
+        configService.get("domain", { infer: true });
 
       // All the dependencies return a 200
       mockServer.use(
         ...dependencies.map((dependency) =>
-          http.get(`${localOrigin}${DEPENDENCIES[dependency]}`, () =>
-            HttpResponse.json({}),
+          http.get(
+            `${localOrigin}/${dependency}/${DEPENDENCIES[dependency]}`,
+            () => HttpResponse.json({}),
           ),
         ),
       );
@@ -320,14 +321,15 @@ describe("App Module", () => {
       ) as (keyof typeof DEPENDENCIES)[];
 
       const localOrigin =
-        configService.get<string>("localOrigin") ||
-        configService.get<string>("domain");
+        configService.get("localOrigin", { infer: true }) ??
+        configService.get("domain", { infer: true });
 
       // All the dependencies return a 200
       mockServer.use(
         ...dependencies.map((dependency) =>
-          http.get(`${localOrigin}${DEPENDENCIES[dependency]}`, () =>
-            HttpResponse.json({}),
+          http.get(
+            `${localOrigin}/${dependency}/${DEPENDENCIES[dependency]}`,
+            () => HttpResponse.json({}),
           ),
         ),
       );
@@ -379,14 +381,15 @@ describe("App Module", () => {
       ) as (keyof typeof DEPENDENCIES)[];
 
       const localOrigin =
-        configService.get<string>("localOrigin") ||
-        configService.get<string>("domain");
+        configService.get("localOrigin", { infer: true }) ??
+        configService.get("domain", { infer: true });
 
       // All the dependencies return a 200
       mockServer.use(
         ...dependencies.map((dependency) =>
-          http.get(`${localOrigin}${DEPENDENCIES[dependency]}`, () =>
-            HttpResponse.json({}),
+          http.get(
+            `${localOrigin}/${dependency}/${DEPENDENCIES[dependency]}`,
+            () => HttpResponse.json({}),
           ),
         ),
       );
@@ -414,7 +417,7 @@ describe("App Module", () => {
       // Expect all the dependencies to be up
       const expectedStatuses = dependencies
         .map((dependency) => ({
-          [`${dependency}`]: { status: "up" },
+          [`${dependency}@${DEPENDENCIES[dependency]}`]: { status: "up" },
         }))
         .reduce((acc, currentVal) => ({ ...acc, ...currentVal }), {});
 

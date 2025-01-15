@@ -5,21 +5,25 @@ import axiosRetry from "axios-retry";
 
 import type { ApiConfig } from "./config/configuration.js";
 
+import { BOOTSTRAP_DEPENDENCIES } from "./config/configuration.js";
+
 @Injectable()
 export class AppService implements OnApplicationBootstrap {
   private readonly axiosClient: AxiosInstance;
 
   private readonly domain: string;
 
-  private readonly localOrigin: string;
+  private readonly localOrigin: string | undefined;
 
   private readonly logger = new Logger(AppService.name);
 
   constructor(configService: ConfigService<ApiConfig, true>) {
-    this.domain = configService.get<string>("domain");
-    this.localOrigin = configService.get<string>("localOrigin");
+    this.domain = configService.get("domain", { infer: true });
+    this.localOrigin = configService.get("localOrigin", { infer: true });
 
-    const axiosRetryDelay = configService.get<number>("axiosRetryDelay");
+    const axiosRetryDelay = configService.get("axiosRetryDelay", {
+      infer: true,
+    });
 
     this.axiosClient = axios.create();
 
@@ -43,11 +47,7 @@ export class AppService implements OnApplicationBootstrap {
     });
   }
 
-  async check(serviceUrl: string) {
-    const url = this.localOrigin
-      ? serviceUrl.replace(this.domain, this.localOrigin)
-      : serviceUrl;
-
+  async check(url: string) {
     try {
       await this.axiosClient.get(url);
     } catch {
@@ -56,12 +56,25 @@ export class AppService implements OnApplicationBootstrap {
     }
   }
 
-  onApplicationBootstrap() {
-    // Wait for dependencies to be up and running
+  async onApplicationBootstrap() {
+    // Wait for bootstrap dependencies to be up and running
     this.logger.debug("Checking dependencies...");
 
+    await Promise.all(
+      (
+        Object.keys(
+          BOOTSTRAP_DEPENDENCIES,
+        ) as (keyof typeof BOOTSTRAP_DEPENDENCIES)[]
+      ).map(async (dependency) =>
+        this.check(
+          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+          `${this.localOrigin ?? this.domain}/${dependency}/${BOOTSTRAP_DEPENDENCIES[dependency]}`,
+        ),
+      ),
+    );
+
     // Let's go!
-    this.logger.debug("All the dependencies are ready");
+    this.logger.debug("All the bootstrap dependencies are ready");
   }
 }
 

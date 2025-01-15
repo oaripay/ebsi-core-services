@@ -1,14 +1,12 @@
+import type { NestFastifyApplication } from "@nestjs/platform-fastify";
+import type { HealthIndicatorResult } from "@nestjs/terminus";
 import type { RawServerDefault } from "fastify";
 
 import { fastifyAccepts } from "@fastify/accepts";
 import { HttpService } from "@nestjs/axios";
 import { Logger, ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import {
-  FastifyAdapter,
-  type NestFastifyApplication,
-} from "@nestjs/platform-fastify";
-import { HealthIndicatorResult } from "@nestjs/terminus";
+import { FastifyAdapter } from "@nestjs/platform-fastify";
 import { Test } from "@nestjs/testing";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
@@ -23,7 +21,9 @@ import {
   vi,
 } from "vitest";
 
-import { type ApiConfig, DEPENDENCIES } from "../../config/configuration.js";
+import type { ApiConfig } from "../../config/configuration.js";
+
+import { DEPENDENCIES } from "../../config/configuration.js";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
 import { HealthModule } from "./health.module.js";
 
@@ -32,7 +32,7 @@ describe("HealthController", () => {
   let server: RawServerDefault;
   let httpService: HttpService;
   let configService: ConfigService<ApiConfig, true>;
-  let localOrigin: string;
+  let localOrigin: string | undefined;
   const dependencies = Object.keys(
     DEPENDENCIES,
   ) as (keyof typeof DEPENDENCIES)[];
@@ -75,8 +75,8 @@ describe("HealthController", () => {
     httpService = await moduleFixture.resolve<HttpService>(HttpService);
 
     localOrigin =
-      configService.get<string>("localOrigin") ||
-      configService.get<string>("domain");
+      configService.get("localOrigin", { infer: true }) ??
+      configService.get("domain", { infer: true });
   });
 
   afterEach(() => {
@@ -90,14 +90,15 @@ describe("HealthController", () => {
   });
 
   describe("GET /health", () => {
-    it("should return 'ok' if all the dependencies return a 20x", async () => {
+    it("should return 'ok' if all the runtime dependencies return a 20x", async () => {
       expect.assertions(2 + dependencies.length);
 
       // All the dependencies return a 200
       mockServer.use(
         ...dependencies.map((dependency) =>
-          http.get(`${localOrigin}${DEPENDENCIES[dependency]}`, () =>
-            HttpResponse.json({}),
+          http.get(
+            `${localOrigin}/${dependency}/${DEPENDENCIES[dependency]}`,
+            () => HttpResponse.json({}),
           ),
         ),
       );
@@ -106,17 +107,17 @@ describe("HealthController", () => {
 
       const response = await request(server).get("/health").send();
 
-      // Expect httpService.request to have been called for every dependency
+      // Expect httpService.request to have been called for every runtime dependency
       for (const dependency of dependencies) {
         expect(spy).toHaveBeenCalledWith({
-          url: `${localOrigin}${DEPENDENCIES[dependency]}`,
+          url: `${localOrigin}/${dependency}/${DEPENDENCIES[dependency]}`,
         });
       }
 
       // Expect all the dependencies to be up
       const expectedStatuses = dependencies
         .map((dependency) => ({
-          [`${dependency}`]: { status: "up" },
+          [`${dependency}@${DEPENDENCIES[dependency]}`]: { status: "up" },
         }))
         .reduce((acc, currentVal) => ({ ...acc, ...currentVal }), {});
 
@@ -129,16 +130,18 @@ describe("HealthController", () => {
       expect(response.status).toBe(200);
     });
 
-    it("should return 'error' if some dependencies do not return a 20x", async () => {
+    it("should return 'error' if some runtime dependencies do not return a 20x", async () => {
       expect.assertions(2 + dependencies.length);
 
       // All the dependencies return a 200 except DIDR API v4
       mockServer.use(
         ...dependencies.map((dependency) =>
-          http.get(`${localOrigin}${DEPENDENCIES[dependency]}`, () =>
-            dependency === "DIDR API v4"
-              ? HttpResponse.json({}, { status: 500 })
-              : HttpResponse.json({}),
+          http.get(
+            `${localOrigin}/${dependency}/${DEPENDENCIES[dependency]}`,
+            () =>
+              dependency === "did-registry"
+                ? HttpResponse.json({}, { status: 500 })
+                : HttpResponse.json({}),
           ),
         ),
       );
@@ -147,10 +150,10 @@ describe("HealthController", () => {
 
       const response = await request(server).get("/health").send();
 
-      // Expect httpService.request to have been called for every dependency
+      // Expect httpService.request to have been called for every runtime dependency
       for (const dependency of dependencies) {
         expect(spy).toHaveBeenCalledWith({
-          url: `${localOrigin}${DEPENDENCIES[dependency]}`,
+          url: `${localOrigin}/${dependency}/${DEPENDENCIES[dependency]}`,
         });
       }
 
@@ -159,8 +162,8 @@ describe("HealthController", () => {
         .map(
           (dependency) =>
             ({
-              [`${dependency}`]:
-                dependency === "DIDR API v4"
+              [`${dependency}@${DEPENDENCIES[dependency]}`]:
+                dependency === "did-registry"
                   ? ({
                       message: "Request failed with status code 500",
                       status: "down",
@@ -172,12 +175,13 @@ describe("HealthController", () => {
         )
         .reduce((acc, currentVal) => ({ ...acc, ...currentVal }), {});
 
-      const { "DIDR API v4": errorStatus, ...otherStatuses } = expectedStatuses;
+      const { "did-registry@v4": errorStatus, ...otherStatuses } =
+        expectedStatuses;
 
       expect(response.body).toStrictEqual({
         details: expectedStatuses,
         error: {
-          "DIDR API v4": errorStatus,
+          "did-registry@v4": errorStatus,
         },
         info: otherStatuses,
         status: "error",

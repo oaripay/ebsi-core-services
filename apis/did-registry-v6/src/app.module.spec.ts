@@ -1,11 +1,10 @@
+import type { NestFastifyApplication } from "@nestjs/platform-fastify";
+
 import { frameworkErrors, methodNotAllowed } from "@ebsiint-api/shared";
 import { fastifyAccepts } from "@fastify/accepts";
 import { fastifyHelmet } from "@fastify/helmet";
 import { Logger, ValidationPipe } from "@nestjs/common";
-import {
-  FastifyAdapter,
-  type NestFastifyApplication,
-} from "@nestjs/platform-fastify";
+import { FastifyAdapter } from "@nestjs/platform-fastify";
 import { Test } from "@nestjs/testing";
 import { graphql, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
@@ -22,15 +21,15 @@ import {
 } from "vitest";
 
 import { AppModule } from "./app.module.js";
-import { DEPENDENCIES } from "./config/configuration.js";
+import { RUNTIME_DEPENDENCIES } from "./config/configuration.js";
 import { AllExceptionsFilter } from "./filters/http-exception.filter.js";
 import { createLogger } from "./logger/logger.js";
 
 describe("App Module", () => {
   const mockServer = setupServer();
   const dependencies = Object.keys(
-    DEPENDENCIES,
-  ) as (keyof typeof DEPENDENCIES)[];
+    RUNTIME_DEPENDENCIES,
+  ) as (keyof typeof RUNTIME_DEPENDENCIES)[];
 
   beforeAll(() => {
     process.env.AXIOS_RETRY_DELAY = "1"; // 1ms
@@ -422,12 +421,18 @@ describe("App Module", () => {
           "LoggingInterceptor",
         );
 
-        // Expect all the dependencies to be up
-        const expectedStatuses = [...dependencies, "DIDR Subgraph"]
-          .map((dependency) => ({
-            [`${dependency}`]: { status: "up" },
-          }))
-          .reduce((acc, currentVal) => ({ ...acc, ...currentVal }), {});
+        // Expect all the runtime dependencies to be up
+        const expectedStatuses = {
+          ...dependencies
+            .map((dependency: keyof typeof RUNTIME_DEPENDENCIES) => ({
+              // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+              [`${dependency}@${RUNTIME_DEPENDENCIES[dependency]}`]: {
+                status: "up",
+              },
+            }))
+            .reduce((acc, currentVal) => ({ ...acc, ...currentVal }), {}),
+          "DIDR Subgraph": { status: "up" },
+        };
 
         // It should have logged the response (with body)
         expect(mockedLogger.log).toHaveBeenNthCalledWith(

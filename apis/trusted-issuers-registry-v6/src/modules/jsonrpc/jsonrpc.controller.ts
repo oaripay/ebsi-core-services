@@ -5,9 +5,10 @@ import {
 } from "@ebsiint-api/shared";
 import { Body, Controller, HttpCode, Post, UseGuards } from "@nestjs/common";
 
+import type { SubjectInfo } from "../auth/decorators/index.js";
 import type { JsonRpcResponseObject } from "./jsonrpc.interface.js";
 
-import { Subject, type SubjectInfo } from "../auth/decorators/index.js";
+import { Subject } from "../auth/decorators/index.js";
 import { BearerJwtAuthGuard } from "../auth/guards/index.js";
 import { JsonRpcService } from "./jsonrpc.service.js";
 import { jsonRpcSchema } from "./validators/JsonRpcSchema.js";

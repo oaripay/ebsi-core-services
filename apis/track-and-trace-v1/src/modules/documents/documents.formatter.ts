@@ -1,6 +1,7 @@
+import type { PaginatedList } from "@ebsiint-api/shared";
 import type { TrackAndTrace } from "@ebsiint-sc/track-and-trace";
 
-import { paginate, type PaginatedList } from "@ebsiint-api/shared";
+import { paginate } from "@ebsiint-api/shared";
 
 import type {
   Access,

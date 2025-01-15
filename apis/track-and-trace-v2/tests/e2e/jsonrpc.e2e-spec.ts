@@ -2,6 +2,7 @@ import type {
   EbsiEnvConfiguration,
   EbsiIssuer,
 } from "@cef-ebsi/verifiable-credential";
+import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
@@ -16,10 +17,7 @@ import { fastifyAccepts } from "@fastify/accepts";
 import { fastifyHelmet } from "@fastify/helmet";
 import { Logger, ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import {
-  FastifyAdapter,
-  type NestFastifyApplication,
-} from "@nestjs/platform-fastify";
+import { FastifyAdapter } from "@nestjs/platform-fastify";
 import { Test } from "@nestjs/testing";
 import axios from "axios";
 import { hexToBytes } from "did-jwt";
@@ -133,30 +131,29 @@ describeWriteOps()("Track and Trace - JSON-RPC (e2e)", () => {
 
     server = getServer(app, configService);
 
-    ledgerApi = `${configService.get<string>("ledgerApiUrl")}/blockchains/besu`;
+    ledgerApi = `${configService.get("ledgerApiUrl", { infer: true })}/blockchains/besu`;
 
-    const ebsiAuthority = configService
-      .get<string>("domain")
-      .replace(/^https?:\/\//, "");
-    const trustedHostnames = configService.get("trustedHostnames", {
+    ebsiEnvConfig = configService.get("ebsiEnvConfig", { infer: true });
+
+    const kid = configService.get("testAuthorisedLegalEntityKid", {
       infer: true,
     });
-    ebsiEnvConfig = {
-      hosts: [ebsiAuthority, ...trustedHostnames],
-      network: configService.get("network", { infer: true }),
-      services: {
-        "did-registry": "v6",
-        "trusted-issuers-registry": "v6",
-        "trusted-policies-registry": "v4",
-        "trusted-schemas-registry": "v4",
-      },
-    } satisfies EbsiEnvConfiguration;
 
-    const kid = configService.get<string>("testAuthorisedLegalEntityKid");
+    if (!kid) {
+      throw new Error("Missing testAuthorisedLegalEntityKid");
+    }
+
     const did = kid.split("#")[0]!;
-    const authoriserPrivateKeyHex = configService.get<string>(
+
+    const authoriserPrivateKeyHex = configService.get(
       "testAuthorisedLegalEntityPrivateKey",
+      { infer: true },
     );
+
+    if (!authoriserPrivateKeyHex) {
+      throw new Error("Missing testAuthorisedLegalEntityPrivateKey");
+    }
+
     const authoriserPrivateKey = hexToBytes(authoriserPrivateKeyHex);
 
     authoriser = {
@@ -171,9 +168,9 @@ describeWriteOps()("Track and Trace - JSON-RPC (e2e)", () => {
         kid,
         signer: getSigner(authoriserPrivateKey, "ES256K"),
       },
-      vcOnboard: configService.get<string>(
-        "testAuthorisedLegalEntityVcToOnboard",
-      ),
+      vcOnboard: configService.get("testAuthorisedLegalEntityVcToOnboard", {
+        infer: true,
+      }),
       wallet: new ethers.Wallet(authoriserPrivateKeyHex),
     };
 
@@ -203,7 +200,7 @@ describeWriteOps()("Track and Trace - JSON-RPC (e2e)", () => {
     };
     creator.accessToken.didInvite = await getDidrInviteAccessToken(
       creatorDid,
-      configService.get<string>("testAuthApiES256PrivateKey"),
+      configService.get("testAuthApiES256PrivateKey", { infer: true }),
     );
 
     const params = {
@@ -222,7 +219,7 @@ describeWriteOps()("Track and Trace - JSON-RPC (e2e)", () => {
       vMethodId: creatorThumbprint,
     };
 
-    const domain = configService.get<string>("domain");
+    const domain = configService.get("domain", { infer: true });
     const responseBuild = await axios.post<
       JsonRpcResponseObject<UnsignedTransaction>
     >(
@@ -306,7 +303,7 @@ describeWriteOps()("Track and Trace - JSON-RPC (e2e)", () => {
         switch (method) {
           case "authoriseDid": {
             authoriser.accessToken.tntAuthorise = await getAccessToken(
-              configService.get<string>("authorisationApiUrl"),
+              configService.get("authorisationApiUrl", { infer: true }),
               authoriser.info,
               "openid tnt_authorise",
               ebsiEnvConfig,
@@ -319,7 +316,7 @@ describeWriteOps()("Track and Trace - JSON-RPC (e2e)", () => {
             // request the tnt_create access token after "authoriseDid"
             // is submitted
             creator.accessToken.tntCreate = await getAccessToken(
-              configService.get<string>("authorisationApiUrl"),
+              configService.get("authorisationApiUrl", { infer: true }),
               creator.info,
               "openid tnt_create",
               ebsiEnvConfig,
@@ -332,7 +329,7 @@ describeWriteOps()("Track and Trace - JSON-RPC (e2e)", () => {
             // request the tnt_write access token after "createDocument"
             // is submitted
             creator.accessToken.tntWrite = await getAccessToken(
-              configService.get<string>("authorisationApiUrl"),
+              configService.get("authorisationApiUrl", { infer: true }),
               creator.info,
               "openid tnt_write",
               ebsiEnvConfig,

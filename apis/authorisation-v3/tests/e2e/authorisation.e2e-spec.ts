@@ -57,7 +57,6 @@ describe("Authorisation API v3 (e2e)", () => {
   let server: RawServerDefault | string;
   let configService: ConfigService<ApiConfig, true>;
   let authorisationApiV3Url: string;
-  let ebsiAuthority: string;
   let ebsiEnvConfig: EbsiEnvConfiguration;
 
   beforeAll(async () => {
@@ -79,22 +78,9 @@ describe("Authorisation API v3 (e2e)", () => {
 
     server = getServer(app, configService);
 
-    const domain = configService.get("domain", { infer: true });
-    ebsiAuthority = domain.replace(/^https?:\/\//, ""); // remove http protocol scheme
-    const trustedHostnames = configService.get("trustedHostnames", {
-      infer: true,
-    });
-    ebsiEnvConfig = {
-      hosts: [ebsiAuthority, ...trustedHostnames],
-      network: process.env.NETWORK,
-      services: {
-        "did-registry": "v5",
-        "trusted-issuers-registry": "v5",
-        "trusted-policies-registry": "v3",
-        "trusted-schemas-registry": "v3",
-      },
-    };
+    ebsiEnvConfig = configService.get("ebsiEnvConfig");
 
+    const domain = configService.get("domain", { infer: true });
     const apiUrlPrefix = configService.get("apiUrlPrefix", { infer: true });
     authorisationApiV3Url = `${domain}${apiUrlPrefix}`;
   });
@@ -396,7 +382,7 @@ describe("Authorisation API v3 (e2e)", () => {
                 credentialSchema: {
                   id:
                     uriType === "EBSI URI"
-                      ? fromUrl(credentialSchemaUrl)
+                      ? fromUrl(credentialSchemaUrl, ebsiEnvConfig)
                       : credentialSchemaUrl,
                   type: "FullJsonSchemaValidator2021",
                 },
@@ -409,7 +395,7 @@ describe("Authorisation API v3 (e2e)", () => {
                 termsOfUse: {
                   id:
                     uriType === "EBSI URI"
-                      ? fromUrl(issuerAttribute)
+                      ? fromUrl(issuerAttribute, ebsiEnvConfig)
                       : issuerAttribute,
                   type: "IssuanceCertificate",
                 },
@@ -454,8 +440,8 @@ describe("Authorisation API v3 (e2e)", () => {
                   const vcJwt = await createVerifiableCredentialJwt(
                     vcPayload,
                     issuer,
+                    ebsiEnvConfig,
                     {
-                      ...ebsiEnvConfig,
                       skipValidation: true,
                     },
                   );
@@ -467,8 +453,8 @@ describe("Authorisation API v3 (e2e)", () => {
                   vpPayload,
                   client,
                   "authentication-service-v3",
+                  ebsiEnvConfig,
                   {
-                    ...ebsiEnvConfig,
                     nonce: randomUUID(),
                     skipValidation: true,
                     ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(
@@ -514,8 +500,8 @@ describe("Authorisation API v3 (e2e)", () => {
                   const vcJwt = await createVerifiableCredentialJwt(
                     vcPayload,
                     issuer,
+                    ebsiEnvConfig,
                     {
-                      ...ebsiEnvConfig,
                       skipValidation: true,
                     },
                   );
@@ -527,8 +513,8 @@ describe("Authorisation API v3 (e2e)", () => {
                   vpPayload,
                   client,
                   authorisationApiV3Url,
+                  ebsiEnvConfig,
                   {
-                    ...ebsiEnvConfig,
                     nonce: randomUUID(),
                     skipValidation: true,
                     ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(
@@ -589,8 +575,8 @@ describe("Authorisation API v3 (e2e)", () => {
                   const vcJwt = await createVerifiableCredentialJwt(
                     vcPayload,
                     issuer,
+                    ebsiEnvConfig,
                     {
-                      ...ebsiEnvConfig,
                       skipValidation: true,
                     },
                   );
@@ -602,8 +588,8 @@ describe("Authorisation API v3 (e2e)", () => {
                   vpPayload,
                   client,
                   authorisationApiV3Url,
+                  ebsiEnvConfig,
                   {
-                    ...ebsiEnvConfig,
                     // Override "exp" and "nbf"
                     exp: Math.floor(Date.now() / 1000) - 100,
                     nbf: Math.floor(Date.now() / 1000) - 1000,
@@ -645,8 +631,8 @@ describe("Authorisation API v3 (e2e)", () => {
                   const vcJwt = await createVerifiableCredentialJwt(
                     vcPayload,
                     issuer,
+                    ebsiEnvConfig,
                     {
-                      ...ebsiEnvConfig,
                       skipValidation: true,
                     },
                   );
@@ -658,8 +644,8 @@ describe("Authorisation API v3 (e2e)", () => {
                   vpPayload,
                   client,
                   authorisationApiV3Url,
+                  ebsiEnvConfig,
                   {
-                    ...ebsiEnvConfig,
                     // Override "exp" and "nbf"
                     exp: Math.floor(Date.now() / 1000) + 1000,
                     nbf: Math.floor(Date.now() / 1000) + 100,
@@ -701,8 +687,8 @@ describe("Authorisation API v3 (e2e)", () => {
                   const vcJwt = await createVerifiableCredentialJwt(
                     vcPayload,
                     issuer,
+                    ebsiEnvConfig,
                     {
-                      ...ebsiEnvConfig,
                       skipValidation: true,
                     },
                   );
@@ -714,8 +700,8 @@ describe("Authorisation API v3 (e2e)", () => {
                   vpPayload,
                   client,
                   authorisationApiV3Url,
+                  ebsiEnvConfig,
                   {
-                    ...ebsiEnvConfig,
                     skipValidation: true,
 
                     // We don't add any nonce
@@ -764,8 +750,8 @@ describe("Authorisation API v3 (e2e)", () => {
                   const vcJwt = await createVerifiableCredentialJwt(
                     vcPayload,
                     issuer,
+                    ebsiEnvConfig,
                     {
-                      ...ebsiEnvConfig,
                       skipValidation: true,
                     },
                   );
@@ -856,8 +842,8 @@ describe("Authorisation API v3 (e2e)", () => {
                 const vcJwt = await createVerifiableCredentialJwt(
                   vcPayload,
                   issuer,
+                  ebsiEnvConfig,
                   {
-                    ...ebsiEnvConfig,
                     skipValidation: true,
                   },
                 );
@@ -869,8 +855,8 @@ describe("Authorisation API v3 (e2e)", () => {
                 vpPayload,
                 client,
                 authorisationApiV3Url,
+                ebsiEnvConfig,
                 {
-                  ...ebsiEnvConfig,
                   nonce: randomUUID(),
                   skipValidation: true,
 
@@ -930,8 +916,8 @@ describe("Authorisation API v3 (e2e)", () => {
                 vpPayload,
                 client,
                 authorisationApiV3Url,
+                ebsiEnvConfig,
                 {
-                  ...ebsiEnvConfig,
                   nonce: randomUUID(),
                   skipValidation: true,
 
@@ -990,8 +976,8 @@ describe("Authorisation API v3 (e2e)", () => {
                 vpPayload,
                 client,
                 authorisationApiV3Url,
+                ebsiEnvConfig,
                 {
-                  ...ebsiEnvConfig,
                   nonce: randomUUID(),
                   skipValidation: true,
 
@@ -1033,8 +1019,8 @@ describe("Authorisation API v3 (e2e)", () => {
                 vpPayload,
                 client,
                 authorisationApiV3Url,
+                ebsiEnvConfig,
                 {
-                  ...ebsiEnvConfig,
                   nonce: randomUUID(),
                   skipValidation: true,
 
@@ -1074,8 +1060,8 @@ describe("Authorisation API v3 (e2e)", () => {
                 vpPayload,
                 client,
                 authorisationApiV3Url,
+                ebsiEnvConfig,
                 {
-                  ...ebsiEnvConfig,
                   nonce: randomUUID(),
                   skipValidation: true,
 
@@ -1119,8 +1105,8 @@ describe("Authorisation API v3 (e2e)", () => {
                 const vcJwt = await createVerifiableCredentialJwt(
                   vcPayload,
                   issuer,
+                  ebsiEnvConfig,
                   {
-                    ...ebsiEnvConfig,
                     skipValidation: true,
                   },
                 );
@@ -1134,8 +1120,8 @@ describe("Authorisation API v3 (e2e)", () => {
                 vpPayload,
                 client,
                 authorisationApiV3Url,
+                ebsiEnvConfig,
                 {
-                  ...ebsiEnvConfig,
                   nonce,
                   skipValidation: true,
 
@@ -1185,8 +1171,8 @@ describe("Authorisation API v3 (e2e)", () => {
                 const vcJwt = await createVerifiableCredentialJwt(
                   vcPayload,
                   issuer,
+                  ebsiEnvConfig,
                   {
-                    ...ebsiEnvConfig,
                     skipValidation: true,
                   },
                 );
@@ -1200,8 +1186,8 @@ describe("Authorisation API v3 (e2e)", () => {
                 vpPayload,
                 client,
                 authorisationApiV3Url,
+                ebsiEnvConfig,
                 {
-                  ...ebsiEnvConfig,
                   nonce,
                   skipValidation: true,
 

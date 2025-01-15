@@ -27,7 +27,7 @@ export class HealthController {
       () =>
         this.http.pingCheck(
           "Besu",
-          this.configService.get<string>("besuReadinessEndpoint"),
+          this.configService.get("besuReadinessEndpoint", { infer: true }),
         ),
     ]);
   }

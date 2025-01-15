@@ -1,3 +1,4 @@
+import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 
 import { methodNotAllowed } from "@ebsiint-api/shared";
@@ -6,20 +7,16 @@ import { fastifyAccepts } from "@fastify/accepts";
 import { fastifyHelmet } from "@fastify/helmet";
 import { Logger, ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import {
-  FastifyAdapter,
-  type NestFastifyApplication,
-} from "@nestjs/platform-fastify";
+import { FastifyAdapter } from "@nestjs/platform-fastify";
 import { Test } from "@nestjs/testing";
 import { useContainer } from "class-validator";
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
+import type { ApiConfig } from "../../src/config/configuration.js";
+
 import { AppModule } from "../../src/app.module.js";
-import {
-  type ApiConfig,
-  DEPENDENCIES,
-} from "../../src/config/configuration.js";
+import { RUNTIME_DEPENDENCIES } from "../../src/config/configuration.js";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
 import { describeWriteOps } from "../utils/describeWriteOps.js";
 import { getServer } from "../utils/getServer.js";
@@ -73,7 +70,7 @@ describe("TIR API v6 - Generic tests (e2e)", () => {
     server = getServer(app, configService);
 
     if (process.env.TEST_ENV === "remote") {
-      apiUrlPrefix = configService.get<string>("apiUrlPrefix");
+      apiUrlPrefix = configService.get("apiUrlPrefix", { infer: true });
     }
   });
 
@@ -198,15 +195,19 @@ describe("TIR API v6 - Generic tests (e2e)", () => {
 
     // Expect all the dependencies to be up
     const dependencies = Object.keys(
-      DEPENDENCIES,
-    ) as (keyof typeof DEPENDENCIES)[];
-    const expectedStatuses = (
-      [...dependencies, "Besu", "TIR Subgraph"] as const
-    )
-      .map((dependency) => ({
-        [`${dependency}`]: { status: "up" },
-      }))
-      .reduce((acc, currentVal) => ({ ...acc, ...currentVal }), {});
+      RUNTIME_DEPENDENCIES,
+    ) as (keyof typeof RUNTIME_DEPENDENCIES)[];
+    const expectedStatuses = {
+      ...dependencies
+        .map((dependency) => ({
+          [`${dependency}@${RUNTIME_DEPENDENCIES[dependency]}`]: {
+            status: "up",
+          },
+        }))
+        .reduce((acc, currentVal) => ({ ...acc, ...currentVal }), {}),
+      Besu: { status: "up" },
+      "TIR Subgraph": { status: "up" },
+    };
 
     expect(response.body).toStrictEqual({
       details: expectedStatuses,

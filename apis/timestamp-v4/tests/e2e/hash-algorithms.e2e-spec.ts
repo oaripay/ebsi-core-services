@@ -1,7 +1,5 @@
-import type {
-  EbsiEnvConfiguration,
-  EbsiIssuer,
-} from "@cef-ebsi/verifiable-credential";
+import type { EbsiIssuer } from "@cef-ebsi/verifiable-credential";
+import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 import type { HashName } from "multihashes";
 
@@ -14,10 +12,7 @@ import { fastifyAccepts } from "@fastify/accepts";
 import { fastifyHelmet } from "@fastify/helmet";
 import { Logger, ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import {
-  FastifyAdapter,
-  type NestFastifyApplication,
-} from "@nestjs/platform-fastify";
+import { FastifyAdapter } from "@nestjs/platform-fastify";
 import { Test } from "@nestjs/testing";
 import { ethers } from "ethers";
 import { randomInt } from "node:crypto";
@@ -71,7 +66,6 @@ describe("Timestamp API v4 - HashAlgorithms (e2e)", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault | string;
   let authorisationApiUrl: string;
-  let trustedHostnames: string[];
   let adminUser: TestUser;
   let testUser: TestUser;
 
@@ -118,14 +112,12 @@ describe("Timestamp API v4 - HashAlgorithms (e2e)", () => {
 
     server = getServer(app, configService);
 
-    authorisationApiUrl = configService.get<string>("authorisationApiUrl");
-    trustedHostnames = configService.get<string[]>("trustedHostnames");
+    authorisationApiUrl = configService.get("authorisationApiUrl", {
+      infer: true,
+    });
 
     if (writeOps()) {
-      const configTestAdmin = configService.get<{
-        kid: string;
-        privateKey: string;
-      }>("testAdmin");
+      const configTestAdmin = configService.get("testAdmin", { infer: true });
       const adminKid = configTestAdmin.kid;
       const adminPrivateKeyHex = configTestAdmin.privateKey;
       const adminDid = adminKid.split("#")[0]!;
@@ -136,19 +128,7 @@ describe("Timestamp API v4 - HashAlgorithms (e2e)", () => {
         adminKid,
       );
 
-      const ebsiAuthority = configService
-        .get<string>("domain")
-        .replace(/^https?:\/\//, "");
-      const ebsiEnvConfig = {
-        hosts: [ebsiAuthority, ...trustedHostnames],
-        network: configService.get("network", { infer: true }),
-        services: {
-          "did-registry": "v5",
-          "trusted-issuers-registry": "v5",
-          "trusted-policies-registry": "v3",
-          "trusted-schemas-registry": "v3",
-        },
-      } satisfies EbsiEnvConfiguration;
+      const ebsiEnvConfig = configService.get("ebsiEnvConfig", { infer: true });
 
       try {
         adminUser = {
@@ -165,10 +145,7 @@ describe("Timestamp API v4 - HashAlgorithms (e2e)", () => {
         throw error;
       }
 
-      const configTestUser = configService.get<{
-        kid: string;
-        privateKey: string;
-      }>("testUser");
+      const configTestUser = configService.get("testUser", { infer: true });
       const userKid = configTestUser.kid;
       const userDid = userKid.split("#")[0]!;
       const userPrivateKeyHex = configTestUser.privateKey;
@@ -191,7 +168,7 @@ describe("Timestamp API v4 - HashAlgorithms (e2e)", () => {
       }
     }
 
-    ledgerApi = `${configService.get<string>("ledgerApiUrl")}/blockchains/besu`;
+    ledgerApi = `${configService.get("ledgerApiUrl", { infer: true })}/blockchains/besu`;
   });
 
   afterAll(async () => {

@@ -7,11 +7,10 @@ import { Test } from "@nestjs/testing";
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
+import type { ApiConfig } from "../../src/config/configuration.js";
+
 import { AppModule } from "../../src/app.module.js";
-import {
-  type ApiConfig,
-  DEPENDENCIES,
-} from "../../src/config/configuration.js";
+import { DEPENDENCIES } from "../../src/config/configuration.js";
 import { configureApp } from "../utils/app.js";
 import { getServer } from "../utils/getServer.js";
 
@@ -39,10 +38,10 @@ describe("Authorisation API v3 - Generic tests (e2e)", () => {
 
     server = getServer(app, configService);
 
-    const testEnv = configService.get<string>("testEnv");
+    const testEnv = configService.get("testEnv", { infer: true });
 
     if (testEnv === "remote") {
-      apiUrlPrefix = configService.get<string>("apiUrlPrefix");
+      apiUrlPrefix = configService.get("apiUrlPrefix", { infer: true });
     }
   });
 
@@ -155,7 +154,7 @@ describe("Authorisation API v3 - Generic tests (e2e)", () => {
       ) as (keyof typeof DEPENDENCIES)[];
       const expectedStatuses = dependencies
         .map((dependency) => ({
-          [`${dependency}`]: { status: "up" },
+          [`${dependency}@${DEPENDENCIES[dependency]}`]: { status: "up" },
         }))
         .reduce((acc, currentVal) => ({ ...acc, ...currentVal }), {});
 

@@ -1,4 +1,5 @@
 import type { EbsiIssuer } from "@cef-ebsi/verifiable-credential";
+import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 import type { JWK } from "jose";
 
@@ -7,10 +8,7 @@ import { fastifyAccepts } from "@fastify/accepts";
 import { fastifyHelmet } from "@fastify/helmet";
 import { Logger, ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import {
-  FastifyAdapter,
-  type NestFastifyApplication,
-} from "@nestjs/platform-fastify";
+import { FastifyAdapter } from "@nestjs/platform-fastify";
 import { Test } from "@nestjs/testing";
 import { useContainer } from "class-validator";
 import { ethers } from "ethers";
@@ -135,7 +133,7 @@ describeWriteOps()("DID Registry API v6 - JSON-RPC (e2e)", () => {
 
     server = getServer(app, configService);
 
-    ledgerApi = `${configService.get<string>("ledgerApiUrl")}/blockchains/besu`;
+    ledgerApi = `${configService.get("ledgerApiUrl", { infer: true })}/blockchains/besu`;
 
     testUserDid = configService.get("testUserDid");
     if (!testUserDid) throw new Error("TEST_USER_DID is not defined");
@@ -150,8 +148,9 @@ describeWriteOps()("DID Registry API v6 - JSON-RPC (e2e)", () => {
       // Create new user
       const userDetails = await createUser();
 
-      const authApiV5ES256PrivateKey = configService.get<string>(
+      const authApiV5ES256PrivateKey = configService.get(
         "testAuthApiV5ES256PrivateKey",
+        { infer: true },
       );
 
       const userAccessToken = await getDidrInviteAccessToken(
@@ -277,24 +276,13 @@ describeWriteOps()("DID Registry API v6 - JSON-RPC (e2e)", () => {
 
     beforeAll(async () => {
       try {
-        const domain = configService.get("domain", { infer: true });
-        const ebsiAuthority = domain.replace(/^https?:\/\//, ""); // remove http protocol scheme
-        const trustedHostnames = configService.get("trustedHostnames", {
+        const ebsiEnvConfig = configService.get("ebsiEnvConfig", {
           infer: true,
         });
         const didrWriteToken = await getDidrWriteAccessToken(
-          configService.get<string>("authorisationApiUrl"),
+          configService.get("authorisationApiUrl", { infer: true }),
           user.info,
-          {
-            hosts: [ebsiAuthority, ...trustedHostnames],
-            network: configService.get("network", { infer: true }),
-            services: {
-              "did-registry": "v6",
-              "trusted-issuers-registry": "v5",
-              "trusted-policies-registry": "v3",
-              "trusted-schemas-registry": "v3",
-            },
-          },
+          ebsiEnvConfig,
         );
         user.token = didrWriteToken;
       } catch (error) {

@@ -1,28 +1,31 @@
+import type { AxiosInstance } from "axios";
+
 import { Injectable, Logger, OnApplicationBootstrap } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import axios, { type AxiosInstance } from "axios";
+import axios from "axios";
 import axiosRetry from "axios-retry";
 
 import type { ApiConfig } from "./config/configuration.js";
 
+import { BOOTSTRAP_DEPENDENCIES } from "./config/configuration.js";
+
 @Injectable()
 export class AppService implements OnApplicationBootstrap {
-  private readonly authorisationApiUrl: string;
-
   private readonly axiosClient: AxiosInstance;
 
   private readonly domain: string;
 
-  private readonly localOrigin: string;
+  private readonly localOrigin: string | undefined;
 
   private readonly logger = new Logger(AppService.name);
 
   constructor(configService: ConfigService<ApiConfig, true>) {
-    this.authorisationApiUrl = configService.get<string>("authorisationApiUrl");
-    this.domain = configService.get<string>("domain");
-    this.localOrigin = configService.get<string>("localOrigin");
+    this.domain = configService.get("domain", { infer: true });
+    this.localOrigin = configService.get("localOrigin", { infer: true });
 
-    const axiosRetryDelay = configService.get<number>("axiosRetryDelay");
+    const axiosRetryDelay = configService.get("axiosRetryDelay", {
+      infer: true,
+    });
 
     this.axiosClient = axios.create();
 
@@ -46,11 +49,7 @@ export class AppService implements OnApplicationBootstrap {
     });
   }
 
-  async check(serviceUrl: string) {
-    const url = this.localOrigin
-      ? serviceUrl.replace(this.domain, this.localOrigin)
-      : serviceUrl;
-
+  async check(url: string) {
     try {
       await this.axiosClient.get(url);
     } catch {
@@ -60,13 +59,23 @@ export class AppService implements OnApplicationBootstrap {
   }
 
   async onApplicationBootstrap() {
-    // Wait for dependencies to be up and running
+    // Wait for bootstrap dependencies to be up and running
     this.logger.debug("Checking dependencies...");
 
-    await this.check(this.authorisationApiUrl);
+    await Promise.all(
+      (
+        Object.keys(
+          BOOTSTRAP_DEPENDENCIES,
+        ) as (keyof typeof BOOTSTRAP_DEPENDENCIES)[]
+      ).map(async (dependency) =>
+        this.check(
+          `${this.localOrigin ?? this.domain}/${dependency}/${BOOTSTRAP_DEPENDENCIES[dependency]}`,
+        ),
+      ),
+    );
 
     // Let's go!
-    this.logger.debug("All the dependencies are ready");
+    this.logger.debug("All the bootstrap dependencies are ready");
   }
 }
 

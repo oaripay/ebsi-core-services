@@ -1,4 +1,5 @@
 import type { EbsiIssuer } from "@cef-ebsi/verifiable-credential";
+import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 import type { GenerateKeyPairResult } from "jose";
 
@@ -9,10 +10,7 @@ import { Tir } from "@ebsiint-sc/trusted-issuers-registry";
 import { fastifyAccepts } from "@fastify/accepts";
 import { Logger, ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import {
-  FastifyAdapter,
-  type NestFastifyApplication,
-} from "@nestjs/platform-fastify";
+import { FastifyAdapter } from "@nestjs/platform-fastify";
 import { Test } from "@nestjs/testing";
 import { useContainer } from "class-validator";
 import { ethers } from "ethers";
@@ -270,9 +268,9 @@ describe("JsonRpc Module", () => {
     authApiKid = await calculateJwkThumbprint(authApiPublicKeyJwk);
 
     // Mock Auth API v3
-    const authorisationApiUrl = configService.get<string>(
-      "authorisationApiUrl",
-    );
+    const authorisationApiUrl = configService.get("authorisationApiUrl", {
+      infer: true,
+    });
 
     mockServer.use(
       // Mock Auth API v3 /.well-known/openid-configuration endpoint
@@ -329,28 +327,19 @@ describe("JsonRpc Module", () => {
       signer: StatusList2021CredentialHelpers.getSigner(privateKey, "ES256K"),
     } satisfies EbsiIssuer;
 
-    const domain = configService.get("domain", { infer: true });
-    const ebsiAuthority = domain.replace(/^https?:\/\//, ""); // remove http protocol scheme
-    const trustedHostnames = configService.get<string[]>("trustedHostnames");
+    const ebsiEnvConfig = configService.get("ebsiEnvConfig", { infer: true });
 
     const issuerV1StatusList2021CredentialJwt =
       await createVerifiableCredentialJwt(
         issuers[0]!.proxy.statusList2021Credential,
         issuer,
-        {
-          hosts: [ebsiAuthority, ...trustedHostnames],
-          network: configService.get("network", { infer: true }),
-          services: {
-            "did-registry": "v4",
-            "trusted-issuers-registry": "v4",
-            "trusted-policies-registry": "v2",
-            "trusted-schemas-registry": "v2",
-          },
-          skipValidation: true,
-        },
+        ebsiEnvConfig,
+        { skipValidation: true },
       );
 
-    const didRegistryApiUrl = configService.get<string>("didRegistryApiUrl");
+    const didRegistryApiUrl = configService.get("didRegistryApiUrl", {
+      infer: true,
+    });
     const issuer1DidDocument = createDidDocument(
       issuer.did,
       issuer.kid,
@@ -425,9 +414,7 @@ describe("JsonRpc Module", () => {
     mockServer.use(
       http.post(
         escapeDid(
-          `${configService.get<string>(
-            "didRegistryApiUrl",
-          )}/identifiers/${tao1.did}/actions`,
+          `${configService.get("didRegistryApiUrl", { infer: true })}/identifiers/${tao1.did}/actions`,
         ),
         () =>
           HttpResponse.json(

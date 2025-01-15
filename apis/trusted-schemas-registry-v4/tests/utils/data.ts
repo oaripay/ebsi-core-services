@@ -1,4 +1,4 @@
-import type { JSONSchema } from "@apidevtools/json-schema-ref-parser/dist/lib/types";
+import type { JSONSchema } from "@apidevtools/json-schema-ref-parser";
 
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { ethers } from "ethers";

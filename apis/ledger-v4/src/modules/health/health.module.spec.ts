@@ -1,3 +1,5 @@
+import type { NestFastifyApplication } from "@nestjs/platform-fastify";
+import type { HealthIndicatorResult } from "@nestjs/terminus";
 import type { RawServerDefault } from "fastify";
 
 import { methodNotAllowed } from "@ebsiint-api/shared";
@@ -5,11 +7,7 @@ import { fastifyAccepts } from "@fastify/accepts";
 import { HttpService } from "@nestjs/axios";
 import { Logger, ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import {
-  FastifyAdapter,
-  type NestFastifyApplication,
-} from "@nestjs/platform-fastify";
-import { HealthIndicatorResult } from "@nestjs/terminus";
+import { FastifyAdapter } from "@nestjs/platform-fastify";
 import { Test } from "@nestjs/testing";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
@@ -24,7 +22,9 @@ import {
   vi,
 } from "vitest";
 
-import { type ApiConfig, DEPENDENCIES } from "../../config/configuration.js";
+import type { ApiConfig } from "../../config/configuration.js";
+
+import { RUNTIME_DEPENDENCIES } from "../../config/configuration.js";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
 import { HealthModule } from "./health.module.js";
 
@@ -34,8 +34,8 @@ describe("Health Module", () => {
   let httpService: HttpService;
   let configService: ConfigService<ApiConfig, true>;
   const dependencies = Object.keys(
-    DEPENDENCIES,
-  ) as (keyof typeof DEPENDENCIES)[];
+    RUNTIME_DEPENDENCIES,
+  ) as (keyof typeof RUNTIME_DEPENDENCIES)[];
   const mockServer = setupServer();
 
   beforeAll(async () => {
@@ -90,13 +90,14 @@ describe("Health Module", () => {
   });
 
   describe("GET /health", () => {
-    it("should return 'ok' if all the dependencies return a 20x", async () => {
+    it("should return 'ok' if all the runtime dependencies return a 20x", async () => {
       expect.assertions(3 + dependencies.length);
 
       // All the dependencies return a 200
       mockServer.use(
-        http.get(configService.get<string>("besuReadinessEndpoint"), () =>
-          HttpResponse.json({}),
+        http.get(
+          configService.get("besuReadinessEndpoint", { infer: true }),
+          () => HttpResponse.json({}),
         ),
       );
 
@@ -105,15 +106,21 @@ describe("Health Module", () => {
       const response = await request(server).get("/health").send();
 
       expect(spy).toHaveBeenCalledWith({
-        url: configService.get<string>("besuReadinessEndpoint"),
+        url: configService.get("besuReadinessEndpoint", { infer: true }),
       });
 
       // Expect all the dependencies to be up
-      const expectedStatuses = ([...dependencies, "Besu"] as const)
-        .map((dependency) => ({
-          [`${dependency}`]: { status: "up" },
-        }))
-        .reduce((acc, currentVal) => ({ ...acc, ...currentVal }), {});
+      const expectedStatuses = {
+        ...dependencies
+          .map((dependency) => ({
+            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+            [`${dependency}@${RUNTIME_DEPENDENCIES[dependency]}`]: {
+              status: "up",
+            },
+          }))
+          .reduce((acc, currentVal) => ({ ...acc, ...currentVal }), {}),
+        Besu: { status: "up" },
+      };
 
       expect(response.body).toStrictEqual({
         details: expectedStatuses,
@@ -129,8 +136,9 @@ describe("Health Module", () => {
 
       // All the dependencies return a 200 except Besu readiness (503)
       mockServer.use(
-        http.get(configService.get<string>("besuReadinessEndpoint"), () =>
-          HttpResponse.json({}, { status: 503 }),
+        http.get(
+          configService.get("besuReadinessEndpoint", { infer: true }),
+          () => HttpResponse.json({}, { status: 503 }),
         ),
       );
 
@@ -140,26 +148,29 @@ describe("Health Module", () => {
 
       // Expect httpService.request to have been called for every dependency
       expect(spy).toHaveBeenCalledWith({
-        url: configService.get<string>("besuReadinessEndpoint"),
+        url: configService.get("besuReadinessEndpoint", { infer: true }),
       });
 
       // Expect all the dependencies to be up except Besu
-      const expectedStatuses = ([...dependencies, "Besu"] as const)
-        .map(
-          (dependency) =>
-            ({
-              [`${dependency}`]:
-                dependency === "Besu"
-                  ? ({
-                      message: "Request failed with status code 503",
-                      status: "down",
-                      statusCode: 503,
-                      statusText: "Service Unavailable",
-                    } as const)
-                  : ({ status: "up" } as const),
-            }) satisfies HealthIndicatorResult,
-        )
-        .reduce((acc, currentVal) => ({ ...acc, ...currentVal }), {});
+      const expectedStatuses = {
+        ...dependencies
+          .map(
+            (dependency) =>
+              ({
+                // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+                [`${dependency}@${RUNTIME_DEPENDENCIES[dependency]}`]: {
+                  status: "up",
+                } as const,
+              }) satisfies HealthIndicatorResult,
+          )
+          .reduce((acc, currentVal) => ({ ...acc, ...currentVal }), {}),
+        Besu: {
+          message: "Request failed with status code 503",
+          status: "down",
+          statusCode: 503,
+          statusText: "Service Unavailable",
+        },
+      };
 
       const { Besu: errorStatus, ...otherStatuses } = expectedStatuses;
 

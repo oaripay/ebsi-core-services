@@ -3,7 +3,6 @@ declare global {
   namespace NodeJS {
     interface ProcessEnv {
       API_PORT?: string;
-      API_URL_PREFIX?: string;
       BESU_READINESS_ENDPOINT: string;
       BESU_RPC_NODE: string;
       CONTRACT_ADDR: string;
@@ -11,6 +10,7 @@ declare global {
       DOMAIN: string;
       LOCAL_ORIGIN?: string;
       LOG_LEVEL?: "debug" | "error" | "info" | "silent" | "verbose" | "warn";
+      NETWORK: string;
       NODE_ENV: "development" | "production" | "test";
       REQUEST_TIMEOUT?: string;
       TEST_ENV?: string;

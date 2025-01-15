@@ -36,20 +36,8 @@ export class IssuersService {
     private ledgerService: LedgerService,
     configService: ConfigService<ApiConfig, true>,
   ) {
-    const domain = configService.get("domain", { infer: true });
-    const ebsiAuthority = domain.replace(/^https?:\/\//, ""); // remove http protocol scheme
-    const trustedHostnames = configService.get<string[]>("trustedHostnames");
-    this.ebsiEnvConfig = {
-      hosts: [ebsiAuthority, ...trustedHostnames],
-      network: configService.get("network", { infer: true }),
-      services: {
-        "did-registry": "v5",
-        "trusted-issuers-registry": "v5",
-        "trusted-policies-registry": "v3",
-        "trusted-schemas-registry": "v3",
-      },
-    };
-    this.timeout = configService.get<number>("requestTimeout");
+    this.ebsiEnvConfig = configService.get("ebsiEnvConfig", { infer: true });
+    this.timeout = configService.get("requestTimeout", { infer: true });
   }
 
   async assertIssuerExists(did: string): Promise<void> {

@@ -1,4 +1,4 @@
-import type { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
+import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 
 import {
@@ -11,10 +11,7 @@ import { fastifyAccepts } from "@fastify/accepts";
 import { fastifyHelmet } from "@fastify/helmet";
 import { Logger, ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import {
-  FastifyAdapter,
-  type NestFastifyApplication,
-} from "@nestjs/platform-fastify";
+import { FastifyAdapter } from "@nestjs/platform-fastify";
 import { Test } from "@nestjs/testing";
 import { hexToBytes } from "did-jwt";
 import { ethers } from "ethers";
@@ -79,10 +76,9 @@ describe("TPR API v3 - JSON RPC (e2e)", () => {
   let testAdminAccessToken: string;
   let testUserAccessToken: string;
   let sampleTransaction: string;
-
   let blockscout: {
-    bearerToken: string;
-    url: string;
+    bearerToken: string | undefined;
+    url: string | undefined;
   };
 
   const pName = `test-${crypto.randomBytes(5).toString("hex")}`;
@@ -129,31 +125,18 @@ describe("TPR API v3 - JSON RPC (e2e)", () => {
     await app.init();
     await fastifyInstance.ready();
 
-    ledgerApi = `${configService.get<string>("ledgerApiUrl")}/blockchains/besu`;
+    ledgerApi = `${configService.get("ledgerApiUrl", { infer: true })}/blockchains/besu`;
 
     server = getServer(app, configService);
 
     if (writeOps()) {
-      const trustedHostnames = configService.get<string[]>("trustedHostnames");
-      const ebsiAuthority = configService
-        .get<string>("domain")
-        .replace(/^https?:\/\//, "");
-      const ebsiEnvConfig = {
-        hosts: [ebsiAuthority, ...trustedHostnames],
-        network: configService.get("network", { infer: true }),
-        services: {
-          "did-registry": "v5",
-          "trusted-issuers-registry": "v5",
-          "trusted-policies-registry": "v3",
-          "trusted-schemas-registry": "v3",
-        },
-      } satisfies EbsiEnvConfiguration;
+      const ebsiEnvConfig = configService.get("ebsiEnvConfig", { infer: true });
 
-      const adminPrivateKeyHex = configService.get<string>(
-        "testAdminPrivateKey",
-      );
+      const adminPrivateKeyHex = configService.get("testAdminPrivateKey", {
+        infer: true,
+      });
       adminTestWallet = new ethers.Wallet(prefixWith0x(adminPrivateKeyHex));
-      const adminKid = configService.get<string>("testAdminKid");
+      const adminKid = configService.get("testAdminKid", { infer: true });
       const adminDid = adminKid.split("#")[0]!;
       const adminIssuerInfo = await getEbsiIssuer(
         hexToBytes(adminPrivateKeyHex),
@@ -161,9 +144,10 @@ describe("TPR API v3 - JSON RPC (e2e)", () => {
         adminKid,
       );
 
-      const testUserPrivateKeyHex =
-        configService.get<string>("testUserPrivateKey");
-      const testUserKid = configService.get<string>("testUserKid");
+      const testUserPrivateKeyHex = configService.get("testUserPrivateKey", {
+        infer: true,
+      });
+      const testUserKid = configService.get("testUserKid", { infer: true });
       const testUserDid = testUserKid.split("#")[0]!;
       const testUserIssuerInfo = await getEbsiIssuer(
         hexToBytes(testUserPrivateKeyHex),
@@ -171,9 +155,9 @@ describe("TPR API v3 - JSON RPC (e2e)", () => {
         testUserKid,
       );
 
-      const authorisationApiUrl = configService.get<string>(
-        "authorisationApiUrl",
-      );
+      const authorisationApiUrl = configService.get("authorisationApiUrl", {
+        infer: true,
+      });
 
       try {
         testUserAccessToken = await getTprWriteAccessToken(
@@ -193,10 +177,7 @@ describe("TPR API v3 - JSON RPC (e2e)", () => {
       }
     }
 
-    blockscout = configService.get<{
-      bearerToken: string;
-      url: string;
-    }>("blockscout");
+    blockscout = configService.get("blockscout", { infer: true });
   });
 
   afterAll(async () => {
@@ -386,7 +367,7 @@ describe("TPR API v3 - JSON RPC (e2e)", () => {
         error: {
           code: -32_600,
           message: `The DID ${
-            configService.get<string>("testAdminKid").split("#")[0]
+            configService.get("testAdminKid", { infer: true }).split("#")[0]
           } is not controlled by the address ${signer.address}`,
         },
         id: "45",
@@ -743,7 +724,11 @@ describe("TPR API v3 - JSON RPC (e2e)", () => {
           // check if blockscout is working properly
           const blockscoutCheck = await request(blockscout.url)
             .get(`/tx/${sampleTransaction}`)
-            .set({ Authorization: blockscout.bearerToken });
+            .set({
+              ...(blockscout.bearerToken && {
+                Authorization: blockscout.bearerToken,
+              }),
+            });
 
           expect(blockscoutCheck.status).toBe(200);
         });

@@ -1,12 +1,11 @@
+import type { NestFastifyApplication } from "@nestjs/platform-fastify";
+
 import { frameworkErrors, methodNotAllowed } from "@ebsiint-api/shared";
 import { fastifyAccepts } from "@fastify/accepts";
 import { fastifyHelmet } from "@fastify/helmet";
 import { Logger, ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import {
-  FastifyAdapter,
-  type NestFastifyApplication,
-} from "@nestjs/platform-fastify";
+import { FastifyAdapter } from "@nestjs/platform-fastify";
 import { Test } from "@nestjs/testing";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
@@ -429,11 +428,7 @@ describe("App Module", () => {
         );
 
         // Expect all the dependencies to be up
-        const expectedStatuses = ["Besu"]
-          .map((dependency) => ({
-            [`${dependency}`]: { status: "up" },
-          }))
-          .reduce((acc, currentVal) => ({ ...acc, ...currentVal }), {});
+        const expectedStatuses = { Besu: { status: "up" } };
 
         // It should have logged the response (with body)
         expect(mockedLogger.log).toHaveBeenNthCalledWith(

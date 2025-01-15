@@ -9,7 +9,9 @@ import {
   HttpHealthIndicator,
 } from "@nestjs/terminus";
 
-import { type ApiConfig, DEPENDENCIES } from "../../config/configuration.js";
+import type { ApiConfig } from "../../config/configuration.js";
+
+import { DEPENDENCIES } from "../../config/configuration.js";
 
 @Controller("/health")
 export class HealthController {
@@ -25,14 +27,16 @@ export class HealthController {
   check(): Promise<HealthCheckResult> {
     return this.health.check(
       (Object.keys(DEPENDENCIES) as (keyof typeof DEPENDENCIES)[]).map(
-        (dependency) => async () =>
-          this.http.pingCheck(
-            dependency,
+        (service) => async () => {
+          const version = DEPENDENCIES[service];
+          return this.http.pingCheck(
+            `${service}@${version}`,
             `${
-              this.configService.get("localOrigin", { infer: true }) ||
+              this.configService.get("localOrigin", { infer: true }) ??
               this.configService.get("domain", { infer: true })
-            }${DEPENDENCIES[dependency]}`,
-          ),
+            }/${service}/${version}`,
+          );
+        },
       ),
     );
   }

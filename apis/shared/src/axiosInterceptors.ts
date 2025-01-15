@@ -33,7 +33,7 @@ const errorNeedsInterception = (error: AxiosResponseError): boolean => {
 
 export function setupInterceptors(
   domain: string,
-  localOrigin: string,
+  localOrigin?: string,
   logger?: LoggerService,
 ): void {
   // Setup axios agents

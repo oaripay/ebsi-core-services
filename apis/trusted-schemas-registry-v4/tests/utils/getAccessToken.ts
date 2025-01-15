@@ -28,8 +28,8 @@ export async function getTsrWriteAccessToken(
     vpPayload,
     subject,
     authorisationApiUrl,
+    ebsiEnvConfig,
     {
-      ...ebsiEnvConfig,
       // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
       exp: Math.floor(Date.now() / 1000) + 100,
       nbf: Math.floor(Date.now() / 1000) - 100,

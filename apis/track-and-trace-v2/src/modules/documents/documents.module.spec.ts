@@ -1,13 +1,11 @@
+import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 
 import { methodNotAllowed } from "@ebsiint-api/shared";
 import { TrackAndTrace__factory } from "@ebsiint-sc/track-and-trace-v2";
 import { fastifyAccepts } from "@fastify/accepts";
 import { Logger, ValidationPipe } from "@nestjs/common";
-import {
-  FastifyAdapter,
-  type NestFastifyApplication,
-} from "@nestjs/platform-fastify";
+import { FastifyAdapter } from "@nestjs/platform-fastify";
 import { Test } from "@nestjs/testing";
 import { setupServer } from "msw/node";
 import { randomBytes } from "node:crypto";

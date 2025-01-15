@@ -1,25 +1,24 @@
+import type {
+  EbsiEnvConfiguration,
+  EbsiIssuer,
+  EbsiVerifiableAttestation,
+} from "@cef-ebsi/verifiable-credential";
+import type { EbsiVerifiablePresentation } from "@cef-ebsi/verifiable-presentation";
 import type { PaginatedList } from "@ebsiint-api/shared";
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { PresentationSubmission } from "@sphereon/pex-models";
 import type { RawServerDefault } from "fastify";
+import type { JWK } from "jose";
 
 import { fromUrl } from "@cef-ebsi/ebsi-uri";
-import {
-  createVerifiableCredentialJwt,
-  type EbsiEnvConfiguration,
-  type EbsiIssuer,
-  type EbsiVerifiableAttestation,
-} from "@cef-ebsi/verifiable-credential";
-import {
-  createVerifiablePresentationJwt,
-  type EbsiVerifiablePresentation,
-} from "@cef-ebsi/verifiable-presentation";
+import { createVerifiableCredentialJwt } from "@cef-ebsi/verifiable-credential";
+import { createVerifiablePresentationJwt } from "@cef-ebsi/verifiable-presentation";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Test } from "@nestjs/testing";
 import { createJWT, decodeJWT, ES256KSigner } from "did-jwt";
-import { calculateJwkThumbprint, importJWK, type JWK, jwtVerify } from "jose";
+import { calculateJwkThumbprint, importJWK, jwtVerify } from "jose";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 import { randomBytes, randomUUID } from "node:crypto";
@@ -140,17 +139,7 @@ describe.each(["EBSI URI", "URL"] as const)(
       domain = configService.get("domain", { infer: true });
       const apiUrlPrefix = configService.get("apiUrlPrefix", { infer: true });
       serviceEndpoint = `${domain}${apiUrlPrefix}`;
-      const ebsiAuthority = domain.replace(/^https?:\/\//, ""); // remove http protocol scheme
-      ebsiEnvConfig = {
-        hosts: [ebsiAuthority],
-        network: "test",
-        services: {
-          "did-registry": "v6",
-          "trusted-issuers-registry": "v6",
-          "trusted-policies-registry": "v4",
-          "trusted-schemas-registry": "v4",
-        },
-      };
+      ebsiEnvConfig = configService.get("ebsiEnvConfig");
 
       credentialIssuer = await createLegalEntity(["ES256", "EdDSA"]);
       credentialIssuerAccreditationUrl = `${domain}/trusted-issuers-registry/v6/issuers/${
@@ -190,7 +179,7 @@ describe.each(["EBSI URI", "URL"] as const)(
         credentialSchema: {
           id:
             uriType === "EBSI URI"
-              ? fromUrl(authorisationCredentialSchema)
+              ? fromUrl(authorisationCredentialSchema, ebsiEnvConfig)
               : authorisationCredentialSchema,
           type: "FullJsonSchemaValidator2021",
         },
@@ -704,7 +693,7 @@ describe.each(["EBSI URI", "URL"] as const)(
                 credentialSchema: {
                   id:
                     uriType === "EBSI URI"
-                      ? fromUrl(testOidSchemaUrl)
+                      ? fromUrl(testOidSchemaUrl, ebsiEnvConfig)
                       : testOidSchemaUrl,
                   type: "FullJsonSchemaValidator2021",
                 },
@@ -720,7 +709,7 @@ describe.each(["EBSI URI", "URL"] as const)(
                 termsOfUse: {
                   id:
                     uriType === "EBSI URI"
-                      ? fromUrl(credentialIssuerAccreditationUrl)
+                      ? fromUrl(credentialIssuerAccreditationUrl, ebsiEnvConfig)
                       : credentialIssuerAccreditationUrl,
                   type: "IssuanceCertificate",
                 },
@@ -869,8 +858,8 @@ describe.each(["EBSI URI", "URL"] as const)(
                   const vcJwt = await createVerifiableCredentialJwt(
                     vcPayload,
                     credentialIssuer.keys.ES256,
+                    ebsiEnvConfig,
                     {
-                      ...ebsiEnvConfig,
                       skipValidation: true,
                     },
                   );
@@ -883,8 +872,8 @@ describe.each(["EBSI URI", "URL"] as const)(
                   vpPayload,
                   credentialSubject.keys.ES256K,
                   "authentication-service-v3",
+                  ebsiEnvConfig,
                   {
-                    ...ebsiEnvConfig,
                     exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
                     nbf: now,
                     nonce: randomUUID(),
@@ -927,8 +916,8 @@ describe.each(["EBSI URI", "URL"] as const)(
                   const vcJwt = await createVerifiableCredentialJwt(
                     vcPayload,
                     credentialIssuer.keys.ES256,
+                    ebsiEnvConfig,
                     {
-                      ...ebsiEnvConfig,
                       skipValidation: true,
                     },
                   );
@@ -941,8 +930,8 @@ describe.each(["EBSI URI", "URL"] as const)(
                   vpPayload,
                   credentialSubject.keys.ES256K,
                   serviceEndpoint,
+                  ebsiEnvConfig,
                   {
-                    ...ebsiEnvConfig,
                     exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
                     nbf: now,
                     nonce: randomUUID(),
@@ -1000,8 +989,8 @@ describe.each(["EBSI URI", "URL"] as const)(
                   const vcJwt = await createVerifiableCredentialJwt(
                     vcPayload,
                     credentialIssuer.keys.ES256,
+                    ebsiEnvConfig,
                     {
-                      ...ebsiEnvConfig,
                       skipValidation: true,
                     },
                   );
@@ -1013,8 +1002,8 @@ describe.each(["EBSI URI", "URL"] as const)(
                   vpPayload,
                   credentialSubject.keys.ES256K,
                   serviceEndpoint,
+                  ebsiEnvConfig,
                   {
-                    ...ebsiEnvConfig,
                     // Override "exp" and "nbf"
                     exp: Math.floor(Date.now() / 1000) - 100,
                     nbf: Math.floor(Date.now() / 1000) - 1000,
@@ -1058,8 +1047,8 @@ describe.each(["EBSI URI", "URL"] as const)(
                   const vcJwt = await createVerifiableCredentialJwt(
                     vcPayload,
                     credentialIssuer.keys.ES256,
+                    ebsiEnvConfig,
                     {
-                      ...ebsiEnvConfig,
                       skipValidation: true,
                     },
                   );
@@ -1072,8 +1061,8 @@ describe.each(["EBSI URI", "URL"] as const)(
                   vpPayload,
                   credentialSubject.keys.ES256K,
                   serviceEndpoint,
+                  ebsiEnvConfig,
                   {
-                    ...ebsiEnvConfig,
                     // Override "exp" and "nbf"
                     exp: now + 120,
                     nbf: now + 100,
@@ -1118,8 +1107,8 @@ describe.each(["EBSI URI", "URL"] as const)(
                   const vcJwt = await createVerifiableCredentialJwt(
                     vcPayload,
                     credentialIssuer.keys.ES256,
+                    ebsiEnvConfig,
                     {
-                      ...ebsiEnvConfig,
                       skipValidation: true,
                     },
                   );
@@ -1132,8 +1121,8 @@ describe.each(["EBSI URI", "URL"] as const)(
                   vpPayload,
                   credentialSubject.keys.ES256K,
                   serviceEndpoint,
+                  ebsiEnvConfig,
                   {
-                    ...ebsiEnvConfig,
                     exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
                     // We don't add any nonce
                     nbf: now,
@@ -1178,8 +1167,8 @@ describe.each(["EBSI URI", "URL"] as const)(
                   const vcJwt = await createVerifiableCredentialJwt(
                     vcPayload,
                     credentialIssuer.keys.ES256,
+                    ebsiEnvConfig,
                     {
-                      ...ebsiEnvConfig,
                       skipValidation: true,
                     },
                   );
@@ -1275,8 +1264,8 @@ describe.each(["EBSI URI", "URL"] as const)(
                   vpPayload,
                   credentialSubject.keys.ES256K,
                   serviceEndpoint,
+                  ebsiEnvConfig,
                   {
-                    ...ebsiEnvConfig,
                     exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
                     nbf: now,
                     nonce: randomUUID(),
@@ -1321,8 +1310,8 @@ describe.each(["EBSI URI", "URL"] as const)(
                 const vcJwt = await createVerifiableCredentialJwt(
                   vcPayload,
                   credentialIssuer.keys.ES256,
+                  ebsiEnvConfig,
                   {
-                    ...ebsiEnvConfig,
                     skipValidation: true,
                   },
                 );
@@ -1337,8 +1326,8 @@ describe.each(["EBSI URI", "URL"] as const)(
                 vpPayload,
                 credentialSubject.keys.ES256K,
                 serviceEndpoint,
+                ebsiEnvConfig,
                 {
-                  ...ebsiEnvConfig,
                   exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
                   nbf: now,
                   nonce,
@@ -1410,8 +1399,8 @@ describe.each(["EBSI URI", "URL"] as const)(
                 const vcJwt = await createVerifiableCredentialJwt(
                   vcPayload,
                   credentialIssuer.keys.ES256,
+                  ebsiEnvConfig,
                   {
-                    ...ebsiEnvConfig,
                     skipValidation: true,
                   },
                 );
@@ -1425,8 +1414,8 @@ describe.each(["EBSI URI", "URL"] as const)(
                 vpPayload,
                 credentialSubject.keys.ES256K,
                 serviceEndpoint,
+                ebsiEnvConfig,
                 {
-                  ...ebsiEnvConfig,
                   exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
                   nbf: now,
                   nonce: randomUUID(),
@@ -1482,8 +1471,8 @@ describe.each(["EBSI URI", "URL"] as const)(
                 const vcJwt = await createVerifiableCredentialJwt(
                   vcPayload,
                   credentialIssuer.keys.ES256,
+                  ebsiEnvConfig,
                   {
-                    ...ebsiEnvConfig,
                     skipValidation: true,
                   },
                 );
@@ -1496,8 +1485,8 @@ describe.each(["EBSI URI", "URL"] as const)(
                 vpPayload,
                 credentialSubject.keys.ES256K,
                 serviceEndpoint,
+                ebsiEnvConfig,
                 {
-                  ...ebsiEnvConfig,
                   exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
                   nbf: now,
                   nonce: randomUUID(),
@@ -1551,8 +1540,8 @@ describe.each(["EBSI URI", "URL"] as const)(
                 vpPayload,
                 credentialSubject.keys.ES256K,
                 serviceEndpoint,
+                ebsiEnvConfig,
                 {
-                  ...ebsiEnvConfig,
                   exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
                   nbf: now,
                   nonce: randomUUID(),
@@ -1605,8 +1594,8 @@ describe.each(["EBSI URI", "URL"] as const)(
                 vpPayload,
                 credentialSubject.keys.ES256K,
                 serviceEndpoint,
+                ebsiEnvConfig,
                 {
-                  ...ebsiEnvConfig,
                   exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
                   nbf: now,
                   nonce: randomUUID(),
@@ -1642,8 +1631,8 @@ describe.each(["EBSI URI", "URL"] as const)(
                 vpPayload,
                 credentialSubject.keys.ES256K,
                 serviceEndpoint,
+                ebsiEnvConfig,
                 {
-                  ...ebsiEnvConfig,
                   exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
                   nbf: now,
                   nonce: randomUUID(),
@@ -1679,8 +1668,8 @@ describe.each(["EBSI URI", "URL"] as const)(
                 vpPayload,
                 credentialSubject.keys.ES256K,
                 serviceEndpoint,
+                ebsiEnvConfig,
                 {
-                  ...ebsiEnvConfig,
                   exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
                   nbf: now,
                   nonce: randomUUID(),
@@ -1723,8 +1712,8 @@ describe.each(["EBSI URI", "URL"] as const)(
                 vpPayload,
                 credentialSubject.keys.ES256K,
                 serviceEndpoint,
+                ebsiEnvConfig,
                 {
-                  ...ebsiEnvConfig,
                   exp: now + 600, // Expire in 10 minutes (more than the 5 minutes limit)
                   nbf: now,
                   nonce: randomUUID(),
@@ -1931,8 +1920,8 @@ describe.each(["EBSI URI", "URL"] as const)(
                 const vcJwt = await createVerifiableCredentialJwt(
                   vcPayload,
                   credentialIssuer.keys.ES256,
+                  ebsiEnvConfig,
                   {
-                    ...ebsiEnvConfig,
                     skipValidation: true,
                   },
                 );
@@ -1947,8 +1936,8 @@ describe.each(["EBSI URI", "URL"] as const)(
                 vpPayload,
                 vpSigner,
                 serviceEndpoint,
+                ebsiEnvConfig,
                 {
-                  ...ebsiEnvConfig,
                   exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
                   nbf: now,
                   nonce,
@@ -1993,8 +1982,8 @@ describe.each(["EBSI URI", "URL"] as const)(
                 const vcJwt = await createVerifiableCredentialJwt(
                   vcPayload,
                   credentialIssuer.keys.ES256,
+                  ebsiEnvConfig,
                   {
-                    ...ebsiEnvConfig,
                     skipValidation: true,
                   },
                 );
@@ -2064,8 +2053,8 @@ describe.each(["EBSI URI", "URL"] as const)(
                 vpPayload,
                 vpSigner,
                 serviceEndpoint,
+                ebsiEnvConfig,
                 {
-                  ...ebsiEnvConfig,
                   exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
                   nbf: now,
                   nonce,
@@ -2122,8 +2111,8 @@ describe.each(["EBSI URI", "URL"] as const)(
               const vcJwt = await createVerifiableCredentialJwt(
                 vcPayload,
                 credentialIssuer.keys.ES256,
+                ebsiEnvConfig,
                 {
-                  ...ebsiEnvConfig,
                   skipValidation: true,
                 },
               );
@@ -2137,8 +2126,8 @@ describe.each(["EBSI URI", "URL"] as const)(
                 vpPayload,
                 vpSigner,
                 serviceEndpoint,
+                ebsiEnvConfig,
                 {
-                  ...ebsiEnvConfig,
                   exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
                   nbf: now,
                   nonce,
@@ -2195,8 +2184,8 @@ describe.each(["EBSI URI", "URL"] as const)(
               const vcJwt = await createVerifiableCredentialJwt(
                 vcPayload,
                 credentialIssuer.keys.ES256,
+                ebsiEnvConfig,
                 {
-                  ...ebsiEnvConfig,
                   skipValidation: true,
                 },
               );
@@ -2210,8 +2199,8 @@ describe.each(["EBSI URI", "URL"] as const)(
                 vpPayload,
                 vpSigner,
                 serviceEndpoint,
+                ebsiEnvConfig,
                 {
-                  ...ebsiEnvConfig,
                   exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
                   nbf: now,
                   nonce,
@@ -2266,8 +2255,8 @@ describe.each(["EBSI URI", "URL"] as const)(
               const vcJwt = await createVerifiableCredentialJwt(
                 vcPayload,
                 credentialIssuer.keys.EdDSA,
+                ebsiEnvConfig,
                 {
-                  ...ebsiEnvConfig,
                   skipValidation: true,
                 },
               );
@@ -2281,8 +2270,8 @@ describe.each(["EBSI URI", "URL"] as const)(
                 vpPayload,
                 vpSigner,
                 serviceEndpoint,
+                ebsiEnvConfig,
                 {
-                  ...ebsiEnvConfig,
                   exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
                   nbf: now,
                   nonce,
@@ -2340,8 +2329,8 @@ describe.each(["EBSI URI", "URL"] as const)(
               const vcJwt = await createVerifiableCredentialJwt(
                 vcPayload,
                 credentialIssuer.keys.ES256,
+                ebsiEnvConfig,
                 {
-                  ...ebsiEnvConfig,
                   skipValidation: true,
                 },
               );
@@ -2355,8 +2344,8 @@ describe.each(["EBSI URI", "URL"] as const)(
                 vpPayload,
                 vpSigner,
                 serviceEndpoint,
+                ebsiEnvConfig,
                 {
-                  ...ebsiEnvConfig,
                   exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
                   nbf: now,
                   nonce,
@@ -2414,8 +2403,8 @@ describe.each(["EBSI URI", "URL"] as const)(
               const vcJwt = await createVerifiableCredentialJwt(
                 vcPayload,
                 credentialIssuer.keys.ES256,
+                ebsiEnvConfig,
                 {
-                  ...ebsiEnvConfig,
                   skipValidation: true,
                 },
               );
@@ -2429,8 +2418,8 @@ describe.each(["EBSI URI", "URL"] as const)(
                 vpPayload,
                 vpSigner,
                 serviceEndpoint,
+                ebsiEnvConfig,
                 {
-                  ...ebsiEnvConfig,
                   exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
                   nbf: now,
                   nonce,
@@ -2488,8 +2477,8 @@ describe.each(["EBSI URI", "URL"] as const)(
               const vcJwt = await createVerifiableCredentialJwt(
                 vcPayload,
                 credentialIssuer.keys.ES256,
+                ebsiEnvConfig,
                 {
-                  ...ebsiEnvConfig,
                   skipValidation: true,
                 },
               );
@@ -2503,8 +2492,8 @@ describe.each(["EBSI URI", "URL"] as const)(
                 vpPayload,
                 vpSigner,
                 serviceEndpoint,
+                ebsiEnvConfig,
                 {
-                  ...ebsiEnvConfig,
                   exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
                   nbf: now,
                   nonce,
@@ -2552,8 +2541,8 @@ describe.each(["EBSI URI", "URL"] as const)(
                 const vcJwt = await createVerifiableCredentialJwt(
                   vcPayload,
                   credentialIssuer.keys.ES256,
+                  ebsiEnvConfig,
                   {
-                    ...ebsiEnvConfig,
                     skipValidation: true,
                   },
                 );
@@ -2623,8 +2612,8 @@ describe.each(["EBSI URI", "URL"] as const)(
                 vpPayload,
                 vpSigner,
                 serviceEndpoint,
+                ebsiEnvConfig,
                 {
-                  ...ebsiEnvConfig,
                   exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
                   nbf: now,
                   nonce,
@@ -2741,7 +2730,7 @@ describe.each(["EBSI URI", "URL"] as const)(
             credentialSchema: {
               id:
                 uriType === "EBSI URI"
-                  ? fromUrl(testOidSchemaUrl)
+                  ? fromUrl(testOidSchemaUrl, ebsiEnvConfig)
                   : testOidSchemaUrl,
               type: "FullJsonSchemaValidator2021",
             },
@@ -2757,7 +2746,7 @@ describe.each(["EBSI URI", "URL"] as const)(
             termsOfUse: {
               id:
                 uriType === "EBSI URI"
-                  ? fromUrl(credentialIssuerAccreditationUrl)
+                  ? fromUrl(credentialIssuerAccreditationUrl, ebsiEnvConfig)
                   : credentialIssuerAccreditationUrl,
               type: "IssuanceCertificate",
             },
@@ -2772,8 +2761,8 @@ describe.each(["EBSI URI", "URL"] as const)(
           const vcJwt = await createVerifiableCredentialJwt(
             vcPayload,
             credentialIssuer.keys.ES256,
+            ebsiEnvConfig,
             {
-              ...ebsiEnvConfig,
               skipValidation: true,
             },
           );
@@ -2817,8 +2806,8 @@ describe.each(["EBSI URI", "URL"] as const)(
             vpPayload,
             credentialSubject.keys.ES256K,
             serviceEndpoint,
+            ebsiEnvConfig,
             {
-              ...ebsiEnvConfig,
               exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
               nbf: now,
               nonce,
@@ -2865,7 +2854,7 @@ describe.each(["EBSI URI", "URL"] as const)(
             credentialSchema: {
               id:
                 uriType === "EBSI URI"
-                  ? fromUrl(testOidSchemaUrl)
+                  ? fromUrl(testOidSchemaUrl, ebsiEnvConfig)
                   : testOidSchemaUrl,
               type: "FullJsonSchemaValidator2021",
             },
@@ -2881,7 +2870,7 @@ describe.each(["EBSI URI", "URL"] as const)(
             termsOfUse: {
               id:
                 uriType === "EBSI URI"
-                  ? fromUrl(credentialIssuerAccreditationUrl)
+                  ? fromUrl(credentialIssuerAccreditationUrl, ebsiEnvConfig)
                   : credentialIssuerAccreditationUrl,
               type: "IssuanceCertificate",
             },
@@ -2896,8 +2885,8 @@ describe.each(["EBSI URI", "URL"] as const)(
           const vcJwt = await createVerifiableCredentialJwt(
             vcPayload,
             credentialIssuer.keys.ES256,
+            ebsiEnvConfig,
             {
-              ...ebsiEnvConfig,
               skipValidation: true,
             },
           );
@@ -2943,8 +2932,8 @@ describe.each(["EBSI URI", "URL"] as const)(
             vpPayload,
             credentialSubject.keys.ES256K,
             serviceEndpoint,
+            ebsiEnvConfig,
             {
-              ...ebsiEnvConfig,
               exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
               nbf: now,
               nonce,
@@ -2978,8 +2967,8 @@ describe.each(["EBSI URI", "URL"] as const)(
             vpPayload,
             credentialSubject.keys.ES256K,
             serviceEndpoint,
+            ebsiEnvConfig,
             {
-              ...ebsiEnvConfig,
               exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
               nbf: now,
               nonce,
@@ -3020,8 +3009,8 @@ describe.each(["EBSI URI", "URL"] as const)(
             vpPayload,
             credentialSubject.keys.ES256K,
             serviceEndpoint,
+            ebsiEnvConfig,
             {
-              ...ebsiEnvConfig,
               exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
               nbf: now,
               nonce,
@@ -3087,12 +3076,12 @@ describe.each(["EBSI URI", "URL"] as const)(
         const testOidSchemaUrl = configService.get("testOidSchemaPattern", {
           infer: true,
         });
-        const vcPayload: EbsiVerifiableAttestation = {
+        const vcPayload = {
           "@context": ["https://www.w3.org/2018/credentials/v1"],
           credentialSchema: {
             id:
               uriType === "EBSI URI"
-                ? fromUrl(testOidSchemaUrl)
+                ? fromUrl(testOidSchemaUrl, ebsiEnvConfig)
                 : testOidSchemaUrl,
             type: "FullJsonSchemaValidator2021",
           },
@@ -3108,13 +3097,13 @@ describe.each(["EBSI URI", "URL"] as const)(
           termsOfUse: {
             id:
               uriType === "EBSI URI"
-                ? fromUrl(credentialIssuerAccreditationUrl)
+                ? fromUrl(credentialIssuerAccreditationUrl, ebsiEnvConfig)
                 : credentialIssuerAccreditationUrl,
             type: "IssuanceCertificate",
           },
           type: ["VerifiableCredential", "VerifiableAttestation"],
           validFrom: `${issuanceDate.toISOString().slice(0, -5)}Z`,
-        };
+        } satisfies EbsiVerifiableAttestation;
 
         if (customScope === TIR_INVITE_SCOPE) {
           vcPayload.type.push("VerifiableAccreditationToAccredit");
@@ -3157,8 +3146,8 @@ describe.each(["EBSI URI", "URL"] as const)(
           const vcJwt = await createVerifiableCredentialJwt(
             vcPayload,
             credentialIssuer.keys.ES256,
+            ebsiEnvConfig,
             {
-              ...ebsiEnvConfig,
               skipValidation: true,
             },
           );
@@ -3190,8 +3179,8 @@ describe.each(["EBSI URI", "URL"] as const)(
             ? vpSigner.keys.ES256K
             : vpSigner.keys.ES256,
           serviceEndpoint,
+          ebsiEnvConfig,
           {
-            ...ebsiEnvConfig,
             exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
             nbf: now,
             nonce,

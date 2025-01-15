@@ -1,3 +1,4 @@
+import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 
 import { computeId, methodNotAllowed } from "@ebsiint-api/shared";
@@ -5,10 +6,7 @@ import { TrustedSchemasRegistry } from "@ebsiint-sc/trusted-schemas-registry-v3"
 import { fastifyAccepts } from "@fastify/accepts";
 import { Logger, ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import {
-  FastifyAdapter,
-  type NestFastifyApplication,
-} from "@nestjs/platform-fastify";
+import { FastifyAdapter } from "@nestjs/platform-fastify";
 import { Test } from "@nestjs/testing";
 import { ethers } from "ethers";
 import {
@@ -241,9 +239,9 @@ describe("JsonRpc Module", () => {
 
     // Mock Auth API
     const publicKeyJwk = await exportJWK(authApiKeyPair.publicKey);
-    const authorisationApiUrl = configService.get<string>(
-      "authorisationApiUrl",
-    );
+    const authorisationApiUrl = configService.get("authorisationApiUrl", {
+      infer: true,
+    });
 
     mockServer.use(
       // Mock Auth API /.well-known/openid-configuration endpoint

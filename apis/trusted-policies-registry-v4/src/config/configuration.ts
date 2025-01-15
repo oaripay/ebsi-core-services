@@ -1,4 +1,5 @@
-import { type Network, NETWORKS } from "@cef-ebsi/ebsi-uri";
+import type { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
+
 import { ConfigModule } from "@nestjs/config";
 import Joi from "joi";
 
@@ -19,10 +20,10 @@ export interface ApiConfig {
   didRegistryApiUrl: string;
   dockerContainerTag: string;
   domain: string;
+  ebsiEnvConfig: EbsiEnvConfiguration;
   ledgerApiUrl: string;
-  localOrigin: string;
+  localOrigin: string | undefined;
   logLevel: "debug" | "error" | "info" | "silent" | "verbose" | "warn";
-  network: Network;
   requestTimeout: number;
   // Tests
   testAdminKid: string;
@@ -30,29 +31,64 @@ export interface ApiConfig {
   testSpecificNodeDomain: string | undefined;
   testUserKid: string;
   testUserPrivateKey: string;
-  trustedHostnames: string[];
 }
 
-const AUTH_API_PATH = "/authorisation/v5";
-const DIDR_API_PATH = "/did-registry/v6";
-const LEDGER_API_PATH = "/ledger/v4";
+export const SERVICE_PREFIX = "trusted-policies-registry";
+export const SERVICE_VERSION = "v4";
 
-export const DEPENDENCIES = {
-  "Authorisation API v5": AUTH_API_PATH,
-  "DIDR API v6": DIDR_API_PATH,
-  "Ledger API v4": LEDGER_API_PATH,
-} as const;
+// Declare all the services and their versions used by this service
+interface ServiceVersions {
+  authorisation: "v5";
+  "did-registry": "v6";
+  ledger: "v4";
+  "trusted-issuers-registry": "v6";
+  "trusted-schemas-registry": "v4";
+}
+
+// EBSI Services that must be up and running before this service starts
+export const BOOTSTRAP_DEPENDENCIES = {
+  authorisation: "v5",
+} as const satisfies Partial<ServiceVersions>;
+
+// EBSI Services that must be up and running for this service to be considered healthy
+export const RUNTIME_DEPENDENCIES = {
+  authorisation: "v5",
+  "did-registry": "v6",
+} as const satisfies Partial<ServiceVersions>;
+
+// EBSI Services that are only used during the tests
+export const DEV_DEPENDENCIES = {
+  ledger: "v4",
+  "trusted-issuers-registry": "v6",
+  "trusted-schemas-registry": "v4",
+} as const satisfies Partial<ServiceVersions>;
 
 // Config factory
 // Note that process.env — for which provide typings in src/environment.d.ts —
 // should have already been validated by Joi in src/app.module.ts
-export const loadConfig = (): ApiConfig => {
-  const { DOMAIN } = process.env;
+export const loadConfig = () => {
+  const { DOMAIN, URI_SCHEME } = process.env;
+
+  const ebsiEnvConfig = {
+    hosts: [
+      DOMAIN.replace(/^https?:\/\//, ""), // remove http protocol scheme
+    ],
+    network: {
+      isOptional: process.env.NETWORK === "production",
+      name: process.env.NETWORK,
+    },
+    scheme: URI_SCHEME ?? "ebsi",
+    services: {
+      ...DEV_DEPENDENCIES,
+      ...RUNTIME_DEPENDENCIES,
+      "trusted-policies-registry": SERVICE_VERSION, // self-reference
+    },
+  } as const satisfies EbsiEnvConfiguration;
 
   return {
     apiPort: Number.parseInt(process.env.API_PORT ?? "3000", 10),
-    apiUrlPrefix: process.env.API_URL_PREFIX ?? "/trusted-policies-registry/v4",
-    authorisationApiUrl: DOMAIN + AUTH_API_PATH,
+    apiUrlPrefix: `/${SERVICE_PREFIX}/${SERVICE_VERSION}`,
+    authorisationApiUrl: `${DOMAIN}/authorisation/${RUNTIME_DEPENDENCIES.authorisation}`,
     axiosRetryDelay: Number.parseInt(
       process.env.AXIOS_RETRY_DELAY ?? "10000",
       10,
@@ -65,23 +101,20 @@ export const loadConfig = (): ApiConfig => {
       url: process.env.BLOCKSCOUT_URL,
     },
     contractAddr: process.env.CONTRACT_ADDR,
-    didRegistryApiUrl: DOMAIN + DIDR_API_PATH,
+    didRegistryApiUrl: `${DOMAIN}/did-registry/${RUNTIME_DEPENDENCIES["did-registry"]}`,
     dockerContainerTag: process.env.DOCKER_TAG ?? "",
     domain: DOMAIN,
-    ledgerApiUrl: DOMAIN + LEDGER_API_PATH,
-    localOrigin: process.env.LOCAL_ORIGIN ?? "",
+    ebsiEnvConfig,
+    ledgerApiUrl: `${DOMAIN}/ledger/${DEV_DEPENDENCIES.ledger}`,
+    localOrigin: process.env.LOCAL_ORIGIN,
     logLevel: process.env.LOG_LEVEL ?? "warn",
-    network: process.env.NETWORK,
     requestTimeout: Number.parseInt(process.env.REQUEST_TIMEOUT ?? "15000", 10),
     testAdminKid: process.env.TEST_ADMIN_KID ?? "",
     testAdminPrivateKey: process.env.TEST_ADMIN_PRIVATE_KEY ?? "",
     testSpecificNodeDomain: process.env.TEST_SPECIFIC_NODE_DOMAIN,
     testUserKid: process.env.TEST_USER_KID ?? "",
     testUserPrivateKey: process.env.TEST_USER_PRIVATE_KEY ?? "",
-    trustedHostnames: (process.env.TRUSTED_HOSTNAMES ?? "")
-      .split(",")
-      .filter(Boolean),
-  };
+  } as const satisfies ApiConfig;
 };
 
 export const ApiConfigModule = ConfigModule.forRoot({
@@ -94,7 +127,6 @@ export const ApiConfigModule = ConfigModule.forRoot({
   load: [loadConfig],
   validationSchema: Joi.object<typeof process.env, true>({
     API_PORT: Joi.string().default("3000"),
-    API_URL_PREFIX: Joi.string(),
     AXIOS_RETRY_DELAY: Joi.string(),
     BESU_READINESS_ENDPOINT: Joi.string().uri().required(),
     // Ledger & SC
@@ -114,9 +146,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
       "verbose",
       "debug",
     ),
-    NETWORK: Joi.string()
-      .valid(...NETWORKS)
-      .required(),
+    NETWORK: Joi.string(),
     // Common API variables
     NODE_ENV: Joi.string()
       .valid("development", "production", "test")
@@ -130,8 +160,9 @@ export const ApiConfigModule = ConfigModule.forRoot({
     TEST_SPECIFIC_NODE_DOMAIN: Joi.string().uri(),
     TEST_USER_KID: Joi.string().allow(""),
     TEST_USER_PRIVATE_KEY: Joi.string().allow(""),
-    TRUSTED_HOSTNAMES: Joi.string(),
     // Generic variables
     TZ: Joi.string(),
+    // EBSI URI Scheme prefix
+    URI_SCHEME: Joi.string(),
   }),
 });

@@ -58,8 +58,10 @@ export default class RecordsController {
       records = await this.recordsService.getRecordIds(pageAfter, pageSize);
     }
 
-    const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
-    const domain = this.configService.get<string>("domain");
+    const apiUrlPrefix = this.configService.get("apiUrlPrefix", {
+      infer: true,
+    });
+    const domain = this.configService.get("domain", { infer: true });
     const baseUrl = `${domain}${apiUrlPrefix}/records`;
 
     const searchParams = new URLSearchParams();
@@ -104,8 +106,10 @@ export default class RecordsController {
       pageSize,
     );
 
-    const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
-    const domain = this.configService.get<string>("domain");
+    const apiUrlPrefix = this.configService.get("apiUrlPrefix", {
+      infer: true,
+    });
+    const domain = this.configService.get("domain", { infer: true });
     const baseUrl = `${domain}${apiUrlPrefix}/records/${recordId}/versions`;
 
     return formatRecordVersions(

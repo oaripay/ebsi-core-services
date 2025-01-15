@@ -9,7 +9,9 @@ import {
   HttpHealthIndicator,
 } from "@nestjs/terminus";
 
-import { type ApiConfig, DEPENDENCIES } from "../../config/configuration.js";
+import type { ApiConfig } from "../../config/configuration.js";
+
+import { RUNTIME_DEPENDENCIES } from "../../config/configuration.js";
 
 @Controller("/health")
 export class HealthController {
@@ -24,20 +26,26 @@ export class HealthController {
   @HealthCheck()
   check(): Promise<HealthCheckResult> {
     return this.health.check([
-      ...(Object.keys(DEPENDENCIES) as (keyof typeof DEPENDENCIES)[]).map(
-        (dependency) => async () =>
-          this.http.pingCheck(
-            dependency,
-            `${
-              this.configService.get<string>("localOrigin") ||
-              this.configService.get<string>("domain")
-            }${DEPENDENCIES[dependency]}`,
-          ),
-      ),
+      ...(
+        Object.keys(
+          RUNTIME_DEPENDENCIES,
+        ) as (keyof typeof RUNTIME_DEPENDENCIES)[]
+      ).map((service) => async () => {
+        const version = RUNTIME_DEPENDENCIES[service];
+        return this.http.pingCheck(
+          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+          `${service}@${version}`,
+          `${
+            this.configService.get("localOrigin", { infer: true }) ??
+            this.configService.get("domain", { infer: true })
+            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+          }/${service}/${version}`,
+        );
+      }),
       () =>
         this.http.pingCheck(
           "Besu",
-          this.configService.get<string>("besuReadinessEndpoint"),
+          this.configService.get("besuReadinessEndpoint", { infer: true }),
         ),
     ]);
   }

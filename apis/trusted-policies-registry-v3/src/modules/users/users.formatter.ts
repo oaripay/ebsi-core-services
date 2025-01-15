@@ -1,6 +1,7 @@
+import type { PaginatedList } from "@ebsiint-api/shared";
 import type { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry-v2";
 
-import { paginate, type PaginatedList } from "@ebsiint-api/shared";
+import { paginate } from "@ebsiint-api/shared";
 
 import type { UserLink } from "./users.interface.js";
 

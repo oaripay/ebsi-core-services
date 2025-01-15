@@ -50,8 +50,10 @@ export default class TimestampsController {
       where,
     );
 
-    const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
-    const domain = this.configService.get<string>("domain");
+    const apiUrlPrefix = this.configService.get("apiUrlPrefix", {
+      infer: true,
+    });
+    const domain = this.configService.get("domain", { infer: true });
     const baseUrl = `${domain}${apiUrlPrefix}/timestamps`;
 
     const searchParams = new URLSearchParams();

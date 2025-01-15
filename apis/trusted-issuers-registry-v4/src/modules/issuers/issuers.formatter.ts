@@ -1,6 +1,7 @@
+import type { PaginatedList } from "@ebsiint-api/shared";
 import type { Tir } from "@ebsiint-sc/trusted-issuers-registry";
 
-import { paginate, type PaginatedList } from "@ebsiint-api/shared";
+import { paginate } from "@ebsiint-api/shared";
 
 import {
   AttributeObject,

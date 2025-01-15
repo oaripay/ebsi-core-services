@@ -1,7 +1,5 @@
-import type {
-  EbsiEnvConfiguration,
-  EbsiIssuer,
-} from "@cef-ebsi/verifiable-credential";
+import type { EbsiIssuer } from "@cef-ebsi/verifiable-credential";
+import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 
 import {
@@ -15,10 +13,7 @@ import { fastifyAccepts } from "@fastify/accepts";
 import { fastifyHelmet } from "@fastify/helmet";
 import { Logger, ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import {
-  FastifyAdapter,
-  type NestFastifyApplication,
-} from "@nestjs/platform-fastify";
+import { FastifyAdapter } from "@nestjs/platform-fastify";
 import { Test } from "@nestjs/testing";
 import { ethers } from "ethers";
 import crypto from "node:crypto";
@@ -76,13 +71,11 @@ describe("Timestamp API v4 - Timestamp (e2e)", () => {
   let ledgerApi: string;
   let sampleTransaction: string;
   let authorisationApiUrl: string;
-  let trustedHostnames: string[];
   let adminUser: TestUser;
   let testUser: TestUser;
-
   let blockscout: {
-    bearerToken: string;
-    url: string;
+    bearerToken: string | undefined;
+    url: string | undefined;
   };
 
   beforeAll(async () => {
@@ -126,19 +119,14 @@ describe("Timestamp API v4 - Timestamp (e2e)", () => {
 
     server = getServer(app, configService);
 
-    const configBlockscout = configService.get<{
-      bearerToken: string;
-      url: string;
-    }>("blockscout");
+    const configBlockscout = configService.get("blockscout", { infer: true });
 
-    authorisationApiUrl = configService.get<string>("authorisationApiUrl");
-    trustedHostnames = configService.get<string[]>("trustedHostnames");
+    authorisationApiUrl = configService.get("authorisationApiUrl", {
+      infer: true,
+    });
 
     if (writeOps()) {
-      const configTestAdmin = configService.get<{
-        kid: string;
-        privateKey: string;
-      }>("testAdmin");
+      const configTestAdmin = configService.get("testAdmin", { infer: true });
       const adminKid = configTestAdmin.kid;
       const adminPrivateKeyHex = configTestAdmin.privateKey;
       const adminDid = adminKid.split("#")[0]!;
@@ -149,20 +137,8 @@ describe("Timestamp API v4 - Timestamp (e2e)", () => {
         adminKid,
       );
 
-      const ebsiAuthority = configService
-        .get<string>("domain")
-        .replace(/^https?:\/\//, "");
-      ledgerApi = `${configService.get<string>("ledgerApiUrl")}/blockchains/besu`;
-      const ebsiEnvConfig = {
-        hosts: [ebsiAuthority, ...trustedHostnames],
-        network: configService.get("network", { infer: true }),
-        services: {
-          "did-registry": "v5",
-          "trusted-issuers-registry": "v5",
-          "trusted-policies-registry": "v3",
-          "trusted-schemas-registry": "v3",
-        },
-      } satisfies EbsiEnvConfiguration;
+      ledgerApi = `${configService.get("ledgerApiUrl", { infer: true })}/blockchains/besu`;
+      const ebsiEnvConfig = configService.get("ebsiEnvConfig", { infer: true });
 
       try {
         adminUser = {
@@ -179,10 +155,7 @@ describe("Timestamp API v4 - Timestamp (e2e)", () => {
         throw error;
       }
 
-      const configTestUser = configService.get<{
-        kid: string;
-        privateKey: string;
-      }>("testUser");
+      const configTestUser = configService.get("testUser", { infer: true });
       const userKid = configTestUser.kid;
       const userDid = userKid.split("#")[0]!;
       const userPrivateKeyHex = configTestUser.privateKey;
@@ -236,7 +209,7 @@ describe("Timestamp API v4 - Timestamp (e2e)", () => {
       .digest()
       .toString("hex")}`;
 
-    ledgerApi = `${configService.get<string>("ledgerApiUrl")}/blockchains/besu`;
+    ledgerApi = `${configService.get("ledgerApiUrl", { infer: true })}/blockchains/besu`;
   });
 
   afterAll(async () => {
@@ -549,7 +522,11 @@ describe("Timestamp API v4 - Timestamp (e2e)", () => {
         // check if blockscout is working properly
         const blockscoutCheck = await request(blockscout.url)
           .get(`/tx/${sampleTransaction}`)
-          .set({ Authorization: blockscout.bearerToken });
+          .set({
+            ...(blockscout.bearerToken && {
+              Authorization: blockscout.bearerToken,
+            }),
+          });
 
         expect(blockscoutCheck.status).toBe(200);
       });

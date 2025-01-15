@@ -1,4 +1,4 @@
-import type { JSONSchema } from "@apidevtools/json-schema-ref-parser/dist/lib/types";
+import type { JSONSchema } from "@apidevtools/json-schema-ref-parser";
 
 import { computeId, prefixWith0x, remove0xPrefix } from "@ebsiint-api/shared";
 import validator from "validator";

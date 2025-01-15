@@ -1,12 +1,11 @@
+import type { NestFastifyApplication } from "@nestjs/platform-fastify";
+
 import { frameworkErrors, methodNotAllowed } from "@ebsiint-api/shared";
 import { fastifyAccepts } from "@fastify/accepts";
 import { fastifyHelmet } from "@fastify/helmet";
 import { Logger, ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import {
-  FastifyAdapter,
-  type NestFastifyApplication,
-} from "@nestjs/platform-fastify";
+import { FastifyAdapter } from "@nestjs/platform-fastify";
 import { Test } from "@nestjs/testing";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
@@ -21,16 +20,18 @@ import {
   vi,
 } from "vitest";
 
+import type { ApiConfig } from "./config/configuration.js";
+
 import { AppModule } from "./app.module.js";
-import { type ApiConfig, DEPENDENCIES } from "./config/configuration.js";
+import { RUNTIME_DEPENDENCIES } from "./config/configuration.js";
 import { AllExceptionsFilter } from "./filters/http-exception.filter.js";
 import { createLogger } from "./logger/logger.js";
 
 describe("App Module", () => {
   const mockServer = setupServer();
   const dependencies = Object.keys(
-    DEPENDENCIES,
-  ) as (keyof typeof DEPENDENCIES)[];
+    RUNTIME_DEPENDENCIES,
+  ) as (keyof typeof RUNTIME_DEPENDENCIES)[];
 
   beforeAll(() => {
     // Intercept network requests
@@ -75,9 +76,6 @@ describe("App Module", () => {
       // Turn off logger
       Logger.overrideLogger(mockedLogger);
 
-      const configService =
-        app.get<ConfigService<ApiConfig, true>>(ConfigService);
-
       // https://cheatsheetseries.owasp.org/cheatsheets/REST_Security_Cheat_Sheet.html#security-headers
       await app.register(fastifyHelmet, {
         contentSecurityPolicy: {
@@ -98,16 +96,6 @@ describe("App Module", () => {
 
       const fastifyInstance = app.getHttpAdapter().getInstance();
       fastifyInstance.addHook("onRequest", methodNotAllowed);
-
-      const domain = configService.get<string>("domain");
-      const localOrigin = configService.get<string>("localOrigin") || domain;
-
-      // Mock dependencies
-      const didRegistryApiUrl = `${configService.get<string>(
-        "didRegistryApiUrl",
-      )}`.replace(domain, localOrigin);
-
-      mockServer.use(http.get(didRegistryApiUrl, () => HttpResponse.json({})));
 
       await app.init();
       await fastifyInstance.ready();
@@ -339,14 +327,17 @@ describe("App Module", () => {
           app.get<ConfigService<ApiConfig, true>>(ConfigService);
 
         const localOrigin =
-          configService.get<string>("localOrigin") ||
-          configService.get<string>("domain");
+          configService.get("localOrigin", { infer: true }) ??
+          configService.get("domain", { infer: true });
 
         // All the dependencies return a 200
         mockServer.use(
           ...dependencies.map((dependency) =>
-            http.get(`${localOrigin}${DEPENDENCIES[dependency]}`, () =>
-              HttpResponse.json({}),
+            http.get(
+              // @ts-expect-error Argument of type 'string' is not assignable to parameter of type 'never'
+              // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+              `${localOrigin}/${dependency}/${RUNTIME_DEPENDENCIES[dependency]}`,
+              () => HttpResponse.json({}),
             ),
           ),
           http.get(configService.get("besuReadinessEndpoint"), () =>
@@ -378,14 +369,17 @@ describe("App Module", () => {
           app.get<ConfigService<ApiConfig, true>>(ConfigService);
 
         const localOrigin =
-          configService.get<string>("localOrigin") ||
-          configService.get<string>("domain");
+          configService.get("localOrigin", { infer: true }) ??
+          configService.get("domain", { infer: true });
 
         // All the dependencies return a 200
         mockServer.use(
           ...dependencies.map((dependency) =>
-            http.get(`${localOrigin}${DEPENDENCIES[dependency]}`, () =>
-              HttpResponse.json({}),
+            http.get(
+              // @ts-expect-error Argument of type 'string' is not assignable to parameter of type 'never'
+              // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+              `${localOrigin}/${dependency}/${RUNTIME_DEPENDENCIES[dependency]}`,
+              () => HttpResponse.json({}),
             ),
           ),
           http.get(configService.get("besuReadinessEndpoint"), () =>
@@ -436,14 +430,17 @@ describe("App Module", () => {
           app.get<ConfigService<ApiConfig, true>>(ConfigService);
 
         const localOrigin =
-          configService.get<string>("localOrigin") ||
-          configService.get<string>("domain");
+          configService.get("localOrigin", { infer: true }) ??
+          configService.get("domain", { infer: true });
 
         // All the dependencies return a 200
         mockServer.use(
           ...dependencies.map((dependency) =>
-            http.get(`${localOrigin}${DEPENDENCIES[dependency]}`, () =>
-              HttpResponse.json({}),
+            http.get(
+              // @ts-expect-error Argument of type 'string' is not assignable to parameter of type 'never'
+              // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+              `${localOrigin}/${dependency}/${RUNTIME_DEPENDENCIES[dependency]}`,
+              () => HttpResponse.json({}),
             ),
           ),
           http.get(configService.get("besuReadinessEndpoint"), () =>
@@ -472,11 +469,17 @@ describe("App Module", () => {
         );
 
         // Expect all the dependencies to be up
-        const expectedStatuses = [...dependencies, "Besu"]
-          .map((dependency) => ({
-            [`${dependency}`]: { status: "up" },
-          }))
-          .reduce((acc, currentVal) => ({ ...acc, ...currentVal }), {});
+        const expectedStatuses = {
+          ...dependencies
+            .map((dependency) => ({
+              // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+              [`${dependency}@${RUNTIME_DEPENDENCIES[dependency]}`]: {
+                status: "up",
+              },
+            }))
+            .reduce((acc, currentVal) => ({ ...acc, ...currentVal }), {}),
+          Besu: { status: "up" },
+        };
 
         // It should have logged the response (with body)
         expect(mockedLogger.log).toHaveBeenNthCalledWith(

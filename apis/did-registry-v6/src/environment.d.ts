@@ -3,13 +3,13 @@ declare global {
   namespace NodeJS {
     interface ProcessEnv {
       API_PORT?: string;
-      API_URL_PREFIX?: string;
       AXIOS_RETRY_DELAY?: string;
       DOCKER_TAG?: string;
       DOMAIN: string;
       GRAPHQL_ENDPOINT: string;
       LOCAL_ORIGIN?: string;
       LOG_LEVEL?: "debug" | "error" | "info" | "silent" | "verbose" | "warn";
+      NETWORK: string;
       NODE_ENV: "development" | "production" | "test";
       TEST_ENV?: string;
       TEST_SPECIFIC_NODE_DOMAIN?: string;

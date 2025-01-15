@@ -1,10 +1,8 @@
+import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 
 import { fastifyAccepts } from "@fastify/accepts";
-import {
-  FastifyAdapter,
-  type NestFastifyApplication,
-} from "@nestjs/platform-fastify";
+import { FastifyAdapter } from "@nestjs/platform-fastify";
 import { Test } from "@nestjs/testing";
 import request from "supertest";
 import { beforeAll, describe, expect, it } from "vitest";

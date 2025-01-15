@@ -68,26 +68,12 @@ export class AuthorisationService {
     configService: ConfigService<ApiConfig, true>,
     @Inject(CACHE_MANAGER) private cacheManager: MemoryCache,
   ) {
-    const domain = configService.get("domain", { infer: true });
-    this.ebsiEnvConfig = {
-      hosts: [
-        domain.replace(/^https?:\/\//, ""), // remove http protocol scheme
-        ...configService.get("trustedHostnames", { infer: true }),
-      ],
-      network: configService.get("network", { infer: true }),
-      services: {
-        "did-registry": "v4",
-        "trusted-issuers-registry": "v4",
-        "trusted-policies-registry": "v2",
-        "trusted-schemas-registry": "v2",
-      },
-    };
+    this.ebsiEnvConfig = configService.get("ebsiEnvConfig");
     const apiUrlPrefix = configService.get("apiUrlPrefix", { infer: true });
+    const domain = configService.get("domain", { infer: true });
     this.issuer = `${domain}${apiUrlPrefix}`;
-    this.didRegistry = configService.get("didRegistry", { infer: true });
-    this.trustedIssuersRegistry = configService.get("trustedIssuersRegistry", {
-      infer: true,
-    });
+    this.didRegistry = `${domain}/did-registry/${this.ebsiEnvConfig.services["did-registry"]}/identifiers`;
+    this.trustedIssuersRegistry = `${domain}/trusted-issuers-registry/${this.ebsiEnvConfig.services["trusted-issuers-registry"]}/issuers`;
     this.apiES256PrivateKey = hexToBytes(
       configService.get("apiES256PrivateKey", { infer: true }),
     );
@@ -692,8 +678,7 @@ export class AuthorisationService {
       const audience = this.issuer;
       const now = Math.floor(Date.now() / 1000);
 
-      await verifyPresentationJwt(vpToken, audience, {
-        ...this.ebsiEnvConfig,
+      await verifyPresentationJwt(vpToken, audience, this.ebsiEnvConfig, {
         skipHolderDidResolutionValidation: isDidUnresolvable,
         skipSignatureValidation: isDidUnresolvable,
         validAt: now, // The JWT VC(s) must be valid now

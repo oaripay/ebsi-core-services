@@ -2,6 +2,7 @@ import type {
   EbsiEnvConfiguration,
   EbsiIssuer,
 } from "@cef-ebsi/verifiable-credential";
+import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 
 import { fromUrl } from "@cef-ebsi/ebsi-uri";
@@ -17,10 +18,7 @@ import { fastifyAccepts } from "@fastify/accepts";
 import { fastifyHelmet } from "@fastify/helmet";
 import { Logger, ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import {
-  FastifyAdapter,
-  type NestFastifyApplication,
-} from "@nestjs/platform-fastify";
+import { FastifyAdapter } from "@nestjs/platform-fastify";
 import { Test } from "@nestjs/testing";
 import { useContainer } from "class-validator";
 import { hexToBytes } from "did-jwt";
@@ -125,14 +123,14 @@ describe("TIR API v4 - Issuers (e2e)", () => {
           id:
             uriType === "URL"
               ? verifiableAttestationSchemaUrl
-              : fromUrl(verifiableAttestationSchemaUrl),
+              : fromUrl(verifiableAttestationSchemaUrl, ebsiEnvConfig),
           type: "FullJsonSchemaValidator2021",
         },
         {
           id:
             uriType === "URL"
               ? statusListSchemaUrl
-              : fromUrl(statusListSchemaUrl),
+              : fromUrl(statusListSchemaUrl, ebsiEnvConfig),
           type: "FullJsonSchemaValidator2021",
         },
       ],
@@ -160,8 +158,8 @@ describe("TIR API v4 - Issuers (e2e)", () => {
       await createVerifiableCredentialJwt(
         newIssuer1StatusList2021Credential,
         issuer,
+        ebsiEnvConfig,
         {
-          ...ebsiEnvConfig,
           skipValidation: true,
         },
       );
@@ -228,17 +226,18 @@ describe("TIR API v4 - Issuers (e2e)", () => {
     lastExistingIssuerDid = issuersResponse.body.items[1]!.did;
 
     // Get testIssuerWithProxy's first proxyId
-    testIssuerWithProxyKid = configService.get<string>(
-      "testIssuerWithProxyKid",
-    );
+    testIssuerWithProxyKid = configService.get("testIssuerWithProxyKid", {
+      infer: true,
+    });
     testIssuerWithProxyDid = testIssuerWithProxyKid.split("#")[0]!;
     const issuerProxiesResponse: SupertestIssuerProxiesResponse = await request(
       server,
     ).get(`/issuers/${testIssuerWithProxyDid}/proxies`);
     testIssuerWithProxyFirstProxyId =
       issuerProxiesResponse.body.items[0]!.proxyId;
-    testIssuerWithProxyPrivateKey = configService.get<string>(
+    testIssuerWithProxyPrivateKey = configService.get(
       "testIssuerWithProxyPrivateKey",
+      { infer: true },
     );
 
     testIssuerWithProxy = getEbsiIssuer(
@@ -247,15 +246,17 @@ describe("TIR API v4 - Issuers (e2e)", () => {
       testIssuerWithProxyKid,
     );
 
-    trustedSchemasRegistryApiUrl = configService.get<string>(
+    trustedSchemasRegistryApiUrl = configService.get(
       "trustedSchemasRegistryApiUrl",
+      { infer: true },
     );
-    testVerifiableAttestationSchemaId = configService.get<string>(
+    testVerifiableAttestationSchemaId = configService.get(
       "testVerifiableAttestationSchemaId",
+      { infer: true },
     );
-    testStatusListSchemaId = configService.get<string>(
-      "testStatusListSchemaId",
-    );
+    testStatusListSchemaId = configService.get("testStatusListSchemaId", {
+      infer: true,
+    });
   });
 
   afterAll(async () => {
@@ -868,27 +869,15 @@ describe("TIR API v4 - Issuers (e2e)", () => {
           expect.assertions(2);
 
           // Mock issuer's endpoint response
-          const authority = configService
-            .get<string>("domain")
-            .replace(/^https?:\/\//, "");
-
-          const trustedHostnames =
-            configService.get<string[]>("trustedHostnames");
+          const ebsiEnvConfig = configService.get("ebsiEnvConfig", {
+            infer: true,
+          });
 
           const statusList2021CredentialJwt =
             await createStatusList2021CredentialJwt(
               testIssuerWithProxy,
               proxy,
-              {
-                hosts: [authority, ...trustedHostnames],
-                network: configService.get("network", { infer: true }),
-                services: {
-                  "did-registry": "v4",
-                  "trusted-issuers-registry": "v4",
-                  "trusted-policies-registry": "v2",
-                  "trusted-schemas-registry": "v2",
-                },
-              },
+              ebsiEnvConfig,
               uriType,
             );
 

@@ -17,7 +17,8 @@ import { isIssuerProxy } from "./IsIssuerProxy.js";
 
 const ebsiEnvConfig = {
   hosts: ["api-test.ebsi.eu"],
-  network: "test",
+  network: { name: "test" },
+  scheme: "ebsi",
   services: {
     "did-registry": "v4",
     "trusted-issuers-registry": "v4",

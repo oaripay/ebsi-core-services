@@ -91,22 +91,9 @@ describe("Authorisation  API v5 (e2e)", () => {
     server = getServer(app, configService);
 
     const domain = configService.get("domain", { infer: true });
-    const ebsiAuthority = domain.replace(/^https?:\/\//, ""); // remove http protocol scheme
     const apiUrlPrefix = configService.get("apiUrlPrefix", { infer: true });
     authorisationApiV4Url = `${domain}${apiUrlPrefix}`;
-    const trustedHostnames = configService.get("trustedHostnames", {
-      infer: true,
-    });
-    ebsiEnvConfig = {
-      hosts: [ebsiAuthority, ...trustedHostnames],
-      network: process.env.NETWORK,
-      services: {
-        "did-registry": "v6",
-        "trusted-issuers-registry": "v6",
-        "trusted-policies-registry": "v4",
-        "trusted-schemas-registry": "v4",
-      },
-    };
+    ebsiEnvConfig = configService.get("ebsiEnvConfig");
   });
 
   afterAll(async () => {
@@ -531,7 +518,7 @@ describe("Authorisation  API v5 (e2e)", () => {
                     credentialSchema: {
                       id:
                         uriType === "EBSI URI"
-                          ? fromUrl(credentialSchemaUrl)
+                          ? fromUrl(credentialSchemaUrl, ebsiEnvConfig)
                           : credentialSchemaUrl,
                       type: "FullJsonSchemaValidator2021",
                     },
@@ -544,7 +531,7 @@ describe("Authorisation  API v5 (e2e)", () => {
                     termsOfUse: {
                       id:
                         uriType === "EBSI URI"
-                          ? fromUrl(issuerAttribute)
+                          ? fromUrl(issuerAttribute, ebsiEnvConfig)
                           : issuerAttribute,
                       type: "IssuanceCertificate",
                     },
@@ -599,8 +586,8 @@ describe("Authorisation  API v5 (e2e)", () => {
                       const vcJwt = await createVerifiableCredentialJwt(
                         vcPayload,
                         issuer,
+                        ebsiEnvConfig,
                         {
-                          ...ebsiEnvConfig,
                           skipValidation: true,
                         },
                       );
@@ -612,8 +599,8 @@ describe("Authorisation  API v5 (e2e)", () => {
                       vpPayload,
                       client,
                       "authentication-service-v3",
+                      ebsiEnvConfig,
                       {
-                        ...ebsiEnvConfig,
                         exp: Math.floor(Date.now() / 1000) + 60, // Expires in 1 minute (less than the 5 minutes limit)
                         nbf: Math.floor(Date.now() / 1000) - 100,
                         nonce: randomUUID(),
@@ -658,8 +645,8 @@ describe("Authorisation  API v5 (e2e)", () => {
                       const vcJwt = await createVerifiableCredentialJwt(
                         vcPayload,
                         issuer,
+                        ebsiEnvConfig,
                         {
-                          ...ebsiEnvConfig,
                           skipValidation: true,
                         },
                       );
@@ -671,8 +658,8 @@ describe("Authorisation  API v5 (e2e)", () => {
                       vpPayload,
                       client,
                       authorisationApiV4Url,
+                      ebsiEnvConfig,
                       {
-                        ...ebsiEnvConfig,
                         exp: Math.floor(Date.now() / 1000) + 60, // Expires in 1 minute (less than the 5 minutes limit)
                         nbf: Math.floor(Date.now() / 1000) - 100,
                         nonce: randomUUID(),
@@ -732,8 +719,8 @@ describe("Authorisation  API v5 (e2e)", () => {
                       const vcJwt = await createVerifiableCredentialJwt(
                         vcPayload,
                         issuer,
+                        ebsiEnvConfig,
                         {
-                          ...ebsiEnvConfig,
                           skipValidation: true,
                         },
                       );
@@ -745,8 +732,8 @@ describe("Authorisation  API v5 (e2e)", () => {
                       vpPayload,
                       client,
                       authorisationApiV4Url,
+                      ebsiEnvConfig,
                       {
-                        ...ebsiEnvConfig,
                         exp: Math.floor(Date.now() / 1000) - 100,
                         nbf: Math.floor(Date.now() / 1000) - 100,
                         nonce: randomUUID(),
@@ -791,8 +778,8 @@ describe("Authorisation  API v5 (e2e)", () => {
                       const vcJwt = await createVerifiableCredentialJwt(
                         vcPayload,
                         issuer,
+                        ebsiEnvConfig,
                         {
-                          ...ebsiEnvConfig,
                           skipValidation: true,
                         },
                       );
@@ -804,8 +791,8 @@ describe("Authorisation  API v5 (e2e)", () => {
                       vpPayload,
                       client,
                       authorisationApiV4Url,
+                      ebsiEnvConfig,
                       {
-                        ...ebsiEnvConfig,
                         exp: Math.floor(Date.now() / 1000) + 600, // Expires in 10 minutes, more than the 5 minutes limit
                         nbf: Math.floor(Date.now() / 1000) - 100,
                         nonce: randomUUID(),
@@ -851,8 +838,8 @@ describe("Authorisation  API v5 (e2e)", () => {
                       const vcJwt = await createVerifiableCredentialJwt(
                         vcPayload,
                         issuer,
+                        ebsiEnvConfig,
                         {
-                          ...ebsiEnvConfig,
                           skipValidation: true,
                         },
                       );
@@ -864,8 +851,8 @@ describe("Authorisation  API v5 (e2e)", () => {
                       vpPayload,
                       client,
                       authorisationApiV4Url,
+                      ebsiEnvConfig,
                       {
-                        ...ebsiEnvConfig,
                         exp: Math.floor(Date.now() / 1000) + 120, // Expires in 2 minutes (less than the 5 minutes limit)
                         nbf: Math.floor(Date.now() / 1000) + 100,
                         nonce: randomUUID(),
@@ -911,8 +898,8 @@ describe("Authorisation  API v5 (e2e)", () => {
                       const vcJwt = await createVerifiableCredentialJwt(
                         vcPayload,
                         issuer,
+                        ebsiEnvConfig,
                         {
-                          ...ebsiEnvConfig,
                           skipValidation: true,
                         },
                       );
@@ -924,8 +911,8 @@ describe("Authorisation  API v5 (e2e)", () => {
                       vpPayload,
                       client,
                       authorisationApiV4Url,
+                      ebsiEnvConfig,
                       {
-                        ...ebsiEnvConfig,
                         exp: Math.floor(Date.now() / 1000) + 60, // Expires in 1 minute (less than the 5 minutes limit)
                         // We don't add any nonce
                         nbf: Math.floor(Date.now() / 1000) - 100,
@@ -972,8 +959,8 @@ describe("Authorisation  API v5 (e2e)", () => {
                       const vcJwt = await createVerifiableCredentialJwt(
                         vcPayload,
                         issuer,
+                        ebsiEnvConfig,
                         {
-                          ...ebsiEnvConfig,
                           skipValidation: true,
                         },
                       );
@@ -1070,8 +1057,8 @@ describe("Authorisation  API v5 (e2e)", () => {
                     const vcJwt = await createVerifiableCredentialJwt(
                       vcPayload,
                       issuer,
+                      ebsiEnvConfig,
                       {
-                        ...ebsiEnvConfig,
                         skipValidation: true,
                       },
                     );
@@ -1083,8 +1070,8 @@ describe("Authorisation  API v5 (e2e)", () => {
                     vpPayload,
                     client,
                     authorisationApiV4Url,
+                    ebsiEnvConfig,
                     {
-                      ...ebsiEnvConfig,
                       exp: Math.floor(Date.now() / 1000) + 60, // Expires in 1 minute (less than the 5 minutes limit)
                       nbf: Math.floor(Date.now() / 1000) - 100,
                       nonce: randomUUID(),
@@ -1140,8 +1127,8 @@ describe("Authorisation  API v5 (e2e)", () => {
                     vpPayload,
                     client,
                     authorisationApiV4Url,
+                    ebsiEnvConfig,
                     {
-                      ...ebsiEnvConfig,
                       exp: Math.floor(Date.now() / 1000) + 60, // Expires in 1 minute (less than the 5 minutes limit)
                       nbf: Math.floor(Date.now() / 1000) - 100,
                       nonce: randomUUID(),
@@ -1196,8 +1183,8 @@ describe("Authorisation  API v5 (e2e)", () => {
                     vpPayload,
                     client,
                     authorisationApiV4Url,
+                    ebsiEnvConfig,
                     {
-                      ...ebsiEnvConfig,
                       exp: Math.floor(Date.now() / 1000) + 60, // Expires in 1 minute (less than the 5 minutes limit)
                       nbf: Math.floor(Date.now() / 1000) - 100,
                       nonce: randomUUID(),
@@ -1235,8 +1222,8 @@ describe("Authorisation  API v5 (e2e)", () => {
                     vpPayload,
                     client,
                     authorisationApiV4Url,
+                    ebsiEnvConfig,
                     {
-                      ...ebsiEnvConfig,
                       exp: Math.floor(Date.now() / 1000) + 60, // Expires in 1 minute (less than the 5 minutes limit)
                       nbf: Math.floor(Date.now() / 1000) - 100,
                       nonce: randomUUID(),
@@ -1272,8 +1259,8 @@ describe("Authorisation  API v5 (e2e)", () => {
                     vpPayload,
                     client,
                     authorisationApiV4Url,
+                    ebsiEnvConfig,
                     {
-                      ...ebsiEnvConfig,
                       exp: Math.floor(Date.now() / 1000) + 60, // Expires in 1 minute (less than the 5 minutes limit)
                       nbf: Math.floor(Date.now() / 1000) - 100,
                       nonce: randomUUID(),
@@ -1319,8 +1306,8 @@ describe("Authorisation  API v5 (e2e)", () => {
                     const vcJwt = await createVerifiableCredentialJwt(
                       vcPayload,
                       issuer,
+                      ebsiEnvConfig,
                       {
-                        ...ebsiEnvConfig,
                         skipValidation: true,
                       },
                     );
@@ -1334,8 +1321,8 @@ describe("Authorisation  API v5 (e2e)", () => {
                     vpPayload,
                     client,
                     authorisationApiV4Url,
+                    ebsiEnvConfig,
                     {
-                      ...ebsiEnvConfig,
                       exp: Math.floor(Date.now() / 1000) + 60, // Expires in 1 minute (less than the 5 minutes limit)
                       nbf: Math.floor(Date.now() / 1000) - 100,
                       nonce,
@@ -1384,8 +1371,8 @@ describe("Authorisation  API v5 (e2e)", () => {
                     const vcJwt = await createVerifiableCredentialJwt(
                       vcPayload,
                       issuer,
+                      ebsiEnvConfig,
                       {
-                        ...ebsiEnvConfig,
                         skipValidation: true,
                       },
                     );
@@ -1399,8 +1386,8 @@ describe("Authorisation  API v5 (e2e)", () => {
                     vpPayload,
                     client,
                     authorisationApiV4Url,
+                    ebsiEnvConfig,
                     {
-                      ...ebsiEnvConfig,
                       exp: Math.floor(Date.now() / 1000) + 60, // Expires in 1 minute (less than the 5 minutes limit)
                       nbf: Math.floor(Date.now() / 1000) - 100,
                       nonce,

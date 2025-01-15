@@ -1,3 +1,4 @@
+import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { HardhatEthersProvider } from "@nomicfoundation/hardhat-ethers/internal/hardhat-ethers-provider.js";
 import type { RawServerDefault } from "fastify";
 
@@ -6,10 +7,7 @@ import { Timestamp, Timestamp__factory } from "@ebsiint-sc/timestamp-v3";
 import { fastifyAccepts } from "@fastify/accepts";
 import { Logger, ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import {
-  FastifyAdapter,
-  type NestFastifyApplication,
-} from "@nestjs/platform-fastify";
+import { FastifyAdapter } from "@nestjs/platform-fastify";
 import { Test } from "@nestjs/testing";
 import { ethers } from "ethers";
 import {
@@ -32,6 +30,7 @@ import {
   vi,
 } from "vitest";
 
+import type { UserDetails } from "../../../tests/utils/data.js";
 import type { ApiConfig } from "../../config/configuration.js";
 import type { JsonRpcResponseObject } from "./jsonrpc.interface.js";
 import type { AppendRecordVersionHashesSchema } from "./validators/RequestAppendRecordVersionHashes.js";
@@ -47,7 +46,7 @@ import type { TimestampVersionHashesSchema } from "./validators/RequestTimestamp
 import type { UpdateHashAlgorithmSchema } from "./validators/RequestUpdateHashAlgorithm.js";
 import type { UnsignedTransactionSchema } from "./validators/UnsignedTransaction.js";
 
-import { createUser, type UserDetails } from "../../../tests/utils/data.js";
+import { createUser } from "../../../tests/utils/data.js";
 import { graphServer } from "../../../tests/utils/graphServer.js";
 import {
   multihashToNodeHashAlg,
@@ -239,9 +238,9 @@ describe("JsonRpc Module", () => {
     );
 
     // Mock Auth API
-    const authorisationApiUrl = configService.get<string>(
-      "authorisationApiUrl",
-    );
+    const authorisationApiUrl = configService.get("authorisationApiUrl", {
+      infer: true,
+    });
 
     mockServer.use(
       // Mock Auth API /.well-known/openid-configuration endpoint
@@ -257,7 +256,9 @@ describe("JsonRpc Module", () => {
 
   beforeEach(() => {
     // Mock DIDR API
-    const didRegistryApiUrl = configService.get<string>("didRegistryApiUrl");
+    const didRegistryApiUrl = configService.get("didRegistryApiUrl", {
+      infer: true,
+    });
     mockServer.use(
       // Mock DIDR API /identifiers/:did/actions endpoint
       http.post(
@@ -399,9 +400,7 @@ describe("JsonRpc Module", () => {
     mockServer.use(
       http.post(
         escapeDid(
-          `${configService.get<string>(
-            "didRegistryApiUrl",
-          )}/identifiers/${testAdmin.did}/actions`,
+          `${configService.get("didRegistryApiUrl", { infer: true })}/identifiers/${testAdmin.did}/actions`,
         ),
         () =>
           HttpResponse.json(

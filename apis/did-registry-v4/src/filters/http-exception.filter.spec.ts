@@ -1,3 +1,5 @@
+import type { NestFastifyApplication } from "@nestjs/platform-fastify";
+
 import {
   methodNotAllowed,
   MethodNotAllowedError,
@@ -12,10 +14,7 @@ import {
   ValidationPipe,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import {
-  FastifyAdapter,
-  type NestFastifyApplication,
-} from "@nestjs/platform-fastify";
+import { FastifyAdapter } from "@nestjs/platform-fastify";
 import { Test } from "@nestjs/testing";
 import { AxiosError } from "axios";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";

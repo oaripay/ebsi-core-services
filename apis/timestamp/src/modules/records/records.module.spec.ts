@@ -1,13 +1,11 @@
+import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 
 import { methodNotAllowed, multibase } from "@ebsiint-api/shared";
 import { Timestamp, Timestamp__factory } from "@ebsiint-sc/timestamp";
 import { fastifyAccepts } from "@fastify/accepts";
 import { Logger, ValidationPipe } from "@nestjs/common";
-import {
-  FastifyAdapter,
-  type NestFastifyApplication,
-} from "@nestjs/platform-fastify";
+import { FastifyAdapter } from "@nestjs/platform-fastify";
 import { Test } from "@nestjs/testing";
 import crypto from "node:crypto";
 import request from "supertest";

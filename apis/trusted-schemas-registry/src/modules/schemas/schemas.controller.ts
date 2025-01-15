@@ -77,8 +77,10 @@ export class SchemasController {
       query["page[size]"],
     );
 
-    const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
-    const domain = this.configService.get<string>("domain");
+    const apiUrlPrefix = this.configService.get("apiUrlPrefix", {
+      infer: true,
+    });
+    const domain = this.configService.get("domain", { infer: true });
     const baseUrl = `${domain}${apiUrlPrefix}/schemas/${schemaId}/revisions/${schemaRevisionId}/metadata`;
 
     return formatSchemaRevisionMetadataList(
@@ -104,8 +106,10 @@ export class SchemasController {
       query["valid-at"],
     );
 
-    const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
-    const domain = this.configService.get<string>("domain");
+    const apiUrlPrefix = this.configService.get("apiUrlPrefix", {
+      infer: true,
+    });
+    const domain = this.configService.get("domain", { infer: true });
     const baseUrl = `${domain}${apiUrlPrefix}/schemas/${schemaId}/revisions`;
 
     return formatSchemaRevisions(
@@ -127,8 +131,10 @@ export class SchemasController {
       query["page[size]"],
     );
 
-    const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
-    const domain = this.configService.get<string>("domain");
+    const apiUrlPrefix = this.configService.get("apiUrlPrefix", {
+      infer: true,
+    });
+    const domain = this.configService.get("domain", { infer: true });
     const baseUrl = `${domain}${apiUrlPrefix}/schemas`;
 
     return formatSchemas(

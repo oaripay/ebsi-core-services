@@ -41,8 +41,10 @@ export class AuthService {
     configService: ConfigService<ApiConfig, true>,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {
-    this.timeout = configService.get<number>("requestTimeout");
-    this.authorisationApiUrl = configService.get<string>("authorisationApiUrl");
+    this.timeout = configService.get("requestTimeout", { infer: true });
+    this.authorisationApiUrl = configService.get("authorisationApiUrl", {
+      infer: true,
+    });
   }
 
   async validateToken(bearerToken: string): Promise<SubjectInfo> {

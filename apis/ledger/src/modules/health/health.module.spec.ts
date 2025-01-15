@@ -1,3 +1,4 @@
+import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 
 import { methodNotAllowed } from "@ebsiint-api/shared";
@@ -5,11 +6,7 @@ import { fastifyAccepts } from "@fastify/accepts";
 import { HttpService } from "@nestjs/axios";
 import { Logger, ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import {
-  FastifyAdapter,
-  type NestFastifyApplication,
-} from "@nestjs/platform-fastify";
-import { HealthIndicatorResult } from "@nestjs/terminus";
+import { FastifyAdapter } from "@nestjs/platform-fastify";
 import { Test } from "@nestjs/testing";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
@@ -82,13 +79,14 @@ describe("Health Module", () => {
   });
 
   describe("GET /health", () => {
-    it("should return 'ok' if all the dependencies return a 20x", async () => {
+    it("should return 'ok' if all the runtime dependencies return a 20x", async () => {
       expect.assertions(3);
 
       // All the dependencies return a 200
       mockServer.use(
-        http.get(configService.get<string>("besuReadinessEndpoint"), () =>
-          HttpResponse.json({}),
+        http.get(
+          configService.get("besuReadinessEndpoint", { infer: true }),
+          () => HttpResponse.json({}),
         ),
       );
 
@@ -98,15 +96,11 @@ describe("Health Module", () => {
 
       // Expect httpService.request to have been called for every dependency
       expect(spy).toHaveBeenCalledWith({
-        url: configService.get<string>("besuReadinessEndpoint"),
+        url: configService.get("besuReadinessEndpoint", { infer: true }),
       });
 
       // Expect all the dependencies to be up
-      const expectedStatuses = (["Besu"] as const)
-        .map((dependency) => ({
-          [`${dependency}`]: { status: "up" },
-        }))
-        .reduce((acc, currentVal) => ({ ...acc, ...currentVal }), {});
+      const expectedStatuses = { Besu: { status: "up" } };
 
       expect(response.body).toStrictEqual({
         details: expectedStatuses,
@@ -122,8 +116,9 @@ describe("Health Module", () => {
 
       // All the dependencies return a 200 except Besu readiness (503)
       mockServer.use(
-        http.get(configService.get<string>("besuReadinessEndpoint"), () =>
-          HttpResponse.json({}, { status: 503 }),
+        http.get(
+          configService.get("besuReadinessEndpoint", { infer: true }),
+          () => HttpResponse.json({}, { status: 503 }),
         ),
       );
 
@@ -133,26 +128,18 @@ describe("Health Module", () => {
 
       // Expect httpService.request to have been called for every dependency
       expect(spy).toHaveBeenCalledWith({
-        url: configService.get<string>("besuReadinessEndpoint"),
+        url: configService.get("besuReadinessEndpoint", { infer: true }),
       });
 
       // Expect all the dependencies to be up except Besu
-      const expectedStatuses = (["Besu"] as const)
-        .map(
-          (dependency) =>
-            ({
-              [`${dependency}`]:
-                dependency === "Besu"
-                  ? ({
-                      message: "Request failed with status code 503",
-                      status: "down",
-                      statusCode: 503,
-                      statusText: "Service Unavailable",
-                    } as const)
-                  : ({ status: "up" } as const),
-            }) satisfies HealthIndicatorResult,
-        )
-        .reduce((acc, currentVal) => ({ ...acc, ...currentVal }), {});
+      const expectedStatuses = {
+        Besu: {
+          message: "Request failed with status code 503",
+          status: "down",
+          statusCode: 503,
+          statusText: "Service Unavailable",
+        } as const,
+      };
 
       const { Besu: errorStatus, ...otherStatuses } = expectedStatuses;
 

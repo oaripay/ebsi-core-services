@@ -7,11 +7,10 @@ import { Test } from "@nestjs/testing";
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
+import type { ApiConfig } from "../../src/config/configuration.js";
+
 import { AppModule } from "../../src/app.module.js";
-import {
-  type ApiConfig,
-  DEPENDENCIES,
-} from "../../src/config/configuration.js";
+import { DEPENDENCIES } from "../../src/config/configuration.js";
 import { configureApp } from "../utils/app.js";
 import { getServer } from "../utils/getServer.js";
 
@@ -155,7 +154,7 @@ describe("Authorisation API v5 - Generic tests (e2e)", () => {
       ) as (keyof typeof DEPENDENCIES)[];
       const expectedStatuses = dependencies
         .map((dependency) => ({
-          [`${dependency}`]: { status: "up" },
+          [`${dependency}@${DEPENDENCIES[dependency]}`]: { status: "up" },
         }))
         .reduce((acc, currentVal) => ({ ...acc, ...currentVal }), {});
 

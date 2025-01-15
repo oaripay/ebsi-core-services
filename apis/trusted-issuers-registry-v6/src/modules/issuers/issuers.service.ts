@@ -42,20 +42,8 @@ export class IssuersService {
   private timeout: number;
 
   constructor(configService: ConfigService<ApiConfig, true>) {
-    const domain = configService.get("domain", { infer: true });
-    const ebsiAuthority = domain.replace(/^https?:\/\//, ""); // remove http protocol scheme
-    const trustedHostnames = configService.get<string[]>("trustedHostnames");
-    this.ebsiEnvConfig = {
-      hosts: [ebsiAuthority, ...trustedHostnames],
-      network: configService.get("network", { infer: true }),
-      services: {
-        "did-registry": "v6",
-        "trusted-issuers-registry": "v6",
-        "trusted-policies-registry": "v4",
-        "trusted-schemas-registry": "v4",
-      },
-    };
-    this.timeout = configService.get<number>("requestTimeout");
+    this.ebsiEnvConfig = configService.get("ebsiEnvConfig", { infer: true });
+    this.timeout = configService.get("requestTimeout", { infer: true });
   }
 
   async getAttribute(

@@ -30,10 +30,11 @@ export class LedgerService implements OnModuleDestroy {
   private timeout: number;
 
   constructor(private configService: ConfigService<ApiConfig, true>) {
-    this.contractAddress = this.configService.get<string>(
+    this.contractAddress = this.configService.get(
       "besuTrustedIssuersRegistryAddress",
+      { infer: true },
     );
-    this.timeout = configService.get<number>("requestTimeout");
+    this.timeout = configService.get("requestTimeout", { infer: true });
   }
 
   getContract() {
@@ -75,7 +76,7 @@ export class LedgerService implements OnModuleDestroy {
   }
 
   private initBesuProvider(): void {
-    const besuRpcNode = this.configService.get<string>("besuRpcNode");
+    const besuRpcNode = this.configService.get("besuRpcNode", { infer: true });
 
     if (!besuRpcNode || typeof besuRpcNode !== "string") {
       throw new Error("Invalid or missing BESU_RPC_NODE");

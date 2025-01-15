@@ -2,16 +2,14 @@ import hre from "hardhat";
 import * as taskNames from "hardhat/builtin-tasks/task-names.js";
 import type { JsonRpcServer } from "hardhat/types";
 
+import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 
 import "@nomicfoundation/hardhat-ethers";
 import { methodNotAllowed } from "@ebsiint-api/shared";
 import { fastifyAccepts } from "@fastify/accepts";
 import { Logger, ValidationPipe } from "@nestjs/common";
-import {
-  FastifyAdapter,
-  type NestFastifyApplication,
-} from "@nestjs/platform-fastify";
+import { FastifyAdapter } from "@nestjs/platform-fastify";
 import { Test } from "@nestjs/testing";
 import request from "supertest";
 import {

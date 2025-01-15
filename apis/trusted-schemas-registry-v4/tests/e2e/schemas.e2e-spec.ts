@@ -1,5 +1,5 @@
-import type { JSONSchema } from "@apidevtools/json-schema-ref-parser/dist/lib/types";
-import type { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
+import type { JSONSchema } from "@apidevtools/json-schema-ref-parser";
+import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 
 import {
@@ -12,10 +12,7 @@ import { fastifyAccepts } from "@fastify/accepts";
 import { fastifyHelmet } from "@fastify/helmet";
 import { Logger, ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import {
-  FastifyAdapter,
-  type NestFastifyApplication,
-} from "@nestjs/platform-fastify";
+import { FastifyAdapter } from "@nestjs/platform-fastify";
 import { Test } from "@nestjs/testing";
 import { ethers } from "ethers";
 import crypto from "node:crypto";
@@ -53,7 +50,7 @@ describe("TSR API v4 - Schemas (e2e)", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault | string;
   let adminTestWallet: ethers.Wallet;
-  let testUserAccessToken: string;
+  let testAdminAccessToken: string;
 
   let rawSchema: JSONSchema;
   let schemaId: string;
@@ -83,8 +80,8 @@ describe("TSR API v4 - Schemas (e2e)", () => {
   let sampleTransaction: string;
 
   let blockscout: {
-    bearerToken: string;
-    url: string;
+    bearerToken: string | undefined;
+    url: string | undefined;
   };
 
   beforeAll(async () => {
@@ -128,44 +125,41 @@ describe("TSR API v4 - Schemas (e2e)", () => {
 
     server = getServer(app, configService);
     if (writeOps()) {
-      const trustedHostnames = configService.get<string[]>("trustedHostnames");
-      const ebsiAuthority = configService
-        .get<string>("domain")
-        .replace(/^https?:\/\//, "");
-      const ebsiEnvConfig = {
-        hosts: [ebsiAuthority, ...trustedHostnames],
-        network: configService.get("network", { infer: true }),
-        services: {
-          "did-registry": "v6",
-          "trusted-issuers-registry": "v6",
-          "trusted-policies-registry": "v4",
-          "trusted-schemas-registry": "v4",
-        },
-      } satisfies EbsiEnvConfiguration;
+      const ebsiEnvConfig = configService.get("ebsiEnvConfig", { infer: true });
 
-      const testUserPrivateKeyHex = configService.get<string>(
-        "testAdminPrivateKey",
-      );
-      const testUserKid = configService.get<string>("testAdminKid");
-      const testUserDid = testUserKid.split("#")[0]!;
-      const testUserIssuerInfo = await getEbsiIssuer(
-        testUserPrivateKeyHex,
-        testUserDid,
-        testUserKid,
+      const testAdminPrivateKeyHex = configService.get("testAdminPrivateKey", {
+        infer: true,
+      });
+
+      if (!testAdminPrivateKeyHex) {
+        throw new Error("Missing testAdminPrivateKey");
+      }
+
+      const testAdminKid = configService.get("testAdminKid", { infer: true });
+
+      if (!testAdminKid) {
+        throw new Error("Missing testAdminKid");
+      }
+
+      const testAdminDid = testAdminKid.split("#")[0]!;
+      const testAdminIssuerInfo = await getEbsiIssuer(
+        testAdminPrivateKeyHex,
+        testAdminDid,
+        testAdminKid,
       );
 
       adminTestWallet = new ethers.Wallet(
-        prefixWith0x(configService.get("testAdminPrivateKey")),
+        prefixWith0x(configService.get("testAdminPrivateKey", { infer: true })),
       );
 
-      const authorisationApiUrl = configService.get<string>(
-        "authorisationApiUrl",
-      );
+      const authorisationApiUrl = configService.get("authorisationApiUrl", {
+        infer: true,
+      });
 
       try {
-        testUserAccessToken = await getTsrWriteAccessToken(
+        testAdminAccessToken = await getTsrWriteAccessToken(
           authorisationApiUrl,
-          testUserIssuerInfo,
+          testAdminIssuerInfo,
           ebsiEnvConfig,
         );
       } catch (error) {
@@ -174,15 +168,12 @@ describe("TSR API v4 - Schemas (e2e)", () => {
       }
     }
 
-    ledgerApi = `${configService.get<string>("ledgerApiUrl")}/blockchains/besu`;
+    ledgerApi = `${configService.get("ledgerApiUrl", { infer: true })}/blockchains/besu`;
     rawSchema = createVerifiableAuthorisationSchema(
-      configService.get<string>("testVaSchemaUrl"),
+      configService.get("testVaSchemaUrl", { infer: true }),
     );
 
-    blockscout = configService.get<{
-      bearerToken: string;
-      url: string;
-    }>("blockscout");
+    blockscout = configService.get("blockscout", { infer: true });
 
     const schemaIdBuffer = await computeId(rawSchema);
     schemaId = `0x${schemaIdBuffer.toString("hex")}`;
@@ -272,7 +263,7 @@ describe("TSR API v4 - Schemas (e2e)", () => {
 
         const responseBuild: SupertestJsonRpcResponse = await request(server)
           .post("/jsonrpc")
-          .auth(testUserAccessToken, { type: "bearer" })
+          .auth(testAdminAccessToken, { type: "bearer" })
           .send({
             id: 231,
             jsonrpc: "2.0",
@@ -315,7 +306,7 @@ describe("TSR API v4 - Schemas (e2e)", () => {
 
         const responseSend: SupertestJsonRpcResponse = await request(server)
           .post("/jsonrpc")
-          .auth(testUserAccessToken, { type: "bearer" })
+          .auth(testAdminAccessToken, { type: "bearer" })
           .send({
             id: "45",
             jsonrpc: "2.0",
@@ -360,7 +351,11 @@ describe("TSR API v4 - Schemas (e2e)", () => {
         // check if blockscout is working properly
         const blockscoutCheck = await request(blockscout.url)
           .get(`/tx/${sampleTransaction}`)
-          .set({ Authorization: blockscout.bearerToken });
+          .set({
+            ...(blockscout.bearerToken && {
+              Authorization: blockscout.bearerToken,
+            }),
+          });
 
         expect(blockscoutCheck.status).toBe(200);
       });

@@ -5,14 +5,17 @@ import hre from "hardhat";
 import type { TrackAndTrace } from "@ebsiint-sc/track-and-trace";
 import type { HardhatEthersProvider } from "@nomicfoundation/hardhat-ethers/internal/hardhat-ethers-provider.js";
 import type { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers.js";
+import type { JWK } from "jose";
 
 import "@nomicfoundation/hardhat-ethers";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
-import { exportJWK, generateKeyPair, type JWK } from "jose";
+import { exportJWK, generateKeyPair } from "jose";
+
+import type { TestDocument } from "./data.js";
 
 import { AccountType, Permission } from "../../src/shared/constants.js";
 import { didToHex } from "../../src/shared/utils.js";
-import { createDocument, createEvent, type TestDocument } from "./data.js";
+import { createDocument, createEvent } from "./data.js";
 
 export interface SetupOptions {
   documentEventsTotal?: number;

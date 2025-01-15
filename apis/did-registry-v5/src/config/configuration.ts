@@ -1,4 +1,5 @@
-import { type Network, NETWORKS } from "@cef-ebsi/ebsi-uri";
+import type { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
+
 import { ConfigModule } from "@nestjs/config";
 import Joi from "joi";
 
@@ -17,34 +18,69 @@ export interface ApiConfig {
   contractAddr: string;
   dockerContainerTag: string;
   domain: string;
-  ledgerApiUrl: string;
-  localOrigin: string;
+  ebsiEnvConfig: EbsiEnvConfiguration;
+  localOrigin: string | undefined;
   logLevel: "debug" | "error" | "info" | "silent" | "verbose" | "warn";
-  network: Network;
   requestTimeout: number;
   testAuthApiV4ES256PrivateKey: string;
   testSpecificNodeDomain: string | undefined;
-  trustedHostnames: string[];
 }
 
-const AUTH_API_PATH = "/authorisation/v4";
-const LEDGER_API_PATH = "/ledger/v4";
+export const SERVICE_PREFIX = "did-registry";
+export const SERVICE_VERSION = "v5";
 
-export const DEPENDENCIES = {
-  "Authorisation API v4": AUTH_API_PATH,
-  "Ledger API v4": LEDGER_API_PATH, // Only used for e2e tests
-} as const;
+// Declare all the services and their versions used by this service
+interface ServiceVersions {
+  authorisation: "v4";
+  ledger: "v4";
+  "trusted-issuers-registry": "v5";
+  "trusted-policies-registry": "v3";
+  "trusted-schemas-registry": "v3";
+}
+
+// EBSI Services that must be up and running before this service starts
+export const BOOTSTRAP_DEPENDENCIES = {
+  authorisation: "v4",
+} as const satisfies Partial<ServiceVersions>;
+
+// EBSI Services that must be up and running for this service to be considered healthy
+export const RUNTIME_DEPENDENCIES = {
+  authorisation: "v4",
+} as const satisfies Partial<ServiceVersions>;
+
+// EBSI Services that are only used during the tests
+export const DEV_DEPENDENCIES = {
+  ledger: "v4",
+  "trusted-issuers-registry": "v5",
+  "trusted-policies-registry": "v3",
+  "trusted-schemas-registry": "v3",
+} as const satisfies Partial<ServiceVersions>;
 
 // Config factory
 // Note that process.env — for which provide typings in src/environment.d.ts —
 // should have already been validated by Joi in src/app.module.ts
-export const loadConfig = (): ApiConfig => {
-  const { DOMAIN } = process.env;
+export const loadConfig = () => {
+  const { DOMAIN, URI_SCHEME } = process.env;
+
+  const ebsiEnvConfig = {
+    hosts: [
+      DOMAIN.replace(/^https?:\/\//, ""), // remove http protocol scheme
+    ],
+    network: {
+      isOptional: process.env.NETWORK === "production",
+      name: process.env.NETWORK,
+    },
+    scheme: URI_SCHEME ?? "ebsi",
+    services: {
+      ...DEV_DEPENDENCIES,
+      "did-registry": SERVICE_VERSION, // self-reference
+    },
+  } as const satisfies EbsiEnvConfiguration;
 
   return {
     apiPort: Number.parseInt(process.env.API_PORT ?? "3000", 10),
-    apiUrlPrefix: process.env.API_URL_PREFIX ?? "/did-registry/v5",
-    authorisationApiUrl: DOMAIN + AUTH_API_PATH,
+    apiUrlPrefix: `/${SERVICE_PREFIX}/${SERVICE_VERSION}`,
+    authorisationApiUrl: `${DOMAIN}/authorisation/${RUNTIME_DEPENDENCIES.authorisation}`,
     axiosRetryDelay: Number.parseInt(
       process.env.AXIOS_RETRY_DELAY ?? "10000",
       10,
@@ -58,18 +94,14 @@ export const loadConfig = (): ApiConfig => {
     contractAddr: process.env.CONTRACT_ADDR,
     dockerContainerTag: process.env.DOCKER_TAG ?? "",
     domain: DOMAIN,
-    ledgerApiUrl: DOMAIN + LEDGER_API_PATH,
-    localOrigin: process.env.LOCAL_ORIGIN ?? "",
+    ebsiEnvConfig,
+    localOrigin: process.env.LOCAL_ORIGIN,
     logLevel: process.env.LOG_LEVEL ?? "warn",
-    network: process.env.NETWORK,
     requestTimeout: Number.parseInt(process.env.REQUEST_TIMEOUT ?? "15000", 10),
     testAuthApiV4ES256PrivateKey:
       process.env.TEST_AUTH_API_V4_ES256_PRIVATE_KEY ?? "",
     testSpecificNodeDomain: process.env.TEST_SPECIFIC_NODE_DOMAIN,
-    trustedHostnames: (process.env.TRUSTED_HOSTNAMES ?? "")
-      .split(",")
-      .filter(Boolean),
-  };
+  } as const satisfies ApiConfig;
 };
 
 export const ApiConfigModule = ConfigModule.forRoot({
@@ -82,7 +114,6 @@ export const ApiConfigModule = ConfigModule.forRoot({
   load: [loadConfig],
   validationSchema: Joi.object<typeof process.env, true>({
     API_PORT: Joi.string().default("3000"),
-    API_URL_PREFIX: Joi.string(),
     AXIOS_RETRY_DELAY: Joi.string(),
     BESU_READINESS_ENDPOINT: Joi.string().uri().required(),
     BESU_RPC_NODE: Joi.string().uri().required(),
@@ -101,9 +132,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
       "verbose",
       "debug",
     ),
-    NETWORK: Joi.string()
-      .valid(...NETWORKS)
-      .required(),
+    NETWORK: Joi.string(),
     // Common API variables
     NODE_ENV: Joi.string()
       .valid("development", "production", "test")
@@ -113,8 +142,9 @@ export const ApiConfigModule = ConfigModule.forRoot({
     TEST_ENABLE_WRITE_OPS: Joi.string(),
     TEST_ENV: Joi.string(),
     TEST_SPECIFIC_NODE_DOMAIN: Joi.string().uri(),
-    TRUSTED_HOSTNAMES: Joi.string(),
     // Generic variables
     TZ: Joi.string(),
+    // EBSI URI Scheme prefix
+    URI_SCHEME: Joi.string(),
   }),
 });

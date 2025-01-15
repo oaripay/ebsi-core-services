@@ -2,6 +2,7 @@ import type {
   PaginatedList,
   StatusList2021Credential,
 } from "@ebsiint-api/shared";
+import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 
 import { fromUrl } from "@cef-ebsi/ebsi-uri";
@@ -25,10 +26,7 @@ import { fastifyAccepts } from "@fastify/accepts";
 import { fastifyHelmet } from "@fastify/helmet";
 import { Logger, ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import {
-  FastifyAdapter,
-  type NestFastifyApplication,
-} from "@nestjs/platform-fastify";
+import { FastifyAdapter } from "@nestjs/platform-fastify";
 import { Test } from "@nestjs/testing";
 import { useContainer } from "class-validator";
 import { hexToBytes } from "did-jwt";
@@ -121,10 +119,9 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
     let authorisationApiUrl: string;
     let sampleTransaction: string;
     let blockscout: {
-      bearerToken: string;
-      url: string;
+      bearerToken: string | undefined;
+      url: string | undefined;
     };
-    let trustedHostnames: string[];
     let adminIssuer: TestIssuer;
     let testIssuerWithProxy: TestIssuer;
     let ebsiEnvConfig: EbsiEnvConfiguration;
@@ -146,14 +143,14 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
             id:
               uriType === "URL"
                 ? verifiableAttestationSchemaUrl
-                : fromUrl(verifiableAttestationSchemaUrl),
+                : fromUrl(verifiableAttestationSchemaUrl, ebsiEnvConfig),
             type: "FullJsonSchemaValidator2021",
           },
           {
             id:
               uriType === "URL"
                 ? statusListSchemaUrl
-                : fromUrl(statusListSchemaUrl),
+                : fromUrl(statusListSchemaUrl, ebsiEnvConfig),
             type: "FullJsonSchemaValidator2021",
           },
         ],
@@ -181,8 +178,8 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
         await createVerifiableCredentialJwt(
           newIssuer1StatusList2021Credential,
           issuer,
+          config,
           {
-            ...config,
             skipValidation: true,
           },
         );
@@ -241,37 +238,25 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
 
       server = getServer(app, configService);
 
-      blockscout = configService.get<{
-        bearerToken: string;
-        url: string;
-      }>("blockscout");
-      trustedHostnames = configService.get<string[]>("trustedHostnames");
-      ledgerApi = `${configService.get<string>("ledgerApiUrl")}/blockchains/besu`;
-      trustedSchemasRegistryApiUrl = configService.get<string>(
+      blockscout = configService.get("blockscout", { infer: true });
+      ledgerApi = `${configService.get("ledgerApiUrl", { infer: true })}/blockchains/besu`;
+      trustedSchemasRegistryApiUrl = configService.get(
         "trustedSchemasRegistryApiUrl",
+        { infer: true },
       );
-      authorisationApiUrl = configService.get<string>("authorisationApiUrl");
-      testVerifiableAttestationSchemaId = configService.get<string>(
+      authorisationApiUrl = configService.get("authorisationApiUrl", {
+        infer: true,
+      });
+      testVerifiableAttestationSchemaId = configService.get(
         "testVerifiableAttestationSchemaId",
+        { infer: true },
       );
-      testStatusListSchemaId = configService.get<string>(
-        "testStatusListSchemaId",
-      );
+      testStatusListSchemaId = configService.get("testStatusListSchemaId", {
+        infer: true,
+      });
 
-      const ebsiAuthority = configService
-        .get<string>("domain")
-        .replace(/^https?:\/\//, "");
-      ledgerApi = `${configService.get<string>("ledgerApiUrl")}/blockchains/besu`;
-      ebsiEnvConfig = {
-        hosts: [ebsiAuthority, ...trustedHostnames],
-        network: configService.get("network", { infer: true }),
-        services: {
-          "did-registry": "v6",
-          "trusted-issuers-registry": "v6",
-          "trusted-policies-registry": "v4",
-          "trusted-schemas-registry": "v4",
-        },
-      };
+      ledgerApi = `${configService.get("ledgerApiUrl", { infer: true })}/blockchains/besu`;
+      ebsiEnvConfig = configService.get("ebsiEnvConfig", { infer: true });
 
       // Get last 2 issuers DID
       let issuersResponse: SupertestIssuersResponse =
@@ -284,13 +269,15 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
       );
 
       // Get testIssuerWithProxy's first proxyId
-      const testIssuerWithProxyKid = configService.get<string>(
+      const testIssuerWithProxyKid = configService.get(
         "testIssuerWithProxyKid",
+        { infer: true },
       );
       const testIssuerWithProxyDid = testIssuerWithProxyKid.split("#")[0]!;
 
-      const testIssuerWithProxyPrivateKey = configService.get<string>(
+      const testIssuerWithProxyPrivateKey = configService.get(
         "testIssuerWithProxyPrivateKey",
+        { infer: true },
       );
 
       const testIssuerWithProxyWallet = new ethers.Wallet(
@@ -319,11 +306,11 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
       }
 
       // Import "admin" issuer (TI with policies to call the SC methods)
-      const adminKid = configService.get<string>("testAdminKid");
+      const adminKid = configService.get("testAdminKid", { infer: true });
       const adminDid = adminKid.split("#")[0]!;
-      const adminPrivateKeyHex = configService.get<string>(
-        "testAdminPrivateKey",
-      );
+      const adminPrivateKeyHex = configService.get("testAdminPrivateKey", {
+        infer: true,
+      });
       const adminWallet = new ethers.Wallet(prefixWith0x(adminPrivateKeyHex));
       const adminIssuerInfo = await getEbsiIssuer(
         adminPrivateKeyHex,
@@ -395,8 +382,9 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
               adminIssuer.info,
               ebsiEnvConfig,
             );
-            const didRegistryApiUrl =
-              configService.get<string>("didRegistryApiUrl");
+            const didRegistryApiUrl = configService.get("didRegistryApiUrl", {
+              infer: true,
+            });
             const now = Math.floor(Date.now() / 1000);
             const in6months = now + 6 * 30 * 24 * 3600;
             let responseBuild: SupertestJsonRpcResponse = await request(
@@ -718,16 +706,16 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
               issuanceDate.getTime() + 2 * 60 * 60 * 1000,
             );
             const verifiableAttestationSchemaUrl = `${trustedSchemasRegistryApiUrl}/schemas/${testVerifiableAttestationSchemaId}`;
-            const termsOfUseUrl = configService.get<string>(
-              "testAdminAccreditation",
-            );
+            const termsOfUseUrl = configService.get("testAdminAccreditation", {
+              infer: true,
+            });
             const vcPayload: EbsiVerifiableAttestation = {
               "@context": ["https://www.w3.org/2018/credentials/v1"],
               credentialSchema: {
                 id:
                   uriType === "URL"
                     ? verifiableAttestationSchemaUrl
-                    : fromUrl(verifiableAttestationSchemaUrl),
+                    : fromUrl(verifiableAttestationSchemaUrl, ebsiEnvConfig),
                 type: "FullJsonSchemaValidator2021",
               },
               credentialSubject: { id: newIssuerDid },
@@ -737,7 +725,10 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
               issued: `${issuanceDate.toISOString().slice(0, -5)}Z`,
               issuer: adminIssuer.info.did,
               termsOfUse: {
-                id: uriType === "URL" ? termsOfUseUrl : fromUrl(termsOfUseUrl),
+                id:
+                  uriType === "URL"
+                    ? termsOfUseUrl
+                    : fromUrl(termsOfUseUrl, ebsiEnvConfig),
                 type: "IssuanceCertificate",
               },
               type: [
@@ -750,8 +741,8 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
             const vcJwt = await createVerifiableCredentialJwt(
               vcPayload,
               adminIssuer.info,
+              ebsiEnvConfig,
               {
-                ...ebsiEnvConfig,
                 skipValidation: true,
               },
             );
@@ -1180,7 +1171,11 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
         // check if blockscout is working properly
         const blockscoutCheck = await request(blockscout.url)
           .get(`/tx/${sampleTransaction}`)
-          .set({ Authorization: blockscout.bearerToken });
+          .set({
+            ...(blockscout.bearerToken && {
+              Authorization: blockscout.bearerToken,
+            }),
+          });
 
         expect(blockscoutCheck.status).toBe(200);
       });
@@ -1200,7 +1195,9 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
             });
 
             testIssuerWithProxyWallet = new ethers.Wallet(
-              prefixWith0x(configService.get("testIssuerWithProxyPrivateKey")),
+              prefixWith0x(
+                configService.get("testAdminAccreditation", { infer: true }),
+              ),
             );
 
             // Mock Trusted Issuers' endpoint

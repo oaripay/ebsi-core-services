@@ -25,7 +25,7 @@
     "test:ci": "yarn test:unit --coverage --reporter=default"
   },
   "dependencies": {
-    "@cef-ebsi/ebsi-uri": "^0.2.0-alpha.1",
+    "@cef-ebsi/ebsi-uri": "^1.0.0-alpha.0",
     "@ebsiint-api/shared": "^1.1.0-rc.10",
     "@ebsiint-sc/did-registry-v4": "^4.0.0-rc.2",
     "@fastify/accepts": "^4.3.0",
@@ -56,8 +56,8 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
-    "@cef-ebsi/verifiable-credential": "^6.2.0-alpha.4",
-    "@cef-ebsi/verifiable-presentation": "^7.2.0-alpha.3",
+    "@cef-ebsi/verifiable-credential": "^7.0.0-alpha.0",
+    "@cef-ebsi/verifiable-presentation": "^8.0.0-alpha.0",
     "@cef-ebsi/wallet-lib": "^6.0.0-alpha.3",
     "@nestjs/cli": "^10.4.9",
     "@nestjs/schematics": "^10.2.3",

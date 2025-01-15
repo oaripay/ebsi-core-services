@@ -655,10 +655,10 @@
     did-resolver "^4.1.0"
     multiformats "^9.6.2"
 
-"@cef-ebsi/ebsi-uri@^0.2.0-alpha.1":
-  version "0.2.0-alpha.1"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/ebsi-uri/-/ebsi-uri-0.2.0-alpha.1.tgz#0a55fb5c72416ab84df7a8f8e4823862008c7300"
-  integrity sha512-0hihsqyPx4WVRQ087aAokddvoz3S3w95dshEyouHDSzRuLsQMx8NANh02x/L/WToUbF53vHYJoGXR69GuV4Dwg==
+"@cef-ebsi/ebsi-uri@^1.0.0-alpha.0":
+  version "1.0.0-alpha.0"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/ebsi-uri/-/ebsi-uri-1.0.0-alpha.0.tgz#eda35998bc29f31653cb9f75e8683e2b6736f8e1"
+  integrity sha512-kfE2bykRufPbcY1L174VSRBEuEiJwCypVf4G6+Wck/ElCQOZOPgjOh7sScqE7jqtS2rea8GubHyN+/nQqGsoZA==
 
 "@cef-ebsi/key-did-resolver@^2.1.0-alpha.2":
   version "2.1.0-alpha.2"
@@ -678,13 +678,6 @@
     "@noble/secp256k1" "^2.1.0"
     asn1.js "^5.4.1"
 
-"@cef-ebsi/vcdm1.1-accreditation-schema@1.4.0":
-  version "1.4.0"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/vcdm1.1-accreditation-schema/-/vcdm1.1-accreditation-schema-1.4.0.tgz#79e90e4229a2c94f9bf22e762cb67e685c7efa8d"
-  integrity sha512-viZWfszWiyzfWCv/Alv48glS4YYqHo9D87nKNwVqIWMR/M/yvVu07k27moOzLuEXAj7SsToAgtLSseaMfuQw+g==
-  dependencies:
-    "@cef-ebsi/vcdm1.1-attestation-schema" "1.3.0"
-
 "@cef-ebsi/vcdm1.1-accreditation-schema@^1.4.1":
   version "1.4.1"
   resolved "https://registry.yarnpkg.com/@cef-ebsi/vcdm1.1-accreditation-schema/-/vcdm1.1-accreditation-schema-1.4.1.tgz#57f1603626db47baa647eddacb5152b3315bee3a"
@@ -698,11 +691,6 @@
   integrity sha512-TWE+dT9IpgedjbS/IM9d/eL8Loff/23XW9sS79UpUHLrtOULr2zDAz5jKc3sEuibbsLXvSwPceYfAdELmv2YeA==
   dependencies:
     "@cef-ebsi/vcdm1.1-attestation-schema" "1.3.1"
-
-"@cef-ebsi/vcdm1.1-attestation-schema@1.3.0":
-  version "1.3.0"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/vcdm1.1-attestation-schema/-/vcdm1.1-attestation-schema-1.3.0.tgz#7691701e55e3b7bab118b459eb58a6aa278463d3"
-  integrity sha512-A8ol6bUOGdYFeAWRAg8WMymgCtzQXRXP5S6zi7JB8o4VU3ICylRqYcQM83BHwmZNGF+uwRwEmkIGX9Z0kF9dDg==
 
 "@cef-ebsi/vcdm1.1-attestation-schema@1.3.1", "@cef-ebsi/vcdm1.1-attestation-schema@^1.3.1":
   version "1.3.1"
@@ -828,22 +816,10 @@
   dependencies:
     "@cef-ebsi/vcdm1.1-attestation-schema" "1.3.1"
 
-"@cef-ebsi/vcdm1.1-presentation-schema@1.0.3":
-  version "1.0.3"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/vcdm1.1-presentation-schema/-/vcdm1.1-presentation-schema-1.0.3.tgz#ca9885918e06fb2018ecce499333ac6b4a65329b"
-  integrity sha512-MAbThvUOBG75kSE4iSSGvEFTxMgBFUrMQCsPCXi+oteStXpHSIy8JEg6UFyrLqmDqKK1MY4SzuopkW9dm5Y1+A==
-
 "@cef-ebsi/vcdm1.1-presentation-schema@^1.0.4":
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/@cef-ebsi/vcdm1.1-presentation-schema/-/vcdm1.1-presentation-schema-1.0.4.tgz#3cb984044fdea1a66916632846c30de963ed4867"
   integrity sha512-Z8IiHE4+2d0zgVUiVBKDwvu+JuWsECmq3Zh+GnKUvRRneWqXtDOCOO7E+Y1YmAR5c9o+twRzYL3QbX0jYZclNg==
-
-"@cef-ebsi/vcdm1.1-revocation-statuslist-schema@1.3.0":
-  version "1.3.0"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/vcdm1.1-revocation-statuslist-schema/-/vcdm1.1-revocation-statuslist-schema-1.3.0.tgz#b1fa60bf9221e4fb7932c4ca2e7951286c039d41"
-  integrity sha512-nFRBQFVI33lRUwuGM5ow7xX+Vm17GdbXhK5cZ+qmFkx3dsFUpFxOEUqobvRr0MH0vwkLKIU4v9bzlHXUPmlIGA==
-  dependencies:
-    "@cef-ebsi/vcdm1.1-attestation-schema" "1.3.0"
 
 "@cef-ebsi/vcdm1.1-revocation-statuslist-schema@^1.3.1":
   version "1.3.1"
@@ -1022,17 +998,17 @@
   dependencies:
     "@cef-ebsi/vcdm2.0-attestation-schema" "1.2.1"
 
-"@cef-ebsi/verifiable-credential@^6.2.0-alpha.4":
-  version "6.2.0-alpha.4"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/verifiable-credential/-/verifiable-credential-6.2.0-alpha.4.tgz#1cddc9d81931b07728798266270758c46cc957b0"
-  integrity sha512-xt1AVFeXNyMUns6kIrbV4cPgzuJ55dE5kN5RnLydjI8Xfh2m28rxDAnPOZTNRsjne1mVudZ47HN5RLXq2WQl2w==
+"@cef-ebsi/verifiable-credential@^7.0.0-alpha.0":
+  version "7.0.0-alpha.0"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/verifiable-credential/-/verifiable-credential-7.0.0-alpha.0.tgz#0ccf02c048b68a277705ca2372ab49ada704ac2e"
+  integrity sha512-GlJAo4ttqcGca0IrC92QDYUN0hulgpm+gWkZjixKMS+6ko5PA1SuQvF30lDxAyTV61byQwAyeqgHdj8x9I+3Xg==
   dependencies:
     "@cef-ebsi/ebsi-did-resolver" "^4.0.5-alpha.0"
-    "@cef-ebsi/ebsi-uri" "^0.2.0-alpha.1"
+    "@cef-ebsi/ebsi-uri" "^1.0.0-alpha.0"
     "@cef-ebsi/key-did-resolver" "^2.1.0-alpha.2"
-    "@cef-ebsi/vcdm1.1-accreditation-schema" "1.4.0"
-    "@cef-ebsi/vcdm1.1-attestation-schema" "1.3.0"
-    "@cef-ebsi/vcdm1.1-revocation-statuslist-schema" "1.3.0"
+    "@cef-ebsi/vcdm1.1-accreditation-schema" "^1.4.1"
+    "@cef-ebsi/vcdm1.1-attestation-schema" "^1.3.1"
+    "@cef-ebsi/vcdm1.1-revocation-statuslist-schema" "^1.3.1"
     "@noble/curves" "^1.7.0"
     "@noble/hashes" "^1.6.1"
     "@segment/ajv-human-errors" "^2.14.1"
@@ -1041,22 +1017,21 @@
     axios "^1.7.7"
     did-jwt "^8.0.4"
     did-resolver "^4.1.0"
-    lodash.clonedeep "^4.5.0"
     memoize "^10.0.0"
     multiformats "^9.6.2"
     pako "^2.1.0"
     uint8arrays "3.1.1"
 
-"@cef-ebsi/verifiable-presentation@^7.2.0-alpha.3":
-  version "7.2.0-alpha.3"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/verifiable-presentation/-/verifiable-presentation-7.2.0-alpha.3.tgz#1b34726305f6d83feb43e7a3837dd719f4de79b7"
-  integrity sha512-tmU92NE4P9WeYWE5Azl9D+QFzXhhloxUvzJkJ7ab8CegaeDZXpSL1xn7bj1rG0y8bTM2QOLKeaTQ6U4GsNGqqA==
+"@cef-ebsi/verifiable-presentation@^8.0.0-alpha.0":
+  version "8.0.0-alpha.0"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/verifiable-presentation/-/verifiable-presentation-8.0.0-alpha.0.tgz#2fdfbf933038d3ab3d4f60f0c6282d8463c04f1a"
+  integrity sha512-8opV+X78qNd2U5sM/AlWFj9LQfcrD+Xpxw/aH9gYEyYyhtt32Pj0V0b2/vWtb68nIbBwX2mLhqJCiTgivT/7Sg==
   dependencies:
     "@cef-ebsi/ebsi-did-resolver" "^4.0.5-alpha.0"
-    "@cef-ebsi/ebsi-uri" "^0.2.0-alpha.1"
+    "@cef-ebsi/ebsi-uri" "^1.0.0-alpha.0"
     "@cef-ebsi/key-did-resolver" "^2.1.0-alpha.2"
-    "@cef-ebsi/vcdm1.1-presentation-schema" "1.0.3"
-    "@cef-ebsi/verifiable-credential" "^6.2.0-alpha.4"
+    "@cef-ebsi/vcdm1.1-presentation-schema" "^1.0.4"
+    "@cef-ebsi/verifiable-credential" "^7.0.0-alpha.0"
     "@segment/ajv-human-errors" "^2.14.1"
     did-jwt "^8.0.4"
     did-resolver "^4.1.0"
@@ -14522,10 +14497,10 @@ type-fest@^0.8.1:
   resolved "https://registry.yarnpkg.com/type-fest/-/type-fest-0.8.1.tgz#09e249ebde851d3b1e48d27c105444667f17b83d"
   integrity sha512-4dbzIzqvjtgiM5rw1k5rEHtBANKmdudhGyBEajN01fEyhaAIhsoKNy6y7+IN93IfpFtwY9iqi7kD+xwKhQsNJA==
 
-type-fest@^4.26.1, type-fest@^4.31.0, type-fest@^4.6.0, type-fest@^4.7.1:
-  version "4.31.0"
-  resolved "https://registry.yarnpkg.com/type-fest/-/type-fest-4.31.0.tgz#a3de630c96eb77c281b6ba2affa5dae5fb3c326c"
-  integrity sha512-yCxltHW07Nkhv/1F6wWBr8kz+5BGMfP+RbRSYFnegVb0qV/UMT0G0ElBloPVerqn4M2ZV80Ir1FtCcYv1cT6vQ==
+type-fest@^4.26.1, type-fest@^4.32.0, type-fest@^4.6.0, type-fest@^4.7.1:
+  version "4.32.0"
+  resolved "https://registry.yarnpkg.com/type-fest/-/type-fest-4.32.0.tgz#55bacdd6f2cf1392b7e9cde894e9b1d726807e97"
+  integrity sha512-rfgpoi08xagF3JSdtJlCwMq9DGNDE0IMh3Mkpc1wUypg9vPi786AiqeBBKcqvIkq42azsBM85N490fyZjeUftw==
 
 typechain@^8.3.2:
   version "8.3.2"

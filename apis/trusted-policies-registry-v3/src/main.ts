@@ -1,3 +1,5 @@
+import type { NestFastifyApplication } from "@nestjs/platform-fastify";
+
 import {
   frameworkErrors,
   methodNotAllowed,
@@ -8,10 +10,7 @@ import { fastifyHelmet } from "@fastify/helmet";
 import { ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { NestFactory } from "@nestjs/core";
-import {
-  FastifyAdapter,
-  type NestFastifyApplication,
-} from "@nestjs/platform-fastify";
+import { FastifyAdapter } from "@nestjs/platform-fastify";
 
 import type { ApiConfig } from "./config/configuration.js";
 
@@ -33,12 +32,14 @@ async function bootstrap(): Promise<void> {
   );
 
   const configService = app.get<ConfigService<ApiConfig, true>>(ConfigService);
-  const apiUrlPrefix = configService.get<string>("apiUrlPrefix");
-  const port = configService.get<number>("apiPort");
-  const logLevel = configService.get<string>("logLevel");
-  const domain = configService.get<string>("domain");
-  const localOrigin = configService.get<string>("localOrigin");
-  const dockerContainerTag = configService.get<string>("dockerContainerTag");
+  const apiUrlPrefix = configService.get("apiUrlPrefix", { infer: true });
+  const port = configService.get("apiPort", { infer: true });
+  const logLevel = configService.get("logLevel", { infer: true });
+  const domain = configService.get("domain", { infer: true });
+  const localOrigin = configService.get("localOrigin", { infer: true });
+  const dockerContainerTag = configService.get("dockerContainerTag", {
+    infer: true,
+  });
 
   // Set logger level
   if (logLevel === "silent") {
@@ -51,7 +52,6 @@ async function bootstrap(): Promise<void> {
     logger.debug(
       `Starting API with:
 - NODE_ENV: ${process.env.NODE_ENV}
-- API_URL_PREFIX:${apiUrlPrefix}
 - API_PORT:${port}
 - LOG_LEVEL: ${logLevel}
 - Docker container tag: ${dockerContainerTag}

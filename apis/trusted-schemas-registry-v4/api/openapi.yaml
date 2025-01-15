@@ -85,8 +85,8 @@ paths:
                         href: https://api-pilot.ebsi.eu/trusted-schemas-registry/v4/schemas/zkVjiLUWHoDtRie9iRAV1oDfjY7onVTEdzzqdXajvBa
                       - schemaId: "zArZLLNBiR4puGn7xbvnbuwTTUMpwuLTD2rSEHYmFc"
                         href: https://api-pilot.ebsi.eu/trusted-schemas-registry/v4/schemas/zArZLLNBiR4puGn7xbvnbuwTTUMpwuLTD2rSEHYmFc
-                      - schemaId: z3MgUFUkb722uq4x3dv5yAJmnNmzDFeK5UC8x83QoeLJM
-                        href: https://api-pilot.ebsi.eu/trusted-schemas-registry/v4/schemas/z3MgUFUkb722uq4x3dv5yAJmnNmzDFeK5UC8x83QoeLJM
+                      - schemaId: zDpWGUBenmqXzurskry9Nsk6vq2R8thh9VSeoRqguoyMD
+                        href: https://api-pilot.ebsi.eu/trusted-schemas-registry/v4/schemas/zDpWGUBenmqXzurskry9Nsk6vq2R8thh9VSeoRqguoyMD
                     pageSize: 10
                     links:
                       first: https://api-pilot.ebsi.eu/trusted-schemas-registry/v4/schemas?page[after]=1&page[size]=10
@@ -129,7 +129,7 @@ paths:
           examples:
             schemaId:
               description: Valid Pilot schemaId
-              value: z3MgUFUkb722uq4x3dv5yAJmnNmzDFeK5UC8x83QoeLJM
+              value: zDpWGUBenmqXzurskry9Nsk6vq2R8thh9VSeoRqguoyMD
           required: true
       responses:
         "200":
@@ -190,7 +190,7 @@ paths:
           examples:
             schemaId:
               description: Valid Pilot schemaId
-              value: z3MgUFUkb722uq4x3dv5yAJmnNmzDFeK5UC8x83QoeLJM
+              value: zDpWGUBenmqXzurskry9Nsk6vq2R8thh9VSeoRqguoyMD
           required: true
         - in: query
           name: page[after]
@@ -245,16 +245,16 @@ paths:
               examples:
                 Success:
                   value:
-                    self: https://api-pilot.ebsi.eu/trusted-schemas-registry/v4/schemas/z3MgUFUkb722uq4x3dv5yAJmnNmzDFeK5UC8x83QoeLJM/revisions?page[after]=1&page[size]=10
+                    self: https://api-pilot.ebsi.eu/trusted-schemas-registry/v4/schemas/zDpWGUBenmqXzurskry9Nsk6vq2R8thh9VSeoRqguoyMD/revisions?page[after]=1&page[size]=10
                     items:
                       - schemaRevisionId: "0xeb23ad59866910271641e0c685d191b0ef324b389c3e7c0ca10f870aacfa4ccd"
-                        href: https://api-pilot.ebsi.eu/trusted-schemas-registry/v4/schemas/z3MgUFUkb722uq4x3dv5yAJmnNmzDFeK5UC8x83QoeLJM/revisions/0xeb23ad59866910271641e0c685d191b0ef324b389c3e7c0ca10f870aacfa4ccd
+                        href: https://api-pilot.ebsi.eu/trusted-schemas-registry/v4/schemas/zDpWGUBenmqXzurskry9Nsk6vq2R8thh9VSeoRqguoyMD/revisions/0xeb23ad59866910271641e0c685d191b0ef324b389c3e7c0ca10f870aacfa4ccd
                     pageSize: 10
                     links:
-                      first: https://api-pilot.ebsi.eu/trusted-schemas-registry/v4/schemas/z3MgUFUkb722uq4x3dv5yAJmnNmzDFeK5UC8x83QoeLJM/revisions?page[after]=1&page[size]=10
-                      prev: https://api-pilot.ebsi.eu/trusted-schemas-registry/v4/schemas/z3MgUFUkb722uq4x3dv5yAJmnNmzDFeK5UC8x83QoeLJM/revisions?page[after]=1&page[size]=10
-                      next: https://api-pilot.ebsi.eu/trusted-schemas-registry/v4/schemas/z3MgUFUkb722uq4x3dv5yAJmnNmzDFeK5UC8x83QoeLJM/revisions?page[after]=1&page[size]=10
-                      last: https://api-pilot.ebsi.eu/trusted-schemas-registry/v4/schemas/z3MgUFUkb722uq4x3dv5yAJmnNmzDFeK5UC8x83QoeLJM/revisions?page[after]=1&page[size]=10
+                      first: https://api-pilot.ebsi.eu/trusted-schemas-registry/v4/schemas/zDpWGUBenmqXzurskry9Nsk6vq2R8thh9VSeoRqguoyMD/revisions?page[after]=1&page[size]=10
+                      prev: https://api-pilot.ebsi.eu/trusted-schemas-registry/v4/schemas/zDpWGUBenmqXzurskry9Nsk6vq2R8thh9VSeoRqguoyMD/revisions?page[after]=1&page[size]=10
+                      next: https://api-pilot.ebsi.eu/trusted-schemas-registry/v4/schemas/zDpWGUBenmqXzurskry9Nsk6vq2R8thh9VSeoRqguoyMD/revisions?page[after]=1&page[size]=10
+                      last: https://api-pilot.ebsi.eu/trusted-schemas-registry/v4/schemas/zDpWGUBenmqXzurskry9Nsk6vq2R8thh9VSeoRqguoyMD/revisions?page[after]=1&page[size]=10
         "400":
           description: Bad Request Error
           content:
@@ -291,7 +291,7 @@ paths:
           examples:
             schemaId:
               description: Valid Pilot schemaId
-              value: z3MgUFUkb722uq4x3dv5yAJmnNmzDFeK5UC8x83QoeLJM
+              value: zDpWGUBenmqXzurskry9Nsk6vq2R8thh9VSeoRqguoyMD
           required: true
         - name: schemaRevisionId
           in: path
@@ -363,7 +363,7 @@ paths:
           examples:
             schemaId:
               description: Valid Pilot schemaId
-              value: z3MgUFUkb722uq4x3dv5yAJmnNmzDFeK5UC8x83QoeLJM
+              value: zDpWGUBenmqXzurskry9Nsk6vq2R8thh9VSeoRqguoyMD
           required: true
         - name: schemaRevisionId
           in: path
@@ -417,16 +417,16 @@ paths:
               examples:
                 Success:
                   value:
-                    self: https://api-pilot.ebsi.eu/trusted-schemas-registry/v4/schemas/z3MgUFUkb722uq4x3dv5yAJmnNmzDFeK5UC8x83QoeLJM/revisions/0xeb23ad59866910271641e0c685d191b0ef324b389c3e7c0ca10f870aacfa4ccd/metadata?page[after]=1&page[size]=10
+                    self: https://api-pilot.ebsi.eu/trusted-schemas-registry/v4/schemas/zDpWGUBenmqXzurskry9Nsk6vq2R8thh9VSeoRqguoyMD/revisions/0xeb23ad59866910271641e0c685d191b0ef324b389c3e7c0ca10f870aacfa4ccd/metadata?page[after]=1&page[size]=10
                     items:
                       - metadataId: "0xb9085bf38ccf24a264f73f6ba42204fda51185d89afc8104ab9155c4b002e1eb"
-                        href: https://api-pilot.ebsi.eu/trusted-schemas-registry/v4/schemas/z3MgUFUkb722uq4x3dv5yAJmnNmzDFeK5UC8x83QoeLJM/revisions/0xeb23ad59866910271641e0c685d191b0ef324b389c3e7c0ca10f870aacfa4ccd/metadata/0xb9085bf38ccf24a264f73f6ba42204fda51185d89afc8104ab9155c4b002e1eb
+                        href: https://api-pilot.ebsi.eu/trusted-schemas-registry/v4/schemas/zDpWGUBenmqXzurskry9Nsk6vq2R8thh9VSeoRqguoyMD/revisions/0xeb23ad59866910271641e0c685d191b0ef324b389c3e7c0ca10f870aacfa4ccd/metadata/0xb9085bf38ccf24a264f73f6ba42204fda51185d89afc8104ab9155c4b002e1eb
                     pageSize: 10
                     links:
-                      first: https://api-pilot.ebsi.eu/trusted-schemas-registry/v4/schemas/z3MgUFUkb722uq4x3dv5yAJmnNmzDFeK5UC8x83QoeLJM/revisions/0xeb23ad59866910271641e0c685d191b0ef324b389c3e7c0ca10f870aacfa4ccd/metadata?page[after]=1&page[size]=10
-                      prev: https://api-pilot.ebsi.eu/trusted-schemas-registry/v4/schemas/z3MgUFUkb722uq4x3dv5yAJmnNmzDFeK5UC8x83QoeLJM/revisions/0xeb23ad59866910271641e0c685d191b0ef324b389c3e7c0ca10f870aacfa4ccd/metadata?page[after]=1&page[size]=10
-                      next: https://api-pilot.ebsi.eu/trusted-schemas-registry/v4/schemas/z3MgUFUkb722uq4x3dv5yAJmnNmzDFeK5UC8x83QoeLJM/revisions/0xeb23ad59866910271641e0c685d191b0ef324b389c3e7c0ca10f870aacfa4ccd/metadata?page[after]=1&page[size]=10
-                      last: https://api-pilot.ebsi.eu/trusted-schemas-registry/v4/schemas/z3MgUFUkb722uq4x3dv5yAJmnNmzDFeK5UC8x83QoeLJM/revisions/0xeb23ad59866910271641e0c685d191b0ef324b389c3e7c0ca10f870aacfa4ccd/metadata?page[after]=1&page[size]=10
+                      first: https://api-pilot.ebsi.eu/trusted-schemas-registry/v4/schemas/zDpWGUBenmqXzurskry9Nsk6vq2R8thh9VSeoRqguoyMD/revisions/0xeb23ad59866910271641e0c685d191b0ef324b389c3e7c0ca10f870aacfa4ccd/metadata?page[after]=1&page[size]=10
+                      prev: https://api-pilot.ebsi.eu/trusted-schemas-registry/v4/schemas/zDpWGUBenmqXzurskry9Nsk6vq2R8thh9VSeoRqguoyMD/revisions/0xeb23ad59866910271641e0c685d191b0ef324b389c3e7c0ca10f870aacfa4ccd/metadata?page[after]=1&page[size]=10
+                      next: https://api-pilot.ebsi.eu/trusted-schemas-registry/v4/schemas/zDpWGUBenmqXzurskry9Nsk6vq2R8thh9VSeoRqguoyMD/revisions/0xeb23ad59866910271641e0c685d191b0ef324b389c3e7c0ca10f870aacfa4ccd/metadata?page[after]=1&page[size]=10
+                      last: https://api-pilot.ebsi.eu/trusted-schemas-registry/v4/schemas/zDpWGUBenmqXzurskry9Nsk6vq2R8thh9VSeoRqguoyMD/revisions/0xeb23ad59866910271641e0c685d191b0ef324b389c3e7c0ca10f870aacfa4ccd/metadata?page[after]=1&page[size]=10
         "400":
           description: Bad Request Error
           content:
@@ -474,7 +474,7 @@ paths:
           examples:
             schemaId:
               description: Valid Pilot schemaId
-              value: z3MgUFUkb722uq4x3dv5yAJmnNmzDFeK5UC8x83QoeLJM
+              value: zDpWGUBenmqXzurskry9Nsk6vq2R8thh9VSeoRqguoyMD
           required: true
         - name: schemaRevisionId
           in: path

@@ -1,3 +1,4 @@
+import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 
 import { methodNotAllowed } from "@ebsiint-api/shared";
@@ -5,10 +6,7 @@ import { fastifyAccepts } from "@fastify/accepts";
 import { fastifyHelmet } from "@fastify/helmet";
 import { Logger, ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import {
-  FastifyAdapter,
-  type NestFastifyApplication,
-} from "@nestjs/platform-fastify";
+import { FastifyAdapter } from "@nestjs/platform-fastify";
 import { Test } from "@nestjs/testing";
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -63,7 +61,7 @@ describe("Ledger API v3 - Generic tests (e2e)", () => {
     server = getServer(app, configService);
 
     if (process.env.TEST_ENV === "remote") {
-      apiUrlPrefix = configService.get<string>("apiUrlPrefix");
+      apiUrlPrefix = configService.get("apiUrlPrefix", { infer: true });
     }
   });
 
@@ -171,11 +169,7 @@ describe("Ledger API v3 - Generic tests (e2e)", () => {
       const response = await request(server).get("/health");
 
       // Expect all the dependencies to be up
-      const expectedStatuses = (["Besu"] as const)
-        .map((dependency) => ({
-          [`${dependency}`]: { status: "up" },
-        }))
-        .reduce((acc, currentVal) => ({ ...acc, ...currentVal }), {});
+      const expectedStatuses = { Besu: { status: "up" } };
 
       expect(response.body).toStrictEqual({
         details: expectedStatuses,

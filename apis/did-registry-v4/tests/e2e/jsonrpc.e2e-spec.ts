@@ -1,4 +1,5 @@
 import type { EbsiIssuer } from "@cef-ebsi/verifiable-credential";
+import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 import type { JWK } from "jose";
 
@@ -7,10 +8,7 @@ import { fastifyAccepts } from "@fastify/accepts";
 import { fastifyHelmet } from "@fastify/helmet";
 import { Logger, ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import {
-  FastifyAdapter,
-  type NestFastifyApplication,
-} from "@nestjs/platform-fastify";
+import { FastifyAdapter } from "@nestjs/platform-fastify";
 import { Test } from "@nestjs/testing";
 import { useContainer } from "class-validator";
 import { ethers } from "ethers";
@@ -35,6 +33,7 @@ import type {
 import type { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface.js";
 
 import { AppModule } from "../../src/app.module.js";
+import { DEV_DEPENDENCIES } from "../../src/config/configuration.js";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils.js";
 import { createUser } from "../utils/data.js";
@@ -120,7 +119,7 @@ describeWriteOps()("DID Registry API v4 - JSON RPC - e2e", () => {
 
     server = getServer(app, configService);
 
-    ledgerApi = `${configService.get<string>("ledgerApiUrl")}/blockchains/besu`;
+    ledgerApi = `${configService.get("domain", { infer: true })}/ledger/${DEV_DEPENDENCIES.ledger}/blockchains/besu`;
 
     // Get last identifier
     const getAllIdentifiers = await request(server).get("/identifiers");
@@ -144,8 +143,9 @@ describeWriteOps()("DID Registry API v4 - JSON RPC - e2e", () => {
       // Create new user
       const userDetails = await createUser();
 
-      const authApiV3ES256PrivateKey = configService.get<string>(
+      const authApiV3ES256PrivateKey = configService.get(
         "testAuthApiV3ES256PrivateKey",
+        { infer: true },
       );
 
       const userAccessToken = await getDidrInviteAccessToken(
@@ -266,24 +266,13 @@ describeWriteOps()("DID Registry API v4 - JSON RPC - e2e", () => {
 
     beforeAll(async () => {
       try {
-        const domain = configService.get("domain", { infer: true });
-        const ebsiAuthority = domain.replace(/^https?:\/\//, ""); // remove http protocol scheme
-        const trustedHostnames = configService.get("trustedHostnames", {
+        const ebsiEnvConfig = configService.get("ebsiEnvConfig", {
           infer: true,
         });
         const didrWriteToken = await getDidrWriteAccessToken(
-          configService.get<string>("authorisationApiUrl"),
+          configService.get("authorisationApiUrl", { infer: true }),
           user.info,
-          {
-            hosts: [ebsiAuthority, ...trustedHostnames],
-            network: configService.get("network", { infer: true }),
-            services: {
-              "did-registry": "v4",
-              "trusted-issuers-registry": "v4",
-              "trusted-policies-registry": "v2",
-              "trusted-schemas-registry": "v2",
-            },
-          },
+          ebsiEnvConfig,
         );
         user.token = didrWriteToken;
       } catch (error) {

@@ -55,8 +55,10 @@ export default class DocumentsController {
     const accesses =
       await this.documentsService.getDocumentAccesses(documentId);
 
-    const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
-    const domain = this.configService.get<string>("domain");
+    const apiUrlPrefix = this.configService.get("apiUrlPrefix", {
+      infer: true,
+    });
+    const domain = this.configService.get("domain", { infer: true });
     const baseUrl = `${domain}${apiUrlPrefix}/documents/${documentId}/accesses`;
 
     return formatDocumentAccesses(
@@ -96,8 +98,10 @@ export default class DocumentsController {
       query["page[size]"],
     );
 
-    const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
-    const domain = this.configService.get<string>("domain");
+    const apiUrlPrefix = this.configService.get("apiUrlPrefix", {
+      infer: true,
+    });
+    const domain = this.configService.get("domain", { infer: true });
     const baseUrl = `${domain}${apiUrlPrefix}/documents/${documentId}/events`;
 
     return formatDocumentEvents(
@@ -118,8 +122,10 @@ export default class DocumentsController {
       query["page[size]"],
     );
 
-    const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
-    const domain = this.configService.get<string>("domain");
+    const apiUrlPrefix = this.configService.get("apiUrlPrefix", {
+      infer: true,
+    });
+    const domain = this.configService.get("domain", { infer: true });
     const baseUrl = `${domain}${apiUrlPrefix}/documents`;
 
     return formatDocuments(

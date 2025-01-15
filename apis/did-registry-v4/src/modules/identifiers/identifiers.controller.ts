@@ -75,8 +75,10 @@ export default class IdentifiersController {
       query["verification-relationship"],
     );
 
-    const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
-    const domain = this.configService.get<string>("domain");
+    const apiUrlPrefix = this.configService.get("apiUrlPrefix", {
+      infer: true,
+    });
+    const domain = this.configService.get("domain", { infer: true });
     const baseUrl = `${domain}${apiUrlPrefix}/identifiers`;
 
     return formatIdentifiers(

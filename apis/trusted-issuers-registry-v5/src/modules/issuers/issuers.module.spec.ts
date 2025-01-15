@@ -1,3 +1,4 @@
+import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 
 import * as vcLib from "@cef-ebsi/verifiable-credential";
@@ -5,10 +6,7 @@ import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { methodNotAllowed, remove0xPrefix } from "@ebsiint-api/shared";
 import { fastifyAccepts } from "@fastify/accepts";
 import { Logger, ValidationPipe } from "@nestjs/common";
-import {
-  FastifyAdapter,
-  type NestFastifyApplication,
-} from "@nestjs/platform-fastify";
+import { FastifyAdapter } from "@nestjs/platform-fastify";
 import { Test } from "@nestjs/testing";
 import axios, { AxiosError, AxiosResponse } from "axios";
 import { randomBytes } from "node:crypto";

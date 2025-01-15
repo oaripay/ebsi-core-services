@@ -90,12 +90,12 @@ export class BesuService implements OnModuleDestroy {
   private timeout: number;
 
   constructor(private configService: ConfigService<ApiConfig, true>) {
-    this.timeout = configService.get<number>("requestTimeout");
+    this.timeout = configService.get("requestTimeout", { infer: true });
   }
 
   // Make it easier to override the config in tests
   getBesuRpcNode(): string {
-    return this.configService.get<string>("besuRpcNode");
+    return this.configService.get("besuRpcNode", { infer: true });
   }
 
   getEthersProvider() {

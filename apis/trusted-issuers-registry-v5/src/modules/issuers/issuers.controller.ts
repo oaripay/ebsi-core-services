@@ -76,8 +76,10 @@ export class IssuersController {
 
     const attributes = await this.issuersService.getAttributes(did);
 
-    const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
-    const domain = this.configService.get<string>("domain");
+    const apiUrlPrefix = this.configService.get("apiUrlPrefix", {
+      infer: true,
+    });
+    const domain = this.configService.get("domain", { infer: true });
     const baseUrl = `${domain}${apiUrlPrefix}/issuers/${did}/attributes`;
 
     return formatAttributes(
@@ -98,8 +100,10 @@ export class IssuersController {
 
     const proxies = await this.issuersService.getIssuerProxies(did);
 
-    const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
-    const domain = this.configService.get<string>("domain");
+    const apiUrlPrefix = this.configService.get("apiUrlPrefix", {
+      infer: true,
+    });
+    const domain = this.configService.get("domain", { infer: true });
     const baseUrl = `${domain}${apiUrlPrefix}/issuers/${did}/proxies`;
 
     return formatProxies(proxies, baseUrl);
@@ -160,8 +164,10 @@ export class IssuersController {
         query["page[size]"],
       );
 
-    const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
-    const domain = this.configService.get<string>("domain");
+    const apiUrlPrefix = this.configService.get("apiUrlPrefix", {
+      infer: true,
+    });
+    const domain = this.configService.get("domain", { infer: true });
     const baseUrl = `${domain}${apiUrlPrefix}/issuers/${did}/attributes/${attributeId}/revisions`;
 
     return formatRevisions(
@@ -183,8 +189,10 @@ export class IssuersController {
       query["page[after]"],
       query["page[size]"],
     );
-    const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
-    const domain = this.configService.get<string>("domain");
+    const apiUrlPrefix = this.configService.get("apiUrlPrefix", {
+      infer: true,
+    });
+    const domain = this.configService.get("domain", { infer: true });
     const baseUrl = `${domain}${apiUrlPrefix}/issuers`;
 
     return formatIssuers(

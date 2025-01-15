@@ -1,3 +1,4 @@
+import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 import type { GenerateKeyPairResult, JWK } from "jose";
 
@@ -7,10 +8,7 @@ import { fastifyAccepts } from "@fastify/accepts";
 import { fastifyHelmet } from "@fastify/helmet";
 import { Logger, ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import {
-  FastifyAdapter,
-  type NestFastifyApplication,
-} from "@nestjs/platform-fastify";
+import { FastifyAdapter } from "@nestjs/platform-fastify";
 import { Test } from "@nestjs/testing";
 import { useContainer } from "class-validator";
 import { ethers } from "ethers";
@@ -255,9 +253,9 @@ describe(
         .sign(authApiKeyPair.privateKey);
 
       // Mock Auth API v3
-      const authorisationApiUrl = configService.get<string>(
-        "authorisationApiUrl",
-      );
+      const authorisationApiUrl = configService.get("authorisationApiUrl", {
+        infer: true,
+      });
 
       mockServer.use(
         // Mock Auth API v3 /.well-known/openid-configuration endpoint

@@ -1,28 +1,22 @@
+import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 
 import { methodNotAllowed } from "@ebsiint-api/shared";
 import { fastifyAccepts } from "@fastify/accepts";
 import { Logger, ValidationPipe } from "@nestjs/common";
-import {
-  FastifyAdapter,
-  type NestFastifyApplication,
-} from "@nestjs/platform-fastify";
+import { FastifyAdapter } from "@nestjs/platform-fastify";
 import { Test } from "@nestjs/testing";
 import { graphql, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 import request from "supertest";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 
-import { DEPENDENCIES } from "../../config/configuration.js";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
 import { HealthModule } from "./health.module.js";
 
 describe("Health Module", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault;
-  const dependencies = Object.keys(
-    DEPENDENCIES,
-  ) as (keyof typeof DEPENDENCIES)[];
   let subgraphTimestamp: number | undefined;
   const mockServer = setupServer(
     graphql.query("GetBlockTimestamp", () => {
@@ -75,7 +69,7 @@ describe("Health Module", () => {
 
   describe("GET /health", () => {
     it("should return 'error' if the Subgraph is not synced", async () => {
-      expect.assertions(2 + dependencies.length);
+      expect.assertions(2);
 
       // Old timestamp in the subgraph
       subgraphTimestamp = Math.floor(Date.now() / 1000 - 3600);
@@ -83,11 +77,12 @@ describe("Health Module", () => {
       const response = await request(server).get("/health").send();
 
       // Expect all the dependencies to be up except Besu
-      const expectedStatuses: Record<string, unknown> = {};
-      expectedStatuses["DIDR Subgraph"] = {
-        message: "Not synchronized",
-        status: "down",
-      };
+      const expectedStatuses = {
+        "DIDR Subgraph": {
+          message: "Not synchronized",
+          status: "down",
+        },
+      } as const;
 
       const { "DIDR Subgraph": errorStatus, ...otherStatuses } =
         expectedStatuses;

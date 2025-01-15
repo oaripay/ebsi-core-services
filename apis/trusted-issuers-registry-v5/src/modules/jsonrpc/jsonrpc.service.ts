@@ -1,5 +1,3 @@
-import type { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
-
 import {
   decodeResult,
   getErrorMessage,
@@ -98,24 +96,13 @@ export class JsonRpcService {
     configService: ConfigService<ApiConfig, true>,
     private ledgerService: LedgerService,
   ) {
-    this.didRegistryApiUrl = configService.get<string>("didRegistryApiUrl");
+    this.didRegistryApiUrl = configService.get("didRegistryApiUrl", {
+      infer: true,
+    });
     this.contractAddress = ledgerService.getContractAddress();
-    this.timeout = configService.get<number>("requestTimeout");
+    this.timeout = configService.get("requestTimeout", { infer: true });
 
-    const authority = configService
-      .get<string>("domain")
-      .replace(/^https?:\/\//, "");
-    const trustedHostnames = configService.get<string[]>("trustedHostnames");
-    const ebsiEnvConfig = {
-      hosts: [authority, ...trustedHostnames],
-      network: configService.get("network", { infer: true }),
-      services: {
-        "did-registry": "v5",
-        "trusted-issuers-registry": "v5",
-        "trusted-policies-registry": "v3",
-        "trusted-schemas-registry": "v3",
-      },
-    } satisfies EbsiEnvConfiguration;
+    const ebsiEnvConfig = configService.get("ebsiEnvConfig", { infer: true });
 
     this.addIssuerProxySchema = createAddIssuerProxySchema(
       ebsiEnvConfig,

@@ -1,3 +1,5 @@
+import type { NestFastifyApplication } from "@nestjs/platform-fastify";
+
 import {
   frameworkErrors,
   methodNotAllowed,
@@ -9,10 +11,7 @@ import { fastifyHelmet } from "@fastify/helmet";
 import { ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { NestFactory } from "@nestjs/core";
-import {
-  FastifyAdapter,
-  type NestFastifyApplication,
-} from "@nestjs/platform-fastify";
+import { FastifyAdapter } from "@nestjs/platform-fastify";
 import qs from "qs";
 
 import type { ApiConfig } from "./config/configuration.js";
@@ -68,7 +67,6 @@ async function bootstrap(): Promise<void> {
     logger.debug(
       `Starting API with:
 - NODE_ENV: ${process.env.NODE_ENV}
-- API_URL_PREFIX:${apiUrlPrefix}
 - API_PORT:${port}
 - LOG_LEVEL: ${logLevel}
 - Docker container tag: ${dockerContainerTag}

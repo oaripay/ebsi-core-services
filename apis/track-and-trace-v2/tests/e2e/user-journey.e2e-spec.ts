@@ -1,7 +1,5 @@
-import type {
-  EbsiEnvConfiguration,
-  EbsiIssuer,
-} from "@cef-ebsi/verifiable-credential";
+import type { EbsiIssuer } from "@cef-ebsi/verifiable-credential";
+import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 
 import { util } from "@cef-ebsi/key-did-resolver";
 import {
@@ -14,10 +12,7 @@ import { fastifyAccepts } from "@fastify/accepts";
 import { fastifyHelmet } from "@fastify/helmet";
 import { Logger, ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import {
-  FastifyAdapter,
-  type NestFastifyApplication,
-} from "@nestjs/platform-fastify";
+import { FastifyAdapter } from "@nestjs/platform-fastify";
 import { Test } from "@nestjs/testing";
 import { hexToBytes } from "did-jwt";
 import { ethers } from "ethers";
@@ -103,7 +98,7 @@ describeWriteOps()("Track and Trace - User Journey (e2e)", () => {
 
     const server = getServer(app, configService);
 
-    const ledgerApi = `${configService.get<string>("ledgerApiUrl")}/blockchains/besu`;
+    const ledgerApi = `${configService.get("ledgerApiUrl", { infer: true })}/blockchains/besu`;
 
     // Prepare the different actors
 
@@ -296,22 +291,7 @@ describeWriteOps()("Track and Trace - User Journey (e2e)", () => {
       return responseSend;
     }
 
-    const ebsiAuthority = configService
-      .get<string>("domain")
-      .replace(/^https?:\/\//, "");
-    const trustedHostnames = configService.get("trustedHostnames", {
-      infer: true,
-    });
-    const ebsiEnvConfig = {
-      hosts: [ebsiAuthority, ...trustedHostnames],
-      network: configService.get("network", { infer: true }),
-      services: {
-        "did-registry": "v6",
-        "trusted-issuers-registry": "v6",
-        "trusted-policies-registry": "v4",
-        "trusted-schemas-registry": "v4",
-      },
-    } satisfies EbsiEnvConfiguration;
+    const ebsiEnvConfig = configService.get("ebsiEnvConfig", { infer: true });
 
     // "authoriser" allows "documentCreator" to create documents
 

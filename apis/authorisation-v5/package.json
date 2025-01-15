@@ -25,9 +25,9 @@
     "test:ci": "yarn test:unit --coverage --reporter=default"
   },
   "dependencies": {
-    "@cef-ebsi/ebsi-uri": "^0.2.0-alpha.1",
-    "@cef-ebsi/verifiable-credential": "^6.2.0-alpha.4",
-    "@cef-ebsi/verifiable-presentation": "^7.2.0-alpha.3",
+    "@cef-ebsi/ebsi-uri": "^1.0.0-alpha.0",
+    "@cef-ebsi/verifiable-credential": "^7.0.0-alpha.0",
+    "@cef-ebsi/verifiable-presentation": "^8.0.0-alpha.0",
     "@cef-ebsi/wallet-lib": "^6.0.0-alpha.3",
     "@ebsiint-api/shared": "^1.1.0-rc.10",
     "@fastify/accepts": "^4.3.0",

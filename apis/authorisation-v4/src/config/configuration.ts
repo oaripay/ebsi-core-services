@@ -1,4 +1,5 @@
-import { type Network, NETWORKS } from "@cef-ebsi/ebsi-uri";
+import type { EbsiVpEnvConfiguration } from "@cef-ebsi/verifiable-presentation";
+
 import { ConfigModule } from "@nestjs/config";
 import Joi from "joi";
 
@@ -11,9 +12,9 @@ export interface ApiConfig {
   didRegistry: string;
   dockerContainerTag: string;
   domain: string;
-  localOrigin: string;
+  ebsiEnvConfig: EbsiVpEnvConfiguration;
+  localOrigin: string | undefined;
   logLevel: "debug" | "error" | "info" | "silent" | "verbose" | "warn";
-  network: Network;
   requestTimeout: number;
   // Test-specific variables
   testEnv: string | undefined;
@@ -26,43 +27,55 @@ export interface ApiConfig {
   testTntAuthorisedUserKid: string | undefined;
   testTntAuthorisedUserPrivateKey: string | undefined;
   trackAndTraceAccessesEndpoint: string;
-  trustedHostnames: string[];
   trustedIssuersRegistry: string;
   trustedPoliciesRegistry: string;
 }
 
-const DIDR_PATH = "/did-registry/v5";
-const TIR_PATH = "/trusted-issuers-registry/v5";
-const TPR_PATH = "/trusted-policies-registry/v3";
-const TSR_PATH = "/trusted-schemas-registry/v3";
-const TNT_PATH = "/track-and-trace/v1";
+type Services = EbsiVpEnvConfiguration["services"] & {
+  "track-and-trace": `v${number}`;
+};
 
+export const SERVICE_PREFIX = "authorisation";
+export const SERVICE_VERSION = "v4";
+
+// EBSI Services Authorisation API v4 depends on
 export const DEPENDENCIES = {
-  "DIDR API v5": DIDR_PATH,
-  "TIR API v5": TIR_PATH,
-  "TNT API v1": TNT_PATH,
-  "TPR API v3": TPR_PATH,
-  "TSR API v3": TSR_PATH,
-} as const;
+  "did-registry": "v5",
+  "track-and-trace": "v1",
+  "trusted-issuers-registry": "v5",
+  "trusted-policies-registry": "v3",
+  "trusted-schemas-registry": "v3",
+} as const satisfies Services;
 
 // Config factory
 // Note that process.env — for which provide typings in src/environment.d.ts —
 // should have already been validated by Joi in src/app.module.ts
-export const loadConfig = (): ApiConfig => {
-  const { DOMAIN } = process.env;
+export const loadConfig = () => {
+  const { DOMAIN, URI_SCHEME } = process.env;
+
+  const ebsiEnvConfig = {
+    hosts: [
+      DOMAIN.replace(/^https?:\/\//, ""), // remove http protocol scheme
+    ],
+    network: {
+      isOptional: process.env.NETWORK === "production",
+      name: process.env.NETWORK,
+    },
+    scheme: URI_SCHEME ?? "ebsi",
+    services: DEPENDENCIES,
+  } as const satisfies EbsiVpEnvConfiguration;
 
   return {
     apiES256PrivateKey: process.env.API_ES256_PRIVATE_KEY,
     apiPort: Number.parseInt(process.env.API_PORT ?? "3000", 10),
-    apiUrlPrefix: process.env.API_URL_PREFIX ?? "/authorisation/v4",
-    // Test-specific variables
-    authorisationCredentialSchema: `${DOMAIN}${TSR_PATH}/schemas/${process.env.AUTHORISATION_CREDENTIAL_SCHEMA}`,
-    didRegistry: `${DOMAIN}${DIDR_PATH}/identifiers`,
+    apiUrlPrefix: `/${SERVICE_PREFIX}/${SERVICE_VERSION}`,
+    authorisationCredentialSchema: `${DOMAIN}/trusted-schemas-registry/${DEPENDENCIES["trusted-schemas-registry"]}/schemas/${process.env.AUTHORISATION_CREDENTIAL_SCHEMA}`,
+    didRegistry: `${DOMAIN}/did-registry/${DEPENDENCIES["did-registry"]}/identifiers`,
     dockerContainerTag: process.env.DOCKER_TAG ?? "",
     domain: DOMAIN,
-    localOrigin: process.env.LOCAL_ORIGIN ?? "",
+    ebsiEnvConfig,
+    localOrigin: process.env.LOCAL_ORIGIN,
     logLevel: process.env.LOG_LEVEL ?? "warn",
-    network: process.env.NETWORK,
     requestTimeout: Number.parseInt(process.env.REQUEST_TIMEOUT ?? "15000", 10),
     testEnv: process.env.TEST_ENV,
     testIssuerAlg: process.env.TEST_ISSUER_ALG,
@@ -74,13 +87,10 @@ export const loadConfig = (): ApiConfig => {
     testTntAuthorisedUserKid: process.env.TEST_TNT_AUTHORISED_USER_KID,
     testTntAuthorisedUserPrivateKey:
       process.env.TEST_TNT_AUTHORISED_USER_PRIVATE_KEY,
-    trackAndTraceAccessesEndpoint: `${DOMAIN}${TNT_PATH}/accesses`,
-    trustedHostnames: (process.env.TRUSTED_HOSTNAMES ?? "")
-      .split(",")
-      .filter(Boolean),
-    trustedIssuersRegistry: `${DOMAIN}${TIR_PATH}/issuers`,
-    trustedPoliciesRegistry: `${DOMAIN}${TPR_PATH}/users`,
-  };
+    trackAndTraceAccessesEndpoint: `${DOMAIN}/track-and-trace/${DEPENDENCIES["track-and-trace"]}/accesses`,
+    trustedIssuersRegistry: `${DOMAIN}/trusted-issuers-registry/${DEPENDENCIES["trusted-issuers-registry"]}/issuers`,
+    trustedPoliciesRegistry: `${DOMAIN}/trusted-policies-registry/${DEPENDENCIES["trusted-policies-registry"]}/users`,
+  } as const satisfies ApiConfig;
 };
 
 export const ApiConfigModule = ConfigModule.forRoot({
@@ -94,7 +104,6 @@ export const ApiConfigModule = ConfigModule.forRoot({
   validationSchema: Joi.object<typeof process.env, true>({
     API_ES256_PRIVATE_KEY: Joi.string().required(),
     API_PORT: Joi.string().default("3000"),
-    API_URL_PREFIX: Joi.string(),
     AUTHORISATION_CREDENTIAL_SCHEMA: Joi.string().required(),
     DOCKER_TAG: Joi.string(),
     DOMAIN: Joi.string().uri().required(),
@@ -107,9 +116,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
       "verbose",
       "debug",
     ),
-    NETWORK: Joi.string()
-      .valid(...NETWORKS)
-      .required(),
+    NETWORK: Joi.string(),
     NODE_ENV: Joi.string()
       .valid("development", "production", "test")
       .default("development"),
@@ -124,8 +131,9 @@ export const ApiConfigModule = ConfigModule.forRoot({
     TEST_SPECIFIC_NODE_DOMAIN: Joi.string().uri(),
     TEST_TNT_AUTHORISED_USER_KID: Joi.string(),
     TEST_TNT_AUTHORISED_USER_PRIVATE_KEY: Joi.string(),
-    TRUSTED_HOSTNAMES: Joi.string(),
     // Generic variables
     TZ: Joi.string(),
+    // EBSI URI Scheme prefix
+    URI_SCHEME: Joi.string(),
   }),
 });

@@ -1,11 +1,8 @@
-import type { Network } from "@cef-ebsi/ebsi-uri";
-
 // Provide typings for process.env
 declare global {
   namespace NodeJS {
     interface ProcessEnv {
       API_PORT?: string;
-      API_URL_PREFIX?: string;
       AXIOS_RETRY_DELAY?: string;
       BESU_READINESS_ENDPOINT: string;
       BESU_RPC_NODE: string;
@@ -16,7 +13,7 @@ declare global {
       DOMAIN: string;
       LOCAL_ORIGIN?: string;
       LOG_LEVEL?: "debug" | "error" | "info" | "silent" | "verbose" | "warn";
-      NETWORK: Network;
+      NETWORK: string;
       NODE_ENV: "development" | "production" | "test";
       REQUEST_TIMEOUT?: string;
       TEST_ADMIN_KID?: string;
@@ -25,7 +22,7 @@ declare global {
       TEST_ENV?: string;
       TEST_SPECIFIC_NODE_DOMAIN?: string;
       TEST_VA_SCHEMA?: string;
-      TRUSTED_HOSTNAMES?: string;
+      URI_SCHEME?: string;
     }
   }
 

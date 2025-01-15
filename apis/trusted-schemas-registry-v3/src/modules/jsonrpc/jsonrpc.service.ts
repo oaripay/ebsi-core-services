@@ -52,9 +52,9 @@ export class JsonRpcService {
     configService: ConfigService<ApiConfig, true>,
     private ledgerService: LedgerService,
   ) {
-    this.didRegistry = configService.get<string>("didRegistryApiUrl");
+    this.didRegistry = configService.get("didRegistryApiUrl", { infer: true });
     this.contractAddress = ledgerService.getContractAddress();
-    this.timeout = configService.get<number>("requestTimeout");
+    this.timeout = configService.get("requestTimeout", { infer: true });
   }
 
   async buildTransaction(

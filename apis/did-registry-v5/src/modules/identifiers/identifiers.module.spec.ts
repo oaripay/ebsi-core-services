@@ -1,3 +1,4 @@
+import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
@@ -5,16 +6,15 @@ import { encode, methodNotAllowed } from "@ebsiint-api/shared";
 import { DidRegistry__factory } from "@ebsiint-sc/did-registry-v3";
 import { fastifyAccepts } from "@fastify/accepts";
 import { Logger, ValidationPipe } from "@nestjs/common";
-import {
-  FastifyAdapter,
-  type NestFastifyApplication,
-} from "@nestjs/platform-fastify";
+import { FastifyAdapter } from "@nestjs/platform-fastify";
 import { Test } from "@nestjs/testing";
 import { ethers } from "ethers";
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
-import { createUser, type UserDetails } from "../../../tests/utils/data.js";
+import type { UserDetails } from "../../../tests/utils/data.js";
+
+import { createUser } from "../../../tests/utils/data.js";
 import { setupTestEnv } from "../../../tests/utils/didRegistry.js";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
 import { LedgerService } from "../ledger/ledger.service.js";

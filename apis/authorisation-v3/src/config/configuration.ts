@@ -1,4 +1,5 @@
-import { type Network, NETWORKS } from "@cef-ebsi/ebsi-uri";
+import type { EbsiVpEnvConfiguration } from "@cef-ebsi/verifiable-presentation";
+
 import { ConfigModule } from "@nestjs/config";
 import Joi from "joi";
 
@@ -7,12 +8,11 @@ export interface ApiConfig {
   apiES256PrivateKey: string;
   apiPort: number;
   apiUrlPrefix: string;
-  didRegistry: string;
   dockerContainerTag: string;
   domain: string;
-  localOrigin: string;
+  ebsiEnvConfig: EbsiVpEnvConfiguration;
+  localOrigin: string | undefined;
   logLevel: "debug" | "error" | "info" | "silent" | "verbose" | "warn";
-  network: Network;
   // Test-specific variables
   testEnv: string | undefined;
   testIssuerAlg: string | undefined;
@@ -21,34 +21,46 @@ export interface ApiConfig {
   testIssuerPrivateKey: string | undefined;
   testOidSchemaPattern: string | undefined;
   testSpecificNodeDomain: string | undefined;
-  trustedHostnames: string[];
-  trustedIssuersRegistry: string;
 }
 
-const DIDR_PATH = "/did-registry/v4";
-const TIR_PATH = "/trusted-issuers-registry/v4";
+export const SERVICE_PREFIX = "authorisation";
+export const SERVICE_VERSION = "v3";
 
+// EBSI Services Authorisation API v3 depends on
 export const DEPENDENCIES = {
-  "DIDR API v4": DIDR_PATH,
-  "TIR API v4": TIR_PATH,
-} as const;
+  "did-registry": "v4",
+  "trusted-issuers-registry": "v4",
+  "trusted-policies-registry": "v2",
+  "trusted-schemas-registry": "v2",
+} as const satisfies EbsiVpEnvConfiguration["services"];
 
 // Config factory
 // Note that process.env — for which provide typings in src/environment.d.ts —
 // should have already been validated by Joi in src/app.module.ts
-export const loadConfig = (): ApiConfig => {
-  const { DOMAIN } = process.env;
+export const loadConfig = () => {
+  const { DOMAIN, URI_SCHEME } = process.env;
+
+  const ebsiEnvConfig = {
+    hosts: [
+      DOMAIN.replace(/^https?:\/\//, ""), // remove http protocol scheme
+    ],
+    network: {
+      isOptional: process.env.NETWORK === "production",
+      name: process.env.NETWORK,
+    },
+    scheme: URI_SCHEME ?? "ebsi",
+    services: DEPENDENCIES,
+  } as const satisfies EbsiVpEnvConfiguration;
 
   return {
     apiES256PrivateKey: process.env.API_ES256_PRIVATE_KEY,
     apiPort: Number.parseInt(process.env.API_PORT ?? "3000", 10),
-    apiUrlPrefix: process.env.API_URL_PREFIX ?? "/authorisation/v3",
-    didRegistry: `${DOMAIN}${DIDR_PATH}/identifiers`,
+    apiUrlPrefix: `/${SERVICE_PREFIX}/${SERVICE_VERSION}`,
     dockerContainerTag: process.env.DOCKER_TAG ?? "",
     domain: DOMAIN,
-    localOrigin: process.env.LOCAL_ORIGIN ?? "",
+    ebsiEnvConfig,
+    localOrigin: process.env.LOCAL_ORIGIN,
     logLevel: process.env.LOG_LEVEL ?? "warn",
-    network: process.env.NETWORK,
     // Test-specific variables
     testEnv: process.env.TEST_ENV,
     testIssuerAlg: process.env.TEST_ISSUER_ALG,
@@ -57,11 +69,7 @@ export const loadConfig = (): ApiConfig => {
     testIssuerPrivateKey: process.env.TEST_ISSUER_PRIVATE_KEY,
     testOidSchemaPattern: process.env.TEST_OID_SCHEMA_PATTERN,
     testSpecificNodeDomain: process.env.TEST_SPECIFIC_NODE_DOMAIN,
-    trustedHostnames: (process.env.TRUSTED_HOSTNAMES ?? "")
-      .split(",")
-      .filter(Boolean),
-    trustedIssuersRegistry: `${DOMAIN}${TIR_PATH}/issuers`,
-  };
+  } as const satisfies ApiConfig;
 };
 
 export const ApiConfigModule = ConfigModule.forRoot({
@@ -75,7 +83,6 @@ export const ApiConfigModule = ConfigModule.forRoot({
   validationSchema: Joi.object<typeof process.env, true>({
     API_ES256_PRIVATE_KEY: Joi.string().required(),
     API_PORT: Joi.string().default("3000"),
-    API_URL_PREFIX: Joi.string(),
     DOCKER_TAG: Joi.string(),
     DOMAIN: Joi.string().uri().required(),
     LOCAL_ORIGIN: Joi.string().uri(),
@@ -87,9 +94,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
       "verbose",
       "debug",
     ),
-    NETWORK: Joi.string()
-      .valid(...NETWORKS)
-      .required(),
+    NETWORK: Joi.string().required(),
     NODE_ENV: Joi.string()
       .valid("development", "production", "test")
       .default("development"),
@@ -101,8 +106,9 @@ export const ApiConfigModule = ConfigModule.forRoot({
     TEST_ISSUER_PRIVATE_KEY: Joi.string(),
     TEST_OID_SCHEMA_PATTERN: Joi.string(),
     TEST_SPECIFIC_NODE_DOMAIN: Joi.string().uri(),
-    TRUSTED_HOSTNAMES: Joi.string(),
     // Generic variables
     TZ: Joi.string(),
+    // EBSI URI Scheme prefix
+    URI_SCHEME: Joi.string(),
   }),
 });
