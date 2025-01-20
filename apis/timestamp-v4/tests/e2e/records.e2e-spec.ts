@@ -615,10 +615,7 @@ describe("Timestamp API v4 - Records (e2e)", () => {
 
       const unsignedTransaction = responseBuild.body.result;
       const uTx = formatEthersUnsignedTransaction(
-        // eslint-disable-next-line unicorn/prefer-structured-clone
-        JSON.parse(
-          JSON.stringify(unsignedTransaction),
-        ) as unknown as UnsignedTransactionSchema,
+        unsignedTransaction as UnsignedTransactionSchema,
       );
 
       const sgnTx = await testUser.wallet.signTransaction(
@@ -790,10 +787,7 @@ describe("Timestamp API v4 - Records (e2e)", () => {
 
       const unsignedTransaction = responseBuild.body.result;
       const uTx = formatEthersUnsignedTransaction(
-        // eslint-disable-next-line unicorn/prefer-structured-clone
-        JSON.parse(
-          JSON.stringify(unsignedTransaction),
-        ) as unknown as UnsignedTransactionSchema,
+        unsignedTransaction as UnsignedTransactionSchema,
       );
 
       const sgnTx = await testUser.wallet.signTransaction(
@@ -945,10 +939,7 @@ describe("Timestamp API v4 - Records (e2e)", () => {
 
       const unsignedTransaction = responseBuild.body.result;
       const uTx = formatEthersUnsignedTransaction(
-        // eslint-disable-next-line unicorn/prefer-structured-clone
-        JSON.parse(
-          JSON.stringify(unsignedTransaction),
-        ) as unknown as UnsignedTransactionSchema,
+        unsignedTransaction as UnsignedTransactionSchema,
       );
 
       const sgnTx = await adminUser.wallet.signTransaction(
@@ -1032,10 +1023,7 @@ describe("Timestamp API v4 - Records (e2e)", () => {
 
       const unsignedTransaction = responseBuild.body.result;
       const uTx = formatEthersUnsignedTransaction(
-        // eslint-disable-next-line unicorn/prefer-structured-clone
-        JSON.parse(
-          JSON.stringify(unsignedTransaction),
-        ) as unknown as UnsignedTransactionSchema,
+        unsignedTransaction as UnsignedTransactionSchema,
       );
 
       const sgnTx = await adminUser.wallet.signTransaction(
@@ -1124,10 +1112,7 @@ describe("Timestamp API v4 - Records (e2e)", () => {
 
       const insertUnsignedTransaction = insertResponseBuild.body.result;
       const insertUTx = formatEthersUnsignedTransaction(
-        // eslint-disable-next-line unicorn/prefer-structured-clone
-        JSON.parse(
-          JSON.stringify(insertUnsignedTransaction),
-        ) as unknown as UnsignedTransactionSchema,
+        insertUnsignedTransaction as UnsignedTransactionSchema,
       );
       insertUTx.chainId = Number(insertUTx.chainId);
       const insertSgnTx = await adminUser.wallet.signTransaction(
@@ -1299,10 +1284,7 @@ describe("Timestamp API v4 - Records (e2e)", () => {
 
       const unsignedTransaction = responseBuild.body.result;
       const uTx = formatEthersUnsignedTransaction(
-        // eslint-disable-next-line unicorn/prefer-structured-clone
-        JSON.parse(
-          JSON.stringify(unsignedTransaction),
-        ) as unknown as UnsignedTransactionSchema,
+        unsignedTransaction as UnsignedTransactionSchema,
       );
 
       const sgnTx = await testUser.wallet.signTransaction(

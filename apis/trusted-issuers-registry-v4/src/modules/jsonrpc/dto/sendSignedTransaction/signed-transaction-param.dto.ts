@@ -1,3 +1,4 @@
+import { IsSignedRawTransaction } from "@ebsiint-api/shared";
 import { Type } from "class-transformer";
 import { Contains, Equals, ValidateNested } from "class-validator";
 
@@ -20,7 +21,7 @@ export class SignedTransactionParam {
   @Contains("0x")
   v!: string;
 
-  @Contains("0x")
+  @IsSignedRawTransaction()
   signedRawTransaction!: string;
 }
 

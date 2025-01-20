@@ -304,10 +304,7 @@ describe("TPR API v4 - JSON RPC (e2e)", () => {
 
       const unsignedTransaction = responseBuild.body.result;
       const uTx = formatEthersUnsignedTransaction(
-        // eslint-disable-next-line unicorn/prefer-structured-clone
-        JSON.parse(
-          JSON.stringify(unsignedTransaction),
-        ) as unknown as UnsignedTransaction,
+        unsignedTransaction as UnsignedTransaction,
       );
 
       const sgnTx = await signer.signTransaction(uTx);
@@ -389,10 +386,7 @@ describe("TPR API v4 - JSON RPC (e2e)", () => {
 
       const unsignedTransaction = responseBuild.body.result;
       const uTx = formatEthersUnsignedTransaction(
-        // eslint-disable-next-line unicorn/prefer-structured-clone
-        JSON.parse(
-          JSON.stringify(unsignedTransaction),
-        ) as unknown as UnsignedTransaction,
+        unsignedTransaction as UnsignedTransaction,
       );
 
       const sgnTx = await signer.signTransaction(uTx);
@@ -531,10 +525,7 @@ describe("TPR API v4 - JSON RPC (e2e)", () => {
 
           const unsignedTransaction = responseBuild.body.result;
           const uTx = formatEthersUnsignedTransaction(
-            // eslint-disable-next-line unicorn/prefer-structured-clone
-            JSON.parse(
-              JSON.stringify(unsignedTransaction),
-            ) as unknown as UnsignedTransaction,
+            unsignedTransaction as UnsignedTransaction,
           );
 
           const sgnTx = await signer.signTransaction(uTx);
@@ -1078,12 +1069,7 @@ describe("TPR API v4 - JSON RPC (e2e)", () => {
 
         const randomSigner = ethers.Wallet.createRandom();
 
-        const uTx = formatEthersUnsignedTransaction(
-          // eslint-disable-next-line unicorn/prefer-structured-clone
-          JSON.parse(
-            JSON.stringify(transaction1),
-          ) as unknown as UnsignedTransaction,
-        );
+        const uTx = formatEthersUnsignedTransaction(transaction1);
 
         const sgnTx1 = await randomSigner.signTransaction(uTx);
         const signature = ethers.Transaction.from(sgnTx1).signature;

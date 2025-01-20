@@ -258,8 +258,7 @@ describeWriteOps()("Track and Trace - User Journey (e2e)", () => {
       unsignedTransaction: unknown;
     }) {
       const uTx = formatEthersUnsignedTransaction(
-        // eslint-disable-next-line unicorn/prefer-structured-clone
-        JSON.parse(JSON.stringify(unsignedTransaction)) as UnsignedTransaction,
+        unsignedTransaction as UnsignedTransaction,
       );
 
       const sgnTx = await signer.signTransaction(uTx);

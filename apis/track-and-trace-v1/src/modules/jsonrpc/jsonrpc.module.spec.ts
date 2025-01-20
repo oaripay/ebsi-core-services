@@ -486,6 +486,77 @@ describe("JsonRpc Module", () => {
       expect(response.status).toBe(400);
     });
 
+    it("should throw an error when the transaction is not a type 0 (legacy) transaction", async () => {
+      expect.assertions(3);
+
+      const param = {
+        authorisedDid: user1.did,
+        from: user1.wallet.address,
+        senderDid: user1.did,
+        whiteList: true,
+      } satisfies AuthoriseDidSchema;
+
+      const accessToken = user1.accessToken.tntAuthorise;
+
+      const responseBuild: SupertestJsonRpcResponse = await request(server)
+        .post("/jsonrpc")
+        .auth(accessToken, { type: "bearer" })
+        .send({
+          id: 231,
+          jsonrpc: "2.0",
+          method: "authoriseDid",
+          params: [param],
+        });
+
+      expect(responseBuild.status).toBe(200);
+      const transaction = responseBuild.body.result as UnsignedTransaction;
+
+      const signer = user1.wallet;
+      const uTx = formatEthersUnsignedTransaction(transaction);
+
+      // Remove "type: 0" from unsigned transaction, let ethers.js infer (incorrectly) that it's a type 1 transaction
+      // @ts-expect-error The operand of a 'delete' operator must be optional
+      delete uTx.type;
+
+      const sgnTx = await signer.signTransaction(uTx);
+      const signature = ethers.Transaction.from(sgnTx).signature;
+      if (!signature) {
+        throw new Error("Signature not found");
+      }
+      const { r, s, v } = signature;
+
+      const responseSend = await request(server)
+        .post("/jsonrpc")
+        .auth(accessToken, { type: "bearer" })
+        .send({
+          id: "45",
+          jsonrpc: "2.0",
+          method: "sendSignedTransaction",
+          params: [
+            {
+              protocol: "eth",
+              r,
+              s,
+              signedRawTransaction: sgnTx,
+              unsignedTransaction: transaction,
+              v: `0x${v.toString(16)}`,
+            },
+          ],
+        });
+
+      expect(responseSend.body).toStrictEqual({
+        error: {
+          code: -32_600,
+          message: expect.stringContaining(
+            "Invalid 'params.0.signedRawTransaction': Only type 0 (legacy) transactions are supported",
+          ),
+        },
+        id: "45",
+        jsonrpc: "2.0",
+      });
+      expect(responseSend.status).toBe(400);
+    });
+
     it("should throw an error when the unsignedTransaction has been tampered", async () => {
       expect.assertions(6);
 
@@ -532,10 +603,7 @@ describe("JsonRpc Module", () => {
       const transaction2 = responseBuild2.body.result as UnsignedTransaction;
 
       const randomSigner = ethers.Wallet.createRandom();
-      const uTx = formatEthersUnsignedTransaction(
-        // eslint-disable-next-line unicorn/prefer-structured-clone
-        JSON.parse(JSON.stringify(transaction1)) as UnsignedTransaction,
-      );
+      const uTx = formatEthersUnsignedTransaction(transaction1);
 
       const sgnTx1 = await randomSigner.signTransaction(uTx);
       const signature = ethers.Transaction.from(sgnTx1).signature;
@@ -836,10 +904,7 @@ describe("JsonRpc Module", () => {
 
         const unsignedTransaction = responseBuild.body.result;
         const uTx = formatEthersUnsignedTransaction(
-          // eslint-disable-next-line unicorn/prefer-structured-clone
-          JSON.parse(
-            JSON.stringify(unsignedTransaction),
-          ) as UnsignedTransaction,
+          unsignedTransaction as UnsignedTransaction,
         );
 
         const sgnTx = await signer.signTransaction(uTx);

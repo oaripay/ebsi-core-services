@@ -458,8 +458,7 @@ describe("JsonRpc Module", () => {
 
     const unsignedTransaction = responseBuild.body.result;
     const uTx = formatEthersUnsignedTransaction(
-      // eslint-disable-next-line unicorn/prefer-structured-clone
-      JSON.parse(JSON.stringify(unsignedTransaction)) as UnsignedTransaction,
+      unsignedTransaction as UnsignedTransaction,
     );
 
     const sgnTx = await signer.signTransaction(uTx);
@@ -634,8 +633,7 @@ describe("JsonRpc Module", () => {
     };
 
     const uTx = formatEthersUnsignedTransaction(
-      // eslint-disable-next-line unicorn/prefer-structured-clone
-      JSON.parse(JSON.stringify(transaction)) as UnsignedTransaction,
+      transaction as UnsignedTransaction,
     );
 
     const sgnTx = await wallet.signTransaction(uTx);
@@ -704,6 +702,80 @@ describe("JsonRpc Module", () => {
     expect(response.status).toBe(400);
   });
 
+  it("should throw an error when the transaction is not a type 0 (legacy) transaction", async () => {
+    expect.assertions(3);
+
+    const signer = ethers.Wallet.createRandom();
+
+    const param: InsertIssuerParam = {
+      attributeData: issuers[0]!.attribute.hex,
+      did: issuers[0]!.did,
+      from: signer.address,
+      issuerType: issuers[0]!.issuerType,
+      taoAttributeId: issuers[0]!.taoAttributeId,
+      taoDid: issuers[0]!.tao,
+    };
+
+    const accessToken = tao1TirWriteAccessToken;
+
+    const responseBuild: SupertestJsonRpcResponse = await request(server)
+      .post("/jsonrpc")
+      .auth(accessToken, { type: "bearer" })
+      .send({
+        id: 231,
+        jsonrpc: "2.0",
+        method: "insertIssuer",
+        params: [param],
+      });
+
+    expect(responseBuild.status).toBe(200);
+    const transaction = responseBuild.body.result as UnsignedTransaction;
+
+    const uTx = formatEthersUnsignedTransaction(transaction);
+
+    // Remove "type: 0" from unsigned transaction, let ethers.js infer (incorrectly) that it's a type 1 transaction
+    // @ts-expect-error The operand of a 'delete' operator must be optional
+    delete uTx.type;
+
+    const sgnTx = await signer.signTransaction(uTx);
+    const signature = ethers.Transaction.from(sgnTx).signature;
+    if (!signature) {
+      throw new Error("Signature not found");
+    }
+    const { r, s, v } = signature;
+
+    const responseSend = await request(server)
+      .post("/jsonrpc")
+      .auth(accessToken, { type: "bearer" })
+      .send({
+        id: "45",
+        jsonrpc: "2.0",
+        method: "sendSignedTransaction",
+        params: [
+          {
+            protocol: "eth",
+            r,
+            s,
+            signedRawTransaction: sgnTx,
+            unsignedTransaction: transaction,
+            v: `0x${v.toString(16)}`,
+          },
+        ],
+      });
+
+    expect(responseSend.body).toStrictEqual({
+      error: {
+        code: -32_600,
+        message: expect.stringContaining(
+          "property params[0].signedRawTransaction has failed the following constraints: isSignedRawTransaction",
+        ),
+      },
+      id: "45",
+      jsonrpc: "2.0",
+    });
+    expect(responseSend.status).toBe(400);
+  });
+
   it("should throw an error if the signer doesn't control the DID", async () => {
     expect.assertions(4);
 
@@ -751,8 +823,7 @@ describe("JsonRpc Module", () => {
 
     const unsignedTransaction = responseBuild.body.result;
     const uTx = formatEthersUnsignedTransaction(
-      // eslint-disable-next-line unicorn/prefer-structured-clone
-      JSON.parse(JSON.stringify(unsignedTransaction)) as UnsignedTransaction,
+      unsignedTransaction as UnsignedTransaction,
     );
 
     const sgnTx = await signer.signTransaction(uTx);
@@ -848,10 +919,7 @@ describe("JsonRpc Module", () => {
 
         const unsignedTransaction = responseBuild.body.result;
         const uTx = formatEthersUnsignedTransaction(
-          // eslint-disable-next-line unicorn/prefer-structured-clone
-          JSON.parse(
-            JSON.stringify(unsignedTransaction),
-          ) as UnsignedTransaction,
+          unsignedTransaction as UnsignedTransaction,
         );
 
         const sgnTx = await signer.signTransaction(uTx);
@@ -1101,10 +1169,7 @@ describe("JsonRpc Module", () => {
 
         const transaction2 = responseBuild2.body.result as UnsignedTransaction;
 
-        const uTx = formatEthersUnsignedTransaction(
-          // eslint-disable-next-line unicorn/prefer-structured-clone
-          JSON.parse(JSON.stringify(transaction1)) as UnsignedTransaction,
-        );
+        const uTx = formatEthersUnsignedTransaction(transaction1);
 
         const sgnTx1 = await wallet1.signTransaction(uTx);
         const signature = ethers.Transaction.from(sgnTx1).signature;

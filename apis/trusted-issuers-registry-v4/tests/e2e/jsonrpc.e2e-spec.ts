@@ -403,10 +403,7 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
 
             let unsignedTransaction = responseBuild.body.result;
             let uTx = formatEthersUnsignedTransaction(
-              // eslint-disable-next-line unicorn/prefer-structured-clone
-              JSON.parse(
-                JSON.stringify(unsignedTransaction),
-              ) as UnsignedTransaction,
+              unsignedTransaction as UnsignedTransaction,
             );
 
             let sgnTx = await adminIssuer.wallet.signTransaction(uTx);
@@ -462,10 +459,7 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
 
             unsignedTransaction = responseBuild.body.result;
             uTx = formatEthersUnsignedTransaction(
-              // eslint-disable-next-line unicorn/prefer-structured-clone
-              JSON.parse(
-                JSON.stringify(unsignedTransaction),
-              ) as UnsignedTransaction,
+              unsignedTransaction as UnsignedTransaction,
             );
 
             sgnTx = await adminIssuer.wallet.signTransaction(uTx);
@@ -856,10 +850,7 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
 
           const unsignedTransaction = responseBuild.body.result;
           const uTx = formatEthersUnsignedTransaction(
-            // eslint-disable-next-line unicorn/prefer-structured-clone
-            JSON.parse(
-              JSON.stringify(unsignedTransaction),
-            ) as UnsignedTransaction,
+            unsignedTransaction as UnsignedTransaction,
           );
 
           const sgnTx = await sender.wallet.signTransaction(uTx);
@@ -1010,10 +1001,7 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
 
           const unsignedTransaction = responseBuild.body.result;
           const uTx = formatEthersUnsignedTransaction(
-            // eslint-disable-next-line unicorn/prefer-structured-clone
-            JSON.parse(
-              JSON.stringify(unsignedTransaction),
-            ) as UnsignedTransaction,
+            unsignedTransaction as UnsignedTransaction,
           );
 
           const sgnTx = await sender.wallet.signTransaction(uTx);
@@ -1196,10 +1184,7 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
             const unsignedTransaction = responseBuild.body.result;
 
             const uTx = formatEthersUnsignedTransaction(
-              // eslint-disable-next-line unicorn/prefer-structured-clone
-              JSON.parse(
-                JSON.stringify(unsignedTransaction),
-              ) as UnsignedTransaction,
+              unsignedTransaction as UnsignedTransaction,
             );
 
             const sgnTx = await testIssuerWithProxyWallet.signTransaction(uTx);

@@ -1,5 +1,7 @@
+import type { ValidationOptions } from "class-validator";
+
 import { validate } from "@cef-ebsi/ebsi-did-resolver";
-import { buildMessage, ValidateBy, ValidationOptions } from "class-validator";
+import { buildMessage, ValidateBy } from "class-validator";
 
 import type { ValidationResult } from "./types.js";
 

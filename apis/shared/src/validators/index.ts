@@ -6,3 +6,4 @@ export * from "./IsMultibase64urlEncoded.js";
 export * from "./IsMultihashMultibase64urlEncoded.js";
 export * from "./IsPublicKeyHex.js";
 export * from "./IsSchemaId.js";
+export * from "./IsSignedRawTransaction.js";

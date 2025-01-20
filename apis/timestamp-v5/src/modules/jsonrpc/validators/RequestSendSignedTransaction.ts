@@ -22,7 +22,18 @@ const sendSignedTransactionSchema = (chainId: string) =>
     protocol: z.literal("eth"),
     r: z.string().regex(/^0x/),
     s: z.string().regex(/^0x/),
-    signedRawTransaction: z.string().regex(/^0x/),
+    signedRawTransaction: z
+      .string()
+      .regex(/^0x/)
+      .refine((v) => {
+        /**
+         * Verify that the transaction is a legacy transaction (type 0).
+         * See https://ethereum.org/en/developers/docs/transactions/#typed-transaction-envelope
+         * and https://ethereum.org/en/developers/docs/data-structures-and-encoding/rlp/
+         */
+        const firstByte = Number.parseInt(v.slice(0, 4), 16);
+        return firstByte >= 0xc0;
+      }, "Only type 0 (legacy) transactions are supported"),
     unsignedTransaction: unsignedTransactionSchema,
     v: z
       .string()

@@ -209,10 +209,7 @@ describeWriteOps()("DID Registry API v4 - JSON RPC - e2e", () => {
 
         const unsignedTransaction = responseBuild.body.result;
         const uTx = formatEthersUnsignedTransaction(
-          // eslint-disable-next-line unicorn/prefer-structured-clone
-          JSON.parse(
-            JSON.stringify(unsignedTransaction),
-          ) as UnsignedTransaction,
+          unsignedTransaction as UnsignedTransaction,
         );
 
         const sgnTx = await user.wallet.signTransaction(uTx);
@@ -426,10 +423,7 @@ describeWriteOps()("DID Registry API v4 - JSON RPC - e2e", () => {
 
         const unsignedTransaction = responseBuild.body.result;
         const uTx = formatEthersUnsignedTransaction(
-          // eslint-disable-next-line unicorn/prefer-structured-clone
-          JSON.parse(
-            JSON.stringify(unsignedTransaction),
-          ) as UnsignedTransaction,
+          unsignedTransaction as UnsignedTransaction,
         );
 
         const sgnTx = await user.wallet.signTransaction(uTx);

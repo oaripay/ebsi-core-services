@@ -16,7 +16,10 @@ export function formatEthersUnsignedTransaction(
     gasPrice: unsignedTransaction.gasPrice,
     nonce: Number(unsignedTransaction.nonce),
     to: unsignedTransaction.to,
-    type: 0, // Legacy transaction type
+    // Legacy transaction type
+    // We have to explicitly set it to 0 because ethers.js v6 incorrectly infers it as 1 otherwise
+    // Potential fix: https://github.com/ethers-io/ethers.js/pull/4859
+    type: 0,
     value: unsignedTransaction.value,
   } satisfies ethers.TransactionLike;
 }

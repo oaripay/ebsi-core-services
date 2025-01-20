@@ -291,10 +291,7 @@ describe("TSR API v3 - Schemas (e2e)", () => {
 
         const unsignedTransaction = responseBuild.body.result;
         const uTx = formatEthersUnsignedTransaction(
-          // eslint-disable-next-line unicorn/prefer-structured-clone
-          JSON.parse(
-            JSON.stringify(unsignedTransaction),
-          ) as unknown as UnsignedTransaction,
+          unsignedTransaction as UnsignedTransaction,
         );
 
         const sgnTx = await adminTestWallet.signTransaction(
