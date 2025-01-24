@@ -1,4 +1,5 @@
-import { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry-v2";
+import type { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry-v2";
+
 import { describe, expect, it } from "vitest";
 
 import { formatPolicies } from "./policies.formatter.js";

@@ -1,3 +1,5 @@
+import type { TrustedIssuersRegistry } from "@ebsiint-sc/trusted-issuers-registry-v4";
+
 import {
   decodeResult,
   getErrorMessage,
@@ -5,13 +7,18 @@ import {
   isEthersError,
   logAxiosError,
 } from "@ebsiint-api/shared";
+import { TrustedIssuersRegistry__factory } from "@ebsiint-sc/trusted-issuers-registry-v4";
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import axios, { isAxiosError } from "axios";
 import { ethers } from "ethers";
 
 import type { ApiConfig } from "../../config/configuration.js";
-import type { JsonRpcSchema } from "./validators/JsonRpcSchema.js";
+import type {
+  JsonRpcSchema,
+  SendSignedTransactionParamsSchema,
+  UnsignedTransaction,
+} from "./validators/index.js";
 
 import { LedgerService } from "../ledger/ledger.service.js";
 import {
@@ -28,10 +35,8 @@ import {
   requestSendSignedTransactionDtoSchema,
   requestSetAttributeDataSchema,
   requestSetAttributeMetadataSchema,
-  type SendSignedTransactionParamsSchema,
   setAttributeDataSchema,
   setAttributeMetadataSchema,
-  type UnsignedTransaction,
 } from "./validators/index.js";
 
 function assertDidMatchesSub(did: string, sub: string) {
@@ -64,7 +69,9 @@ export class JsonRpcService {
   // Dynamic validators which require some context
   private addIssuerProxySchema: ReturnType<typeof createAddIssuerProxySchema>;
 
-  private chainId?: string;
+  private chainId: string | undefined;
+
+  private readonly contract: TrustedIssuersRegistry;
 
   private readonly contractAddress: string;
 
@@ -93,7 +100,13 @@ export class JsonRpcService {
     this.didRegistryApiUrl = configService.get("didRegistryApiUrl", {
       infer: true,
     });
-    this.contractAddress = ledgerService.getContractAddress();
+    this.contractAddress = configService.get(
+      "besuTrustedIssuersRegistryAddress",
+      { infer: true },
+    );
+    this.contract = TrustedIssuersRegistry__factory.connect(
+      this.contractAddress,
+    );
     this.timeout = configService.get("requestTimeout", { infer: true });
 
     const ebsiEnvConfig = configService.get("ebsiEnvConfig", { infer: true });
@@ -121,7 +134,7 @@ export class JsonRpcService {
     params: string,
   ): Promise<UnsignedTransaction> {
     const nonceInt = await this.ledgerService
-      .getEthersProvider()
+      .getProvider()
       .getTransactionCount(from);
 
     const unsignedTransaction = {
@@ -171,9 +184,10 @@ export class JsonRpcService {
 
       const { did, from, proxyData } = parsedBody.params[0]!;
 
-      const data = this.ledgerService
-        .getContract()
-        .interface.encodeFunctionData(method, [did, proxyData]);
+      const data = this.contract.interface.encodeFunctionData(method, [
+        did,
+        proxyData,
+      ]);
 
       return await this.buildTransaction(from, data);
     } catch (error_) {
@@ -199,9 +213,10 @@ export class JsonRpcService {
 
       const { did, from, proxyId } = parsedBody.params[0]!;
 
-      const data = this.ledgerService
-        .getContract()
-        .interface.encodeFunctionData(method, [did, proxyId]);
+      const data = this.contract.interface.encodeFunctionData(method, [
+        did,
+        proxyId,
+      ]);
 
       return await this.buildTransaction(from, data);
     } catch (error_) {
@@ -233,13 +248,11 @@ export class JsonRpcService {
         assertDidMatchesSub(did, sub);
       }
 
-      const data = this.ledgerService
-        .getContract()
-        .interface.encodeFunctionData(method, [
-          did,
-          attributeId,
-          attributeData,
-        ]);
+      const data = this.contract.interface.encodeFunctionData(method, [
+        did,
+        attributeId,
+        attributeData,
+      ]);
 
       return await this.buildTransaction(from, data);
     } catch (error_) {
@@ -267,15 +280,13 @@ export class JsonRpcService {
       const { attributeIdTao, did, from, issuerType, revisionId, taoDid } =
         parsedBody.params[0]!;
 
-      const data = this.ledgerService
-        .getContract()
-        .interface.encodeFunctionData(method, [
-          did,
-          revisionId,
-          issuerType,
-          taoDid,
-          attributeIdTao,
-        ]);
+      const data = this.contract.interface.encodeFunctionData(method, [
+        did,
+        revisionId,
+        issuerType,
+        taoDid,
+        attributeIdTao,
+      ]);
 
       return await this.buildTransaction(from, data);
     } catch (error_) {
@@ -302,9 +313,11 @@ export class JsonRpcService {
 
       const { did, from, proxyData, proxyId } = parsedBody.params[0]!;
 
-      const data = this.ledgerService
-        .getContract()
-        .interface.encodeFunctionData(method, [did, proxyId, proxyData]);
+      const data = this.contract.interface.encodeFunctionData(method, [
+        did,
+        proxyId,
+        proxyData,
+      ]);
 
       return await this.buildTransaction(from, data);
     } catch (error_) {
@@ -319,8 +332,10 @@ export class JsonRpcService {
   async estimateGas(transaction: UnsignedTransaction): Promise<bigint> {
     const { data, from, to, value } = transaction;
 
+    const provider = this.ledgerService.getProvider();
+
     try {
-      return await this.ledgerService.getEthersProvider().estimateGas({
+      return await provider.estimateGas({
         data,
         from,
         to,
@@ -336,10 +351,10 @@ export class JsonRpcService {
 
   async getChainId(): Promise<string> {
     if (!this.chainId) {
+      const provider = this.ledgerService.getProvider();
+
       try {
-        const { chainId } = await this.ledgerService
-          .getEthersProvider()
-          .getNetwork();
+        const { chainId } = await provider.getNetwork();
         this.chainId = `0x${BigInt(chainId).toString(16)}`;
       } catch (error) {
         if (isEthersError(error)) {
@@ -348,6 +363,7 @@ export class JsonRpcService {
         throw new Error(getErrorMessage(error));
       }
     }
+
     return this.chainId;
   }
 
@@ -398,7 +414,7 @@ export class JsonRpcService {
       }
 
       const tx = await this.ledgerService
-        .getEthersProvider()
+        .getProvider()
         .broadcastTransaction(request.signedRawTransaction);
       return tx.hash;
     } catch (error_) {
@@ -486,9 +502,8 @@ export class JsonRpcService {
     }
 
     // verify function and parameters encoded in unsignedTransaction.data
-    const parsedTransaction = this.ledgerService
-      .getContract()
-      .interface.parseTransaction(unsignedTransaction);
+    const parsedTransaction =
+      this.contract.interface.parseTransaction(unsignedTransaction);
 
     if (!parsedTransaction) {
       throw new Error("Invalid unsignedTransaction.data");

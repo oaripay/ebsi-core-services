@@ -1,14 +1,14 @@
 import { InternalServerError, NotFoundError } from "@ebsiint-api/shared";
 import { Injectable, Logger } from "@nestjs/common";
 
-import type { Access } from "./accesses.interface.js";
-
-import {
-  getBuiltGraphSDK,
+import type {
   GetCreatorQuery,
   GetOperatorQuery,
   Invitation_filter,
 } from "../../../.graphclient/index.js";
+import type { Access } from "./accesses.interface.js";
+
+import { getBuiltGraphSDK } from "../../../.graphclient/index.js";
 import { didToHex, hexToDid } from "../../shared/utils.js";
 
 const sdk = getBuiltGraphSDK();

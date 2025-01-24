@@ -1,12 +1,13 @@
 import { Tir } from "@ebsiint-sc/trusted-issuers-registry";
 import { describe, expect, it } from "vitest";
 
+import type { AttributeObject } from "./issuers.interface.js";
+
 import {
   formatAttributes,
   formatIssuers,
   formatProxies,
 } from "./issuers.formatter.js";
-import { AttributeObject } from "./issuers.interface.js";
 
 describe("formatIssuers", () => {
   const issuers = {

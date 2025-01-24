@@ -1,13 +1,15 @@
-import { Accepts, PaginatedListWithoutTotal } from "@ebsiint-api/shared";
+import type { PaginatedListWithoutTotal } from "@ebsiint-api/shared";
+
+import { Accepts } from "@ebsiint-api/shared";
 import { Controller, Get, Param, Query } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
+import type { User_filter } from "../../../.graphclient/index.js";
 import type { ApiConfig } from "../../config/configuration.js";
+import type { UserLink, UserResponseObject } from "./users.interface.js";
 
-import { User_filter } from "../../../.graphclient/index.js";
 import { GetUserParams, GetUsersQuery } from "./dto/index.js";
 import { formatUsers } from "./users.formatter.js";
-import { UserLink, UserResponseObject } from "./users.interface.js";
 import { UsersService } from "./users.service.js";
 
 @Controller("/users")

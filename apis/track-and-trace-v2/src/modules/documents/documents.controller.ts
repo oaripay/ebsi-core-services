@@ -1,11 +1,14 @@
-import {
-  Accepts,
-  BadRequestError,
-  PaginatedListWithoutTotal,
-} from "@ebsiint-api/shared";
+import type { PaginatedListWithoutTotal } from "@ebsiint-api/shared";
+
+import { Accepts, BadRequestError } from "@ebsiint-api/shared";
 import { Controller, Get, Param, Query } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
+import type {
+  Document_filter,
+  Event_filter,
+  Invitation_filter,
+} from "../../../.graphclient/index.js";
 import type { ApiConfig } from "../../config/configuration.js";
 import type {
   Access,
@@ -15,11 +18,6 @@ import type {
   Event,
 } from "./documents.interface.js";
 
-import {
-  Document_filter,
-  Event_filter,
-  Invitation_filter,
-} from "../../../.graphclient/index.js";
 import { didToHex } from "../../shared/utils.js";
 import {
   formatDocumentAccesses,

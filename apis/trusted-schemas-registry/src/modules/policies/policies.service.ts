@@ -6,24 +6,42 @@ import {
   NotFoundError,
   remove0xPrefix,
 } from "@ebsiint-api/shared";
+import { SchemaSCRegistry__factory } from "@ebsiint-sc/trusted-schemas-registry";
 import { Injectable, Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 
+import type { ApiConfig } from "../../config/configuration.js";
 import type { PolicyRevisions } from "./policies.interface.js";
 
 import { LedgerService } from "../ledger/ledger.service.js";
 
 @Injectable()
 export class PoliciesService {
+  private readonly contract: SchemaSCRegistry;
+
   private readonly logger = new Logger(PoliciesService.name);
 
-  constructor(private ledgerService: LedgerService) {}
+  constructor(
+    configService: ConfigService<ApiConfig, true>,
+    private ledgerService: LedgerService,
+  ) {
+    const contractAddress = configService.get("contractAddr", {
+      infer: true,
+    });
+    this.contract = SchemaSCRegistry__factory.connect(contractAddress);
+  }
 
   async getPolicies(
     page: number,
     pageSize: number,
   ): ReturnType<SchemaSCRegistry["getPolicies"]> {
+    const provider = this.ledgerService.getProvider();
+
     try {
-      return await this.ledgerService.getContract().getPolicies(page, pageSize);
+      return await this.contract
+        // @ts-expect-error Error due to CommonJS vs ESM modules imports
+        .connect(provider)
+        .getPolicies(page, pageSize);
     } catch (error) {
       if (isEthersError(error)) {
         this.logger.error(error, error.stack);
@@ -35,11 +53,16 @@ export class PoliciesService {
   }
 
   async getPolicy(policyId: string): Promise<[string, string]> {
+    const provider = this.ledgerService.getProvider();
+
     let policy: Awaited<ReturnType<SchemaSCRegistry["getPolicy"]>>;
 
     try {
       // Preserve case! Don't lowercase the policyId
-      policy = await this.ledgerService.getContract().getPolicy(policyId);
+      policy = await this.contract
+        // @ts-expect-error Error due to CommonJS vs ESM modules imports
+        .connect(provider)
+        .getPolicy(policyId);
     } catch (error) {
       if (isEthersError(error)) {
         this.logger.error(error, error.stack);
@@ -65,11 +88,14 @@ export class PoliciesService {
     page: number,
     pageSize: number,
   ): Promise<PolicyRevisions> {
+    const provider = this.ledgerService.getProvider();
+
     let revisions: Awaited<ReturnType<SchemaSCRegistry["getPolicyRevisions"]>>;
 
     try {
-      revisions = await this.ledgerService
-        .getContract()
+      revisions = await this.contract
+        // @ts-expect-error Error due to CommonJS vs ESM modules imports
+        .connect(provider)
         .getPolicyRevisions(policyId, page, pageSize);
     } catch (error) {
       if (isEthersError(error)) {
@@ -80,7 +106,9 @@ export class PoliciesService {
       });
     }
 
-    const contract = this.ledgerService.getContract();
+    const contract = this.contract
+      // @ts-expect-error Error due to CommonJS vs ESM modules imports
+      .connect(provider);
     const getPoliciesByRevisions = revisions.items.map((hash) =>
       contract.getPolicyByHash(hash),
     );

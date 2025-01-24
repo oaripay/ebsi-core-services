@@ -2,35 +2,23 @@ import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 
 import { methodNotAllowed } from "@ebsiint-api/shared";
-import { Timestamp, Timestamp__factory } from "@ebsiint-sc/timestamp-v3";
 import { fastifyAccepts } from "@fastify/accepts";
 import { Logger, ValidationPipe } from "@nestjs/common";
 import { FastifyAdapter } from "@nestjs/platform-fastify";
 import { Test } from "@nestjs/testing";
 import request from "supertest";
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
+import { dummyData } from "../../../tests/utils/data.js";
 import { graphServer } from "../../../tests/utils/graphServer.js";
-import { setupTestEnv } from "../../../tests/utils/timestamp.js";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
 import { HashAlgorithmsModule } from "./hash-algorithms.module.js";
 
 describe("HashAlgorithms Module", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault;
-  let timestampContract: Timestamp;
-  let testEnv: Awaited<ReturnType<typeof setupTestEnv>>;
 
   beforeAll(async () => {
-    // Spin up test blockchain (hardhat)
-    testEnv = await setupTestEnv();
-    timestampContract = testEnv.timestampContract;
-
-    // Mock Timestamp contract
-    vi.spyOn(Timestamp__factory, "connect").mockImplementation(
-      () => timestampContract,
-    );
-
     const moduleFixture = await Test.createTestingModule({
       imports: [HashAlgorithmsModule],
     }).compile();
@@ -264,13 +252,13 @@ describe("HashAlgorithms Module", () => {
 
       const response = await request(server).get("/hash-algorithms/0");
 
-      const firstHashAlgorithm = testEnv.hashAlgorithms[0]!;
+      const firstHashAlgorithm = dummyData.hashAlgos[0]!;
 
       expect(response.body).toStrictEqual({
         ianaName: firstHashAlgorithm.ianaName,
-        multihash: firstHashAlgorithm.multihash,
+        multihash: firstHashAlgorithm.multiHash,
         oid: firstHashAlgorithm.oid,
-        outputLengthBits: firstHashAlgorithm.outputLength,
+        outputLengthBits: Number(firstHashAlgorithm.outputLength),
         status: "active",
       });
       expect(response.status).toBe(200);

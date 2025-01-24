@@ -3,7 +3,7 @@ import type { Tir } from "@ebsiint-sc/trusted-issuers-registry";
 
 import { paginate } from "@ebsiint-api/shared";
 
-import {
+import type {
   AttributeObject,
   DidLink,
   IdLink,

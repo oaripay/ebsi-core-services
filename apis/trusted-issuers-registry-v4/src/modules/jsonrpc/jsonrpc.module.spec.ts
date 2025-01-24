@@ -1,4 +1,5 @@
 import type { EbsiIssuer } from "@cef-ebsi/verifiable-credential";
+import type { Tir } from "@ebsiint-sc/trusted-issuers-registry";
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 import type { GenerateKeyPairResult } from "jose";
@@ -6,7 +7,7 @@ import type { GenerateKeyPairResult } from "jose";
 import { createVerifiableCredentialJwt } from "@cef-ebsi/verifiable-credential";
 import { methodNotAllowed } from "@ebsiint-api/shared";
 import * as StatusList2021CredentialHelpers from "@ebsiint-api/shared";
-import { Tir } from "@ebsiint-sc/trusted-issuers-registry";
+import { Tir__factory } from "@ebsiint-sc/trusted-issuers-registry";
 import { fastifyAccepts } from "@fastify/accepts";
 import { Logger, ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
@@ -86,7 +87,6 @@ describe("JsonRpc Module", () => {
   let tirContractAddress: string;
   let jsonRpcService: JsonRpcService;
   let testEnv: Awaited<ReturnType<typeof setupTestEnv>>;
-  let ledgerService: LedgerService;
   let rootTao: IssuerObject;
   let tao1: IssuerObject;
   let tao1TirWriteAccessToken: string;
@@ -212,6 +212,23 @@ describe("JsonRpc Module", () => {
       issuersTotal: 5,
     });
 
+    tirContract = testEnv.tirContract;
+    tirContractAddress = await tirContract.getAddress();
+
+    vi.stubEnv("CONTRACT_ADDR", await tirContract.getAddress());
+
+    // Mock TIR contract
+    vi.spyOn(Tir__factory, "connect").mockImplementation(
+      // Create new instance without runner (provider)
+      () => tirContract.connect(),
+    );
+
+    // Mock LedgerService
+    vi.spyOn(LedgerService.prototype, "getProvider").mockImplementation(
+      // @ts-expect-error Error due to a mismatch between ESM and CommonJS modules
+      () => testEnv.provider,
+    );
+
     rootTao = testEnv.issuers[0]!;
     tao1 = testEnv.issuers[1]!;
 
@@ -221,13 +238,6 @@ describe("JsonRpc Module", () => {
       createIssuer(IssuerType.TI, tao1.did, tao1.attribute.id, rootTao.did),
       createIssuer(IssuerType.TI, tao1.did, tao1.attribute.id, rootTao.did),
       createIssuer(IssuerType.TI, tao1.did, tao1.attribute.id, rootTao.did),
-    );
-
-    tirContract = testEnv.tirContract;
-    tirContractAddress = await tirContract.getAddress();
-
-    vi.spyOn(LedgerService.prototype, "getContractAddress").mockImplementation(
-      () => tirContractAddress,
     );
 
     // Start server
@@ -260,7 +270,6 @@ describe("JsonRpc Module", () => {
     server = app.getHttpServer();
 
     jsonRpcService = moduleFixture.get<JsonRpcService>(JsonRpcService);
-    ledgerService = moduleFixture.get<LedgerService>(LedgerService);
 
     // Generate key pair for Authorisation API v3 and create access token
     authApiKeyPair = await generateKeyPair("ES256");
@@ -363,15 +372,6 @@ describe("JsonRpc Module", () => {
   });
 
   beforeEach(() => {
-    // Mock TIR contract
-    vi.spyOn(ledgerService, "getContract").mockImplementation(
-      () => tirContract,
-    );
-    vi.spyOn(ledgerService, "getEthersProvider").mockImplementation(
-      // @ts-expect-error Error due to a mismatch between ESM and CommonJS modules
-      () => testEnv.provider,
-    );
-
     // For the tests, we assume that the DID is controlled by the signer
     isDidControlledByAddressMock = vi.spyOn(
       jsonRpcService,

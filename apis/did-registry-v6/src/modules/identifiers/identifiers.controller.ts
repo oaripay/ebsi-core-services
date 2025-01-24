@@ -1,10 +1,10 @@
+import type { PaginatedListWithoutTotal } from "@ebsiint-api/shared";
 import type { FastifyReply } from "fastify";
 
 import {
   Accepts,
   getErrorMessage,
   InvalidRequestJsonRpcError,
-  PaginatedListWithoutTotal,
 } from "@ebsiint-api/shared";
 import {
   Body,
@@ -20,6 +20,11 @@ import {
 import { ConfigService } from "@nestjs/config";
 
 import type { ApiConfig } from "../../config/configuration.js";
+import type {
+  DidLink,
+  Event,
+  JsonRpcResponseObject,
+} from "./identifiers.interface.js";
 
 import {
   GetIdentifierParamsDto,
@@ -27,11 +32,6 @@ import {
   GetIdentifiersDto,
 } from "./dto/index.js";
 import { formatEvents, formatIdentifiers } from "./identifiers.formatter.js";
-import {
-  DidLink,
-  Event,
-  JsonRpcResponseObject,
-} from "./identifiers.interface.js";
 import IdentifiersService from "./identifiers.service.js";
 import { jsonRpcSchema } from "./validators/JsonRpcSchema.js";
 

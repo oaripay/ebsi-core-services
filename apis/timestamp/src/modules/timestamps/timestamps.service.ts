@@ -1,3 +1,6 @@
+import type { Timestamp } from "@ebsiint-sc/timestamp";
+import type { HashName } from "multihashes";
+
 import {
   InternalServerError,
   isEthersError,
@@ -6,32 +9,53 @@ import {
   multihashEncode,
   NotFoundError,
 } from "@ebsiint-api/shared";
-import { Timestamp } from "@ebsiint-sc/timestamp";
+import { Timestamp__factory } from "@ebsiint-sc/timestamp";
 import { Injectable, Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
-import { HashName } from "multihashes";
+
+import type { ApiConfig } from "../../config/configuration.js";
+import type { TimestampResponseObject } from "./timestamps.interface.js";
 
 import { LedgerService } from "../ledger/ledger.service.js";
-import { TimestampResponseObject } from "./timestamps.interface.js";
 
 @Injectable()
 export default class TimestampsService {
+  private readonly contract: Timestamp;
+
   private readonly logger = new Logger(TimestampsService.name);
 
-  constructor(private ledgerService: LedgerService) {}
+  constructor(
+    configService: ConfigService<ApiConfig, true>,
+    private ledgerService: LedgerService,
+  ) {
+    const contractAddress = configService.get("contractAddr", {
+      infer: true,
+    });
+    this.contract = Timestamp__factory.connect(contractAddress);
+  }
 
   async getTimestamp(timestampId: string): Promise<TimestampResponseObject> {
     let timestamp: Awaited<ReturnType<Timestamp["getTimestamp"]>>;
+
+    const provider = this.ledgerService.getProvider();
+
     try {
       const timestampIdDecoded = `0x${Buffer.from(
         multihashDecode(multibase.base64url.decode(timestampId)),
       ).toString("hex")}`;
 
-      timestamp = await this.ledgerService
-        .getContract()
+      timestamp = await this.contract
+        // @ts-expect-error Error due to contracts using CommonJS modules
+        .connect(provider)
         .getTimestampById(timestampIdDecoded);
     } catch (error) {
-      this.logger.error((error as Error).message, (error as Error).stack);
+      if (error instanceof Error) {
+        this.logger.error(error.message, error.stack);
+      } else {
+        this.logger.error(error);
+      }
+
       throw new NotFoundError("Timestamp Not Found", {
         detail: `Timestamp ${timestampId} not found`,
       });
@@ -42,12 +66,11 @@ export default class TimestampsService {
     try {
       // Parallelize SC calls
       const [hashAlgorithm, block] = await Promise.all([
-        this.ledgerService
-          .getContract()
+        this.contract
+          // @ts-expect-error Error due to contracts using CommonJS modules
+          .connect(provider)
           .getHashAlgorithmById(Number(hash.algorithm)),
-        this.ledgerService
-          .getEthersProvider()
-          .getBlock(Number(blockNumber), true),
+        provider.getBlock(Number(blockNumber), true),
       ]);
 
       if (!block) {
@@ -76,8 +99,6 @@ export default class TimestampsService {
         });
       }
 
-      const { interface: contractInterface } = this.ledgerService.getContract();
-
       // Find the transaction in the block that was sent with:
       // {
       //   hashAlgorithmIds: [..., hash.algorithm, ...],
@@ -86,9 +107,11 @@ export default class TimestampsService {
       // }
 
       const transaction = block.prefetchedTransactions.find((tx) => {
-        let parsedTx: ReturnType<typeof contractInterface.parseTransaction>;
+        let parsedTx: ReturnType<
+          typeof this.contract.interface.parseTransaction
+        >;
         try {
-          parsedTx = contractInterface.parseTransaction(
+          parsedTx = this.contract.interface.parseTransaction(
             ethers.Transaction.from(tx),
           );
           if (!parsedTx) return false;
@@ -153,9 +176,12 @@ export default class TimestampsService {
     page: number,
     pageSize: number,
   ): ReturnType<Timestamp["getTimestamps"]> {
+    const provider = this.ledgerService.getProvider();
+
     try {
-      return await this.ledgerService
-        .getContract()
+      return await this.contract
+        // @ts-expect-error Error due to contracts using CommonJS modules
+        .connect(provider)
         .getTimestamps(page, pageSize);
     } catch (error) {
       if (isEthersError(error)) {

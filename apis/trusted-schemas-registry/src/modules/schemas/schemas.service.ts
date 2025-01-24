@@ -5,9 +5,12 @@ import {
   NotFoundError,
   remove0xPrefix,
 } from "@ebsiint-api/shared";
+import { SchemaSCRegistry__factory } from "@ebsiint-sc/trusted-schemas-registry";
 import { Injectable, Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import pLimit from "p-limit";
 
+import type { ApiConfig } from "../../config/configuration.js";
 import type { ItemsList } from "./schemas.interface.js";
 
 import { LedgerService } from "../ledger/ledger.service.js";
@@ -18,19 +21,32 @@ const MAX_CONCURRENT_PROMISES = 10;
 
 @Injectable()
 export class SchemasService {
+  private readonly contract: SchemaSCRegistry;
+
   private readonly logger = new Logger(SchemasService.name);
 
-  constructor(private ledgerService: LedgerService) {}
+  constructor(
+    configService: ConfigService<ApiConfig, true>,
+    private ledgerService: LedgerService,
+  ) {
+    const contractAddress = configService.get("contractAddr", {
+      infer: true,
+    });
+    this.contract = SchemaSCRegistry__factory.connect(contractAddress);
+  }
 
   async getSchema(schemaId: string): Promise<unknown> {
     let schema: Awaited<
       ReturnType<SchemaSCRegistry["getLatestSchemaRevision"]>
     >;
+    const provider = this.ledgerService.getProvider();
+
     const hexSchemaId = schemaIdToHex(schemaId);
 
     try {
-      schema = await this.ledgerService
-        .getContract()
+      schema = await this.contract
+        // @ts-expect-error Error due to CommonJS vs ESM modules imports
+        .connect(provider)
         .getLatestSchemaRevision(hexSchemaId);
     } catch (error) {
       if (isEthersError(error)) {
@@ -52,12 +68,15 @@ export class SchemasService {
     schemaId: string,
     schemaRevisionId: string,
   ): Promise<unknown> {
+    const provider = this.ledgerService.getProvider();
+
     const hexSchemaId = schemaIdToHex(schemaId);
 
     // Make sure the schema exists
     try {
-      await this.ledgerService
-        .getContract()
+      await this.contract
+        // @ts-expect-error Error due to CommonJS vs ESM modules imports
+        .connect(provider)
         .getLatestSchemaRevision(hexSchemaId);
     } catch (error) {
       if (isEthersError(error)) {
@@ -71,8 +90,9 @@ export class SchemasService {
     // Get revision
     let revision: Awaited<ReturnType<SchemaSCRegistry["getSchemaRevision"]>>;
     try {
-      revision = await this.ledgerService
-        .getContract()
+      revision = await this.contract
+        // @ts-expect-error Error due to CommonJS vs ESM modules imports
+        .connect(provider)
         .getSchemaRevision(schemaRevisionId);
     } catch (error) {
       if (isEthersError(error)) {
@@ -95,12 +115,15 @@ export class SchemasService {
     schemaRevisionId: string,
     metadataId: string,
   ): Promise<unknown> {
+    const provider = this.ledgerService.getProvider();
+
     const hexSchemaId = schemaIdToHex(schemaId);
 
     // Make sure the schema exists
     try {
-      await this.ledgerService
-        .getContract()
+      await this.contract
+        // @ts-expect-error Error due to CommonJS vs ESM modules imports
+        .connect(provider)
         .getLatestSchemaRevision(hexSchemaId);
     } catch (error) {
       if (isEthersError(error)) {
@@ -113,8 +136,9 @@ export class SchemasService {
 
     // Make sure the revision exists
     try {
-      await this.ledgerService
-        .getContract()
+      await this.contract
+        // @ts-expect-error Error due to CommonJS vs ESM modules imports
+        .connect(provider)
         .getSchemaRevision(schemaRevisionId);
     } catch (error) {
       if (isEthersError(error)) {
@@ -130,8 +154,9 @@ export class SchemasService {
       ReturnType<SchemaSCRegistry["getSchemaRevisionMetadataByMetadataId"]>
     >;
     try {
-      metadata = await this.ledgerService
-        .getContract()
+      metadata = await this.contract
+        // @ts-expect-error Error due to CommonJS vs ESM modules imports
+        .connect(provider)
         .getSchemaRevisionMetadataByMetadataId(metadataId);
     } catch (error) {
       if (isEthersError(error)) {
@@ -155,12 +180,15 @@ export class SchemasService {
     page: number,
     pageSize: number,
   ): Promise<ItemsList> {
+    const provider = this.ledgerService.getProvider();
+
     const hexSchemaId = schemaIdToHex(schemaId);
 
     // Make sure the schema exists
     try {
-      await this.ledgerService
-        .getContract()
+      await this.contract
+        // @ts-expect-error Error due to CommonJS vs ESM modules imports
+        .connect(provider)
         .getLatestSchemaRevision(hexSchemaId);
     } catch (error) {
       if (isEthersError(error)) {
@@ -173,8 +201,9 @@ export class SchemasService {
 
     // Make sure the revision exists
     try {
-      await this.ledgerService
-        .getContract()
+      await this.contract
+        // @ts-expect-error Error due to CommonJS vs ESM modules imports
+        .connect(provider)
         .getSchemaRevision(schemaRevisionId);
     } catch (error) {
       if (isEthersError(error)) {
@@ -187,8 +216,9 @@ export class SchemasService {
 
     try {
       // Get metadata
-      const metadata = await this.ledgerService
-        .getContract()
+      const metadata = await this.contract
+        // @ts-expect-error Error due to CommonJS vs ESM modules imports
+        .connect(provider)
         .getSchemaRevisionMetadataIds(schemaRevisionId, page, pageSize);
 
       return {
@@ -211,12 +241,15 @@ export class SchemasService {
     pageSize: number,
     validAt?: string,
   ): Promise<ItemsList> {
+    const provider = this.ledgerService.getProvider();
+
     const hexSchemaId = schemaIdToHex(schemaId);
 
     // Make sure the schema exists
     try {
-      await this.ledgerService
-        .getContract()
+      await this.contract
+        // @ts-expect-error Error due to CommonJS vs ESM modules imports
+        .connect(provider)
         .getLatestSchemaRevision(hexSchemaId);
     } catch (error) {
       if (isEthersError(error)) {
@@ -234,8 +267,9 @@ export class SchemasService {
         const allRevisionsIds: string[] = [];
 
         // Get the first MAX_RESULTS_PER_PAGE revisions IDs
-        const revisions = await this.ledgerService
-          .getContract()
+        const revisions = await this.contract
+          // @ts-expect-error Error due to CommonJS vs ESM modules imports
+          .connect(provider)
           .getSchemaRevisionIds(hexSchemaId, 1, MAX_RESULTS_PER_PAGE);
         allRevisionsIds.push(...revisions.items);
         const total = Number(revisions.total);
@@ -243,7 +277,9 @@ export class SchemasService {
         const limit = pLimit(MAX_CONCURRENT_PROMISES); // Limit concurrent promises
 
         if (total > MAX_RESULTS_PER_PAGE) {
-          const contract = this.ledgerService.getContract();
+          const contract = this.contract
+            // @ts-expect-error Error due to CommonJS vs ESM modules imports
+            .connect(provider);
           const otherSchemaRevisionIds = await Promise.all(
             // From page 2 to page "Math.ceil(total / MAX_RESULTS_PER_PAGE)"
             range(2, Math.ceil(total / MAX_RESULTS_PER_PAGE)).map((pageIndex) =>
@@ -266,7 +302,9 @@ export class SchemasService {
         }
 
         // For each revision ID, get latest metadata
-        const contract = this.ledgerService.getContract();
+        const contract = this.contract
+          // @ts-expect-error Error due to CommonJS vs ESM modules imports
+          .connect(provider);
         const allMetadata = await Promise.all(
           allRevisionsIds.map((id) =>
             limit(() =>
@@ -316,8 +354,9 @@ export class SchemasService {
       }
 
       // Get the revisions
-      const revisions = await this.ledgerService
-        .getContract()
+      const revisions = await this.contract
+        // @ts-expect-error Error due to CommonJS vs ESM modules imports
+        .connect(provider)
         .getSchemaRevisionIds(hexSchemaId, page, pageSize);
 
       return {
@@ -335,9 +374,12 @@ export class SchemasService {
   }
 
   async getSchemas(page: number, pageSize: number): Promise<ItemsList> {
+    const provider = this.ledgerService.getProvider();
+
     try {
-      const result = await this.ledgerService
-        .getContract()
+      const result = await this.contract
+        // @ts-expect-error Error due to CommonJS vs ESM modules imports
+        .connect(provider)
         .getSchemaIds(page, pageSize);
 
       return {

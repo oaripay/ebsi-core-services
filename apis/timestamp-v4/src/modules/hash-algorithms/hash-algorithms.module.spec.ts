@@ -1,8 +1,9 @@
+import type { Timestamp } from "@ebsiint-sc/timestamp-v2";
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 
 import { methodNotAllowed } from "@ebsiint-api/shared";
-import { Timestamp, Timestamp__factory } from "@ebsiint-sc/timestamp-v2";
+import { Timestamp__factory } from "@ebsiint-sc/timestamp-v2";
 import { fastifyAccepts } from "@fastify/accepts";
 import { Logger, ValidationPipe } from "@nestjs/common";
 import { FastifyAdapter } from "@nestjs/platform-fastify";
@@ -22,7 +23,6 @@ describe("HashAlgorithms Module", () => {
   let server: RawServerDefault;
   let timestampContract: Timestamp;
   let testEnv: Awaited<ReturnType<typeof setupTestEnv>>;
-  let ledgerService: LedgerService;
 
   beforeAll(async () => {
     // Spin up test blockchain (hardhat)
@@ -32,8 +32,15 @@ describe("HashAlgorithms Module", () => {
     timestampContract = testEnv.timestampContract;
 
     // Mock Timestamp contract
-    vi.spyOn(Timestamp__factory, "connect").mockImplementation(
-      () => timestampContract,
+    vi.spyOn(Timestamp__factory, "connect").mockImplementation(() =>
+      // Create new instance without runner (provider)
+      timestampContract.connect(),
+    );
+
+    // Mock LedgerService
+    vi.spyOn(LedgerService.prototype, "getProvider").mockImplementation(
+      // @ts-expect-error Error due to a mismatch between ESM and CommonJS modules
+      () => testEnv.provider,
     );
 
     const moduleFixture = await Test.createTestingModule({
@@ -59,12 +66,6 @@ describe("HashAlgorithms Module", () => {
     await app.init();
     await fastifyInstance.ready();
     server = app.getHttpServer();
-
-    // Mock Contract service
-    ledgerService = moduleFixture.get<LedgerService>(LedgerService);
-    vi.spyOn(ledgerService, "getContract").mockImplementation(
-      () => timestampContract,
-    );
   });
 
   afterAll(async () => {

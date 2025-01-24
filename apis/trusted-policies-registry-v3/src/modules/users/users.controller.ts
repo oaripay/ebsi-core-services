@@ -1,12 +1,14 @@
-import { Accepts, PaginatedList, PaginationQuery } from "@ebsiint-api/shared";
+import type { PaginatedList } from "@ebsiint-api/shared";
+
+import { Accepts, PaginationQuery } from "@ebsiint-api/shared";
 import { Controller, Get, Param, Query } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
 import type { ApiConfig } from "../../config/configuration.js";
+import type { UserLink, UserResponseObject } from "./users.interface.js";
 
 import { GetUserParams } from "./dto/index.js";
 import { formatUsers } from "./users.formatter.js";
-import { UserLink, UserResponseObject } from "./users.interface.js";
 import { UsersService } from "./users.service.js";
 
 @Controller("/users")

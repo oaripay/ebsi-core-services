@@ -1,8 +1,10 @@
-import { SchemaSCRegistry } from "@ebsiint-sc/trusted-schemas-registry";
+import type { SchemaSCRegistry } from "@ebsiint-sc/trusted-schemas-registry";
+
 import { describe, expect, it } from "vitest";
 
+import type { PoliciesService } from "./policies.service.js";
+
 import { formatPolicies, formatRevisions } from "./policies.formatter.js";
-import { PoliciesService } from "./policies.service.js";
 
 describe("formatPolicies", () => {
   const policies = {

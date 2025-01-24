@@ -3,7 +3,8 @@ import type { RawServerDefault } from "fastify";
 import type { GenerateKeyPairResult, JWK } from "jose";
 
 import { methodNotAllowed } from "@ebsiint-api/shared";
-import { DidRegistry, DidRegistry__factory } from "@ebsiint-sc/did-registry-v2";
+import { DidRegistry__factory as DidRegistryV1__factory } from "@ebsiint-sc/did-registry";
+import { DidRegistry__factory as DidRegistryV2__factory } from "@ebsiint-sc/did-registry-v2";
 import { fastifyAccepts } from "@fastify/accepts";
 import { fastifyHelmet } from "@fastify/helmet";
 import { Logger, ValidationPipe } from "@nestjs/common";
@@ -32,10 +33,11 @@ import {
   vi,
 } from "vitest";
 
+import type { UserDetails } from "../../../tests/utils/data.js";
 import type { ApiConfig } from "../../config/configuration.js";
 import type { JsonRpcResponseObject } from "./jsonrpc.interface.js";
 
-import { createUser, UserDetails } from "../../../tests/utils/data.js";
+import { createUser } from "../../../tests/utils/data.js";
 import { setupTestEnv } from "../../../tests/utils/didRegistry.js";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
 import { LedgerService } from "../ledger/ledger.service.js";
@@ -75,10 +77,8 @@ describe(
   () => {
     let app: NestFastifyApplication;
     let server: RawServerDefault;
-    let didRegistryContract: DidRegistry;
     let configService: ConfigService<ApiConfig, true>;
     let testEnv: Awaited<ReturnType<typeof setupTestEnv>>;
-    let ledgerService: LedgerService;
 
     let newUserDidrInviteAccessToken: string;
     let newUserDidrWriteAccessToken: string;
@@ -115,17 +115,29 @@ describe(
         didDocumentsTotal: 2,
       });
 
-      didRegistryContract = testEnv.didRegistryContract;
+      const { didRegistryContract, provider, setupV1, users } = testEnv;
 
-      const didRegistryContractAddress = await didRegistryContract.getAddress();
-      vi.spyOn(
-        LedgerService.prototype,
-        "getContractAddress",
-      ).mockImplementation(() => didRegistryContractAddress);
+      // Stub environment variables
+      vi.stubEnv(
+        "CONTRACT_V1_ADDR",
+        await setupV1.didRegistryV1Contract.getAddress(),
+      );
+      vi.stubEnv("CONTRACT_ADDR", await didRegistryContract.getAddress());
 
-      // Mock DidRegistry contract
-      vi.spyOn(DidRegistry__factory, "connect").mockImplementation(
-        () => didRegistryContract,
+      // Mock DidRegistry contracts
+      vi.spyOn(DidRegistryV1__factory, "connect").mockImplementation(() =>
+        // Create new instance without runner (provider)
+        setupV1.didRegistryV1Contract.connect(),
+      );
+      vi.spyOn(DidRegistryV2__factory, "connect").mockImplementation(() =>
+        // Create new instance without runner (provider)
+        didRegistryContract.connect(),
+      );
+
+      // Mock LedgerService
+      vi.spyOn(LedgerService.prototype, "getProvider").mockImplementation(
+        // @ts-expect-error Error due to a mismatch between ESM and CommonJS modules
+        () => provider,
       );
 
       // Start server
@@ -171,8 +183,8 @@ describe(
       server = app.getHttpServer();
 
       newUser = await createUser();
-      existingUser = testEnv.users[0]!;
-      existingUser2 = testEnv.users[1]!;
+      existingUser = users[0]!;
+      existingUser2 = users[1]!;
 
       publicKeyJwk2 = {
         crv: "Ed25519",
@@ -188,20 +200,6 @@ describe(
         y: "1ejY6g2ha6Kyo2ctAkMVXv5IwVOwYVafLMU8SkF2-vw",
       };
       thumbprint3 = await calculateJwkThumbprint(publicKeyJwk3);
-
-      // Mock Contract service
-      ledgerService = moduleFixture.get<LedgerService>(LedgerService);
-
-      vi.spyOn(ledgerService, "getContract").mockImplementation(
-        () => didRegistryContract,
-      );
-      vi.spyOn(ledgerService, "getContractV1").mockImplementation(
-        () => testEnv.setupV1.didRegistryV1Contract,
-      );
-      vi.spyOn(ledgerService, "getEthersProvider").mockImplementation(
-        // @ts-expect-error Error due to a mismatch between ESM and CommonJS modules
-        () => testEnv.provider,
-      );
 
       // Generate key pair for Authorisation API v3 and create access token
       authApiKeyPair = await generateKeyPair("ES256");

@@ -1,11 +1,12 @@
+import type { PaginatedListWithoutTotal } from "@ebsiint-api/shared";
+
 import {
   multibase,
   multihashEncode,
-  PaginatedListWithoutTotal,
   paginateWithoutTotal,
 } from "@ebsiint-api/shared";
 
-import { TimestampLink } from "./timestamps.interface.js";
+import type { TimestampLink } from "./timestamps.interface.js";
 
 export function formatTimestamps(
   timestamps: { items: string[] },

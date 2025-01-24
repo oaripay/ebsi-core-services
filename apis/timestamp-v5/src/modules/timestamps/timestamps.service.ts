@@ -9,14 +9,15 @@ import {
 } from "@ebsiint-api/shared";
 import { Injectable, Logger } from "@nestjs/common";
 
-import {
-  getBuiltGraphSDK,
+import type {
   GetHashAlgorithmQuery,
   GetTimestampQuery,
   GetTimestampsQuery,
   TimestampSet_filter,
 } from "../../../.graphclient/index.js";
-import { TimestampResponseObject } from "./timestamps.interface.js";
+import type { TimestampResponseObject } from "./timestamps.interface.js";
+
+import { getBuiltGraphSDK } from "../../../.graphclient/index.js";
 
 const sdk = getBuiltGraphSDK();
 

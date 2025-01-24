@@ -3,7 +3,8 @@ import type { RawServerDefault } from "fastify";
 
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { encode, methodNotAllowed } from "@ebsiint-api/shared";
-import { DidRegistry__factory } from "@ebsiint-sc/did-registry-v2";
+import { DidRegistry__factory as DidRegistryV1__factory } from "@ebsiint-sc/did-registry";
+import { DidRegistry__factory as DidRegistryV2__factory } from "@ebsiint-sc/did-registry-v2";
 import { fastifyAccepts } from "@fastify/accepts";
 import { Logger, ValidationPipe } from "@nestjs/common";
 import { FastifyAdapter } from "@nestjs/platform-fastify";
@@ -26,7 +27,6 @@ describe(
     let app: NestFastifyApplication;
     let server: RawServerDefault;
     let testEnv: Awaited<ReturnType<typeof setupTestEnv>>;
-    let ledgerService: LedgerService;
     let users: UserDetails[];
 
     beforeAll(async () => {
@@ -34,12 +34,30 @@ describe(
       testEnv = await setupTestEnv({
         didDocumentsTotal: DID_DOCUMENTS,
       });
-      const { didRegistryContract } = testEnv;
+      const { didRegistryContract, provider, setupV1 } = testEnv;
       users = testEnv.users;
 
-      // Mock TSR contract
-      vi.spyOn(DidRegistry__factory, "connect").mockImplementation(
-        () => didRegistryContract,
+      // Stub environment variables
+      vi.stubEnv(
+        "CONTRACT_V1_ADDR",
+        await setupV1.didRegistryV1Contract.getAddress(),
+      );
+      vi.stubEnv("CONTRACT_ADDR", await didRegistryContract.getAddress());
+
+      // Mock DidRegistry contracts
+      vi.spyOn(DidRegistryV1__factory, "connect").mockImplementation(() =>
+        // Create new instance without runner (provider)
+        setupV1.didRegistryV1Contract.connect(),
+      );
+      vi.spyOn(DidRegistryV2__factory, "connect").mockImplementation(() =>
+        // Create new instance without runner (provider)
+        didRegistryContract.connect(),
+      );
+
+      // Mock LedgerService
+      vi.spyOn(LedgerService.prototype, "getProvider").mockImplementation(
+        // @ts-expect-error Error due to a mismatch between ESM and CommonJS modules
+        () => provider,
       );
 
       const moduleFixture = await Test.createTestingModule({
@@ -71,15 +89,6 @@ describe(
       await app.init();
       await fastifyInstance.ready();
       server = app.getHttpServer();
-
-      // Mock Contract service
-      ledgerService = moduleFixture.get<LedgerService>(LedgerService);
-      vi.spyOn(ledgerService, "getContract").mockImplementation(
-        () => didRegistryContract,
-      );
-      vi.spyOn(ledgerService, "getContractV1").mockImplementation(
-        () => testEnv.setupV1.didRegistryV1Contract,
-      );
     });
 
     afterAll(async () => {

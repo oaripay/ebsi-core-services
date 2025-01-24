@@ -1,10 +1,7 @@
+import type { PaginatedListWithoutTotal } from "@ebsiint-api/shared";
 import type { FastifyRequest } from "fastify";
 
-import {
-  Accepts,
-  PaginatedListWithoutTotal,
-  PaginationQuery,
-} from "@ebsiint-api/shared";
+import { Accepts, PaginationQuery } from "@ebsiint-api/shared";
 import {
   Controller,
   Get,
@@ -17,12 +14,21 @@ import {
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
-import type { ApiConfig } from "../../config/configuration.js";
-
-import {
+import type {
   Attribute_filter,
   Issuer_filter,
 } from "../../../.graphclient/index.js";
+import type { ApiConfig } from "../../config/configuration.js";
+import type {
+  AttributeDetailsObject,
+  AttributeObject,
+  DidLink,
+  IdLink,
+  IssuerProxyResponseObject,
+  IssuerResponseObject,
+  ProxyLink,
+} from "./issuers.interface.js";
+
 import {
   GetIssuerAttributeParamsDto,
   GetIssuerAttributesQueryDto,
@@ -36,15 +42,6 @@ import {
   formatProxies,
   formatRevisions,
 } from "./issuers.formatter.js";
-import {
-  AttributeDetailsObject,
-  AttributeObject,
-  DidLink,
-  IdLink,
-  IssuerProxyResponseObject,
-  IssuerResponseObject,
-  ProxyLink,
-} from "./issuers.interface.js";
 import { IssuersService } from "./issuers.service.js";
 
 const validationPipe = new ValidationPipe({

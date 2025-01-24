@@ -13,7 +13,7 @@ import {
   ATTRIBUTE_OPERATIONS,
   ATTRIBUTE_TYPES,
   OPERATION_TYPES,
-} from "../../src/modules/policies/policies.interface.js";
+} from "../../src/modules/policies/policies.constants.js";
 
 export interface PolicyObject {
   description: string;

@@ -3,7 +3,7 @@ import type { RawServerDefault } from "fastify";
 import type { GenerateKeyPairResult, JWK } from "jose";
 
 import { methodNotAllowed } from "@ebsiint-api/shared";
-import { DidRegistry, DidRegistry__factory } from "@ebsiint-sc/did-registry-v4";
+import { DidRegistry__factory } from "@ebsiint-sc/did-registry-v4";
 import { fastifyAccepts } from "@fastify/accepts";
 import { Logger, ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
@@ -74,10 +74,8 @@ interface SupertestJsonRpcResponse {
 describe("JsonRpc Module", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault;
-  let didRegistryContract: DidRegistry;
   let configService: ConfigService<ApiConfig, true>;
   let testEnv: Awaited<ReturnType<typeof setupTestEnv>>;
-  let ledgerService: LedgerService;
 
   let newUserDidrInviteAccessToken: string;
   let newUserDidrWriteAccessToken: string;
@@ -114,16 +112,23 @@ describe("JsonRpc Module", () => {
       didDocumentsTotal: 2,
     });
 
-    didRegistryContract = testEnv.didRegistryContract;
+    const { didRegistryContract, provider } = testEnv;
 
     const didRegistryContractAddress = await didRegistryContract.getAddress();
-    vi.spyOn(LedgerService.prototype, "getContractAddress").mockImplementation(
-      () => didRegistryContractAddress,
-    );
+
+    // Stub environment variables
+    vi.stubEnv("CONTRACT_ADDR", didRegistryContractAddress);
 
     // Mock DidRegistry contract
-    vi.spyOn(DidRegistry__factory, "connect").mockImplementation(
-      () => didRegistryContract,
+    vi.spyOn(DidRegistry__factory, "connect").mockImplementation(() =>
+      // Create new instance without runner (provider)
+      didRegistryContract.connect(),
+    );
+
+    // Mock LedgerService
+    vi.spyOn(LedgerService.prototype, "getProvider").mockImplementation(
+      // @ts-expect-error Error due to a mismatch between ESM and CommonJS modules
+      () => provider,
     );
 
     // Start server
@@ -174,17 +179,6 @@ describe("JsonRpc Module", () => {
       y: "1ejY6g2ha6Kyo2ctAkMVXv5IwVOwYVafLMU8SkF2-vw",
     };
     thumbprint3 = await calculateJwkThumbprint(publicKeyJwk3);
-
-    // Mock Contract service
-    ledgerService = moduleFixture.get<LedgerService>(LedgerService);
-
-    vi.spyOn(ledgerService, "getContract").mockImplementation(
-      () => didRegistryContract,
-    );
-    vi.spyOn(ledgerService, "getEthersProvider").mockImplementation(
-      // @ts-expect-error Error due to a mismatch between ESM and CommonJS modules
-      () => testEnv.provider,
-    );
 
     // Generate key pair for Authorisation API v3 and create access token
     authApiKeyPair = await generateKeyPair("ES256");

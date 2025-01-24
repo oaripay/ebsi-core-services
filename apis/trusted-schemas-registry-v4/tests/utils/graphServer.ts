@@ -1,7 +1,11 @@
 import { graphql, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 
-import { Revision_filter, Schema_filter } from "../../.graphclient/index.js";
+import type {
+  Revision_filter,
+  Schema_filter,
+} from "../../.graphclient/index.js";
+
 import { dummySchemas } from "./data.js";
 
 export const graphServer = setupServer(

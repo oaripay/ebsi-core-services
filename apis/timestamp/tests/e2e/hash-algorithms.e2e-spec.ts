@@ -13,10 +13,10 @@ import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import type { ApiConfig } from "../../src/config/configuration.js";
+import type { HashAlgorithmLink } from "../../src/modules/hash-algorithms/hash-algorithms.interface.js";
 
 import { AppModule } from "../../src/app.module.js";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
-import { HashAlgorithmLink } from "../../src/modules/hash-algorithms/hash-algorithms.interface.js";
 import { getServer } from "../utils/getServer.js";
 
 describe("Timestamp API v3 - HashAlgorithms (e2e)", () => {

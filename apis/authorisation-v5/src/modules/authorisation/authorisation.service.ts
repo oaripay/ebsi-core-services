@@ -1,29 +1,27 @@
 import type {
+  EbsiVerifiablePresentation,
+  EbsiVpEnvConfiguration,
+  ProofPurposeTypes,
+  VpJwtPayload,
+} from "@cef-ebsi/verifiable-presentation";
+import type { PaginatedList } from "@ebsiint-api/shared";
+import type { Checked } from "@sphereon/pex";
+import type {
   PresentationDefinitionV2,
   PresentationSubmission,
 } from "@sphereon/pex-models";
+import type { AxiosResponse } from "axios";
 import type { MemoryCache } from "cache-manager";
 import type { JWTHeader, JWTPayload } from "did-jwt";
 import type { DIDDocument } from "did-resolver";
 
-import {
-  type EbsiVerifiablePresentation,
-  type EbsiVpEnvConfiguration,
-  type ProofPurposeTypes,
-  verifyPresentationJwt,
-  type VpJwtPayload,
-} from "@cef-ebsi/verifiable-presentation";
-import {
-  encode,
-  getPublicKeyJwk,
-  logAxiosError,
-  type PaginatedList,
-} from "@ebsiint-api/shared";
+import { verifyPresentationJwt } from "@cef-ebsi/verifiable-presentation";
+import { encode, getPublicKeyJwk, logAxiosError } from "@ebsiint-api/shared";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Inject, Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { type Checked, PEXv2 } from "@sphereon/pex";
-import axios, { type AxiosResponse, isAxiosError } from "axios";
+import { PEXv2 } from "@sphereon/pex";
+import axios, { isAxiosError } from "axios";
 import { createJWT, decodeJWT, ES256Signer, hexToBytes } from "did-jwt";
 import { ethers } from "ethers";
 import { JsonWebKey, randomUUID } from "node:crypto";

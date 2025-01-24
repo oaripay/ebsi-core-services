@@ -1,12 +1,9 @@
-import {
-  multibase,
-  multihashEncode,
-  paginate,
-  PaginatedList,
-} from "@ebsiint-api/shared";
-import { Timestamp } from "@ebsiint-sc/timestamp";
+import type { PaginatedList } from "@ebsiint-api/shared";
+import type { Timestamp } from "@ebsiint-sc/timestamp";
 
-import { TimestampLink } from "./timestamps.interface.js";
+import { multibase, multihashEncode, paginate } from "@ebsiint-api/shared";
+
+import type { TimestampLink } from "./timestamps.interface.js";
 
 export function formatTimestamps(
   timestamps: Awaited<ReturnType<Timestamp["getTimestamps"]>>,

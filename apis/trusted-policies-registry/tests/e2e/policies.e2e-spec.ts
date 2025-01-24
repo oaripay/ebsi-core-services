@@ -13,10 +13,10 @@ import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import type { ApiConfig } from "../../src/config/configuration.js";
+import type { PolicyLink } from "../../src/modules/policies/policies.interface.js";
 
 import { AppModule } from "../../src/app.module.js";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
-import { type PolicyLink } from "../../src/modules/policies/policies.interface.js";
 import { getServer } from "../utils/getServer.js";
 
 interface SupertestPoliciesResponse {

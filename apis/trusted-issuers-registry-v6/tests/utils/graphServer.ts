@@ -1,7 +1,11 @@
 import { graphql, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 
-import { Attribute_filter, Issuer_filter } from "../../.graphclient/index.js";
+import type {
+  Attribute_filter,
+  Issuer_filter,
+} from "../../.graphclient/index.js";
+
 import { dummyIssuers } from "./data.js";
 
 export const graphServer = setupServer(

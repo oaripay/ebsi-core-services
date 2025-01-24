@@ -5,9 +5,12 @@ import {
   isEthersError,
   NotFoundError,
 } from "@ebsiint-api/shared";
+import { TrackAndTrace__factory } from "@ebsiint-sc/track-and-trace";
 import { Injectable, Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 
+import type { ApiConfig } from "../../config/configuration.js";
 import type { Access } from "./accesses.interface.js";
 
 import { Permission } from "../../shared/constants.js";
@@ -16,13 +19,23 @@ import { LedgerService } from "../ledger/ledger.service.js";
 
 @Injectable()
 export default class AccessesService {
+  private readonly contract: TrackAndTrace;
+
   private readonly logger = new Logger(AccessesService.name);
 
-  constructor(private ledgerService: LedgerService) {}
+  constructor(
+    configService: ConfigService<ApiConfig, true>,
+    private ledgerService: LedgerService,
+  ) {
+    const contractAddress = configService.get("contractAddr", {
+      infer: true,
+    });
+    this.contract = TrackAndTrace__factory.connect(contractAddress);
+  }
 
   async getAccessesBySubject(subject: string): Promise<Access[]> {
     const pageSize = 50;
-    const contract = this.ledgerService.getContract();
+    const provider = this.ledgerService.getProvider();
     const subjectBuffer = await didToHex(subject);
     const documentIds: string[] = [];
     let currentPage = 1;
@@ -32,11 +45,10 @@ export default class AccessesService {
 
     do {
       try {
-        accessesBySubject = await contract.getAccessesBySubject(
-          subjectBuffer,
-          currentPage,
-          pageSize,
-        );
+        accessesBySubject = await this.contract
+          // @ts-expect-error Error due to CommonJS vs ESM modules imports
+          .connect(provider)
+          .getAccessesBySubject(subjectBuffer, currentPage, pageSize);
         currentPage += 1;
         documentIds.push(...accessesBySubject.items);
       } catch {
@@ -49,11 +61,14 @@ export default class AccessesService {
     await Promise.all(
       documentIds.map(async (documentId) => {
         try {
-          const [grantedByAccounts, , access] = await contract.getGrantedBy(
-            documentId,
-            subjectBuffer,
-            [Permission.DELEGATE, Permission.WRITE, Permission.CREATOR],
-          );
+          const [grantedByAccounts, , access] = await this.contract
+            // @ts-expect-error Error due to CommonJS vs ESM modules imports
+            .connect(provider)
+            .getGrantedBy(documentId, subjectBuffer, [
+              Permission.DELEGATE,
+              Permission.WRITE,
+              Permission.CREATOR,
+            ]);
           for (const [i, grantedByAccount] of grantedByAccounts.entries()) {
             if (!grantedByAccount || grantedByAccount === "0x") continue;
             if (!access[i]) continue;
@@ -76,10 +91,13 @@ export default class AccessesService {
   }
 
   async isCreator(did: string): Promise<void> {
+    const provider = this.ledgerService.getProvider();
+
     let res;
     try {
-      res = await this.ledgerService
-        .getContract()
+      res = await this.contract
+        // @ts-expect-error Error due to CommonJS vs ESM modules imports
+        .connect(provider)
         .isCreator(ethers.toUtf8Bytes(did));
     } catch (error) {
       if (isEthersError(error)) {

@@ -4,6 +4,7 @@ import type { RawServerDefault } from "fastify";
 import * as vcLib from "@cef-ebsi/verifiable-credential";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { methodNotAllowed, remove0xPrefix } from "@ebsiint-api/shared";
+import { Tir__factory } from "@ebsiint-sc/trusted-issuers-registry-v3";
 import { fastifyAccepts } from "@fastify/accepts";
 import { Logger, ValidationPipe } from "@nestjs/common";
 import { FastifyAdapter } from "@nestjs/platform-fastify";
@@ -46,6 +47,19 @@ describe("Issuers Module", () => {
       issuersTotal: ISSUERS_TOTAL,
     });
     const { tirContract } = testEnv;
+
+    // Mock TIR contract
+    vi.spyOn(Tir__factory, "connect").mockImplementation(
+      // Create new instance without runner (provider)
+      () => tirContract.connect(),
+    );
+
+    // Mock LedgerService
+    vi.spyOn(LedgerService.prototype, "getProvider").mockImplementation(
+      // @ts-expect-error Error due to a mismatch between ESM and CommonJS modules
+      () => testEnv.provider,
+    );
+
     rootTao = testEnv.issuers[0]!;
     issuer = testEnv.issuers.at(-1)!;
     issuer2 = testEnv.issuers.at(-2)!;
@@ -74,12 +88,6 @@ describe("Issuers Module", () => {
     await fastifyInstance.ready();
 
     server = app.getHttpServer();
-
-    // Mock TIR contract
-    const ledgerService = moduleFixture.get<LedgerService>(LedgerService);
-    vi.spyOn(ledgerService, "getContract").mockImplementation(
-      () => tirContract,
-    );
   });
 
   afterAll(async () => {

@@ -1,10 +1,8 @@
-import {
-  multibase,
-  PaginatedListWithoutTotal,
-  paginateWithoutTotal,
-} from "@ebsiint-api/shared";
+import type { PaginatedListWithoutTotal } from "@ebsiint-api/shared";
 
-import { RecordLink, VersionLink } from "./records.interface.js";
+import { multibase, paginateWithoutTotal } from "@ebsiint-api/shared";
+
+import type { RecordLink, VersionLink } from "./records.interface.js";
 
 export function formatRecords(
   records: { items: string[] },

@@ -11,13 +11,10 @@ import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import axios, { type AxiosResponse } from "axios";
 
-import type { ApiConfig } from "../../config/configuration.js";
-
-import {
+import type {
   Attribute_filter,
   GetAttributeQuery,
   GetAttributesQuery,
-  getBuiltGraphSDK,
   GetIssuerQuery,
   GetIssuersQuery,
   GetProxiesQuery,
@@ -25,11 +22,14 @@ import {
   GetRevisionsQuery,
   Issuer_filter,
 } from "../../../.graphclient/index.js";
-import {
+import type { ApiConfig } from "../../config/configuration.js";
+import type {
   AttributeObject,
   IssuerProxyResponseObject,
   IssuerResponseObject,
 } from "./issuers.interface.js";
+
+import { getBuiltGraphSDK } from "../../../.graphclient/index.js";
 
 const sdk = getBuiltGraphSDK();
 
@@ -39,7 +39,7 @@ export class IssuersService {
 
   private readonly logger = new Logger(IssuersService.name);
 
-  private timeout: number;
+  private readonly timeout: number;
 
   constructor(configService: ConfigService<ApiConfig, true>) {
     this.ebsiEnvConfig = configService.get("ebsiEnvConfig", { infer: true });

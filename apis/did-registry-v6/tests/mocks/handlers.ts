@@ -143,8 +143,7 @@ export const dids = [
   },
 ];
 
-const didsData: unknown[] = [];
-for (const did of dids) didsData.push(did.didDocument);
+const didsData = dids.map((did) => did.didDocument);
 
 export const handlers = [
   graphql.query("GetDids", ({ variables }) => {

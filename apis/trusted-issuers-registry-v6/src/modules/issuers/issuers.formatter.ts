@@ -1,9 +1,8 @@
-import {
-  PaginatedListWithoutTotal,
-  paginateWithoutTotal,
-} from "@ebsiint-api/shared";
+import type { PaginatedListWithoutTotal } from "@ebsiint-api/shared";
 
-import {
+import { paginateWithoutTotal } from "@ebsiint-api/shared";
+
+import type {
   AttributeObject,
   DidLink,
   IdLink,

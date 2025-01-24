@@ -3,17 +3,16 @@ import type { RawServerDefault } from "fastify";
 
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { methodNotAllowed } from "@ebsiint-api/shared";
-import { TrackAndTrace__factory } from "@ebsiint-sc/track-and-trace-v2";
 import { fastifyAccepts } from "@fastify/accepts";
 import { Logger, ValidationPipe } from "@nestjs/common";
 import { FastifyAdapter } from "@nestjs/platform-fastify";
 import { Test } from "@nestjs/testing";
 import { setupServer } from "msw/node";
 import request from "supertest";
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
+import { dummyData } from "../../../tests/utils/data.js";
 import { handlers } from "../../../tests/utils/graphServer.js";
-import { setupTestEnv } from "../../../tests/utils/trackAndTrace.js";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
 import { hexToDid } from "../../shared/utils.js";
 import { AccessesModule } from "./accesses.module.js";
@@ -21,19 +20,9 @@ import { AccessesModule } from "./accesses.module.js";
 describe("Accesses Module", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault;
-  let testEnv: Awaited<ReturnType<typeof setupTestEnv>>;
   const mockServer = setupServer(...handlers);
 
   beforeAll(async () => {
-    // Spin up test blockchain (hardhat)
-    testEnv = await setupTestEnv();
-    const { trackAndTraceContract } = testEnv;
-
-    // Mock TSR contract
-    vi.spyOn(TrackAndTrace__factory, "connect").mockImplementation(
-      () => trackAndTraceContract,
-    );
-
     const moduleFixture = await Test.createTestingModule({
       imports: [AccessesModule],
     }).compile();
@@ -58,7 +47,6 @@ describe("Accesses Module", () => {
     await fastifyInstance.ready();
     server = app.getHttpServer();
 
-    // Mock Contract service
     mockServer.listen({
       // This is to ignore GET/POST Requests and only focus on GraphQL
       onUnhandledRequest: "bypass",
@@ -99,8 +87,7 @@ describe("Accesses Module", () => {
     it("should return 204 when the DID is a creator", async () => {
       expect.assertions(2);
 
-      const creatorAccount =
-        testEnv.documentsWithBlockSource[0]!.didEbsiCreator;
+      const creatorAccount = dummyData.documentsWithBlockSource[0]!.creator;
 
       const response = await request(server).head(
         `/accesses?creator=${creatorAccount}`,
@@ -173,7 +160,7 @@ describe("Accesses Module", () => {
     it("should return the list of accesses given a DID (did:ebsi)", async () => {
       expect.assertions(2);
 
-      const { documentsWithBlockSource, operators } = testEnv;
+      const { documentsWithBlockSource, operators } = dummyData;
 
       const grantedDidEbsiAccount = hexToDid(operators[1]!.id);
 
@@ -186,8 +173,8 @@ describe("Accesses Module", () => {
       expect(response.body).toStrictEqual({
         items: [
           {
-            documentId: doc.documentHash,
-            grantedBy: doc.didEbsiCreator,
+            documentId: doc.id,
+            grantedBy: doc.creator,
             permission: "delegate",
             subject: grantedDidEbsiAccount,
           },
@@ -217,7 +204,7 @@ describe("Accesses Module", () => {
     it("should return the list of accesses given a DID (did:key)", async () => {
       expect.assertions(2);
 
-      const { documentsWithBlockSource, operators } = testEnv;
+      const { documentsWithBlockSource, operators } = dummyData;
 
       const grantedDidKeyAccount = hexToDid(operators[2]!.id);
 
@@ -230,8 +217,8 @@ describe("Accesses Module", () => {
       expect(response.body).toStrictEqual({
         items: [
           {
-            documentId: doc.documentHash,
-            grantedBy: doc.didEbsiCreator,
+            documentId: doc.id,
+            grantedBy: doc.creator,
             permission: "write",
             subject: grantedDidKeyAccount,
           },

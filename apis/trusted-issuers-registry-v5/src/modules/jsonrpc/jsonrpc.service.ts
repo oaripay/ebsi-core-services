@@ -1,3 +1,5 @@
+import type { Tir } from "@ebsiint-sc/trusted-issuers-registry-v3";
+
 import {
   decodeResult,
   getErrorMessage,
@@ -5,6 +7,7 @@ import {
   isEthersError,
   logAxiosError,
 } from "@ebsiint-api/shared";
+import { Tir__factory } from "@ebsiint-sc/trusted-issuers-registry-v3";
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import axios, { isAxiosError } from "axios";
@@ -70,7 +73,9 @@ export class JsonRpcService {
   // Dynamic validators which require some context
   private addIssuerProxySchema: ReturnType<typeof createAddIssuerProxySchema>;
 
-  private chainId?: string;
+  private chainId: string | undefined;
+
+  private readonly contract: Tir;
 
   private readonly contractAddress: string;
 
@@ -99,7 +104,11 @@ export class JsonRpcService {
     this.didRegistryApiUrl = configService.get("didRegistryApiUrl", {
       infer: true,
     });
-    this.contractAddress = ledgerService.getContractAddress();
+    this.contractAddress = configService.get(
+      "besuTrustedIssuersRegistryAddress",
+      { infer: true },
+    );
+    this.contract = Tir__factory.connect(this.contractAddress);
     this.timeout = configService.get("requestTimeout", { infer: true });
 
     const ebsiEnvConfig = configService.get("ebsiEnvConfig", { infer: true });
@@ -127,7 +136,7 @@ export class JsonRpcService {
     params: string,
   ): Promise<UnsignedTransaction> {
     const nonceInt = await this.ledgerService
-      .getEthersProvider()
+      .getProvider()
       .getTransactionCount(from);
 
     const unsignedTransaction = {
@@ -177,9 +186,10 @@ export class JsonRpcService {
 
       const { did, from, proxyData } = parsedBody.params[0]!;
 
-      const data = this.ledgerService
-        .getContract()
-        .interface.encodeFunctionData(method, [did, proxyData]);
+      const data = this.contract.interface.encodeFunctionData(method, [
+        did,
+        proxyData,
+      ]);
 
       return await this.buildTransaction(from, data);
     } catch (error_) {
@@ -199,11 +209,15 @@ export class JsonRpcService {
   ): Promise<UnsignedTransaction> {
     const method = "setAttributeData";
 
+    const provider = this.ledgerService.getProvider();
+
     try {
       assertScopeContains(scope, ["tir_invite", "tir_write"], method);
 
       const parsedBody = await requestSetAttributeDataSchema(
-        this.ledgerService.getContract(),
+        this.contract
+          // @ts-expect-error Error due to CommonJS vs ESM modules imports
+          .connect(provider),
       ).parseAsync(body);
 
       const { attributeData, attributeId, did, from } = parsedBody.params[0]!;
@@ -213,13 +227,11 @@ export class JsonRpcService {
         assertDidMatchesSub(did, sub);
       }
 
-      const data = this.ledgerService
-        .getContract()
-        .interface.encodeFunctionData(method, [
-          did,
-          attributeId,
-          attributeData,
-        ]);
+      const data = this.contract.interface.encodeFunctionData(method, [
+        did,
+        attributeId,
+        attributeData,
+      ]);
 
       return await this.buildTransaction(from, data);
     } catch (error_) {
@@ -247,15 +259,13 @@ export class JsonRpcService {
       const { attributeIdTao, did, from, issuerType, revisionId, taoDid } =
         parsedBody.params[0]!;
 
-      const data = this.ledgerService
-        .getContract()
-        .interface.encodeFunctionData(method, [
-          did,
-          revisionId,
-          issuerType,
-          taoDid,
-          attributeIdTao,
-        ]);
+      const data = this.contract.interface.encodeFunctionData(method, [
+        did,
+        revisionId,
+        issuerType,
+        taoDid,
+        attributeIdTao,
+      ]);
 
       return await this.buildTransaction(from, data);
     } catch (error_) {
@@ -282,9 +292,11 @@ export class JsonRpcService {
 
       const { did, from, proxyData, proxyId } = parsedBody.params[0]!;
 
-      const data = this.ledgerService
-        .getContract()
-        .interface.encodeFunctionData(method, [did, proxyId, proxyData]);
+      const data = this.contract.interface.encodeFunctionData(method, [
+        did,
+        proxyId,
+        proxyData,
+      ]);
 
       return await this.buildTransaction(from, data);
     } catch (error_) {
@@ -299,8 +311,10 @@ export class JsonRpcService {
   async estimateGas(transaction: UnsignedTransaction): Promise<bigint> {
     const { data, from, to, value } = transaction;
 
+    const provider = this.ledgerService.getProvider();
+
     try {
-      return await this.ledgerService.getEthersProvider().estimateGas({
+      return await provider.estimateGas({
         data,
         from,
         to,
@@ -316,10 +330,10 @@ export class JsonRpcService {
 
   async getChainId(): Promise<string> {
     if (!this.chainId) {
+      const provider = this.ledgerService.getProvider();
+
       try {
-        const { chainId } = await this.ledgerService
-          .getEthersProvider()
-          .getNetwork();
+        const { chainId } = await provider.getNetwork();
         this.chainId = `0x${BigInt(chainId).toString(16)}`;
       } catch (error) {
         if (isEthersError(error)) {
@@ -328,6 +342,7 @@ export class JsonRpcService {
         throw new Error(getErrorMessage(error));
       }
     }
+
     return this.chainId;
   }
 
@@ -378,7 +393,7 @@ export class JsonRpcService {
       }
 
       const tx = await this.ledgerService
-        .getEthersProvider()
+        .getProvider()
         .broadcastTransaction(request.signedRawTransaction);
       return tx.hash;
     } catch (error_) {
@@ -466,9 +481,8 @@ export class JsonRpcService {
     }
 
     // verify function and parameters encoded in unsignedTransaction.data
-    const parsedTransaction = this.ledgerService
-      .getContract()
-      .interface.parseTransaction(unsignedTransaction);
+    const parsedTransaction =
+      this.contract.interface.parseTransaction(unsignedTransaction);
 
     if (!parsedTransaction) {
       throw new Error("Invalid unsignedTransaction.data");
@@ -495,8 +509,11 @@ export class JsonRpcService {
           ["tir_invite", "tir_write"], // One of "tir_invite" or "tir_write"
           fragment.name,
         );
+        const provider = this.ledgerService.getProvider();
         const castArgs = await setAttributeDataSchema(
-          this.ledgerService.getContract(),
+          this.contract
+            // @ts-expect-error Error due to CommonJS vs ESM modules imports
+            .connect(provider),
         ).parseAsync(argsObject);
         if (scope.includes("tir_invite")) {
           assertDidMatchesSub(castArgs.did, sub);

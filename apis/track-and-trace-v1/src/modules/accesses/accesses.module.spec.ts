@@ -22,16 +22,22 @@ describe("Accesses Module", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault;
   let testEnv: Awaited<ReturnType<typeof setupTestEnv>>;
-  let ledgerService: LedgerService;
 
   beforeAll(async () => {
     // Spin up test blockchain (hardhat)
     testEnv = await setupTestEnv({});
-    const { trackAndTraceContract } = testEnv;
+    const { provider, trackAndTraceContract } = testEnv;
 
-    // Mock TSR contract
+    // Mock contract
     vi.spyOn(TrackAndTrace__factory, "connect").mockImplementation(
-      () => trackAndTraceContract,
+      // Create new instance without runner (provider)
+      () => trackAndTraceContract.connect(),
+    );
+
+    // Mock LedgerService
+    vi.spyOn(LedgerService.prototype, "getProvider").mockImplementation(
+      // @ts-expect-error Error due to a mismatch between ESM and CommonJS modules
+      () => provider,
     );
 
     const moduleFixture = await Test.createTestingModule({
@@ -57,12 +63,6 @@ describe("Accesses Module", () => {
     await app.init();
     await fastifyInstance.ready();
     server = app.getHttpServer();
-
-    // Mock Contract service
-    ledgerService = moduleFixture.get<LedgerService>(LedgerService);
-    vi.spyOn(ledgerService, "getContract").mockImplementation(
-      () => trackAndTraceContract,
-    );
   });
 
   afterAll(async () => {

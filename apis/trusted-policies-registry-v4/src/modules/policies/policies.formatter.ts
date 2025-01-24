@@ -1,9 +1,8 @@
-import {
-  PaginatedListWithoutTotal,
-  paginateWithoutTotal,
-} from "@ebsiint-api/shared";
+import type { PaginatedListWithoutTotal } from "@ebsiint-api/shared";
 
-import { PolicyLink } from "./policies.interface.js";
+import { paginateWithoutTotal } from "@ebsiint-api/shared";
+
+import type { PolicyLink } from "./policies.interface.js";
 
 export function formatPolicies(
   policies: { items: string[] },

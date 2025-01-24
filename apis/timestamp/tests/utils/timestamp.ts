@@ -4,10 +4,11 @@ import hre from "hardhat";
 
 import type { PolicyRegistryMock, Timestamp } from "@ebsiint-sc/timestamp";
 import type { HardhatEthersProvider } from "@nomicfoundation/hardhat-ethers/internal/hardhat-ethers-provider.js";
+import type { ContractTransactionResponse } from "ethers";
+import type { HashName } from "multihashes";
 
 import "@nomicfoundation/hardhat-ethers";
-import { type ContractTransactionResponse, ethers } from "ethers";
-import { HashName } from "multihashes";
+import { ethers } from "ethers";
 import { createHash, randomBytes, randomInt } from "node:crypto";
 
 export const validHashAlgorithms = [

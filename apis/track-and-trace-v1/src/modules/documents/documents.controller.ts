@@ -1,4 +1,6 @@
-import { Accepts, PaginatedList } from "@ebsiint-api/shared";
+import type { PaginatedList } from "@ebsiint-api/shared";
+
+import { Accepts } from "@ebsiint-api/shared";
 import { Controller, Get, Param, Query } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 

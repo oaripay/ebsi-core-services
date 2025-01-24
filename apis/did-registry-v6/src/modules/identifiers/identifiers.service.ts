@@ -12,14 +12,14 @@ import {
 import { Injectable, Logger } from "@nestjs/common";
 import { ethers } from "ethers";
 
-import type { JsonRpcSchema } from "./validators/JsonRpcSchema.js";
-
-import {
-  getBuiltGraphSDK,
+import type {
   GetControllersQuery,
   GetDidDocumentEventsQuery,
 } from "../../../.graphclient/index.js";
-import { Event } from "./identifiers.interface.js";
+import type { Event } from "./identifiers.interface.js";
+import type { JsonRpcSchema } from "./validators/JsonRpcSchema.js";
+
+import { getBuiltGraphSDK } from "../../../.graphclient/index.js";
 import { requestCheckControllerDtoSchema } from "./validators/RequestCheckControllerSchema.js";
 
 const sdk = getBuiltGraphSDK();
@@ -139,7 +139,7 @@ export default class IdentifiersService {
     } catch (error) {
       throw new BadRequestError(BadRequestError.defaultTitle, {
         detail: `Identifier ${did} contains an invalid base document. ${
-          (error as Error).message
+          error instanceof Error ? error.message : "Unknown error"
         }`,
       });
     }
@@ -187,7 +187,7 @@ export default class IdentifiersService {
     } catch (error) {
       throw new BadRequestError(BadRequestError.defaultTitle, {
         detail: `Identifier ${did} contains an invalid public key in a verification method. ${
-          (error as Error).message
+          error instanceof Error ? error.message : "Unknown error"
         }`,
       });
     }

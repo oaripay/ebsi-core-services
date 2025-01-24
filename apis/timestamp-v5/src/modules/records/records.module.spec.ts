@@ -1,8 +1,9 @@
+import type { Timestamp } from "@ebsiint-sc/timestamp-v3";
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 
 import { methodNotAllowed, multibase } from "@ebsiint-api/shared";
-import { Timestamp, Timestamp__factory } from "@ebsiint-sc/timestamp-v3";
+import { Timestamp__factory } from "@ebsiint-sc/timestamp-v3";
 import { fastifyAccepts } from "@fastify/accepts";
 import { Logger, ValidationPipe } from "@nestjs/common";
 import { FastifyAdapter } from "@nestjs/platform-fastify";
@@ -11,10 +12,11 @@ import crypto from "node:crypto";
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
+import type { RecordLink } from "./records.interface.js";
+
 import { graphServer } from "../../../tests/utils/graphServer.js";
 import { setupTestEnv } from "../../../tests/utils/timestamp.js";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
-import { RecordLink } from "./records.interface.js";
 import { RecordsModule } from "./records.module.js";
 
 describe("Records Module", () => {
@@ -38,8 +40,9 @@ describe("Records Module", () => {
     sender = testEnv.sender;
 
     // Mock Timestamp contract
-    vi.spyOn(Timestamp__factory, "connect").mockImplementation(
-      () => timestampContract,
+    vi.spyOn(Timestamp__factory, "connect").mockImplementation(() =>
+      // Create new instance without runner (provider)
+      timestampContract.connect(),
     );
 
     const moduleFixture = await Test.createTestingModule({

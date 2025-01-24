@@ -1,5 +1,6 @@
+import type { Timestamp } from "@ebsiint-sc/timestamp-v2";
+
 import { multibase, multihashEncode } from "@ebsiint-api/shared";
-import { Timestamp } from "@ebsiint-sc/timestamp-v2";
 import crypto from "node:crypto";
 import { describe, expect, it } from "vitest";
 

@@ -2,6 +2,7 @@ import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 
 import { methodNotAllowed } from "@ebsiint-api/shared";
+import { PolicyRegistry__factory } from "@ebsiint-sc/trusted-policies-registry-v2";
 import { fastifyAccepts } from "@fastify/accepts";
 import { Logger, ValidationPipe } from "@nestjs/common";
 import { FastifyAdapter } from "@nestjs/platform-fastify";
@@ -17,7 +18,7 @@ import { UsersModule } from "./users.module.js";
 
 const USERS_TOTAL = 12;
 
-describe("Policies Module", () => {
+describe("Users Module", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault;
   let testEnv: Awaited<ReturnType<typeof setupTestEnv>>;
@@ -27,7 +28,20 @@ describe("Policies Module", () => {
     testEnv = await setupTestEnv({
       usersTotal: USERS_TOTAL,
     });
+
     const { policiesRegistryContract } = testEnv;
+
+    // Mock TPR contract
+    vi.spyOn(PolicyRegistry__factory, "connect").mockImplementation(
+      // Create new instance without runner (provider)
+      () => policiesRegistryContract.connect(),
+    );
+
+    // Mock LedgerService
+    vi.spyOn(LedgerService.prototype, "getProvider").mockImplementation(
+      // @ts-expect-error Error due to a mismatch between ESM and CommonJS modules
+      () => testEnv.provider,
+    );
 
     const moduleFixture = await Test.createTestingModule({
       imports: [UsersModule],
@@ -53,13 +67,6 @@ describe("Policies Module", () => {
     await fastifyInstance.ready();
 
     server = app.getHttpServer();
-
-    // Mock contract
-    const ledgerService = moduleFixture.get<LedgerService>(LedgerService);
-
-    vi.spyOn(ledgerService, "getContract").mockImplementation(
-      () => policiesRegistryContract,
-    );
   });
 
   afterAll(async () => {

@@ -26,7 +26,6 @@ describe("Identifiers Module", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault;
   let testEnv: Awaited<ReturnType<typeof setupTestEnv>>;
-  let ledgerService: LedgerService;
   let users: UserDetails[];
 
   beforeAll(async () => {
@@ -34,12 +33,24 @@ describe("Identifiers Module", () => {
     testEnv = await setupTestEnv({
       didDocumentsTotal: DID_DOCUMENTS,
     });
-    const { didRegistryContract } = testEnv;
+    const { didRegistryContract, provider } = testEnv;
     users = testEnv.users;
 
-    // Mock TSR contract
-    vi.spyOn(DidRegistry__factory, "connect").mockImplementation(
-      () => didRegistryContract,
+    const didRegistryContractAddress = await didRegistryContract.getAddress();
+
+    // Stub environment variables
+    vi.stubEnv("CONTRACT_ADDR", didRegistryContractAddress);
+
+    // Mock DidRegistry contract
+    vi.spyOn(DidRegistry__factory, "connect").mockImplementation(() =>
+      // Create new instance without runner (provider)
+      didRegistryContract.connect(),
+    );
+
+    // Mock LedgerService
+    vi.spyOn(LedgerService.prototype, "getProvider").mockImplementation(
+      // @ts-expect-error Error due to a mismatch between ESM and CommonJS modules
+      () => provider,
     );
 
     const moduleFixture = await Test.createTestingModule({
@@ -71,12 +82,6 @@ describe("Identifiers Module", () => {
     await app.init();
     await fastifyInstance.ready();
     server = app.getHttpServer();
-
-    // Mock Contract service
-    ledgerService = moduleFixture.get<LedgerService>(LedgerService);
-    vi.spyOn(ledgerService, "getContract").mockImplementation(
-      () => didRegistryContract,
-    );
   });
 
   afterAll(async () => {

@@ -1,8 +1,11 @@
 import type { TrackAndTrace } from "@ebsiint-sc/track-and-trace";
 
 import { isEthersError, NotFoundError } from "@ebsiint-api/shared";
+import { TrackAndTrace__factory } from "@ebsiint-sc/track-and-trace";
 import { Injectable, Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 
+import type { ApiConfig } from "../../config/configuration.js";
 import type {
   Document,
   DocumentAccesses,
@@ -15,15 +18,30 @@ import { LedgerService } from "../ledger/ledger.service.js";
 
 @Injectable()
 export default class DocumentsService {
+  private readonly contract: TrackAndTrace;
+
   private readonly logger = new Logger(DocumentsService.name);
 
-  constructor(private ledgerService: LedgerService) {}
+  constructor(
+    configService: ConfigService<ApiConfig, true>,
+    private ledgerService: LedgerService,
+  ) {
+    const contractAddress = configService.get("contractAddr", {
+      infer: true,
+    });
+    this.contract = TrackAndTrace__factory.connect(contractAddress);
+  }
 
   async getDocument(documentId: string): Promise<Document> {
+    const provider = this.ledgerService.getProvider();
+
     let document: Awaited<ReturnType<TrackAndTrace["getDocument"]>>;
 
     try {
-      document = await this.ledgerService.getContract().getDocument(documentId);
+      document = await this.contract
+        // @ts-expect-error Error due to CommonJS vs ESM modules imports
+        .connect(provider)
+        .getDocument(documentId);
     } catch (error) {
       if (isEthersError(error)) {
         this.logger.error(error, error.stack);
@@ -50,14 +68,17 @@ export default class DocumentsService {
     let currentPage = 1;
     const documentAccesses: DocumentAccesses = [];
 
+    const provider = this.ledgerService.getProvider();
+
     let invitedUsers: Awaited<
       ReturnType<TrackAndTrace["getAccessesByDocument"]>
     >;
 
     do {
       try {
-        invitedUsers = await this.ledgerService
-          .getContract()
+        invitedUsers = await this.contract
+          // @ts-expect-error Error due to CommonJS vs ESM modules imports
+          .connect(provider)
           .getAccessesByDocument(documentId, currentPage, pageSize);
       } catch (error) {
         if (isEthersError(error)) {
@@ -70,8 +91,9 @@ export default class DocumentsService {
 
       const fetchedDocumentAccesses = await Promise.all(
         invitedUsers.items.map(async (did) => {
-          const [grantedByAccounts, , access] = await this.ledgerService
-            .getContract()
+          const [grantedByAccounts, , access] = await this.contract
+            // @ts-expect-error Error due to CommonJS vs ESM modules imports
+            .connect(provider)
             .getGrantedBy(documentId, did, [
               Permission.DELEGATE,
               Permission.WRITE,
@@ -108,12 +130,14 @@ export default class DocumentsService {
   }
 
   async getDocumentEvent(documentId: string, eventId: string): Promise<Event> {
+    const provider = this.ledgerService.getProvider();
+
     let event;
     try {
-      event = await this.ledgerService.getContract().getFunction("getEvent")(
-        documentId,
-        eventId,
-      );
+      event = await this.contract
+        // @ts-expect-error Error due to CommonJS vs ESM modules imports
+        .connect(provider)
+        .getFunction("getEvent")(documentId, eventId);
     } catch (error) {
       if (isEthersError(error)) {
         this.logger.error(error, error.stack);
@@ -152,9 +176,12 @@ export default class DocumentsService {
     page: number,
     pageSize: number,
   ): ReturnType<TrackAndTrace["getEvents"]> {
+    const provider = this.ledgerService.getProvider();
+
     try {
-      return await this.ledgerService
-        .getContract()
+      return await this.contract
+        // @ts-expect-error Error due to CommonJS vs ESM modules imports
+        .connect(provider)
         .getEvents(documentId, page, pageSize);
     } catch (error) {
       if (isEthersError(error)) {
@@ -170,9 +197,12 @@ export default class DocumentsService {
     page: number,
     pageSize: number,
   ): ReturnType<TrackAndTrace["getDocuments"]> {
+    const provider = this.ledgerService.getProvider();
+
     try {
-      return await this.ledgerService
-        .getContract()
+      return await this.contract
+        // @ts-expect-error Error due to CommonJS vs ESM modules imports
+        .connect(provider)
         .getDocuments(page, pageSize);
     } catch (error) {
       if (isEthersError(error)) {

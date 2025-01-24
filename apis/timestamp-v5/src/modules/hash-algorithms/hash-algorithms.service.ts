@@ -1,13 +1,14 @@
 import { InternalServerError, NotFoundError } from "@ebsiint-api/shared";
 import { Injectable, Logger } from "@nestjs/common";
 
-import {
-  getBuiltGraphSDK,
+import type {
   GetHashAlgorithmQuery,
   GetHashAlgorithmsQuery,
   HashAlgo_filter,
 } from "../../../.graphclient/index.js";
-import { HashAlgorithmResponseObject } from "./hash-algorithms.interface.js";
+import type { HashAlgorithmResponseObject } from "./hash-algorithms.interface.js";
+
+import { getBuiltGraphSDK } from "../../../.graphclient/index.js";
 
 const sdk = getBuiltGraphSDK();
 

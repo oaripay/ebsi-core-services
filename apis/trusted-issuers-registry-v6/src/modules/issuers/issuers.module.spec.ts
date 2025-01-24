@@ -1,4 +1,5 @@
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
+import type { AxiosError, AxiosResponse } from "axios";
 import type { RawServerDefault } from "fastify";
 
 import * as vcLib from "@cef-ebsi/verifiable-credential";
@@ -8,17 +9,16 @@ import { fastifyAccepts } from "@fastify/accepts";
 import { Logger, ValidationPipe } from "@nestjs/common";
 import { FastifyAdapter } from "@nestjs/platform-fastify";
 import { Test } from "@nestjs/testing";
-import axios, { AxiosError, AxiosResponse } from "axios";
+import axios from "axios";
 import { randomBytes } from "node:crypto";
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
-import { ROOTTAO } from "../../../tests/utils/data.js";
+import type { IssuerGraphObject } from "../../../tests/utils/data.js";
+
+import { dummyIssuers } from "../../../tests/utils/data.js";
 import { graphServer } from "../../../tests/utils/graphServer.js";
-import { IssuerObject, setupTestEnv } from "../../../tests/utils/tir.js";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
-import { LedgerService } from "../ledger/ledger.service.js";
-import { IssuerTypeNames } from "./issuers.constants.js";
 import { IssuersModule } from "./issuers.module.js";
 
 vi.mock("@cef-ebsi/verifiable-credential", async () => {
@@ -34,17 +34,13 @@ vi.mock("@cef-ebsi/verifiable-credential", async () => {
 describe("Issuers Module", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault;
-  let testEnv: Awaited<ReturnType<typeof setupTestEnv>>;
-  let issuer: IssuerObject;
-  let issuer2: IssuerObject;
+  let issuer: IssuerGraphObject;
+  let issuer2: IssuerGraphObject;
   const randomDid = EbsiWallet.createDid();
 
   beforeAll(async () => {
-    // Spin up test blockchain
-    testEnv = await setupTestEnv();
-    const { tirContract } = testEnv;
-    issuer = testEnv.issuers.at(-1)!;
-    issuer2 = testEnv.issuers.at(-2)!;
+    issuer = dummyIssuers.at(-1)!;
+    issuer2 = dummyIssuers.at(-2)!;
 
     const moduleFixture = await Test.createTestingModule({
       imports: [IssuersModule],
@@ -70,12 +66,6 @@ describe("Issuers Module", () => {
     await fastifyInstance.ready();
 
     server = app.getHttpServer();
-
-    // Mock TIR contract
-    const ledgerService = moduleFixture.get<LedgerService>(LedgerService);
-    vi.spyOn(ledgerService, "getContract").mockImplementation(
-      () => tirContract,
-    );
 
     graphServer.listen({
       // This is to ignore GET/POST Requests and only focus on GraphQL
@@ -113,14 +103,14 @@ describe("Issuers Module", () => {
       expect.assertions(2);
 
       const response = await request(server).get(
-        `/issuers?attribute-id=${issuer.attribute.id}`,
+        `/issuers?attribute-id=${issuer.attributes[0]!.id}`,
       );
-      const selfLink = `/issuers?page[after]=1&page[size]=10&attribute-id=${issuer.attribute.id}`;
+      const selfLink = `/issuers?page[after]=1&page[size]=10&attribute-id=${issuer.attributes[0]!.id}`;
       expect(response.body).toStrictEqual({
         items: [
           {
-            did: issuer.did,
-            href: expect.stringContaining(`/issuers/${issuer.did}`),
+            did: issuer.id,
+            href: expect.stringContaining(`/issuers/${issuer.id}`),
           },
         ],
         links: {
@@ -139,14 +129,14 @@ describe("Issuers Module", () => {
       expect.assertions(2);
 
       const response = await request(server).get(
-        `/issuers?proxy-id=${issuer.proxy.id}`,
+        `/issuers?proxy-id=${issuer.proxies[0]!.id}`,
       );
-      const selfLink = `/issuers?page[after]=1&page[size]=10&proxy-id=${issuer.proxy.id}`;
+      const selfLink = `/issuers?page[after]=1&page[size]=10&proxy-id=${issuer.proxies[0]!.id}`;
       expect(response.body).toStrictEqual({
         items: [
           {
-            did: issuer.did,
-            href: expect.stringContaining(`/issuers/${issuer.did}`),
+            did: issuer.id,
+            href: expect.stringContaining(`/issuers/${issuer.id}`),
           },
         ],
         links: {
@@ -295,19 +285,19 @@ describe("Issuers Module", () => {
     it("should return a specific issuer", async () => {
       expect.assertions(2);
 
-      const response = await request(server).get(`/issuers/${issuer.did}`);
+      const response = await request(server).get(`/issuers/${issuer.id}`);
 
       expect(response.body).toStrictEqual({
         attributes: [
           {
-            body: issuer.attribute.utf8,
-            hash: remove0xPrefix(issuer.attribute.lastRevisionId),
-            issuerType: IssuerTypeNames[issuer.issuerType],
-            rootTao: ROOTTAO,
-            tao: issuer.tao,
+            body: issuer.attributes[0]!.lastRevision.data,
+            hash: remove0xPrefix(issuer.attributes[0]!.lastRevision.id),
+            issuerType: issuer.attributes[0]!.lastRevision.issuerType,
+            rootTao: issuer.attributes[0]!.lastRevision.rootTao,
+            tao: issuer.attributes[0]!.lastRevision.tao,
           },
         ],
-        did: issuer.did,
+        did: issuer.id,
       });
       expect(response.status).toBe(200);
     });
@@ -359,8 +349,8 @@ describe("Issuers Module", () => {
     it("should return the attributes from a specific issuer", async () => {
       expect.assertions(2);
 
-      const url = `/issuers/${issuer.did}/attributes`;
-      const attributeId = remove0xPrefix(issuer.attribute.id);
+      const url = `/issuers/${issuer.id}/attributes`;
+      const attributeId = remove0xPrefix(issuer.attributes[0]!.id);
 
       const response = await request(server).get(url);
 
@@ -386,17 +376,17 @@ describe("Issuers Module", () => {
     it("should return the attributes filtered by issuer-type", async () => {
       expect.assertions(2);
 
-      const url = `/issuers/${issuer.did}/attributes?issuer-type=TI`;
-      const attributeId = remove0xPrefix(issuer.attribute.id);
+      const url = `/issuers/${issuer.id}/attributes?issuer-type=TI`;
+      const attributeId = remove0xPrefix(issuer.attributes[0]!.id);
 
       const response = await request(server).get(url);
 
-      const selfLink = `/issuers/${issuer.did}/attributes?page[after]=1&page[size]=10&issuer-type=TI`;
+      const selfLink = `/issuers/${issuer.id}/attributes?page[after]=1&page[size]=10&issuer-type=TI`;
       expect(response.body).toStrictEqual({
         items: [
           {
             href: expect.stringContaining(
-              `/issuers/${issuer.did}/attributes/${attributeId}`,
+              `/issuers/${issuer.id}/attributes/${attributeId}`,
             ),
             id: attributeId,
           },
@@ -466,20 +456,20 @@ describe("Issuers Module", () => {
     it("should return the latest revision of a specific attribute", async () => {
       expect.assertions(2);
 
-      const attributeId = remove0xPrefix(issuer.attribute.id);
-      const url = `/issuers/${issuer.did}/attributes/${attributeId}`;
+      const attributeId = remove0xPrefix(issuer.attributes[0]!.id);
+      const url = `/issuers/${issuer.id}/attributes/${attributeId}`;
 
       const response = await request(server).get(url);
 
       expect(response.body).toStrictEqual({
         attribute: {
-          body: issuer.attribute.utf8,
-          hash: remove0xPrefix(issuer.attribute.lastRevisionId),
-          issuerType: IssuerTypeNames[issuer.issuerType],
-          rootTao: ROOTTAO,
-          tao: issuer.tao,
+          body: issuer.attributes[0]!.lastRevision.data,
+          hash: remove0xPrefix(issuer.attributes[0]!.lastRevision.id),
+          issuerType: issuer.attributes[0]!.lastRevision.issuerType,
+          rootTao: issuer.attributes[0]!.lastRevision.rootTao,
+          tao: issuer.attributes[0]!.lastRevision.tao,
         },
-        did: issuer.did,
+        did: issuer.id,
       });
       expect(response.status).toBe(200);
     });
@@ -488,7 +478,7 @@ describe("Issuers Module", () => {
       expect.assertions(2);
 
       const response = await request(server).get(
-        `/issuers/not-a-did/attributes/${issuer.attribute.id}`,
+        `/issuers/not-a-did/attributes/${issuer.attributes[0]!.id}`,
       );
 
       expect(response.body).toStrictEqual({
@@ -504,7 +494,7 @@ describe("Issuers Module", () => {
       expect.assertions(2);
 
       const response = await request(server).get(
-        `/issuers/did:ebsi:z1234/attributes/${issuer.attribute.id}`,
+        `/issuers/did:ebsi:z1234/attributes/${issuer.attributes[0]!.id}`,
       );
 
       expect(response.body).toStrictEqual({
@@ -520,7 +510,7 @@ describe("Issuers Module", () => {
       expect.assertions(2);
 
       const response = await request(server).get(
-        `/issuers/${randomDid}/attributes/${issuer.attribute.id}`,
+        `/issuers/${randomDid}/attributes/${issuer.attributes[0]!.id}`,
       );
 
       expect(response.body).toStrictEqual({
@@ -539,7 +529,7 @@ describe("Issuers Module", () => {
       const wrongAttributeId =
         "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d2";
 
-      const url = `/issuers/${issuer.did}/attributes/${wrongAttributeId}`;
+      const url = `/issuers/${issuer.id}/attributes/${wrongAttributeId}`;
 
       const response1 = await request(server).get(url);
 
@@ -554,10 +544,10 @@ describe("Issuers Module", () => {
       expect(response1.status).toBe(404);
 
       // Consult an attribute from a different did
-      const dataHash2 = testEnv.issuers[1]!.attribute.id;
+      const dataHash2 = dummyIssuers[1]!.attributes[0]!.id;
 
       const response2 = await request(server).get(
-        `/issuers/${issuer.did}/attributes/${dataHash2}`,
+        `/issuers/${issuer.id}/attributes/${dataHash2}`,
       );
 
       expect(response2.body).toStrictEqual({
@@ -575,8 +565,8 @@ describe("Issuers Module", () => {
     it("should return the revisions of a specific attribute", async () => {
       expect.assertions(3);
 
-      const attributeId = issuer.attribute.id;
-      const url = `/issuers/${issuer.did}/attributes/${attributeId}/revisions`;
+      const attributeId = issuer.attributes[0]!.id;
+      const url = `/issuers/${issuer.id}/attributes/${attributeId}/revisions`;
 
       const response = await request(server).get(url);
 
@@ -599,8 +589,8 @@ describe("Issuers Module", () => {
     it("should handle the pagination properly", async () => {
       expect.assertions(9);
 
-      const attributeId = issuer.attribute.id.slice(2);
-      const url = `/issuers/${issuer.did}/attributes/${attributeId}/revisions`;
+      const attributeId = issuer.attributes[0]!.id.slice(2);
+      const url = `/issuers/${issuer.id}/attributes/${attributeId}/revisions`;
 
       const response1 = await request(server).get(`${url}?page[size]=3`);
 
@@ -656,7 +646,7 @@ describe("Issuers Module", () => {
     it("should throw an error if the issuer DID is not correctly formatted", async () => {
       expect.assertions(2);
 
-      const attributeId = issuer.attribute.id;
+      const attributeId = issuer.attributes[0]!.id;
       const response = await request(server).get(
         `/issuers/not-a-did/attributes/${attributeId}`,
       );
@@ -673,7 +663,7 @@ describe("Issuers Module", () => {
     it("should throw an error if the issuer DID is not a valid EBSI DID", async () => {
       expect.assertions(2);
 
-      const attributeId = issuer.attribute.id;
+      const attributeId = issuer.attributes[0]!.id;
       const response = await request(server).get(
         `/issuers/did:ebsi:z1234/attributes/${attributeId}`,
       );
@@ -690,7 +680,7 @@ describe("Issuers Module", () => {
     it("should throw an error if the issuer is not found", async () => {
       expect.assertions(2);
 
-      const attributeId = issuer.attribute.id;
+      const attributeId = issuer.attributes[0]!.id;
       const response = await request(server).get(
         `/issuers/${randomDid}/attributes/${attributeId}`,
       );
@@ -708,7 +698,7 @@ describe("Issuers Module", () => {
       expect.assertions(2);
 
       const wrongDataHash = randomBytes(32).toString("hex");
-      const url = `/issuers/${issuer.did}/attributes/${wrongDataHash}/revisions`;
+      const url = `/issuers/${issuer.id}/attributes/${wrongDataHash}/revisions`;
 
       const response = await request(server).get(url);
 
@@ -724,8 +714,8 @@ describe("Issuers Module", () => {
     it("should throw Bad Request for bad pagination parameters", async () => {
       expect.assertions(4);
 
-      const attributeId = issuer.attribute.id;
-      const url = `/issuers/${issuer.did}/attributes/${attributeId}/revisions`;
+      const attributeId = issuer.attributes[0]!.id;
+      const url = `/issuers/${issuer.id}/attributes/${attributeId}/revisions`;
 
       const response1 = await request(server).get(`${url}?page[size]=100`);
 
@@ -752,34 +742,34 @@ describe("Issuers Module", () => {
     it("should return the proxies of a specific issuer", async () => {
       expect.assertions(2);
 
-      const url = `/issuers/${issuer.did}/proxies`;
+      const url = `/issuers/${issuer.id}/proxies`;
 
       const response = await request(server).get(url);
 
       expect(response.body).toStrictEqual({
         items: [
           {
-            href: expect.stringContaining(`${url}/${issuer.proxy.id}`),
-            proxyId: issuer.proxy.id,
+            href: expect.stringContaining(`${url}/${issuer.proxies[0]!.id}`),
+            proxyId: issuer.proxies[0]!.id,
           },
         ],
         links: {
           first: expect.stringContaining(
-            `/issuers/${issuer.did}/proxies?page[after]=1&page[size]=10`,
+            `/issuers/${issuer.id}/proxies?page[after]=1&page[size]=10`,
           ),
           last: expect.stringContaining(
-            `/issuers/${issuer.did}/proxies?page[after]=1&page[size]=10`,
+            `/issuers/${issuer.id}/proxies?page[after]=1&page[size]=10`,
           ),
           next: expect.stringContaining(
-            `/issuers/${issuer.did}/proxies?page[after]=1&page[size]=10`,
+            `/issuers/${issuer.id}/proxies?page[after]=1&page[size]=10`,
           ),
           prev: expect.stringContaining(
-            `/issuers/${issuer.did}/proxies?page[after]=1&page[size]=10`,
+            `/issuers/${issuer.id}/proxies?page[after]=1&page[size]=10`,
           ),
         },
         pageSize: 10,
         self: expect.stringContaining(
-          `/issuers/${issuer.did}/proxies?page[after]=1&page[size]=10`,
+          `/issuers/${issuer.id}/proxies?page[after]=1&page[size]=10`,
         ),
       });
       expect(response.status).toBe(200);
@@ -836,11 +826,11 @@ describe("Issuers Module", () => {
     it("should return a specific proxy", async () => {
       expect.assertions(2);
 
-      const url = `/issuers/${issuer.did}/proxies/${issuer.proxy.id}`;
+      const url = `/issuers/${issuer.id}/proxies/${issuer.proxies[0]!.id}`;
 
       const response = await request(server).get(url);
 
-      expect(response.body).toStrictEqual(issuer.proxy.obj);
+      expect(response.body).toStrictEqual(JSON.parse(issuer.proxies[0]!.data));
       expect(response.status).toBe(200);
     });
 
@@ -848,7 +838,7 @@ describe("Issuers Module", () => {
       expect.assertions(2);
 
       const response = await request(server).get(
-        `/issuers/not-a-did/proxies/${issuer.proxy.id}`,
+        `/issuers/not-a-did/proxies/${issuer.proxies[0]!.id}`,
       );
 
       expect(response.body).toStrictEqual({
@@ -864,7 +854,7 @@ describe("Issuers Module", () => {
       expect.assertions(2);
 
       const response = await request(server).get(
-        `/issuers/did:ebsi:z1234/proxies/${issuer.proxy.id}`,
+        `/issuers/did:ebsi:z1234/proxies/${issuer.proxies[0]!.id}`,
       );
 
       expect(response.body).toStrictEqual({
@@ -880,7 +870,7 @@ describe("Issuers Module", () => {
       expect.assertions(2);
 
       const response = await request(server).get(
-        `/issuers/${randomDid}/proxies/${issuer.proxy.id}`,
+        `/issuers/${randomDid}/proxies/${issuer.proxies[0]!.id}`,
       );
 
       expect(response.body).toStrictEqual({
@@ -895,8 +885,7 @@ describe("Issuers Module", () => {
     it("should throw an error when the proxy is not found", async () => {
       expect.assertions(4);
 
-      const { issuers } = testEnv;
-      const issuer1Did = issuers[0]!.did;
+      const issuer1Did = dummyIssuers[0]!.id;
 
       // Consult a random proxy
       const wrongProxyId =
@@ -917,12 +906,12 @@ describe("Issuers Module", () => {
       expect(response1.status).toBe(404);
 
       const response2 = await request(server).get(
-        `/issuers/${issuer.did}/proxies/${issuer2.proxy.id}`,
+        `/issuers/${issuer.id}/proxies/${issuer2.proxies[0]!.id}`,
       );
 
       expect(response2.body).toStrictEqual({
         detail: expect.stringContaining(
-          `Proxy ${issuer2.proxy.id} of issuer ${issuer.did} can't be found`,
+          `Proxy ${issuer2.proxies[0]!.id} of issuer ${issuer.id} can't be found`,
         ),
         status: 404,
         title: "Proxy Not Found",
@@ -938,11 +927,16 @@ describe("Issuers Module", () => {
     it("should return a specific StatusList2021Credential (JWT)", async () => {
       expect.assertions(2);
 
-      const url = `/issuers/${issuer.did}/proxies/${issuer.proxy.id}${subpath}`;
+      const url = `/issuers/${issuer.id}/proxies/${issuer.proxies[0]!.id}${subpath}`;
+
+      const { prefix, testSuffix } = JSON.parse(issuer.proxies[0]!.data) as {
+        prefix: string;
+        testSuffix: string;
+      };
 
       // Mock issuer's endpoint response
       vi.spyOn(axios, "get").mockImplementation((requestUrl: string) => {
-        if (requestUrl === `${issuer.proxy.obj.prefix}${subpath}`) {
+        if (requestUrl === `${prefix}${subpath}`) {
           return Promise.resolve({
             data: "jwt",
             status: 200,
@@ -968,14 +962,14 @@ describe("Issuers Module", () => {
               credentialSubject: {
                 encodedList:
                   "H4sIAAAAAAAAA-3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAAAAAAIC3AYbSVKsAQAAA",
-                id: `${issuer.proxy.obj.prefix}${issuer.proxy.obj.testSuffix}#list`,
+                id: `${prefix}${testSuffix}#list`,
                 statusPurpose: "revocation",
                 type: "StatusList2021",
               },
-              id: `${issuer.proxy.obj.prefix}${issuer.proxy.obj.testSuffix}`,
+              id: `${prefix}${testSuffix}`,
               issuanceDate: "2021-04-05T14:27:40Z",
               issued: "2021-04-05T14:27:40Z",
-              issuer: issuer.did,
+              issuer: issuer.id,
               type: [
                 "VerifiableCredential",
                 "VerifiableAttestation",
@@ -997,11 +991,15 @@ describe("Issuers Module", () => {
     it("should return an error if the issuer's endpoint respond with a 500", async () => {
       expect.assertions(2);
 
-      const url = `/issuers/${issuer.did}/proxies/${issuer.proxy.id}${subpath}`;
+      const url = `/issuers/${issuer.id}/proxies/${issuer.proxies[0]!.id}${subpath}`;
+
+      const { prefix } = JSON.parse(issuer.proxies[0]!.data) as {
+        prefix: string;
+      };
 
       // Mock issuer's endpoint response
       vi.spyOn(axios, "get").mockImplementation((requestUrl: string) => {
-        if (requestUrl === `${issuer.proxy.obj.prefix}${subpath}`) {
+        if (requestUrl === `${prefix}${subpath}`) {
           // eslint-disable-next-line unicorn/error-message
           const error = new Error() as AxiosError<string>;
           error.status = 500;
@@ -1030,10 +1028,14 @@ describe("Issuers Module", () => {
     it("should return an error if the Status List VC returned by the endpoint is invalid", async () => {
       expect.assertions(2);
 
-      const url = `/issuers/${issuer.did}/proxies/${issuer.proxy.id}${subpath}`;
+      const url = `/issuers/${issuer.id}/proxies/${issuer.proxies[0]!.id}${subpath}`;
+
+      const { prefix } = JSON.parse(issuer.proxies[0]!.data) as {
+        prefix: string;
+      };
 
       vi.spyOn(axios, "get").mockImplementation((requestUrl: string) => {
-        if (requestUrl === `${issuer.proxy.obj.prefix}${subpath}`) {
+        if (requestUrl === `${prefix}${subpath}`) {
           return Promise.resolve({
             data: "jwt",
             status: 200,
@@ -1062,7 +1064,7 @@ describe("Issuers Module", () => {
     it("should throw an error if the issuer DID is not correctly formatted", async () => {
       expect.assertions(2);
 
-      const url = `/issuers/not-a-did/proxies/${issuer.proxy.id}${subpath}`;
+      const url = `/issuers/not-a-did/proxies/${issuer.proxies[0]!.id}${subpath}`;
 
       const response = await request(server).get(url);
 
@@ -1078,7 +1080,7 @@ describe("Issuers Module", () => {
     it("should throw an error if the issuer DID is not a valid EBSI DID", async () => {
       expect.assertions(2);
 
-      const url = `/issuers/did:ebsi:z1234/proxies/${issuer.proxy.id}${subpath}`;
+      const url = `/issuers/did:ebsi:z1234/proxies/${issuer.proxies[0]!.id}${subpath}`;
 
       const response = await request(server).get(url);
 
@@ -1094,7 +1096,7 @@ describe("Issuers Module", () => {
     it("should throw an error if the issuer is not found", async () => {
       expect.assertions(2);
 
-      const url = `/issuers/${randomDid}/proxies/${issuer.proxy.id}${subpath}`;
+      const url = `/issuers/${randomDid}/proxies/${issuer.proxies[0]!.id}${subpath}`;
 
       const response = await request(server).get(url);
 
@@ -1114,13 +1116,13 @@ describe("Issuers Module", () => {
       const wrongProxyId =
         "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d2";
 
-      const url = `/issuers/${issuer.did}/proxies/${wrongProxyId}${subpath}`;
+      const url = `/issuers/${issuer.id}/proxies/${wrongProxyId}${subpath}`;
 
       const response1 = await request(server).get(url);
 
       expect(response1.body).toStrictEqual({
         detail: expect.stringContaining(
-          `Proxy ${wrongProxyId} of issuer ${issuer.did} can't be found`,
+          `Proxy ${wrongProxyId} of issuer ${issuer.id} can't be found`,
         ),
         status: 404,
         title: "Proxy Not Found",
@@ -1129,12 +1131,12 @@ describe("Issuers Module", () => {
       expect(response1.status).toBe(404);
 
       const response2 = await request(server).get(
-        `/issuers/${issuer.did}/proxies/${issuer2.proxy.id}${subpath}`,
+        `/issuers/${issuer.id}/proxies/${issuer2.proxies[0]!.id}${subpath}`,
       );
 
       expect(response2.body).toStrictEqual({
         detail: expect.stringContaining(
-          `Proxy ${issuer2.proxy.id} of issuer ${issuer.did} can't be found`,
+          `Proxy ${issuer2.proxies[0]!.id} of issuer ${issuer.id} can't be found`,
         ),
         status: 404,
         title: "Proxy Not Found",

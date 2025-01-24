@@ -78,7 +78,6 @@
     "@types/passport-http-bearer": "^1.0.41",
     "@types/supertest": "^6.0.2",
     "@types/validator": "^13.12.2",
-    "@types/ws": "^7.4.7",
     "@vitest/coverage-v8": "^2.1.8",
     "did-jwt": "^8.0.4",
     "hardhat": "^2.22.17",

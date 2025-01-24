@@ -1,4 +1,5 @@
-import { DidRegistry } from "@ebsiint-sc/did-registry-v2";
+import type { DidRegistry } from "@ebsiint-sc/did-registry-v2";
+
 import { describe, expect, it } from "vitest";
 
 import { formatIdentifiers } from "./identifiers.formatter.js";

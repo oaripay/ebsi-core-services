@@ -1,16 +1,18 @@
-import { Accepts, PaginatedListWithoutTotal } from "@ebsiint-api/shared";
+import type { PaginatedListWithoutTotal } from "@ebsiint-api/shared";
+
+import { Accepts } from "@ebsiint-api/shared";
 import { Controller, Get, Param, Query } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
+import type { HashAlgo_filter } from "../../../.graphclient/index.js";
 import type { ApiConfig } from "../../config/configuration.js";
-
-import { HashAlgo_filter } from "../../../.graphclient/index.js";
-import { GetHashAlgorithmDto, GetHashAlgorithmsDto } from "./dto/index.js";
-import { formatHashAlgorithms } from "./hash-algorithms.formatter.js";
-import {
+import type {
   HashAlgorithmLink,
   HashAlgorithmResponseObject,
 } from "./hash-algorithms.interface.js";
+
+import { GetHashAlgorithmDto, GetHashAlgorithmsDto } from "./dto/index.js";
+import { formatHashAlgorithms } from "./hash-algorithms.formatter.js";
 import { HashAlgorithmsService } from "./hash-algorithms.service.js";
 
 @Controller("/hash-algorithms")

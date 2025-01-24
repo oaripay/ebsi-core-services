@@ -1,4 +1,5 @@
-import { TrackAndTrace } from "@ebsiint-sc/track-and-trace";
+import type { TrackAndTrace } from "@ebsiint-sc/track-and-trace";
+
 import { describe, expect, it } from "vitest";
 
 import type { DocumentAccesses } from "./documents.interface.js";

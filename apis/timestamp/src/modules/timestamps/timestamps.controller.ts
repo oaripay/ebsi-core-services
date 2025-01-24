@@ -1,15 +1,17 @@
-import { Accepts, PaginatedList } from "@ebsiint-api/shared";
+import type { PaginatedList } from "@ebsiint-api/shared";
+
+import { Accepts } from "@ebsiint-api/shared";
 import { Controller, Get, Param, Query } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
 import type { ApiConfig } from "../../config/configuration.js";
-
-import { GetTimestampDto, GetTimestampsDto } from "./dto/index.js";
-import { formatTimestamps } from "./timestamps.formatter.js";
-import {
+import type {
   TimestampLink,
   TimestampResponseObject,
 } from "./timestamps.interface.js";
+
+import { GetTimestampDto, GetTimestampsDto } from "./dto/index.js";
+import { formatTimestamps } from "./timestamps.formatter.js";
 import TimestampsService from "./timestamps.service.js";
 
 @Controller("/timestamps")

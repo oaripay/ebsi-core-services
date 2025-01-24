@@ -26,7 +26,6 @@ COPY --from=builder /app/contracts/did-registry-v4/dist ./contracts/did-registry
 COPY --from=builder /app/contracts/did-registry-v4/artifacts ./contracts/did-registry-v4/artifacts
 # Copy DID Registry SC v4 subgraph
 COPY --from=builder /app/subgraphs/did-registry-v4/package.json ./subgraphs/did-registry-v4/package.json
-# TODO: import other required files
 # Copy TPR SC v3
 COPY --from=builder /app/contracts/trusted-policies-registry-v3/package.json ./contracts/trusted-policies-registry-v3/package.json
 COPY --from=builder /app/contracts/trusted-policies-registry-v3/dist ./contracts/trusted-policies-registry-v3/dist

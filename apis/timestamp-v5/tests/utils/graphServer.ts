@@ -1,10 +1,11 @@
 import { graphql, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 
-import {
+import type {
   HashAlgo_filter,
   TimestampSet_filter,
 } from "../../.graphclient/index.js";
+
 import { dummyData } from "./data.js";
 
 export const graphServer = setupServer(

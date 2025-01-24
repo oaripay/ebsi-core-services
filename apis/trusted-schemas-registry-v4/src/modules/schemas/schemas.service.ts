@@ -1,9 +1,8 @@
 import { InternalServerError, NotFoundError } from "@ebsiint-api/shared";
 import { Injectable, Logger } from "@nestjs/common";
 
-import {
+import type {
   GetAllRevisionsWithMetadataQuery,
-  getBuiltGraphSDK,
   GetMetadataQuery,
   GetMetadatasQuery,
   GetRevisionQuery,
@@ -13,6 +12,8 @@ import {
   Revision_filter,
   Schema_filter,
 } from "../../../.graphclient/index.js";
+
+import { getBuiltGraphSDK } from "../../../.graphclient/index.js";
 import { schemaIdToHex } from "./schemas.utils.js";
 
 const sdk = getBuiltGraphSDK();

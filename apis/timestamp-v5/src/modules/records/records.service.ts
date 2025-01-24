@@ -8,8 +8,7 @@ import {
 import { Injectable, Logger } from "@nestjs/common";
 import { ethers } from "ethers";
 
-import {
-  getBuiltGraphSDK,
+import type {
   GetOwnerQuery,
   GetRecordQuery,
   GetRecordsQuery,
@@ -17,11 +16,13 @@ import {
   GetRecordVersionsQuery,
   GetTimestampRecordIdsFirstVersionQuery,
 } from "../../../.graphclient/index.js";
-import {
+import type {
   InfoObject,
   RecordResponseObject,
   RecordVersionResponseObject,
 } from "./records.interface.js";
+
+import { getBuiltGraphSDK } from "../../../.graphclient/index.js";
 
 const sdk = getBuiltGraphSDK();
 

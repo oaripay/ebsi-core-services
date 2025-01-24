@@ -1,7 +1,8 @@
+import type { PaginatedList } from "@ebsiint-api/shared";
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 
-import { methodNotAllowed, PaginatedList } from "@ebsiint-api/shared";
+import { methodNotAllowed } from "@ebsiint-api/shared";
 import { fastifyAccepts } from "@fastify/accepts";
 import { fastifyHelmet } from "@fastify/helmet";
 import { Logger, ValidationPipe } from "@nestjs/common";
@@ -12,10 +13,10 @@ import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import type { ApiConfig } from "../../src/config/configuration.js";
+import type { PolicyLink } from "../../src/modules/policies/policies.interface.js";
 
 import { AppModule } from "../../src/app.module.js";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
-import { PolicyLink } from "../../src/modules/policies/policies.interface.js";
 import { getServer } from "../utils/getServer.js";
 
 interface SupertestPoliciesResponse {

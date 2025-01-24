@@ -1,3 +1,5 @@
+import type { Timestamp } from "@ebsiint-sc/timestamp";
+
 import {
   BadRequestError,
   getErrorMessage,
@@ -6,22 +8,35 @@ import {
   NotFoundError,
   remove0xPrefix,
 } from "@ebsiint-api/shared";
-import { Timestamp } from "@ebsiint-sc/timestamp";
+import { Timestamp__factory } from "@ebsiint-sc/timestamp";
 import { Injectable, Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 
-import { LedgerService } from "../ledger/ledger.service.js";
-import {
+import type { ApiConfig } from "../../config/configuration.js";
+import type {
   InfoObject,
   RecordResponseObject,
   RecordVersionResponseObject,
 } from "./records.interface.js";
 
+import { LedgerService } from "../ledger/ledger.service.js";
+
 @Injectable()
 export default class RecordsService {
+  private readonly contract: Timestamp;
+
   private readonly logger = new Logger(RecordsService.name);
 
-  constructor(private ledgerService: LedgerService) {}
+  constructor(
+    configService: ConfigService<ApiConfig, true>,
+    private ledgerService: LedgerService,
+  ) {
+    const contractAddress = configService.get("contractAddr", {
+      infer: true,
+    });
+    this.contract = Timestamp__factory.connect(contractAddress);
+  }
 
   async getAllPages(
     fnName: string,
@@ -63,9 +78,12 @@ export default class RecordsService {
   }> {
     switch (fnName) {
       case "getRecordVersion": {
+        const provider = this.ledgerService.getProvider();
+
         try {
-          const { hashValues, infoIds, total } = await this.ledgerService
-            .getContract()
+          const { hashValues, infoIds, total } = await this.contract
+            // @ts-expect-error Error due to contracts using CommonJS modules
+            .connect(provider)
             .getRecordVersion(
               params[0] as string,
               params[1] as number,
@@ -94,8 +112,13 @@ export default class RecordsService {
       multibase.base64url.decode(recordIdEncoded),
     ).toString("hex")}`;
 
+    const provider = this.ledgerService.getProvider();
+
     try {
-      record = await this.ledgerService.getContract().getRecord(recordId);
+      record = await this.contract
+        // @ts-expect-error Error due to contracts using CommonJS modules
+        .connect(provider)
+        .getRecord(recordId);
     } catch (error) {
       if (isEthersError(error)) {
         this.logger.error(error, error.stack);
@@ -130,9 +153,12 @@ export default class RecordsService {
     page: number,
     pageSize: number,
   ): ReturnType<Timestamp["getRecordIds"]> {
+    const provider = this.ledgerService.getProvider();
+
     try {
-      return await this.ledgerService
-        .getContract()
+      return await this.contract
+        // @ts-expect-error Error due to contracts using CommonJS modules
+        .connect(provider)
         .getRecordIds(page, pageSize);
     } catch (error) {
       if (isEthersError(error)) {
@@ -149,9 +175,12 @@ export default class RecordsService {
     page: number,
     pageSize: number,
   ): ReturnType<Timestamp["getRecordIdsByFirstVersionHash"]> {
+    const provider = this.ledgerService.getProvider();
+
     try {
-      return await this.ledgerService
-        .getContract()
+      return await this.contract
+        // @ts-expect-error Error due to contracts using CommonJS modules
+        .connect(provider)
         .getRecordIdsByFirstVersionHash(firstVersion, page, pageSize);
     } catch (error) {
       if (isEthersError(error)) {
@@ -168,9 +197,12 @@ export default class RecordsService {
     page: number,
     pageSize: number,
   ): ReturnType<Timestamp["getRecordIdsByOwnerId"]> {
+    const provider = this.ledgerService.getProvider();
+
     try {
-      return await this.ledgerService
-        .getContract()
+      return await this.contract
+        // @ts-expect-error Error due to contracts using CommonJS modules
+        .connect(provider)
         .getRecordIdsByOwnerId(owner.toLowerCase(), page, pageSize);
     } catch (error) {
       if (isEthersError(error)) {
@@ -203,8 +235,12 @@ export default class RecordsService {
       Number(versionId),
     ]);
 
+    const provider = this.ledgerService.getProvider();
+
     try {
-      const contract = this.ledgerService.getContract();
+      const contract = this.contract
+        // @ts-expect-error Error due to contracts using CommonJS modules
+        .connect(provider);
       const infosBytes = await Promise.all(
         infoIds.map((infoId) => contract.getRecordVersionInfo(infoId)),
       );
@@ -237,12 +273,18 @@ export default class RecordsService {
 
   async getRecordVersions(recordIdEncoded: string): Promise<number> {
     let record: Awaited<ReturnType<Timestamp["getRecord"]>>;
+
     const recordId = `0x${Buffer.from(
       multibase.base64url.decode(recordIdEncoded),
     ).toString("hex")}`;
 
+    const provider = this.ledgerService.getProvider();
+
     try {
-      record = await this.ledgerService.getContract().getRecord(recordId);
+      record = await this.contract
+        // @ts-expect-error Error due to contracts using CommonJS modules
+        .connect(provider)
+        .getRecord(recordId);
     } catch (error) {
       if (isEthersError(error)) {
         this.logger.error(error, error.stack);

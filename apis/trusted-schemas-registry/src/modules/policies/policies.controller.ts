@@ -1,11 +1,13 @@
-import { Accepts, PaginatedList, PaginationQuery } from "@ebsiint-api/shared";
+import type { PaginatedList } from "@ebsiint-api/shared";
+
+import { Accepts, PaginationQuery } from "@ebsiint-api/shared";
 import { Controller, Get, Param, Query } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
 import type { ApiConfig } from "../../config/configuration.js";
+import type { PolicyLink, PolicyResponseObject } from "./policies.interface.js";
 
 import { formatPolicies, formatRevisions } from "./policies.formatter.js";
-import { PolicyLink, PolicyResponseObject } from "./policies.interface.js";
 import { PoliciesService } from "./policies.service.js";
 
 @Controller("/policies")

@@ -1,24 +1,42 @@
+import type { Timestamp } from "@ebsiint-sc/timestamp-v2";
+
 import { isEthersError, NotFoundError } from "@ebsiint-api/shared";
-import { Timestamp } from "@ebsiint-sc/timestamp-v2";
+import { Timestamp__factory } from "@ebsiint-sc/timestamp-v2";
 import { Injectable, Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+
+import type { ApiConfig } from "../../config/configuration.js";
+import type { HashAlgorithmResponseObject } from "./hash-algorithms.interface.js";
 
 import { LedgerService } from "../ledger/ledger.service.js";
-import { HashAlgorithmResponseObject } from "./hash-algorithms.interface.js";
 
 @Injectable()
 export class HashAlgorithmsService {
+  private readonly contract: Timestamp;
+
   private readonly logger = new Logger(HashAlgorithmsService.name);
 
-  constructor(private ledgerService: LedgerService) {}
+  constructor(
+    configService: ConfigService<ApiConfig, true>,
+    private ledgerService: LedgerService,
+  ) {
+    const contractAddress = configService.get("contractAddr", {
+      infer: true,
+    });
+    this.contract = Timestamp__factory.connect(contractAddress);
+  }
 
   async getHashAlgorithm(
     hashAlgorithmId: number,
   ): Promise<HashAlgorithmResponseObject> {
     let hashAlgorithm: Awaited<ReturnType<Timestamp["getHashAlgorithmById"]>>;
 
+    const provider = this.ledgerService.getProvider();
+
     try {
-      hashAlgorithm = await this.ledgerService
-        .getContract()
+      hashAlgorithm = await this.contract
+        // @ts-expect-error Error due to contracts using CommonJS modules
+        .connect(provider)
         .getHashAlgorithmById(hashAlgorithmId);
     } catch (error) {
       if (isEthersError(error)) {
@@ -45,9 +63,12 @@ export class HashAlgorithmsService {
     page: number,
     pageSize: number,
   ): Promise<ReturnType<Timestamp["getHashAlgorithms"]>> {
+    const provider = this.ledgerService.getProvider();
+
     try {
-      return await this.ledgerService
-        .getContract()
+      return await this.contract
+        // @ts-expect-error Error due to contracts using CommonJS modules
+        .connect(provider)
         .getHashAlgorithms(page, pageSize);
     } catch (error) {
       if (isEthersError(error)) {

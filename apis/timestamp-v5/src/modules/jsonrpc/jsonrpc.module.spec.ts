@@ -1,9 +1,11 @@
+import type { Timestamp } from "@ebsiint-sc/timestamp-v3";
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { HardhatEthersProvider } from "@nomicfoundation/hardhat-ethers/internal/hardhat-ethers-provider.js";
 import type { RawServerDefault } from "fastify";
+import type { GenerateKeyPairResult } from "jose";
 
 import { methodNotAllowed } from "@ebsiint-api/shared";
-import { Timestamp, Timestamp__factory } from "@ebsiint-sc/timestamp-v3";
+import { Timestamp__factory } from "@ebsiint-sc/timestamp-v3";
 import { fastifyAccepts } from "@fastify/accepts";
 import { Logger, ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
@@ -14,7 +16,6 @@ import {
   calculateJwkThumbprint,
   exportJWK,
   generateKeyPair,
-  GenerateKeyPairResult,
   SignJWT,
 } from "jose";
 import { http, HttpResponse } from "msw";
@@ -90,7 +91,6 @@ describe("JsonRpc Module", () => {
   let server: RawServerDefault;
   let timestampContract: Timestamp;
   let testEnv: Awaited<ReturnType<typeof setupTestEnv>>;
-  let ledgerService: LedgerService;
   let firstHashValue: string;
   let secondHashValue: string;
   let recordId: string;
@@ -133,8 +133,19 @@ describe("JsonRpc Module", () => {
     provider = testEnv.provider;
 
     const timestampContractAddress = await timestampContract.getAddress();
-    vi.spyOn(LedgerService.prototype, "getContractAddress").mockImplementation(
-      () => timestampContractAddress,
+
+    vi.stubEnv("CONTRACT_ADDR", timestampContractAddress);
+
+    // Mock Timestamp contract
+    vi.spyOn(Timestamp__factory, "connect").mockImplementation(() =>
+      // Create new instance without runner (provider)
+      timestampContract.connect(),
+    );
+
+    // Mock LedgerService
+    vi.spyOn(LedgerService.prototype, "getProvider").mockImplementation(
+      // @ts-expect-error Error due to a mismatch between ESM and CommonJS modules
+      () => provider,
     );
 
     newUser = await createUser();
@@ -194,11 +205,6 @@ describe("JsonRpc Module", () => {
       .digest()
       .toString("hex")}`;
 
-    // Mock Timestamp contract
-    vi.spyOn(Timestamp__factory, "connect").mockImplementation(
-      () => timestampContract,
-    );
-
     // Start server
     const moduleFixture = await Test.createTestingModule({
       imports: [JsonRpcModule],
@@ -226,16 +232,6 @@ describe("JsonRpc Module", () => {
     await app.init();
     await fastifyInstance.ready();
     server = app.getHttpServer();
-
-    // Mock Contract service
-    ledgerService = moduleFixture.get<LedgerService>(LedgerService);
-    vi.spyOn(ledgerService, "getContract").mockImplementation(
-      () => timestampContract,
-    );
-    vi.spyOn(ledgerService, "getEthersProvider").mockImplementation(
-      // @ts-expect-error Error due to a mismatch between ESM and CommonJS modules
-      () => testEnv.provider,
-    );
 
     // Mock Auth API
     const authorisationApiUrl = configService.get("authorisationApiUrl", {

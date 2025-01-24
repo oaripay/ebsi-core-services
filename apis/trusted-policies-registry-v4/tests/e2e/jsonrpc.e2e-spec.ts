@@ -21,11 +21,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import type { ApiConfig } from "../../src/config/configuration.js";
 import type { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface.js";
-
-import { AppModule } from "../../src/app.module.js";
-import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
-import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils.js";
-import {
+import type {
   ActivatePolicySchema,
   DeactivatePolicySchema,
   DeleteUserAttributeSchema,
@@ -34,10 +30,14 @@ import {
   UnsignedTransaction,
   UpdatePolicySchema,
 } from "../../src/modules/jsonrpc/validators/index.js";
-import {
+import type {
   PolicyLink,
   PolicyResponseObject,
 } from "../../src/modules/policies/policies.interface.js";
+
+import { AppModule } from "../../src/app.module.js";
+import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
+import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils.js";
 import { createPolicy } from "../utils/data.js";
 import { getTprWriteAccessToken } from "../utils/getAccessToken.js";
 import { getEbsiIssuer } from "../utils/getEbsiIssuer.js";

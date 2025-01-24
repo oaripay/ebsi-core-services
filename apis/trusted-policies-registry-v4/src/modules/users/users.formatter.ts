@@ -1,9 +1,8 @@
-import {
-  PaginatedListWithoutTotal,
-  paginateWithoutTotal,
-} from "@ebsiint-api/shared";
+import type { PaginatedListWithoutTotal } from "@ebsiint-api/shared";
 
-import { UserLink } from "./users.interface.js";
+import { paginateWithoutTotal } from "@ebsiint-api/shared";
+
+import type { UserLink } from "./users.interface.js";
 
 export function formatUsers(
   users: { items: string[] },

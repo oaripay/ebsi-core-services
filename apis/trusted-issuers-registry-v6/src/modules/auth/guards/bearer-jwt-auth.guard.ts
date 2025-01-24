@@ -4,7 +4,7 @@ import { UnauthorizedError } from "@ebsiint-api/shared";
 import { ExecutionContext, Injectable } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
 
-import { SubjectInfo } from "../auth.interface.js";
+import type { SubjectInfo } from "../auth.interface.js";
 
 @Injectable()
 export class BearerJwtAuthGuard extends AuthGuard("bearer-jwt") {

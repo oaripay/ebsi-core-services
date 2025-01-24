@@ -1,8 +1,15 @@
-import { Accepts, PaginatedList } from "@ebsiint-api/shared";
+import type { PaginatedList } from "@ebsiint-api/shared";
+
+import { Accepts } from "@ebsiint-api/shared";
 import { Controller, Get, Header, Param, Query } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
 import type { ApiConfig } from "../../config/configuration.js";
+import type {
+  GetSchemaRevisionMetadataListResponse,
+  GetSchemaRevisionsResponse,
+  GetSchemasResponse,
+} from "./schemas.interface.js";
 
 import {
   GetSchemaParams,
@@ -17,11 +24,6 @@ import {
   formatSchemaRevisions,
   formatSchemas,
 } from "./schemas.formatter.js";
-import {
-  GetSchemaRevisionMetadataListResponse,
-  GetSchemaRevisionsResponse,
-  GetSchemasResponse,
-} from "./schemas.interface.js";
 import { SchemasService } from "./schemas.service.js";
 
 @Controller("/schemas")

@@ -1,10 +1,11 @@
 import { graphql, HttpResponse } from "msw";
 
-import {
+import type {
   Document_filter,
   Event_filter,
   Invitation_filter,
 } from "../../.graphclient/index.js";
+
 import { dummyData } from "./data.js";
 
 export const handlers = [

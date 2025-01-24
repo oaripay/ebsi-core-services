@@ -1,4 +1,5 @@
-import { Timestamp } from "@ebsiint-sc/timestamp";
+import type { Timestamp } from "@ebsiint-sc/timestamp";
+
 import { describe, expect, it } from "vitest";
 
 import { formatHashAlgorithms } from "./hash-algorithms.formatter.js";

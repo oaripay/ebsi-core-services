@@ -1,6 +1,6 @@
 import { createParamDecorator, ExecutionContext } from "@nestjs/common";
 
-import { UserInfo } from "../auth.interface.js";
+import type { UserInfo } from "../auth.interface.js";
 
 export type { UserInfo } from "../auth.interface.js";
 

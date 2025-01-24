@@ -1,8 +1,10 @@
+import type { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry-v3";
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
+import type { GenerateKeyPairResult } from "jose";
 
 import { methodNotAllowed } from "@ebsiint-api/shared";
-import { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry-v3";
+import { PolicyRegistry__factory } from "@ebsiint-sc/trusted-policies-registry-v3";
 import { fastifyAccepts } from "@fastify/accepts";
 import { Logger, ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
@@ -14,7 +16,6 @@ import {
   calculateJwkThumbprint,
   exportJWK,
   generateKeyPair,
-  type GenerateKeyPairResult,
   SignJWT,
 } from "jose";
 import { http, HttpResponse } from "msw";
@@ -34,6 +35,15 @@ import {
 
 import type { ApiConfig } from "../../config/configuration.js";
 import type { JsonRpcResponseObject } from "./jsonrpc.interface.js";
+import type {
+  ActivatePolicySchema,
+  DeactivatePolicySchema,
+  DeleteUserAttributeSchema,
+  InsertPolicySchema,
+  InsertUserAttributesSchema,
+  UnsignedTransaction,
+  UpdatePolicySchema,
+} from "./validators/index.js";
 
 import { createPolicy } from "../../../tests/utils/data.js";
 import { setupTestEnv } from "../../../tests/utils/trustedPoliciesRegistry.js";
@@ -42,15 +52,6 @@ import { LedgerService } from "../ledger/ledger.service.js";
 import { JsonRpcModule } from "./jsonrpc.module.js";
 import { JsonRpcService } from "./jsonrpc.service.js";
 import { formatEthersUnsignedTransaction } from "./jsonrpc.utils.js";
-import {
-  type ActivatePolicySchema,
-  type DeactivatePolicySchema,
-  type DeleteUserAttributeSchema,
-  type InsertPolicySchema,
-  type InsertUserAttributesSchema,
-  type UnsignedTransaction,
-  type UpdatePolicySchema,
-} from "./validators/index.js";
 
 type JsonRpcParams =
   | ActivatePolicySchema
@@ -71,7 +72,6 @@ describe("JsonRpc Module", () => {
   let policiesRegistryContract: PolicyRegistry;
   let jsonRpcService: JsonRpcService;
   let configService: ConfigService<ApiConfig, true>;
-  let ledgerService: LedgerService;
   let testEnv: Awaited<ReturnType<typeof setupTestEnv>>;
   let userAccessToken: string;
   let userAccessTokenPayload: Record<string, unknown>;
@@ -105,9 +105,7 @@ describe("JsonRpc Module", () => {
     const policiesRegistryContractAddress =
       await policiesRegistryContract.getAddress();
 
-    vi.spyOn(LedgerService.prototype, "getContractAddress").mockImplementation(
-      () => policiesRegistryContractAddress,
-    );
+    vi.stubEnv("CONTRACT_ADDR", policiesRegistryContractAddress);
 
     // Start server
     const moduleFixture = await Test.createTestingModule({
@@ -139,7 +137,6 @@ describe("JsonRpc Module", () => {
     server = app.getHttpServer();
 
     jsonRpcService = moduleFixture.get<JsonRpcService>(JsonRpcService);
-    ledgerService = moduleFixture.get<LedgerService>(LedgerService);
 
     // Generate key pair for Authorisation API v3 and create access token
     authApiKeyPair = await generateKeyPair("ES256");
@@ -193,11 +190,14 @@ describe("JsonRpc Module", () => {
   });
 
   beforeEach(() => {
-    // Mock TSR contract
-    vi.spyOn(ledgerService, "getContract").mockImplementation(
-      () => testEnv.policiesRegistryContract,
+    // Mock TPR contract
+    vi.spyOn(PolicyRegistry__factory, "connect").mockImplementation(
+      // Create new instance without runner (provider)
+      () => policiesRegistryContract.connect(),
     );
-    vi.spyOn(ledgerService, "getEthersProvider").mockImplementation(
+
+    // Mock LedgerService
+    vi.spyOn(LedgerService.prototype, "getProvider").mockImplementation(
       // @ts-expect-error Error due to a mismatch between ESM and CommonJS modules
       () => testEnv.provider,
     );

@@ -1,3 +1,4 @@
+import type { DidRegistry } from "@ebsiint-sc/did-registry-v3";
 import type { JWK } from "jose";
 
 import {
@@ -11,10 +12,12 @@ import {
   NotFoundError,
   remove0xPrefix,
 } from "@ebsiint-api/shared";
-import { DidRegistry } from "@ebsiint-sc/did-registry-v3";
+import { DidRegistry__factory } from "@ebsiint-sc/did-registry-v3";
 import { Injectable, Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { isAxiosError } from "axios";
 
+import type { ApiConfig } from "../../config/configuration.js";
 import type { JsonRpcSchema } from "./validators/JsonRpcSchema.js";
 
 import { LedgerService } from "../ledger/ledger.service.js";
@@ -22,20 +25,34 @@ import { requestCheckControllerDtoSchema } from "./validators/RequestCheckContro
 
 @Injectable()
 export default class IdentifiersService {
+  private readonly didRegistryContract: DidRegistry;
+
   private readonly logger = new Logger(IdentifiersService.name);
 
-  constructor(private ledgerService: LedgerService) {}
+  constructor(
+    configService: ConfigService<ApiConfig, true>,
+    private ledgerService: LedgerService,
+  ) {
+    const didRegistryAddress = configService.get("contractAddr", {
+      infer: true,
+    });
+    this.didRegistryContract = DidRegistry__factory.connect(didRegistryAddress);
+  }
 
   async checkController(
     did: string,
     body: JsonRpcSchema,
     id: null | number | string | undefined,
   ): Promise<boolean> {
+    const provider = this.ledgerService.getProvider();
+
     try {
       const parsedBody = requestCheckControllerDtoSchema.parse(body);
       const address = parsedBody.params[0]!;
-      const contract = this.ledgerService.getContract();
-      return await contract["checkController(string,address)"](did, address);
+      return await this.didRegistryContract
+        // @ts-expect-error Error due to contracts using CommonJS modules
+        .connect(provider)
+        ["checkController(string,address)"](did, address);
     } catch (error_) {
       if (!(error_ instanceof Error)) {
         this.logger.error(error_);
@@ -93,9 +110,10 @@ export default class IdentifiersService {
       return;
     }
 
-    const contract = this.ledgerService.getContract();
     try {
-      const errorDescription = contract.interface.parseError(error.data);
+      const errorDescription = this.didRegistryContract.interface.parseError(
+        error.data,
+      );
 
       if (!errorDescription) return;
 
@@ -110,7 +128,10 @@ export default class IdentifiersService {
     did: string,
     validAt?: string,
   ): Promise<Record<string, unknown>> {
-    const contract = this.ledgerService.getContract();
+    const provider = this.ledgerService.getProvider();
+    const contract = this.didRegistryContract
+      // @ts-expect-error Error due to contracts using CommonJS modules
+      .connect(provider);
     let document: Awaited<ReturnType<typeof contract.getDidDocument>>;
 
     try {
@@ -136,7 +157,7 @@ export default class IdentifiersService {
       } catch (error) {
         throw new BadRequestError(BadRequestError.defaultTitle, {
           detail: `Identifier ${did} contains an invalid base document. ${
-            (error as Error).message
+            error instanceof Error ? error.message : "Unknown error"
           }`,
         });
       }
@@ -159,7 +180,7 @@ export default class IdentifiersService {
       } catch (error) {
         throw new BadRequestError(BadRequestError.defaultTitle, {
           detail: `Identifier ${did} contains an invalid public key in a verification method. ${
-            (error as Error).message
+            error instanceof Error ? error.message : "Unknown error"
           }`,
         });
       }
@@ -201,6 +222,11 @@ export default class IdentifiersService {
     vMethodId?: string,
     vRelationship?: string,
   ): ReturnType<DidRegistry["getDids"]> {
+    const provider = this.ledgerService.getProvider();
+    const contract = this.didRegistryContract
+      // @ts-expect-error Error due to contracts using CommonJS modules
+      .connect(provider);
+
     if (controller) {
       if (vMethodId || vRelationship) {
         throw new BadRequestError(BadRequestError.defaultTitle, {
@@ -210,9 +236,7 @@ export default class IdentifiersService {
       }
 
       try {
-        return await this.ledgerService
-          .getContract()
-          .getDidsByController(controller, page, pageSize);
+        return await contract.getDidsByController(controller, page, pageSize);
       } catch (error) {
         if (isEthersError(error)) {
           this.logger.error(error, error.stack);
@@ -240,14 +264,12 @@ export default class IdentifiersService {
       }
 
       try {
-        const didsWithPeriod = await this.ledgerService
-          .getContract()
-          .getDidsByVerificationRelationship(
-            vMethodId,
-            vRelationship,
-            page,
-            pageSize,
-          );
+        const didsWithPeriod = await contract.getDidsByVerificationRelationship(
+          vMethodId,
+          vRelationship,
+          page,
+          pageSize,
+        );
         const dids: string[] = [];
         const now = Math.floor(Date.now() / 1000);
         for (const didWithPeriod of didsWithPeriod.items) {
@@ -275,7 +297,7 @@ export default class IdentifiersService {
     }
 
     try {
-      return await this.ledgerService.getContract().getDids(page, pageSize);
+      return await contract.getDids(page, pageSize);
     } catch (error) {
       if (isEthersError(error)) {
         this.logger.error(error, error.stack);

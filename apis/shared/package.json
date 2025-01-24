@@ -60,6 +60,7 @@
     "@types/lodash.clonedeep": "^4.5.9",
     "@types/node": "^22.10.5",
     "@types/validator": "^13.12.2",
+    "@types/ws": "^8.0.0",
     "@vitest/coverage-v8": "^2.1.8",
     "msw": "^2.7.0",
     "ts-node": "^10.9.2",

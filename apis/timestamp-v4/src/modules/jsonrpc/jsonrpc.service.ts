@@ -1,3 +1,5 @@
+import type { Timestamp } from "@ebsiint-sc/timestamp-v2";
+
 import {
   decodeResult,
   getErrorMessage,
@@ -5,14 +7,15 @@ import {
   isEthersError,
   logAxiosError,
 } from "@ebsiint-api/shared";
+import { Timestamp__factory } from "@ebsiint-sc/timestamp-v2";
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import axios, { isAxiosError } from "axios";
 import { ethers } from "ethers";
 
 import type { ApiConfig } from "../../config/configuration.js";
+import type { UserInfo } from "../auth/auth.interface.js";
 
-import { UserInfo } from "../auth/auth.interface.js";
 import { LedgerService } from "../ledger/ledger.service.js";
 import {
   formatEthersSignature,
@@ -79,15 +82,17 @@ export class JsonRpcService {
     { exp: number; outputLength: number }
   > = {};
 
-  private chainId = "";
+  private chainId: string | undefined;
 
-  private contractAddress: string;
+  private readonly contract: Timestamp;
 
-  private didRegistry: string;
+  private readonly contractAddress: string;
+
+  private readonly didRegistry: string;
 
   private readonly logger = new Logger(JsonRpcService.name);
 
-  private timeout: number;
+  private readonly timeout: number;
 
   constructor(
     private configService: ConfigService<ApiConfig, true>,
@@ -96,7 +101,13 @@ export class JsonRpcService {
     this.didRegistry = this.configService.get("didRegistryApiUrl", {
       infer: true,
     });
-    this.contractAddress = ledgerService.getContractAddress();
+
+    this.contractAddress = this.configService.get("contractAddr", {
+      infer: true,
+    });
+
+    this.contract = Timestamp__factory.connect(this.contractAddress);
+
     this.timeout = configService.get("requestTimeout", { infer: true });
   }
 
@@ -104,9 +115,9 @@ export class JsonRpcService {
     from: string,
     params: string,
   ): Promise<UnsignedTransaction> {
-    const nonceInt = await this.ledgerService
-      .getEthersProvider()
-      .getTransactionCount(from);
+    const provider = this.ledgerService.getProvider();
+
+    const nonceInt = await provider.getTransactionCount(from);
 
     const unsignedTransaction = {
       chainId: await this.getChainId(),
@@ -158,16 +169,17 @@ export class JsonRpcService {
 
       await this.checkHashes(hashAlgorithmIds, hashValues);
 
-      const data = this.ledgerService
-        .getContract()
-        .interface.encodeFunctionData("appendRecordVersionHashes", [
+      const data = this.contract.interface.encodeFunctionData(
+        "appendRecordVersionHashes",
+        [
           recordId,
           versionId,
           hashAlgorithmIds,
           hashValues,
           timestampData ?? [],
           versionInfo,
-        ]);
+        ],
+      );
 
       return await this.buildTransaction(from, data);
     } catch (error_) {
@@ -189,13 +201,10 @@ export class JsonRpcService {
 
       const { from, hashValue, recordId, versionId } = parsedBody.params[0]!;
 
-      const data = this.ledgerService
-        .getContract()
-        .interface.encodeFunctionData("detachRecordVersionHash", [
-          recordId,
-          versionId,
-          hashValue,
-        ]);
+      const data = this.contract.interface.encodeFunctionData(
+        "detachRecordVersionHash",
+        [recordId, versionId, hashValue],
+      );
       return await this.buildTransaction(from, data);
     } catch (error_) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(error_), id);
@@ -217,15 +226,10 @@ export class JsonRpcService {
       const { from, ianaName, multiHash, oid, outputLength, status } =
         parsedBody.params[0]!;
 
-      const data = this.ledgerService
-        .getContract()
-        .interface.encodeFunctionData("insertHashAlgorithm", [
-          outputLength,
-          ianaName ?? "",
-          oid ?? "",
-          status,
-          multiHash,
-        ]);
+      const data = this.contract.interface.encodeFunctionData(
+        "insertHashAlgorithm",
+        [outputLength, ianaName ?? "", oid ?? "", status, multiHash],
+      );
 
       return await this.buildTransaction(from, data);
     } catch (error_) {
@@ -248,14 +252,10 @@ export class JsonRpcService {
       const { from, notAfter, notBefore, ownerId, recordId } =
         parsedBody.params[0]!;
 
-      const data = this.ledgerService
-        .getContract()
-        .interface.encodeFunctionData("insertRecordOwner", [
-          recordId,
-          ownerId.toLowerCase(),
-          notBefore,
-          notAfter,
-        ]);
+      const data = this.contract.interface.encodeFunctionData(
+        "insertRecordOwner",
+        [recordId, ownerId.toLowerCase(), notBefore, notAfter],
+      );
       return await this.buildTransaction(from, data);
     } catch (error_) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(error_), id);
@@ -276,13 +276,10 @@ export class JsonRpcService {
 
       const { from, recordId, versionId, versionInfo } = parsedBody.params[0]!;
 
-      const data = this.ledgerService
-        .getContract()
-        .interface.encodeFunctionData("insertRecordVersionInfo", [
-          recordId,
-          versionId,
-          versionInfo,
-        ]);
+      const data = this.contract.interface.encodeFunctionData(
+        "insertRecordVersionInfo",
+        [recordId, versionId, versionInfo],
+      );
       return await this.buildTransaction(from, data);
     } catch (error_) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(error_), id);
@@ -303,12 +300,10 @@ export class JsonRpcService {
 
       const { from, ownerId, recordId } = parsedBody.params[0]!;
 
-      const data = this.ledgerService
-        .getContract()
-        .interface.encodeFunctionData("revokeRecordOwner", [
-          recordId,
-          ownerId.toLowerCase(),
-        ]);
+      const data = this.contract.interface.encodeFunctionData(
+        "revokeRecordOwner",
+        [recordId, ownerId.toLowerCase()],
+      );
       return await this.buildTransaction(from, data);
     } catch (error_) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(error_), id);
@@ -331,13 +326,10 @@ export class JsonRpcService {
 
       await this.checkHashes(hashAlgorithmIds, hashValues);
 
-      const data = this.ledgerService
-        .getContract()
-        .interface.encodeFunctionData("timestampHashes", [
-          hashAlgorithmIds,
-          hashValues,
-          timestampData ?? [],
-        ]);
+      const data = this.contract.interface.encodeFunctionData(
+        "timestampHashes",
+        [hashAlgorithmIds, hashValues, timestampData ?? []],
+      );
 
       return await this.buildTransaction(from, data);
     } catch (error_) {
@@ -362,14 +354,10 @@ export class JsonRpcService {
 
       await this.checkHashes(hashAlgorithmIds, hashValues);
 
-      const data = this.ledgerService
-        .getContract()
-        .interface.encodeFunctionData("timestampRecordHashes", [
-          hashAlgorithmIds,
-          hashValues,
-          timestampData ?? [],
-          versionInfo,
-        ]);
+      const data = this.contract.interface.encodeFunctionData(
+        "timestampRecordHashes",
+        [hashAlgorithmIds, hashValues, timestampData ?? [], versionInfo],
+      );
 
       return await this.buildTransaction(from, data);
     } catch (error_) {
@@ -400,15 +388,16 @@ export class JsonRpcService {
 
       await this.checkHashes(hashAlgorithmIds, hashValues);
 
-      const data = this.ledgerService
-        .getContract()
-        .interface.encodeFunctionData("timestampRecordVersionHashes", [
+      const data = this.contract.interface.encodeFunctionData(
+        "timestampRecordVersionHashes",
+        [
           recordId,
           hashAlgorithmIds,
           hashValues,
           timestampData ?? [],
           versionInfo,
-        ]);
+        ],
+      );
 
       return await this.buildTransaction(from, data);
     } catch (error_) {
@@ -439,15 +428,16 @@ export class JsonRpcService {
 
       await this.checkHashes(hashAlgorithmIds, hashValues);
 
-      const data = this.ledgerService
-        .getContract()
-        .interface.encodeFunctionData("timestampVersionHashes", [
+      const data = this.contract.interface.encodeFunctionData(
+        "timestampVersionHashes",
+        [
           versionHash,
           hashAlgorithmIds,
           hashValues,
           timestampData ?? [],
           versionInfo,
-        ]);
+        ],
+      );
 
       return await this.buildTransaction(from, data);
     } catch (error_) {
@@ -477,16 +467,17 @@ export class JsonRpcService {
         status,
       } = parsedBody.params[0]!;
 
-      const data = this.ledgerService
-        .getContract()
-        .interface.encodeFunctionData("updateHashAlgorithm", [
+      const data = this.contract.interface.encodeFunctionData(
+        "updateHashAlgorithm",
+        [
           hashAlgorithmId,
           outputLength,
           ianaName ?? "",
           oid ?? "",
           status,
           multiHash,
-        ]);
+        ],
+      );
 
       return await this.buildTransaction(from, data);
     } catch (error_) {
@@ -511,6 +502,8 @@ export class JsonRpcService {
     const now = Date.now();
     const uniqHashAlgorithmIds = [...new Set(hashAlgorithmIds)];
 
+    const provider = this.ledgerService.getProvider();
+
     await Promise.all(
       uniqHashAlgorithmIds.map(async (algId) => {
         const algIdNumber = Number(ethers.getBigInt(algId));
@@ -522,8 +515,9 @@ export class JsonRpcService {
 
         // Get hash algorithm corresponding to algId
         try {
-          const hashAlgorithm = await this.ledgerService
-            .getContract()
+          const hashAlgorithm = await this.contract
+            // @ts-expect-error Error due to contracts using CommonJS modules
+            .connect(provider)
             .getHashAlgorithmById(algId);
 
           const outputLength = Number(hashAlgorithm.outputLength);
@@ -560,8 +554,10 @@ export class JsonRpcService {
   async estimateGas(transaction: UnsignedTransaction): Promise<bigint> {
     const { data, from, to, value } = transaction;
 
+    const provider = this.ledgerService.getProvider();
+
     try {
-      return await this.ledgerService.getEthersProvider().estimateGas({
+      return await provider.estimateGas({
         data,
         from,
         to,
@@ -577,10 +573,10 @@ export class JsonRpcService {
 
   async getChainId(): Promise<string> {
     if (!this.chainId) {
+      const provider = this.ledgerService.getProvider();
+
       try {
-        const { chainId } = await this.ledgerService
-          .getEthersProvider()
-          .getNetwork();
+        const { chainId } = await provider.getNetwork();
         this.chainId = `0x${BigInt(chainId).toString(16)}`;
       } catch (error) {
         if (isEthersError(error)) {
@@ -589,6 +585,7 @@ export class JsonRpcService {
         throw new Error(getErrorMessage(error));
       }
     }
+
     return this.chainId;
   }
 
@@ -632,9 +629,11 @@ export class JsonRpcService {
 
       await this.verifyEthereumAddress(signer, user);
 
-      const tx = await this.ledgerService
-        .getEthersProvider()
-        .broadcastTransaction(request.signedRawTransaction);
+      const provider = this.ledgerService.getProvider();
+
+      const tx = await provider.broadcastTransaction(
+        request.signedRawTransaction,
+      );
       return tx.hash;
     } catch (error_) {
       if (isEthersError(error_)) {
@@ -731,9 +730,8 @@ export class JsonRpcService {
     }
 
     // verify function and parameters encoded in unsignedTransaction.data
-    const parsedTransaction = this.ledgerService
-      .getContract()
-      .interface.parseTransaction(unsignedTransaction);
+    const parsedTransaction =
+      this.contract.interface.parseTransaction(unsignedTransaction);
 
     if (!parsedTransaction) {
       throw new Error("Invalid unsignedTransaction.data");

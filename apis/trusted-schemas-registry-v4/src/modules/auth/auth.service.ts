@@ -53,7 +53,7 @@ export class AuthService {
       jwtHeader = decodeProtectedHeader(bearerToken);
     } catch (error) {
       throw new UnauthorizedError(UnauthorizedError.defaultTitle, {
-        detail: `Invalid Authorisation Token: ${(error as Error).message}`,
+        detail: `Invalid Authorisation Token: ${error instanceof Error ? error.message : "Unknown error"}`,
       });
     }
 

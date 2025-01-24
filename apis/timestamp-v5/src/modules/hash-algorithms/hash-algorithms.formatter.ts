@@ -1,9 +1,8 @@
-import {
-  PaginatedListWithoutTotal,
-  paginateWithoutTotal,
-} from "@ebsiint-api/shared";
+import type { PaginatedListWithoutTotal } from "@ebsiint-api/shared";
 
-import { HashAlgorithmLink } from "./hash-algorithms.interface.js";
+import { paginateWithoutTotal } from "@ebsiint-api/shared";
+
+import type { HashAlgorithmLink } from "./hash-algorithms.interface.js";
 
 export function formatHashAlgorithms(
   hashAlgorithms: { items: number[] },

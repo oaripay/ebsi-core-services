@@ -2,7 +2,8 @@ import { Injectable } from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";
 import { Strategy } from "passport-http-bearer";
 
-import { SubjectInfo } from "../auth.interface.js";
+import type { SubjectInfo } from "../auth.interface.js";
+
 import { AuthService } from "../auth.service.js";
 
 @Injectable()

@@ -1,10 +1,10 @@
+import type { PaginatedList } from "@ebsiint-api/shared";
 import type { FastifyReply } from "fastify";
 
 import {
   Accepts,
   getErrorMessage,
   InvalidRequestJsonRpcError,
-  PaginatedList,
 } from "@ebsiint-api/shared";
 import {
   Body,
@@ -20,15 +20,15 @@ import {
 import { ConfigService } from "@nestjs/config";
 
 import type { ApiConfig } from "../../config/configuration.js";
+import type { JsonRpcResponseObject } from "../jsonrpc/jsonrpc.interface.js";
+import type { DidLink } from "./identifiers.interface.js";
 
-import { JsonRpcResponseObject } from "../jsonrpc/jsonrpc.interface.js";
 import {
   GetIdentifierParamsDto,
   GetIdentifierQueryDto,
   GetIdentifiersDto,
 } from "./dto/index.js";
 import { formatIdentifiers } from "./identifiers.formatter.js";
-import { DidLink } from "./identifiers.interface.js";
 import IdentifiersService from "./identifiers.service.js";
 import { jsonRpcSchema } from "./validators/JsonRpcSchema.js";
 

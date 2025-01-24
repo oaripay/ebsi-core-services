@@ -1,7 +1,6 @@
-import {
-  type PaginatedListWithoutTotal,
-  paginateWithoutTotal,
-} from "@ebsiint-api/shared";
+import type { PaginatedListWithoutTotal } from "@ebsiint-api/shared";
+
+import { paginateWithoutTotal } from "@ebsiint-api/shared";
 
 import type {
   Access,

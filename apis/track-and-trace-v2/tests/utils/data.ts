@@ -7,13 +7,14 @@ import { ethers } from "ethers";
  */
 import { randomBytes } from "node:crypto";
 
-import {
+import type {
   Creator,
   Document,
   Event,
   Invitation,
   Operator,
 } from "../../.graphclient/index.js";
+
 import { didToHex } from "../../src/shared/utils.js";
 
 export interface InvitationWithWallet extends Invitation {

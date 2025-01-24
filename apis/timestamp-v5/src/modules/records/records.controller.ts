@@ -1,20 +1,22 @@
-import { Accepts, PaginatedListWithoutTotal } from "@ebsiint-api/shared";
+import type { PaginatedListWithoutTotal } from "@ebsiint-api/shared";
+
+import { Accepts } from "@ebsiint-api/shared";
 import { Controller, Get, Param, Query } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
 import type { ApiConfig } from "../../config/configuration.js";
+import type {
+  RecordLink,
+  RecordResponseObject,
+  RecordVersionResponseObject,
+  VersionLink,
+} from "./records.interface.js";
 
 import GetRecordVersionDto from "./dto/get-record-version.dto.js";
 import GetRecordVersionsDto from "./dto/get-record-versions.dto.js";
 import GetRecordDto from "./dto/get-record.dto.js";
 import GetRecordsDto from "./dto/get-records.dto.js";
 import { formatRecords, formatRecordVersions } from "./records.formatter.js";
-import {
-  RecordLink,
-  RecordResponseObject,
-  RecordVersionResponseObject,
-  VersionLink,
-} from "./records.interface.js";
 import RecordsService from "./records.service.js";
 
 @Controller("/records")

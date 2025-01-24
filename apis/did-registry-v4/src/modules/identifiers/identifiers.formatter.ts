@@ -1,7 +1,9 @@
-import { paginate, PaginatedList } from "@ebsiint-api/shared";
-import { DidRegistry } from "@ebsiint-sc/did-registry-v2";
+import type { PaginatedList } from "@ebsiint-api/shared";
+import type { DidRegistry } from "@ebsiint-sc/did-registry-v2";
 
-import { DidLink } from "./identifiers.interface.js";
+import { paginate } from "@ebsiint-api/shared";
+
+import type { DidLink } from "./identifiers.interface.js";
 
 export function formatIdentifiers(
   identifiers: Awaited<ReturnType<DidRegistry["getDids"]>>,

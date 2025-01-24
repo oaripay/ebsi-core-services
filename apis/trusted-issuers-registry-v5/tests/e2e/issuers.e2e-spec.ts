@@ -2,18 +2,17 @@ import type {
   EbsiEnvConfiguration,
   EbsiIssuer,
 } from "@cef-ebsi/verifiable-credential";
+import type {
+  PaginatedList,
+  StatusList2021Credential,
+} from "@ebsiint-api/shared";
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 
 import { fromUrl } from "@cef-ebsi/ebsi-uri";
 import { createVerifiableCredentialJwt } from "@cef-ebsi/verifiable-credential";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
-import {
-  getSigner,
-  methodNotAllowed,
-  type PaginatedList,
-  type StatusList2021Credential,
-} from "@ebsiint-api/shared";
+import { getSigner, methodNotAllowed } from "@ebsiint-api/shared";
 import { fastifyAccepts } from "@fastify/accepts";
 import { fastifyHelmet } from "@fastify/helmet";
 import { Logger, ValidationPipe } from "@nestjs/common";

@@ -15,10 +15,10 @@ import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import type { ApiConfig } from "../../src/config/configuration.js";
+import type { DidDocumentResponse } from "../../src/modules/identifiers/identifiers.interface.js";
 
 import { AppModule } from "../../src/app.module.js";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
-import { DidDocumentResponse } from "../../src/modules/identifiers/identifiers.interface.js";
 import { getServer } from "../utils/getServer.js";
 
 describe("DID Registry API v (e2e)", () => {

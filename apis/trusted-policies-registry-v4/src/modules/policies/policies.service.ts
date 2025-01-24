@@ -1,11 +1,10 @@
 import { NotFoundError } from "@ebsiint-api/shared";
 import { Injectable } from "@nestjs/common";
 
-import {
-  getBuiltGraphSDK,
-  Policy_filter,
-} from "../../../.graphclient/index.js";
-import { PolicyResponseObject } from "./policies.interface.js";
+import type { Policy_filter } from "../../../.graphclient/index.js";
+import type { PolicyResponseObject } from "./policies.interface.js";
+
+import { getBuiltGraphSDK } from "../../../.graphclient/index.js";
 
 const sdk = getBuiltGraphSDK();
 

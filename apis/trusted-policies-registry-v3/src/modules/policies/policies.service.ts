@@ -1,24 +1,38 @@
 import type { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry-v2";
 
 import { isEthersError, NotFoundError } from "@ebsiint-api/shared";
+import { PolicyRegistry__factory } from "@ebsiint-sc/trusted-policies-registry-v2";
 import { Injectable, Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 
+import type { ApiConfig } from "../../config/configuration.js";
 import type { PolicyResponseObject } from "./policies.interface.js";
 
 import { LedgerService } from "../ledger/ledger.service.js";
 
 @Injectable()
 export class PoliciesService {
+  private readonly contract: PolicyRegistry;
+
   private readonly logger = new Logger(PoliciesService.name);
 
-  constructor(private ledgerService: LedgerService) {}
+  constructor(
+    configService: ConfigService<ApiConfig, true>,
+    private ledgerService: LedgerService,
+  ) {
+    const contractAddress = configService.get("contractAddr", { infer: true });
+    this.contract = PolicyRegistry__factory.connect(contractAddress);
+  }
 
   async getPolicy(policyName: string): Promise<PolicyResponseObject> {
+    const provider = this.ledgerService.getProvider();
+
     let policy: Awaited<ReturnType<PolicyRegistry["getPolicy(string)"]>>;
 
     try {
-      policy = await this.ledgerService
-        .getContract()
+      policy = await this.contract
+        // @ts-expect-error Error due to CommonJS vs ESM modules imports
+        .connect(provider)
         ["getPolicy(string)"](policyName);
     } catch (error) {
       if (isEthersError(error)) {
@@ -41,9 +55,12 @@ export class PoliciesService {
     page: number,
     pageSize: number,
   ): ReturnType<PolicyRegistry["getPolicyNames"]> {
+    const provider = this.ledgerService.getProvider();
+
     try {
-      return await this.ledgerService
-        .getContract()
+      return await this.contract
+        // @ts-expect-error Error due to CommonJS vs ESM modules imports
+        .connect(provider)
         .getPolicyNames(page, pageSize);
     } catch (error) {
       if (isEthersError(error)) {

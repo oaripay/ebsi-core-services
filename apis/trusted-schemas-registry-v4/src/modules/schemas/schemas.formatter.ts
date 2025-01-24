@@ -1,13 +1,13 @@
-import {
-  PaginatedListWithoutTotal,
-  paginateWithoutTotal,
-} from "@ebsiint-api/shared";
+import type { PaginatedListWithoutTotal } from "@ebsiint-api/shared";
 
-import {
+import { paginateWithoutTotal } from "@ebsiint-api/shared";
+
+import type {
   GetSchemaRevisionMetadataListResponse,
   GetSchemaRevisionsResponse,
   GetSchemasResponse,
 } from "./schemas.interface.js";
+
 import { hexToMultibaseBase58Btc } from "./schemas.utils.js";
 
 export function formatSchemaRevisionMetadataList(

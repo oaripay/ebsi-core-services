@@ -136,7 +136,7 @@ function isRequestHeaders(
 export class IsIssuerProxy implements ValidatorConstraintInterface {
   private ebsiEnvConfig: EbsiEnvConfiguration;
 
-  private timeout: number;
+  private readonly timeout: number;
 
   constructor(configService: ConfigService<ApiConfig, true>) {
     this.ebsiEnvConfig = configService.get("ebsiEnvConfig", { infer: true });

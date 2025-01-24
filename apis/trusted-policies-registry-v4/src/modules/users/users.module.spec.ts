@@ -8,25 +8,18 @@ import { FastifyAdapter } from "@nestjs/platform-fastify";
 import { Test } from "@nestjs/testing";
 import { ethers } from "ethers";
 import request from "supertest";
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { USERS_TOTAL } from "../../../tests/utils/data.js";
+import { dummyUsers, USERS_TOTAL } from "../../../tests/utils/data.js";
 import { graphServer } from "../../../tests/utils/graphServer.js";
-import { setupTestEnv } from "../../../tests/utils/trustedPoliciesRegistry.js";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
-import { LedgerService } from "../ledger/ledger.service.js";
 import { UsersModule } from "./users.module.js";
 
-describe("Policies Module", () => {
+describe("Users Module", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault;
-  let testEnv: Awaited<ReturnType<typeof setupTestEnv>>;
 
   beforeAll(async () => {
-    // Spin up test blockchain
-    testEnv = await setupTestEnv();
-    const { policiesRegistryContract } = testEnv;
-
     const moduleFixture = await Test.createTestingModule({
       imports: [UsersModule],
     }).compile();
@@ -51,13 +44,6 @@ describe("Policies Module", () => {
     await fastifyInstance.ready();
 
     server = app.getHttpServer();
-
-    // Mock contract
-    const ledgerService = moduleFixture.get<LedgerService>(LedgerService);
-
-    vi.spyOn(ledgerService, "getContract").mockImplementation(
-      () => policiesRegistryContract,
-    );
 
     graphServer.listen({
       // This is to ignore GET/POST Requests and only focus on GraphQL
@@ -244,7 +230,7 @@ describe("Policies Module", () => {
       expect.assertions(2);
 
       // Get first user
-      const user = testEnv.users[0]!;
+      const user = dummyUsers[0]!;
 
       const response = await request(server).get(`/users/${user.user}`);
 

@@ -1,4 +1,5 @@
 import type { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
+import type { Tir } from "@ebsiint-sc/trusted-issuers-registry-v3";
 
 import {
   BadRequestError,
@@ -9,28 +10,30 @@ import {
   prefixWith0x,
   remove0xPrefix,
 } from "@ebsiint-api/shared";
-import { Tir } from "@ebsiint-sc/trusted-issuers-registry-v3";
+import { Tir__factory } from "@ebsiint-sc/trusted-issuers-registry-v3";
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import axios, { type AxiosResponse } from "axios";
 
 import type { ApiConfig } from "../../config/configuration.js";
-
-import { LedgerService } from "../ledger/ledger.service.js";
-import { IssuerTypeNames } from "./issuers.constants.js";
-import {
+import type {
   AttributeObject,
   IssuerProxyResponseObject,
   IssuerResponseObject,
 } from "./issuers.interface.js";
 
+import { LedgerService } from "../ledger/ledger.service.js";
+import { IssuerTypeNames } from "./issuers.constants.js";
+
 @Injectable()
 export class IssuersService {
+  private readonly contract: Tir;
+
   private ebsiEnvConfig: EbsiEnvConfiguration;
 
   private readonly logger = new Logger(IssuersService.name);
 
-  private timeout: number;
+  private readonly timeout: number;
 
   constructor(
     private ledgerService: LedgerService,
@@ -38,11 +41,21 @@ export class IssuersService {
   ) {
     this.ebsiEnvConfig = configService.get("ebsiEnvConfig", { infer: true });
     this.timeout = configService.get("requestTimeout", { infer: true });
+    const contractAddress = configService.get(
+      "besuTrustedIssuersRegistryAddress",
+      { infer: true },
+    );
+    this.contract = Tir__factory.connect(contractAddress);
   }
 
   async assertIssuerExists(did: string): Promise<void> {
+    const provider = this.ledgerService.getProvider();
+
     try {
-      await this.ledgerService.getContract().getIssuer(did);
+      await this.contract
+        // @ts-expect-error Error due to CommonJS vs ESM modules imports
+        .connect(provider)
+        .getIssuer(did);
     } catch (error) {
       if (isEthersError(error)) {
         this.logger.error(error, error.stack);
@@ -57,12 +70,15 @@ export class IssuersService {
     did: string,
     attributeId: string,
   ): Promise<boolean> {
+    const provider = this.ledgerService.getProvider();
+
     const attribId = prefixWith0x(attributeId);
     let attributesLastHash: string[];
 
     try {
-      attributesLastHash = await this.ledgerService
-        .getContract()
+      attributesLastHash = await this.contract
+        // @ts-expect-error Error due to CommonJS vs ESM modules imports
+        .connect(provider)
         .getIssuer(did);
     } catch (error) {
       if (isEthersError(error)) {
@@ -82,9 +98,12 @@ export class IssuersService {
     try {
       const revisionHashesList = await Promise.all(
         attributesLastHash.map(async (hash) => {
-          return this.ledgerService
-            .getContract()
-            .getIssuerAttributeRevisions(hash, 1, 50);
+          return (
+            this.contract
+              // @ts-expect-error Error due to CommonJS vs ESM modules imports
+              .connect(provider)
+              .getIssuerAttributeRevisions(hash, 1, 50)
+          );
         }),
       );
 
@@ -102,18 +121,22 @@ export class IssuersService {
   }
 
   async getAttribute(attributeId: string): Promise<AttributeObject> {
+    const provider = this.ledgerService.getProvider();
+
     const hash = prefixWith0x(attributeId);
     let revisionHashes: Awaited<ReturnType<Tir["getIssuerAttributeRevisions"]>>;
     try {
       // get the first attribute revision
-      revisionHashes = await this.ledgerService
-        .getContract()
+      revisionHashes = await this.contract
+        // @ts-expect-error Error due to CommonJS vs ESM modules imports
+        .connect(provider)
         .getIssuerAttributeRevisions(hash, 1, 1);
 
       // use total revisions to get the latest attribute revision
       const totalRevisions = Number(revisionHashes.total);
-      revisionHashes = await this.ledgerService
-        .getContract()
+      revisionHashes = await this.contract
+        // @ts-expect-error Error due to CommonJS vs ESM modules imports
+        .connect(provider)
         .getIssuerAttributeRevisions(hash, totalRevisions, 1);
     } catch (error) {
       if (isEthersError(error)) {
@@ -128,14 +151,17 @@ export class IssuersService {
   }
 
   async getAttributeRevision(revisionId: string): Promise<AttributeObject> {
+    const provider = this.ledgerService.getProvider();
+
     // This function assumes that the revisionId exists
     const hash = prefixWith0x(revisionId);
 
     let attributeByHash: Awaited<ReturnType<Tir["getIssuerAttributeByHash"]>>;
 
     try {
-      attributeByHash = await this.ledgerService
-        .getContract()
+      attributeByHash = await this.contract
+        // @ts-expect-error Error due to CommonJS vs ESM modules imports
+        .connect(provider)
         .getIssuerAttributeByHash(hash);
     } catch (error) {
       if (isEthersError(error)) {
@@ -162,11 +188,14 @@ export class IssuersService {
   }
 
   async getAttributes(issuerDid: string): Promise<AttributeObject[]> {
+    const provider = this.ledgerService.getProvider();
+
     let attributesLastHash: string[];
 
     try {
-      attributesLastHash = await this.ledgerService
-        .getContract()
+      attributesLastHash = await this.contract
+        // @ts-expect-error Error due to CommonJS vs ESM modules imports
+        .connect(provider)
         .getIssuer(issuerDid);
     } catch (error) {
       if (isEthersError(error)) {
@@ -203,12 +232,15 @@ export class IssuersService {
     page: number,
     pageSize: number,
   ): Promise<{ revisions: AttributeObject[]; total: number }> {
+    const provider = this.ledgerService.getProvider();
+
     // This function assumes that the attributeId exists
     const hash = prefixWith0x(attributeId);
 
     try {
-      const revisionHashes = await this.ledgerService
-        .getContract()
+      const revisionHashes = await this.contract
+        // @ts-expect-error Error due to CommonJS vs ESM modules imports
+        .connect(provider)
         .getIssuerAttributeRevisions(hash, page, pageSize);
 
       const revisions = await Promise.all(
@@ -229,13 +261,18 @@ export class IssuersService {
   }
 
   async getIssuerProxies(did: string) {
+    const provider = this.ledgerService.getProvider();
+
     // Make sure the issuer exists
     await this.assertIssuerExists(did);
 
     let proxies: Awaited<ReturnType<Tir["getIssuerProxies"]>>;
 
     try {
-      proxies = await this.ledgerService.getContract().getIssuerProxies(did);
+      proxies = await this.contract
+        // @ts-expect-error Error due to CommonJS vs ESM modules imports
+        .connect(provider)
+        .getIssuerProxies(did);
     } catch (error) {
       if (isEthersError(error)) {
         this.logger.error(error, error.stack);
@@ -249,13 +286,16 @@ export class IssuersService {
   }
 
   async getIssuerProxy(did: string, proxyId: string) {
+    const provider = this.ledgerService.getProvider();
+
     // Make sure the issuer exists
     await this.assertIssuerExists(did);
 
     let proxy: string;
     try {
-      proxy = await this.ledgerService
-        .getContract()
+      proxy = await this.contract
+        // @ts-expect-error Error due to CommonJS vs ESM modules imports
+        .connect(provider)
         .getIssuerProxyById(did, proxyId);
     } catch (error) {
       if (error instanceof Error) {
@@ -288,8 +328,13 @@ export class IssuersService {
     page: number,
     pageSize: number,
   ): ReturnType<Tir["getIssuers"]> {
+    const provider = this.ledgerService.getProvider();
+
     try {
-      return await this.ledgerService.getContract().getIssuers(page, pageSize);
+      return await this.contract
+        // @ts-expect-error Error due to CommonJS vs ESM modules imports
+        .connect(provider)
+        .getIssuers(page, pageSize);
     } catch (error) {
       if (isEthersError(error)) {
         this.logger.error(error, error.stack);

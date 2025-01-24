@@ -1,7 +1,9 @@
-import { paginate, PaginatedList } from "@ebsiint-api/shared";
-import { Timestamp } from "@ebsiint-sc/timestamp-v2";
+import type { PaginatedList } from "@ebsiint-api/shared";
+import type { Timestamp } from "@ebsiint-sc/timestamp-v2";
 
-import { HashAlgorithmLink } from "./hash-algorithms.interface.js";
+import { paginate } from "@ebsiint-api/shared";
+
+import type { HashAlgorithmLink } from "./hash-algorithms.interface.js";
 
 export function formatHashAlgorithms(
   hashAlgorithms: Awaited<ReturnType<Timestamp["getHashAlgorithms"]>>,

@@ -801,13 +801,19 @@ describe("App Module", () => {
 
     const trackAndTraceContractAddress =
       await trackAndTraceContract.getAddress();
-    vi.spyOn(LedgerService.prototype, "getContractAddress").mockImplementation(
-      () => trackAndTraceContractAddress,
-    );
+
+    vi.stubEnv("CONTRACT_ADDR", trackAndTraceContractAddress);
 
     // Mock TrackAndTrace contract
     vi.spyOn(TrackAndTrace__factory, "connect").mockImplementation(
-      () => trackAndTraceContract,
+      // Create new instance without runner (provider)
+      () => trackAndTraceContract.connect(),
+    );
+
+    // Mock LedgerService
+    vi.spyOn(LedgerService.prototype, "getProvider").mockImplementation(
+      // @ts-expect-error Error due to a mismatch between ESM and CommonJS modules
+      () => testEnv.provider,
     );
 
     // Start server
@@ -854,17 +860,6 @@ describe("App Module", () => {
     await app.init();
     await fastifyInstance.ready();
     const server = app.getHttpServer();
-
-    // Mock Contract service
-    const ledgerService = moduleFixture.get<LedgerService>(LedgerService);
-
-    vi.spyOn(ledgerService, "getContract").mockImplementation(
-      () => trackAndTraceContract,
-    );
-    vi.spyOn(ledgerService, "getEthersProvider").mockImplementation(
-      // @ts-expect-error Error due to a mismatch between ESM and CommonJS modules
-      () => testEnv.provider,
-    );
 
     // Generate key pair for Authorisation API v4
     const authorisationApiUrl =

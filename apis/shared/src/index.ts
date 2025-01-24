@@ -6,5 +6,6 @@ export * from "./guards/index.js";
 export * from "./hooks/index.js";
 export * from "./interceptors/index.js";
 export * from "./interfaces/index.js";
+export * from "./services/index.js";
 export * from "./utils/index.js";
 export * from "./validators/index.js";

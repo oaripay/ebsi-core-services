@@ -1,8 +1,10 @@
+import type { SchemaSCRegistry } from "@ebsiint-sc/trusted-schemas-registry-v2";
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
+import type { GenerateKeyPairResult } from "jose";
 
 import { computeId, methodNotAllowed } from "@ebsiint-api/shared";
-import { SchemaSCRegistry } from "@ebsiint-sc/trusted-schemas-registry-v2";
+import { SchemaSCRegistry__factory } from "@ebsiint-sc/trusted-schemas-registry-v2/src/types/index.js";
 import { fastifyAccepts } from "@fastify/accepts";
 import { Logger, ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
@@ -14,7 +16,6 @@ import {
   calculateJwkThumbprint,
   exportJWK,
   generateKeyPair,
-  type GenerateKeyPairResult,
   SignJWT,
 } from "jose";
 import { http, HttpResponse } from "msw";
@@ -67,7 +68,6 @@ describe("JsonRpc Module", () => {
   let server: RawServerDefault;
   let schemasRegistryContract: SchemaSCRegistry;
   let jsonRpcService: JsonRpcService;
-  let ledgerService: LedgerService;
   let testEnv: Awaited<ReturnType<typeof setupTestEnv>>;
   let userAccessToken: string;
   let userAccessTokenPayload: Record<string, unknown>;
@@ -148,12 +148,11 @@ describe("JsonRpc Module", () => {
     // Spin up test blockchain
     testEnv = await setupTestEnv();
     schemasRegistryContract = testEnv.schemasRegistryContract;
+
     const schemasRegistryContractAddress =
       await schemasRegistryContract.getAddress();
 
-    vi.spyOn(LedgerService.prototype, "getContractAddress").mockImplementation(
-      () => schemasRegistryContractAddress,
-    );
+    vi.stubEnv("CONTRACT_ADDR", schemasRegistryContractAddress);
 
     // Start server
     const moduleFixture = await Test.createTestingModule({
@@ -185,7 +184,6 @@ describe("JsonRpc Module", () => {
     server = app.getHttpServer();
 
     jsonRpcService = moduleFixture.get<JsonRpcService>(JsonRpcService);
-    ledgerService = moduleFixture.get<LedgerService>(LedgerService);
 
     // Generate key pair for Authorisation API v3 and create access token
     authApiKeyPair = await generateKeyPair("ES256");
@@ -239,11 +237,14 @@ describe("JsonRpc Module", () => {
   });
 
   beforeEach(() => {
-    // Mock TSR contract
-    vi.spyOn(ledgerService, "getContract").mockImplementation(
-      () => testEnv.schemasRegistryContract,
+    // Mock contract
+    vi.spyOn(SchemaSCRegistry__factory, "connect").mockImplementation(
+      // Create new instance without runner (provider)
+      () => testEnv.schemasRegistryContract.connect(),
     );
-    vi.spyOn(ledgerService, "getEthersProvider").mockImplementation(
+
+    // Mock LedgerService
+    vi.spyOn(LedgerService.prototype, "getProvider").mockImplementation(
       // @ts-expect-error Error due to a mismatch between ESM and CommonJS modules
       () => testEnv.provider,
     );

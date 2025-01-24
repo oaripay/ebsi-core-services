@@ -1,19 +1,16 @@
-import type WebSocket from "ws";
-
-import { InternalServerError } from "@ebsiint-api/shared";
-import { Injectable, Logger, OnModuleDestroy } from "@nestjs/common";
+import {
+  BesuService as AbstractBesuService,
+  InternalServerError,
+} from "@ebsiint-api/shared";
+import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { ethers } from "ethers";
-import { URL } from "node:url";
-import { stringify } from "safe-stable-stringify";
 
 import type { ApiConfig } from "../../config/configuration.js";
-
-import { BesuResponseObject, BesuServiceResponse } from "./besu.interface.js";
-import { BesuDto } from "./dto/index.js";
-
-const EXPECTED_PONG_BACK = 15_000;
-const KEEP_ALIVE_CHECK_INTERVAL = 7500;
+import type {
+  BesuResponseObject,
+  BesuServiceResponse,
+} from "./besu.interface.js";
+import type { BesuDto } from "./dto/index.js";
 
 const PUBLIC_BESU_METHODS = new Set([
   "eth_blockNumber",
@@ -77,120 +74,14 @@ const jsonRpcErrorCodeToHttpCode = (code: number): number => {
 };
 
 @Injectable()
-export class BesuService implements OnModuleDestroy {
-  private ethersProvider:
-    | ethers.JsonRpcProvider
-    | ethers.WebSocketProvider
-    | undefined;
+export class BesuService extends AbstractBesuService {
+  constructor(configService: ConfigService<ApiConfig, true>) {
+    const logger = new Logger(BesuService.name);
 
-  private readonly logger = new Logger(BesuService.name);
+    const url = configService.get("besuRpcNode", { infer: true });
+    const requestTimeout = configService.get("requestTimeout", { infer: true });
 
-  private reconnectWebSocket = true;
-
-  private timeout: number;
-
-  constructor(private configService: ConfigService<ApiConfig, true>) {
-    this.timeout = configService.get("requestTimeout", { infer: true });
-  }
-
-  // Make it easier to override the config in tests
-  getBesuRpcNode(): string {
-    return this.configService.get("besuRpcNode", { infer: true });
-  }
-
-  getEthersProvider() {
-    if (!this.ethersProvider) {
-      this.initBesuProvider();
-    }
-    return this.ethersProvider!;
-  }
-
-  initBesuProvider(): void {
-    const besuRpcNode = this.getBesuRpcNode();
-
-    if (!besuRpcNode || typeof besuRpcNode !== "string") {
-      throw new Error("Invalid or missing BESU_RPC_NODE");
-    }
-
-    // Useful for local testing
-    if (besuRpcNode.startsWith("http")) {
-      const { origin, password, pathname, username } = new URL(besuRpcNode);
-      const fetchRequest = new ethers.FetchRequest(`${origin}${pathname}`);
-      fetchRequest.timeout = this.timeout;
-      if (username && password) {
-        fetchRequest.setCredentials(username, password);
-      }
-      this.ethersProvider = new ethers.JsonRpcProvider(
-        fetchRequest,
-        undefined,
-        {
-          staticNetwork: true, // Do not request chain ID on requests to validate the underlying chain has not changed
-        },
-      );
-      return;
-    }
-
-    this.ethersProvider = new ethers.WebSocketProvider(besuRpcNode);
-    /* global NodeJS */
-    let pingTimeout: NodeJS.Timeout;
-    let keepAliveInterval: NodeJS.Timeout;
-
-    // Reconnect WS on accidental close
-    // Inspired by https://github.com/ethers-io/ethers.js/issues/1053#issuecomment-808736570
-
-    const websocket = this.ethersProvider.websocket as WebSocket;
-
-    if (!websocket) {
-      // Allow websocket to be undefined during unit tests
-      if (process.env.NODE_ENV === "test") return;
-
-      throw new InternalServerError(InternalServerError.defaultTitle, {
-        detail: "Something went wrong when initializing the WebSocketProvider",
-      });
-    }
-
-    websocket.on("open", () => {
-      keepAliveInterval = setInterval(() => {
-        websocket.ping();
-        pingTimeout = setTimeout(
-          () => websocket.terminate(),
-          EXPECTED_PONG_BACK,
-        );
-      }, KEEP_ALIVE_CHECK_INTERVAL);
-    });
-
-    websocket.on("close", (err: unknown) => {
-      this.logger.warn(
-        `The ws connection was closed: ${stringify(err, undefined, 2)}`,
-      );
-
-      if (keepAliveInterval) clearInterval(keepAliveInterval);
-      if (pingTimeout) clearTimeout(pingTimeout);
-
-      if (this.reconnectWebSocket) {
-        this.logger.log("Trying to reconnect");
-        this.initBesuProvider();
-      }
-    });
-
-    websocket.on("pong", () => {
-      if (pingTimeout) clearInterval(pingTimeout);
-    });
-  }
-
-  async onModuleDestroy(): Promise<void> {
-    if (
-      this.ethersProvider &&
-      this.ethersProvider instanceof ethers.WebSocketProvider &&
-      this.ethersProvider.destroy
-    ) {
-      this.reconnectWebSocket = false;
-      await this.ethersProvider.destroy();
-    }
-  }
-
-  async send(method: string, params: unknown[]): Promise<unknown> {
-    return this.getEthersProvider().send(method, params);
+    super(url, requestTimeout, logger);
   }
 
   async sendToBesu(query: BesuDto): Promise<BesuServiceResponse> {
@@ -212,14 +103,11 @@ export class BesuService implements OnModuleDestroy {
         status: 200, // Besu also returns 200 when the error code is -32601
       };
     }
-
-    if (!this.ethersProvider) {
-      this.initBesuProvider();
-    }
+    const provider = this.getProvider();
 
     // Send request to Besu
     try {
-      const res = await this.send(query.method, query.params);
+      const res = (await provider.send(query.method, query.params)) as unknown;
 
       return {
         data: {

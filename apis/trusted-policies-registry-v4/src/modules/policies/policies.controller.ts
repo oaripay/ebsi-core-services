@@ -1,13 +1,15 @@
-import { Accepts, PaginatedListWithoutTotal } from "@ebsiint-api/shared";
+import type { PaginatedListWithoutTotal } from "@ebsiint-api/shared";
+
+import { Accepts } from "@ebsiint-api/shared";
 import { Controller, Get, Param, Query } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
+import type { Policy_filter } from "../../../.graphclient/index.js";
 import type { ApiConfig } from "../../config/configuration.js";
+import type { PolicyLink, PolicyResponseObject } from "./policies.interface.js";
 
-import { Policy_filter } from "../../../.graphclient/index.js";
 import { GetPoliciesQuery, GetPolicyParams } from "./dto/index.js";
 import { formatPolicies } from "./policies.formatter.js";
-import { PolicyLink, PolicyResponseObject } from "./policies.interface.js";
 import { PoliciesService } from "./policies.service.js";
 
 @Controller("/policies")

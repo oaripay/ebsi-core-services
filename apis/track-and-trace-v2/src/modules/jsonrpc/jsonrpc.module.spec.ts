@@ -1,3 +1,4 @@
+import type { TrackAndTrace } from "@ebsiint-sc/track-and-trace-v2";
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 import type { GenerateKeyPairResult } from "jose";
@@ -5,10 +6,7 @@ import type { GenerateKeyPairResult } from "jose";
 import { util } from "@cef-ebsi/key-did-resolver";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { encode, methodNotAllowed } from "@ebsiint-api/shared";
-import {
-  TrackAndTrace,
-  TrackAndTrace__factory,
-} from "@ebsiint-sc/track-and-trace-v2";
+import { TrackAndTrace__factory } from "@ebsiint-sc/track-and-trace-v2";
 import { fastifyAccepts } from "@fastify/accepts";
 import { Logger, ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
@@ -93,7 +91,6 @@ describe("JsonRpc Module", () => {
   let trackAndTraceContract: TrackAndTrace;
   let configService: ConfigService<ApiConfig, true>;
   let testEnv: Awaited<ReturnType<typeof setupTestEnv>>;
-  let ledgerService: LedgerService;
 
   const user1 = {
     accessToken: {
@@ -147,13 +144,19 @@ describe("JsonRpc Module", () => {
 
     const trackAndTraceContractAddress =
       await trackAndTraceContract.getAddress();
-    vi.spyOn(LedgerService.prototype, "getContractAddress").mockImplementation(
-      () => trackAndTraceContractAddress,
-    );
+
+    vi.stubEnv("CONTRACT_ADDR", trackAndTraceContractAddress);
 
     // Mock TrackAndTrace contract
     vi.spyOn(TrackAndTrace__factory, "connect").mockImplementation(
-      () => trackAndTraceContract,
+      // Create new instance without runner (provider)
+      () => trackAndTraceContract.connect(),
+    );
+
+    // Mock LedgerService
+    vi.spyOn(LedgerService.prototype, "getProvider").mockImplementation(
+      // @ts-expect-error Error due to a mismatch between ESM and CommonJS modules
+      () => testEnv.provider,
     );
 
     // Start server
@@ -183,17 +186,6 @@ describe("JsonRpc Module", () => {
     await app.init();
     await fastifyInstance.ready();
     server = app.getHttpServer();
-
-    // Mock Contract service
-    ledgerService = moduleFixture.get<LedgerService>(LedgerService);
-
-    vi.spyOn(ledgerService, "getContract").mockImplementation(
-      () => trackAndTraceContract,
-    );
-    vi.spyOn(ledgerService, "getEthersProvider").mockImplementation(
-      // @ts-expect-error Error due to a mismatch between ESM and CommonJS modules
-      () => testEnv.provider,
-    );
 
     // Generate key pair for Authorisation API v4 and create access token
     authApiKeyPair = await generateKeyPair("ES256");

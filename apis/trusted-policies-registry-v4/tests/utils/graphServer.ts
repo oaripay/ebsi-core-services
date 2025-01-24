@@ -1,7 +1,8 @@
 import { graphql, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 
-import { Policy_filter, User_filter } from "../../.graphclient/index.js";
+import type { Policy_filter, User_filter } from "../../.graphclient/index.js";
+
 import { dummyPolicies, dummyUsers } from "./data.js";
 
 export const graphServer = setupServer(

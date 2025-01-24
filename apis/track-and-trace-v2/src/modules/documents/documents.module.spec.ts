@@ -2,7 +2,6 @@ import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 
 import { methodNotAllowed } from "@ebsiint-api/shared";
-import { TrackAndTrace__factory } from "@ebsiint-sc/track-and-trace-v2";
 import { fastifyAccepts } from "@fastify/accepts";
 import { Logger, ValidationPipe } from "@nestjs/common";
 import { FastifyAdapter } from "@nestjs/platform-fastify";
@@ -10,7 +9,7 @@ import { Test } from "@nestjs/testing";
 import { setupServer } from "msw/node";
 import { randomBytes } from "node:crypto";
 import request from "supertest";
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import type {
   Document,
@@ -22,33 +21,19 @@ import {
   DOCUMENT_EVENTS,
   DOCUMENTS_WITH_BLOCK_SOURCE,
   DOCUMENTS_WITH_EXTERNAL_SOURCE,
-  type TestDocument,
+  dummyData,
 } from "../../../tests/utils/data.js";
 import { handlers } from "../../../tests/utils/graphServer.js";
-import { setupTestEnv } from "../../../tests/utils/trackAndTrace.js";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
+import { hexToDid } from "../../shared/utils.js";
 import { DocumentsModule } from "./documents.module.js";
 
 describe("Documents Module", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault;
-  let testEnv: Awaited<ReturnType<typeof setupTestEnv>>;
-  let documentsWithBlockSource: TestDocument[];
-  let documentsWithExternalSource: TestDocument[];
   const mockServer = setupServer(...handlers);
 
   beforeAll(async () => {
-    // Spin up test blockchain (hardhat)
-    testEnv = await setupTestEnv();
-    const { trackAndTraceContract } = testEnv;
-    documentsWithBlockSource = testEnv.documentsWithBlockSource;
-    documentsWithExternalSource = testEnv.documentsWithExternalSource;
-
-    // Mock TSR contract
-    vi.spyOn(TrackAndTrace__factory, "connect").mockImplementation(
-      () => trackAndTraceContract,
-    );
-
     const moduleFixture = await Test.createTestingModule({
       imports: [DocumentsModule],
     }).compile();
@@ -79,7 +64,6 @@ describe("Documents Module", () => {
     await fastifyInstance.ready();
     server = app.getHttpServer();
 
-    // Mock Contract service
     mockServer.listen({
       // This is to ignore GET/POST Requests and only focus on GraphQL
       onUnhandledRequest: "bypass",
@@ -96,19 +80,18 @@ describe("Documents Module", () => {
 
       const response = await request(server).get("/documents");
 
+      const { documentsWithBlockSource, documentsWithExternalSource } =
+        dummyData;
+
       expect(response.body).toStrictEqual({
         items: [
           ...documentsWithBlockSource.map((document) => ({
-            documentId: document.documentHash,
-            href: expect.stringContaining(
-              `/documents/${document.documentHash}`,
-            ),
+            documentId: document.id,
+            href: expect.stringContaining(`/documents/${document.id}`),
           })),
           ...documentsWithExternalSource.map((document) => ({
-            documentId: document.documentHash,
-            href: expect.stringContaining(
-              `/documents/${document.documentHash}`,
-            ),
+            documentId: document.id,
+            href: expect.stringContaining(`/documents/${document.id}`),
           })),
         ],
         links: {
@@ -137,14 +120,17 @@ describe("Documents Module", () => {
     it("should handle the pagination properly", async () => {
       expect.assertions(12);
 
+      const { documentsWithBlockSource, documentsWithExternalSource } =
+        dummyData;
+
       const allDocs = [
         ...documentsWithBlockSource.map((document) => ({
-          documentId: document.documentHash,
-          href: expect.stringContaining(`/documents/${document.documentHash}`),
+          documentId: document.id,
+          href: expect.stringContaining(`/documents/${document.id}`),
         })),
         ...documentsWithExternalSource.map((document) => ({
-          documentId: document.documentHash,
-          href: expect.stringContaining(`/documents/${document.documentHash}`),
+          documentId: document.id,
+          href: expect.stringContaining(`/documents/${document.id}`),
         })),
       ];
 
@@ -394,19 +380,17 @@ describe("Documents Module", () => {
     it("should return a specific document with block source identified by its document ID", async () => {
       expect.assertions(3);
 
-      const document = testEnv.documentsWithBlockSource[0]!;
+      const document = dummyData.documentsWithBlockSource[0]!;
 
-      const response = await request(server).get(
-        `/documents/${document.documentHash}`,
-      );
+      const response = await request(server).get(`/documents/${document.id}`);
 
       expect(response.body).toStrictEqual({
-        creator: document.didEbsiCreator,
-        events: document.events.map((event) => event.eventHash),
-        metadata: document.documentMetadata,
+        creator: document.creator,
+        events: document.events.map((event) => event.hash),
+        metadata: document.metadata,
         timestamp: {
-          datetime: document.timestamp.datetime,
-          proof: document.timestamp.proof,
+          datetime: `0x${Number(document.timestamp).toString(16)}`,
+          proof: document.proof,
           source: "block",
         },
       } satisfies Document);
@@ -419,19 +403,17 @@ describe("Documents Module", () => {
     it("should return a specific document with external source identified by its document ID", async () => {
       expect.assertions(3);
 
-      const document = testEnv.documentsWithExternalSource[0]!;
+      const document = dummyData.documentsWithExternalSource[0]!;
 
-      const response = await request(server).get(
-        `/documents/${document.documentHash}`,
-      );
+      const response = await request(server).get(`/documents/${document.id}`);
 
       expect(response.body).toStrictEqual({
-        creator: document.didEbsiCreator,
+        creator: document.creator,
         events: [],
-        metadata: document.documentMetadata,
+        metadata: document.metadata,
         timestamp: {
           datetime: expect.stringMatching(/^0x/),
-          proof: document.timestamp?.proof,
+          proof: document.proof,
           source: "external",
         },
       } satisfies Document);
@@ -536,36 +518,36 @@ describe("Documents Module", () => {
     it("should return a paginated collection of events", async () => {
       expect.assertions(3);
 
-      const document = testEnv.documentsWithBlockSource[0]!;
+      const document = dummyData.documentsWithBlockSource[0]!;
 
       const response = await request(server).get(
-        `/documents/${document.documentHash}/events`,
+        `/documents/${document.id}/events`,
       );
 
       expect(response.body).toStrictEqual({
         items: document.events.map((event) => ({
-          eventId: event.eventHash,
+          eventId: event.hash,
           href: expect.stringContaining(
-            `/documents/${document.documentHash}/events/${event.eventHash}`,
+            `/documents/${document.id}/events/${event.hash}`,
           ),
         })),
         links: {
           first: expect.stringContaining(
-            `/documents/${document.documentHash}/events?page[after]=1&page[size]=10`,
+            `/documents/${document.id}/events?page[after]=1&page[size]=10`,
           ),
           last: expect.stringContaining(
-            `/documents/${document.documentHash}/events?page[after]=1&page[size]=10`,
+            `/documents/${document.id}/events?page[after]=1&page[size]=10`,
           ),
           next: expect.stringContaining(
-            `/documents/${document.documentHash}/events?page[after]=1&page[size]=10`,
+            `/documents/${document.id}/events?page[after]=1&page[size]=10`,
           ),
           prev: expect.stringContaining(
-            `/documents/${document.documentHash}/events?page[after]=1&page[size]=10`,
+            `/documents/${document.id}/events?page[after]=1&page[size]=10`,
           ),
         },
         pageSize: 10,
         self: expect.stringContaining(
-          `/documents/${document.documentHash}/events?page[after]=1&page[size]=10`,
+          `/documents/${document.id}/events?page[after]=1&page[size]=10`,
         ),
       });
       expect((response.body as { items: string }).items).toHaveLength(
@@ -577,33 +559,33 @@ describe("Documents Module", () => {
     it("should handle the pagination properly", async () => {
       expect.assertions(12);
 
-      const document = testEnv.documentsWithBlockSource[0]!;
+      const document = dummyData.documentsWithBlockSource[0]!;
 
       const response1 = await request(server).get(
-        `/documents/${document.documentHash}/events?page[size]=2`,
+        `/documents/${document.id}/events?page[size]=2`,
       );
 
       expect(response1.body).toStrictEqual({
         items: document.events.slice(0, 2).map((event) => ({
-          eventId: event.eventHash,
+          eventId: event.hash,
           href: expect.stringContaining(
-            `/documents/${document.documentHash}/events/${event.eventHash}`,
+            `/documents/${document.id}/events/${event.hash}`,
           ),
         })),
         links: {
           first: expect.stringContaining(
-            `/documents/${document.documentHash}/events?page[after]=1&page[size]=2`,
+            `/documents/${document.id}/events?page[after]=1&page[size]=2`,
           ),
           next: expect.stringContaining(
-            `/documents/${document.documentHash}/events?page[after]=2&page[size]=2`,
+            `/documents/${document.id}/events?page[after]=2&page[size]=2`,
           ),
           prev: expect.stringContaining(
-            `/documents/${document.documentHash}/events?page[after]=1&page[size]=2`,
+            `/documents/${document.id}/events?page[after]=1&page[size]=2`,
           ),
         },
         pageSize: 2,
         self: expect.stringContaining(
-          `/documents/${document.documentHash}/events?page[after]=1&page[size]=2`,
+          `/documents/${document.id}/events?page[after]=1&page[size]=2`,
         ),
       });
       expect((response1.body as { items: string }).items).toHaveLength(
@@ -613,32 +595,32 @@ describe("Documents Module", () => {
 
       // next page
       const response2 = await request(server).get(
-        `/documents/${document.documentHash}/events?page[after]=2&page[size]=2`,
+        `/documents/${document.id}/events?page[after]=2&page[size]=2`,
       );
       expect(response2.body).toStrictEqual({
         items: document.events.slice(2, 4).map((event) => ({
-          eventId: event.eventHash,
+          eventId: event.hash,
           href: expect.stringContaining(
-            `/documents/${document.documentHash}/events/${event.eventHash}`,
+            `/documents/${document.id}/events/${event.hash}`,
           ),
         })),
         links: {
           first: expect.stringContaining(
-            `/documents/${document.documentHash}/events?page[after]=1&page[size]=2`,
+            `/documents/${document.id}/events?page[after]=1&page[size]=2`,
           ),
           last: expect.stringContaining(
-            `/documents/${document.documentHash}/events?page[after]=2&page[size]=2`,
+            `/documents/${document.id}/events?page[after]=2&page[size]=2`,
           ),
           next: expect.stringContaining(
-            `/documents/${document.documentHash}/events?page[after]=2&page[size]=2`,
+            `/documents/${document.id}/events?page[after]=2&page[size]=2`,
           ),
           prev: expect.stringContaining(
-            `/documents/${document.documentHash}/events?page[after]=1&page[size]=2`,
+            `/documents/${document.id}/events?page[after]=1&page[size]=2`,
           ),
         },
         pageSize: 2,
         self: expect.stringContaining(
-          `/documents/${document.documentHash}/events?page[after]=2&page[size]=2`,
+          `/documents/${document.id}/events?page[after]=2&page[size]=2`,
         ),
       });
       expect((response2.body as { items: string }).items).toHaveLength(
@@ -648,27 +630,27 @@ describe("Documents Module", () => {
 
       // big page
       const response3 = await request(server).get(
-        `/documents/${document.documentHash}/events?page[after]=100&page[size]=2`,
+        `/documents/${document.id}/events?page[after]=100&page[size]=2`,
       );
       expect(response3.body).toStrictEqual({
         items: [],
         links: {
           first: expect.stringContaining(
-            `/documents/${document.documentHash}/events?page[after]=1&page[size]=2`,
+            `/documents/${document.id}/events?page[after]=1&page[size]=2`,
           ),
           last: expect.stringContaining(
-            `/documents/${document.documentHash}/events?page[after]=100&page[size]=2`,
+            `/documents/${document.id}/events?page[after]=100&page[size]=2`,
           ),
           next: expect.stringContaining(
-            `/documents/${document.documentHash}/events?page[after]=100&page[size]=2`,
+            `/documents/${document.id}/events?page[after]=100&page[size]=2`,
           ),
           prev: expect.stringContaining(
-            `/documents/${document.documentHash}/events?page[after]=99&page[size]=2`,
+            `/documents/${document.id}/events?page[after]=99&page[size]=2`,
           ),
         },
         pageSize: 2,
         self: expect.stringContaining(
-          `/documents/${document.documentHash}/events?page[after]=100&page[size]=2`,
+          `/documents/${document.id}/events?page[after]=100&page[size]=2`,
         ),
       });
       expect((response3.body as { items: string }).items).toHaveLength(0);
@@ -676,32 +658,32 @@ describe("Documents Module", () => {
 
       // page["after"] defined but page["size"] undefined
       const response4 = await request(server).get(
-        `/documents/${document.documentHash}/events?page[after]=1`,
+        `/documents/${document.id}/events?page[after]=1`,
       );
       expect(response4.body).toStrictEqual({
         items: document.events.map((event) => ({
-          eventId: event.eventHash,
+          eventId: event.hash,
           href: expect.stringContaining(
-            `/documents/${document.documentHash}/events/${event.eventHash}`,
+            `/documents/${document.id}/events/${event.hash}`,
           ),
         })),
         links: {
           first: expect.stringContaining(
-            `/documents/${document.documentHash}/events?page[after]=1&page[size]=10`,
+            `/documents/${document.id}/events?page[after]=1&page[size]=10`,
           ),
           last: expect.stringContaining(
-            `/documents/${document.documentHash}/events?page[after]=1&page[size]=10`,
+            `/documents/${document.id}/events?page[after]=1&page[size]=10`,
           ),
           next: expect.stringContaining(
-            `/documents/${document.documentHash}/events?page[after]=1&page[size]=10`,
+            `/documents/${document.id}/events?page[after]=1&page[size]=10`,
           ),
           prev: expect.stringContaining(
-            `/documents/${document.documentHash}/events?page[after]=1&page[size]=10`,
+            `/documents/${document.id}/events?page[after]=1&page[size]=10`,
           ),
         },
         pageSize: 10,
         self: expect.stringContaining(
-          `/documents/${document.documentHash}/events?page[after]=1&page[size]=10`,
+          `/documents/${document.id}/events?page[after]=1&page[size]=10`,
         ),
       });
       expect((response4.body as { items: string }).items).toHaveLength(
@@ -713,10 +695,10 @@ describe("Documents Module", () => {
     it("should throw a Bad Request for bad pagination", async () => {
       expect.assertions(8);
 
-      const document = testEnv.documentsWithBlockSource[0]!;
+      const document = dummyData.documentsWithBlockSource[0]!;
 
       const response1 = await request(server).get(
-        `/documents/${document.documentHash}/events?page[size]=100`,
+        `/documents/${document.id}/events?page[size]=100`,
       );
       expect(response1.body).toStrictEqual({
         detail: '["page[size] must not be greater than 50"]',
@@ -727,7 +709,7 @@ describe("Documents Module", () => {
       expect(response1.status).toBe(400);
 
       const response2 = await request(server).get(
-        `/documents/${document.documentHash}/events?page[size]=0`,
+        `/documents/${document.id}/events?page[size]=0`,
       );
       expect(response2.body).toStrictEqual({
         detail: '["page[size] must not be less than 1"]',
@@ -738,7 +720,7 @@ describe("Documents Module", () => {
       expect(response2.status).toBe(400);
 
       const response3 = await request(server).get(
-        `/documents/${document.documentHash}/events?page[after]=0`,
+        `/documents/${document.id}/events?page[after]=0`,
       );
       expect(response3.body).toStrictEqual({
         detail: '["page[after] must not be less than 1"]',
@@ -749,7 +731,7 @@ describe("Documents Module", () => {
       expect(response3.status).toBe(400);
 
       const response4 = await request(server).get(
-        `/documents/${document.documentHash}/events?page[after]=abc`,
+        `/documents/${document.id}/events?page[after]=abc`,
       );
       expect(response4.body).toStrictEqual({
         detail:
@@ -842,11 +824,11 @@ describe("Documents Module", () => {
     it("should throw an error if the document is not found", async () => {
       expect.assertions(3);
 
-      const document = testEnv.documentsWithBlockSource[0]!;
+      const document = dummyData.documentsWithBlockSource[0]!;
       const wrongDocumentId = `0x${randomBytes(32).toString("hex")}`;
       const event = document.events[0]!;
       const response = await request(server).get(
-        `/documents/${wrongDocumentId}/events/${event.eventHash}`,
+        `/documents/${wrongDocumentId}/events/${event.hash}`,
       );
 
       expect(response.body).toStrictEqual({
@@ -864,10 +846,10 @@ describe("Documents Module", () => {
     it("should throw an error if the event is not found", async () => {
       expect.assertions(3);
 
-      const document = testEnv.documentsWithBlockSource[0]!;
+      const document = dummyData.documentsWithBlockSource[0]!;
       const wrongEventId = `0x${randomBytes(32).toString("hex")}`;
       const response = await request(server).get(
-        `/documents/${document.documentHash}/events/${wrongEventId}`,
+        `/documents/${document.id}/events/${wrongEventId}`,
       );
 
       expect(response.body).toStrictEqual({
@@ -885,11 +867,11 @@ describe("Documents Module", () => {
     it("should return a specific event identified by its document ID and event ID", async () => {
       expect.assertions(3);
 
-      const document = testEnv.documentsWithBlockSource[0]!;
+      const document = dummyData.documentsWithBlockSource[0]!;
       const event = document.events[0]!;
 
       const response = await request(server).get(
-        `/documents/${document.documentHash}/events/${event.eventHash}`,
+        `/documents/${document.id}/events/${event.hash}`,
       );
 
       expect(response.body).toStrictEqual({
@@ -897,10 +879,10 @@ describe("Documents Module", () => {
         hash: expect.stringMatching(/^0x/),
         metadata: event.metadata,
         origin: event.origin,
-        sender: event.sender,
+        sender: hexToDid(event.sender),
         timestamp: {
-          datetime: event.timestamp.datetime,
-          proof: event.timestamp.proof,
+          datetime: `0x${Number(event.timestamp).toString(16)}`,
+          proof: event.proof,
           source: "block",
         },
       } satisfies Event);
@@ -1007,89 +989,89 @@ describe("Documents Module", () => {
     it("should return a paginated collection of accesses", async () => {
       expect.assertions(3);
 
-      const document = testEnv.documentsWithBlockSource[0]!;
+      const document = dummyData.documentsWithBlockSource[0]!;
 
       const response = await request(server).get(
-        `/documents/${document.documentHash}/accesses`,
+        `/documents/${document.id}/accesses`,
       );
 
       expect(response.body).toStrictEqual({
         items: [
           {
-            documentId: document.documentHash,
-            grantedBy: document.didEbsiCreator,
+            documentId: document.id,
+            grantedBy: document.creator,
             permission: "creator",
-            subject: document.didEbsiCreator,
+            subject: document.creator,
           },
           {
-            documentId: document.documentHash,
-            grantedBy: document.didEbsiCreator,
+            documentId: document.id,
+            grantedBy: document.creator,
             permission: "delegate",
             subject: expect.stringContaining("did:ebsi"),
           },
           {
-            documentId: document.documentHash,
-            grantedBy: document.didEbsiCreator,
+            documentId: document.id,
+            grantedBy: document.creator,
             permission: "write",
             subject: expect.stringContaining("did:key"),
           },
           {
-            documentId: document.documentHash,
-            grantedBy: document.didEbsiCreator,
+            documentId: document.id,
+            grantedBy: document.creator,
             permission: "delegate",
             subject: expect.stringContaining("did:ebsi"),
           },
           {
-            documentId: document.documentHash,
-            grantedBy: document.didEbsiCreator,
+            documentId: document.id,
+            grantedBy: document.creator,
             permission: "write",
             subject: expect.stringContaining("did:key"),
           },
           {
-            documentId: document.documentHash,
-            grantedBy: document.didEbsiCreator,
+            documentId: document.id,
+            grantedBy: document.creator,
             permission: "delegate",
             subject: expect.stringContaining("did:ebsi"),
           },
           {
-            documentId: document.documentHash,
-            grantedBy: document.didEbsiCreator,
+            documentId: document.id,
+            grantedBy: document.creator,
             permission: "write",
             subject: expect.stringContaining("did:key"),
           },
           {
-            documentId: document.documentHash,
-            grantedBy: document.didEbsiCreator,
+            documentId: document.id,
+            grantedBy: document.creator,
             permission: "delegate",
             subject: expect.stringContaining("did:ebsi"),
           },
           {
-            documentId: document.documentHash,
-            grantedBy: document.didEbsiCreator,
+            documentId: document.id,
+            grantedBy: document.creator,
             permission: "write",
             subject: expect.stringContaining("did:key"),
           },
           {
-            documentId: document.documentHash,
-            grantedBy: document.didEbsiCreator,
+            documentId: document.id,
+            grantedBy: document.creator,
             permission: "delegate",
             subject: expect.stringContaining("did:ebsi"),
           },
         ] satisfies DocumentAccesses,
         links: {
           first: expect.stringContaining(
-            `/documents/${document.documentHash}/accesses?page[after]=1&page[size]=10`,
+            `/documents/${document.id}/accesses?page[after]=1&page[size]=10`,
           ),
           next: expect.stringContaining(
-            `/documents/${document.documentHash}/accesses?page[after]=2&page[size]=10`,
+            `/documents/${document.id}/accesses?page[after]=2&page[size]=10`,
           ),
           prev: expect.stringContaining(
-            `/documents/${document.documentHash}/accesses?page[after]=1&page[size]=10`,
+            `/documents/${document.id}/accesses?page[after]=1&page[size]=10`,
           ),
         },
         pageSize: 10,
         self: expect.stringContaining(
-          `/documents/${document.documentHash}/accesses?page[after]=1&page[size]=10`,
+          `/documents/${document.id}/accesses?page[after]=1&page[size]=10`,
         ),
       });
       expect((response.body as { items: string }).items).toHaveLength(10);
@@ -1099,41 +1081,41 @@ describe("Documents Module", () => {
     it("should handle the pagination properly", async () => {
       expect.assertions(12);
 
-      const document = testEnv.documentsWithBlockSource[0]!;
+      const document = dummyData.documentsWithBlockSource[0]!;
 
       const response1 = await request(server).get(
-        `/documents/${document.documentHash}/accesses?page[size]=2`,
+        `/documents/${document.id}/accesses?page[size]=2`,
       );
 
       expect(response1.body).toStrictEqual({
         items: [
           {
-            documentId: document.documentHash,
-            grantedBy: document.didEbsiCreator,
+            documentId: document.id,
+            grantedBy: document.creator,
             permission: "creator",
-            subject: document.didEbsiCreator,
+            subject: document.creator,
           },
           {
-            documentId: document.documentHash,
-            grantedBy: document.didEbsiCreator,
+            documentId: document.id,
+            grantedBy: document.creator,
             permission: "delegate",
             subject: expect.stringContaining("did:ebsi"),
           },
         ] satisfies DocumentAccesses,
         links: {
           first: expect.stringContaining(
-            `/documents/${document.documentHash}/accesses?page[after]=1&page[size]=2`,
+            `/documents/${document.id}/accesses?page[after]=1&page[size]=2`,
           ),
           next: expect.stringContaining(
-            `/documents/${document.documentHash}/accesses?page[after]=2&page[size]=2`,
+            `/documents/${document.id}/accesses?page[after]=2&page[size]=2`,
           ),
           prev: expect.stringContaining(
-            `/documents/${document.documentHash}/accesses?page[after]=1&page[size]=2`,
+            `/documents/${document.id}/accesses?page[after]=1&page[size]=2`,
           ),
         },
         pageSize: 2,
         self: expect.stringContaining(
-          `/documents/${document.documentHash}/accesses?page[after]=1&page[size]=2`,
+          `/documents/${document.id}/accesses?page[after]=1&page[size]=2`,
         ),
       });
       expect((response1.body as { items: string }).items).toHaveLength(2);
@@ -1141,37 +1123,37 @@ describe("Documents Module", () => {
 
       // next page
       const response2 = await request(server).get(
-        `/documents/${document.documentHash}/accesses?page[after]=2&page[size]=2`,
+        `/documents/${document.id}/accesses?page[after]=2&page[size]=2`,
       );
       expect(response2.body).toStrictEqual({
         items: [
           {
-            documentId: document.documentHash,
-            grantedBy: document.didEbsiCreator,
+            documentId: document.id,
+            grantedBy: document.creator,
             permission: "write",
             subject: expect.stringContaining("did:key"),
           },
           {
-            documentId: document.documentHash,
-            grantedBy: document.didEbsiCreator,
+            documentId: document.id,
+            grantedBy: document.creator,
             permission: "delegate",
             subject: expect.stringContaining("did:ebsi"),
           },
         ] satisfies DocumentAccesses,
         links: {
           first: expect.stringContaining(
-            `/documents/${document.documentHash}/accesses?page[after]=1&page[size]=2`,
+            `/documents/${document.id}/accesses?page[after]=1&page[size]=2`,
           ),
           next: expect.stringContaining(
-            `/documents/${document.documentHash}/accesses?page[after]=3&page[size]=2`,
+            `/documents/${document.id}/accesses?page[after]=3&page[size]=2`,
           ),
           prev: expect.stringContaining(
-            `/documents/${document.documentHash}/accesses?page[after]=1&page[size]=2`,
+            `/documents/${document.id}/accesses?page[after]=1&page[size]=2`,
           ),
         },
         pageSize: 2,
         self: expect.stringContaining(
-          `/documents/${document.documentHash}/accesses?page[after]=2&page[size]=2`,
+          `/documents/${document.id}/accesses?page[after]=2&page[size]=2`,
         ),
       });
       expect((response2.body as { items: string }).items).toHaveLength(2);
@@ -1179,27 +1161,27 @@ describe("Documents Module", () => {
 
       // big page
       const response3 = await request(server).get(
-        `/documents/${document.documentHash}/accesses?page[after]=100&page[size]=2`,
+        `/documents/${document.id}/accesses?page[after]=100&page[size]=2`,
       );
       expect(response3.body).toStrictEqual({
         items: [],
         links: {
           first: expect.stringContaining(
-            `/documents/${document.documentHash}/accesses?page[after]=1&page[size]=2`,
+            `/documents/${document.id}/accesses?page[after]=1&page[size]=2`,
           ),
           last: expect.stringContaining(
-            `/documents/${document.documentHash}/accesses?page[after]=100&page[size]=2`,
+            `/documents/${document.id}/accesses?page[after]=100&page[size]=2`,
           ),
           next: expect.stringContaining(
-            `/documents/${document.documentHash}/accesses?page[after]=100&page[size]=2`,
+            `/documents/${document.id}/accesses?page[after]=100&page[size]=2`,
           ),
           prev: expect.stringContaining(
-            `/documents/${document.documentHash}/accesses?page[after]=99&page[size]=2`,
+            `/documents/${document.id}/accesses?page[after]=99&page[size]=2`,
           ),
         },
         pageSize: 2,
         self: expect.stringContaining(
-          `/documents/${document.documentHash}/accesses?page[after]=100&page[size]=2`,
+          `/documents/${document.id}/accesses?page[after]=100&page[size]=2`,
         ),
       });
       expect((response3.body as { items: string }).items).toHaveLength(0);
@@ -1207,85 +1189,85 @@ describe("Documents Module", () => {
 
       // page["after"] defined but page["size"] undefined
       const response4 = await request(server).get(
-        `/documents/${document.documentHash}/accesses?page[after]=1`,
+        `/documents/${document.id}/accesses?page[after]=1`,
       );
       expect(response4.body).toStrictEqual({
         items: [
           {
-            documentId: document.documentHash,
-            grantedBy: document.didEbsiCreator,
+            documentId: document.id,
+            grantedBy: document.creator,
             permission: "creator",
-            subject: document.didEbsiCreator,
+            subject: document.creator,
           },
           {
-            documentId: document.documentHash,
-            grantedBy: document.didEbsiCreator,
+            documentId: document.id,
+            grantedBy: document.creator,
             permission: "delegate",
             subject: expect.stringContaining("did:ebsi"),
           },
           {
-            documentId: document.documentHash,
-            grantedBy: document.didEbsiCreator,
+            documentId: document.id,
+            grantedBy: document.creator,
             permission: "write",
             subject: expect.stringContaining("did:key"),
           },
           {
-            documentId: document.documentHash,
-            grantedBy: document.didEbsiCreator,
+            documentId: document.id,
+            grantedBy: document.creator,
             permission: "delegate",
             subject: expect.stringContaining("did:ebsi"),
           },
           {
-            documentId: document.documentHash,
-            grantedBy: document.didEbsiCreator,
+            documentId: document.id,
+            grantedBy: document.creator,
             permission: "write",
             subject: expect.stringContaining("did:key"),
           },
           {
-            documentId: document.documentHash,
-            grantedBy: document.didEbsiCreator,
+            documentId: document.id,
+            grantedBy: document.creator,
             permission: "delegate",
             subject: expect.stringContaining("did:ebsi"),
           },
           {
-            documentId: document.documentHash,
-            grantedBy: document.didEbsiCreator,
+            documentId: document.id,
+            grantedBy: document.creator,
             permission: "write",
             subject: expect.stringContaining("did:key"),
           },
           {
-            documentId: document.documentHash,
-            grantedBy: document.didEbsiCreator,
+            documentId: document.id,
+            grantedBy: document.creator,
             permission: "delegate",
             subject: expect.stringContaining("did:ebsi"),
           },
           {
-            documentId: document.documentHash,
-            grantedBy: document.didEbsiCreator,
+            documentId: document.id,
+            grantedBy: document.creator,
             permission: "write",
             subject: expect.stringContaining("did:key"),
           },
           {
-            documentId: document.documentHash,
-            grantedBy: document.didEbsiCreator,
+            documentId: document.id,
+            grantedBy: document.creator,
             permission: "delegate",
             subject: expect.stringContaining("did:ebsi"),
           },
         ] satisfies DocumentAccesses,
         links: {
           first: expect.stringContaining(
-            `/documents/${document.documentHash}/accesses?page[after]=1&page[size]=10`,
+            `/documents/${document.id}/accesses?page[after]=1&page[size]=10`,
           ),
           next: expect.stringContaining(
-            `/documents/${document.documentHash}/accesses?page[after]=2&page[size]=10`,
+            `/documents/${document.id}/accesses?page[after]=2&page[size]=10`,
           ),
           prev: expect.stringContaining(
-            `/documents/${document.documentHash}/accesses?page[after]=1&page[size]=10`,
+            `/documents/${document.id}/accesses?page[after]=1&page[size]=10`,
           ),
         },
         pageSize: 10,
         self: expect.stringContaining(
-          `/documents/${document.documentHash}/accesses?page[after]=1&page[size]=10`,
+          `/documents/${document.id}/accesses?page[after]=1&page[size]=10`,
         ),
       });
       expect((response4.body as { items: string }).items).toHaveLength(10);
@@ -1295,10 +1277,10 @@ describe("Documents Module", () => {
     it("should throw a Bad Request for bad pagination", async () => {
       expect.assertions(8);
 
-      const document = testEnv.documentsWithBlockSource[0]!;
+      const document = dummyData.documentsWithBlockSource[0]!;
 
       const response1 = await request(server).get(
-        `/documents/${document.documentHash}/accesses?page[size]=100`,
+        `/documents/${document.id}/accesses?page[size]=100`,
       );
       expect(response1.body).toStrictEqual({
         detail: '["page[size] must not be greater than 50"]',
@@ -1309,7 +1291,7 @@ describe("Documents Module", () => {
       expect(response1.status).toBe(400);
 
       const response2 = await request(server).get(
-        `/documents/${document.documentHash}/accesses?page[size]=0`,
+        `/documents/${document.id}/accesses?page[size]=0`,
       );
       expect(response2.body).toStrictEqual({
         detail: '["page[size] must not be less than 1"]',
@@ -1320,7 +1302,7 @@ describe("Documents Module", () => {
       expect(response2.status).toBe(400);
 
       const response3 = await request(server).get(
-        `/documents/${document.documentHash}/accesses?page[after]=0`,
+        `/documents/${document.id}/accesses?page[after]=0`,
       );
       expect(response3.body).toStrictEqual({
         detail: '["page[after] must not be less than 1"]',
@@ -1331,7 +1313,7 @@ describe("Documents Module", () => {
       expect(response3.status).toBe(400);
 
       const response4 = await request(server).get(
-        `/documents/${document.documentHash}/accesses?page[after]=abc`,
+        `/documents/${document.id}/accesses?page[after]=abc`,
       );
       expect(response4.body).toStrictEqual({
         detail:

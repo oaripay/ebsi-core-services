@@ -11,12 +11,12 @@ import { fastifyAccepts } from "@fastify/accepts";
 import { Logger, ValidationPipe } from "@nestjs/common";
 import { FastifyAdapter } from "@nestjs/platform-fastify";
 import { Test } from "@nestjs/testing";
+import { ethers } from "ethers";
 import request from "supertest";
 import {
   afterAll,
   afterEach,
   beforeAll,
-  beforeEach,
   describe,
   expect,
   it,
@@ -25,13 +25,11 @@ import {
 
 import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
 import { BesuModule } from "./besu.module.js";
-import { BesuService } from "./besu.service.js";
 
 describe("Besu Module", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault;
   let hardhatServer: JsonRpcServer;
-  let besuService: BesuService;
   const hrePort = 8547; // 8546 might already be used for ssh port forwarding
 
   describe.each([`http://127.0.0.1:${hrePort}`, `ws://127.0.0.1:${hrePort}`])(
@@ -45,6 +43,8 @@ describe("Besu Module", () => {
         })) as JsonRpcServer;
 
         await hardhatServer.listen();
+
+        vi.stubEnv("BESU_RPC_NODE", hreUrl);
 
         // Start server
         const moduleFixture = await Test.createTestingModule({
@@ -70,14 +70,6 @@ describe("Besu Module", () => {
         await app.init();
         await fastifyInstance.ready();
         server = app.getHttpServer();
-
-        besuService = moduleFixture.get<BesuService>(BesuService);
-      });
-
-      beforeEach(() => {
-        vi.spyOn(besuService, "getBesuRpcNode").mockImplementation(
-          () => hreUrl,
-        );
       });
 
       afterEach(() => {
@@ -167,7 +159,10 @@ describe("Besu Module", () => {
       it("should return an error when Besu returns an error", async () => {
         expect.assertions(2);
 
-        vi.spyOn(besuService, "send").mockImplementation(() => {
+        const provider = hreUrl.startsWith("http")
+          ? ethers.JsonRpcProvider
+          : ethers.WebSocketProvider;
+        vi.spyOn(provider.prototype, "send").mockImplementation(() => {
           const err = new Error("unknown error");
           return Promise.reject(err);
         });
@@ -192,7 +187,10 @@ describe("Besu Module", () => {
         expect.assertions(2);
 
         // Let's say Besu answers with an error
-        vi.spyOn(besuService, "send").mockImplementation(() => {
+        const provider = hreUrl.startsWith("http")
+          ? ethers.JsonRpcProvider
+          : ethers.WebSocketProvider;
+        vi.spyOn(provider.prototype, "send").mockImplementation(() => {
           const err = new Error("error");
 
           // @ts-expect-error Property 'response' does not exist on type 'Error'.ts(2339)
@@ -220,7 +218,10 @@ describe("Besu Module", () => {
         expect.assertions(2);
 
         // Let's say Besu answers with an error
-        vi.spyOn(besuService, "send").mockImplementation(() => {
+        const provider = hreUrl.startsWith("http")
+          ? ethers.JsonRpcProvider
+          : ethers.WebSocketProvider;
+        vi.spyOn(provider.prototype, "send").mockImplementation(() => {
           const err = new Error("error");
 
           // @ts-expect-error Property 'response' does not exist on type 'Error'.ts(2339)

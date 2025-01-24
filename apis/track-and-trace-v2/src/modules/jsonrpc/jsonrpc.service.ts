@@ -1,3 +1,5 @@
+import type { TrackAndTrace } from "@ebsiint-sc/track-and-trace-v2";
+
 import { getResolver } from "@cef-ebsi/ebsi-did-resolver";
 import {
   decodeResult,
@@ -6,6 +8,7 @@ import {
   isEthersError,
   logAxiosError,
 } from "@ebsiint-api/shared";
+import { TrackAndTrace__factory } from "@ebsiint-sc/track-and-trace-v2";
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { isAxiosError } from "axios";
@@ -13,6 +16,11 @@ import { Resolver } from "did-resolver";
 import { ethers } from "ethers";
 
 import type { ApiConfig } from "../../config/configuration.js";
+import type {
+  JsonRpcSchema,
+  SendSignedTransactionParamsSchema,
+  UnsignedTransaction,
+} from "./validators/index.js";
 
 import { hexToDid } from "../../shared/utils.js";
 import {
@@ -29,7 +37,6 @@ import {
   authoriseDidSchemaBuilder,
   createDocumentSchema,
   grantAccessSchema,
-  type JsonRpcSchema,
   removeDocumentSchema,
   requestAuthoriseDidDtoSchemaBuilder,
   requestCreateDocumentDtoSchema,
@@ -39,8 +46,6 @@ import {
   requestSendSignedTransactionDtoSchema,
   requestWriteEventDtoSchema,
   revokeAccessSchema,
-  type SendSignedTransactionParamsSchema,
-  type UnsignedTransaction,
   writeEventSchema,
 } from "./validators/index.js";
 
@@ -74,7 +79,9 @@ export class JsonRpcService {
     typeof authoriseDidSchemaBuilder
   >;
 
-  private chainId?: string;
+  private chainId: string | undefined;
+
+  private readonly contract: TrackAndTrace;
 
   private readonly contractAddress: string;
 
@@ -88,7 +95,10 @@ export class JsonRpcService {
     private ledgerService: LedgerService,
     configService: ConfigService<ApiConfig, true>,
   ) {
-    this.contractAddress = ledgerService.getContractAddress();
+    this.contractAddress = configService.get("contractAddr", {
+      infer: true,
+    });
+    this.contract = TrackAndTrace__factory.connect(this.contractAddress);
     const resolverConfig = {
       registry: `${configService.get("didRegistryApiUrl", { infer: true })}/identifiers`,
     };
@@ -105,7 +115,7 @@ export class JsonRpcService {
   ): Promise<UnsignedTransaction> {
     try {
       const nonceInt = await this.ledgerService
-        .getEthersProvider()
+        .getProvider()
         .getTransactionCount(from);
 
       const unsignedTransaction = {
@@ -158,13 +168,11 @@ export class JsonRpcService {
       // Verify that the Access Token sub and the senderDid match
       assertDidMatchesSub(senderDid, sub);
 
-      const data = this.ledgerService
-        .getContract()
-        .interface.encodeFunctionData("authoriseDid", [
-          senderDid,
-          authorisedDid,
-          whiteList,
-        ]);
+      const data = this.contract.interface.encodeFunctionData("authoriseDid", [
+        senderDid,
+        authorisedDid,
+        whiteList,
+      ]);
 
       return await this.buildTransaction(from, data);
     } catch (error_) {
@@ -213,9 +221,7 @@ export class JsonRpcService {
           ]
         : [documentHash, documentMetadata, didEbsiCreator];
 
-      const data = this.ledgerService
-        .getContract()
-        .interface // @ts-expect-error No overload matches this call
+      const data = this.contract.interface // @ts-expect-error No overload matches this call
         .encodeFunctionData(functionSig, args);
 
       return await this.buildTransaction(from, data);
@@ -253,16 +259,14 @@ export class JsonRpcService {
       const grantedByAccountDid = hexToDid(grantedByAccount);
       assertDidMatchesSub(grantedByAccountDid, sub);
 
-      const data = this.ledgerService
-        .getContract()
-        .interface.encodeFunctionData("grantAccess", [
-          documentHash,
-          grantedByAccount,
-          subjectAccount,
-          grantedByAccType,
-          subjectAccType,
-          permission,
-        ]);
+      const data = this.contract.interface.encodeFunctionData("grantAccess", [
+        documentHash,
+        grantedByAccount,
+        subjectAccount,
+        grantedByAccType,
+        subjectAccType,
+        permission,
+      ]);
       return await this.buildTransaction(from, data);
     } catch (error_) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(error_), id);
@@ -286,9 +290,10 @@ export class JsonRpcService {
 
       const { documentHash, from } = parsedBody.params[0]!;
 
-      const data = this.ledgerService
-        .getContract()
-        .interface.encodeFunctionData("removeDocument", [documentHash]);
+      const data = this.contract.interface.encodeFunctionData(
+        "removeDocument",
+        [documentHash],
+      );
 
       return await this.buildTransaction(from, data);
     } catch (error_) {
@@ -323,14 +328,12 @@ export class JsonRpcService {
       const revokedByAccountDid = hexToDid(revokedByAccount);
       assertDidMatchesSub(revokedByAccountDid, sub);
 
-      const data = this.ledgerService
-        .getContract()
-        .interface.encodeFunctionData("revokeAccess", [
-          documentHash,
-          revokedByAccount,
-          subjectAccount,
-          permission,
-        ]);
+      const data = this.contract.interface.encodeFunctionData("revokeAccess", [
+        documentHash,
+        revokedByAccount,
+        subjectAccount,
+        permission,
+      ]);
       return await this.buildTransaction(from, data);
     } catch (error_) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(error_), id);
@@ -360,18 +363,14 @@ export class JsonRpcService {
 
       const data =
         timestamp && timestampProof !== undefined
-          ? this.ledgerService
-              .getContract()
-              .interface.encodeFunctionData(
-                "writeEvent((bytes32,string,bytes,string,string),uint256,bytes32)",
-                [eventParams, timestamp, timestampProof],
-              )
-          : this.ledgerService
-              .getContract()
-              .interface.encodeFunctionData(
-                "writeEvent((bytes32,string,bytes,string,string))",
-                [eventParams],
-              );
+          ? this.contract.interface.encodeFunctionData(
+              "writeEvent((bytes32,string,bytes,string,string),uint256,bytes32)",
+              [eventParams, timestamp, timestampProof],
+            )
+          : this.contract.interface.encodeFunctionData(
+              "writeEvent((bytes32,string,bytes,string,string))",
+              [eventParams],
+            );
 
       return await this.buildTransaction(from, data);
     } catch (error_) {
@@ -386,8 +385,10 @@ export class JsonRpcService {
   async estimateGas(transaction: UnsignedTransaction): Promise<bigint> {
     const { data, from, to, value } = transaction;
 
+    const provider = this.ledgerService.getProvider();
+
     try {
-      return await this.ledgerService.getEthersProvider().estimateGas({
+      return await provider.estimateGas({
         data,
         from,
         to,
@@ -403,10 +404,10 @@ export class JsonRpcService {
 
   async getChainId(): Promise<string> {
     if (!this.chainId) {
+      const provider = this.ledgerService.getProvider();
+
       try {
-        const { chainId } = await this.ledgerService
-          .getEthersProvider()
-          .getNetwork();
+        const { chainId } = await provider.getNetwork();
         this.chainId = `0x${BigInt(chainId).toString(16)}`;
       } catch (error) {
         if (isEthersError(error)) {
@@ -415,6 +416,7 @@ export class JsonRpcService {
         throw new Error(getErrorMessage(error));
       }
     }
+
     return this.chainId;
   }
 
@@ -435,7 +437,7 @@ export class JsonRpcService {
       await this.verifyTransaction(sub, request, scope);
 
       const tx = await this.ledgerService
-        .getEthersProvider()
+        .getProvider()
         .broadcastTransaction(request.signedRawTransaction);
 
       return tx.hash;
@@ -526,9 +528,8 @@ export class JsonRpcService {
     }
 
     // verify function and parameters encoded in unsignedTransaction.data
-    const parsedTransaction = this.ledgerService
-      .getContract()
-      .interface.parseTransaction(unsignedTransaction);
+    const parsedTransaction =
+      this.contract.interface.parseTransaction(unsignedTransaction);
 
     if (!parsedTransaction) {
       throw new Error("Invalid unsignedTransaction.data");

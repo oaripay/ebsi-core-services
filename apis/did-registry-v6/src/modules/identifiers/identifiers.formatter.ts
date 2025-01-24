@@ -1,9 +1,8 @@
-import {
-  PaginatedListWithoutTotal,
-  paginateWithoutTotal,
-} from "@ebsiint-api/shared";
+import type { PaginatedListWithoutTotal } from "@ebsiint-api/shared";
 
-import { DidLink, Event } from "./identifiers.interface.js";
+import { paginateWithoutTotal } from "@ebsiint-api/shared";
+
+import type { DidLink, Event } from "./identifiers.interface.js";
 
 export function formatEvents(
   events: { items: Event[] },

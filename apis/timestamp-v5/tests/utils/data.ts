@@ -9,7 +9,7 @@ import { calculateJwkThumbprint } from "jose";
  */
 import { randomBytes } from "node:crypto";
 
-import {
+import type {
   HashAlgo,
   Owner,
   Record,

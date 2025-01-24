@@ -2,35 +2,23 @@ import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 
 import { methodNotAllowed } from "@ebsiint-api/shared";
-import { PolicyRegistry__factory } from "@ebsiint-sc/trusted-policies-registry-v3";
 import { fastifyAccepts } from "@fastify/accepts";
 import { Logger, ValidationPipe } from "@nestjs/common";
 import { FastifyAdapter } from "@nestjs/platform-fastify";
 import { Test } from "@nestjs/testing";
 import request from "supertest";
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { POLICIES_TOTAL } from "../../../tests/utils/data.js";
+import { dummyPolicies, POLICIES_TOTAL } from "../../../tests/utils/data.js";
 import { graphServer } from "../../../tests/utils/graphServer.js";
-import { setupTestEnv } from "../../../tests/utils/trustedPoliciesRegistry.js";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
-import { LedgerService } from "../ledger/ledger.service.js";
 import { PoliciesModule } from "./policies.module.js";
 
 describe("Policies Module", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault;
-  let testEnv: Awaited<ReturnType<typeof setupTestEnv>>;
 
   beforeAll(async () => {
-    // Spin up test blockchain
-    testEnv = await setupTestEnv();
-    const { policiesRegistryContract } = testEnv;
-
-    vi.spyOn(PolicyRegistry__factory, "connect").mockImplementation(
-      () => policiesRegistryContract,
-    );
-
     const moduleFixture = await Test.createTestingModule({
       imports: [PoliciesModule],
     }).compile();
@@ -61,12 +49,6 @@ describe("Policies Module", () => {
     await fastifyInstance.ready();
 
     server = app.getHttpServer();
-
-    // Mock contract
-    const ledgerService = moduleFixture.get<LedgerService>(LedgerService);
-    vi.spyOn(ledgerService, "getContract").mockImplementation(
-      () => policiesRegistryContract,
-    );
 
     graphServer.listen({
       // This is to ignore GET/POST Requests and only focus on GraphQL
@@ -287,7 +269,7 @@ describe("Policies Module", () => {
       expect.assertions(2);
 
       // Get first policy
-      const policy = testEnv.policies[0]!;
+      const policy = dummyPolicies[0]!;
 
       const response = await request(server).get(
         `/policies/${policy.policyName}`,

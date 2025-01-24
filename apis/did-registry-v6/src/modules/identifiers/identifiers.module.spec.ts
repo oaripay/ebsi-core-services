@@ -3,14 +3,13 @@ import type { RawServerDefault } from "fastify";
 
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { methodNotAllowed } from "@ebsiint-api/shared";
-import { DidRegistry__factory } from "@ebsiint-sc/did-registry-v4";
 import { fastifyAccepts } from "@fastify/accepts";
 import { Logger, ValidationPipe } from "@nestjs/common";
 import { FastifyAdapter } from "@nestjs/platform-fastify";
 import { Test } from "@nestjs/testing";
 import { ethers } from "ethers";
 import request from "supertest";
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { dids } from "../../../tests/mocks/handlers.js";
 import { graphServer } from "../../../tests/mocks/node.js";
@@ -21,32 +20,14 @@ import {
   did3,
   didDocument,
 } from "../../../tests/utils/constants.js";
-import { UserDetails } from "../../../tests/utils/data.js";
-import { setupTestEnv } from "../../../tests/utils/didRegistry.js";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
 import { IdentifiersModule } from "./identifiers.module.js";
-
-const DID_DOCUMENTS = 3;
 
 describe("Identifiers Module", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault;
-  let testEnv: Awaited<ReturnType<typeof setupTestEnv>>;
-  let users: UserDetails[];
 
   beforeAll(async () => {
-    // Spin up test blockchain (hardhat)
-    testEnv = await setupTestEnv({
-      didDocumentsTotal: DID_DOCUMENTS,
-    });
-    const { didRegistryContract } = testEnv;
-    users = testEnv.users;
-
-    // Mock TSR contract
-    vi.spyOn(DidRegistry__factory, "connect").mockImplementation(
-      () => didRegistryContract,
-    );
-
     const moduleFixture = await Test.createTestingModule({
       imports: [IdentifiersModule],
     }).compile();
@@ -519,7 +500,7 @@ describe("Identifiers Module", () => {
 
     it("should throw an error for bad use of actions", async () => {
       const randomAddress = ethers.Wallet.createRandom().address;
-      const { did } = users[0]!;
+      const did = dids[0]!.didDocument.id;
       let response = await request(server)
         .post(`/identifiers/bad-did/actions`)
         .send({

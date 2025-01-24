@@ -1,9 +1,12 @@
+import type { TrustedSchemasRegistry } from "@ebsiint-sc/trusted-schemas-registry-v3";
+
 import {
   decodeResult,
   getErrorMessage,
   InvalidRequestJsonRpcError,
   isEthersError,
 } from "@ebsiint-api/shared";
+import { TrustedSchemasRegistry__factory } from "@ebsiint-sc/trusted-schemas-registry-v3";
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import axios from "axios";
@@ -37,22 +40,27 @@ import {
 
 @Injectable()
 export class JsonRpcService {
-  private chainId = "";
+  private chainId: string | undefined;
 
-  private contractAddress: string;
+  private readonly contract: TrustedSchemasRegistry;
 
-  private didRegistry: string;
+  private readonly contractAddress: string;
+
+  private readonly didRegistry: string;
 
   private readonly logger = new Logger(JsonRpcService.name);
 
-  private timeout: number;
+  private readonly timeout: number;
 
   constructor(
     configService: ConfigService<ApiConfig, true>,
     private ledgerService: LedgerService,
   ) {
     this.didRegistry = configService.get("didRegistryApiUrl", { infer: true });
-    this.contractAddress = ledgerService.getContractAddress();
+    this.contractAddress = configService.get("contractAddr", { infer: true });
+    this.contract = TrustedSchemasRegistry__factory.connect(
+      this.contractAddress,
+    );
     this.timeout = configService.get("requestTimeout", { infer: true });
   }
 
@@ -61,7 +69,7 @@ export class JsonRpcService {
     params: string,
   ): Promise<UnsignedTransaction> {
     const nonceInt = await this.ledgerService
-      .getEthersProvider()
+      .getProvider()
       .getTransactionCount(from);
 
     const unsignedTransaction = {
@@ -96,13 +104,11 @@ export class JsonRpcService {
 
       const { from, metadata, schema, schemaId } = parsedBody.params[0]!;
 
-      const data = this.ledgerService
-        .getContract()
-        .interface.encodeFunctionData("insertSchema", [
-          schemaId,
-          schema,
-          metadata,
-        ]);
+      const data = this.contract.interface.encodeFunctionData("insertSchema", [
+        schemaId,
+        schema,
+        metadata,
+      ]);
 
       return await this.buildTransaction(from, data);
     } catch (error_) {
@@ -123,12 +129,10 @@ export class JsonRpcService {
 
       const { from, metadata, schemaRevisionId } = parsedBody.params[0]!;
 
-      const data = this.ledgerService
-        .getContract()
-        .interface.encodeFunctionData("updateMetadata", [
-          schemaRevisionId,
-          metadata,
-        ]);
+      const data = this.contract.interface.encodeFunctionData(
+        "updateMetadata",
+        [schemaRevisionId, metadata],
+      );
 
       return await this.buildTransaction(from, data);
     } catch (error_) {
@@ -149,13 +153,11 @@ export class JsonRpcService {
 
       const { from, metadata, schema, schemaId } = parsedBody.params[0]!;
 
-      const data = this.ledgerService
-        .getContract()
-        .interface.encodeFunctionData("updateSchema", [
-          schemaId,
-          schema,
-          metadata,
-        ]);
+      const data = this.contract.interface.encodeFunctionData("updateSchema", [
+        schemaId,
+        schema,
+        metadata,
+      ]);
 
       return await this.buildTransaction(from, data);
     } catch (error_) {
@@ -179,8 +181,10 @@ export class JsonRpcService {
   async estimateGas(transaction: UnsignedTransaction): Promise<bigint> {
     const { data, from, to, value } = transaction;
 
+    const provider = this.ledgerService.getProvider();
+
     try {
-      return await this.ledgerService.getEthersProvider().estimateGas({
+      return await provider.estimateGas({
         data,
         from,
         to,
@@ -195,8 +199,10 @@ export class JsonRpcService {
   }
 
   async getBlockNumber(): Promise<number> {
+    const provider = this.ledgerService.getProvider();
+
     try {
-      return await this.ledgerService.getEthersProvider().getBlockNumber();
+      return await provider.getBlockNumber();
     } catch (error) {
       if (isEthersError(error)) {
         this.logger.error(error);
@@ -207,18 +213,19 @@ export class JsonRpcService {
 
   async getChainId(): Promise<string> {
     if (!this.chainId) {
+      const provider = this.ledgerService.getProvider();
+
       try {
-        const { chainId } = await this.ledgerService
-          .getEthersProvider()
-          .getNetwork();
+        const { chainId } = await provider.getNetwork();
         this.chainId = `0x${BigInt(chainId).toString(16)}`;
       } catch (error) {
         if (isEthersError(error)) {
-          this.logger.error(error);
+          this.logger.error(error, error.stack);
         }
         throw new Error(getErrorMessage(error));
       }
     }
+
     return this.chainId;
   }
 
@@ -259,7 +266,7 @@ export class JsonRpcService {
       await this.checkWritePermission(signer, clientId);
 
       const tx = await this.ledgerService
-        .getEthersProvider()
+        .getProvider()
         .broadcastTransaction(request.signedRawTransaction);
       return tx.hash;
     } catch (error_) {
@@ -338,9 +345,8 @@ export class JsonRpcService {
     }
 
     // verify function and parameters encoded in unsignedTransaction.data
-    const parsedTransaction = this.ledgerService
-      .getContract()
-      .interface.parseTransaction(unsignedTransaction);
+    const parsedTransaction =
+      this.contract.interface.parseTransaction(unsignedTransaction);
 
     if (!parsedTransaction) {
       throw new Error("Invalid unsignedTransaction.data");

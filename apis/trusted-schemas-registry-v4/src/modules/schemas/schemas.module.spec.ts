@@ -6,32 +6,25 @@ import { fastifyAccepts } from "@fastify/accepts";
 import { Logger, ValidationPipe } from "@nestjs/common";
 import { FastifyAdapter } from "@nestjs/platform-fastify";
 import { Test } from "@nestjs/testing";
-import { ethers } from "ethers";
 import crypto from "node:crypto";
 import request from "supertest";
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import {
+  dummySchemas,
   SCHEMA_REVISIONS_TOTAL,
   SCHEMAS_TOTAL,
 } from "../../../tests/utils/data.js";
 import { graphServer } from "../../../tests/utils/graphServer.js";
-import { setupTestEnv } from "../../../tests/utils/schemaRegistry.js";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
-import { LedgerService } from "../ledger/ledger.service.js";
 import { SchemasModule } from "./schemas.module.js";
 import { hexToMultibaseBase58Btc } from "./schemas.utils.js";
 
 describe("Schemas Module", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault;
-  let testEnv: Awaited<ReturnType<typeof setupTestEnv>>;
-  let ledgerService: LedgerService;
 
   beforeAll(async () => {
-    // Spin up test blockchain
-    testEnv = await setupTestEnv();
-
     const moduleFixture = await Test.createTestingModule({
       imports: [SchemasModule],
     }).compile();
@@ -39,8 +32,6 @@ describe("Schemas Module", () => {
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
       new FastifyAdapter(),
     );
-
-    ledgerService = moduleFixture.get<LedgerService>(LedgerService);
 
     // Turn off logger
     Logger.overrideLogger(false);
@@ -65,11 +56,6 @@ describe("Schemas Module", () => {
 
     server = app.getHttpServer();
 
-    // Mock TSR contract
-    vi.spyOn(ledgerService, "getContract").mockImplementation(
-      () => testEnv.schemasRegistryContract,
-    );
-
     graphServer.listen({
       // This is to ignore GET/POST Requests and only focus on GraphQL
       onUnhandledRequest: "bypass",
@@ -89,8 +75,8 @@ describe("Schemas Module", () => {
 
       expect(response.body).toStrictEqual({
         items: expect.arrayContaining(
-          testEnv.schemas.map((schema) => {
-            const schemaId = hexToMultibaseBase58Btc(schema.schemaId);
+          dummySchemas.map((schema) => {
+            const schemaId = hexToMultibaseBase58Btc(schema.id);
             return {
               href: expect.stringContaining(`/schemas/${schemaId}`),
               schemaId,
@@ -340,11 +326,13 @@ describe("Schemas Module", () => {
     it("should return a specific schema identified by an hexadecimal schema ID", async () => {
       expect.assertions(3);
 
-      const schema = testEnv.schemas[0]!;
+      const schema = dummySchemas[0]!;
 
-      const response = await request(server).get(`/schemas/${schema.schemaId}`);
+      const response = await request(server).get(`/schemas/${schema.id}`);
 
-      expect(response.body).toStrictEqual(schema.schema);
+      expect(response.body).toStrictEqual(
+        JSON.parse(schema.lastRevision.content),
+      );
       expect(response.status).toBe(200);
       expect(
         (response.headers as { "content-type": string })["content-type"],
@@ -354,12 +342,14 @@ describe("Schemas Module", () => {
     it("should return a specific schema identified by a multibase base58btc schema ID", async () => {
       expect.assertions(3);
 
-      const schema = testEnv.schemas[0]!;
-      const schemaId = hexToMultibaseBase58Btc(schema.schemaId);
+      const schema = dummySchemas[0]!;
+      const schemaId = hexToMultibaseBase58Btc(schema.id);
 
       const response = await request(server).get(`/schemas/${schemaId}`);
 
-      expect(response.body).toStrictEqual(schema.schema);
+      expect(response.body).toStrictEqual(
+        JSON.parse(schema.lastRevision.content),
+      );
       expect(response.status).toBe(200);
       expect(
         (response.headers as { "content-type": string })["content-type"],
@@ -410,8 +400,8 @@ describe("Schemas Module", () => {
     it("should throw a Bad Request for bad pagination", async () => {
       expect.assertions(12);
 
-      const schema = testEnv.schemas[0]!;
-      const { schemaId } = schema;
+      const schema = dummySchemas[0]!;
+      const { id: schemaId } = schema;
 
       const response1 = await request(server).get(
         `/schemas/${schemaId}/revisions?page[size]=100`,
@@ -474,10 +464,10 @@ describe("Schemas Module", () => {
     it("should throw an error if valid-at query parameter is not valid", async () => {
       expect.assertions(3);
 
-      const schema = testEnv.schemas[0]!;
+      const schema = dummySchemas[0]!;
 
       const response = await request(server).get(
-        `/schemas/${schema.schemaId}/revisions?valid-at=abc`,
+        `/schemas/${schema.id}/revisions?valid-at=abc`,
       );
 
       expect(response.body).toStrictEqual({
@@ -495,55 +485,55 @@ describe("Schemas Module", () => {
     it("should return the revisions of the specified schema", async () => {
       expect.assertions(3);
 
-      const schema = testEnv.schemas[0]!;
-      const { schemaRevisions } = testEnv;
+      const schema = dummySchemas[0]!;
+      const schemaRevisions = schema.revisions;
 
       const response = await request(server).get(
-        `/schemas/${schema.schemaId}/revisions`,
+        `/schemas/${schema.id}/revisions`,
       );
 
-      const revisionId1 = ethers.sha256(schema.serializedSchema);
-      const revisionId2 = ethers.sha256(schemaRevisions[0]!.serializedSchema);
-      const revisionId3 = ethers.sha256(schemaRevisions[1]!.serializedSchema);
+      const revisionId1 = schema.lastRevision.id;
+      const revisionId2 = schemaRevisions[0]!.id;
+      const revisionId3 = schemaRevisions[1]!.id;
 
       expect(response.body).toStrictEqual({
         items: expect.arrayContaining([
           {
             href: expect.stringContaining(
-              `/schemas/${schema.schemaId}/revisions/${revisionId1}`,
+              `/schemas/${schema.id}/revisions/${revisionId1}`,
             ),
             schemaRevisionId: revisionId1,
           },
           {
             href: expect.stringContaining(
-              `/schemas/${schema.schemaId}/revisions/${revisionId2}`,
+              `/schemas/${schema.id}/revisions/${revisionId2}`,
             ),
             schemaRevisionId: revisionId2,
           },
           {
             href: expect.stringContaining(
-              `/schemas/${schema.schemaId}/revisions/${revisionId3}`,
+              `/schemas/${schema.id}/revisions/${revisionId3}`,
             ),
             schemaRevisionId: revisionId3,
           },
         ]),
         links: {
           first: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`,
+            `/schemas/${schema.id}/revisions?page[after]=1&page[size]=10`,
           ),
           last: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`,
+            `/schemas/${schema.id}/revisions?page[after]=1&page[size]=10`,
           ),
           next: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`,
+            `/schemas/${schema.id}/revisions?page[after]=1&page[size]=10`,
           ),
           prev: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`,
+            `/schemas/${schema.id}/revisions?page[after]=1&page[size]=10`,
           ),
         },
         pageSize: 10,
         self: expect.stringContaining(
-          `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`,
+          `/schemas/${schema.id}/revisions?page[after]=1&page[size]=10`,
         ),
       });
       expect(response.status).toBe(200);
@@ -555,36 +545,36 @@ describe("Schemas Module", () => {
     it("should return the revisions valid at a specific date", async () => {
       expect.assertions(3);
 
-      const schema = testEnv.schemas[0]!;
-      const { schemaRevisions } = testEnv;
+      const schema = dummySchemas[0]!;
+      const schemaRevisions = schema.revisions;
       const validAt = new Date().toISOString();
 
       const response = await request(server).get(
-        `/schemas/${schema.schemaId}/revisions?valid-at=${validAt}`,
+        `/schemas/${schema.id}/revisions?valid-at=${validAt}`,
       );
 
-      const revisionId1 = ethers.sha256(schema.serializedSchema);
-      const revisionId2 = ethers.sha256(schemaRevisions[0]!.serializedSchema);
-      const revisionId3 = ethers.sha256(schemaRevisions[1]!.serializedSchema);
-      const selfLink = `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10&valid-at=${encodeURIComponent(validAt)}`;
+      const revisionId1 = schema.lastRevision.id;
+      const revisionId2 = schemaRevisions[0]!.id;
+      const revisionId3 = schemaRevisions[1]!.id;
+      const selfLink = `/schemas/${schema.id}/revisions?page[after]=1&page[size]=10&valid-at=${encodeURIComponent(validAt)}`;
 
       expect(response.body).toStrictEqual({
         items: expect.arrayContaining([
           {
             href: expect.stringContaining(
-              `/schemas/${schema.schemaId}/revisions/${revisionId1}`,
+              `/schemas/${schema.id}/revisions/${revisionId1}`,
             ),
             schemaRevisionId: revisionId1,
           },
           {
             href: expect.stringContaining(
-              `/schemas/${schema.schemaId}/revisions/${revisionId2}`,
+              `/schemas/${schema.id}/revisions/${revisionId2}`,
             ),
             schemaRevisionId: revisionId2,
           },
           {
             href: expect.stringContaining(
-              `/schemas/${schema.schemaId}/revisions/${revisionId3}`,
+              `/schemas/${schema.id}/revisions/${revisionId3}`,
             ),
             schemaRevisionId: revisionId3,
           },
@@ -607,27 +597,27 @@ describe("Schemas Module", () => {
     it("should handle the pagination properly", async () => {
       expect.assertions(12);
 
-      const schema = testEnv.schemas[0]!;
+      const schema = dummySchemas[0]!;
 
       const response1 = await request(server).get(
-        `/schemas/${schema.schemaId}/revisions?page[size]=2`,
+        `/schemas/${schema.id}/revisions?page[size]=2`,
       );
       expect(response1.body).toStrictEqual({
         items: expect.arrayContaining([]),
         links: {
           first: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=2`,
+            `/schemas/${schema.id}/revisions?page[after]=1&page[size]=2`,
           ),
           next: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions?page[after]=2&page[size]=2`,
+            `/schemas/${schema.id}/revisions?page[after]=2&page[size]=2`,
           ),
           prev: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=2`,
+            `/schemas/${schema.id}/revisions?page[after]=1&page[size]=2`,
           ),
         },
         pageSize: 2,
         self: expect.stringContaining(
-          `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=2`,
+          `/schemas/${schema.id}/revisions?page[after]=1&page[size]=2`,
         ),
       });
       expect((response1.body as { items: string }).items).toHaveLength(2);
@@ -635,27 +625,27 @@ describe("Schemas Module", () => {
 
       // next page
       const response2 = await request(server).get(
-        `/schemas/${schema.schemaId}/revisions?page[after]=2&page[size]=2`,
+        `/schemas/${schema.id}/revisions?page[after]=2&page[size]=2`,
       );
       expect(response2.body).toStrictEqual({
         items: expect.arrayContaining([]),
         links: {
           first: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=2`,
+            `/schemas/${schema.id}/revisions?page[after]=1&page[size]=2`,
           ),
           last: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions?page[after]=2&page[size]=2`,
+            `/schemas/${schema.id}/revisions?page[after]=2&page[size]=2`,
           ),
           next: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions?page[after]=2&page[size]=2`,
+            `/schemas/${schema.id}/revisions?page[after]=2&page[size]=2`,
           ),
           prev: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=2`,
+            `/schemas/${schema.id}/revisions?page[after]=1&page[size]=2`,
           ),
         },
         pageSize: 2,
         self: expect.stringContaining(
-          `/schemas/${schema.schemaId}/revisions?page[after]=2&page[size]=2`,
+          `/schemas/${schema.id}/revisions?page[after]=2&page[size]=2`,
         ),
       });
       expect((response2.body as { items: string }).items).toHaveLength(1);
@@ -663,27 +653,27 @@ describe("Schemas Module", () => {
 
       // big page
       const response3 = await request(server).get(
-        `/schemas/${schema.schemaId}/revisions?page[after]=100&page[size]=2`,
+        `/schemas/${schema.id}/revisions?page[after]=100&page[size]=2`,
       );
       expect(response3.body).toStrictEqual({
         items: expect.arrayContaining([]),
         links: {
           first: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=2`,
+            `/schemas/${schema.id}/revisions?page[after]=1&page[size]=2`,
           ),
           last: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions?page[after]=100&page[size]=2`,
+            `/schemas/${schema.id}/revisions?page[after]=100&page[size]=2`,
           ),
           next: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions?page[after]=100&page[size]=2`,
+            `/schemas/${schema.id}/revisions?page[after]=100&page[size]=2`,
           ),
           prev: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions?page[after]=99&page[size]=2`,
+            `/schemas/${schema.id}/revisions?page[after]=99&page[size]=2`,
           ),
         },
         pageSize: 2,
         self: expect.stringContaining(
-          `/schemas/${schema.schemaId}/revisions?page[after]=100&page[size]=2`,
+          `/schemas/${schema.id}/revisions?page[after]=100&page[size]=2`,
         ),
       });
       expect((response3.body as { items: string }).items).toHaveLength(0);
@@ -691,27 +681,27 @@ describe("Schemas Module", () => {
 
       // page["after"] defined but page["size"] undefined
       const response4 = await request(server).get(
-        `/schemas/${schema.schemaId}/revisions?page[after]=1`,
+        `/schemas/${schema.id}/revisions?page[after]=1`,
       );
       expect(response4.body).toStrictEqual({
         items: expect.arrayContaining([]),
         links: {
           first: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`,
+            `/schemas/${schema.id}/revisions?page[after]=1&page[size]=10`,
           ),
           last: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`,
+            `/schemas/${schema.id}/revisions?page[after]=1&page[size]=10`,
           ),
           next: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`,
+            `/schemas/${schema.id}/revisions?page[after]=1&page[size]=10`,
           ),
           prev: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`,
+            `/schemas/${schema.id}/revisions?page[after]=1&page[size]=10`,
           ),
         },
         pageSize: 10,
         self: expect.stringContaining(
-          `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`,
+          `/schemas/${schema.id}/revisions?page[after]=1&page[size]=10`,
         ),
       });
       expect((response4.body as { items: string }).items).toHaveLength(
@@ -790,8 +780,8 @@ describe("Schemas Module", () => {
     it("should throw an error if the schema revision is not found", async () => {
       expect.assertions(3);
 
-      const schema = testEnv.schemas[0]!;
-      const { schemaId } = schema;
+      const schema = dummySchemas[0]!;
+      const { id: schemaId } = schema;
       const schemaRevisionId = `0x${crypto.randomBytes(32).toString("hex")}`;
 
       const response = await request(server).get(
@@ -813,15 +803,17 @@ describe("Schemas Module", () => {
     it("should return a specific schema revision", async () => {
       expect.assertions(3);
 
-      const schema = testEnv.schemas[0]!;
-      const { schemaId } = schema;
-      const schemaRevisionId = ethers.sha256(schema.serializedSchema);
+      const schema = dummySchemas[0]!;
+      const { id: schemaId } = schema;
+      const schemaRevisionId = schema.lastRevision.id;
 
       const response = await request(server).get(
         `/schemas/${schemaId}/revisions/${schemaRevisionId}`,
       );
 
-      expect(response.body).toStrictEqual(schema.schema);
+      expect(response.body).toStrictEqual(
+        JSON.parse(schema.lastRevision.content),
+      );
       expect(response.status).toBe(200);
       expect(
         (response.headers as { "content-type": string })["content-type"],
@@ -831,27 +823,27 @@ describe("Schemas Module", () => {
     it("should handle the pagination properly", async () => {
       expect.assertions(12);
 
-      const schema = testEnv.schemas[0]!;
+      const schema = dummySchemas[0]!;
 
       const response1 = await request(server).get(
-        `/schemas/${schema.schemaId}/revisions?page[size]=2`,
+        `/schemas/${schema.id}/revisions?page[size]=2`,
       );
       expect(response1.body).toStrictEqual({
         items: expect.arrayContaining([]),
         links: {
           first: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=2`,
+            `/schemas/${schema.id}/revisions?page[after]=1&page[size]=2`,
           ),
           next: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions?page[after]=2&page[size]=2`,
+            `/schemas/${schema.id}/revisions?page[after]=2&page[size]=2`,
           ),
           prev: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=2`,
+            `/schemas/${schema.id}/revisions?page[after]=1&page[size]=2`,
           ),
         },
         pageSize: 2,
         self: expect.stringContaining(
-          `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=2`,
+          `/schemas/${schema.id}/revisions?page[after]=1&page[size]=2`,
         ),
       });
       expect((response1.body as { items: string }).items).toHaveLength(2);
@@ -859,27 +851,27 @@ describe("Schemas Module", () => {
 
       // next page
       const response2 = await request(server).get(
-        `/schemas/${schema.schemaId}/revisions?page[after]=2&page[size]=2`,
+        `/schemas/${schema.id}/revisions?page[after]=2&page[size]=2`,
       );
       expect(response2.body).toStrictEqual({
         items: expect.arrayContaining([]),
         links: {
           first: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=2`,
+            `/schemas/${schema.id}/revisions?page[after]=1&page[size]=2`,
           ),
           last: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions?page[after]=2&page[size]=2`,
+            `/schemas/${schema.id}/revisions?page[after]=2&page[size]=2`,
           ),
           next: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions?page[after]=2&page[size]=2`,
+            `/schemas/${schema.id}/revisions?page[after]=2&page[size]=2`,
           ),
           prev: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=2`,
+            `/schemas/${schema.id}/revisions?page[after]=1&page[size]=2`,
           ),
         },
         pageSize: 2,
         self: expect.stringContaining(
-          `/schemas/${schema.schemaId}/revisions?page[after]=2&page[size]=2`,
+          `/schemas/${schema.id}/revisions?page[after]=2&page[size]=2`,
         ),
       });
       expect((response2.body as { items: string }).items).toHaveLength(1);
@@ -887,27 +879,27 @@ describe("Schemas Module", () => {
 
       // big page
       const response3 = await request(server).get(
-        `/schemas/${schema.schemaId}/revisions?page[after]=100&page[size]=2`,
+        `/schemas/${schema.id}/revisions?page[after]=100&page[size]=2`,
       );
       expect(response3.body).toStrictEqual({
         items: expect.arrayContaining([]),
         links: {
           first: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=2`,
+            `/schemas/${schema.id}/revisions?page[after]=1&page[size]=2`,
           ),
           last: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions?page[after]=100&page[size]=2`,
+            `/schemas/${schema.id}/revisions?page[after]=100&page[size]=2`,
           ),
           next: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions?page[after]=100&page[size]=2`,
+            `/schemas/${schema.id}/revisions?page[after]=100&page[size]=2`,
           ),
           prev: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions?page[after]=99&page[size]=2`,
+            `/schemas/${schema.id}/revisions?page[after]=99&page[size]=2`,
           ),
         },
         pageSize: 2,
         self: expect.stringContaining(
-          `/schemas/${schema.schemaId}/revisions?page[after]=100&page[size]=2`,
+          `/schemas/${schema.id}/revisions?page[after]=100&page[size]=2`,
         ),
       });
       expect((response3.body as { items: string }).items).toHaveLength(0);
@@ -915,27 +907,27 @@ describe("Schemas Module", () => {
 
       // page["after"] defined but page["size"] undefined
       const response4 = await request(server).get(
-        `/schemas/${schema.schemaId}/revisions?page[after]=1`,
+        `/schemas/${schema.id}/revisions?page[after]=1`,
       );
       expect(response4.body).toStrictEqual({
         items: expect.arrayContaining([]),
         links: {
           first: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`,
+            `/schemas/${schema.id}/revisions?page[after]=1&page[size]=10`,
           ),
           last: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`,
+            `/schemas/${schema.id}/revisions?page[after]=1&page[size]=10`,
           ),
           next: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`,
+            `/schemas/${schema.id}/revisions?page[after]=1&page[size]=10`,
           ),
           prev: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`,
+            `/schemas/${schema.id}/revisions?page[after]=1&page[size]=10`,
           ),
         },
         pageSize: 10,
         self: expect.stringContaining(
-          `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`,
+          `/schemas/${schema.id}/revisions?page[after]=1&page[size]=10`,
         ),
       });
       expect((response4.body as { items: string }).items).toHaveLength(
@@ -1014,8 +1006,8 @@ describe("Schemas Module", () => {
     it("should throw an error if the schema revision is not found", async () => {
       expect.assertions(3);
 
-      const schema = testEnv.schemas[0]!;
-      const { schemaId } = schema;
+      const schema = dummySchemas[0]!;
+      const { id: schemaId } = schema;
       const schemaRevisionId = `0x${crypto.randomBytes(32).toString("hex")}`;
 
       const response = await request(server).get(
@@ -1037,51 +1029,51 @@ describe("Schemas Module", () => {
     it("should return the metadata of the specified schema revision", async () => {
       expect.assertions(3);
 
-      const schema = testEnv.schemas[0]!;
-      const revisionId = ethers.sha256(schema.serializedSchema);
+      const schema = dummySchemas[0]!;
+      const revisionId = schema.lastRevision.id;
 
       const response = await request(server).get(
-        `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata`,
+        `/schemas/${schema.id}/revisions/${revisionId}/metadata`,
       );
 
       expect(response.body).toStrictEqual({
         items: expect.arrayContaining([
           {
             href: expect.stringContaining(
-              `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata/`,
+              `/schemas/${schema.id}/revisions/${revisionId}/metadata/`,
             ),
             metadataId: expect.any(String),
           },
           {
             href: expect.stringContaining(
-              `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata/`,
+              `/schemas/${schema.id}/revisions/${revisionId}/metadata/`,
             ),
             metadataId: expect.any(String),
           },
           {
             href: expect.stringContaining(
-              `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata/`,
+              `/schemas/${schema.id}/revisions/${revisionId}/metadata/`,
             ),
             metadataId: expect.any(String),
           },
         ]),
         links: {
           first: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=1&page[size]=10`,
+            `/schemas/${schema.id}/revisions/${revisionId}/metadata?page[after]=1&page[size]=10`,
           ),
           last: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=1&page[size]=10`,
+            `/schemas/${schema.id}/revisions/${revisionId}/metadata?page[after]=1&page[size]=10`,
           ),
           next: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=1&page[size]=10`,
+            `/schemas/${schema.id}/revisions/${revisionId}/metadata?page[after]=1&page[size]=10`,
           ),
           prev: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=1&page[size]=10`,
+            `/schemas/${schema.id}/revisions/${revisionId}/metadata?page[after]=1&page[size]=10`,
           ),
         },
         pageSize: 10,
         self: expect.stringContaining(
-          `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=1&page[size]=10`,
+          `/schemas/${schema.id}/revisions/${revisionId}/metadata?page[after]=1&page[size]=10`,
         ),
       });
       expect(response.status).toBe(200);
@@ -1093,28 +1085,28 @@ describe("Schemas Module", () => {
     it("should handle the pagination properly", async () => {
       expect.assertions(12);
 
-      const schema = testEnv.schemas[0]!;
-      const revisionId = ethers.sha256(schema.serializedSchema);
+      const schema = dummySchemas[0]!;
+      const revisionId = schema.lastRevision.id;
 
       const response1 = await request(server).get(
-        `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[size]=2`,
+        `/schemas/${schema.id}/revisions/${revisionId}/metadata?page[size]=2`,
       );
       expect(response1.body).toStrictEqual({
         items: expect.arrayContaining([]),
         links: {
           first: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=1&page[size]=2`,
+            `/schemas/${schema.id}/revisions/${revisionId}/metadata?page[after]=1&page[size]=2`,
           ),
           next: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=2&page[size]=2`,
+            `/schemas/${schema.id}/revisions/${revisionId}/metadata?page[after]=2&page[size]=2`,
           ),
           prev: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=1&page[size]=2`,
+            `/schemas/${schema.id}/revisions/${revisionId}/metadata?page[after]=1&page[size]=2`,
           ),
         },
         pageSize: 2,
         self: expect.stringContaining(
-          `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=1&page[size]=2`,
+          `/schemas/${schema.id}/revisions/${revisionId}/metadata?page[after]=1&page[size]=2`,
         ),
       });
       expect((response1.body as { items: string }).items).toHaveLength(2);
@@ -1122,27 +1114,27 @@ describe("Schemas Module", () => {
 
       // next page
       const response2 = await request(server).get(
-        `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=2&page[size]=2`,
+        `/schemas/${schema.id}/revisions/${revisionId}/metadata?page[after]=2&page[size]=2`,
       );
       expect(response2.body).toStrictEqual({
         items: expect.arrayContaining([]),
         links: {
           first: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=1&page[size]=2`,
+            `/schemas/${schema.id}/revisions/${revisionId}/metadata?page[after]=1&page[size]=2`,
           ),
           last: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=2&page[size]=2`,
+            `/schemas/${schema.id}/revisions/${revisionId}/metadata?page[after]=2&page[size]=2`,
           ),
           next: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=2&page[size]=2`,
+            `/schemas/${schema.id}/revisions/${revisionId}/metadata?page[after]=2&page[size]=2`,
           ),
           prev: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=1&page[size]=2`,
+            `/schemas/${schema.id}/revisions/${revisionId}/metadata?page[after]=1&page[size]=2`,
           ),
         },
         pageSize: 2,
         self: expect.stringContaining(
-          `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=2&page[size]=2`,
+          `/schemas/${schema.id}/revisions/${revisionId}/metadata?page[after]=2&page[size]=2`,
         ),
       });
       expect((response2.body as { items: string }).items).toHaveLength(1);
@@ -1150,27 +1142,27 @@ describe("Schemas Module", () => {
 
       // big page
       const response3 = await request(server).get(
-        `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=100&page[size]=2`,
+        `/schemas/${schema.id}/revisions/${revisionId}/metadata?page[after]=100&page[size]=2`,
       );
       expect(response3.body).toStrictEqual({
         items: expect.arrayContaining([]),
         links: {
           first: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=1&page[size]=2`,
+            `/schemas/${schema.id}/revisions/${revisionId}/metadata?page[after]=1&page[size]=2`,
           ),
           last: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=100&page[size]=2`,
+            `/schemas/${schema.id}/revisions/${revisionId}/metadata?page[after]=100&page[size]=2`,
           ),
           next: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=100&page[size]=2`,
+            `/schemas/${schema.id}/revisions/${revisionId}/metadata?page[after]=100&page[size]=2`,
           ),
           prev: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=99&page[size]=2`,
+            `/schemas/${schema.id}/revisions/${revisionId}/metadata?page[after]=99&page[size]=2`,
           ),
         },
         pageSize: 2,
         self: expect.stringContaining(
-          `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=100&page[size]=2`,
+          `/schemas/${schema.id}/revisions/${revisionId}/metadata?page[after]=100&page[size]=2`,
         ),
       });
       expect((response3.body as { items: string }).items).toHaveLength(0);
@@ -1178,27 +1170,27 @@ describe("Schemas Module", () => {
 
       // page["after"] defined but page["size"] undefined
       const response4 = await request(server).get(
-        `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=1`,
+        `/schemas/${schema.id}/revisions/${revisionId}/metadata?page[after]=1`,
       );
       expect(response4.body).toStrictEqual({
         items: expect.arrayContaining([]),
         links: {
           first: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=1&page[size]=10`,
+            `/schemas/${schema.id}/revisions/${revisionId}/metadata?page[after]=1&page[size]=10`,
           ),
           last: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=1&page[size]=10`,
+            `/schemas/${schema.id}/revisions/${revisionId}/metadata?page[after]=1&page[size]=10`,
           ),
           next: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=1&page[size]=10`,
+            `/schemas/${schema.id}/revisions/${revisionId}/metadata?page[after]=1&page[size]=10`,
           ),
           prev: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=1&page[size]=10`,
+            `/schemas/${schema.id}/revisions/${revisionId}/metadata?page[after]=1&page[size]=10`,
           ),
         },
         pageSize: 10,
         self: expect.stringContaining(
-          `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=1&page[size]=10`,
+          `/schemas/${schema.id}/revisions/${revisionId}/metadata?page[after]=1&page[size]=10`,
         ),
       });
       expect((response4.body as { items: string }).items).toHaveLength(
@@ -1295,8 +1287,8 @@ describe("Schemas Module", () => {
     it("should throw an error if the schema revision is not found", async () => {
       expect.assertions(3);
 
-      const schema = testEnv.schemas[0]!;
-      const { schemaId } = schema;
+      const schema = dummySchemas[0]!;
+      const { id: schemaId } = schema;
       const schemaRevisionId = `0x${crypto.randomBytes(32).toString("hex")}`;
       const metadataId = `0x${crypto.randomBytes(32).toString("hex")}`;
 
@@ -1319,9 +1311,9 @@ describe("Schemas Module", () => {
     it("should throw an error if the metadata ID is not hexadecimal", async () => {
       expect.assertions(6);
 
-      const schema = testEnv.schemas[0]!;
-      const { schemaId } = schema;
-      const schemaRevisionId = ethers.sha256(schema.serializedSchema);
+      const schema = dummySchemas[0]!;
+      const { id: schemaId } = schema;
+      const schemaRevisionId = schema.lastRevision.id;
 
       let response = await request(server).get(
         `/schemas/${schemaId}/revisions/${schemaRevisionId}/metadata/no-metadata`,
@@ -1358,9 +1350,9 @@ describe("Schemas Module", () => {
     it("should throw an error if the schema revision metadata is not found", async () => {
       expect.assertions(3);
 
-      const schema = testEnv.schemas[0]!;
-      const { schemaId } = schema;
-      const schemaRevisionId = ethers.sha256(schema.serializedSchema);
+      const schema = dummySchemas[0]!;
+      const { id: schemaId } = schema;
+      const schemaRevisionId = schema.lastRevision.id;
       const metadataId = `0x${crypto.randomBytes(32).toString("hex")}`;
 
       const response = await request(server).get(
@@ -1382,18 +1374,18 @@ describe("Schemas Module", () => {
     it("should return the expected metadata", async () => {
       expect.assertions(3);
 
-      const schema = testEnv.schemas[0]!;
-      const { schemaId } = schema;
-      const schemaRevisionId = ethers.sha256(schema.serializedSchema);
-      const metadataId = ethers.sha256(
-        Buffer.from(JSON.stringify(schema.metadata)),
-      );
+      const schema = dummySchemas[0]!;
+      const { id: schemaId } = schema;
+      const schemaRevisionId = schema.lastRevision.id;
+      const metadataId = schema.lastRevision.metadata[0]!.id;
 
       const response = await request(server).get(
         `/schemas/${schemaId}/revisions/${schemaRevisionId}/metadata/${metadataId}`,
       );
 
-      expect(response.body).toStrictEqual(schema.metadata);
+      expect(response.body).toStrictEqual(
+        JSON.parse(schema.lastRevision.metadata[0]!.content),
+      );
       expect(response.status).toBe(200);
       expect(
         (response.headers as { "content-type": string })["content-type"],

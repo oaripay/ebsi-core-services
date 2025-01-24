@@ -1,8 +1,10 @@
 import { isEthersError, NotFoundError } from "@ebsiint-api/shared";
 import { Injectable, Logger } from "@nestjs/common";
 
-import { getBuiltGraphSDK, User_filter } from "../../../.graphclient/index.js";
-import { UserResponseObject } from "./users.interface.js";
+import type { User_filter } from "../../../.graphclient/index.js";
+import type { UserResponseObject } from "./users.interface.js";
+
+import { getBuiltGraphSDK } from "../../../.graphclient/index.js";
 
 const sdk = getBuiltGraphSDK();
 

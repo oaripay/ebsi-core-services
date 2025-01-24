@@ -1,3 +1,5 @@
+import type { DidRegistry as DidRegistryV1 } from "@ebsiint-sc/did-registry";
+import type { DidRegistry as DidRegistryV2 } from "@ebsiint-sc/did-registry-v2";
 import type { JWK } from "jose";
 
 import {
@@ -10,8 +12,12 @@ import {
   NotFoundError,
   remove0xPrefix,
 } from "@ebsiint-api/shared";
-import { DidRegistry } from "@ebsiint-sc/did-registry-v2";
+import { DidRegistry__factory as DidRegistryV1__factory } from "@ebsiint-sc/did-registry";
+import { DidRegistry__factory as DidRegistryV2__factory } from "@ebsiint-sc/did-registry-v2";
 import { Injectable, Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+
+import type { ApiConfig } from "../../config/configuration.js";
 
 import { LedgerService } from "../ledger/ledger.service.js";
 import { RequestCheckControllerDto } from "./dto/request-check-controller.dto.js";
@@ -19,9 +25,29 @@ import { validateClass } from "./identifiers.utils.js";
 
 @Injectable()
 export default class IdentifiersService {
+  private readonly didRegistryV1Contract: DidRegistryV1;
+
+  private readonly didRegistryV2Contract: DidRegistryV2;
+
   private readonly logger = new Logger(IdentifiersService.name);
 
-  constructor(private ledgerService: LedgerService) {}
+  constructor(
+    configService: ConfigService<ApiConfig, true>,
+    private ledgerService: LedgerService,
+  ) {
+    const didRegistryV1Address = configService.get("contractAddrV1", {
+      infer: true,
+    });
+    const didRegistryV2Address = configService.get("contractAddr", {
+      infer: true,
+    });
+
+    this.didRegistryV1Contract =
+      DidRegistryV1__factory.connect(didRegistryV1Address);
+
+    this.didRegistryV2Contract =
+      DidRegistryV2__factory.connect(didRegistryV2Address);
+  }
 
   // compatibility - legacy API v3
 
@@ -30,9 +56,13 @@ export default class IdentifiersService {
     body: RequestCheckControllerDto,
     id: null | number | string,
   ): Promise<boolean> {
+    const provider = this.ledgerService.getProvider();
+
     try {
       await validateClass(RequestCheckControllerDto, body);
-      const contract = this.ledgerService.getContract();
+      const contract = this.didRegistryV2Contract
+        // @ts-expect-error Error due to contracts using CommonJS modules
+        .connect(provider);
       const address = body.params[0]!;
       return await contract["checkController(string,address)"](did, address);
     } catch (error_) {
@@ -86,9 +116,10 @@ export default class IdentifiersService {
       return;
     }
 
-    const contract = this.ledgerService.getContract();
     try {
-      const errorDescription = contract.interface.parseError(error.data);
+      const errorDescription = this.didRegistryV2Contract.interface.parseError(
+        error.data,
+      );
 
       if (!errorDescription) return;
 
@@ -105,7 +136,10 @@ export default class IdentifiersService {
     did: string,
     validAt?: string,
   ): Promise<Record<string, unknown>> {
-    const contract = this.ledgerService.getContract();
+    const provider = this.ledgerService.getProvider();
+    const contract = this.didRegistryV2Contract
+      // @ts-expect-error Error due to contracts using CommonJS modules
+      .connect(provider);
     let document: Awaited<ReturnType<typeof contract.getDidDocument>>;
 
     try {
@@ -135,7 +169,7 @@ export default class IdentifiersService {
       } catch (error) {
         throw new BadRequestError(BadRequestError.defaultTitle, {
           detail: `Identifier ${did} contains an invalid base document. ${
-            (error as Error).message
+            error instanceof Error ? error.message : "Unknown error"
           }`,
         });
       }
@@ -158,7 +192,7 @@ export default class IdentifiersService {
       } catch (error) {
         throw new BadRequestError(BadRequestError.defaultTitle, {
           detail: `Identifier ${did} contains an invalid public key in a verification method. ${
-            (error as Error).message
+            error instanceof Error ? error.message : "Unknown error"
           }`,
         });
       }
@@ -194,10 +228,13 @@ export default class IdentifiersService {
   }
 
   async getDidDocumentV3(did: string): Promise<Record<string, unknown>> {
+    const provider = this.ledgerService.getProvider();
+    const contract = this.didRegistryV1Contract
+      // @ts-expect-error Error due to contracts using CommonJS modules
+      .connect(provider);
+
     const hexDid = `0x${Buffer.from(did).toString("hex")}`;
-    const latestDidDoc = await this.ledgerService
-      .getContractV1()
-      .getLatestDidDocumentVersion(hexDid);
+    const latestDidDoc = await contract.getLatestDidDocumentVersion(hexDid);
     return JSON.parse(
       Buffer.from(remove0xPrefix(latestDidDoc), "hex").toString(),
     ) as Record<string, unknown>;
@@ -209,7 +246,12 @@ export default class IdentifiersService {
     controller?: string,
     vMethodId?: string,
     vRelationship?: string,
-  ): ReturnType<DidRegistry["getDids"]> {
+  ): ReturnType<DidRegistryV2["getDids"]> {
+    const provider = this.ledgerService.getProvider();
+    const contract = this.didRegistryV2Contract
+      // @ts-expect-error Error due to contracts using CommonJS modules
+      .connect(provider);
+
     if (controller) {
       if (vMethodId || vRelationship) {
         throw new BadRequestError(BadRequestError.defaultTitle, {
@@ -219,9 +261,7 @@ export default class IdentifiersService {
       }
 
       try {
-        return await this.ledgerService
-          .getContract()
-          .getDidsByController(controller, page, pageSize);
+        return await contract.getDidsByController(controller, page, pageSize);
       } catch (error) {
         if (isEthersError(error)) {
           this.logger.error(error, error.stack);
@@ -251,14 +291,12 @@ export default class IdentifiersService {
       }
 
       try {
-        const didsWithPeriod = await this.ledgerService
-          .getContract()
-          .getDidsByVerificationRelationship(
-            vMethodId,
-            vRelationship,
-            page,
-            pageSize,
-          );
+        const didsWithPeriod = await contract.getDidsByVerificationRelationship(
+          vMethodId,
+          vRelationship,
+          page,
+          pageSize,
+        );
         const dids: string[] = [];
         const now = Math.floor(Date.now() / 1000);
         for (const didWithPeriod of didsWithPeriod.items) {
@@ -274,7 +312,7 @@ export default class IdentifiersService {
           // @ts-expect-error Error due to CommonJS vs ESM modules imports
           ...decodeResult(didsWithPeriod),
           items: dids,
-        } as unknown as ReturnType<DidRegistry["getDids"]>;
+        } as unknown as ReturnType<DidRegistryV2["getDids"]>;
       } catch (error) {
         if (isEthersError(error)) {
           this.logger.error(error, error.stack);
@@ -286,7 +324,7 @@ export default class IdentifiersService {
     }
 
     try {
-      return await this.ledgerService.getContract().getDids(page, pageSize);
+      return await contract.getDids(page, pageSize);
     } catch (error) {
       if (isEthersError(error)) {
         this.logger.error(error, error.stack);

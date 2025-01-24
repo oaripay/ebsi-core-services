@@ -6,10 +6,10 @@ import {
 import { Controller, Get, Head, HttpCode, Query } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
+import type { Invitation_filter } from "../../../.graphclient/index.js";
 import type { ApiConfig } from "../../config/configuration.js";
 import type { Access } from "./accesses.interface.js";
 
-import { Invitation_filter } from "../../../.graphclient/index.js";
 import { didToHex } from "../../shared/utils.js";
 import AccessesService from "./accesses.service.js";
 import { HeadAccessesDto, SubjectAccessesDto } from "./dto/index.js";
