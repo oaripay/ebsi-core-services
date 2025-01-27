@@ -128,7 +128,22 @@ describe("setupInterceptors", () => {
 
     // Check if the logger has been called as expected
     expect(logger.debug).toHaveBeenCalledWith(
-      new Error("Request failed with status code 500"),
+      expect.objectContaining({
+        code: "ERR_BAD_RESPONSE",
+        config: expect.objectContaining({
+          headers: expect.objectContaining({
+            Accept: "application/json, text/plain, */*",
+            "Accept-Encoding": "gzip, compress, deflate, br",
+            "EBSI-REMOTE-API": "true",
+            "User-Agent": expect.stringContaining("axios/"),
+          }),
+          method: "get",
+          url: "http://api.local/trusted-apps-registry/v3/apps",
+        }),
+        message: "Request failed with status code 500",
+        name: "AxiosError",
+        status: 500,
+      }),
       "Axios Response Interceptor",
     );
     expect(logger.verbose).toHaveBeenCalledTimes(2);
@@ -178,7 +193,22 @@ describe("setupInterceptors", () => {
 
     // Check if the logger has been called as expected
     expect(logger.debug).toHaveBeenCalledWith(
-      new Error("Request failed with status code 404"),
+      expect.objectContaining({
+        code: "ERR_BAD_REQUEST",
+        config: expect.objectContaining({
+          headers: expect.objectContaining({
+            Accept: "application/json, text/plain, */*",
+            "Accept-Encoding": "gzip, compress, deflate, br",
+            "EBSI-REMOTE-API": "true",
+            "User-Agent": expect.stringContaining("axios/"),
+          }),
+          method: "get",
+          url: "http://api.local/trusted-apps-registry/v3/apps",
+        }),
+        message: "Request failed with status code 404",
+        name: "AxiosError",
+        status: 404,
+      }),
       "Axios Response Interceptor",
     );
     expect(logger.verbose).toHaveBeenCalledTimes(2);

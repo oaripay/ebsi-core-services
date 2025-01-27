@@ -65,14 +65,14 @@ describe("multihashEncode", () => {
         "41dd7b6443542e75701aa98a0c235951a28a0d851b11XXX64d20022ab11d2589a8",
         "sha2-256",
       ),
-    ).toThrow(new Error("Non-base16 character"));
+    ).toThrow(new SyntaxError("Non-base16 character"));
 
     expect(() =>
       multihashEncode(
         "41dd7b6443542e75701aa98a0c235951a28a0d851b11564d22ab11d2589a8",
         "sha2-256",
       ),
-    ).toThrow(new Error("Unexpected end of data"));
+    ).toThrow(new SyntaxError("Unexpected end of data"));
   });
 
   it("should throw an error when the algorithm is not valid", () => {

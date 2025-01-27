@@ -1,13 +1,9 @@
 import type { LoggerService } from "@nestjs/common";
+import type { AxiosRequestConfig } from "axios";
 
-import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
+import axios, { AxiosError } from "axios";
 import http from "node:http";
 import https from "node:https";
-
-interface AxiosResponseError {
-  config?: AxiosRequestConfig;
-  response?: AxiosResponse;
-}
 
 const isNotFoundError = (data?: unknown): boolean => {
   if (!data || typeof data !== "object" || data === null) return false;
@@ -23,7 +19,7 @@ const validateRequestConfigHeaders = (config: AxiosRequestConfig): boolean => {
   );
 };
 
-const errorNeedsInterception = (error: AxiosResponseError): boolean => {
+const errorNeedsInterception = (error: AxiosError): boolean => {
   return (
     !error.response ||
     error.response.status >= 500 ||
@@ -70,7 +66,12 @@ export function setupInterceptors(
   axios.interceptors.response.use(
     undefined,
     // This function is triggered whenever an axios request doesn't return a 2xx
-    (error: AxiosResponseError) => {
+    (error: unknown) => {
+      if (!(error instanceof AxiosError)) {
+        // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
+        return Promise.reject(error);
+      }
+
       if (
         errorNeedsInterception(error) &&
         error.config?.url?.startsWith(localOrigin)
@@ -80,7 +81,7 @@ export function setupInterceptors(
         const remoteUrl = config.url!.replace(localOrigin, domain);
 
         if (logger) {
-          logger.debug!(error, "Axios Response Interceptor");
+          logger.debug!(error.toJSON(), "Axios Response Interceptor");
           logger.verbose!(
             `Replacing ${config.url} with ${remoteUrl}`,
             "Axios Response Interceptor",
@@ -97,7 +98,6 @@ export function setupInterceptors(
         return axios.request(config);
       }
 
-      // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
       return Promise.reject(error);
     },
   );

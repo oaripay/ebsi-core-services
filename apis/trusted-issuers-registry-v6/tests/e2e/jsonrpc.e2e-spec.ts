@@ -1175,7 +1175,9 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
 
             testIssuerWithProxyWallet = new ethers.Wallet(
               prefixWith0x(
-                configService.get("testAdminAccreditation", { infer: true }),
+                configService.get("testIssuerWithProxyPrivateKey", {
+                  infer: true,
+                }),
               ),
             );
 
