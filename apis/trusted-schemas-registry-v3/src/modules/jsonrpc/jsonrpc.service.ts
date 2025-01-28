@@ -15,6 +15,10 @@ import { ethers } from "ethers";
 
 import type { ApiConfig } from "../../config/configuration.js";
 import type { JsonRpcSchema } from "./validators/JsonRpcSchema.js";
+import type {
+  SendSignedTransactionParamsSchema,
+  UnsignedTransaction,
+} from "./validators/RequestSendSignedTransactionSchema.js";
 
 import { LedgerService } from "../ledger/ledger.service.js";
 import {
@@ -25,11 +29,7 @@ import {
   insertSchemaSchema,
   requestInsertSchemaSchema,
 } from "./validators/RequestInsertSchemaSchema.js";
-import {
-  requestSendSignedTransactionDtoSchema,
-  type SendSignedTransactionParamsSchema,
-  type UnsignedTransaction,
-} from "./validators/RequestSendSignedTransactionSchema.js";
+import { requestSendSignedTransactionDtoSchema } from "./validators/RequestSendSignedTransactionSchema.js";
 import {
   requestUpdateMetadataSchema,
   updateMetadataSchema,

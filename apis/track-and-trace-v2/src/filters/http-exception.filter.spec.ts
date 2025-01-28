@@ -1,3 +1,4 @@
+import type { ArgumentsHost } from "@nestjs/common";
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 
 import {
@@ -7,7 +8,6 @@ import {
 } from "@ebsiint-api/shared";
 import { fastifyAccepts } from "@fastify/accepts";
 import {
-  type ArgumentsHost,
   BadRequestException,
   Logger,
   NotFoundException,

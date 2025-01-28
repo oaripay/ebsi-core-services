@@ -1,6 +1,7 @@
 import hre from "hardhat";
 
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
+import type { JWK } from "jose";
 
 import { util } from "@cef-ebsi/key-did-resolver";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
@@ -22,7 +23,6 @@ import {
   calculateJwkThumbprint,
   exportJWK,
   generateKeyPair,
-  type JWK,
   SignJWT,
 } from "jose";
 import { http, HttpResponse } from "msw";

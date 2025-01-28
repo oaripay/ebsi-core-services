@@ -1,8 +1,6 @@
-import {
-  buildMessage,
-  ValidateBy,
-  type ValidationOptions,
-} from "class-validator";
+import type { ValidationOptions } from "class-validator";
+
+import { buildMessage, ValidateBy } from "class-validator";
 
 import { multibase } from "../utils/multibase.utils.js";
 import { multihashDecode } from "../utils/multihash.utils.js";

@@ -1,4 +1,10 @@
+import type { AxiosResponse } from "axios";
 import type { Cache } from "cache-manager";
+import type {
+  JSONWebKeySet,
+  JWTPayload,
+  ProtectedHeaderParameters,
+} from "jose";
 
 import {
   InternalServerError,
@@ -8,16 +14,8 @@ import {
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Inject, Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import axios, { type AxiosResponse, isAxiosError } from "axios";
-import {
-  decodeJwt,
-  decodeProtectedHeader,
-  importJWK,
-  type JSONWebKeySet,
-  type JWTPayload,
-  jwtVerify,
-  type ProtectedHeaderParameters,
-} from "jose";
+import axios, { isAxiosError } from "axios";
+import { decodeJwt, decodeProtectedHeader, importJWK, jwtVerify } from "jose";
 
 import type { ApiConfig } from "../../config/configuration.js";
 import type { SubjectInfo } from "./auth.interface.js";

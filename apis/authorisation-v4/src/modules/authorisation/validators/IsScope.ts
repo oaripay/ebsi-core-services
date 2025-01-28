@@ -1,8 +1,6 @@
-import {
-  buildMessage,
-  ValidateBy,
-  type ValidationOptions,
-} from "class-validator";
+import type { ValidationOptions } from "class-validator";
+
+import { buildMessage, ValidateBy } from "class-validator";
 
 import { CUSTOM_SCOPES, OPENID_SCOPE } from "../authorisation.constants.js";
 

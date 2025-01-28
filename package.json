@@ -33,8 +33,8 @@
     "@tsconfig/node22": "^22.0.0",
     "@tsconfig/strictest": "^2.0.5",
     "@types/mustache": "^4.2.5",
-    "@typescript-eslint/eslint-plugin": "^8.21.0",
-    "@typescript-eslint/parser": "^8.21.0",
+    "@typescript-eslint/eslint-plugin": "^8.22.0",
+    "@typescript-eslint/parser": "^8.22.0",
     "audit-ci": "^7.1.0",
     "cross-env": "^7.0.3",
     "eslint": "^9.19.0",
@@ -62,7 +62,7 @@
     "solhint": "^5.0.5",
     "spdx-license-list": "^6.9.0",
     "typescript": "5.7.2",
-    "typescript-eslint": "^8.21.0"
+    "typescript-eslint": "^8.22.0"
   },
   "workspaces": {
     "packages": [

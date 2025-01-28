@@ -16,6 +16,10 @@ import { stringify } from "safe-stable-stringify";
 
 import type { ApiConfig } from "../../config/configuration.js";
 import type { JsonRpcSchema } from "./validators/JsonRpcSchema.js";
+import type {
+  SendSignedTransactionParamsSchema,
+  UnsignedTransaction,
+} from "./validators/RequestSendSignedTransactionSchema.js";
 
 import { DIDR_INVITE_SCOPE, DIDR_WRITE_SCOPE } from "../auth/auth.constants.js";
 import { LedgerService } from "../ledger/ledger.service.js";
@@ -63,11 +67,7 @@ import {
   requestRollVerificationMethodDtoSchema,
   rollVerificationMethodSchema,
 } from "./validators/RequestRollVerificationMethodSchema.js";
-import {
-  requestSendSignedTransactionDtoSchema,
-  type SendSignedTransactionParamsSchema,
-  type UnsignedTransaction,
-} from "./validators/RequestSendSignedTransactionSchema.js";
+import { requestSendSignedTransactionDtoSchema } from "./validators/RequestSendSignedTransactionSchema.js";
 import {
   requestUpdateBaseDocumentDtoSchema,
   updateBaseDocumentSchema,

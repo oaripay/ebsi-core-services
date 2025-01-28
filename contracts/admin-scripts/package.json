@@ -19,7 +19,7 @@
     "deploy-box": "yarn clean && yarn compile && yarn box"
   },
   "dependencies": {
-    "@cef-ebsi/wallet-lib": "^6.0.0-alpha.3",
+    "@cef-ebsi/wallet-lib": "^6.0.0-alpha.4",
     "@ebsiint-sc/bootstrap": "^1.0.1-rc.8",
     "@ebsiint-sc/bootstrap-v2": "^2.0.0-rc.4",
     "@ebsiint-sc/did-registry": "^1.1.0-rc.8",
@@ -99,7 +99,7 @@
     "@nomiclabs/hardhat-solhint": "^4.0.1",
     "@openzeppelin/hardhat-upgrades": "^3.9.0",
     "@types/elliptic": "^6.4.18",
-    "@types/node": "^22.10.10",
+    "@types/node": "^22.12.0",
     "canonicalize": "^2.0.0",
     "dotenv": "^16.4.7",
     "ethers": "^6.13.5",

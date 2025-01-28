@@ -15,6 +15,10 @@ import { ethers } from "ethers";
 
 import type { ApiConfig } from "../../config/configuration.js";
 import type { UserInfo } from "../auth/auth.interface.js";
+import type {
+  SendSignedTransactionParamsSchema,
+  UnsignedTransaction,
+} from "./validators/RequestSendSignedTransaction.js";
 
 import { getBuiltGraphSDK } from "../../../.graphclient/index.js";
 import { LedgerService } from "../ledger/ledger.service.js";
@@ -47,11 +51,7 @@ import {
   requestRevokeRecordOwnerDtoSchema,
   revokeRecordOwnerSchema,
 } from "./validators/RequestRevokeRecordOwner.js";
-import {
-  requestSendSignedTransactionDtoSchema,
-  type SendSignedTransactionParamsSchema,
-  type UnsignedTransaction,
-} from "./validators/RequestSendSignedTransaction.js";
+import { requestSendSignedTransactionDtoSchema } from "./validators/RequestSendSignedTransaction.js";
 import {
   requestTimestampHashesDtoSchema,
   timestampHashesSchema,

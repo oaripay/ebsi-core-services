@@ -1,3 +1,4 @@
+import type { ArgumentsHost } from "@nestjs/common";
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { AxiosError } from "axios";
 
@@ -5,12 +6,7 @@ import {
   MethodNotAllowedError,
   ProblemDetailsError,
 } from "@ebsiint-api/shared";
-import {
-  type ArgumentsHost,
-  BadRequestException,
-  Logger,
-  NotFoundException,
-} from "@nestjs/common";
+import { BadRequestException, Logger, NotFoundException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Test } from "@nestjs/testing";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";

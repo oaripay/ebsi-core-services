@@ -1,9 +1,10 @@
-import {
-  type EbsiEnvConfiguration,
-  type EbsiVerifiableAttestation,
-  verifyCredentialJwt,
-  type VerifyCredentialOptions,
+import type {
+  EbsiEnvConfiguration,
+  EbsiVerifiableAttestation,
+  VerifyCredentialOptions,
 } from "@cef-ebsi/verifiable-credential";
+
+import { verifyCredentialJwt } from "@cef-ebsi/verifiable-credential";
 import Joi from "joi";
 
 // StatusList2021Credential extends Credential type

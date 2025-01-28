@@ -1,7 +1,7 @@
 EBSI
 
 ========================================================================================
-Copyright (C) 2024 European Union
+Copyright (C) 2025 European Union
 
                       EUROPEAN UNION PUBLIC LICENCE v. 1.2
                       EUPL © the European Union 2007, 2016
@@ -330,12 +330,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 ========================================================================================
-- @cef-ebsi/ebsi-did-resolver@^4.0.5-alpha.0
+- @cef-ebsi/ebsi-did-resolver@^4.0.5-alpha.1
 ------------------------------
-This project is licensed under (EUPL-1.2 OR Apache-2.0).
+This project is licensed under EUPL-1.2.
 
 European Union Public License 1.2: https://joinup.ec.europa.eu/page/eupl-text-11-12
-Apache License 2.0: https://www.apache.org/licenses/LICENSE-2.0
 
 --
 
@@ -630,12 +629,11 @@ EUPL version.
 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
 
 ========================================================================================
-- @cef-ebsi/key-did-resolver@^2.1.0-alpha.2
+- @cef-ebsi/key-did-resolver@^2.1.0-alpha.3
 ------------------------------
-This project is licensed under (EUPL-1.2 OR Apache-2.0).
+This project is licensed under EUPL-1.2.
 
 European Union Public License 1.2: https://joinup.ec.europa.eu/page/eupl-text-11-12
-Apache License 2.0: https://www.apache.org/licenses/LICENSE-2.0
 
 --
 
@@ -930,12 +928,11 @@ EUPL version.
 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
 
 ========================================================================================
-- @cef-ebsi/key-encoder@^2.0.0-alpha.2
+- @cef-ebsi/key-encoder@^2.0.0-alpha.3
 ------------------------------
-This project is licensed under (EUPL-1.2 OR Apache-2.0).
+This project is licensed under EUPL-1.2.
 
 European Union Public License 1.2: https://joinup.ec.europa.eu/page/eupl-text-11-12
-Apache License 2.0: https://www.apache.org/licenses/LICENSE-2.0
 
 --
 
@@ -1230,7 +1227,7 @@ EUPL version.
 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
 
 ========================================================================================
-- @cef-ebsi/verifiable-credential@^6.2.0-alpha.4
+- @cef-ebsi/verifiable-credential@^7.0.0-alpha.1
 ------------------------------
 This project is licensed under EUPL-1.2.
 
@@ -1624,7 +1621,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ========================================================================================
-- @noble/curves@^1.7.0
+- @noble/curves@^1.8.1
 ------------------------------
 This project is licensed under MIT.
 
@@ -1945,7 +1942,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 ========================================================================================
-- did-jwt@^8.0.4
+- did-jwt@^8.0.8
 ------------------------------
 This project is licensed under Apache-2.0.
 
@@ -2384,7 +2381,7 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ========================================================================================
-- ethers@^6.13.4
+- ethers@^6.13.5
 ------------------------------
 This project is licensed under MIT.
 

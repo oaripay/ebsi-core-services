@@ -36,6 +36,7 @@ import {
   vi,
 } from "vitest";
 
+import type { LegalEntity } from "../../../tests/utils/data.js";
 import type { ApiConfig } from "../../config/configuration.js";
 import type {
   Access,
@@ -49,7 +50,6 @@ import {
   createDidDocument,
   createLegalEntity,
   createPresentationSubmission,
-  type LegalEntity,
 } from "../../../tests/utils/data.js";
 import {
   CUSTOM_SCOPES,

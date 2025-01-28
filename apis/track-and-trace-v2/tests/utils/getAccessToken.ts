@@ -1,9 +1,7 @@
 import type { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
+import type { EbsiIssuer } from "@cef-ebsi/verifiable-presentation";
 
-import {
-  createVerifiablePresentationJwt,
-  type EbsiIssuer,
-} from "@cef-ebsi/verifiable-presentation";
+import { createVerifiablePresentationJwt } from "@cef-ebsi/verifiable-presentation";
 import { getPublicKeyJwk, getSigner } from "@ebsiint-api/shared";
 import axios, { isAxiosError } from "axios";
 import { createJWT, hexToBytes } from "did-jwt";

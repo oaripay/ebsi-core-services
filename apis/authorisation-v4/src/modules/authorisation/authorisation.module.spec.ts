@@ -1,3 +1,9 @@
+import type {
+  EbsiEnvConfiguration,
+  EbsiIssuer,
+  EbsiVerifiableAttestation,
+} from "@cef-ebsi/verifiable-credential";
+import type { EbsiVerifiablePresentation } from "@cef-ebsi/verifiable-presentation";
 import type { PaginatedList } from "@ebsiint-api/shared";
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { PresentationSubmission } from "@sphereon/pex-models";
@@ -5,16 +11,8 @@ import type { RawServerDefault } from "fastify";
 import type { JWK } from "jose";
 
 import { fromUrl } from "@cef-ebsi/ebsi-uri";
-import {
-  createVerifiableCredentialJwt,
-  type EbsiEnvConfiguration,
-  type EbsiIssuer,
-  type EbsiVerifiableAttestation,
-} from "@cef-ebsi/verifiable-credential";
-import {
-  createVerifiablePresentationJwt,
-  type EbsiVerifiablePresentation,
-} from "@cef-ebsi/verifiable-presentation";
+import { createVerifiableCredentialJwt } from "@cef-ebsi/verifiable-credential";
+import { createVerifiablePresentationJwt } from "@cef-ebsi/verifiable-presentation";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";

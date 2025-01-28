@@ -1,10 +1,9 @@
+import type { CallHandler, ExecutionContext } from "@nestjs/common";
 import type { FastifyReply, FastifyRequest } from "fastify";
 import type { Observable } from "rxjs";
 
 // Copied from https://github.com/algoan/nestjs-components/blob/master/packages/logging-interceptor/src/logging.interceptor.ts
 import {
-  type CallHandler,
-  type ExecutionContext,
   HttpException,
   HttpStatus,
   Injectable,
@@ -13,10 +12,9 @@ import {
 } from "@nestjs/common";
 import { tap } from "rxjs/operators";
 
-import {
-  type LogOptions,
-  METHOD_LOG_METADATA,
-} from "../decorators/log.decorator.js";
+import type { LogOptions } from "../decorators/log.decorator.js";
+
+import { METHOD_LOG_METADATA } from "../decorators/log.decorator.js";
 
 /**
  * Interceptor that logs input/output requests

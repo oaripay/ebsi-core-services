@@ -1,7 +1,7 @@
 EBSI
 
 ========================================================================================
-Copyright (C) 2024 European Union
+Copyright (C) 2025 European Union
 
                       EUROPEAN UNION PUBLIC LICENCE v. 1.2
                       EUPL © the European Union 2007, 2016
@@ -299,7 +299,7 @@ https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
 This product makes use of software developed by third parties.
 
 ========================================================================================
-- @cef-ebsi/ebsi-uri@^0.2.0-alpha.1
+- @cef-ebsi/ebsi-uri@^1.0.0-alpha.1
 ------------------------------
 This project is licensed under EUPL-1.2.
 
@@ -598,7 +598,7 @@ EUPL version.
 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
 
 ========================================================================================
-- @cef-ebsi/verifiable-credential@^6.2.0-alpha.4
+- @cef-ebsi/verifiable-credential@^7.0.0-alpha.1
 ------------------------------
 This project is licensed under EUPL-1.2.
 
@@ -897,7 +897,7 @@ EUPL version.
 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
 
 ========================================================================================
-- @cef-ebsi/verifiable-presentation@^7.2.0-alpha.3
+- @cef-ebsi/verifiable-presentation@^8.0.0-alpha.1
 ------------------------------
 This project is licensed under EUPL-1.2.
 
@@ -1196,7 +1196,7 @@ EUPL version.
 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
 
 ========================================================================================
-- @cef-ebsi/wallet-lib@^6.0.0-alpha.3
+- @cef-ebsi/wallet-lib@^6.0.0-alpha.4
 ------------------------------
 This project is licensed under EUPL-1.2.
 
@@ -2101,7 +2101,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ========================================================================================
-- @nestjs/terminus@^10.2.3
+- @nestjs/terminus@^10.3.0
 ------------------------------
 This project is licensed under MIT.
 
@@ -2452,7 +2452,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 ========================================================================================
-- did-jwt@^8.0.4
+- did-jwt@^8.0.8
 ------------------------------
 This project is licensed under Apache-2.0.
 
@@ -2663,7 +2663,7 @@ Apache License 2.0: https://www.apache.org/licenses/LICENSE-2.0
    limitations under the License.
 
 ========================================================================================
-- ethers@^6.13.4
+- ethers@^6.13.5
 ------------------------------
 This project is licensed under MIT.
 
@@ -2746,7 +2746,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ========================================================================================
-- nest-winston@^1.9.7
+- nest-winston@^1.10.2
 ------------------------------
 This project is licensed under MIT.
 
@@ -2775,7 +2775,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ========================================================================================
-- qs@^6.13.1
+- qs@^6.14.0
 ------------------------------
 This project is licensed under BSD-3-Clause.
 
@@ -2939,7 +2939,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 ========================================================================================
-- yaml@^2.6.1
+- yaml@^2.7.0
 ------------------------------
 This project is licensed under ISC.
 

@@ -1,4 +1,11 @@
 import type {
+  EbsiVerifiablePresentation,
+  EbsiVpEnvConfiguration,
+  ProofPurposeTypes,
+  VpJwtPayload,
+} from "@cef-ebsi/verifiable-presentation";
+import type { PaginatedList } from "@ebsiint-api/shared";
+import type {
   PresentationDefinitionV2,
   PresentationSubmission,
 } from "@sphereon/pex-models";
@@ -6,19 +13,8 @@ import type { MemoryCache } from "cache-manager";
 import type { JWTHeader, JWTPayload } from "did-jwt";
 import type { DIDDocument } from "did-resolver";
 
-import {
-  type EbsiVerifiablePresentation,
-  type EbsiVpEnvConfiguration,
-  type ProofPurposeTypes,
-  verifyPresentationJwt,
-  type VpJwtPayload,
-} from "@cef-ebsi/verifiable-presentation";
-import {
-  encode,
-  getPublicKeyJwk,
-  logAxiosError,
-  type PaginatedList,
-} from "@ebsiint-api/shared";
+import { verifyPresentationJwt } from "@cef-ebsi/verifiable-presentation";
+import { encode, getPublicKeyJwk, logAxiosError } from "@ebsiint-api/shared";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Inject, Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";

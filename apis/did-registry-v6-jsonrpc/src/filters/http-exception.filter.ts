@@ -1,3 +1,4 @@
+import type { ArgumentsHost } from "@nestjs/common";
 import type { FastifyReply } from "fastify";
 
 import {
@@ -11,7 +12,6 @@ import {
   ProblemDetailsError,
 } from "@ebsiint-api/shared";
 import {
-  type ArgumentsHost,
   BadRequestException,
   Catch,
   ExceptionFilter,
