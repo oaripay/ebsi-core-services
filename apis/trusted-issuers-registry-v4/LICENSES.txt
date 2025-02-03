@@ -299,7 +299,7 @@ https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
 This product makes use of software developed by third parties.
 
 ========================================================================================
-- @cef-ebsi/ebsi-uri@^1.0.0-alpha.1
+- @cef-ebsi/ebsi-uri@^1.0.0
 ------------------------------
 This project is licensed under EUPL-1.2.
 
@@ -598,7 +598,7 @@ EUPL version.
 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
 
 ========================================================================================
-- @cef-ebsi/verifiable-credential@^7.0.0-alpha.1
+- @cef-ebsi/verifiable-credential@^7.0.0
 ------------------------------
 This project is licensed under EUPL-1.2.
 
@@ -897,7 +897,7 @@ EUPL version.
 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
 
 ========================================================================================
-- @ebsiint-api/shared@^1.1.0-rc.10
+- @ebsiint-api/shared@^1.1.0-rc.11
 ------------------------------
 This project is licensed under EUPL-1.2.
 
@@ -1196,7 +1196,7 @@ EUPL version.
 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
 
 ========================================================================================
-- @ebsiint-sc/trusted-issuers-registry@^2.0.0-rc.8
+- @ebsiint-sc/trusted-issuers-registry@^2.0.0-rc.9
 ------------------------------
 This project is licensed under EUPL-1.2.
 

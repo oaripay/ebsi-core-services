@@ -299,7 +299,7 @@ https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
 This product makes use of software developed by third parties.
 
 ========================================================================================
-- @cef-ebsi/wallet-lib@^6.0.0-alpha.4
+- @cef-ebsi/wallet-lib@^6.0.0
 ------------------------------
 This project is licensed under EUPL-1.2.
 

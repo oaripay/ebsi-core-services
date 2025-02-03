@@ -1,5 +1,21 @@
 # Changelog
 
+## 5.0.0-rc.2
+
+### Patch Changes
+
+- [0b2fc67ae0f01006cd8de8a6c4fe09e1c4273a89](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/0b2fc67ae0f01006cd8de8a6c4fe09e1c4273a89): Bump dependencies.
+- [4053ea85d8cf551558770ec35243ae983eefb1ca](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/4053ea85d8cf551558770ec35243ae983eefb1ca): Bump dependencies.
+- [426cf3113318345473cfdfc9da7102820e613a08](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/426cf3113318345473cfdfc9da7102820e613a08): Bump dependencies.
+- [c7b7fa1a3049eb9c780b10e37f26342dfd8e552d](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/c7b7fa1a3049eb9c780b10e37f26342dfd8e552d): Fetch data from TnT API v2 instead of v1.
+- [6314280d6e274c381e67008b5c2960ad4ce7e757](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/6314280d6e274c381e67008b5c2960ad4ce7e757): Add the possibility to disable the LoggingInterceptor for specific endpoints.
+- Updated dependencies [e9c5b06ea71f49dc964520bac26281a9c7430a6f](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/e9c5b06ea71f49dc964520bac26281a9c7430a6f)
+- Updated dependencies [0b2fc67ae0f01006cd8de8a6c4fe09e1c4273a89](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/0b2fc67ae0f01006cd8de8a6c4fe09e1c4273a89)
+- Updated dependencies [4053ea85d8cf551558770ec35243ae983eefb1ca](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/4053ea85d8cf551558770ec35243ae983eefb1ca)
+- Updated dependencies [426cf3113318345473cfdfc9da7102820e613a08](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/426cf3113318345473cfdfc9da7102820e613a08)
+- Updated dependencies [6314280d6e274c381e67008b5c2960ad4ce7e757](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/6314280d6e274c381e67008b5c2960ad4ce7e757)
+  - @ebsiint-api/shared@1.1.0-rc.11
+
 ## 5.0.0-rc.1
 
 ### Major Changes

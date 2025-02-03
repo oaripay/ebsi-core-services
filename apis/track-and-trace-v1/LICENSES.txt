@@ -299,7 +299,7 @@ https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
 This product makes use of software developed by third parties.
 
 ========================================================================================
-- @cef-ebsi/ebsi-did-resolver@^4.0.5-alpha.1
+- @cef-ebsi/ebsi-did-resolver@^4.0.5
 ------------------------------
 This project is licensed under EUPL-1.2.
 
@@ -598,7 +598,7 @@ EUPL version.
 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
 
 ========================================================================================
-- @cef-ebsi/ebsi-uri@^1.0.0-alpha.1
+- @cef-ebsi/ebsi-uri@^1.0.0
 ------------------------------
 This project is licensed under EUPL-1.2.
 
@@ -897,7 +897,7 @@ EUPL version.
 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
 
 ========================================================================================
-- @cef-ebsi/key-did-resolver@^2.1.0-alpha.3
+- @cef-ebsi/key-did-resolver@^2.1.0
 ------------------------------
 This project is licensed under EUPL-1.2.
 
@@ -1196,7 +1196,7 @@ EUPL version.
 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
 
 ========================================================================================
-- @ebsiint-api/shared@^1.1.0-rc.10
+- @ebsiint-api/shared@^1.1.0-rc.11
 ------------------------------
 This project is licensed under EUPL-1.2.
 
@@ -1495,7 +1495,7 @@ EUPL version.
 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
 
 ========================================================================================
-- @ebsiint-sc/track-and-trace@1.0.0-rc.3
+- @ebsiint-sc/track-and-trace@1.0.0-rc.4
 ------------------------------
 This project is licensed under EUPL-1.2.
 

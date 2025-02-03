@@ -1,5 +1,32 @@
 # Changelog
 
+## 4.0.0-rc.2
+
+### Minor Changes
+
+- [9a1e6fd5ef796d4ad35545b0e75136d5183f7252](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/9a1e6fd5ef796d4ad35545b0e75136d5183f7252): Filtering options in collections
+
+### Patch Changes
+
+- [9d97c7b8aba95125012e189041173174b2db4f45](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/9d97c7b8aba95125012e189041173174b2db4f45): Fix bad requests
+- [fbef87cd3272925b76b090840fdf5988a8674c3c](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/fbef87cd3272925b76b090840fdf5988a8674c3c): Use URLSearchParams to create queries in collections.
+- [8dae136f862b6191efcfdc39549b38428d5a6830](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/8dae136f862b6191efcfdc39549b38428d5a6830): Fix revisions valit at
+- [0b2fc67ae0f01006cd8de8a6c4fe09e1c4273a89](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/0b2fc67ae0f01006cd8de8a6c4fe09e1c4273a89): Bump dependencies.
+- [e42337f296ad7ca356852fd572d700885815a4b3](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/e42337f296ad7ca356852fd572d700885815a4b3): Reject requests when query parameter is not supported
+- [4e2da395693a137d9ab89c5a3f7b4f2d45c6b603](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/4e2da395693a137d9ab89c5a3f7b4f2d45c6b603): Check subgraph in the healthcheck
+- [4053ea85d8cf551558770ec35243ae983eefb1ca](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/4053ea85d8cf551558770ec35243ae983eefb1ca): Bump dependencies.
+- [426cf3113318345473cfdfc9da7102820e613a08](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/426cf3113318345473cfdfc9da7102820e613a08): Bump dependencies.
+- [6314280d6e274c381e67008b5c2960ad4ce7e757](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/6314280d6e274c381e67008b5c2960ad4ce7e757): Add the possibility to disable the LoggingInterceptor for specific endpoints.
+- Updated dependencies [749d0572d4f80818577b4596ad1dfcd8eccfd8df](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/749d0572d4f80818577b4596ad1dfcd8eccfd8df)
+- Updated dependencies [e9c5b06ea71f49dc964520bac26281a9c7430a6f](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/e9c5b06ea71f49dc964520bac26281a9c7430a6f)
+- Updated dependencies [0b2fc67ae0f01006cd8de8a6c4fe09e1c4273a89](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/0b2fc67ae0f01006cd8de8a6c4fe09e1c4273a89)
+- Updated dependencies [4053ea85d8cf551558770ec35243ae983eefb1ca](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/4053ea85d8cf551558770ec35243ae983eefb1ca)
+- Updated dependencies [426cf3113318345473cfdfc9da7102820e613a08](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/426cf3113318345473cfdfc9da7102820e613a08)
+- Updated dependencies [6314280d6e274c381e67008b5c2960ad4ce7e757](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/6314280d6e274c381e67008b5c2960ad4ce7e757)
+  - @ebsiint-subgraph/trusted-schemas-registry-v3@0.0.0-rc.1
+  - @ebsiint-api/shared@1.1.0-rc.11
+  - @ebsiint-sc/trusted-schemas-registry-v3@3.0.0-rc.2
+
 ## 4.0.0-rc.1
 
 ### Major Changes

@@ -26,8 +26,8 @@
   },
   "dependencies": {
     "@cef-ebsi/ebsi-uri": "^1.0.0",
-    "@ebsiint-api/shared": "^1.1.0-rc.10",
-    "@ebsiint-sc/did-registry-v4": "^4.0.0-rc.2",
+    "@ebsiint-api/shared": "^1.1.0-rc.11",
+    "@ebsiint-sc/did-registry-v4": "^4.0.0-rc.3",
     "@fastify/accepts": "^4.3.0",
     "@fastify/helmet": "^11.1.1",
     "@nestjs/axios": "^3.1.3",

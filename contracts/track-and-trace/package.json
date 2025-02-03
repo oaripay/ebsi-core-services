@@ -1,7 +1,7 @@
 {
   "name": "@ebsiint-sc/track-and-trace",
   "private": true,
-  "version": "1.0.0-rc.3",
+  "version": "1.0.0-rc.4",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "EUPL-1.2",
@@ -25,9 +25,9 @@
     "test:ci": "yarn compile && yarn coverage"
   },
   "dependencies": {
-    "@ebsiint-sc/bootstrap-v2": "^2.0.0-rc.4",
-    "@ebsiint-sc/did-registry-v3": "^3.0.0-rc.4",
-    "@ebsiint-sc/trusted-policies-registry-v2": "^2.0.0-rc.4",
+    "@ebsiint-sc/bootstrap-v2": "^2.0.0-rc.5",
+    "@ebsiint-sc/did-registry-v3": "^3.0.0-rc.5",
+    "@ebsiint-sc/trusted-policies-registry-v2": "^2.0.0-rc.5",
     "@openzeppelin/contracts": "^4.9.6",
     "@openzeppelin/contracts-upgradeable": "^4.9.6"
   },

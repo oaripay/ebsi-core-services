@@ -299,7 +299,7 @@ https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
 This product makes use of software developed by third parties.
 
 ========================================================================================
-- @ebsiint-sc/bootstrap@^1.0.1-rc.8
+- @ebsiint-sc/bootstrap@^1.0.1-rc.9
 ------------------------------
 This project is licensed under EUPL-1.2.
 

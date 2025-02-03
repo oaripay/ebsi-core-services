@@ -1,7 +1,7 @@
 {
   "name": "@ebsiint-api/timestamp-api-v5",
   "private": true,
-  "version": "5.0.0-rc.1",
+  "version": "5.0.0-rc.2",
   "type": "module",
   "license": "EUPL-1.2",
   "scripts": {
@@ -27,9 +27,9 @@
   },
   "dependencies": {
     "@cef-ebsi/ebsi-uri": "^1.0.0",
-    "@ebsiint-api/shared": "^1.1.0-rc.10",
-    "@ebsiint-sc/timestamp-v3": "^3.0.0-rc.1",
-    "@ebsiint-subgraph/timestamp-v3": "^0.0.0-rc.0",
+    "@ebsiint-api/shared": "^1.1.0-rc.11",
+    "@ebsiint-sc/timestamp-v3": "^3.0.0-rc.2",
+    "@ebsiint-subgraph/timestamp-v3": "^0.0.0-rc.1",
     "@fastify/accepts": "^4.3.0",
     "@fastify/helmet": "^11.1.1",
     "@graphprotocol/client-cli": "^3.0.7",
