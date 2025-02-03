@@ -28,6 +28,7 @@ describe("Ledger API v3 - Generic tests (e2e)", () => {
 
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
       new FastifyAdapter(),
+      { rawBody: true },
     );
 
     const configService =

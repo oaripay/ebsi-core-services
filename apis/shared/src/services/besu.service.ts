@@ -62,6 +62,8 @@ export abstract class BesuService implements OnModuleDestroy, OnModuleInit {
   }
 
   async onModuleDestroy() {
+    this.logger.log("Destroying BesuService");
+
     if (this.keepAliveInterval) clearInterval(this.keepAliveInterval);
     if (this.pingTimeout) clearTimeout(this.pingTimeout);
 
@@ -102,7 +104,9 @@ export abstract class BesuService implements OnModuleDestroy, OnModuleInit {
       fetchRequest.setCredentials(username, password);
     }
 
-    this.provider = new ethers.JsonRpcProvider(fetchRequest);
+    this.provider = new ethers.JsonRpcProvider(fetchRequest, undefined, {
+      staticNetwork: true,
+    });
 
     this.eventEmitter.emit("connect");
   }
@@ -124,7 +128,9 @@ export abstract class BesuService implements OnModuleDestroy, OnModuleInit {
       return;
     }
 
-    this.provider = new ethers.WebSocketProvider(this.url);
+    this.provider = new ethers.WebSocketProvider(this.url, undefined, {
+      staticNetwork: true,
+    });
 
     const websocket = this.provider.websocket as WebSocket;
 

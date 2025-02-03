@@ -392,7 +392,6 @@ describeWriteOps()("Track and Trace - User Journey (e2e)", () => {
 
     // Get block containing the transaction
     const provider = new ethers.JsonRpcProvider(ledgerApi, undefined, {
-      batchMaxSize: 1, // Ledger API doesn't support batch request
       staticNetwork: true, // Do not request chain ID on requests to validate the underlying chain has not changed
     });
     let block = await provider.getBlock(receipt.blockHash);

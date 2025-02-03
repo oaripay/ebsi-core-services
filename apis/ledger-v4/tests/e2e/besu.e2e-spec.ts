@@ -28,6 +28,7 @@ describe("Ledger API v4 - POST /ledger/v4/blockchains/besu", () => {
 
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
       new FastifyAdapter(),
+      { rawBody: true },
     );
 
     const configService =
@@ -73,11 +74,13 @@ describe("Ledger API v4 - POST /ledger/v4/blockchains/besu", () => {
     const response = await request(server).post("/blockchains/besu").send();
 
     expect(response.body).toStrictEqual({
-      detail:
-        '["jsonrpc must be equal to 2.0","method must be a string","params must be an array"]',
-      status: 400,
-      title: "Bad Request",
-      type: "about:blank",
+      error: {
+        code: -32_700,
+        message: "Parse error",
+      },
+      // eslint-disable-next-line unicorn/no-null
+      id: null,
+      jsonrpc: "2.0",
     });
     expect(response.status).toBe(400);
   });
@@ -95,7 +98,7 @@ describe("Ledger API v4 - POST /ledger/v4/blockchains/besu", () => {
     expect(response.body).toStrictEqual({
       id: "42",
       jsonrpc: "2.0",
-      result: expect.any(String),
+      result: expect.stringMatching(/^0x[0-9a-fA-F]+$/),
     });
     expect(response.status).toBe(200);
     expect(response.header).toHaveProperty("content-type");
@@ -118,8 +121,6 @@ describe("Ledger API v4 - POST /ledger/v4/blockchains/besu", () => {
     expect(response.body).toStrictEqual({
       error: {
         code: -32_601,
-        // eslint-disable-next-line unicorn/no-null
-        data: null,
         message: "The method test does not exist / is not available.",
       },
       id: "43",
@@ -138,12 +139,94 @@ describe("Ledger API v4 - POST /ledger/v4/blockchains/besu", () => {
     expect(response.body).toStrictEqual({
       error: {
         code: -32_601,
-        // eslint-disable-next-line unicorn/no-null
-        data: null,
         message:
           "The method eth_sendRawTransaction does not exist / is not available.",
       },
       id: "42",
+      jsonrpc: "2.0",
+    });
+    expect(response.status).toBe(200);
+  });
+
+  it("should support batch requests", async () => {
+    expect.assertions(2);
+
+    const response = await request(server)
+      .post("/blockchains/besu")
+      .send([
+        {
+          id: "42",
+          jsonrpc: "2.0",
+          method: "eth_chainId",
+          params: [],
+        },
+        // "test" method doesn't exist
+        {
+          id: "43",
+          jsonrpc: "2.0",
+          method: "test",
+          params: [],
+        },
+        // Notifications should be ignored
+        {
+          // No id
+          jsonrpc: "2.0",
+          method: "eth_chainId",
+          params: [],
+        },
+        // "eth_sendRawTransaction" method is not available
+        {
+          id: "42",
+          jsonrpc: "2.0",
+          method: "eth_sendRawTransaction",
+          params: [],
+        },
+      ]);
+
+    expect(response.body).toStrictEqual([
+      {
+        id: "42",
+        jsonrpc: "2.0",
+        result: expect.stringMatching(/^0x[0-9a-fA-F]+$/),
+      },
+      {
+        error: {
+          code: -32_601,
+          message: "The method test does not exist / is not available.",
+        },
+        id: "43",
+        jsonrpc: "2.0",
+      },
+      {
+        error: {
+          code: -32_601,
+          message:
+            "The method eth_sendRawTransaction does not exist / is not available.",
+        },
+        id: "42",
+        jsonrpc: "2.0",
+      },
+    ]);
+    expect(response.status).toBe(200);
+  });
+
+  it("should forward the errors returned by Besu", async () => {
+    expect.assertions(2);
+
+    const response = await request(server).post("/blockchains/besu").send({
+      id: "43",
+      jsonrpc: "2.0",
+      method: "eth_getBlockByHash",
+      // Missing hash
+      params: [],
+    });
+
+    expect(response.body).toStrictEqual({
+      error: {
+        code: -32_602,
+        message: "Invalid block hash params",
+      },
+      id: "43",
       jsonrpc: "2.0",
     });
     expect(response.status).toBe(200);

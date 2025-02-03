@@ -3,6 +3,7 @@ import * as taskNames from "hardhat/builtin-tasks/task-names.js";
 import type { JsonRpcServer } from "hardhat/types";
 
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
+import type { JsonRpcError, JsonRpcResult } from "ethers";
 import type { RawServerDefault } from "fastify";
 
 import "@nomicfoundation/hardhat-ethers";
@@ -22,6 +23,8 @@ import {
   it,
   vi,
 } from "vitest";
+
+import type { BesuJsonRpcError, BesuJsonRpcResult } from "./besu.interface.js";
 
 import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
 import { BesuModule } from "./besu.module.js";
@@ -53,6 +56,7 @@ describe("Besu Module", () => {
 
         app = moduleFixture.createNestApplication<NestFastifyApplication>(
           new FastifyAdapter(),
+          { rawBody: true },
         );
 
         // Turn off logger
@@ -73,7 +77,7 @@ describe("Besu Module", () => {
       });
 
       afterEach(() => {
-        vi.clearAllMocks();
+        vi.resetAllMocks();
       });
 
       afterAll(async () => {
@@ -82,25 +86,90 @@ describe("Besu Module", () => {
       });
 
       // Generic tests
-      it("should throw Bad Request for a bad JSON-RPC call", async () => {
+      it("should return an error 400 if there's no payload", async () => {
         expect.assertions(2);
 
+        // Missing payload
         const response = await request(server).post("/blockchains/besu").send();
 
         expect(response.body).toStrictEqual({
-          detail:
-            '["jsonrpc must be equal to 2.0","method must be a string","params must be an array"]',
-          status: 400,
-          title: "Bad Request",
-          type: "about:blank",
+          error: {
+            code: -32_700,
+            message: "Parse error",
+          },
+          // eslint-disable-next-line unicorn/no-null
+          id: null,
+          jsonrpc: "2.0",
         });
         expect(response.status).toBe(400);
       });
 
-      it("should return the chain ID", async () => {
+      it("should return an error 400 if the payload can't be parsed", async () => {
+        expect.assertions(2);
+
+        // Invalid JSON
+        const response = await request(server).post("/blockchains/besu").send(`[
+          {
+            "jsonrpc": "2.0",
+            "id": "2",
+            "m
+        ]`);
+
+        expect(response.body).toStrictEqual({
+          error: {
+            code: -32_700,
+            message: "Parse error",
+          },
+          // eslint-disable-next-line unicorn/no-null
+          id: null,
+          jsonrpc: "2.0",
+        });
+        expect(response.status).toBe(400);
+      });
+
+      it("should return an error if the payload doesn't pass the validation", async () => {
         expect.assertions(4);
 
-        const response = await request(server).post("/blockchains/besu").send({
+        // Batch contains a value that is not an object
+        let response = await request(server)
+          .post("/blockchains/besu")
+          .send(["invalid"]);
+
+        expect(response.body).toStrictEqual([
+          {
+            error: {
+              code: -32_600,
+              message: "Invalid Request",
+            },
+            // eslint-disable-next-line unicorn/no-null
+            id: null,
+            jsonrpc: "2.0",
+          },
+        ]);
+        expect(response.status).toBe(200);
+
+        // Payload is missing "params"
+        response = await request(server).post("/blockchains/besu").send({
+          id: "2",
+          jsonrpc: "2.0",
+          method: "eth_chainId",
+        });
+
+        expect(response.body).toStrictEqual({
+          error: {
+            code: -32_600,
+            message: "Invalid 'params': Required",
+          },
+          id: "2",
+          jsonrpc: "2.0",
+        });
+        expect(response.status).toBe(200);
+      });
+
+      it("should return the chain ID", async () => {
+        expect.assertions(8);
+
+        let response = await request(server).post("/blockchains/besu").send({
           id: "42",
           jsonrpc: "2.0",
           method: "eth_chainId",
@@ -112,6 +181,43 @@ describe("Besu Module", () => {
           jsonrpc: "2.0",
           result: "0x539",
         });
+        expect(response.status).toBe(200);
+        expect(response.header).toHaveProperty("content-type");
+        expect(response.headers["content-type"]).toStrictEqual(
+          expect.stringContaining("application/json"),
+        );
+
+        // Sending request as a string
+        response = await request(server).post("/blockchains/besu").send(`{
+          "id": "abc",
+          "jsonrpc": "2.0",
+          "method": "eth_chainId",
+          "params": []
+        }`);
+
+        expect(response.body).toStrictEqual({
+          id: "abc",
+          jsonrpc: "2.0",
+          result: "0x539",
+        });
+        expect(response.status).toBe(200);
+        expect(response.header).toHaveProperty("content-type");
+        expect(response.headers["content-type"]).toStrictEqual(
+          expect.stringContaining("application/json"),
+        );
+      });
+
+      it("should ignore notifications (requests without id)", async () => {
+        expect.assertions(4);
+
+        const response = await request(server).post("/blockchains/besu").send({
+          // No id
+          jsonrpc: "2.0",
+          method: "eth_chainId",
+          params: [],
+        });
+
+        expect(response.text).toBe("");
         expect(response.status).toBe(200);
         expect(response.header).toHaveProperty("content-type");
         expect(response.headers["content-type"]).toStrictEqual(
@@ -133,8 +239,6 @@ describe("Besu Module", () => {
         expect(response.body).toStrictEqual({
           error: {
             code: -32_601,
-            // eslint-disable-next-line unicorn/no-null
-            data: null,
             message: "The method test does not exist / is not available.",
           },
           id: "43",
@@ -153,8 +257,6 @@ describe("Besu Module", () => {
         expect(response.body).toStrictEqual({
           error: {
             code: -32_601,
-            // eslint-disable-next-line unicorn/no-null
-            data: null,
             message:
               "The method eth_sendRawTransaction does not exist / is not available.",
           },
@@ -164,15 +266,51 @@ describe("Besu Module", () => {
         expect(response.status).toBe(200);
       });
 
-      it("should return an error when Besu returns an error", async () => {
+      it("should return an error when the batch size exceeds the limit", async () => {
         expect.assertions(2);
+
+        // Create a batch with more than 1024 requests
+        const response = await request(server)
+          .post("/blockchains/besu")
+          .send(
+            Array.from({ length: 1025 }).map(() => ({
+              id: "42",
+              jsonrpc: "2.0",
+              method: "eth_chainId",
+              params: [],
+            })),
+          );
+
+        expect(response.body).toStrictEqual({
+          error: {
+            code: -32_005,
+            message: "Number of requests exceeds max batch size",
+          },
+          // eslint-disable-next-line unicorn/no-null
+          id: null,
+          jsonrpc: "2.0",
+        });
+        expect(response.status).toBe(200);
+      });
+
+      it("should forward the error returned by the provider", async () => {
+        expect.assertions(2);
+
+        const error = {
+          error: {
+            code: -32_604,
+          },
+          id: "42",
+          jsonrpc: "2.0",
+        } satisfies BesuJsonRpcError;
 
         const provider = hreUrl.startsWith("http")
           ? ethers.JsonRpcProvider
           : ethers.WebSocketProvider;
-        vi.spyOn(provider.prototype, "send").mockImplementation(() => {
-          const err = new Error("unknown error");
-          return Promise.reject(err);
+
+        vi.spyOn(provider.prototype, "_send").mockImplementation(() => {
+          // @ts-expect-error ethers.js expects "id" to be a number while Besu accepts null | number | string
+          return Promise.resolve([error as JsonRpcError]);
         });
 
         const response = await request(server).post("/blockchains/besu").send({
@@ -182,66 +320,64 @@ describe("Besu Module", () => {
           params: [],
         });
 
-        expect(response.body).toStrictEqual({
-          detail: expect.stringContaining("internal error"),
-          status: 500,
-          title: "Internal Server Error",
-          type: "about:blank",
-        });
-        expect(response.status).toBe(500);
+        expect(response.body).toStrictEqual(error);
+        expect(response.status).toBe(200);
       });
 
-      it("should return an error when Besu returns an error that is not parseable", async () => {
+      it("should handle unexpected internal responses", async () => {
         expect.assertions(2);
 
-        // Let's say Besu answers with an error
-        const provider = hreUrl.startsWith("http")
-          ? ethers.JsonRpcProvider
-          : ethers.WebSocketProvider;
-        vi.spyOn(provider.prototype, "send").mockImplementation(() => {
-          const err = new Error("error");
-
-          // @ts-expect-error Property 'response' does not exist on type 'Error'.ts(2339)
-          err.response = { unparseable: "response" };
-          return Promise.reject(err);
-        });
-
-        const response = await request(server).post("/blockchains/besu").send({
-          id: "42",
-          jsonrpc: "2.0",
-          method: "eth_chainId",
-          params: [],
-        });
-
-        expect(response.body).toStrictEqual({
-          detail: expect.stringContaining("internal error"),
-          status: 500,
-          title: "Internal Server Error",
-          type: "about:blank",
-        });
-        expect(response.status).toBe(500);
-      });
-
-      it("should forward a valid (200) Besu error to the client", async () => {
-        expect.assertions(2);
-
-        // Let's say Besu answers with an error
-        const provider = hreUrl.startsWith("http")
-          ? ethers.JsonRpcProvider
-          : ethers.WebSocketProvider;
-        vi.spyOn(provider.prototype, "send").mockImplementation(() => {
-          const err = new Error("error");
-
-          // @ts-expect-error Property 'response' does not exist on type 'Error'.ts(2339)
-          err.response = JSON.stringify({
-            error: {
-              code: -32_001,
-              message: "Nonce too low",
-            },
-            id: 1,
+        // Unexpected response to ethers.js _send() method: the response contains 2 elements
+        const besuResponse = [
+          {
+            id: "42",
             jsonrpc: "2.0",
-          });
-          return Promise.reject(err);
+            result: "",
+          },
+          {
+            id: "42",
+            jsonrpc: "2.0",
+            result: "",
+          },
+        ] satisfies BesuJsonRpcResult[];
+
+        const provider = hreUrl.startsWith("http")
+          ? ethers.JsonRpcProvider
+          : ethers.WebSocketProvider;
+
+        vi.spyOn(provider.prototype, "_send").mockImplementation(() => {
+          // @ts-expect-error ethers.js expects "id" to be a number while Besu accepts null | number | string
+          return Promise.resolve(besuResponse as JsonRpcResult[]);
+        });
+
+        const response = await request(server).post("/blockchains/besu").send({
+          id: "42",
+          jsonrpc: "2.0",
+          method: "eth_chainId",
+          params: [],
+        });
+
+        expect(response.body).toStrictEqual({
+          error: {
+            code: -32_603,
+            message: "Internal error",
+          },
+          id: "42",
+          jsonrpc: "2.0",
+        });
+        expect(response.status).toBe(200);
+      });
+
+      it("should handle internal errors", async () => {
+        expect.assertions(2);
+
+        const provider = hreUrl.startsWith("http")
+          ? ethers.JsonRpcProvider
+          : ethers.WebSocketProvider;
+
+        vi.spyOn(provider.prototype, "_send").mockImplementation(() => {
+          // Something unexpected happens during the request
+          return Promise.reject(new Error("error"));
         });
 
         const response = await request(server)
@@ -253,15 +389,79 @@ describe("Besu Module", () => {
             params: ["0x213", "latest"],
           });
 
-        // I expect to see the error returned by Besu
+        // Ledger API should return a generic internal error and log the actual error
         expect(response.body).toStrictEqual({
           error: {
-            code: -32_001,
-            message: "Nonce too low",
+            code: -32_603,
+            message: "Internal error",
           },
           id: 1,
           jsonrpc: "2.0",
         });
+        expect(response.status).toBe(200);
+
+        // TODO: check that "error" has been logged
+      });
+
+      it("should support batch requests", async () => {
+        expect.assertions(2);
+
+        const response = await request(server)
+          .post("/blockchains/besu")
+          .send([
+            {
+              id: "42",
+              jsonrpc: "2.0",
+              method: "eth_chainId",
+              params: [],
+            },
+            // "test" method doesn't exist
+            {
+              id: "43",
+              jsonrpc: "2.0",
+              method: "test",
+              params: [],
+            },
+            // Notifications should be ignored
+            {
+              // No id
+              jsonrpc: "2.0",
+              method: "eth_chainId",
+              params: [],
+            },
+            // "eth_sendRawTransaction" method is not available
+            {
+              id: "42",
+              jsonrpc: "2.0",
+              method: "eth_sendRawTransaction",
+              params: [],
+            },
+          ]);
+
+        expect(response.body).toStrictEqual([
+          {
+            id: "42",
+            jsonrpc: "2.0",
+            result: "0x539",
+          },
+          {
+            error: {
+              code: -32_601,
+              message: "The method test does not exist / is not available.",
+            },
+            id: "43",
+            jsonrpc: "2.0",
+          },
+          {
+            error: {
+              code: -32_601,
+              message:
+                "The method eth_sendRawTransaction does not exist / is not available.",
+            },
+            id: "42",
+            jsonrpc: "2.0",
+          },
+        ]);
         expect(response.status).toBe(200);
       });
     },

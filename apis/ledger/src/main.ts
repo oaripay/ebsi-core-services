@@ -28,7 +28,7 @@ async function bootstrap(): Promise<void> {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
     fastifyAdapter,
-    { logger },
+    { logger, rawBody: true },
   );
 
   const configService = app.get<ConfigService<ApiConfig, true>>(ConfigService);

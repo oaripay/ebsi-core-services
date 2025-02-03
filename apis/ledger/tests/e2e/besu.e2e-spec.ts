@@ -28,6 +28,7 @@ describe("Ledger API v3 - POST /ledger/v3/blockchains/besu", () => {
 
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
       new FastifyAdapter(),
+      { rawBody: true },
     );
 
     const configService =
@@ -66,41 +67,26 @@ describe("Ledger API v3 - POST /ledger/v3/blockchains/besu", () => {
     await app.close();
   });
 
+  // Generic tests
   it("should throw Bad Request for a bad JSON-RPC call", async () => {
     expect.assertions(2);
 
     const response = await request(server).post("/blockchains/besu").send();
 
     expect(response.body).toStrictEqual({
-      detail:
-        '["jsonrpc must be equal to 2.0","method must be a valid method","params must be an array"]',
-      status: 400,
-      title: "Bad Request",
-      type: "about:blank",
-    });
-    expect(response.status).toBe(400);
-  });
-
-  it("should throw Bad Request for an invalid method", async () => {
-    expect.assertions(2);
-
-    const response = await request(server).post("/blockchains/besu").send({
+      error: {
+        code: -32_700,
+        message: "Parse error",
+      },
+      // eslint-disable-next-line unicorn/no-null
+      id: null,
       jsonrpc: "2.0",
-      method: "test",
-      params: [],
-    });
-
-    expect(response.body).toStrictEqual({
-      detail: '["method must be a valid method"]',
-      status: 400,
-      title: "Bad Request",
-      type: "about:blank",
     });
     expect(response.status).toBe(400);
   });
 
   it("should return the chain ID", async () => {
-    expect.assertions(2);
+    expect.assertions(4);
 
     const response = await request(server).post("/blockchains/besu").send({
       id: "42",
@@ -112,15 +98,38 @@ describe("Ledger API v3 - POST /ledger/v3/blockchains/besu", () => {
     expect(response.body).toStrictEqual({
       id: "42",
       jsonrpc: "2.0",
-      result: expect.any(String),
+      result: expect.stringMatching(/^0x[0-9a-fA-F]+$/),
     });
     expect(response.status).toBe(200);
+    expect(response.header).toHaveProperty("content-type");
+    expect(response.headers["content-type"]).toStrictEqual(
+      expect.stringContaining("application/json"),
+    );
   });
 
-  it("should return an error when eth_sendRawTransaction is called", async () => {
-    expect.assertions(2);
+  it("should return an error when the method does not exist or is not available", async () => {
+    expect.assertions(4);
 
-    const response = await request(server).post("/blockchains/besu").send({
+    // "test" method doesn't exist
+    let response = await request(server).post("/blockchains/besu").send({
+      id: "43",
+      jsonrpc: "2.0",
+      method: "test",
+      params: [],
+    });
+
+    expect(response.body).toStrictEqual({
+      error: {
+        code: -32_601,
+        message: "The method test does not exist / is not available.",
+      },
+      id: "43",
+      jsonrpc: "2.0",
+    });
+    expect(response.status).toBe(200);
+
+    // "eth_sendRawTransaction" method is not available
+    response = await request(server).post("/blockchains/besu").send({
       id: "42",
       jsonrpc: "2.0",
       method: "eth_sendRawTransaction",
@@ -128,11 +137,98 @@ describe("Ledger API v3 - POST /ledger/v3/blockchains/besu", () => {
     });
 
     expect(response.body).toStrictEqual({
-      detail: '["method must be a valid method"]',
-      status: 400,
-      title: "Bad Request",
-      type: "about:blank",
+      error: {
+        code: -32_601,
+        message:
+          "The method eth_sendRawTransaction does not exist / is not available.",
+      },
+      id: "42",
+      jsonrpc: "2.0",
     });
-    expect(response.status).toBe(400);
+    expect(response.status).toBe(200);
+  });
+
+  it("should support batch requests", async () => {
+    expect.assertions(2);
+
+    const response = await request(server)
+      .post("/blockchains/besu")
+      .send([
+        {
+          id: "42",
+          jsonrpc: "2.0",
+          method: "eth_chainId",
+          params: [],
+        },
+        // "test" method doesn't exist
+        {
+          id: "43",
+          jsonrpc: "2.0",
+          method: "test",
+          params: [],
+        },
+        // Notifications should be ignored
+        {
+          // No id
+          jsonrpc: "2.0",
+          method: "eth_chainId",
+          params: [],
+        },
+        // "eth_sendRawTransaction" method is not available
+        {
+          id: "42",
+          jsonrpc: "2.0",
+          method: "eth_sendRawTransaction",
+          params: [],
+        },
+      ]);
+
+    expect(response.body).toStrictEqual([
+      {
+        id: "42",
+        jsonrpc: "2.0",
+        result: expect.stringMatching(/^0x[0-9a-fA-F]+$/),
+      },
+      {
+        error: {
+          code: -32_601,
+          message: "The method test does not exist / is not available.",
+        },
+        id: "43",
+        jsonrpc: "2.0",
+      },
+      {
+        error: {
+          code: -32_601,
+          message:
+            "The method eth_sendRawTransaction does not exist / is not available.",
+        },
+        id: "42",
+        jsonrpc: "2.0",
+      },
+    ]);
+    expect(response.status).toBe(200);
+  });
+
+  it("should forward the errors returned by Besu", async () => {
+    expect.assertions(2);
+
+    const response = await request(server).post("/blockchains/besu").send({
+      id: "43",
+      jsonrpc: "2.0",
+      method: "eth_getBlockByHash",
+      // Missing hash
+      params: [],
+    });
+
+    expect(response.body).toStrictEqual({
+      error: {
+        code: -32_602,
+        message: "Invalid block hash params",
+      },
+      id: "43",
+      jsonrpc: "2.0",
+    });
+    expect(response.status).toBe(200);
   });
 });
