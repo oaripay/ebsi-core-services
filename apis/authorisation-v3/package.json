@@ -25,10 +25,10 @@
     "test:ci": "yarn test:unit --coverage --reporter=default"
   },
   "dependencies": {
-    "@cef-ebsi/ebsi-uri": "^1.0.0-alpha.1",
-    "@cef-ebsi/verifiable-credential": "^7.0.0-alpha.1",
-    "@cef-ebsi/verifiable-presentation": "^8.0.0-alpha.1",
-    "@cef-ebsi/wallet-lib": "^6.0.0-alpha.4",
+    "@cef-ebsi/ebsi-uri": "^1.0.0",
+    "@cef-ebsi/verifiable-credential": "^7.0.0",
+    "@cef-ebsi/verifiable-presentation": "^8.0.0",
+    "@cef-ebsi/wallet-lib": "^6.0.0",
     "@ebsiint-api/shared": "^1.1.0-rc.10",
     "@fastify/accepts": "^4.3.0",
     "@fastify/formbody": "^7.4.0",

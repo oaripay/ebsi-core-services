@@ -55,10 +55,10 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
-    "@cef-ebsi/ebsi-uri": "^1.0.0-alpha.1",
-    "@cef-ebsi/verifiable-credential": "^7.0.0-alpha.1",
-    "@cef-ebsi/verifiable-presentation": "^8.0.0-alpha.1",
-    "@cef-ebsi/wallet-lib": "^6.0.0-alpha.4",
+    "@cef-ebsi/ebsi-uri": "^1.0.0",
+    "@cef-ebsi/verifiable-credential": "^7.0.0",
+    "@cef-ebsi/verifiable-presentation": "^8.0.0",
+    "@cef-ebsi/wallet-lib": "^6.0.0",
     "@nestjs/cli": "^10.4.9",
     "@nestjs/schematics": "^10.2.3",
     "@nestjs/testing": "^10.4.15",

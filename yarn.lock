@@ -1010,34 +1010,34 @@
   resolved "https://registry.yarnpkg.com/@bytecodealliance/preview2-shim/-/preview2-shim-0.17.0.tgz#9bc1cadbb9f86c446c6f579d3431c08a06a6672e"
   integrity sha512-JorcEwe4ud0x5BS/Ar2aQWOQoFzjq/7jcnxYXCvSMh0oRm0dQXzOA+hqLDBnOMks1LLBA7dmiLLsEBl09Yd6iQ==
 
-"@cef-ebsi/ebsi-did-resolver@^4.0.5-alpha.1":
-  version "4.0.5-alpha.1"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/ebsi-did-resolver/-/ebsi-did-resolver-4.0.5-alpha.1.tgz#99600269883f1f2bde67043c4d926dd9f1885329"
-  integrity sha512-8qb6GTBbNlUyFpYDk7lCTFEEmxpBZ+OkHso39PpuPGcf695/LrBAD8UegrmR3pDD8Ct9uGMdO5c5k9Kbhv6Htg==
+"@cef-ebsi/ebsi-did-resolver@^4.0.5":
+  version "4.0.5"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/ebsi-did-resolver/-/ebsi-did-resolver-4.0.5.tgz#3f346df2ad3691605a6a31d0d9fece6e55855132"
+  integrity sha512-I5IqzmhLN2oJFM+73/WBXLAAE+ci5ajOCx5npc7F+spGh5g6cE0Ug0Lg19RzeFs2cyWt9x8N22jahPp/t47Qtg==
   dependencies:
     axios "^1.7.9"
     did-resolver "^4.1.0"
     multiformats "^9.6.2"
 
-"@cef-ebsi/ebsi-uri@^1.0.0-alpha.1":
-  version "1.0.0-alpha.1"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/ebsi-uri/-/ebsi-uri-1.0.0-alpha.1.tgz#cf651d4b3921a2aac9894d99e620653cb2e1a788"
-  integrity sha512-j1ENDDaDCYlTO3ocTmay8u+9Q3BZkO30O2Ia51cCkXbqZBK47xDpCisVuys6nADa2OUVARaL5S1uyIV9/ryCRA==
+"@cef-ebsi/ebsi-uri@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/ebsi-uri/-/ebsi-uri-1.0.0.tgz#64e3a7631290b9a970e565ff7828ed16d198f9e4"
+  integrity sha512-sWxXTKDQoIOOqUxXwQNUpxRZUcFjx5dpBD/UaJlO4Gohx9ppp74RokdXZK3Lye0MY6e1qPmfL8Eqki/Lj80ObA==
 
-"@cef-ebsi/key-did-resolver@^2.1.0-alpha.3":
-  version "2.1.0-alpha.3"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/key-did-resolver/-/key-did-resolver-2.1.0-alpha.3.tgz#079892329730256ec0190789f522aa17ba2e0292"
-  integrity sha512-tRDgJ8QwFyI4AufffucIv5SvxTdeEOCX9ZgPnVG70HQ0oN5u6timy4JCtDtMudCA/7F6iKnfsCsjPkWo6AdAww==
+"@cef-ebsi/key-did-resolver@^2.1.0":
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/key-did-resolver/-/key-did-resolver-2.1.0.tgz#55426e432b553551c881d23e55fe3b30d900e786"
+  integrity sha512-opVZj1eWYqEO9ZYLhoAPlHTkF7tatS9zNdn4sLWMzxJOcGcCgR3WsAZRXBrlsqq1m/GrfQRccRqYSrsmpCCGlg==
   dependencies:
     did-resolver "^4.1.0"
     lodash.isplainobject "^4.0.6"
     multiformats "^9.6.2"
     uint8arrays "3.1.1"
 
-"@cef-ebsi/key-encoder@^2.0.0-alpha.3":
-  version "2.0.0-alpha.3"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/key-encoder/-/key-encoder-2.0.0-alpha.3.tgz#9e363d3faf7da12b32630e8b5ceedb11de26afdd"
-  integrity sha512-8CjYYa3qsXGqnOA7T4Tsx5gdpfobd37j2jCb6GhxSbx7xoH+NR1XEBLCKSXRe2WFuV1RUB7bJzY3r5G4HMWcMg==
+"@cef-ebsi/key-encoder@^2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/key-encoder/-/key-encoder-2.0.0.tgz#6311043a9774e3935ed883775361f08c5c96bd1a"
+  integrity sha512-o+Bzbl3Qc/94B+Txo8R4nJFplR3T0s+YV7hGbZnMs5PrE8qsTNPcFfoKExltMYk8s3Xh237t9SrvbCsMpSag7Q==
   dependencies:
     "@noble/secp256k1" "^2.2.3"
     asn1.js "^5.4.1"
@@ -1364,14 +1364,14 @@
   dependencies:
     "@cef-ebsi/vcdm2.0-attestation-schema" "1.2.1"
 
-"@cef-ebsi/verifiable-credential@^7.0.0-alpha.1":
-  version "7.0.0-alpha.1"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/verifiable-credential/-/verifiable-credential-7.0.0-alpha.1.tgz#74c906d8ac22606478704128abf20c39ab3dedbc"
-  integrity sha512-pnEi6CiwpFpow83ccyJa5c2sfzzihaWR99FPDfED32RdOdqrTDDd959ftJ2pvXjtuMlOPXHBJpUw6I6ftQnuyA==
+"@cef-ebsi/verifiable-credential@^7.0.0":
+  version "7.0.0"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/verifiable-credential/-/verifiable-credential-7.0.0.tgz#52c8514a657b0180f356779d3bc590675341e213"
+  integrity sha512-bciqbmV1/v/7bPah/MGbxjQ3WoWZ/cCH7ovygurT04zLG0BpAxmnIky31u7kXBIu3Th1uXNupmbUCIYwOFq82w==
   dependencies:
-    "@cef-ebsi/ebsi-did-resolver" "^4.0.5-alpha.1"
-    "@cef-ebsi/ebsi-uri" "^1.0.0-alpha.1"
-    "@cef-ebsi/key-did-resolver" "^2.1.0-alpha.3"
+    "@cef-ebsi/ebsi-did-resolver" "^4.0.5"
+    "@cef-ebsi/ebsi-uri" "^1.0.0"
+    "@cef-ebsi/key-did-resolver" "^2.1.0"
     "@cef-ebsi/vcdm1.1-accreditation-schema" "^1.4.1"
     "@cef-ebsi/vcdm1.1-attestation-schema" "^1.3.1"
     "@cef-ebsi/vcdm1.1-revocation-statuslist-schema" "^1.3.1"
@@ -1388,29 +1388,29 @@
     pako "^2.1.0"
     uint8arrays "3.1.1"
 
-"@cef-ebsi/verifiable-presentation@^8.0.0-alpha.1":
-  version "8.0.0-alpha.1"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/verifiable-presentation/-/verifiable-presentation-8.0.0-alpha.1.tgz#50d47640d01b928d800af34a62b8bbfa499f42e2"
-  integrity sha512-VEO7vp1svStXv7en6r66OyM/95SOP4QeD+KTrLH8+AylAPCIa4Gi9W32wlnZuuin4Ts6eZPe8mFL2nW38L9rYA==
+"@cef-ebsi/verifiable-presentation@^8.0.0":
+  version "8.0.0"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/verifiable-presentation/-/verifiable-presentation-8.0.0.tgz#0a1283e7f715724c49d0e37a88e154f196fb0495"
+  integrity sha512-Y1er1UGqUhj72grh6l0SZYQ2QGl3yaW6aodZPp48VCpy7CWLDJ0aX8XkajIiK6ZGopJx8gaucY58RBgg6l424A==
   dependencies:
-    "@cef-ebsi/ebsi-did-resolver" "^4.0.5-alpha.1"
-    "@cef-ebsi/ebsi-uri" "^1.0.0-alpha.1"
-    "@cef-ebsi/key-did-resolver" "^2.1.0-alpha.3"
+    "@cef-ebsi/ebsi-did-resolver" "^4.0.5"
+    "@cef-ebsi/ebsi-uri" "^1.0.0"
+    "@cef-ebsi/key-did-resolver" "^2.1.0"
     "@cef-ebsi/vcdm1.1-presentation-schema" "^1.0.4"
-    "@cef-ebsi/verifiable-credential" "^7.0.0-alpha.1"
+    "@cef-ebsi/verifiable-credential" "^7.0.0"
     "@segment/ajv-human-errors" "^2.14.1"
     did-jwt "^8.0.8"
     did-resolver "^4.1.0"
     memoize "^10.0.0"
 
-"@cef-ebsi/wallet-lib@^6.0.0-alpha.4":
-  version "6.0.0-alpha.4"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/wallet-lib/-/wallet-lib-6.0.0-alpha.4.tgz#0634d30dff967fc1e9ec3fea51e977ca3ac2be2f"
-  integrity sha512-wL77U1OPKLpi5UmM5mp6U867hV5EHhc44d5hnC5a+XbdfFYm1iXRmn8ampxCs2V47IkvgJA9wSJ5QEIIQstLqg==
+"@cef-ebsi/wallet-lib@^6.0.0":
+  version "6.0.0"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/wallet-lib/-/wallet-lib-6.0.0.tgz#7971fc5ccad181eed64e3ae2bf312575aa48c6e1"
+  integrity sha512-v1jDcmBDE3cFMmxEU9GpIFDHhotO0E7iWCkMuMk/pO7oPrF38Er5w048dtWILKCfgVF0Vck6u6huud4zQTt6Uw==
   dependencies:
-    "@cef-ebsi/ebsi-did-resolver" "^4.0.5-alpha.1"
-    "@cef-ebsi/key-did-resolver" "^2.1.0-alpha.3"
-    "@cef-ebsi/key-encoder" "^2.0.0-alpha.3"
+    "@cef-ebsi/ebsi-did-resolver" "^4.0.5"
+    "@cef-ebsi/key-did-resolver" "^2.1.0"
+    "@cef-ebsi/key-encoder" "^2.0.0"
     "@noble/hashes" "^1.7.1"
     "@noble/secp256k1" "^2.2.3"
     did-jwt "^8.0.8"
