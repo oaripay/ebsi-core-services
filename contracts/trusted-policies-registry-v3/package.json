@@ -1,7 +1,7 @@
 {
   "name": "@ebsiint-sc/trusted-policies-registry-v3",
   "private": true,
-  "version": "3.0.0-rc.2",
+  "version": "3.0.0-rc.3",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "EUPL-1.2",

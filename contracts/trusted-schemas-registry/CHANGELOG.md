@@ -1,5 +1,20 @@
 # @ebsiint-sc/trusted-schemas-registry
 
+## 1.0.1-rc.10
+
+### Patch Changes
+
+- [319b62b1ff7ba0b9ed295b5dfd083339a2706532](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/319b62b1ff7ba0b9ed295b5dfd083339a2706532): Bump dependencies and update Node.js to v22.
+- [6dcd58e4abc78ddf0a544865a487246d12ebbb73](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/6dcd58e4abc78ddf0a544865a487246d12ebbb73): Bump dependencies.
+- [cc207c5d7adfa0843ff285edee10347283d5acff](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/cc207c5d7adfa0843ff285edee10347283d5acff): Update Node.js to v22.13.1 and bump dependencies.
+- [3b4ad1dc4f039c54ec79787bf717ffc83c33691f](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/3b4ad1dc4f039c54ec79787bf717ffc83c33691f): Update ethers.js to v6.
+- Updated dependencies [319b62b1ff7ba0b9ed295b5dfd083339a2706532](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/319b62b1ff7ba0b9ed295b5dfd083339a2706532)
+- Updated dependencies [6dcd58e4abc78ddf0a544865a487246d12ebbb73](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/6dcd58e4abc78ddf0a544865a487246d12ebbb73)
+- Updated dependencies [cc207c5d7adfa0843ff285edee10347283d5acff](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/cc207c5d7adfa0843ff285edee10347283d5acff)
+- Updated dependencies [3b4ad1dc4f039c54ec79787bf717ffc83c33691f](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/3b4ad1dc4f039c54ec79787bf717ffc83c33691f)
+  - @ebsiint-sc/trusted-policies-registry@1.0.1-rc.10
+  - @ebsiint-sc/bootstrap@1.0.1-rc.10
+
 ## 1.0.1-rc.9
 
 ### Patch Changes

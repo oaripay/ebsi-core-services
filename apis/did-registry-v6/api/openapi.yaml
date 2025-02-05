@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: DID Registry API v6
   description: |
-    The DID Registry (DIDR) is a EBSI core service providing the capabilities of registering, managing, and resolving EBSI Decentralised Identifiers (DIDs) of the did:ebsi DID method.
+    The DID Registry (DIDR) is an EBSI core service providing the capabilities of registering, managing and resolving EBSI Decentralised Identifiers (DIDs) of the did:ebsi DID method.
 
     It enables consumers to interact with the DID Registry Smart Contract to:
     - Insert a DID/DID document
@@ -13,7 +13,7 @@ info:
     - Resolve a DID (and obtain a DID document)
 
     For more information see:
-    * [How to register a DID document](https://hub.ebsi.eu/vc-framework/guidelines/didr)
+    * [How to register a DID document](https://hub.ebsi.eu/get-started/build/how-tos/didr)
     * [CLI Tool page](https://hub.ebsi.eu/tools/cli): Test the capabilities using the EBSI CLI tool
   version: 6.0.0
   contact:
@@ -161,7 +161,7 @@ paths:
       tags:
         - DID documents
       summary: Get a DID document
-      description: Gets the DID document corresponding to the DID.
+      description: Returns the DID document corresponding to the DID.
       operationId: get-identifier
       parameters:
         - in: path
@@ -676,7 +676,7 @@ paths:
             - **notBefore**: Verification relationship is valid from this time
             - **notAfter**: Expiration of the verification relationship
             - **oldVMethodId**: Old verification method id that will be rolled
-            - **duration**: Duration of the period of transition. During this period both
+            - **duration**: Duration of the period of transition. During this period, both
               verification methods will be valid.
 
           #### sendSignedTransaction

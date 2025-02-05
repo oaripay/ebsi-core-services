@@ -1,7 +1,7 @@
 {
   "name": "@ebsiint-sc/track-and-trace-v2",
   "private": true,
-  "version": "2.0.0-rc.1",
+  "version": "2.0.0-rc.2",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "EUPL-1.2",
@@ -25,9 +25,9 @@
     "test:ci": "hardhat compile && hardhat test && yarn coverage"
   },
   "dependencies": {
-    "@ebsiint-sc/bootstrap-v2": "^2.0.0-rc.5",
-    "@ebsiint-sc/did-registry-v4": "^4.0.0-rc.3",
-    "@ebsiint-sc/trusted-policies-registry-v3": "^3.0.0-rc.2",
+    "@ebsiint-sc/bootstrap-v2": "^2.0.0-rc.6",
+    "@ebsiint-sc/did-registry-v4": "^4.0.0-rc.4",
+    "@ebsiint-sc/trusted-policies-registry-v3": "^3.0.0-rc.3",
     "@openzeppelin/contracts": "^4.9.6",
     "@openzeppelin/contracts-upgradeable": "^4.9.6"
   },

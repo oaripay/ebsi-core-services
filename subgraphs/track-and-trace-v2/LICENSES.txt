@@ -299,7 +299,7 @@ https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
 This product makes use of software developed by third parties.
 
 ========================================================================================
-- @ebsiint-sc/track-and-trace-v2@2.0.0-rc.1
+- @ebsiint-sc/track-and-trace-v2@2.0.0-rc.2
 ------------------------------
 This project is licensed under EUPL-1.2.
 

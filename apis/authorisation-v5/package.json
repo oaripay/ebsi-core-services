@@ -1,7 +1,7 @@
 {
   "name": "@ebsiint-api/authorisation-api-v5",
   "private": true,
-  "version": "5.0.0-rc.2",
+  "version": "5.0.0-rc.3",
   "type": "module",
   "license": "EUPL-1.2",
   "scripts": {
@@ -29,7 +29,7 @@
     "@cef-ebsi/verifiable-credential": "^7.0.0",
     "@cef-ebsi/verifiable-presentation": "^8.0.0",
     "@cef-ebsi/wallet-lib": "^6.0.0",
-    "@ebsiint-api/shared": "^1.1.0-rc.10",
+    "@ebsiint-api/shared": "^1.1.0-rc.12",
     "@fastify/accepts": "^4.3.0",
     "@fastify/formbody": "^7.4.0",
     "@fastify/helmet": "^11.1.1",

@@ -3,17 +3,15 @@ info:
   title: Trusted Schemas Registry API v3
   version: 3.0.0
   description: |
-    Trusted Schemas Registry (TSR) API is an EBSI core service. It enables us to interact with the
-    Trusted Schemas Registry Smart Contract to:
+    The Trusted Schemas Registry (TSR) API is a core EBSI service that enables interaction with the Trusted Schemas Registry Smart Contract
+    to:
     - register a new schema
     - update a registered schema
     - read and validate registered schemas
 
-    EBSI Trusted Schemas Registry is a Domain Specific registry service focusing on registering in
-    it only Data Model and Ontology. The registry is agnostic of any type of schema (we support
-    whatever scheme the consumer needs to anchor, being it JSON, JSON-LD, XML, etc.).
+    The EBSI TSR is a domain-specific registry service focused on registering only data models and ontologies. The registry is agnostic to any type of schema, supporting whatever scheme the consumer needs to anchor, whether it be JSON, JSON-LD, XML, or other formats.
 
-    TSR API is a microservice, hosted on the EBSI infrastructure.
+    The TSR API is a microservice hosted on the EBSI infrastructure.
   contact:
     name: EBSI Support - Service Desk
     url: https://ec.europa.eu/digital-building-blocks/tracker/plugins/servlet/desk/portal/11

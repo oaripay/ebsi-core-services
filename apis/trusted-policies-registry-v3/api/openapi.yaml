@@ -3,8 +3,7 @@ info:
   title: Trusted Policies Registry API v3
   version: 3.0.0
   description: |
-    Trusted Policies Registry API provides an interface to interact with policies stored at the
-    ledger administrated by Policies Registry Smart Contract.
+    The Trusted Policies Registry API provides an interface to interact with policies stored at the ledger administrated by the Trusted Policies Registry Smart Contract.
   contact:
     name: EBSI Support - Service Desk
     url: https://ec.europa.eu/digital-building-blocks/tracker/plugins/servlet/desk/portal/11

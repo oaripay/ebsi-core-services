@@ -1,7 +1,7 @@
 {
   "name": "@ebsiint-api/trusted-policies-registry-api-v3",
   "private": true,
-  "version": "3.0.0-rc.5",
+  "version": "3.0.0-rc.6",
   "type": "module",
   "license": "EUPL-1.2",
   "scripts": {
@@ -25,8 +25,8 @@
     "test:ci": "yarn test:unit --coverage --reporter=default"
   },
   "dependencies": {
-    "@ebsiint-api/shared": "^1.1.0-rc.11",
-    "@ebsiint-sc/trusted-policies-registry-v2": "^2.0.0-rc.5",
+    "@ebsiint-api/shared": "^1.1.0-rc.12",
+    "@ebsiint-sc/trusted-policies-registry-v2": "^2.0.0-rc.6",
     "@ethersproject/address": "^5.7.0",
     "@fastify/accepts": "^4.3.0",
     "@fastify/helmet": "^11.1.1",

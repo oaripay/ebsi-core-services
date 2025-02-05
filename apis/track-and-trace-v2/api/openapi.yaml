@@ -741,7 +741,7 @@ paths:
 
           #### revokeAccess
 
-          Call to build an unsigned transaction to revoke a permission from a DID in a specific Document. Requires an access token with "tnt_write" scope.
+          Call to build an unsigned transaction to revoke a permission from a DID in a specific Document. Requires an access token with "tnt_write" scope. Keep in mind that whenever the document's creator private key is lost, then there is no possibility to revoke access for this creator's documents anymore.
 
           Parameters:
           - **from**: Ethereum address of the signer

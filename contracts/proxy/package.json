@@ -1,6 +1,6 @@
 {
   "name": "@ebsiint-sc/proxy",
-  "version": "2.0.0-rc.9",
+  "version": "2.0.0-rc.10",
   "license": "EUPL-1.2",
   "private": true,
   "description": "Proxy Smart Contract",
@@ -23,7 +23,7 @@
     "test:ci": "hardhat compile && hardhat test && yarn coverage"
   },
   "dependencies": {
-    "@ebsiint-sc/bootstrap-v2": "^2.0.0-rc.5"
+    "@ebsiint-sc/bootstrap-v2": "^2.0.0-rc.6"
   },
   "devDependencies": {
     "@gnosis-guild/typechain-ethers-v6": "^0.5.5",

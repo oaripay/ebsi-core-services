@@ -1,7 +1,7 @@
 {
   "name": "@ebsiint-api/did-registry-api-v6",
   "private": true,
-  "version": "6.0.0-rc.3",
+  "version": "6.0.0-rc.4",
   "license": "EUPL-1.2",
   "type": "module",
   "scripts": {
@@ -26,9 +26,9 @@
     "test:ci": "yarn test:unit --coverage --reporter=default"
   },
   "dependencies": {
-    "@ebsiint-api/shared": "^1.1.0-rc.11",
-    "@ebsiint-sc/did-registry-v4": "^4.0.0-rc.3",
-    "@ebsiint-subgraph/did-registry-v4": "^0.0.0-rc.1",
+    "@ebsiint-api/shared": "^1.1.0-rc.12",
+    "@ebsiint-sc/did-registry-v4": "^4.0.0-rc.4",
+    "@ebsiint-subgraph/did-registry-v4": "^0.0.0-rc.2",
     "@fastify/accepts": "^4.3.0",
     "@fastify/helmet": "^11.1.1",
     "@graphprotocol/client-cli": "^3.0.7",

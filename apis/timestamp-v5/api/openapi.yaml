@@ -3,10 +3,10 @@ info:
   title: Timestamp API v5
   version: 5.0.0
   description: |
-    Timestamp API is an EBSI core service. It enables us to interact with the TimeStamp SC to
-    * timestamp hashes,
-    * supports timestamping records/versions (and linking the timestamps)
-    * verify timestamps.
+    Timestamp API is an EBSI core service that enables interaction with the TimeStamp Smart Contract to:
+    * timestamp hashes
+    * support timestamping records and versions (including linking timestamps)
+    * verify timestamps
   contact:
     name: EBSI Support - Service Desk
     url: https://ec.europa.eu/digital-building-blocks/tracker/plugins/servlet/desk/portal/11
@@ -53,7 +53,7 @@ paths:
           schema:
             type: string
         - name: status
-          description: Filter hash algorithms by status
+          description: Filter hash algorithms by status (active or revoked)
           in: query
           schema:
             type: string

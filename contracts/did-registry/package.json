@@ -1,6 +1,6 @@
 {
   "name": "@ebsiint-sc/did-registry",
-  "version": "1.1.0-rc.9",
+  "version": "1.1.0-rc.10",
   "license": "EUPL-1.2",
   "private": true,
   "main": "dist/index.js",
@@ -23,8 +23,8 @@
     "test:ci": "hardhat compile && hardhat test && yarn coverage"
   },
   "dependencies": {
-    "@ebsiint-sc/bootstrap": "^1.0.1-rc.9",
-    "@ebsiint-sc/trusted-policies-registry": "^1.0.1-rc.9"
+    "@ebsiint-sc/bootstrap": "^1.0.1-rc.10",
+    "@ebsiint-sc/trusted-policies-registry": "^1.0.1-rc.10"
   },
   "devDependencies": {
     "@gnosis-guild/typechain-ethers-v6": "^0.5.5",

@@ -3,18 +3,18 @@ info:
   title: Authorisation API v4
   version: 4.0.0
   description: |
-    The Authorisation API is a core EBSI service responsible for managing access to the protected EBSI services. Legal entities must present a valid Verifiable Authorisations or Verifiable Accreditations in a form of a Verifiable Presentations to get a short-lived access token with a lifetime of 2 hours. Access tokens have a limited scope according to the Legal Entity's authorisations.
-    Users receive access tokens after they present a valid EBSI Verifiable Credential and prove ownership over their DID. There is one exception to this rule during the onboarding process. Since the user does not yet have ownership over a DID, they are only required to present a *VerifiableAuthorisationToOnboard* in this case.
+    The Authorisation API is a core EBSI service responsible for managing access to protected EBSI services. Legal Entities must present a valid Verifiable Authorisation or Verifiable Accreditation in the form of a Verifiable Presentation to obtain a short-lived access token, which is valid for two hours. The scope of these access tokens is limited according to the authorisations held by the Legal Entity.
+    Users receive access tokens by presenting a valid EBSI Verifiable Credential and proving ownership of their decentralised identifier (DID). There is one exception during the onboarding process: since the user does not yet have ownership of a DID, they are only required to present a `VerifiableAuthorisationToOnboard`.
 
-    The following capabilities are used:
+    The Authorisation API supports the following capabilities:
 
     + [Authorisation Server discovery](https://openid.net/specs/openid-connect-discovery-1_0.html) the /.well-known/openid-configuration
     + [OpenID for Verifiable Presentation](https://openid.net/specs/openid-4-verifiable-presentations-1_0-14.html) capabilities (v 0.14)
     + [OIDC](https://openid.net/specs/openid-connect-core-1_0.html) capabilities (v1.0)
 
-    EBSI Platform distinguishes between identified and anonymous users. Both types of users have different sets of intents.
-    Identified users are legal entities who are using the trusted registries (DID registry and Trusted Issuer Registry).
-    Anonymous users can only read public information, so they can call all the REST endpoints, but no the JSON-RPC endpoints.
+    The EBSI Platform distinguishes between two types of users:
+    - **Identified Users:** Legal Entities who already use the trusted registries (DID registry and Trusted Issuer Registry).
+    - **Anonymous Users:** Users who can  only read public information through REST endpoints but cannot access JSON-RPC endpoints.
 
     For more information see:
     + [CLI Tool page](https://hub.ebsi.eu/tools/cli): Test the capabilities using the EBSI CLI tool
@@ -43,7 +43,7 @@ paths:
       operationId: get-well-known-openid-config
       tags:
         - Authorisation Service
-      description: Exposes the configuration of the OpenID Provider
+      description: Exposes the configuration of the OpenID Provider.
       responses:
         "200":
           description: OpenID Provider Metadata
@@ -73,18 +73,18 @@ paths:
                     description: |
                       REQUIRED. URL using the https scheme with no query or fragment component that the OP asserts as its Issuer Identifier. MUST be identical to the iss Claim value in ID Tokens issued from this Issuer.
 
-                      Note: issuer refers to OpenID Connect issuer or the Authorization Server and not to the Verifiable Credential issuer.
+                      Note: issuer refers to OpenID Connect issuer or the Authorisation Server and not to the Verifiable Credential issuer.
 
                       Ref: [OIDC](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata)
                     type: string
                     format: URI
                     example: https://api-pilot.ebsi.eu/authorisation/v4
                   authorization_endpoint:
-                    title: Authorization Endpoint
+                    title: Authorisation Endpoint
                     description: |
-                      REQUIRED. URL of the OP's OAuth 2.0 Authorization Endpoint [OpenID.Core].
+                      REQUIRED. URL of the OP's OAuth 2.0 Authorisation Endpoint [OpenID.Core].
 
-                      Note: The Authorization Endpoint is a conceptual entity and does not have a physical manifestation. The Token Endpoint and Presentation Endpoint serve as the primary components responsible for providing user authorization.
+                      Note: The Authorisation Endpoint is a conceptual entity and does not have a physical manifestation. The Token Endpoint and Presentation Endpoint serve as the primary components responsible for providing user authorisation.
 
                       Ref: [OIDC](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata)
                     type: string
@@ -113,7 +113,7 @@ paths:
                   jwks_uri:
                     title: JWKS URI
                     description: |
-                      REQUIRED. URL of the authorization server's JWK Set [JWK] document.  The referenced document contains the signing key(s) the client uses to validate signatures from the authorization server. This URL MUST use the \"https\" scheme.  The JWK Set MAY also contain the server's encryption key(s), which are used by clients to encrypt requests to the server.  When both signing and encryption keys are made available, a \"use\" (public key use) parameter value is REQUIRED for all keys in the referenced JWK Set to indicate each key's intended usage.
+                      REQUIRED. URL of the Authorisation Server's JWK Set [JWK] document.  The referenced document contains the signing key(s) the client uses to validate signatures from the Authorisation Server. This URL MUST use the \"https\" scheme.  The JWK Set MAY also contain the server's encryption key(s), which are used by clients to encrypt requests to the server.  When both signing and encryption keys are made available, a \"use\" (public key use) parameter value is REQUIRED for all keys in the referenced JWK Set to indicate each key's intended usage.
 
                       Ref: [OIDC](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata)
                     type: string
@@ -148,7 +148,7 @@ paths:
                   response_types_supported:
                     title: Supported Response Types
                     description: |
-                      REQUIRED (by SIOP v2). JSON array containing a list of the OAuth 2.0 \"response_type\" values that this authorization server supports. The array values used are the same as those used with the \"response_types\" parameter defined by \"OAuth 2.0 Dynamic Client Registration Protocol\" [RFC7591].
+                      REQUIRED (by SIOP v2). JSON array containing a list of the OAuth 2.0 \"response_type\" values that this Authorisation Server supports. The array values used are the same as those used with the \"response_types\" parameter defined by \"OAuth 2.0 Dynamic Client Registration Protocol\" [RFC7591].
 
                       If SIOP v2 is used: MUST be id_token
 
@@ -178,7 +178,7 @@ paths:
                   grant_types_supported:
                     title: Supported Grant Types
                     description: |
-                      JSON array containing a list of the OAuth 2.0 grant type values that this authorization server supports.  The array values used are the same as those used with the \"grant_types\" parameter defined by \"OAuth 2.0 Dynamic Client Registration Protocol\" [RFC7591].  If omitted, the default value is \"[\"authorization_code\", \"implicit\"]\".
+                      JSON array containing a list of the OAuth 2.0 grant type values that this Authorisation Server supports. The array values used are the same as those used with the \"grant_types\" parameter defined by \"OAuth 2.0 Dynamic Client Registration Protocol\" [RFC7591].  If omitted, the default value is \"[\"authorization_code\", \"implicit\"]\".
 
                       Ref:
                       - [OIDC](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata)
@@ -259,7 +259,7 @@ paths:
                   request_authentication_methods_supported:
                     title: Request Authentication Methods
                     description: |
-                      OPTIONAL. A JSON Object defining the client authentications supported for each endpoint. The endpoint names are defined in the IANA "OAuth Authorization Server Metadata" registry [IANA.OAuth.Parameters]. Other endpoints and authentication methods are possible if made recognizable according to established standards and not in conflict with the operating principles of this specification. In OpenID Connect Core, no client authentication is performed at the authentication endpoint. Instead, because the request itself is authenticated. What it amounts to is that the OP maps information in the request (like the redirect_uri) to information it has gained on the client through static or dynamic registration. If the map is successful, the request can be processed. If the RP uses Automatic Registration, as defined in Section 10.1, the OP has no prior knowledge of the RP. Therefore, the OP must start by gathering information about the RP using the process outlined in Section 6. Once it has the RP's metadata, the OP can verify the request in the same way as if it had known the RP's metadata beforehand. To make the request verification more secure, we demand the use of a client authentication or verification method that proves that the RP is in possession of a key that appears in the RP's metadata.
+                      OPTIONAL. A JSON Object defining the client authentications supported for each endpoint. The endpoint names are defined in the IANA "OAuth Authorisation Server Metadata" registry [IANA.OAuth.Parameters]. Other endpoints and authentication methods are possible if made recognizable according to established standards and not in conflict with the operating principles of this specification. In OpenID Connect Core, no client authentication is performed at the authentication endpoint. Instead, because the request itself is authenticated. What it amounts to is that the OP maps information in the request (like the redirect_uri) to information it has gained on the client through static or dynamic registration. If the map is successful, the request can be processed. If the RP uses Automatic Registration, as defined in Section 10.1, the OP has no prior knowledge of the RP. Therefore, the OP must start by gathering information about the RP using the process outlined in Section 6. Once it has the RP's metadata, the OP can verify the request in the same way as if it had known the RP's metadata beforehand. To make the request verification more secure, we demand the use of a client authentication or verification method that proves that the RP is in possession of a key that appears in the RP's metadata.
 
                       Reference: <https://openid.net/specs/openid-connect-federation-1_0.html#name-op-metadata>
                     type: object
@@ -445,7 +445,7 @@ paths:
   /authorisation/v4/jwks:
     get:
       operationId: get-jwks
-      description: Exposes the public keys of the authorisation service in JWKS format
+      description: Exposes the public keys of the Authorisation Service in JSON Web Key Set (JWKS) format.
       tags:
         - Authorisation Service
       summary: OpenID Provider's public keys
@@ -485,7 +485,7 @@ paths:
       tags:
         - Authorisation Service
       summary: Presentation definition requirements
-      description: Get presentation definition requirements
+      description: Retrieves the presentation definition requirements associated with various OpenID Connect (OIDC) scopes.
       parameters:
         - in: query
           name: scope
@@ -904,7 +904,7 @@ components:
       properties:
         access_token:
           description: |
-            The access token issued by the authorization server in JWS format. See also the "Access Token" schema definition
+            The access token issued by the Authorisation Server in JWS format. See also the "Access Token" schema definition
           type: string
           example: 32164be2809b7e8acdaf
           format: '^(([A-Za-z0-9\-_])+\.)([A-Za-z0-9\-_]+)(\.([A-Za-z0-9\-_]+)?$'

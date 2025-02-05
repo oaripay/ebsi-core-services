@@ -1,5 +1,52 @@
 # @ebsiint-sc/admin-scripts
 
+## 2.0.0-rc.10
+
+### Minor Changes
+
+- [2b765832f488148f09139cf6fa57a169a1ee32c3](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/2b765832f488148f09139cf6fa57a169a1ee32c3): Added tsr deployment latest version
+- [3ead238919891688491076d90d660d90dbbcaa98](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/3ead238919891688491076d90d660d90dbbcaa98): create 2 private keys: TPR operator (tprOp), and Support Office (SO).
+  Assign the "operator role" to the tprOp in the TPR.
+  Use the tprOp create policies in the TPR (insertPolicy) and assign these policies to the SO (insertUserAttributes)
+  Register DIDs for tprOp and SO in the did registry
+  Use the SO to register hash algs in timestamp sc (insertHashAlgorithm)
+  Register the SO in the TIR as roottao
+  Use the SO to register the schemas (https://code.europa.eu/ebsi/json-schema/-/tree/main)
+
+### Patch Changes
+
+- [49df5f6d31ca8a64fe9c301d3426704058585fc3](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/49df5f6d31ca8a64fe9c301d3426704058585fc3): Fixed node -v and hre dependency
+- [5b67fc6bb18008734237e1fffee9e76e607844fc](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/5b67fc6bb18008734237e1fffee9e76e607844fc): Fix `getJwks` function to return JWKs with correct `crv` property.
+- [68eddd584f46fca10be6025e77908ecd15b96a17](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/68eddd584f46fca10be6025e77908ecd15b96a17): EbsiInABox Deployment of SC
+- [319b62b1ff7ba0b9ed295b5dfd083339a2706532](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/319b62b1ff7ba0b9ed295b5dfd083339a2706532): Bump dependencies and update Node.js to v22.
+- [6dcd58e4abc78ddf0a544865a487246d12ebbb73](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/6dcd58e4abc78ddf0a544865a487246d12ebbb73): Bump dependencies.
+- [586f3d0e9898a5162c1a2ba50f4bb87ed7a06a1a](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/586f3d0e9898a5162c1a2ba50f4bb87ed7a06a1a): Fix dependencies.
+- [cc207c5d7adfa0843ff285edee10347283d5acff](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/cc207c5d7adfa0843ff285edee10347283d5acff): Update Node.js to v22.13.1 and bump dependencies.
+- [3849b3d0a244d5385671ce8afa618f53bbddf35a](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/3849b3d0a244d5385671ce8afa618f53bbddf35a): Bump EBSI Core Libs.
+- [3b4ad1dc4f039c54ec79787bf717ffc83c33691f](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/3b4ad1dc4f039c54ec79787bf717ffc83c33691f): Update ethers.js to v6.
+- Updated dependencies [319b62b1ff7ba0b9ed295b5dfd083339a2706532](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/319b62b1ff7ba0b9ed295b5dfd083339a2706532)
+- Updated dependencies [6dcd58e4abc78ddf0a544865a487246d12ebbb73](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/6dcd58e4abc78ddf0a544865a487246d12ebbb73)
+- Updated dependencies [cc207c5d7adfa0843ff285edee10347283d5acff](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/cc207c5d7adfa0843ff285edee10347283d5acff)
+- Updated dependencies [3b4ad1dc4f039c54ec79787bf717ffc83c33691f](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/3b4ad1dc4f039c54ec79787bf717ffc83c33691f)
+  - @ebsiint-sc/trusted-policies-registry-v2@2.0.0-rc.6
+  - @ebsiint-sc/trusted-policies-registry-v3@3.0.0-rc.3
+  - @ebsiint-sc/trusted-issuers-registry-v3@3.0.0-rc.7
+  - @ebsiint-sc/trusted-issuers-registry-v4@4.0.0-rc.3
+  - @ebsiint-sc/trusted-schemas-registry-v2@2.0.0-rc.6
+  - @ebsiint-sc/trusted-schemas-registry-v3@3.0.0-rc.3
+  - @ebsiint-sc/trusted-policies-registry@1.0.1-rc.10
+  - @ebsiint-sc/trusted-issuers-registry@2.0.0-rc.10
+  - @ebsiint-sc/trusted-schemas-registry@1.0.1-rc.10
+  - @ebsiint-sc/did-registry-v2@2.0.0-rc.9
+  - @ebsiint-sc/did-registry-v3@3.0.0-rc.6
+  - @ebsiint-sc/did-registry-v4@4.0.0-rc.4
+  - @ebsiint-sc/bootstrap-v2@2.0.0-rc.6
+  - @ebsiint-sc/did-registry@1.1.0-rc.10
+  - @ebsiint-sc/timestamp-v2@2.0.0-rc.6
+  - @ebsiint-sc/bootstrap@1.0.1-rc.10
+  - @ebsiint-sc/timestamp@1.0.1-rc.10
+  - @ebsiint-sc/proxy@2.0.0-rc.10
+
 ## 2.0.0-rc.9
 
 ### Minor Changes

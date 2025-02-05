@@ -1,7 +1,7 @@
 {
   "name": "@ebsiint-api/trusted-issuers-registry-api-v6",
   "private": true,
-  "version": "6.0.0-rc.2",
+  "version": "6.0.0-rc.3",
   "type": "module",
   "license": "EUPL-1.2",
   "scripts": {
@@ -28,9 +28,9 @@
   "dependencies": {
     "@cef-ebsi/ebsi-uri": "^1.0.0",
     "@cef-ebsi/verifiable-credential": "^7.0.0",
-    "@ebsiint-api/shared": "^1.1.0-rc.11",
-    "@ebsiint-sc/trusted-issuers-registry-v4": "^4.0.0-rc.2",
-    "@ebsiint-subgraph/trusted-issuers-registry-v4": "^0.0.0-rc.1",
+    "@ebsiint-api/shared": "^1.1.0-rc.12",
+    "@ebsiint-sc/trusted-issuers-registry-v4": "^4.0.0-rc.3",
+    "@ebsiint-subgraph/trusted-issuers-registry-v4": "^0.0.0-rc.2",
     "@fastify/accepts": "^4.3.0",
     "@fastify/helmet": "^11.1.1",
     "@graphprotocol/client-cli": "^3.0.7",
