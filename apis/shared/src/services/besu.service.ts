@@ -115,19 +115,6 @@ export abstract class BesuService implements OnModuleDestroy, OnModuleInit {
     if (this.keepAliveInterval) clearInterval(this.keepAliveInterval);
     if (this.pingTimeout) clearTimeout(this.pingTimeout);
 
-    if (this.reconnectionAttempts >= WS_MAX_RECONNECTION_ATTEMPTS) {
-      this.logger.error(
-        `Max reconnection attempts (${WS_MAX_RECONNECTION_ATTEMPTS}) reached for ${this.url}. Stopping reconnection.`,
-      );
-
-      this.reconnectWebSocket = false;
-
-      // Stop the process
-      process.kill(process.pid, "SIGINT");
-
-      return;
-    }
-
     this.provider = new ethers.WebSocketProvider(this.url, undefined, {
       staticNetwork: true,
     });
@@ -161,13 +148,29 @@ export abstract class BesuService implements OnModuleDestroy, OnModuleInit {
 
       if (this.reconnectWebSocket) {
         this.reconnectionAttempts++;
+
+        if (this.reconnectionAttempts > WS_MAX_RECONNECTION_ATTEMPTS) {
+          this.logger.error(
+            `Max reconnection attempts (${WS_MAX_RECONNECTION_ATTEMPTS}) reached for ${this.url}. Stopping reconnection.`,
+          );
+
+          this.reconnectWebSocket = false;
+
+          // Stop the process
+          process.kill(process.pid, "SIGINT");
+
+          return;
+        }
+
+        // Do not delay the first reconnection attempt
+        const delay = this.reconnectionAttempts > 1 ? WS_RECONNECTION_DELAY : 0;
         this.logger.log(
-          `Attempting to reconnect... (attempt ${this.reconnectionAttempts})`,
+          `Attempting to reconnect in ${delay.toString()}ms... (attempt ${this.reconnectionAttempts})`,
         );
 
         setTimeout(() => {
           this.setupWebSocketProvider();
-        }, WS_RECONNECTION_DELAY);
+        }, delay);
       }
     });
 
