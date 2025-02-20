@@ -192,25 +192,4 @@ export default class TimestampsService {
       });
     }
   }
-
-  async getTimestampsNew(
-    page: number,
-    pageSize: number,
-  ): ReturnType<Timestamp["getTimestampsNew"]> {
-    const provider = this.ledgerService.getProvider();
-
-    try {
-      return await this.contract
-        // @ts-expect-error Error due to contracts using CommonJS modules
-        .connect(provider)
-        .getTimestampsNew(page, pageSize);
-    } catch (error) {
-      if (isEthersError(error)) {
-        this.logger.error(error, error.stack);
-      }
-      throw new NotFoundError("No timestamps found", {
-        detail: "No timestamps found",
-      });
-    }
-  }
 }
