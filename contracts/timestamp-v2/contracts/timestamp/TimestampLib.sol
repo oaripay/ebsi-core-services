@@ -73,31 +73,6 @@ library TimestampLib {
     }
 
     /**
-     * @dev returns a paginated list of timestamp hashes. List of all timestamp ids is stored in the timestampIdsList
-     */
-    function getTimestamps(
-        TimestampStorage.Timestamps storage ts,
-        uint256 page,
-        uint256 pageSize
-    )
-        public
-        view
-        returns (
-            bytes32[] memory items,
-            uint256 total,
-            uint256 howMany,
-            uint256 prev,
-            uint256 next
-        )
-    {
-        require(pageSize <= 50, "PSize not <= 50");
-        require(pageSize > 0, "PSize not >0");
-        require(page > 0, "Page not >0");
-
-        return ts.timestampIdsList.paginate(page, pageSize);
-    }
-
-    /**
      * @dev returns the timestamp of the hash. The timestamp is stored in the timestampsStore.
      */
     function getTimestamp(

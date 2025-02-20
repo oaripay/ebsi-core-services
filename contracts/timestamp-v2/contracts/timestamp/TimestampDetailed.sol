@@ -52,8 +52,20 @@ abstract contract TimestampDetailed is Initializable, TimestampStorage {
             uint256 next
         )
     {
+        require(pageSize <= 50, "PSize not <= 50");
+        require(pageSize > 0, "PSize not >0");
+        require(page > 0, "Page not >0");
         Timestamps storage ts = timestampStorage();
-        return ts.getTimestamps(page, pageSize);
+        uint256[] memory timestampIds;
+        (timestampIds, total, howMany, prev, next) = ts
+            .timestampIdsList
+            .length
+            .paginate(page, pageSize);
+        bytes32[] memory itemsFetched = new bytes32[](howMany);
+        for (uint256 i = 0; i < howMany; i++) {
+            itemsFetched[i] = ts.timestampIdsList[timestampIds[i]];
+        }
+        items = itemsFetched;
     }
 
     /**
@@ -92,33 +104,6 @@ abstract contract TimestampDetailed is Initializable, TimestampStorage {
     {
         Timestamps storage ts = timestampStorage();
         return ts.getTimestampById(timestampId);
-    }
-
-    function getTimestampsNew(
-        uint256 page,
-        uint256 pageSize
-    )
-        external
-        view
-        returns (
-            bytes32[] memory items,
-            uint256 total,
-            uint256 howMany,
-            uint256 prev,
-            uint256 next
-        )
-    {
-        Timestamps storage ts = timestampStorage();
-        uint256[] memory timestampIds;
-        (timestampIds, total, howMany, prev, next) = ts
-            .timestampIdsList
-            .length
-            .paginate(page, pageSize);
-        bytes32[] memory itemsFetched = new bytes32[](howMany);
-        for (uint256 i = 0; i < howMany; i++) {
-            itemsFetched[i] = ts.timestampIdsList[timestampIds[i]];
-        }
-        items = itemsFetched;
     }
 
     uint256[50] private __gap;
