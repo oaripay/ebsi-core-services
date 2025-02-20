@@ -289,6 +289,222 @@ describe("Timestamps Module", () => {
     });
   });
 
+  describe("GET /timestamps/new", () => {
+    it("should return a paginated collection of timestamps", async () => {
+      expect.assertions(3);
+
+      const response = await request(server).get("/timestamps/new");
+      expect(response.body).toStrictEqual({
+        items: expect.arrayContaining([]),
+        links: {
+          first: expect.stringContaining(
+            "/timestamps/new?page[after]=1&page[size]=10",
+          ),
+          last: expect.stringContaining(
+            "/timestamps/new?page[after]=1&page[size]=10",
+          ),
+          next: expect.stringContaining(
+            "/timestamps/new?page[after]=1&page[size]=10",
+          ),
+          prev: expect.stringContaining(
+            "/timestamps/new?page[after]=1&page[size]=10",
+          ),
+        },
+        pageSize: 10,
+        self: expect.stringContaining(
+          "/timestamps/new?page[after]=1&page[size]=10",
+        ),
+        total: HASHES_TOTAL,
+      });
+      expect((response.body as { items: string }).items).toHaveLength(3);
+      expect(response.status).toBe(200);
+    });
+
+    it("should handle the pagination properly", async () => {
+      expect.assertions(12);
+
+      const response1 = await request(server).get(
+        "/timestamps/new?page[size]=2",
+      );
+      expect(response1.body).toStrictEqual({
+        items: expect.arrayContaining([]),
+        links: {
+          first: expect.stringContaining(
+            "/timestamps/new?page[after]=1&page[size]=2",
+          ),
+          last: expect.stringContaining(
+            "/timestamps/new?page[after]=2&page[size]=2",
+          ),
+          next: expect.stringContaining(
+            "/timestamps/new?page[after]=2&page[size]=2",
+          ),
+          prev: expect.stringContaining(
+            "/timestamps/new?page[after]=1&page[size]=2",
+          ),
+        },
+        pageSize: 2,
+        self: expect.stringContaining(
+          "/timestamps/new?page[after]=1&page[size]=2",
+        ),
+        total: HASHES_TOTAL,
+      });
+      expect((response1.body as { items: string }).items).toHaveLength(2);
+      expect(response1.status).toBe(200);
+
+      // next page
+      const response2 = await request(server).get(
+        "/timestamps/new?page[after]=2&page[size]=2",
+      );
+      expect(response2.body).toStrictEqual({
+        items: expect.arrayContaining([]),
+        links: {
+          first: expect.stringContaining(
+            "/timestamps/new?page[after]=1&page[size]=2",
+          ),
+          last: expect.stringContaining(
+            "/timestamps/new?page[after]=2&page[size]=2",
+          ),
+          next: expect.stringContaining(
+            "/timestamps/new?page[after]=2&page[size]=2",
+          ),
+          prev: expect.stringContaining(
+            "/timestamps/new?page[after]=1&page[size]=2",
+          ),
+        },
+        pageSize: 2,
+        self: expect.stringContaining(
+          "/timestamps/new?page[after]=2&page[size]=2",
+        ),
+        total: HASHES_TOTAL,
+      });
+      expect((response2.body as { items: string }).items).toHaveLength(1);
+      expect(response2.status).toBe(200);
+
+      // big page
+      const response3 = await request(server).get(
+        "/timestamps/new?page[after]=100&page[size]=2",
+      );
+      expect(response3.body).toStrictEqual({
+        items: expect.arrayContaining([]),
+        links: {
+          first: expect.stringContaining(
+            "/timestamps/new?page[after]=1&page[size]=2",
+          ),
+          last: expect.stringContaining(
+            "/timestamps/new?page[after]=2&page[size]=2",
+          ),
+          next: expect.stringContaining(
+            "/timestamps/new?page[after]=2&page[size]=2",
+          ),
+          prev: expect.stringContaining(
+            "/timestamps/new?page[after]=2&page[size]=2",
+          ),
+        },
+        pageSize: 2,
+        self: expect.stringContaining(
+          "/timestamps/new?page[after]=100&page[size]=2",
+        ),
+        total: HASHES_TOTAL,
+      });
+      expect((response3.body as { items: string }).items).toHaveLength(0);
+      expect(response3.status).toBe(200);
+
+      // page["after"] defined but page["size"] undefined
+      const response4 = await request(server).get(
+        "/timestamps/new?page[after]=1",
+      );
+      expect(response4.body).toStrictEqual({
+        items: expect.arrayContaining([]),
+        links: {
+          first: expect.stringContaining(
+            "/timestamps/new?page[after]=1&page[size]=10",
+          ),
+          last: expect.stringContaining(
+            "/timestamps/new?page[after]=1&page[size]=10",
+          ),
+          next: expect.stringContaining(
+            "/timestamps/new?page[after]=1&page[size]=10",
+          ),
+          prev: expect.stringContaining(
+            "/timestamps/new?page[after]=1&page[size]=10",
+          ),
+        },
+        pageSize: 10,
+        self: expect.stringContaining(
+          "/timestamps/new?page[after]=1&page[size]=10",
+        ),
+        total: HASHES_TOTAL,
+      });
+      expect((response4.body as { items: string }).items).toHaveLength(3);
+      expect(response4.status).toBe(200);
+    });
+
+    it("should throw a Bad Request for bad pagination", async () => {
+      expect.assertions(8);
+
+      const response1 = await request(server).get(
+        "/timestamps/new?page[size]=100",
+      );
+      expect(response1.body).toStrictEqual({
+        detail: '["page[size] must not be greater than 50"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response1.status).toBe(400);
+
+      const response2 = await request(server).get(
+        "/timestamps/new?page[size]=0",
+      );
+      expect(response2.body).toStrictEqual({
+        detail: '["page[size] must not be less than 1"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response2.status).toBe(400);
+
+      const response3 = await request(server).get(
+        "/timestamps/new?page[after]=0",
+      );
+      expect(response3.body).toStrictEqual({
+        detail: '["page[after] must not be less than 1"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response3.status).toBe(400);
+
+      const response4 = await request(server).get(
+        "/timestamps/new?page[after]=abc",
+      );
+      expect(response4.body).toStrictEqual({
+        detail:
+          '["page[after] must not be less than 1","page[after] must be a number conforming to the specified constraints"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response4.status).toBe(400);
+    });
+
+    it("should reject a non whitelisted query", async () => {
+      expect.assertions(2);
+
+      const response = await request(server).get(
+        "/timestamps/new?invalid-query=abc",
+      );
+
+      expect(response.body).toStrictEqual({
+        detail: '["property invalid-query should not exist"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+    });
+  });
+
   describe("GET /timestamps/{timestampId}", () => {
     it("should return a specific timestamp (1)", async () => {
       // Test when we already know some info about the timestamp

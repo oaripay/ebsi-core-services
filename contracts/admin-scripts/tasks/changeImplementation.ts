@@ -30,12 +30,14 @@ task("changeImplementation", "change proxy implementation")
 
       // these infos are not easily accessible as they are restricted by an onlyAdmin modifier
       // to retrieve them we use the low level getStorage call
-      const adminAddr = BigInt(
-        await ethers.provider.getStorage(
-          await proxyCtr.getAddress(),
-          IMPLEMENTATION_SLOT,
-        ),
-      ).toString(16);
+      const adminAddr =
+        "0x" +
+        BigInt(
+          await ethers.provider.getStorage(
+            await proxyCtr.getAddress(),
+            IMPLEMENTATION_SLOT,
+          ),
+        ).toString(16);
       console.log(`Proxy admin address: ${adminAddr}`);
       const [signers] = await ethers.getSigners();
       console.log(`Deployer address: ${signers.address}`);

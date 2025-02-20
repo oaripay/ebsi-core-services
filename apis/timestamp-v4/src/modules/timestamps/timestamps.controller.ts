@@ -51,4 +51,26 @@ export default class TimestampsController {
 
     return formatTimestamps(timestamps, pageAfter, pageSize, baseUrl);
   }
+
+  @Accepts("application/json")
+  @Get("/new")
+  async getTimestampsNew(
+    @Query() query: GetTimestampsDto,
+  ): Promise<PaginatedList<TimestampLink>> {
+    const pageAfter = query["page[after]"];
+    const pageSize = query["page[size]"];
+
+    const timestamps = await this.timestampsService.getTimestamps(
+      pageAfter,
+      pageSize,
+    );
+
+    const apiUrlPrefix = this.configService.get("apiUrlPrefix", {
+      infer: true,
+    });
+    const domain = this.configService.get("domain", { infer: true });
+    const baseUrl = `${domain}${apiUrlPrefix}/timestamps/new`;
+
+    return formatTimestamps(timestamps, pageAfter, pageSize, baseUrl);
+  }
 }
