@@ -60,7 +60,7 @@ export default class TimestampsController {
     const pageAfter = query["page[after]"];
     const pageSize = query["page[size]"];
 
-    const timestamps = await this.timestampsService.getTimestamps(
+    const timestamps = await this.timestampsService.getTimestampsNew(
       pageAfter,
       pageSize,
     );
