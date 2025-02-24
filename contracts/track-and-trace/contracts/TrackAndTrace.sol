@@ -18,8 +18,7 @@ contract TrackAndTrace is
 {
     using EnumerableMapUpgradeable for EnumerableMapUpgradeable.Bytes32ToBytes32Map;
 
-    using Pagination for bytes32[];
-    using Pagination for bytes[];
+    using Pagination for uint256;
 
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
     uint256 public constant MAX_METADATA_LENGTH = 4000;
@@ -309,7 +308,16 @@ contract TrackAndTrace is
         require(pageSize <= 50, "PSize not <= 50");
         require(pageSize > 0, "PSize not >0");
         require(page > 0, "Page not >0");
-        return documentsMapped.keys().paginate(page, pageSize);
+        uint256[] memory ids;
+        (ids, total, howMany, prev, next) = documentsMapped.length().paginate(
+            page,
+            pageSize
+        );
+        items = new bytes32[](howMany);
+        for (uint256 i = 0; i < howMany; i++) {
+            (bytes32 key, ) = documentsMapped.at(ids[i]);
+            items[i] = key;
+        }
     }
 
     function getDocument(
@@ -347,7 +355,15 @@ contract TrackAndTrace is
             bytes(documents[documentHash].creator).length > 0,
             "Document does not exist"
         );
-        return documents[documentHash].eventHashes.paginate(page, pageSize);
+        uint256[] memory ids;
+        (ids, total, howMany, prev, next) = documents[documentHash]
+            .eventHashes
+            .length
+            .paginate(page, pageSize);
+        items = new bytes32[](howMany);
+        for (uint256 i = 0; i < howMany; i++) {
+            items[i] = documents[documentHash].eventHashes[ids[i]];
+        }
     }
 
     function getEvent(
@@ -385,8 +401,15 @@ contract TrackAndTrace is
             bytes(documents[documentHash].creator).length > 0,
             "Document does not exist"
         );
-        bytes[] storage invitedUsers = documents[documentHash].allInvited;
-        return invitedUsers.paginate(page, pageSize);
+        uint256[] memory ids;
+        (ids, total, howMany, prev, next) = documents[documentHash]
+            .allInvited
+            .length
+            .paginate(page, pageSize);
+        items = new bytes[](howMany);
+        for (uint256 i = 0; i < howMany; i++) {
+            items[i] = documents[documentHash].allInvited[ids[i]];
+        }
     }
 
     function getAccessesBySubject(
@@ -408,7 +431,14 @@ contract TrackAndTrace is
         require(pageSize > 0, "PSize not >0");
         require(page > 0, "Page not >0");
         require(accessBySubject[subject].length > 0, "Subject does not exist");
-        return accessBySubject[subject].paginate(page, pageSize);
+        uint256[] memory ids;
+        (ids, total, howMany, prev, next) = accessBySubject[subject]
+            .length
+            .paginate(page, pageSize);
+        items = new bytes32[](howMany);
+        for (uint256 i = 0; i < howMany; i++) {
+            items[i] = accessBySubject[subject][ids[i]];
+        }
     }
 
     function isCreator(bytes calldata did) external view returns (bool) {

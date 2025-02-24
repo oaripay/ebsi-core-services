@@ -1,13 +1,10 @@
 // SPDX-License-Identifier: EUPL V1.2
 pragma solidity 0.8.12;
 
-import "@ebsiint-sc/bootstrap-v2/contracts/utils/Pagination.sol";
 import "./ControllersStorage.sol";
 import "./UtilsLib.sol";
 
 library ControllersLib {
-    using Pagination for string[];
-
     function linkDidToController(
         ControllersStorage.Controllers storage cs,
         string memory did,
@@ -36,25 +33,5 @@ library ControllersLib {
             dids.pop();
         }
         return true;
-    }
-
-    function getDidsByController(
-        ControllersStorage.Controllers storage cs,
-        string memory controller,
-        uint256 page,
-        uint256 pageSize
-    )
-        external
-        view
-        returns (
-            string[] memory items,
-            uint256 total,
-            uint256 howMany,
-            uint256 prev,
-            uint256 next
-        )
-    {
-        require(pageSize <= 50, "pageSize must be <= 50");
-        return cs.didsByController[controller].paginate(page, pageSize);
     }
 }

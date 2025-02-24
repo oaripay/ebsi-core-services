@@ -439,47 +439,7 @@ contract TrackAndTrace is
     function getImplementation() external view returns (address) {
         return _getImplementation();
     }
-    /**
-     * @notice Retrieves a paginated list of document hashes stored in the contract.
-     * @dev This function allows users to fetch documents in pages, based on the specified page number and page size.
-     *      Pagination is used to efficiently handle large datasets.
-     * @param page The page number to retrieve. Must be greater than 0.
-     * @param pageSize The number of document hashes to retrieve per page.
-     *      Must be greater than 0 and less than or equal to 50.
-     * @return items An array of document hashes corresponding to the requested page.
-     * @return total The total number of document hashes stored in the contract.
-     * @return howMany The number of document hashes returned in the current page.
-     * @return prev The previous page number, or 0 if there is no previous page.
-     * @return next The next page number, or 0 if there is no next page.
-     *
-     * Requirements:
-     * - `page` must be greater than 0.
-     * - `pageSize` must be greater than 0 and less than or equal to 50.
-     *
-     * Reverts:
-     * - `PSize not <= 50` if the `pageSize` exceeds 50.
-     * - `PSize not > 0` if the `pageSize` is 0.
-     * - `Page not > 0` if the `page` is 0.
-     */
-    function getDocuments(
-        uint256 page,
-        uint256 pageSize
-    )
-        external
-        view
-        returns (
-            bytes32[] memory items,
-            uint256 total,
-            uint256 howMany,
-            uint256 prev,
-            uint256 next
-        )
-    {
-        if (pageSize > 50) revert PageSizeTooBig();
-        if (pageSize == 0) revert PageSizeZero();
-        if (page == 0) revert PageZero();
-        return documentsMapped.keys().paginate(page, pageSize);
-    }
+
     /**
      * @notice Retrieves the details of a specific document by its hash.
      * @dev This function returns the metadata, creator, and associated events of a document stored in the contract.
@@ -510,53 +470,7 @@ contract TrackAndTrace is
         doc.eventHashes = iDoc.eventHashes;
         return doc;
     }
-    /**
-     * @notice Retrieves a paginated list of event hashes associated with a specific document.
-     * @dev This function allows users to fetch events related to a document in a paginated manner.
-     * @param documentHash The hash of the document for which events are being retrieved.
-     * @param page The page number to retrieve. Must be greater than 0.
-     * @param pageSize The number of event hashes to retrieve per page.
-     *     Must be greater than 0 and less than or equal to 50.
-     * @return items An array of event hashes corresponding to the requested page.
-     * @return total The total number of event hashes associated with the document.
-     * @return howMany The number of event hashes returned in the current page.
-     * @return prev The previous page number, or 0 if there is no previous page.
-     * @return next The next page number, or 0 if there is no next page.
-     *
-     * Requirements:
-     * - `documentHash` must correspond to an existing document.
-     * - `page` must be greater than 0.
-     * - `pageSize` must be greater than 0 and less than or equal to 50.
-     *
-     * Reverts:
-     * - `PSize not <= 50` if the `pageSize` exceeds 50.
-     * - `PSize not > 0` if the `pageSize` is 0.
-     * - `Page not > 0` if the `page` is 0.
-     * - `Document does not exist` if no document with the specified `documentHash` is found.
-     */
-    function getEvents(
-        bytes32 documentHash,
-        uint256 page,
-        uint256 pageSize
-    )
-        external
-        view
-        returns (
-            bytes32[] memory items,
-            uint256 total,
-            uint256 howMany,
-            uint256 prev,
-            uint256 next
-        )
-    {
-        if (pageSize > 50) revert PageSizeTooBig();
-        if (pageSize == 0) revert PageSizeZero();
-        if (page == 0) revert PageZero();
-        if (bytes(documents[documentHash].creator).length == 0) {
-            revert DocumentDoesNotExist();
-        }
-        return documents[documentHash].eventHashes.paginate(page, pageSize);
-    }
+
     /**
      * @notice Retrieves the details of a specific event associated with a document.
      * @dev This function returns the details of an event for a given document, identified by the event's hash.
@@ -591,102 +505,7 @@ contract TrackAndTrace is
         }
         return ev;
     }
-    /**
-     * @notice Retrieves a paginated list of accounts that have been granted access to a specific document.
-     * @dev This function returns the list of accounts (subjects) that have access to a document,
-     *      based on the document's hash.
-     *      The result is paginated based on the specified page number and page size.
-     * @param documentHash The hash of the document for which access details are being retrieved.
-     * @param page The page number to retrieve. Must be greater than 0.
-     * @param pageSize The number of accounts to retrieve per page. Must be greater than 0 and less than or equal to 50.
-     * @return items An array of accounts (subjects) that have access to the document for the requested page.
-     * @return total The total number of accounts with access to the document.
-     * @return howMany The number of accounts returned in the current page.
-     * @return prev The previous page number, or 0 if there is no previous page.
-     * @return next The next page number, or 0 if there is no next page.
-     *
-     * Requirements:
-     * - `documentHash` must correspond to an existing document.
-     * - `page` must be greater than 0.
-     * - `pageSize` must be greater than 0 and less than or equal to 50.
-     *
-     * Reverts:
-     * - `PSize not <= 50` if `pageSize` exceeds 50.
-     * - `PSize not > 0` if `pageSize` is 0.
-     * - `Page not > 0` if `page` is 0.
-     * - `Document does not exist` if no document with the specified `documentHash` is found.
-     */
-    function getAccessesByDocument(
-        bytes32 documentHash,
-        uint256 page,
-        uint256 pageSize
-    )
-        external
-        view
-        returns (
-            bytes[] memory items,
-            uint256 total,
-            uint256 howMany,
-            uint256 prev,
-            uint256 next
-        )
-    {
-        if (pageSize > 50) revert PageSizeTooBig();
-        if (pageSize == 0) revert PageSizeZero();
-        if (page == 0) revert PageZero();
-        if (bytes(documents[documentHash].creator).length == 0) {
-            revert DocumentDoesNotExist();
-        }
-        bytes[] storage invitedUsers = documents[documentHash].allInvited;
-        return invitedUsers.paginate(page, pageSize);
-    }
-    /**
-     * @notice Retrieves a paginated list of document hashes that a specific subject (account) has access to.
-     * @dev This function allows for fetching all documents a subject has been granted access to, using pagination.
-     * @param subject The account (subject) whose document accesses are being queried.
-     * @param page The page number to retrieve. Must be greater than 0.
-     * @param pageSize The number of document hashes to retrieve per page.
-     *      Must be greater than 0 and less than or equal to 50.
-     * @return items An array of document hashes that the subject has access to, corresponding to the requested page.
-     * @return total The total number of documents the subject has access to.
-     * @return howMany The number of document hashes returned in the current page.
-     * @return prev The previous page number, or 0 if there is no previous page.
-     * @return next The next page number, or 0 if there is no next page.
-     *
-     * Requirements:
-     * - `subject` must have access to at least one document.
-     * - `page` must be greater than 0.
-     * - `pageSize` must be greater than 0 and less than or equal to 50.
-     *
-     * Reverts:
-     * - `PSize not <= 50` if `pageSize` exceeds 50.
-     * - `PSize not > 0` if `pageSize` is 0.
-     * - `Page not > 0` if `page` is 0.
-     * - `Subject does not exist` if the subject does not have access to any documents.
-     */
-    function getAccessesBySubject(
-        bytes calldata subject,
-        uint256 page,
-        uint256 pageSize
-    )
-        external
-        view
-        returns (
-            bytes32[] memory items,
-            uint256 total,
-            uint256 howMany,
-            uint256 prev,
-            uint256 next
-        )
-    {
-        if (pageSize > 50) revert PageSizeTooBig();
-        if (pageSize == 0) revert PageSizeZero();
-        if (page == 0) revert PageZero();
-        if (accessBySubject[subject].length == 0) {
-            revert SubjectDoesNotExist();
-        }
-        return accessBySubject[subject].paginate(page, pageSize);
-    }
+
     /**
      * @notice Checks whether the given DID (Decentralized Identifier) is a creator within the system.
      * @dev This function verifies if the provided DID has the permission to create new documents.

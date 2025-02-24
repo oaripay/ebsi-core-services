@@ -62,7 +62,6 @@ export async function deployDidRegistryContract(): Promise<{
             VRelationshipsLib: vRelationshipsLibAddress,
           },
         }),
-        VRelationshipsLib: vRelationshipsLibAddress,
       },
     },
   )) as DidRegistry__factory;

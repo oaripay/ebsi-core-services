@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: EUPL V1.2
 pragma solidity 0.8.12;
 
+import "@ebsiint-sc/bootstrap-v2/contracts/utils/Pagination.sol";
 import "./DidDocumentStorage.sol";
 import "./ControllersStorage.sol";
 import "./DidDocumentLib.sol";
@@ -16,6 +17,7 @@ abstract contract DidDocumentDetailed is
     using DidDocumentLib for DidDocuments;
     using ControllersLib for Controllers;
     using VRelationshipsLib for VRelationships;
+    using Pagination for uint256;
 
     event DidDocumentInserted(
         string did,
@@ -251,8 +253,19 @@ abstract contract DidDocumentDetailed is
             uint256 next
         )
     {
+        require(pageSize <= 50, "pageSize must be <= 50");
+        require(pageSize > 0, "pageSize must be >0");
+        require(page > 0, "Page not >0");
         DidDocuments storage ds = didDocumentStorage();
-        return ds.getDids(page, pageSize);
+        uint256[] memory ids;
+        (ids, total, howMany, prev, next) = ds.dids.length.paginate(
+            page,
+            pageSize
+        );
+        items = new string[](howMany);
+        for (uint256 i = 0; i < howMany; i++) {
+            items[i] = ds.dids[ids[i]];
+        }
     }
 
     function getDidsByController(
@@ -270,13 +283,24 @@ abstract contract DidDocumentDetailed is
             uint256 next
         )
     {
+        require(pageSize <= 50, "pageSize must be <= 50");
+        require(pageSize > 0, "pageSize must be >0");
+        require(page > 0, "Page not >0");
         DidDocuments storage ds = didDocumentStorage();
         Controllers storage cs = controllersStorage();
         require(
             bytes(ds.didList[controller].baseDocument).length > 0,
             "controller doesn't exist"
         );
-        return cs.getDidsByController(controller, page, pageSize);
+        uint256[] memory ids;
+        (ids, total, howMany, prev, next) = cs
+            .didsByController[controller]
+            .length
+            .paginate(page, pageSize);
+        items = new string[](howMany);
+        for (uint256 i = 0; i < howMany; i++) {
+            items[i] = cs.didsByController[controller][ids[i]];
+        }
     }
 
     function getDidsByVerificationRelationship(
@@ -295,9 +319,21 @@ abstract contract DidDocumentDetailed is
             uint256 next
         )
     {
+        require(pageSize <= 50, "pageSize must be <= 50");
+        require(pageSize > 0, "pageSize must be >0");
+        require(page > 0, "Page not >0");
         VRelationships storage vs = vRelationshipsStorage();
         uint256 vrId = uint256(keccak256(abi.encodePacked(name, vMethodId)));
-        return vs.getDidsByVerificationRelationshipId(vrId, page, pageSize);
+
+        uint256[] memory ids;
+        (ids, total, howMany, prev, next) = vs
+            .didsByVRelationship[vrId]
+            .length
+            .paginate(page, pageSize);
+        items = new DidWithPeriod[](howMany);
+        for (uint256 i = 0; i < howMany; i++) {
+            items[i] = vs.didsByVRelationship[vrId][ids[i]];
+        }
     }
 
     function getDidDocument(

@@ -6,9 +6,11 @@ pragma solidity 0.8.12;
 import "./SchemaStorage.sol";
 import "./SchemaLib.sol";
 import "@ebsiint-sc/trusted-policies-registry-v2/contracts/trusted-policies-registry/interfaces/IPolicyRegistry.sol";
+import "@ebsiint-sc/bootstrap-v2/contracts/utils/Pagination.sol";
 
 abstract contract SchemaDetailed is SchemaStorage {
     using SchemaLib for Schemas;
+    using Pagination for uint256;
 
     event SchemaInserted(bytes indexed schemaId, bytes schema, bytes metadata);
 
@@ -52,8 +54,19 @@ abstract contract SchemaDetailed is SchemaStorage {
             uint256 next
         )
     {
+        require(pageSize <= 50, "PageSize must be <= 50");
+        require(pageSize > 0, "PageSize must be > 0");
+        require(page > 0, "Page must be > 0");
         Schemas storage ss = schemaStorage();
-        return ss.getSchemaIds(page, pageSize);
+        uint256[] memory ids;
+        (ids, total, howMany, prev, next) = ss.schemaIds.length.paginate(
+            page,
+            pageSize
+        );
+        items = new bytes[](howMany);
+        for (uint256 i = 0; i < howMany; i++) {
+            items[i] = ss.schemaIds[ids[i]];
+        }
     }
 
     /**
@@ -121,8 +134,20 @@ abstract contract SchemaDetailed is SchemaStorage {
             uint256 next
         )
     {
+        require(schemaId.length > 0, "schemaId empty");
+        require(pageSize <= 50, "PageSize must be <= 50");
+        require(pageSize > 0, "PageSize must be > 0");
+        require(page > 0, "Page must be > 0");
         Schemas storage ss = schemaStorage();
-        return ss.getSchemaRevisionIds(schemaId, page, pageSize);
+        uint256[] memory ids;
+        (ids, total, howMany, prev, next) = ss
+            .schemaIdToRevisionIds[schemaId]
+            .length
+            .paginate(page, pageSize);
+        items = new bytes32[](howMany);
+        for (uint256 i = 0; i < howMany; i++) {
+            items[i] = ss.schemaIdToRevisionIds[schemaId][ids[i]];
+        }
     }
 
     /**
@@ -165,9 +190,20 @@ abstract contract SchemaDetailed is SchemaStorage {
             uint256 next
         )
     {
+        require(schemaRevisionId != bytes32(0), "SchemaRevisionId empty");
+        require(pageSize <= 50, "PageSize must be <= 50");
+        require(pageSize > 0, "PageSize must be > 0");
+        require(page > 0, "Page must be > 0");
         Schemas storage ss = schemaStorage();
-        return
-            ss.getSchemaRevisionMetadataIds(schemaRevisionId, page, pageSize);
+        uint256[] memory ids;
+        (ids, total, howMany, prev, next) = ss
+            .revisionIdToMetadataIds[schemaRevisionId]
+            .length
+            .paginate(page, pageSize);
+        items = new bytes32[](howMany);
+        for (uint256 i = 0; i < howMany; i++) {
+            items[i] = ss.revisionIdToMetadataIds[schemaRevisionId][ids[i]];
+        }
     }
 
     /**

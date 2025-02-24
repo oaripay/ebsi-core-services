@@ -10,6 +10,7 @@ import "./RecordLib.sol";
 abstract contract RecordDetailed is RecordStorage {
     using RecordLib for Records;
     using TimestampLib for Timestamps;
+    using Pagination for uint256;
 
     event RecordedHashes(
         bytes32 indexed recordId,
@@ -226,8 +227,20 @@ abstract contract RecordDetailed is RecordStorage {
             uint256 next
         )
     {
+        require(pageSize <= 50, "PSize not <= 50");
+        require(pageSize > 0, "PSize not >0");
+        require(page > 0, "Page not >0");
+        require(bytes(ownerId).length > 0, "ownerId empty");
         Records storage rs = recordStorage();
-        return rs.getRecordIdsByOwnerId(ownerId, page, pageSize);
+        uint256[] memory ids;
+        (ids, total, howMany, prev, next) = rs
+            .ownerIdToRecordIds[ownerId]
+            .length
+            .paginate(page, pageSize);
+        items = new bytes32[](howMany);
+        for (uint256 i = 0; i < howMany; i++) {
+            items[i] = rs.ownerIdToRecordIds[ownerId][ids[i]];
+        }
     }
 
     /**
@@ -247,8 +260,19 @@ abstract contract RecordDetailed is RecordStorage {
             uint256 next
         )
     {
+        require(pageSize <= 50, "PSize not <= 50");
+        require(pageSize > 0, "PSize not >0");
+        require(page > 0, "Page not >0");
         Records storage rs = recordStorage();
-        return rs.getRecordIds(page, pageSize);
+        uint256[] memory ids;
+        (ids, total, howMany, prev, next) = rs.recordIdsList.length.paginate(
+            page,
+            pageSize
+        );
+        items = new bytes32[](howMany);
+        for (uint256 i = 0; i < howMany; i++) {
+            items[i] = rs.recordIdsList[ids[i]];
+        }
     }
 
     /**
@@ -270,8 +294,23 @@ abstract contract RecordDetailed is RecordStorage {
             uint256 next
         )
     {
+        require(hashValue.length > 0, "hashValue empty");
+        require(pageSize <= 50, "PSize not <= 50");
+        require(pageSize > 0, "PSize not >0");
+        require(page > 0, "Page not >0");
         Records storage rs = recordStorage();
-        return rs.getRecordIdsByFirstVersionHash(hashValue, page, pageSize);
+        bytes32 sha256HashValue = sha256(hashValue);
+        uint256[] memory ids;
+        (ids, total, howMany, prev, next) = rs
+            .firstVersionTimestampToRecordIds[sha256HashValue]
+            .length
+            .paginate(page, pageSize);
+        items = new bytes32[](howMany);
+        for (uint256 i = 0; i < howMany; i++) {
+            items[i] = rs.firstVersionTimestampToRecordIds[sha256HashValue][
+                ids[i]
+            ];
+        }
     }
 
     /**
@@ -317,10 +356,27 @@ abstract contract RecordDetailed is RecordStorage {
             uint256 next
         )
     {
+        require(recordId != bytes32(0), "recordId empty");
+        require(pageSize <= 50, "PSize not <= 50");
+        require(pageSize > 0, "PSize not >0");
+        require(page > 0, "Page not >0");
         Records storage rs = recordStorage();
         bytes32[] memory timestampIds;
-        (timestampIds, infoIds, total, howMany, prev, next) = rs
-            .getRecordVersionDetails(recordId, versionId, page, pageSize);
+
+        RecordStorage.VersionDetails storage vd = rs
+            .recordsStore[recordId]
+            .versionsStore[versionId];
+        uint256[] memory ids;
+        (ids, total, howMany, prev, next) = vd.timestampsIds.length.paginate(
+            page,
+            pageSize
+        );
+        timestampIds = new bytes32[](howMany);
+        for (uint256 i = 0; i < howMany; i++) {
+            timestampIds[i] = vd.timestampsIds[ids[i]];
+        }
+        // no pagination as we might have less info than timestamps
+        infoIds = vd.info;
 
         // For every timestampId in versionDetails.timestampIds get the timestamped hash
         Timestamps storage ts = timestampStorage();

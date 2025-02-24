@@ -2,7 +2,6 @@
 pragma solidity 0.8.12;
 
 import "./RecordStorage.sol";
-import "@ebsiint-sc/bootstrap-v2/contracts/utils/Pagination.sol";
 import "@ebsiint-sc/bootstrap-v2/contracts/utils/StringManip.sol";
 import "./TimestampLib.sol";
 import "./TimestampStorage.sol";
@@ -10,7 +9,6 @@ import "./RecordStorage.sol";
 import "./RecordStorage.sol";
 
 library RecordLib {
-    using Pagination for bytes32[];
     using StringManip for address;
     using TimestampLib for TimestampStorage.Timestamps;
     uint public constant MAX_TIMESTAMPS_PER_VERSION = 10;
@@ -509,124 +507,5 @@ library RecordLib {
             r.ownerInfo[ownerId].notBefore,
             r.ownerInfo[ownerId].notAfter
         );
-    }
-
-    /**
-     * @dev getRecordIdsByOwnerId returns a paginated list of record ids owned by the owner.
-     */
-    function getRecordIdsByOwnerId(
-        RecordStorage.Records storage rs,
-        string calldata ownerId,
-        uint256 page,
-        uint256 pageSize
-    )
-        external
-        view
-        returns (
-            bytes32[] memory items,
-            uint256 total,
-            uint256 howMany,
-            uint256 prev,
-            uint256 next
-        )
-    {
-        require(pageSize <= 50, "PSize not <= 50");
-        require(pageSize > 0, "PSize not >0");
-        require(page > 0, "Page not >0");
-        require(bytes(ownerId).length > 0, "ownerId empty");
-        return rs.ownerIdToRecordIds[ownerId].paginate(page, pageSize);
-    }
-
-    /**
-     * @dev getRecordIds returns a paginated list of record ids from recordIdsList
-     */
-    function getRecordIds(
-        RecordStorage.Records storage rs,
-        uint256 page,
-        uint256 pageSize
-    )
-        external
-        view
-        returns (
-            bytes32[] memory items,
-            uint256 total,
-            uint256 howMany,
-            uint256 prev,
-            uint256 next
-        )
-    {
-        require(pageSize <= 50, "PSize not <= 50");
-        require(pageSize > 0, "PSize not >0");
-        require(page > 0, "Page not >0");
-
-        return rs.recordIdsList.paginate(page, pageSize);
-    }
-
-    /**
-     * @dev getRecordIdsByFirstVersionHash returns a paginated list of record ids
-     *      of which the first version contains the hash.
-     */
-    function getRecordIdsByFirstVersionHash(
-        RecordStorage.Records storage rs,
-        bytes calldata hashValue,
-        uint256 page,
-        uint256 pageSize
-    )
-        external
-        view
-        returns (
-            bytes32[] memory items,
-            uint256 total,
-            uint256 howMany,
-            uint256 prev,
-            uint256 next
-        )
-    {
-        require(hashValue.length > 0, "hashValue empty");
-        require(pageSize <= 50, "PSize not <= 50");
-        require(pageSize > 0, "PSize not >0");
-        require(page > 0, "Page not >0");
-
-        return
-            rs.firstVersionTimestampToRecordIds[sha256(hashValue)].paginate(
-                page,
-                pageSize
-            );
-    }
-
-    /**
-     * @dev getRecordVersionDetails returns the timestamps of a specific version from a record
-     */
-    function getRecordVersionDetails(
-        RecordStorage.Records storage rs,
-        bytes32 recordId,
-        uint256 versionId,
-        uint256 page,
-        uint256 pageSize
-    )
-        external
-        view
-        returns (
-            bytes32[] memory timestampsIds,
-            bytes32[] memory infoIds,
-            uint256 total,
-            uint256 howMany,
-            uint256 prev,
-            uint256 next
-        )
-    {
-        require(recordId != bytes32(0), "recordId empty");
-        require(pageSize <= 50, "PSize not <= 50");
-        require(pageSize > 0, "PSize not >0");
-        require(page > 0, "Page not >0");
-        RecordStorage.VersionDetails storage vd = rs
-            .recordsStore[recordId]
-            .versionsStore[versionId];
-        (timestampsIds, total, howMany, prev, next) = vd.timestampsIds.paginate(
-            page,
-            pageSize
-        );
-        // no pagination as we might have less info than timestamps
-        infoIds = vd.info;
     }
 }

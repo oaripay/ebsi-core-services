@@ -1,14 +1,12 @@
 // SPDX-License-Identifier: EUPL V1.2
 pragma solidity 0.8.12;
 
-import "@ebsiint-sc/bootstrap-v2/contracts/utils/Pagination.sol";
 import "./DidDocumentStorage.sol";
 import "./VRelationshipsStorage.sol";
 import "./VRelationshipsLib.sol";
 import "./UtilsLib.sol";
 
 library DidDocumentLib {
-    using Pagination for string[];
     using VRelationshipsLib for VRelationshipsStorage.VRelationships;
 
     string public constant AUTHENTICATION_RELATIONSHIP = "authentication";
@@ -408,25 +406,6 @@ library DidDocumentLib {
         }
 
         return true;
-    }
-
-    function getDids(
-        DidDocumentStorage.DidDocuments storage ds,
-        uint256 page,
-        uint256 pageSize
-    )
-        external
-        view
-        returns (
-            string[] memory items,
-            uint256 total,
-            uint256 howMany,
-            uint256 prev,
-            uint256 next
-        )
-    {
-        require(pageSize <= 50, "pageSize must be <= 50");
-        return ds.dids.paginate(page, pageSize);
     }
 
     function getDidDocumentByTimestamp(

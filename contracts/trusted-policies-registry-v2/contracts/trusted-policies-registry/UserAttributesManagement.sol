@@ -13,8 +13,7 @@ abstract contract UserAttributesManagement is
     AccessControl,
     Roles
 {
-    using Pagination for address[];
-    using Pagination for string[];
+    using Pagination for uint256;
 
     event UserAttributeInserted(address user, string attribute);
     event UserAttributeUpdated(address user, string attribute, bytes value);
@@ -113,7 +112,15 @@ abstract contract UserAttributesManagement is
         require(pageSize > 0, "PSize not >0");
         require(page > 0, "Page not >0");
         PolicyContractStorage storage ps = policyStorage();
-        return ps.addresses.paginate(page, pageSize);
+        uint256[] memory ids;
+        (ids, total, howMany, prev, next) = ps.addresses.length.paginate(
+            page,
+            pageSize
+        );
+        items = new address[](howMany);
+        for (uint256 i = 0; i < howMany; i++) {
+            items[i] = ps.addresses[ids[i]];
+        }
     }
 
     /**
@@ -144,7 +151,15 @@ abstract contract UserAttributesManagement is
             ps.listOfUserAttributes[user].length > 0,
             "Policy: invalid user"
         );
-        return ps.listOfUserAttributes[user].paginate(page, pageSize);
+        uint256[] memory ids;
+        (ids, total, howMany, prev, next) = ps
+            .listOfUserAttributes[user]
+            .length
+            .paginate(page, pageSize);
+        items = new string[](howMany);
+        for (uint256 i = 0; i < howMany; i++) {
+            items[i] = ps.listOfUserAttributes[user][ids[i]];
+        }
     }
 
     // Reserved storage space to allow for layout changes in the future.

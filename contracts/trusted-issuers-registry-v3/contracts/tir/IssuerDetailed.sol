@@ -9,8 +9,7 @@ import "@ebsiint-sc/trusted-policies-registry-v2/contracts/trusted-policies-regi
 
 // solhint-disable-next-line indent
 abstract contract IssuerDetailed is IssuerStorage {
-    using Pagination for bytes32[];
-    using Pagination for string[];
+    using Pagination for uint256;
 
     event AddAttributeRevision(
         string did,
@@ -247,7 +246,15 @@ abstract contract IssuerDetailed is IssuerStorage {
         require(pageSize > 0, "PageSize must be > 0");
         require(page > 0, "Page must be > 0");
         Issuers storage ds = issuerStorage();
-        return ds.didStore.paginate(page, pageSize);
+        uint256[] memory ids;
+        (ids, total, howMany, prev, next) = ds.didStore.length.paginate(
+            page,
+            pageSize
+        );
+        items = new string[](howMany);
+        for (uint256 i = 0; i < howMany; i++) {
+            items[i] = ds.didStore[ids[i]];
+        }
     }
 
     function getIssuerAttributeRevisions(
@@ -279,11 +286,18 @@ abstract contract IssuerDetailed is IssuerStorage {
         );
 
         // retrieve the issuer and the attribute detail
-        return
-            ds.issuerStore[am.did].revisionHashes[am.attributeId].paginate(
-                page,
-                pageSize
-            );
+        uint256[] memory ids;
+        (ids, total, howMany, prev, next) = ds
+            .issuerStore[am.did]
+            .revisionHashes[am.attributeId]
+            .length
+            .paginate(page, pageSize);
+        items = new bytes32[](howMany);
+        for (uint256 i = 0; i < howMany; i++) {
+            items[i] = ds.issuerStore[am.did].revisionHashes[am.attributeId][
+                ids[i]
+            ];
+        }
     }
 
     function getIssuerAttributeByHash(

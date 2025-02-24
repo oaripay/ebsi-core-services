@@ -96,7 +96,6 @@ describe("Did Documents", () => {
       libraries: {
         ControllersLib: await controllersLib.getAddress(),
         DidDocumentLib: await didDocumentLib.getAddress(),
-        VRelationshipsLib: await vRelationshipsLib.getAddress(),
       },
     });
 

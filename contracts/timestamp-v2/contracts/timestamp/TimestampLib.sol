@@ -2,10 +2,8 @@
 pragma solidity 0.8.12;
 
 import "./TimestampStorage.sol";
-import "@ebsiint-sc/bootstrap-v2/contracts/utils/Pagination.sol";
 
 library TimestampLib {
-    using Pagination for bytes32[];
     event TimestampedHashes(
         bytes32[] timestampIds,
         uint256[] hashAlgorithmIds,

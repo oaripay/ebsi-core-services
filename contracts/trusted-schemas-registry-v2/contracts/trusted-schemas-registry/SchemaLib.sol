@@ -3,12 +3,8 @@
 pragma solidity 0.8.12;
 
 import "./SchemaStorage.sol";
-import "@ebsiint-sc/bootstrap-v2/contracts/utils/Pagination.sol";
 
 library SchemaLib {
-    using Pagination for bytes32[];
-    using Pagination for bytes[];
-
     event SchemaInserted(bytes indexed schema, bytes revision, bytes metadata);
 
     event SchemaUpdated(bytes indexed schema, bytes revision, bytes metadata);
@@ -64,31 +60,6 @@ library SchemaLib {
     }
 
     /**
-     * @dev getSchemaIds returns a paginated list of registered schema ids.
-     */
-    function getSchemaIds(
-        SchemaStorage.Schemas storage ss,
-        uint256 page,
-        uint256 pageSize
-    )
-        external
-        view
-        returns (
-            bytes[] memory items,
-            uint256 total,
-            uint256 howMany,
-            uint256 prev,
-            uint256 next
-        )
-    {
-        require(pageSize <= 50, "PageSize must be <= 50");
-        require(pageSize > 0, "PageSize must be > 0");
-        require(page > 0, "Page must be > 0");
-
-        return ss.schemaIds.paginate(page, pageSize);
-    }
-
-    /**
      * @dev getLatestSchemaRevision returns the latest schema revision by schema id.
      */
     function getLatestSchemaRevision(
@@ -101,33 +72,6 @@ library SchemaLib {
             ss.schemaIdToRevisionIds[schemaId].length - 1
         ];
         schemaRevision = ss.schemaRevisionStore[latestSchemaRevisionId];
-    }
-
-    /**
-     * @dev getSchemaRevisionIds returns a paginated list of schema revision ids for the given schema id.
-     */
-    function getSchemaRevisionIds(
-        SchemaStorage.Schemas storage ss,
-        bytes calldata schemaId,
-        uint256 page,
-        uint256 pageSize
-    )
-        external
-        view
-        returns (
-            bytes32[] memory items,
-            uint256 total,
-            uint256 howMany,
-            uint256 prev,
-            uint256 next
-        )
-    {
-        require(schemaId.length > 0, "schemaId empty");
-        require(pageSize <= 50, "PageSize must be <= 50");
-        require(pageSize > 0, "PageSize must be > 0");
-        require(page > 0, "Page must be > 0");
-
-        return ss.schemaIdToRevisionIds[schemaId].paginate(page, pageSize);
     }
 
     /**
@@ -243,38 +187,6 @@ library SchemaLib {
         );
 
         schema = ss.schemaRevisionStore[schemaRevisionId];
-    }
-
-    /**
-     * @dev getSchemaRevisionMetadataIds returns a paginated list of schema revision metadata ids,
-     * for a specific SchemaRevisionId
-     */
-    function getSchemaRevisionMetadataIds(
-        SchemaStorage.Schemas storage ss,
-        bytes32 schemaRevisionId,
-        uint256 page,
-        uint256 pageSize
-    )
-        external
-        view
-        returns (
-            bytes32[] memory items,
-            uint256 total,
-            uint256 howMany,
-            uint256 prev,
-            uint256 next
-        )
-    {
-        require(schemaRevisionId != bytes32(0), "SchemaRevisionId empty");
-        require(pageSize <= 50, "PageSize must be <= 50");
-        require(pageSize > 0, "PageSize must be > 0");
-        require(page > 0, "Page must be > 0");
-
-        return
-            ss.revisionIdToMetadataIds[schemaRevisionId].paginate(
-                page,
-                pageSize
-            );
     }
 
     /**
