@@ -48,7 +48,6 @@
     "jose": "^4.15.5",
     "multiformats": "^9.6.2",
     "nest-winston": "^1.10.2",
-    "p-limit": "^5.0.0",
     "passport": "^0.7.0",
     "passport-http-bearer": "^1.0.1",
     "reflect-metadata": "^0.2.2",

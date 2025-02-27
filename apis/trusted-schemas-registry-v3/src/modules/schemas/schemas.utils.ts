@@ -2,11 +2,6 @@ import { prefixWith0x, remove0xPrefix } from "@ebsiint-api/shared";
 import { base16 } from "multiformats/bases/base16";
 import { base58btc } from "multiformats/bases/base58";
 
-// Generates a range
-// Example: range(0, 5) => [0, 1, 2, 3, 4, 5]
-export const range = (start: number, stop: number): number[] =>
-  Array.from({ length: stop - start + 1 }, (_, i) => start + i);
-
 export const schemaIdToHex = (schemaId: string): string => {
   if (schemaId.startsWith("0x")) {
     return schemaId;

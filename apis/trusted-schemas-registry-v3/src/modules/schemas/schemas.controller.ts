@@ -105,7 +105,6 @@ export class SchemasController {
       schemaId,
       query["page[after]"],
       query["page[size]"],
-      query["valid-at"],
     );
 
     const apiUrlPrefix = this.configService.get("apiUrlPrefix", {
@@ -119,7 +118,6 @@ export class SchemasController {
       query["page[after]"],
       query["page[size]"],
       baseUrl,
-      query["valid-at"],
     );
   }
 

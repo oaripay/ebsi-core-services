@@ -51,7 +51,7 @@ describe("formatSchemaRevisions", () => {
   };
 
   it("should use the values returned by the smart contract (except pageSize)", () => {
-    expect.assertions(2);
+    expect.assertions(1);
 
     const page = 3;
     const pageSize = 2;
@@ -77,38 +77,6 @@ describe("formatSchemaRevisions", () => {
       },
       pageSize,
       self: `?page[after]=${page}&page[size]=${pageSize}`,
-      total: 42,
-    });
-
-    // With "valid-at" in the query
-    const validAt = new Date().toISOString();
-
-    expect(
-      formatSchemaRevisions(schemaRevisions, page, pageSize, "", validAt),
-    ).toStrictEqual({
-      items: [
-        {
-          href: "/rev-id",
-          schemaRevisionId: "rev-id",
-        },
-        {
-          href: "/rev-id-2",
-          schemaRevisionId: "rev-id-2",
-        },
-      ],
-      links: {
-        first: `?page[after]=1&page[size]=${pageSize}&valid-at=${validAt}`,
-        last: `?page[after]=21&page[size]=${pageSize}&valid-at=${validAt}`,
-        next: `?page[after]=${
-          page + 1
-        }&page[size]=${pageSize}&valid-at=${validAt}`,
-        prev: `?page[after]=${
-          page - 1
-        }&page[size]=${pageSize}&valid-at=${validAt}`,
-      },
-      pageSize,
-      self: `?page[after]=${page}&page[size]=${pageSize}&valid-at=${validAt}`,
-
       total: 42,
     });
   });
