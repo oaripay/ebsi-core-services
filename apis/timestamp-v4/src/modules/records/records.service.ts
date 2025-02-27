@@ -37,73 +37,6 @@ export default class RecordsService {
     this.contract = Timestamp__factory.connect(contractAddress);
   }
 
-  async getAllPages(
-    fnName: string,
-    params: (number | string)[],
-  ): Promise<{
-    hashValues: string[];
-    infoIds: string[];
-    totalHashes: number;
-  }> {
-    const { hashValues, infoIds, total } = await this.getPage(
-      fnName,
-      params,
-      1,
-    );
-    const lastPage = Math.ceil(Number(total) / 50);
-    const promisesNextPages = Array.from(
-      { length: lastPage - 1 },
-      (_, i) => i + 2,
-    ).map(async (i) => {
-      const { hashValues: pagItems } = await this.getPage(fnName, params, i);
-      return pagItems;
-    });
-    const hashValuesNextPages = await Promise.all(promisesNextPages);
-    for (const pagItems of hashValuesNextPages) {
-      hashValues.splice(hashValues.length, 0, ...pagItems);
-    }
-    return { hashValues, infoIds, totalHashes: Number(total) };
-  }
-
-  async getPage(
-    fnName: string,
-    params: (number | string)[],
-    page: number,
-  ): Promise<{
-    hashValues: string[];
-    infoIds: string[];
-    total: bigint;
-  }> {
-    switch (fnName) {
-      case "getRecordVersion": {
-        const provider = this.ledgerService.getProvider();
-
-        try {
-          const { hashValues, infoIds, total } = await this.contract
-            // @ts-expect-error Error due to contracts using CommonJS modules
-            .connect(provider)
-            .getRecordVersion(
-              params[0] as string,
-              params[1] as number,
-              page,
-              50,
-            );
-          return { hashValues, infoIds, total };
-        } catch (error) {
-          if (isEthersError(error)) {
-            this.logger.error(error, error.stack);
-          }
-          throw new NotFoundError("Record Not Found", {
-            detail: "Record not found",
-          });
-        }
-      }
-      default: {
-        throw new Error(`Timestamp function ${fnName} not implemented`);
-      }
-    }
-  }
-
   async getRecord(recordIdEncoded: string): Promise<RecordResponseObject> {
     let record: Awaited<ReturnType<Timestamp["getRecord"]>>;
 
@@ -129,15 +62,38 @@ export default class RecordsService {
 
     const { ownerIds, revokedOwnerIds, totalVersions } = record;
 
-    const { hashValues: firstVersionTimestamps } = await this.getAllPages(
-      "getRecordVersion",
-      [recordId, 0],
-    );
+    let firstVersionTimestamps: string[];
+    let lastVersionTimestamps: string[];
+    try {
+      const { hashValues: firstHashes } = await this.contract
+        // @ts-expect-error Error due to contracts using CommonJS modules
+        .connect(provider)
+        .getRecordVersion(
+          recordId,
+          0,
+          1,
+          10, // max hashes per version
+        );
+      firstVersionTimestamps = firstHashes;
 
-    const { hashValues: lastVersionTimestamps } = await this.getAllPages(
-      "getRecordVersion",
-      [recordId, Number(totalVersions) - 1],
-    );
+      const { hashValues: lastHashes } = await this.contract
+        // @ts-expect-error Error due to contracts using CommonJS modules
+        .connect(provider)
+        .getRecordVersion(
+          recordId,
+          Number(totalVersions) - 1,
+          1,
+          10, // max hashes per version
+        );
+      lastVersionTimestamps = lastHashes;
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error, error.stack);
+      }
+      throw new NotFoundError("Record Not Found", {
+        detail: "Record not found",
+      });
+    }
 
     return {
       firstVersionTimestamps,
@@ -229,12 +185,31 @@ export default class RecordsService {
       });
     }
 
-    const { hashValues, infoIds } = await this.getAllPages("getRecordVersion", [
-      recordId,
-      Number(versionId),
-    ]);
-
     const provider = this.ledgerService.getProvider();
+
+    let hashValues: string[];
+    let infoIds: string[];
+    try {
+      const { hashValues: hashValuesVersion, infoIds: infoIdsVersion } =
+        await this.contract
+          // @ts-expect-error Error due to contracts using CommonJS modules
+          .connect(provider)
+          .getRecordVersion(
+            recordId,
+            Number(versionId),
+            1,
+            10, // max hashes per version
+          );
+      hashValues = hashValuesVersion;
+      infoIds = infoIdsVersion;
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error, error.stack);
+      }
+      throw new NotFoundError("Record Not Found", {
+        detail: "Record not found",
+      });
+    }
 
     try {
       const contract = this.contract

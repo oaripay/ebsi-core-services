@@ -1,6 +1,11 @@
+import type { PaginatedList } from "@ebsiint-api/shared";
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 
-import { frameworkErrors, methodNotAllowed } from "@ebsiint-api/shared";
+import {
+  frameworkErrors,
+  methodNotAllowed,
+  multibase,
+} from "@ebsiint-api/shared";
 import { Timestamp__factory } from "@ebsiint-sc/timestamp-v2";
 import { fastifyAccepts } from "@fastify/accepts";
 import { fastifyHelmet } from "@fastify/helmet";
@@ -8,6 +13,13 @@ import { Logger, ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { FastifyAdapter } from "@nestjs/platform-fastify";
 import { Test } from "@nestjs/testing";
+import { ethers } from "ethers";
+import {
+  calculateJwkThumbprint,
+  exportJWK,
+  generateKeyPair,
+  SignJWT,
+} from "jose";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 import request from "supertest";
@@ -22,7 +34,13 @@ import {
 } from "vitest";
 
 import type { ApiConfig } from "./config/configuration.js";
+import type { AppendRecordVersionHashesSchema } from "./modules/jsonrpc/validators/RequestAppendRecordVersionHashes.js";
+import type { TimestampRecordHashesSchema } from "./modules/jsonrpc/validators/RequestTimestampRecordHashes.js";
+import type { TimestampRecordVersionHashesSchema } from "./modules/jsonrpc/validators/RequestTimestampRecordVersionHashes.js";
+import type { UnsignedTransactionSchema } from "./modules/jsonrpc/validators/UnsignedTransaction.js";
+import type { RecordLink } from "./modules/records/records.interface.js";
 
+import { createHash, setupTestEnv } from "../tests/utils/timestamp.js";
 import { AppModule } from "./app.module.js";
 import {
   BOOTSTRAP_DEPENDENCIES,
@@ -30,6 +48,8 @@ import {
 } from "./config/configuration.js";
 import { AllExceptionsFilter } from "./filters/http-exception.filter.js";
 import { createLogger } from "./logger/logger.js";
+import { formatEthersUnsignedTransaction } from "./modules/jsonrpc/jsonrpc.utils.js";
+import { LedgerService } from "./modules/ledger/ledger.service.js";
 
 describe("App Module", () => {
   const mockServer = setupServer();
@@ -731,6 +751,417 @@ describe("App Module", () => {
 
         await app.close();
       });
+    });
+  });
+
+  describe("Version with multiple hashes", () => {
+    const mockedLogger = {
+      error: vi.fn(),
+      log: vi.fn(),
+      warn: vi.fn(),
+    };
+
+    const testUser = {
+      did: "did:ebsi:user",
+      token: "",
+      wallet: ethers.Wallet.createRandom(),
+    };
+
+    async function startApp() {
+      // Start server
+      const moduleFixture = await Test.createTestingModule({
+        imports: [AppModule],
+      }).compile();
+
+      const logger = createLogger({ silent: true });
+      const adapter = new FastifyAdapter({
+        frameworkErrors: frameworkErrors(logger),
+      });
+      const app =
+        moduleFixture.createNestApplication<NestFastifyApplication>(adapter);
+
+      // Turn off logger
+      Logger.overrideLogger(mockedLogger);
+
+      const configService =
+        app.get<ConfigService<ApiConfig, true>>(ConfigService);
+
+      // https://cheatsheetseries.owasp.org/cheatsheets/REST_Security_Cheat_Sheet.html#security-headers
+      await app.register(fastifyHelmet, {
+        contentSecurityPolicy: {
+          directives: {
+            "frame-ancestors": ["'none'"],
+          },
+        },
+        xFrameOptions: {
+          action: "deny",
+        },
+      });
+
+      // Parse "Accept" request header
+      await app.register(fastifyAccepts);
+
+      app.useGlobalFilters(new AllExceptionsFilter());
+      app.useGlobalPipes(new ValidationPipe({ transform: true }));
+
+      const fastifyInstance = app.getHttpAdapter().getInstance();
+      fastifyInstance.addHook("onRequest", methodNotAllowed);
+
+      const domain = configService.get("domain", { infer: true });
+      const localOrigin =
+        configService.get("localOrigin", { infer: true }) ?? domain;
+
+      // Generate key pair for Authorisation API v4 and create access token
+      const authApiKeyPair = await generateKeyPair("ES256");
+      const publicKeyJwk = await exportJWK(authApiKeyPair.publicKey);
+      const authApiKid = await calculateJwkThumbprint(publicKeyJwk);
+
+      // Mock dependencies
+      const authorisationApiUrl1 = `${configService.get("authorisationApiUrl", { infer: true })}`;
+      const authorisationApiUrl2 =
+        `${configService.get("authorisationApiUrl", { infer: true })}`.replace(
+          domain,
+          localOrigin,
+        );
+      const didRegistryApiUrl = configService.get("didRegistryApiUrl", {
+        infer: true,
+      });
+
+      mockServer.use(
+        http.get(authorisationApiUrl1, () => HttpResponse.json({})),
+        // Mock Auth API /.well-known/openid-configuration endpoint
+        http.get(
+          `${authorisationApiUrl1}/.well-known/openid-configuration`,
+          () => HttpResponse.json({ jwks_uri: `${authorisationApiUrl1}/jwks` }),
+        ),
+        // Mock Auth API /jwks endpoint
+        http.get(`${authorisationApiUrl1}/jwks`, () =>
+          HttpResponse.json({ keys: [{ ...publicKeyJwk, kid: authApiKid }] }),
+        ),
+        http.get(authorisationApiUrl2, () => HttpResponse.json({})),
+        // Mock Auth API /.well-known/openid-configuration endpoint
+        http.get(
+          `${authorisationApiUrl2}/.well-known/openid-configuration`,
+          () => HttpResponse.json({ jwks_uri: `${authorisationApiUrl2}/jwks` }),
+        ),
+        // Mock Auth API /jwks endpoint
+        http.get(`${authorisationApiUrl2}/jwks`, () =>
+          HttpResponse.json({ keys: [{ ...publicKeyJwk, kid: authApiKid }] }),
+        ),
+        // Mock DIDR API /identifiers/:did/actions endpoint
+        http.post(`${didRegistryApiUrl}/identifiers/:did/actions`, () => {
+          return HttpResponse.json({ jsonrpc: "2.0", result: true });
+        }),
+      );
+
+      const newUserTimestampWriteAccessToken = await new SignJWT({
+        scp: "openid timestamp_write",
+        sub: testUser.did,
+      })
+        .setProtectedHeader({
+          alg: "ES256",
+          kid: authApiKid,
+          typ: "JWT",
+        })
+        .sign(authApiKeyPair.privateKey);
+
+      testUser.token = newUserTimestampWriteAccessToken;
+
+      await app.init();
+      await fastifyInstance.ready();
+      return app;
+    }
+
+    afterEach(() => {
+      vi.clearAllMocks();
+      vi.unstubAllEnvs();
+      mockServer.resetHandlers();
+    });
+
+    it("should test the case where a version has multiple hashes", async () => {
+      expect.assertions(31);
+
+      // Spin up test blockchain (hardhat)
+      const testEnv = await setupTestEnv({ hashAlgorithmsTotal: 11 });
+      const timestampContract = testEnv.timestampContract;
+      const provider = testEnv.provider;
+
+      const timestampContractAddress = await timestampContract.getAddress();
+
+      vi.stubEnv("CONTRACT_ADDR", timestampContractAddress);
+
+      // Mock Timestamp contract
+      vi.spyOn(Timestamp__factory, "connect").mockImplementation(() =>
+        // Create new instance without runner (provider)
+        timestampContract.connect(),
+      );
+
+      // Mock LedgerService
+      vi.spyOn(LedgerService.prototype, "getProvider").mockImplementation(
+        // @ts-expect-error Error due to a mismatch between ESM and CommonJS modules
+        () => provider,
+      );
+
+      const app = await startApp();
+      const server = app.getHttpServer();
+
+      async function sendTransaction(
+        method: string,
+        param:
+          | AppendRecordVersionHashesSchema
+          | TimestampRecordHashesSchema
+          | TimestampRecordVersionHashesSchema,
+      ): Promise<void> {
+        const responseBuild = await request(server)
+          .post("/jsonrpc")
+          .auth(testUser.token, { type: "bearer" })
+          .send({
+            id: 231,
+            jsonrpc: "2.0",
+            method,
+            params: [param],
+          });
+
+        expect(responseBuild.body).toStrictEqual({
+          id: 231,
+          jsonrpc: "2.0",
+          result: {
+            chainId: expect.any(String),
+            data: expect.any(String),
+            from: param.from,
+            gasLimit: expect.any(String),
+            gasPrice: expect.any(String),
+            nonce: expect.any(String),
+            to: expect.any(String),
+            value: "0x0",
+          },
+        });
+
+        const { result: unsignedTransaction } = responseBuild.body as {
+          result: UnsignedTransactionSchema;
+        };
+        const uTx = formatEthersUnsignedTransaction(unsignedTransaction);
+
+        const sgnTx = await testUser.wallet.signTransaction(uTx);
+        const signature = ethers.Transaction.from(sgnTx).signature;
+        if (!signature) {
+          throw new Error("Signature not found");
+        }
+        const { r, s, v } = signature;
+
+        await request(server)
+          .post("/jsonrpc")
+          .auth(testUser.token, { type: "bearer" })
+          .send({
+            id: "45",
+            jsonrpc: "2.0",
+            method: "sendSignedTransaction",
+            params: [
+              {
+                protocol: "eth",
+                r,
+                s,
+                signedRawTransaction: sgnTx,
+                unsignedTransaction,
+                v: `0x${v.toString(16)}`,
+              },
+            ],
+          });
+      }
+
+      const hashesFirstVersion = testEnv.hashAlgorithms.map((h) => {
+        return createHash(h.ianaName);
+      });
+
+      // register a new record with 1 version.
+      // this version contains 3 hashes
+      let hashValues = hashesFirstVersion.slice(0, 3);
+      await sendTransaction("timestampRecordHashes", {
+        from: testUser.wallet.address,
+        hashAlgorithmIds: [0, 1, 2],
+        hashValues,
+        timestampData: hashValues.map(
+          (h) =>
+            `0x${Buffer.from(JSON.stringify({ test: h })).toString("hex")}`,
+        ),
+        versionInfo: `0x${Buffer.from(
+          JSON.stringify({ test: 54 }),
+          "utf8",
+        ).toString("hex")}`,
+      } satisfies TimestampRecordHashesSchema);
+
+      const resultRecords = await request(server).get(
+        `/records?owner=${testUser.wallet.address}`,
+      );
+      const [itemRecord] = (resultRecords.body as PaginatedList<RecordLink>)
+        .items;
+      const { recordId: recordIdEncoded } = itemRecord!;
+      const recordId = `0x${Buffer.from(
+        multibase.base64url.decode(recordIdEncoded),
+      ).toString("hex")}`;
+
+      // get the hashes of the record
+      let record = await request(server).get(`/records/${recordIdEncoded}`);
+      expect(record.body).toStrictEqual({
+        firstVersionTimestamps: hashesFirstVersion.slice(0, 3),
+        lastVersionTimestamps: hashesFirstVersion.slice(0, 3),
+        ownerIds: [testUser.wallet.address.toLowerCase()],
+        revokedOwnerIds: [],
+        totalVersions: 1,
+      });
+
+      // append more hashes to the version
+      hashValues = hashesFirstVersion.slice(3, 6);
+      await sendTransaction("appendRecordVersionHashes", {
+        from: testUser.wallet.address,
+        hashAlgorithmIds: [3, 4, 5],
+        hashValues,
+        recordId,
+        timestampData: hashValues.map(
+          (h) =>
+            `0x${Buffer.from(JSON.stringify({ test: h })).toString("hex")}`,
+        ),
+        versionId: 0,
+        versionInfo: `0x${Buffer.from(
+          JSON.stringify({ test: 55 }),
+          "utf8",
+        ).toString("hex")}`,
+      } satisfies AppendRecordVersionHashesSchema);
+
+      // get the updates of the record
+      record = await request(server).get(`/records/${recordIdEncoded}`);
+      expect(record.body).toStrictEqual({
+        firstVersionTimestamps: hashesFirstVersion.slice(0, 6),
+        lastVersionTimestamps: hashesFirstVersion.slice(0, 6),
+        ownerIds: [testUser.wallet.address.toLowerCase()],
+        revokedOwnerIds: [],
+        totalVersions: 1,
+      });
+
+      // append more hashes to the version
+      hashValues = hashesFirstVersion.slice(6, 9);
+      await sendTransaction("appendRecordVersionHashes", {
+        from: testUser.wallet.address,
+        hashAlgorithmIds: [6, 7, 8],
+        hashValues,
+        recordId,
+        timestampData: hashValues.map(
+          (h) =>
+            `0x${Buffer.from(JSON.stringify({ test: h })).toString("hex")}`,
+        ),
+        versionId: 0,
+        versionInfo: `0x${Buffer.from(
+          JSON.stringify({ test: 56 }),
+          "utf8",
+        ).toString("hex")}`,
+      } satisfies AppendRecordVersionHashesSchema);
+
+      // get the updates of the record
+      record = await request(server).get(`/records/${recordIdEncoded}`);
+      expect(record.body).toStrictEqual({
+        firstVersionTimestamps: hashesFirstVersion.slice(0, 9),
+        lastVersionTimestamps: hashesFirstVersion.slice(0, 9),
+        ownerIds: [testUser.wallet.address.toLowerCase()],
+        revokedOwnerIds: [],
+        totalVersions: 1,
+      });
+
+      // append more hashes to the version.
+      // this time the it will reach the limit of hashes
+      hashValues = hashesFirstVersion.slice(9, 11);
+      await sendTransaction("appendRecordVersionHashes", {
+        from: testUser.wallet.address,
+        hashAlgorithmIds: [9, 10],
+        hashValues,
+        recordId,
+        timestampData: hashValues.map(
+          (h) =>
+            `0x${Buffer.from(JSON.stringify({ test: h })).toString("hex")}`,
+        ),
+        versionId: 0,
+        versionInfo: `0x${Buffer.from(
+          JSON.stringify({ test: 56 }),
+          "utf8",
+        ).toString("hex")}`,
+      } satisfies AppendRecordVersionHashesSchema);
+
+      // get the updates of the record.
+      // the new updates are not there because the transaction was rejected
+      record = await request(server).get(`/records/${recordIdEncoded}`);
+      expect(record.body).toStrictEqual({
+        firstVersionTimestamps: hashesFirstVersion.slice(0, 9),
+        lastVersionTimestamps: hashesFirstVersion.slice(0, 9),
+        ownerIds: [testUser.wallet.address.toLowerCase()],
+        revokedOwnerIds: [],
+        totalVersions: 1,
+      });
+
+      // append 1 hash to reach the limit of 10 hashes
+      hashValues = hashesFirstVersion.slice(9, 10);
+      await sendTransaction("appendRecordVersionHashes", {
+        from: testUser.wallet.address,
+        hashAlgorithmIds: [9],
+        hashValues,
+        recordId,
+        timestampData: hashValues.map(
+          (h) =>
+            `0x${Buffer.from(JSON.stringify({ test: h })).toString("hex")}`,
+        ),
+        versionId: 0,
+        versionInfo: `0x${Buffer.from(
+          JSON.stringify({ test: 56 }),
+          "utf8",
+        ).toString("hex")}`,
+      } satisfies AppendRecordVersionHashesSchema);
+
+      // get the updates of the record.
+      // the result contains 10 hashes which is the maximum per version
+      record = await request(server).get(`/records/${recordIdEncoded}`);
+      expect(record.body).toStrictEqual({
+        firstVersionTimestamps: hashesFirstVersion.slice(0, 10),
+        lastVersionTimestamps: hashesFirstVersion.slice(0, 10),
+        ownerIds: [testUser.wallet.address.toLowerCase()],
+        revokedOwnerIds: [],
+        totalVersions: 1,
+      });
+
+      // register 20 more versions
+      let hashesLastVersion: string[] = [];
+      for (let i = 0; i < 20; i += 1) {
+        const hashValues = testEnv.hashAlgorithms.slice(0, 3).map((h) => {
+          return createHash(h.ianaName);
+        });
+        await sendTransaction("timestampRecordVersionHashes", {
+          from: testUser.wallet.address,
+          hashAlgorithmIds: [0, 1, 2],
+          hashValues,
+          recordId,
+          timestampData: hashValues.map(
+            (h) =>
+              `0x${Buffer.from(JSON.stringify({ test: h })).toString("hex")}`,
+          ),
+          versionInfo: `0x${Buffer.from(
+            JSON.stringify({ test: 1 }),
+            "utf8",
+          ).toString("hex")}`,
+        } satisfies TimestampRecordVersionHashesSchema);
+        // update last hashes
+        hashesLastVersion = hashValues;
+      }
+
+      // get the updates of the record.
+      // now it contains 21 versions: The first version has 10 hashes
+      // and the last one has 3 hashes
+      record = await request(server).get(`/records/${recordIdEncoded}`);
+      expect(record.body).toStrictEqual({
+        firstVersionTimestamps: hashesFirstVersion.slice(0, 10),
+        lastVersionTimestamps: hashesLastVersion,
+        ownerIds: [testUser.wallet.address.toLowerCase()],
+        revokedOwnerIds: [],
+        totalVersions: 21,
+      });
+
+      await app.close();
     });
   });
 });

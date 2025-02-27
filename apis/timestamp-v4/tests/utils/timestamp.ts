@@ -8,7 +8,7 @@ import type { HashName } from "multihashes";
 import "@nomicfoundation/hardhat-ethers";
 import { HardhatEthersProvider } from "@nomicfoundation/hardhat-ethers/internal/hardhat-ethers-provider.js";
 import { type ContractTransactionResponse, ethers } from "ethers";
-import { createHash, randomBytes } from "node:crypto";
+import { randomBytes } from "node:crypto";
 
 export const validHashAlgorithms = [
   "sha-256",
@@ -17,38 +17,58 @@ export const validHashAlgorithms = [
   "sha3-256",
   "sha3-384",
   "sha3-512",
+  "shake-256",
+  "keccak-224",
+  "keccak-256",
+  "keccak-384",
+  "keccak-512",
 ] as const;
 
 export type ValidIanaHashAlgorithms = (typeof validHashAlgorithms)[number];
 
 export const ianaToMultihashAlg = {
+  "keccak-224": "keccak-224",
+  "keccak-256": "keccak-256",
+  "keccak-384": "keccak-384",
+  "keccak-512": "keccak-512",
   "sha3-224": "sha3-224",
   "sha3-256": "sha3-256",
   "sha3-384": "sha3-384",
   "sha3-512": "sha3-512",
   "sha-256": "sha2-256",
   "sha-512": "sha2-512",
+  "shake-256": "shake-256",
 } as const satisfies Record<ValidIanaHashAlgorithms, HashName>;
 
 export type ValidMultihashAlgorithms =
   (typeof ianaToMultihashAlg)[ValidIanaHashAlgorithms];
 
 export const multihashToNodeHashAlg = {
+  "keccak-224": "keccak-224",
+  "keccak-256": "keccak-256",
+  "keccak-384": "keccak-384",
+  "keccak-512": "keccak-512",
   "sha2-256": "sha256",
   "sha2-512": "sha512",
   "sha3-224": "sha3-224",
   "sha3-256": "sha3-256",
   "sha3-384": "sha3-384",
   "sha3-512": "sha3-512",
+  "shake-256": "shake-256",
 } as const satisfies Record<ValidMultihashAlgorithms, string>;
 
 export const outputLengths = {
+  "keccak-224": 224,
+  "keccak-256": 256,
+  "keccak-384": 384,
+  "keccak-512": 512,
   "sha3-224": 224,
   "sha3-256": 256,
   "sha3-384": 384,
   "sha3-512": 512,
   "sha-256": 256,
   "sha-512": 512,
+  "shake-256": 256,
 } as const satisfies Record<ValidIanaHashAlgorithms, number>;
 
 export interface SetupOptions {
@@ -78,6 +98,11 @@ interface RecordObject {
   recordId: string;
   timestampData: string[];
   versionInfo: string;
+}
+
+export function createHash(alg: ValidIanaHashAlgorithms): string {
+  const outputLength = outputLengths[alg];
+  return `0x${randomBytes(outputLength / 8).toString("hex")}`;
 }
 
 export async function deployTimestampContract(): Promise<{
@@ -141,12 +166,7 @@ export async function insertHash(
   hashAlgorithm: HashAlgorithmObject,
 ): Promise<HashObject> {
   const hashAlgorithmIds = [0];
-  const hashValues = [
-    `0x${createHash(multihashToNodeHashAlg[hashAlgorithm.multihash] as string)
-      .update(randomBytes(32).toString("hex"), "hex")
-      .digest()
-      .toString("hex")}`,
-  ];
+  const hashValues = [createHash(hashAlgorithm.ianaName)];
   const timestampData = [`0x${randomBytes(4).toString("hex")}`];
 
   const tx = await contract.timestampHashes(
@@ -196,12 +216,8 @@ export async function insertRecord(
   hashAlgorithm: HashAlgorithmObject,
 ): Promise<RecordObject> {
   const hashAlgorithmIds = Array.from({ length: 3 }).fill(0) as number[];
-  const hashValues = Array.from({ length: 3 }).map(
-    () =>
-      `0x${createHash(multihashToNodeHashAlg[hashAlgorithm.multihash] as string)
-        .update(randomBytes(32).toString("hex"), "hex")
-        .digest()
-        .toString("hex")}`,
+  const hashValues = Array.from({ length: 3 }).map(() =>
+    createHash(hashAlgorithm.ianaName),
   );
   const timestampData = Array.from({ length: 3 }).map(
     () => `0x${randomBytes(4).toString("hex")}`,
