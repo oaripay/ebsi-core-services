@@ -574,6 +574,8 @@ paths:
                                 - $.vc.type
                               filter:
                                 type: array
+                                items:
+                                  type: string
                                 contains:
                                   const: VerifiableAuthorisationToOnboard
                 tir_invite:
@@ -607,6 +609,8 @@ paths:
                                 - $.vc.type
                               filter:
                                 type: array
+                                items:
+                                  type: string
                                 contains:
                                   anyOf:
                                     - const: VerifiableAuthorisationForTrustChain
@@ -691,6 +695,8 @@ paths:
                                 - $.vc.type
                               filter:
                                 type: array
+                                items:
+                                  type: string
                                 contains:
                                   const: VerifiableAuthorisationToOnboard
                             - path:

@@ -246,6 +246,10 @@ components:
           description: Result of the call
           oneOf:
             - type: array
+              items:
+                oneOf:
+                  - type: string
+                  - type: object
             - type: boolean
             - type: object
             - type: string

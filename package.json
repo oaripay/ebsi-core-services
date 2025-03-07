@@ -87,6 +87,7 @@
     "**/@ethersproject/providers/ws": "^7.5.10",
     "**/@ethersproject/signing-key/elliptic": "^6.6.0",
     "**/@graphql-mesh/cli/node-libcurl": "link:./node_modules/.cache/null",
+    "**/@graphprotocol/graph-cli/undici": "7.2.3",
     "**/gluegun/cross-spawn": "^7.0.6",
     "**/gluegun/semver": "^7.7.1",
     "**/gluegun/ejs": "^3.1.10"

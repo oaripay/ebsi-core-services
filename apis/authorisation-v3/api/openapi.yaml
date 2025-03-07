@@ -489,6 +489,8 @@ paths:
                                 - $.type
                               filter:
                                 type: array
+                                items:
+                                  type: string
                                 contains:
                                   const: VerifiableAuthorisationToOnboard
                     format:
@@ -515,6 +517,8 @@ paths:
                                 - $.type
                               filter:
                                 type: array
+                                items:
+                                  type: string
                                 contains:
                                   anyOf:
                                     - const: VerifiableAuthorisationForTrustChain
