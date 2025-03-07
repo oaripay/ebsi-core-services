@@ -1,4 +1,4 @@
-import "../../../../contracts/did-registry/src/types/hardhat.d.ts";
+import "@ebsiint-sc/did-registry/dist/hardhat.d.ts";
 
 import hre from "hardhat";
 import type { Artifact, FactoryOptions } from "hardhat/types";
@@ -8,16 +8,16 @@ import type {
   PolicyRegistryMock,
 } from "@ebsiint-sc/did-registry";
 import type { HardhatEthersProvider } from "@nomicfoundation/hardhat-ethers/internal/hardhat-ethers-provider.js";
+import type { HashName } from "multihashes";
 
 import "@nomicfoundation/hardhat-ethers";
 import canonicalize from "canonicalize";
 import { ethers } from "ethers";
-import { HashName } from "multihashes";
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 
-import { createDid, createDidDocument, createMetadata } from "./dataV1.js";
+import { createDid, createDidDocument, createMetadata } from "./dataV1.ts";
 
 interface DidDocument {
   canonicalizedDidDocument: string;

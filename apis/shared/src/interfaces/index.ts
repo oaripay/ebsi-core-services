@@ -1,1 +1,1 @@
-export * from "./paginated-list.interface.js";
+export * from "./paginated-list.interface.ts";

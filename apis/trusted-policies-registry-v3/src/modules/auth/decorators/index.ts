@@ -1,1 +1,1 @@
-export * from "./subject.decorator.js";
+export * from "./subject.decorator.ts";

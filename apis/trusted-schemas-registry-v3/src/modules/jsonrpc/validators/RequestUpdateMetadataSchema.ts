@@ -1,8 +1,8 @@
 import { z } from "zod";
 
-import { baseParamSchema } from "./BaseParamSchema.js";
-import { jsonRpcSchema } from "./JsonRpcSchema.js";
-import { refinements } from "./utils.js";
+import { baseParamSchema } from "./BaseParamSchema.ts";
+import { jsonRpcSchema } from "./JsonRpcSchema.ts";
+import { refinements } from "./utils.ts";
 
 const { isHexadecimal, isHexadecimalJSON } = refinements;
 

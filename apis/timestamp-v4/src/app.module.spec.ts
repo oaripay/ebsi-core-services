@@ -33,23 +33,23 @@ import {
   vi,
 } from "vitest";
 
-import type { ApiConfig } from "./config/configuration.js";
-import type { AppendRecordVersionHashesSchema } from "./modules/jsonrpc/validators/RequestAppendRecordVersionHashes.js";
-import type { TimestampRecordHashesSchema } from "./modules/jsonrpc/validators/RequestTimestampRecordHashes.js";
-import type { TimestampRecordVersionHashesSchema } from "./modules/jsonrpc/validators/RequestTimestampRecordVersionHashes.js";
-import type { UnsignedTransactionSchema } from "./modules/jsonrpc/validators/UnsignedTransaction.js";
-import type { RecordLink } from "./modules/records/records.interface.js";
+import type { ApiConfig } from "./config/configuration.ts";
+import type { AppendRecordVersionHashesSchema } from "./modules/jsonrpc/validators/RequestAppendRecordVersionHashes.ts";
+import type { TimestampRecordHashesSchema } from "./modules/jsonrpc/validators/RequestTimestampRecordHashes.ts";
+import type { TimestampRecordVersionHashesSchema } from "./modules/jsonrpc/validators/RequestTimestampRecordVersionHashes.ts";
+import type { UnsignedTransactionSchema } from "./modules/jsonrpc/validators/UnsignedTransaction.ts";
+import type { RecordLink } from "./modules/records/records.interface.ts";
 
-import { createHash, setupTestEnv } from "../tests/utils/timestamp.js";
-import { AppModule } from "./app.module.js";
+import { createHash, setupTestEnv } from "../tests/utils/timestamp.ts";
+import { AppModule } from "./app.module.ts";
 import {
   BOOTSTRAP_DEPENDENCIES,
   RUNTIME_DEPENDENCIES,
-} from "./config/configuration.js";
-import { AllExceptionsFilter } from "./filters/http-exception.filter.js";
-import { createLogger } from "./logger/logger.js";
-import { formatEthersUnsignedTransaction } from "./modules/jsonrpc/jsonrpc.utils.js";
-import { LedgerService } from "./modules/ledger/ledger.service.js";
+} from "./config/configuration.ts";
+import { AllExceptionsFilter } from "./filters/http-exception.filter.ts";
+import { createLogger } from "./logger/logger.ts";
+import { formatEthersUnsignedTransaction } from "./modules/jsonrpc/jsonrpc.utils.ts";
+import { LedgerService } from "./modules/ledger/ledger.service.ts";
 
 describe("App Module", () => {
   const mockServer = setupServer();

@@ -16,11 +16,11 @@ import type {
   GetControllersQuery,
   GetDidDocumentEventsQuery,
 } from "../../../.graphclient/index.js";
-import type { Event } from "./identifiers.interface.js";
-import type { JsonRpcSchema } from "./validators/JsonRpcSchema.js";
+import type { Event } from "./identifiers.interface.ts";
+import type { JsonRpcSchema } from "./validators/JsonRpcSchema.ts";
 
 import { getBuiltGraphSDK } from "../../../.graphclient/index.js";
-import { requestCheckControllerDtoSchema } from "./validators/RequestCheckControllerSchema.js";
+import { requestCheckControllerDtoSchema } from "./validators/RequestCheckControllerSchema.ts";
 
 const sdk = getBuiltGraphSDK();
 

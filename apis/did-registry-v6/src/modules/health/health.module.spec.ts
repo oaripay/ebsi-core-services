@@ -11,8 +11,8 @@ import { setupServer } from "msw/node";
 import request from "supertest";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 
-import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
-import { HealthModule } from "./health.module.js";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter.ts";
+import { HealthModule } from "./health.module.ts";
 
 describe("Health Module", () => {
   let app: NestFastifyApplication;

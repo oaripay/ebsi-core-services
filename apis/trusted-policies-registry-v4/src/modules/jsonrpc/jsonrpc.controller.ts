@@ -5,14 +5,14 @@ import {
 } from "@ebsiint-api/shared";
 import { Body, Controller, HttpCode, Post, UseGuards } from "@nestjs/common";
 
-import type { SubjectInfo } from "../auth/decorators/index.js";
-import type { JsonRpcResponseObject } from "./jsonrpc.interface.js";
+import type { SubjectInfo } from "../auth/decorators/index.ts";
+import type { JsonRpcResponseObject } from "./jsonrpc.interface.ts";
 
-import { TPR_WRITE_SCOPE } from "../auth/auth.constants.js";
-import { Subject } from "../auth/decorators/index.js";
-import { BearerJwtAuthGuard } from "../auth/guards/index.js";
-import { JsonRpcService } from "./jsonrpc.service.js";
-import { jsonRpcSchema } from "./validators/index.js";
+import { TPR_WRITE_SCOPE } from "../auth/auth.constants.ts";
+import { Subject } from "../auth/decorators/index.ts";
+import { BearerJwtAuthGuard } from "../auth/guards/index.ts";
+import { JsonRpcService } from "./jsonrpc.service.ts";
+import { jsonRpcSchema } from "./validators/index.ts";
 
 function assertScopeContains(
   scope: string,

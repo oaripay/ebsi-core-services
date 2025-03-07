@@ -5,13 +5,13 @@ import {
 } from "@ebsiint-api/shared";
 import { Body, Controller, HttpCode, Post, UseGuards } from "@nestjs/common";
 
-import type { UserInfo } from "../auth/decorators/index.js";
-import type { JsonRpcResponseObject } from "./jsonrpc.interface.js";
+import type { UserInfo } from "../auth/decorators/index.ts";
+import type { JsonRpcResponseObject } from "./jsonrpc.interface.ts";
 
-import { User } from "../auth/decorators/index.js";
-import { BearerJwtAuthGuard } from "../auth/guards/index.js";
-import { JsonRpcService } from "./jsonrpc.service.js";
-import { jsonRpcSchema } from "./validators/JsonRpcSchema.js";
+import { User } from "../auth/decorators/index.ts";
+import { BearerJwtAuthGuard } from "../auth/guards/index.ts";
+import { JsonRpcService } from "./jsonrpc.service.ts";
+import { jsonRpcSchema } from "./validators/JsonRpcSchema.ts";
 
 function formatJsonRpcResponse(
   result: unknown,

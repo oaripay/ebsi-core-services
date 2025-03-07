@@ -27,7 +27,7 @@ import crypto from "node:crypto";
 import request from "supertest";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 
-import type { ApiConfig } from "../../src/config/configuration.js";
+import type { ApiConfig } from "../../src/config/configuration.ts";
 import type {
   AttributeObject,
   DidLink,
@@ -35,12 +35,12 @@ import type {
   IssuerProxyResponseObject,
   IssuerResponseObject,
   ProxyLink,
-} from "../../src/modules/issuers/issuers.interface.js";
+} from "../../src/modules/issuers/issuers.interface.ts";
 
-import { AppModule } from "../../src/app.module.js";
-import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
-import { describeLocalTestEnvOnly } from "../utils/describeLocalTestEnvOnly.js";
-import { getServer } from "../utils/getServer.js";
+import { AppModule } from "../../src/app.module.ts";
+import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.ts";
+import { describeLocalTestEnvOnly } from "../utils/describeLocalTestEnvOnly.ts";
+import { getServer } from "../utils/getServer.ts";
 
 interface SupertestAttributeResponse {
   body: AttributeObject;

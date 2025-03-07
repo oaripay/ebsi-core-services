@@ -1,9 +1,6 @@
-import {
-  buildMessage,
-  isHexadecimal,
-  ValidateBy,
-  ValidationOptions,
-} from "class-validator";
+import type { ValidationOptions } from "class-validator";
+
+import { buildMessage, isHexadecimal, ValidateBy } from "class-validator";
 import { base58btc } from "multiformats/bases/base58";
 
 export const IS_SCHEMA_ID = "isSchemaId";

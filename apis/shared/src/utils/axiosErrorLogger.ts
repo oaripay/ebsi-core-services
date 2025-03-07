@@ -1,6 +1,7 @@
 import type { Logger } from "@nestjs/common";
+import type { AxiosError } from "axios";
 
-import { type AxiosError, isAxiosError } from "axios";
+import { isAxiosError } from "axios";
 import { stringify } from "safe-stable-stringify";
 
 export function logAxiosError(

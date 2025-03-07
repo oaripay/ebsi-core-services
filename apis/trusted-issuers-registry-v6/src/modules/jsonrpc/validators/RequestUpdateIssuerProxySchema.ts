@@ -4,9 +4,9 @@ import { isDidV1 } from "@ebsiint-api/shared";
 import validator from "validator";
 import { z } from "zod";
 
-import { isIssuerProxy } from "../../../shared/validators/isIssuerProxy.js";
-import { baseParamSchema } from "./BaseParamSchema.js";
-import { jsonRpcSchema } from "./JsonRpcSchema.js";
+import { isIssuerProxy } from "../../../shared/validators/isIssuerProxy.ts";
+import { baseParamSchema } from "./BaseParamSchema.ts";
+import { jsonRpcSchema } from "./JsonRpcSchema.ts";
 
 const { isHexadecimal } = validator.default;
 

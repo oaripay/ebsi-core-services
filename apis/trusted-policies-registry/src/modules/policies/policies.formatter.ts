@@ -3,7 +3,7 @@ import type { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry";
 
 import { paginate } from "@ebsiint-api/shared";
 
-import type { PolicyLink } from "./policies.interface.js";
+import type { PolicyLink } from "./policies.interface.ts";
 
 export function formatPolicies(
   policies: Awaited<ReturnType<PolicyRegistry["getPolicyNames"]>>,

@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
 
-import type { UnsignedTransaction } from "./validators/index.js";
+import type { UnsignedTransaction } from "./validators/index.ts";
 
 export function formatEthersSignature(r: string, s: string, v: string) {
   return {

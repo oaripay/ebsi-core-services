@@ -2,7 +2,7 @@ import { NotFoundError } from "@ebsiint-api/shared";
 import { Injectable } from "@nestjs/common";
 
 import type { Policy_filter } from "../../../.graphclient/index.js";
-import type { PolicyResponseObject } from "./policies.interface.js";
+import type { PolicyResponseObject } from "./policies.interface.ts";
 
 import { getBuiltGraphSDK } from "../../../.graphclient/index.js";
 

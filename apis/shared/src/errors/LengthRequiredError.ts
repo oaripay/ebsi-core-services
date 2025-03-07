@@ -1,4 +1,4 @@
-import { ProblemDetailsError } from "./ProblemDetailsError.js";
+import { ProblemDetailsError } from "./ProblemDetailsError.ts";
 
 /**
  * LengthRequiredError defines the Length Required (411) error type.

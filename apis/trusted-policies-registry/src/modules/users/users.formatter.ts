@@ -3,7 +3,7 @@ import type { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry";
 
 import { paginate } from "@ebsiint-api/shared";
 
-import type { UserLink } from "./users.interface.js";
+import type { UserLink } from "./users.interface.ts";
 
 export function formatUsers(
   users: Awaited<ReturnType<PolicyRegistry["getUsers"]>>,

@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   ProblemDetailsError,
   ProxyAuthenticationRequiredError,
-} from "../index.js";
+} from "../index.ts";
 
 describe("error ProxyAuthenticationRequiredError", () => {
   it("should extend ProblemDetailsError", () => {

@@ -4,7 +4,7 @@ import {
   formatDocumentAccesses,
   formatDocumentEvents,
   formatDocuments,
-} from "./documents.formatter.js";
+} from "./documents.formatter.ts";
 
 describe("formatDocuments", () => {
   const documents = {

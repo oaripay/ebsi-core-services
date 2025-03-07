@@ -14,11 +14,11 @@ import {
   dummySchemas,
   SCHEMA_REVISIONS_TOTAL,
   SCHEMAS_TOTAL,
-} from "../../../tests/utils/data.js";
-import { graphServer } from "../../../tests/utils/graphServer.js";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
-import { SchemasModule } from "./schemas.module.js";
-import { hexToMultibaseBase58Btc } from "./schemas.utils.js";
+} from "../../../tests/utils/data.ts";
+import { graphServer } from "../../../tests/utils/graphServer.ts";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter.ts";
+import { SchemasModule } from "./schemas.module.ts";
+import { hexToMultibaseBase58Btc } from "./schemas.utils.ts";
 
 describe("Schemas Module", () => {
   let app: NestFastifyApplication;

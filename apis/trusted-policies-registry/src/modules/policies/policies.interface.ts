@@ -2,7 +2,7 @@ import {
   ATTRIBUTE_OPERATIONS,
   ATTRIBUTE_TYPES,
   OPERATION_TYPES,
-} from "./policies.constants.js";
+} from "./policies.constants.ts";
 
 export interface PolicyConditionStructOutput {
   attributeName: string;

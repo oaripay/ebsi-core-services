@@ -1,8 +1,8 @@
 import { isAddress } from "ethers";
 import { z } from "zod";
 
-import { baseParamSchema } from "./BaseParamSchema.js";
-import { jsonRpcSchema } from "./JsonRpcSchema.js";
+import { baseParamSchema } from "./BaseParamSchema.ts";
+import { jsonRpcSchema } from "./JsonRpcSchema.ts";
 
 export const deleteUserAttributeSchema = baseParamSchema.merge(
   z.object({

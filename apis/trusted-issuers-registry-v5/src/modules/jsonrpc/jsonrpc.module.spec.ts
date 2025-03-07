@@ -3,6 +3,7 @@ import type { Tir } from "@ebsiint-sc/trusted-issuers-registry-v3";
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 import type { GenerateKeyPairResult } from "jose";
+import type { MockInstance } from "vitest";
 
 import { createVerifiableCredentialJwt } from "@cef-ebsi/verifiable-credential";
 import { methodNotAllowed } from "@ebsiint-api/shared";
@@ -33,27 +34,26 @@ import {
   describe,
   expect,
   it,
-  MockInstance,
   vi,
 } from "vitest";
 
-import type { IssuerObject } from "../../../tests/utils/tir.js";
-import type { ApiConfig } from "../../config/configuration.js";
-import type { JsonRpcResponseObject } from "./jsonrpc.interface.js";
-import type { AddIssuerProxySchema } from "./validators/RequestAddIssuerProxySchema.js";
-import type { UnsignedTransaction } from "./validators/RequestSendSignedTransactionSchema.js";
-import type { SetAttributeDataSchema } from "./validators/RequestSetAttributeDataSchema.js";
-import type { SetAttributeMetadataSchema } from "./validators/RequestSetAttributeMetadataSchema.js";
-import type { UpdateIssuerProxySchema } from "./validators/RequestUpdateIssuerProxySchema.js";
+import type { IssuerObject } from "../../../tests/utils/tir.ts";
+import type { ApiConfig } from "../../config/configuration.ts";
+import type { JsonRpcResponseObject } from "./jsonrpc.interface.ts";
+import type { AddIssuerProxySchema } from "./validators/RequestAddIssuerProxySchema.ts";
+import type { UnsignedTransaction } from "./validators/RequestSendSignedTransactionSchema.ts";
+import type { SetAttributeDataSchema } from "./validators/RequestSetAttributeDataSchema.ts";
+import type { SetAttributeMetadataSchema } from "./validators/RequestSetAttributeMetadataSchema.ts";
+import type { UpdateIssuerProxySchema } from "./validators/RequestUpdateIssuerProxySchema.ts";
 
-import { createDidDocument } from "../../../tests/utils/data.js";
-import { createIssuer, setupTestEnv } from "../../../tests/utils/tir.js";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
-import { IssuerType } from "../issuers/issuers.constants.js";
-import { LedgerService } from "../ledger/ledger.service.js";
-import { JsonRpcModule } from "./jsonrpc.module.js";
-import { JsonRpcService } from "./jsonrpc.service.js";
-import { formatEthersUnsignedTransaction } from "./jsonrpc.utils.js";
+import { createDidDocument } from "../../../tests/utils/data.ts";
+import { createIssuer, setupTestEnv } from "../../../tests/utils/tir.ts";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter.ts";
+import { IssuerType } from "../issuers/issuers.constants.ts";
+import { LedgerService } from "../ledger/ledger.service.ts";
+import { JsonRpcModule } from "./jsonrpc.module.ts";
+import { JsonRpcService } from "./jsonrpc.service.ts";
+import { formatEthersUnsignedTransaction } from "./jsonrpc.utils.ts";
 
 type JsonRpcParams =
   | AddIssuerProxySchema

@@ -1,17 +1,18 @@
-import { Accepts } from "@ebsiint-api/shared";
 // For more info, read https://docs.nestjs.com/recipes/terminus
+import type { HealthCheckResult } from "@nestjs/terminus";
+
+import { Accepts } from "@ebsiint-api/shared";
 import { Controller, Get } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import {
   HealthCheck,
-  HealthCheckResult,
   HealthCheckService,
   HttpHealthIndicator,
 } from "@nestjs/terminus";
 
-import type { ApiConfig } from "../../config/configuration.js";
+import type { ApiConfig } from "../../config/configuration.ts";
 
-import { RUNTIME_DEPENDENCIES } from "../../config/configuration.js";
+import { RUNTIME_DEPENDENCIES } from "../../config/configuration.ts";
 
 @Controller("/health")
 export class HealthController {

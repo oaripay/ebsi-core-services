@@ -21,7 +21,7 @@ import {
   TIR_INVITE_SCOPE,
   TIR_WRITE_PRESENTATION_DEFINITION,
   TIR_WRITE_SCOPE,
-} from "../../src/modules/authorisation/authorisation.constants.js";
+} from "../../src/modules/authorisation/authorisation.constants.ts";
 
 export interface LegalEntity extends EbsiIssuer {
   didDocument: DIDDocument;

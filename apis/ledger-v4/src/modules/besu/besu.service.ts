@@ -8,15 +8,15 @@ import {
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
-import type { ApiConfig } from "../../config/configuration.js";
+import type { ApiConfig } from "../../config/configuration.ts";
 import type {
   BesuJsonRpcError,
   BesuResponse,
   BesuServiceResponse,
-} from "./besu.interface.js";
-import type { BesuJsonRpcRequestPayload } from "./validators/besu-json-rpc-request-payload.js";
+} from "./besu.interface.ts";
+import type { BesuJsonRpcRequestPayload } from "./validators/besu-json-rpc-request-payload.ts";
 
-import { besuJsonRpcRequestPayload } from "./validators/besu-json-rpc-request-payload.js";
+import { besuJsonRpcRequestPayload } from "./validators/besu-json-rpc-request-payload.ts";
 
 class JsonRpcError extends Error {
   private code: number;

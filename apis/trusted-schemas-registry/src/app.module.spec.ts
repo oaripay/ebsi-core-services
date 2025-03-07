@@ -20,10 +20,11 @@ import {
   vi,
 } from "vitest";
 
-import { AppModule } from "./app.module.js";
-import { type ApiConfig } from "./config/configuration.js";
-import { AllExceptionsFilter } from "./filters/http-exception.filter.js";
-import { createLogger } from "./logger/logger.js";
+import type { ApiConfig } from "./config/configuration.ts";
+
+import { AppModule } from "./app.module.ts";
+import { AllExceptionsFilter } from "./filters/http-exception.filter.ts";
+import { createLogger } from "./logger/logger.ts";
 
 describe("App Module", () => {
   const mockServer = setupServer();

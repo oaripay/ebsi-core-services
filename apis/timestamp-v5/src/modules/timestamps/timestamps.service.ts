@@ -15,7 +15,7 @@ import type {
   GetTimestampsQuery,
   TimestampSet_filter,
 } from "../../../.graphclient/index.js";
-import type { TimestampResponseObject } from "./timestamps.interface.js";
+import type { TimestampResponseObject } from "./timestamps.interface.ts";
 
 import { getBuiltGraphSDK } from "../../../.graphclient/index.js";
 

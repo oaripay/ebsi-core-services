@@ -19,7 +19,7 @@ import { Test } from "@nestjs/testing";
 import { AxiosError } from "axios";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
-import { AllExceptionsFilter } from "./http-exception.filter.js";
+import { AllExceptionsFilter } from "./http-exception.filter.ts";
 
 const mockGetResponse = vi.fn().mockImplementation(() => ({
   code: vi.fn().mockImplementation((code: unknown) => ({

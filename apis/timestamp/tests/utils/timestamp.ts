@@ -1,4 +1,4 @@
-import "../../../../contracts/timestamp/src/types/hardhat.d.ts";
+import "@ebsiint-sc/timestamp/dist/hardhat.d.ts";
 
 import hre from "hardhat";
 

@@ -10,10 +10,10 @@ import { Test } from "@nestjs/testing";
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
-import { setupTestEnv } from "../../../tests/utils/trustedPoliciesRegistry.js";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
-import { LedgerService } from "../ledger/ledger.service.js";
-import { PoliciesModule } from "./policies.module.js";
+import { setupTestEnv } from "../../../tests/utils/trustedPoliciesRegistry.ts";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter.ts";
+import { LedgerService } from "../ledger/ledger.service.ts";
+import { PoliciesModule } from "./policies.module.ts";
 
 const POLICIES_TOTAL = 12;
 

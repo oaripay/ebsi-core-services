@@ -1,7 +1,7 @@
 import { isAddress } from "ethers";
 import { z } from "zod";
 
-import { jsonRpcSchema } from "./JsonRpcSchema.js";
+import { jsonRpcSchema } from "./JsonRpcSchema.ts";
 
 export const checkControllerSchema = z
   .string()

@@ -1,4 +1,4 @@
-import { IssuerTypeNames } from "./issuers.constants.js";
+import { IssuerTypeNames } from "./issuers.constants.ts";
 
 export interface AttributeDetailsObject {
   attribute: AttributeObject;

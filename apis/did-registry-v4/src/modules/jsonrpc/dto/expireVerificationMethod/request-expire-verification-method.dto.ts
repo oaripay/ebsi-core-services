@@ -7,8 +7,8 @@ import {
   ValidateNested,
 } from "class-validator";
 
-import { JsonRpcDto } from "../jsonrpc.dto.js";
-import { ExpireVerificationMethodParam } from "./expire-verification-method-param.dto.js";
+import { JsonRpcDto } from "../jsonrpc.dto.ts";
+import { ExpireVerificationMethodParam } from "./expire-verification-method-param.dto.ts";
 
 export class RequestExpireVerificationMethodDto extends JsonRpcDto {
   @Equals("expireVerificationMethod")

@@ -2,7 +2,7 @@ import type { PaginatedListWithoutTotal } from "@ebsiint-api/shared";
 
 import { paginateWithoutTotal } from "@ebsiint-api/shared";
 
-import type { UserLink } from "./users.interface.js";
+import type { UserLink } from "./users.interface.ts";
 
 export function formatUsers(
   users: { items: string[] },

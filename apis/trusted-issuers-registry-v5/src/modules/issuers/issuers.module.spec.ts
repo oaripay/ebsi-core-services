@@ -1,4 +1,5 @@
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
+import type { AxiosResponse } from "axios";
 import type { RawServerDefault } from "fastify";
 
 import * as vcLib from "@cef-ebsi/verifiable-credential";
@@ -9,16 +10,18 @@ import { fastifyAccepts } from "@fastify/accepts";
 import { Logger, ValidationPipe } from "@nestjs/common";
 import { FastifyAdapter } from "@nestjs/platform-fastify";
 import { Test } from "@nestjs/testing";
-import axios, { AxiosError, AxiosResponse } from "axios";
+import axios, { AxiosError } from "axios";
 import { randomBytes } from "node:crypto";
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
-import { IssuerObject, setupTestEnv } from "../../../tests/utils/tir.js";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
-import { LedgerService } from "../ledger/ledger.service.js";
-import { IssuerTypeNames } from "./issuers.constants.js";
-import { IssuersModule } from "./issuers.module.js";
+import type { IssuerObject } from "../../../tests/utils/tir.ts";
+
+import { setupTestEnv } from "../../../tests/utils/tir.ts";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter.ts";
+import { LedgerService } from "../ledger/ledger.service.ts";
+import { IssuerTypeNames } from "./issuers.constants.ts";
+import { IssuersModule } from "./issuers.module.ts";
 
 const ISSUERS_TOTAL = 12;
 

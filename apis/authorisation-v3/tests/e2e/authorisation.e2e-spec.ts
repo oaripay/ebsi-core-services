@@ -25,14 +25,14 @@ import qs from "qs";
 import request from "supertest";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
-import type { ApiConfig } from "../../src/config/configuration.js";
+import type { ApiConfig } from "../../src/config/configuration.ts";
 import type {
   JsonWebKeySet,
   Scope,
   TokenResponse,
-} from "../../src/modules/authorisation/authorisation.interfaces.js";
+} from "../../src/modules/authorisation/authorisation.interfaces.ts";
 
-import { AppModule } from "../../src/app.module.js";
+import { AppModule } from "../../src/app.module.ts";
 import {
   CUSTOM_SCOPES,
   DIDR_INVITE_PRESENTATION_DEFINITION,
@@ -43,14 +43,14 @@ import {
   TIR_INVITE_SCOPE,
   TIR_WRITE_PRESENTATION_DEFINITION,
   TIR_WRITE_SCOPE,
-} from "../../src/modules/authorisation/authorisation.constants.js";
-import { CreateAccessTokenDto } from "../../src/modules/authorisation/dto/index.js";
-import { configureApp } from "../utils/app.js";
+} from "../../src/modules/authorisation/authorisation.constants.ts";
+import { CreateAccessTokenDto } from "../../src/modules/authorisation/dto/index.ts";
+import { configureApp } from "../utils/app.ts";
 import {
   createLegalEntity,
   createPresentationSubmission,
-} from "../utils/data.js";
-import { getServer } from "../utils/getServer.js";
+} from "../utils/data.ts";
+import { getServer } from "../utils/getServer.ts";
 
 describe("Authorisation API v3 (e2e)", () => {
   let app: NestFastifyApplication;

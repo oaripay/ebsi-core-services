@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 import { describe, expect, it } from "vitest";
 
-import { byteLength } from "./byteLength.utils.js";
+import { byteLength } from "./byteLength.utils.ts";
 
 describe("byteLength", () => {
   it("should return the expected byte length of a UTF8 string", () => {

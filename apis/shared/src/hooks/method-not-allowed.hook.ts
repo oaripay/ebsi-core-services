@@ -1,11 +1,11 @@
 import type { onRequestHookHandler } from "fastify";
 
-import type { HttpMethod } from "../errors/MethodNotAllowedError.js";
+import type { HttpMethod } from "../errors/MethodNotAllowedError.ts";
 
 import {
   HTTP_METHODS,
   MethodNotAllowedError,
-} from "../errors/MethodNotAllowedError.js";
+} from "../errors/MethodNotAllowedError.ts";
 
 /**
  * Fastify "onRequest" hook that returns an error 405 when the route exist but not with the HTTP method of the current request.

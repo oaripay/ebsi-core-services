@@ -1,7 +1,7 @@
 import type {
   PaginatedList,
   PaginatedListWithoutTotal,
-} from "../interfaces/index.js";
+} from "../interfaces/index.ts";
 
 interface PaginationLinks {
   firstPage: number;

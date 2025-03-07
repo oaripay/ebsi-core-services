@@ -1,6 +1,6 @@
 import { IsEthereumAddress } from "class-validator";
 
-import { ArgsExpireVerificationMethod } from "./args-expire-verification-method.dto.js";
+import { ArgsExpireVerificationMethod } from "./args-expire-verification-method.dto.ts";
 
 export class ExpireVerificationMethodParam extends ArgsExpireVerificationMethod {
   @IsEthereumAddress()

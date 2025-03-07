@@ -1,6 +1,5 @@
 import type { LoggerService } from "@nestjs/common";
-
-import { FastifyError, FastifyReply, FastifyRequest } from "fastify";
+import type { FastifyError, FastifyReply, FastifyRequest } from "fastify";
 
 export const frameworkErrors =
   (logger: LoggerService) =>

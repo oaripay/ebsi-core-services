@@ -5,7 +5,7 @@ import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { ethers } from "ethers";
 import { randomBytes } from "node:crypto";
 
-import type { IssuerTypeValue } from "../../src/modules/issuers/issuers.constants.js";
+import type { IssuerTypeValue } from "../../src/modules/issuers/issuers.constants.ts";
 
 export interface IssuerGraphObject {
   attributes: {

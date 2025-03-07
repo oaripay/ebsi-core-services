@@ -1,9 +1,9 @@
 import { CacheModule } from "@nestjs/cache-manager";
 import { Logger, Module } from "@nestjs/common";
 
-import { ApiConfigModule } from "../../config/configuration.js";
-import { AuthorisationController } from "./authorisation.controller.js";
-import { AuthorisationService } from "./authorisation.service.js";
+import { ApiConfigModule } from "../../config/configuration.ts";
+import { AuthorisationController } from "./authorisation.controller.ts";
+import { AuthorisationService } from "./authorisation.service.ts";
 
 @Module({
   controllers: [AuthorisationController],

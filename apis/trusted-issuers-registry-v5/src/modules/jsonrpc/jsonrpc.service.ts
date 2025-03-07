@@ -13,35 +13,35 @@ import { ConfigService } from "@nestjs/config";
 import axios, { isAxiosError } from "axios";
 import { ethers } from "ethers";
 
-import type { ApiConfig } from "../../config/configuration.js";
-import type { JsonRpcSchema } from "./validators/JsonRpcSchema.js";
+import type { ApiConfig } from "../../config/configuration.ts";
+import type { JsonRpcSchema } from "./validators/JsonRpcSchema.ts";
 import type {
   SendSignedTransactionParamsSchema,
   UnsignedTransaction,
-} from "./validators/RequestSendSignedTransactionSchema.js";
+} from "./validators/RequestSendSignedTransactionSchema.ts";
 
-import { LedgerService } from "../ledger/ledger.service.js";
+import { LedgerService } from "../ledger/ledger.service.ts";
 import {
   formatEthersSignature,
   formatEthersUnsignedTransaction,
-} from "./jsonrpc.utils.js";
+} from "./jsonrpc.utils.ts";
 import {
   createAddIssuerProxySchema,
   createRequestAddIssuerProxySchema,
-} from "./validators/RequestAddIssuerProxySchema.js";
-import { requestSendSignedTransactionDtoSchema } from "./validators/RequestSendSignedTransactionSchema.js";
+} from "./validators/RequestAddIssuerProxySchema.ts";
+import { requestSendSignedTransactionDtoSchema } from "./validators/RequestSendSignedTransactionSchema.ts";
 import {
   requestSetAttributeDataSchema,
   setAttributeDataSchema,
-} from "./validators/RequestSetAttributeDataSchema.js";
+} from "./validators/RequestSetAttributeDataSchema.ts";
 import {
   requestSetAttributeMetadataSchema,
   setAttributeMetadataSchema,
-} from "./validators/RequestSetAttributeMetadataSchema.js";
+} from "./validators/RequestSetAttributeMetadataSchema.ts";
 import {
   createRequestUpdateIssuerProxySchema,
   createUpdateIssuerProxySchema,
-} from "./validators/RequestUpdateIssuerProxySchema.js";
+} from "./validators/RequestUpdateIssuerProxySchema.ts";
 
 function assertDidMatchesSub(did: string, sub: string) {
   if (did !== sub) {

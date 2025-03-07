@@ -4,15 +4,15 @@ import { Accepts } from "@ebsiint-api/shared";
 import { Controller, Get, Param, Query } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
-import type { ApiConfig } from "../../config/configuration.js";
+import type { ApiConfig } from "../../config/configuration.ts";
 import type {
   TimestampLink,
   TimestampResponseObject,
-} from "./timestamps.interface.js";
+} from "./timestamps.interface.ts";
 
-import { GetTimestampDto, GetTimestampsDto } from "./dto/index.js";
-import { formatTimestamps } from "./timestamps.formatter.js";
-import TimestampsService from "./timestamps.service.js";
+import { GetTimestampDto, GetTimestampsDto } from "./dto/index.ts";
+import { formatTimestamps } from "./timestamps.formatter.ts";
+import TimestampsService from "./timestamps.service.ts";
 
 @Controller("/timestamps")
 export default class TimestampsController {

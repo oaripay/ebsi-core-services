@@ -7,8 +7,8 @@ import {
   ValidateNested,
 } from "class-validator";
 
-import { JsonRpcDto } from "../jsonrpc.dto.js";
-import { RevokeControllerParam } from "./revoke-controller-param.dto.js";
+import { JsonRpcDto } from "../jsonrpc.dto.ts";
+import { RevokeControllerParam } from "./revoke-controller-param.dto.ts";
 
 export class RequestRevokeControllerDto extends JsonRpcDto {
   @Equals("revokeController")

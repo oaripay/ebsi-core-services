@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { isBaseDocument } from "./IsBaseDocument.js";
+import { isBaseDocument } from "./IsBaseDocument.ts";
 
 describe("IsBaseDocument", () => {
   it("should validate if it is a valid base document", () => {

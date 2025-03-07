@@ -4,7 +4,7 @@ import {
   CUSTOM_SCOPES,
   OPENID_SCOPE,
   SUPPORTED_SCOPES,
-} from "./authorisation.constants.js";
+} from "./authorisation.constants.ts";
 
 export interface Access {
   /**

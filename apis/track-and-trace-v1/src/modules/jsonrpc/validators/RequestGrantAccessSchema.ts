@@ -2,11 +2,11 @@ import { isBigNumberish } from "@ebsiint-api/shared";
 import { ethers } from "ethers";
 import { z } from "zod";
 
-import { AccountType } from "../../../shared/constants.js";
-import { hexToDid } from "../../../shared/utils.js";
-import { baseParamSchema } from "./BaseParamSchema.js";
-import { jsonRpcSchema } from "./JsonRpcSchema.js";
-import { refinements } from "./utils.js";
+import { AccountType } from "../../../shared/constants.ts";
+import { hexToDid } from "../../../shared/utils.ts";
+import { baseParamSchema } from "./BaseParamSchema.ts";
+import { jsonRpcSchema } from "./JsonRpcSchema.ts";
+import { refinements } from "./utils.ts";
 
 const { isHexadecimal, isSender } = refinements;
 

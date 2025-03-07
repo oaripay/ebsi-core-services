@@ -1,4 +1,4 @@
-import "../../../../contracts/timestamp-v3/src/types/hardhat.d.ts";
+import "@ebsiint-sc/timestamp-v3/dist/hardhat.d.ts";
 
 import hre from "hardhat";
 
@@ -10,7 +10,7 @@ import "@nomicfoundation/hardhat-ethers";
 import { ethers } from "ethers";
 import { createHash, randomBytes } from "node:crypto";
 
-import { dummyData } from "./data.js";
+import { dummyData } from "./data.ts";
 
 export const validHashAlgorithms = [
   "sha-256",

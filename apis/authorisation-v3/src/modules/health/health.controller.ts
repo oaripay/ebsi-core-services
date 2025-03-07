@@ -9,9 +9,9 @@ import {
   HttpHealthIndicator,
 } from "@nestjs/terminus";
 
-import type { ApiConfig } from "../../config/configuration.js";
+import type { ApiConfig } from "../../config/configuration.ts";
 
-import { DEPENDENCIES } from "../../config/configuration.js";
+import { DEPENDENCIES } from "../../config/configuration.ts";
 
 @Controller("/health")
 export class HealthController {

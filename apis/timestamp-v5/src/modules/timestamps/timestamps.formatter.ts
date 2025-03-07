@@ -6,7 +6,7 @@ import {
   paginateWithoutTotal,
 } from "@ebsiint-api/shared";
 
-import type { TimestampLink } from "./timestamps.interface.js";
+import type { TimestampLink } from "./timestamps.interface.ts";
 
 export function formatTimestamps(
   timestamps: { items: string[] },

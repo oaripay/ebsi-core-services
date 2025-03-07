@@ -1,9 +1,9 @@
+import type { PaginatedList } from "@ebsiint-api/shared";
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 
 import {
   methodNotAllowed,
-  PaginatedList,
   prefixWith0x,
   waitToBeMined,
 } from "@ebsiint-api/shared";
@@ -19,8 +19,8 @@ import crypto from "node:crypto";
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import type { ApiConfig } from "../../src/config/configuration.js";
-import type { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface.js";
+import type { ApiConfig } from "../../src/config/configuration.ts";
+import type { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface.ts";
 import type {
   ActivatePolicySchema,
   DeactivatePolicySchema,
@@ -29,20 +29,20 @@ import type {
   InsertUserAttributesSchema,
   UnsignedTransaction,
   UpdatePolicySchema,
-} from "../../src/modules/jsonrpc/validators/index.js";
+} from "../../src/modules/jsonrpc/validators/index.ts";
 import type {
   PolicyLink,
   PolicyResponseObject,
-} from "../../src/modules/policies/policies.interface.js";
+} from "../../src/modules/policies/policies.interface.ts";
 
-import { AppModule } from "../../src/app.module.js";
-import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
-import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils.js";
-import { createPolicy } from "../utils/data.js";
-import { getTprWriteAccessToken } from "../utils/getAccessToken.js";
-import { getEbsiIssuer } from "../utils/getEbsiIssuer.js";
-import { getServer } from "../utils/getServer.js";
-import { describeWriteOps, writeOps } from "../utils/writeOps.js";
+import { AppModule } from "../../src/app.module.ts";
+import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.ts";
+import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils.ts";
+import { createPolicy } from "../utils/data.ts";
+import { getTprWriteAccessToken } from "../utils/getAccessToken.ts";
+import { getEbsiIssuer } from "../utils/getEbsiIssuer.ts";
+import { getServer } from "../utils/getServer.ts";
+import { describeWriteOps, writeOps } from "../utils/writeOps.ts";
 
 type JsonRpcParams =
   | ActivatePolicySchema

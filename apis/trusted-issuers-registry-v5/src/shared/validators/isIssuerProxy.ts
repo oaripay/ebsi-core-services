@@ -1,7 +1,8 @@
 import type { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
+import type { AxiosResponse } from "axios";
 
 import { checkStatusList2021Credential } from "@ebsiint-api/shared";
-import axios, { type AxiosResponse, isAxiosError } from "axios";
+import axios, { isAxiosError } from "axios";
 import validator from "validator";
 
 const validators = validator.default;

@@ -1,7 +1,7 @@
 import { TextDecoder } from "node:util";
 import { describe, expect, it } from "vitest";
 
-import { multibase } from "./multibase.utils.js";
+import { multibase } from "./multibase.utils.ts";
 
 const bases: Record<
   keyof typeof multibase,

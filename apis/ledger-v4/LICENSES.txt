@@ -875,7 +875,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ========================================================================================
-- axios@^1.7.9
+- axios@^1.8.2
 ------------------------------
 This project is licensed under MIT.
 
@@ -1152,7 +1152,7 @@ TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 
 ========================================================================================
-- zod@^3.24.1
+- zod@^3.24.2
 ------------------------------
 This project is licensed under MIT.
 

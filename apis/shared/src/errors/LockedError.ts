@@ -1,4 +1,4 @@
-import { ProblemDetailsError } from "./ProblemDetailsError.js";
+import { ProblemDetailsError } from "./ProblemDetailsError.ts";
 
 /**
  * LockedError defines the Locked (423) error type.

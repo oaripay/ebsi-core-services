@@ -2,7 +2,7 @@ import type { ValidationOptions } from "class-validator";
 
 import { buildMessage, ValidateBy } from "class-validator";
 
-import { CUSTOM_SCOPES, OPENID_SCOPE } from "../authorisation.constants.js";
+import { CUSTOM_SCOPES, OPENID_SCOPE } from "../authorisation.constants.ts";
 
 export const IS_SCOPE = "isScope";
 

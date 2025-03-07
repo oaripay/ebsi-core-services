@@ -36,21 +36,21 @@ import {
   vi,
 } from "vitest";
 
-import type { LegalEntity } from "../../../tests/utils/data.js";
-import type { ApiConfig } from "../../config/configuration.js";
+import type { LegalEntity } from "../../../tests/utils/data.ts";
+import type { ApiConfig } from "../../config/configuration.ts";
 import type {
   Access,
   JsonWebKeySet,
   Scope,
   TokenResponse,
-} from "./authorisation.interfaces.js";
+} from "./authorisation.interfaces.ts";
 
-import { configureApp } from "../../../tests/utils/app.js";
+import { configureApp } from "../../../tests/utils/app.ts";
 import {
   createDidDocument,
   createLegalEntity,
   createPresentationSubmission,
-} from "../../../tests/utils/data.js";
+} from "../../../tests/utils/data.ts";
 import {
   CUSTOM_SCOPES,
   DIDR_INVITE_PRESENTATION_DEFINITION,
@@ -73,9 +73,9 @@ import {
   TPR_WRITE_SCOPE,
   TSR_WRITE_PRESENTATION_DEFINITION,
   TSR_WRITE_SCOPE,
-} from "./authorisation.constants.js";
-import { AuthorisationModule } from "./authorisation.module.js";
-import { CreateAccessTokenDto } from "./dto/index.js";
+} from "./authorisation.constants.ts";
+import { AuthorisationModule } from "./authorisation.module.ts";
+import { CreateAccessTokenDto } from "./dto/index.ts";
 
 vi.mock("did-jwt", async () => {
   const mod = await vi.importActual<typeof import("did-jwt")>("did-jwt");

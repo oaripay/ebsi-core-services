@@ -14,12 +14,12 @@ import { randomBytes } from "node:crypto";
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
-import type { IssuerGraphObject } from "../../../tests/utils/data.js";
+import type { IssuerGraphObject } from "../../../tests/utils/data.ts";
 
-import { dummyIssuers } from "../../../tests/utils/data.js";
-import { graphServer } from "../../../tests/utils/graphServer.js";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
-import { IssuersModule } from "./issuers.module.js";
+import { dummyIssuers } from "../../../tests/utils/data.ts";
+import { graphServer } from "../../../tests/utils/graphServer.ts";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter.ts";
+import { IssuersModule } from "./issuers.module.ts";
 
 vi.mock("@cef-ebsi/verifiable-credential", async () => {
   const mod = await vi.importActual<

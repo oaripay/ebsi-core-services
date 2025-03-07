@@ -1,7 +1,7 @@
 import { Module } from "@nestjs/common";
 
-import { ApiConfigModule } from "../../config/configuration.js";
-import { LedgerService } from "./ledger.service.js";
+import { ApiConfigModule } from "../../config/configuration.ts";
+import { LedgerService } from "./ledger.service.ts";
 
 @Module({
   exports: [LedgerService],

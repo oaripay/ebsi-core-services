@@ -10,15 +10,15 @@ import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 
-import type { ApiConfig } from "../../config/configuration.js";
-import type { PolicyResponseObject } from "./policies.interface.js";
+import type { ApiConfig } from "../../config/configuration.ts";
+import type { PolicyResponseObject } from "./policies.interface.ts";
 
-import { LedgerService } from "../ledger/ledger.service.js";
+import { LedgerService } from "../ledger/ledger.service.ts";
 import {
   ATTRIBUTE_OPERATIONS,
   ATTRIBUTE_TYPES,
   OPERATION_TYPES,
-} from "./policies.constants.js";
+} from "./policies.constants.ts";
 
 @Injectable()
 export class PoliciesService {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { ExpectationFailedError, ProblemDetailsError } from "../index.js";
+import { ExpectationFailedError, ProblemDetailsError } from "../index.ts";
 
 describe("error ExpectationFailedError", () => {
   it("should extend ProblemDetailsError", () => {

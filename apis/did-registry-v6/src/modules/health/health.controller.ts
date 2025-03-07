@@ -1,10 +1,11 @@
-import { Accepts } from "@ebsiint-api/shared";
 // For more info, read https://docs.nestjs.com/recipes/terminus
+import type { HealthCheckResult } from "@nestjs/terminus";
+
+import { Accepts } from "@ebsiint-api/shared";
 import { Controller, Get } from "@nestjs/common";
 import {
   HealthCheck,
   HealthCheckError,
-  HealthCheckResult,
   HealthCheckService,
 } from "@nestjs/terminus";
 

@@ -1,4 +1,4 @@
-import { BadRequestError } from "./BadRequestError.js";
+import { BadRequestError } from "./BadRequestError.ts";
 
 export class ExcessiveAppUsageError extends BadRequestError {
   constructor(detail?: string) {

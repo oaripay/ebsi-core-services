@@ -5,7 +5,7 @@ import { encode } from "@ebsiint-api/shared";
 import { exportJWK, generateKeyPair } from "jose";
 import { describe, expect, it } from "vitest";
 
-import { didToHex, hexToDid } from "./utils.js";
+import { didToHex, hexToDid } from "./utils.ts";
 
 describe("hexToDid", () => {
   it("should throw an error if the input can not be converted to a DID", () => {

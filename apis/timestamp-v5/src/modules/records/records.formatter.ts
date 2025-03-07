@@ -2,7 +2,7 @@ import type { PaginatedListWithoutTotal } from "@ebsiint-api/shared";
 
 import { multibase, paginateWithoutTotal } from "@ebsiint-api/shared";
 
-import type { RecordLink, VersionLink } from "./records.interface.js";
+import type { RecordLink, VersionLink } from "./records.interface.ts";
 
 export function formatRecords(
   records: { items: string[] },

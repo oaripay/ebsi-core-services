@@ -1,6 +1,6 @@
 import multihash from "multihashes";
 
-import { remove0xPrefix } from "./strings.utils.js";
+import { remove0xPrefix } from "./strings.utils.ts";
 
 export const multihashEncode = (
   hexHash: string,

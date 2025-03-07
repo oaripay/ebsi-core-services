@@ -11,8 +11,8 @@ import { ConfigService } from "@nestjs/config";
 import { Test } from "@nestjs/testing";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
-import { configureApp } from "../../tests/utils/app.js";
-import { AllExceptionsFilter } from "./http-exception.filter.js";
+import { configureApp } from "../../tests/utils/app.ts";
+import { AllExceptionsFilter } from "./http-exception.filter.ts";
 
 const mockGetResponse = vi.fn().mockImplementation(() => ({
   code: vi.fn().mockImplementation((code: unknown) => ({

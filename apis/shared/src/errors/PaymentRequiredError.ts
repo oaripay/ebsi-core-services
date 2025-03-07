@@ -1,4 +1,4 @@
-import { ProblemDetailsError } from "./ProblemDetailsError.js";
+import { ProblemDetailsError } from "./ProblemDetailsError.ts";
 
 /**
  * PaymentRequiredError defines the Payment Required (402) error type.

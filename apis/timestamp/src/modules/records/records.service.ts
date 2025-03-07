@@ -13,14 +13,14 @@ import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 
-import type { ApiConfig } from "../../config/configuration.js";
+import type { ApiConfig } from "../../config/configuration.ts";
 import type {
   InfoObject,
   RecordResponseObject,
   RecordVersionResponseObject,
-} from "./records.interface.js";
+} from "./records.interface.ts";
 
-import { LedgerService } from "../ledger/ledger.service.js";
+import { LedgerService } from "../ledger/ledger.service.ts";
 
 @Injectable()
 export default class RecordsService {

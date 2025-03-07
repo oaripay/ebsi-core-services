@@ -1,5 +1,6 @@
 import type { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
 import type { Tir } from "@ebsiint-sc/trusted-issuers-registry-v3";
+import type { AxiosResponse } from "axios";
 
 import {
   BadRequestError,
@@ -13,17 +14,17 @@ import {
 import { Tir__factory } from "@ebsiint-sc/trusted-issuers-registry-v3";
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import axios, { type AxiosResponse } from "axios";
+import axios from "axios";
 
-import type { ApiConfig } from "../../config/configuration.js";
+import type { ApiConfig } from "../../config/configuration.ts";
 import type {
   AttributeObject,
   IssuerProxyResponseObject,
   IssuerResponseObject,
-} from "./issuers.interface.js";
+} from "./issuers.interface.ts";
 
-import { LedgerService } from "../ledger/ledger.service.js";
-import { IssuerTypeNames } from "./issuers.constants.js";
+import { LedgerService } from "../ledger/ledger.service.ts";
+import { IssuerTypeNames } from "./issuers.constants.ts";
 
 @Injectable()
 export class IssuersService {

@@ -5,15 +5,15 @@ import { Controller, Get, Param, Query } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
 import type { HashAlgo_filter } from "../../../.graphclient/index.js";
-import type { ApiConfig } from "../../config/configuration.js";
+import type { ApiConfig } from "../../config/configuration.ts";
 import type {
   HashAlgorithmLink,
   HashAlgorithmResponseObject,
-} from "./hash-algorithms.interface.js";
+} from "./hash-algorithms.interface.ts";
 
-import { GetHashAlgorithmDto, GetHashAlgorithmsDto } from "./dto/index.js";
-import { formatHashAlgorithms } from "./hash-algorithms.formatter.js";
-import { HashAlgorithmsService } from "./hash-algorithms.service.js";
+import { GetHashAlgorithmDto, GetHashAlgorithmsDto } from "./dto/index.ts";
+import { formatHashAlgorithms } from "./hash-algorithms.formatter.ts";
+import { HashAlgorithmsService } from "./hash-algorithms.service.ts";
 
 @Controller("/hash-algorithms")
 export class HashAlgorithmsController {

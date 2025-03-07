@@ -2,13 +2,13 @@ import type { TrackAndTrace } from "@ebsiint-sc/track-and-trace";
 
 import { describe, expect, it } from "vitest";
 
-import type { DocumentAccesses } from "./documents.interface.js";
+import type { DocumentAccesses } from "./documents.interface.ts";
 
 import {
   formatDocumentAccesses,
   formatDocumentEvents,
   formatDocuments,
-} from "./documents.formatter.js";
+} from "./documents.formatter.ts";
 
 describe("formatDocuments", () => {
   const documents = {

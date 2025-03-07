@@ -6,10 +6,10 @@ import type {
   GetOperatorQuery,
   Invitation_filter,
 } from "../../../.graphclient/index.js";
-import type { Access } from "./accesses.interface.js";
+import type { Access } from "./accesses.interface.ts";
 
 import { getBuiltGraphSDK } from "../../../.graphclient/index.js";
-import { didToHex, hexToDid } from "../../shared/utils.js";
+import { didToHex, hexToDid } from "../../shared/utils.ts";
 
 const sdk = getBuiltGraphSDK();
 

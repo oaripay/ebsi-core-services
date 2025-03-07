@@ -10,10 +10,10 @@ import { ethers } from "ethers";
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { dummyUsers, USERS_TOTAL } from "../../../tests/utils/data.js";
-import { graphServer } from "../../../tests/utils/graphServer.js";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
-import { UsersModule } from "./users.module.js";
+import { dummyUsers, USERS_TOTAL } from "../../../tests/utils/data.ts";
+import { graphServer } from "../../../tests/utils/graphServer.ts";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter.ts";
+import { UsersModule } from "./users.module.ts";
 
 describe("Users Module", () => {
   let app: NestFastifyApplication;

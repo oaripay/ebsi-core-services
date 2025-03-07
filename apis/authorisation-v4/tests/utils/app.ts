@@ -9,8 +9,8 @@ import { FastifyAdapter } from "@nestjs/platform-fastify";
 import { TestingModule } from "@nestjs/testing";
 import qs from "qs";
 
-import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
-import { createLogger } from "../../src/logger/logger.js";
+import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.ts";
+import { createLogger } from "../../src/logger/logger.ts";
 
 /**
  * Configure Nest Fastify app with all the parsers, filters, and validation pipes.

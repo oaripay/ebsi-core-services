@@ -299,7 +299,7 @@ https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
 This product makes use of software developed by third parties.
 
 ========================================================================================
-- @apidevtools/json-schema-ref-parser@^11.7.3
+- @apidevtools/json-schema-ref-parser@^11.9.3
 ------------------------------
 This project is licensed under MIT.
 
@@ -330,7 +330,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 ========================================================================================
-- @cef-ebsi/ebsi-did-resolver@^4.0.5
+- @cef-ebsi/ebsi-did-resolver@^4.0.6-alpha.0
 ------------------------------
 This project is licensed under EUPL-1.2.
 
@@ -629,7 +629,7 @@ EUPL version.
 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
 
 ========================================================================================
-- @cef-ebsi/key-did-resolver@^2.1.0
+- @cef-ebsi/key-did-resolver@^2.1.1-alpha.0
 ------------------------------
 This project is licensed under EUPL-1.2.
 
@@ -928,7 +928,7 @@ EUPL version.
 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
 
 ========================================================================================
-- @cef-ebsi/key-encoder@^2.0.0
+- @cef-ebsi/key-encoder@^2.0.1-alpha.0
 ------------------------------
 This project is licensed under EUPL-1.2.
 
@@ -1227,7 +1227,7 @@ EUPL version.
 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
 
 ========================================================================================
-- @cef-ebsi/verifiable-credential@^7.0.0
+- @cef-ebsi/verifiable-credential@^7.0.1-alpha.0
 ------------------------------
 This project is licensed under EUPL-1.2.
 
@@ -1652,7 +1652,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 ========================================================================================
-- axios@^1.7.9
+- axios@^1.8.2
 ------------------------------
 This project is licensed under MIT.
 
@@ -2685,7 +2685,7 @@ If the Work includes a "NOTICE" text file as part of its distribution, then any 
 END OF TERMS AND CONDITIONS
 
 ========================================================================================
-- rxjs@^7.8.1
+- rxjs@^7.8.2
 ------------------------------
 This project is licensed under Apache-2.0.
 
@@ -2957,7 +2957,7 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ========================================================================================
-- zod@^3.24.1
+- zod@^3.24.2
 ------------------------------
 This project is licensed under MIT.
 

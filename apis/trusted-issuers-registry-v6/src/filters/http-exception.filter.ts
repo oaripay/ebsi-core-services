@@ -1,4 +1,4 @@
-import type { ArgumentsHost } from "@nestjs/common";
+import type { ArgumentsHost, ExceptionFilter } from "@nestjs/common";
 import type { FastifyReply } from "fastify";
 
 import {
@@ -14,7 +14,6 @@ import {
 import {
   BadRequestException,
   Catch,
-  ExceptionFilter,
   ForbiddenException,
   Logger,
   NotFoundException,

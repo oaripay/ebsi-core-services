@@ -4,21 +4,21 @@ import { Accepts } from "@ebsiint-api/shared";
 import { Controller, Get, Param, Query } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
-import type { ApiConfig } from "../../config/configuration.js";
+import type { ApiConfig } from "../../config/configuration.ts";
 import type {
   Access,
   Document,
   DocumentEventsLink,
   DocumentsLink,
   Event,
-} from "./documents.interface.js";
+} from "./documents.interface.ts";
 
 import {
   formatDocumentAccesses,
   formatDocumentEvents,
   formatDocuments,
-} from "./documents.formatter.js";
-import DocumentsService from "./documents.service.js";
+} from "./documents.formatter.ts";
+import DocumentsService from "./documents.service.ts";
 import {
   GetDocumentAccessesDto,
   GetDocumentAccessesParamsDto,
@@ -27,7 +27,7 @@ import {
   GetDocumentEventsParamsDto,
   GetDocumentParamsDto,
   GetDocumentsDto,
-} from "./dto/index.js";
+} from "./dto/index.ts";
 
 @Controller("/documents")
 export default class DocumentsController {

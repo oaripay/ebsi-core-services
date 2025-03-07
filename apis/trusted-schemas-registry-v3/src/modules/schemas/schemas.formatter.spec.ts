@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import type { ItemsList } from "./schemas.interface.js";
+import type { ItemsList } from "./schemas.interface.ts";
 
 import {
   formatSchemaRevisionMetadataList,
   formatSchemaRevisions,
   formatSchemas,
-} from "./schemas.formatter.js";
+} from "./schemas.formatter.ts";
 
 describe("formatSchemas", () => {
   const schemas: ItemsList = {

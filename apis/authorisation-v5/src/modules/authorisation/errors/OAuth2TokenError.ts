@@ -1,8 +1,6 @@
-import {
-  OAuth2Error,
-  OAuth2ErrorCode,
-  OAuth2ErrorOptions,
-} from "./OAuth2Error.js";
+import type { OAuth2ErrorCode, OAuth2ErrorOptions } from "./OAuth2Error.ts";
+
+import { OAuth2Error } from "./OAuth2Error.ts";
 
 /**
  * OAuth2 Token Error

@@ -1,4 +1,4 @@
-import { ProblemDetailsError } from "./ProblemDetailsError.js";
+import { ProblemDetailsError } from "./ProblemDetailsError.ts";
 
 /**
  * UnauthorizedError defines the Unauthorized (401) error type.

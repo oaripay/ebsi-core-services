@@ -2,7 +2,7 @@ import type { PaginatedListWithoutTotal } from "@ebsiint-api/shared";
 
 import { paginateWithoutTotal } from "@ebsiint-api/shared";
 
-import type { PolicyLink } from "./policies.interface.js";
+import type { PolicyLink } from "./policies.interface.ts";
 
 export function formatPolicies(
   policies: { items: string[] },

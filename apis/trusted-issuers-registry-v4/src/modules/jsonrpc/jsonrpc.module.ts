@@ -1,11 +1,11 @@
 import { Logger, Module } from "@nestjs/common";
 
-import { ApiConfigModule } from "../../config/configuration.js";
-import { IsIssuerProxy } from "../../shared/validators/IsIssuerProxy.js";
-import { AuthModule } from "../auth/auth.module.js";
-import { LedgerModule } from "../ledger/ledger.module.js";
-import { JsonRpcController } from "./jsonrpc.controller.js";
-import { JsonRpcService } from "./jsonrpc.service.js";
+import { ApiConfigModule } from "../../config/configuration.ts";
+import { IsIssuerProxy } from "../../shared/validators/IsIssuerProxy.ts";
+import { AuthModule } from "../auth/auth.module.ts";
+import { LedgerModule } from "../ledger/ledger.module.ts";
+import { JsonRpcController } from "./jsonrpc.controller.ts";
+import { JsonRpcService } from "./jsonrpc.service.ts";
 
 @Module({
   controllers: [JsonRpcController],

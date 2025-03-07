@@ -2,8 +2,8 @@ import { isDidV1 } from "@ebsiint-api/shared";
 import { Resolver } from "did-resolver";
 import { z } from "zod";
 
-import { baseParamSchema } from "./BaseParamSchema.js";
-import { jsonRpcSchema } from "./JsonRpcSchema.js";
+import { baseParamSchema } from "./BaseParamSchema.ts";
+import { jsonRpcSchema } from "./JsonRpcSchema.ts";
 
 export const authoriseDidSchemaBuilder = (didResolver: Resolver) =>
   baseParamSchema.merge(

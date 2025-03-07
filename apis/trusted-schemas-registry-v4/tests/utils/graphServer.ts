@@ -6,7 +6,7 @@ import type {
   Schema_filter,
 } from "../../.graphclient/index.js";
 
-import { dummySchemas } from "./data.js";
+import { dummySchemas } from "./data.ts";
 
 export const graphServer = setupServer(
   graphql.query("GetSchemas", ({ variables }) => {

@@ -7,12 +7,12 @@ import { Test } from "@nestjs/testing";
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import type { ApiConfig } from "../../src/config/configuration.js";
+import type { ApiConfig } from "../../src/config/configuration.ts";
 
-import { AppModule } from "../../src/app.module.js";
-import { DEPENDENCIES } from "../../src/config/configuration.js";
-import { configureApp } from "../utils/app.js";
-import { getServer } from "../utils/getServer.js";
+import { AppModule } from "../../src/app.module.ts";
+import { DEPENDENCIES } from "../../src/config/configuration.ts";
+import { configureApp } from "../utils/app.ts";
+import { getServer } from "../utils/getServer.ts";
 
 describe("Authorisation API v4 - Generic tests (e2e)", () => {
   let app: NestFastifyApplication;

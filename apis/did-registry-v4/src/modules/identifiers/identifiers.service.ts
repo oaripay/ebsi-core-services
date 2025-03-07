@@ -17,11 +17,11 @@ import { DidRegistry__factory as DidRegistryV2__factory } from "@ebsiint-sc/did-
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
-import type { ApiConfig } from "../../config/configuration.js";
+import type { ApiConfig } from "../../config/configuration.ts";
 
-import { LedgerService } from "../ledger/ledger.service.js";
-import { RequestCheckControllerDto } from "./dto/request-check-controller.dto.js";
-import { validateClass } from "./identifiers.utils.js";
+import { LedgerService } from "../ledger/ledger.service.ts";
+import { RequestCheckControllerDto } from "./dto/request-check-controller.dto.ts";
+import { validateClass } from "./identifiers.utils.ts";
 
 @Injectable()
 export default class IdentifiersService {

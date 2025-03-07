@@ -2,7 +2,7 @@ import type { TransactionReceiptParams } from "ethers";
 
 import axios from "axios";
 
-import { parseRevertReason } from "./parseRevertReason.js";
+import { parseRevertReason } from "./parseRevertReason.ts";
 
 /**
  * Overrides ethers.js' TransactionReceiptParams with properties returned by Besu

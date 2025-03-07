@@ -2,7 +2,7 @@ import { BesuService } from "@ebsiint-api/shared";
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
-import type { ApiConfig } from "../../config/configuration.js";
+import type { ApiConfig } from "../../config/configuration.ts";
 
 @Injectable()
 export class LedgerService extends BesuService {

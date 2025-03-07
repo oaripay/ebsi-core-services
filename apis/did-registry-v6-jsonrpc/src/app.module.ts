@@ -3,13 +3,15 @@ import { Module } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { APP_INTERCEPTOR } from "@nestjs/core";
 
-import { AppController } from "./app.controller.js";
-import { AppService } from "./app.service.js";
-import { type ApiConfig, ApiConfigModule } from "./config/configuration.js";
-import { AuthModule } from "./modules/auth/auth.module.js";
-import { HealthModule } from "./modules/health/health.module.js";
-import { JsonRpcModule } from "./modules/jsonrpc/jsonrpc.module.js";
-import { LedgerModule } from "./modules/ledger/ledger.module.js";
+import type { ApiConfig } from "./config/configuration.ts";
+
+import { AppController } from "./app.controller.ts";
+import { AppService } from "./app.service.ts";
+import { ApiConfigModule } from "./config/configuration.ts";
+import { AuthModule } from "./modules/auth/auth.module.ts";
+import { HealthModule } from "./modules/health/health.module.ts";
+import { JsonRpcModule } from "./modules/jsonrpc/jsonrpc.module.ts";
+import { LedgerModule } from "./modules/ledger/ledger.module.ts";
 
 @Module({
   controllers: [AppController],

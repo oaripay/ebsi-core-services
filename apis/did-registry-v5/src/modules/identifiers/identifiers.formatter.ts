@@ -3,7 +3,7 @@ import type { DidRegistry } from "@ebsiint-sc/did-registry-v3";
 
 import { paginate } from "@ebsiint-api/shared";
 
-import type { DidLink } from "./identifiers.interface.js";
+import type { DidLink } from "./identifiers.interface.ts";
 
 export function formatIdentifiers(
   identifiers: Awaited<ReturnType<DidRegistry["getDids"]>>,

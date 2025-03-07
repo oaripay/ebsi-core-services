@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
 import { describe, expect, it } from "vitest";
 
-import { isSignedRawTransaction } from "./IsSignedRawTransaction.js";
+import { isSignedRawTransaction } from "./IsSignedRawTransaction.ts";
 
 describe("IsSignedRawTransaction", () => {
   it("should only accept legacy transactions", async () => {

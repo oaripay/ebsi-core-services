@@ -15,19 +15,19 @@ import {
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
-import type { ApiConfig } from "../../config/configuration.js";
-import type { JsonRpcResponseObject } from "../jsonrpc/jsonrpc.interface.js";
-import type { DidLink } from "./identifiers.interface.js";
+import type { ApiConfig } from "../../config/configuration.ts";
+import type { JsonRpcResponseObject } from "../jsonrpc/jsonrpc.interface.ts";
+import type { DidLink } from "./identifiers.interface.ts";
 
-import { JsonRpcDto } from "../jsonrpc/dto/index.js";
+import { JsonRpcDto } from "../jsonrpc/dto/index.ts";
 import {
   GetIdentifierParamsDto,
   GetIdentifierQueryDto,
   GetIdentifiersDto,
-} from "./dto/index.js";
-import { RequestCheckControllerDto } from "./dto/request-check-controller.dto.js";
-import { formatIdentifiers } from "./identifiers.formatter.js";
-import IdentifiersService from "./identifiers.service.js";
+} from "./dto/index.ts";
+import { RequestCheckControllerDto } from "./dto/request-check-controller.dto.ts";
+import { formatIdentifiers } from "./identifiers.formatter.ts";
+import IdentifiersService from "./identifiers.service.ts";
 
 @Controller("/identifiers")
 export default class IdentifiersController {

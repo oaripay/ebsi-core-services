@@ -1,4 +1,4 @@
-import "../../../../contracts/trusted-policies-registry-v3/src/types/hardhat.d.ts";
+import "@ebsiint-sc/trusted-policies-registry-v3/dist/hardhat.d.ts";
 
 import hre from "hardhat";
 
@@ -8,7 +8,7 @@ import type { HardhatEthersProvider } from "@nomicfoundation/hardhat-ethers/inte
 import "@nomicfoundation/hardhat-ethers";
 import { ethers } from "ethers";
 
-import { dummyPolicies, dummyUsers } from "./data.js";
+import { dummyPolicies, dummyUsers } from "./data.ts";
 
 export interface PolicyObject {
   description: string;

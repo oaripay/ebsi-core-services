@@ -1,1 +1,1 @@
-export * from "./get-policy.params.js";
+export * from "./get-policy.params.ts";

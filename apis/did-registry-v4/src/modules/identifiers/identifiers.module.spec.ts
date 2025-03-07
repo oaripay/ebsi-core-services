@@ -13,11 +13,13 @@ import { ethers } from "ethers";
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
-import { createUser, UserDetails } from "../../../tests/utils/data.js";
-import { setupTestEnv } from "../../../tests/utils/didRegistry.js";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
-import { LedgerService } from "../ledger/ledger.service.js";
-import { IdentifiersModule } from "./identifiers.module.js";
+import type { UserDetails } from "../../../tests/utils/data.ts";
+
+import { createUser } from "../../../tests/utils/data.ts";
+import { setupTestEnv } from "../../../tests/utils/didRegistry.ts";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter.ts";
+import { LedgerService } from "../ledger/ledger.service.ts";
+import { IdentifiersModule } from "./identifiers.module.ts";
 
 const DID_DOCUMENTS = 3;
 

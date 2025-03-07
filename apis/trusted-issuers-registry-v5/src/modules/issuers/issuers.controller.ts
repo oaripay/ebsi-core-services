@@ -14,7 +14,7 @@ import {
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
-import type { ApiConfig } from "../../config/configuration.js";
+import type { ApiConfig } from "../../config/configuration.ts";
 import type {
   AttributeDetailsObject,
   AttributeObject,
@@ -23,20 +23,20 @@ import type {
   IssuerProxyResponseObject,
   IssuerResponseObject,
   ProxyLink,
-} from "./issuers.interface.js";
+} from "./issuers.interface.ts";
 
 import {
   GetIssuerAttributeParamsDto,
   GetIssuerParamsDto,
   GetIssuerProxyParamsDto,
-} from "./dto/index.js";
+} from "./dto/index.ts";
 import {
   formatAttributes,
   formatIssuers,
   formatProxies,
   formatRevisions,
-} from "./issuers.formatter.js";
-import { IssuersService } from "./issuers.service.js";
+} from "./issuers.formatter.ts";
+import { IssuersService } from "./issuers.service.ts";
 
 const validationPipe = new ValidationPipe({
   forbidNonWhitelisted: true,

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { MethodNotAllowedError, ProblemDetailsError } from "../index.js";
+import { MethodNotAllowedError, ProblemDetailsError } from "../index.ts";
 
 describe("error MethodNotAllowedError", () => {
   it("should extend ProblemDetailsError", () => {

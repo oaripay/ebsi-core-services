@@ -5,32 +5,35 @@ import type {
   VpJwtPayload,
 } from "@cef-ebsi/verifiable-presentation";
 import type { PaginatedList } from "@ebsiint-api/shared";
+import type { Checked } from "@sphereon/pex";
 import type {
   PresentationDefinitionV2,
   PresentationSubmission,
 } from "@sphereon/pex-models";
+import type { AxiosResponse } from "axios";
 import type { MemoryCache } from "cache-manager";
 import type { JWTHeader, JWTPayload } from "did-jwt";
 import type { DIDDocument } from "did-resolver";
+import type { JsonWebKey } from "node:crypto";
 
 import { verifyPresentationJwt } from "@cef-ebsi/verifiable-presentation";
 import { encode, getPublicKeyJwk, logAxiosError } from "@ebsiint-api/shared";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Inject, Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { type Checked, PEXv2 } from "@sphereon/pex";
-import axios, { type AxiosResponse, isAxiosError } from "axios";
+import { PEXv2 } from "@sphereon/pex";
+import axios, { isAxiosError } from "axios";
 import { createJWT, decodeJWT, ES256Signer, hexToBytes } from "did-jwt";
 import { ethers } from "ethers";
-import { JsonWebKey, randomUUID } from "node:crypto";
+import { randomUUID } from "node:crypto";
 
-import type { ApiConfig } from "../../config/configuration.js";
+import type { ApiConfig } from "../../config/configuration.ts";
 import type {
   Access,
   JsonWebKeySet,
   OPMetadata,
   TokenResponse,
-} from "./authorisation.interfaces.js";
+} from "./authorisation.interfaces.ts";
 
 import {
   CUSTOM_SCOPES,
@@ -42,14 +45,14 @@ import {
   TNT_AUTHORISE_SCOPE,
   TNT_CREATE_SCOPE,
   TNT_WRITE_SCOPE,
-} from "./authorisation.constants.js";
-import { parseDto } from "./authorisation.utils.js";
-import { CreateAccessTokenDto } from "./dto/index.js";
-import { ClassValidatorError, OAuth2TokenError } from "./errors/index.js";
+} from "./authorisation.constants.ts";
+import { parseDto } from "./authorisation.utils.ts";
+import { CreateAccessTokenDto } from "./dto/index.ts";
+import { ClassValidatorError, OAuth2TokenError } from "./errors/index.ts";
 import {
   issuerSchema,
   presentationSubmissionSchema,
-} from "./validators/index.js";
+} from "./validators/index.ts";
 
 @Injectable()
 export class AuthorisationService {

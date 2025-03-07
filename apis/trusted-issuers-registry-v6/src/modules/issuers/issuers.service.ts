@@ -1,4 +1,6 @@
-import { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
+import type { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
+import type { AxiosResponse } from "axios";
+
 import {
   BadRequestError,
   checkStatusList2021Credential,
@@ -9,7 +11,7 @@ import {
 } from "@ebsiint-api/shared";
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import axios, { type AxiosResponse } from "axios";
+import axios from "axios";
 
 import type {
   Attribute_filter,
@@ -22,12 +24,12 @@ import type {
   GetRevisionsQuery,
   Issuer_filter,
 } from "../../../.graphclient/index.js";
-import type { ApiConfig } from "../../config/configuration.js";
+import type { ApiConfig } from "../../config/configuration.ts";
 import type {
   AttributeObject,
   IssuerProxyResponseObject,
   IssuerResponseObject,
-} from "./issuers.interface.js";
+} from "./issuers.interface.ts";
 
 import { getBuiltGraphSDK } from "../../../.graphclient/index.js";
 

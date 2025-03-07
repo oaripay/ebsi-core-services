@@ -5,10 +5,10 @@ import { PolicyRegistry__factory } from "@ebsiint-sc/trusted-policies-registry";
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
-import type { ApiConfig } from "../../config/configuration.js";
-import type { UserResponseObject } from "./users.interface.js";
+import type { ApiConfig } from "../../config/configuration.ts";
+import type { UserResponseObject } from "./users.interface.ts";
 
-import { LedgerService } from "../ledger/ledger.service.js";
+import { LedgerService } from "../ledger/ledger.service.ts";
 
 @Injectable()
 export class UsersService {

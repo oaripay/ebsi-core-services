@@ -2,7 +2,7 @@ import type { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry";
 
 import { describe, expect, it } from "vitest";
 
-import { formatUsers } from "./users.formatter.js";
+import { formatUsers } from "./users.formatter.ts";
 
 describe("formatUsers", () => {
   const users = {

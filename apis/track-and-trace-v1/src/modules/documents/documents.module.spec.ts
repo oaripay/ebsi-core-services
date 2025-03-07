@@ -11,17 +11,17 @@ import { randomBytes } from "node:crypto";
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
-import type { TestDocument } from "../../../tests/utils/data.js";
+import type { TestDocument } from "../../../tests/utils/data.ts";
 import type {
   Document,
   DocumentAccesses,
   Event,
-} from "./documents.interface.js";
+} from "./documents.interface.ts";
 
-import { setupTestEnv } from "../../../tests/utils/trackAndTrace.js";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
-import { LedgerService } from "../ledger/ledger.service.js";
-import { DocumentsModule } from "./documents.module.js";
+import { setupTestEnv } from "../../../tests/utils/trackAndTrace.ts";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter.ts";
+import { LedgerService } from "../ledger/ledger.service.ts";
+import { DocumentsModule } from "./documents.module.ts";
 
 const DOCUMENTS_WITH_BLOCK_SOURCE = 3;
 const DOCUMENTS_WITH_EXTERNAL_SOURCE = 3;

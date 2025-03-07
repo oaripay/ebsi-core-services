@@ -2,8 +2,8 @@ import type { ValidationOptions } from "class-validator";
 
 import { buildMessage, ValidateBy } from "class-validator";
 
-import { multibase } from "../utils/multibase.utils.js";
-import { multihashDecode } from "../utils/multihash.utils.js";
+import { multibase } from "../utils/multibase.utils.ts";
+import { multihashDecode } from "../utils/multihash.utils.ts";
 
 export const IS_MULTIHASH_MULTIBASE64URL_ENCODED =
   "isMultihashMultibase64urlEncoded";

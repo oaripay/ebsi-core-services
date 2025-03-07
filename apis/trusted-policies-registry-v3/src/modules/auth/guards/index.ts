@@ -1,1 +1,1 @@
-export * from "./bearer-jwt-auth.guard.js";
+export * from "./bearer-jwt-auth.guard.ts";

@@ -6,7 +6,7 @@ import {
   did3,
   didDocumentData,
   didDocumentDataEmpty,
-} from "../utils/constants.js";
+} from "../utils/constants.ts";
 
 export const dids = [
   {

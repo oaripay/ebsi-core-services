@@ -11,11 +11,11 @@ import { setupServer } from "msw/node";
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { dummyData } from "../../../tests/utils/data.js";
-import { handlers } from "../../../tests/utils/graphServer.js";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
-import { hexToDid } from "../../shared/utils.js";
-import { AccessesModule } from "./accesses.module.js";
+import { dummyData } from "../../../tests/utils/data.ts";
+import { handlers } from "../../../tests/utils/graphServer.ts";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter.ts";
+import { hexToDid } from "../../shared/utils.ts";
+import { AccessesModule } from "./accesses.module.ts";
 
 describe("Accesses Module", () => {
   let app: NestFastifyApplication;

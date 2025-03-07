@@ -17,12 +17,12 @@ import { ConfigService } from "@nestjs/config";
 import axios, { isAxiosError } from "axios";
 import { decodeJwt, decodeProtectedHeader, importJWK, jwtVerify } from "jose";
 
-import type { ApiConfig } from "../../config/configuration.js";
-import type { SubjectInfo } from "./auth.interface.js";
+import type { ApiConfig } from "../../config/configuration.ts";
+import type { SubjectInfo } from "./auth.interface.ts";
 
-import { DIDR_INVITE_SCOPE, DIDR_WRITE_SCOPE } from "./auth.constants.js";
-import { jwksSchema } from "./validators/jwks.validator.js";
-import { openidConfigurationSchema } from "./validators/openid-configuration.validator.js";
+import { DIDR_INVITE_SCOPE, DIDR_WRITE_SCOPE } from "./auth.constants.ts";
+import { jwksSchema } from "./validators/jwks.validator.ts";
+import { openidConfigurationSchema } from "./validators/openid-configuration.validator.ts";
 
 const CACHE_KEY = "jwks";
 const CACHE_TTL = 300_000; // 5 minutes

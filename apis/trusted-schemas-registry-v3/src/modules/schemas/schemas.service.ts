@@ -9,11 +9,11 @@ import { SchemaSCRegistry__factory } from "@ebsiint-sc/trusted-schemas-registry-
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
-import type { ApiConfig } from "../../config/configuration.js";
-import type { ItemsList } from "./schemas.interface.js";
+import type { ApiConfig } from "../../config/configuration.ts";
+import type { ItemsList } from "./schemas.interface.ts";
 
-import { LedgerService } from "../ledger/ledger.service.js";
-import { schemaIdToHex } from "./schemas.utils.js";
+import { LedgerService } from "../ledger/ledger.service.ts";
+import { schemaIdToHex } from "./schemas.utils.ts";
 
 @Injectable()
 export class SchemasService {

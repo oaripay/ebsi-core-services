@@ -1,11 +1,11 @@
 import { Accepts, InvalidRequestJsonRpcError } from "@ebsiint-api/shared";
 import { Body, Controller, HttpCode, Post, UseGuards } from "@nestjs/common";
 
-import type { SubjectInfo } from "../auth/decorators/index.js";
-import type { JsonRpcResponseObject } from "./jsonrpc.interface.js";
+import type { SubjectInfo } from "../auth/decorators/index.ts";
+import type { JsonRpcResponseObject } from "./jsonrpc.interface.ts";
 
-import { Subject } from "../auth/decorators/index.js";
-import { BearerJwtAuthGuard } from "../auth/guards/index.js";
+import { Subject } from "../auth/decorators/index.ts";
+import { BearerJwtAuthGuard } from "../auth/guards/index.ts";
 import {
   JsonRpcDto,
   RequestAddIssuerProxyDto,
@@ -15,8 +15,8 @@ import {
   RequestSetAttributeMetadataDto,
   RequestUpdateIssuerDto,
   RequestUpdateIssuerProxyDto,
-} from "./dto/index.js";
-import { JsonRpcService } from "./jsonrpc.service.js";
+} from "./dto/index.ts";
+import { JsonRpcService } from "./jsonrpc.service.ts";
 
 function formatJsonRpcResponse(
   result: unknown,

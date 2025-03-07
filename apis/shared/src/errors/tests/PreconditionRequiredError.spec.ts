@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { PreconditionRequiredError, ProblemDetailsError } from "../index.js";
+import { PreconditionRequiredError, ProblemDetailsError } from "../index.ts";
 
 describe("error PreconditionRequiredError", () => {
   it("should extend ProblemDetailsError", () => {

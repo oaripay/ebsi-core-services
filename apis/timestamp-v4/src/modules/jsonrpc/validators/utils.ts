@@ -1,7 +1,10 @@
+import type { HashName } from "multihashes";
+import type { RefinementCtx } from "zod";
+
 import { remove0xPrefix } from "@ebsiint-api/shared";
-import { coerceCode, HashName } from "multihashes";
+import { coerceCode } from "multihashes";
 import validator from "validator";
-import { type RefinementCtx, z } from "zod";
+import { z } from "zod";
 
 const validators = validator.default;
 

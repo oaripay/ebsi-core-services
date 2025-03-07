@@ -33,8 +33,8 @@ import {
   vi,
 } from "vitest";
 
-import type { ApiConfig } from "../../config/configuration.js";
-import type { JsonRpcResponseObject } from "./jsonrpc.interface.js";
+import type { ApiConfig } from "../../config/configuration.ts";
+import type { JsonRpcResponseObject } from "./jsonrpc.interface.ts";
 import type {
   AuthoriseDidSchema,
   CreateDocumentSchema,
@@ -43,15 +43,15 @@ import type {
   RevokeAccessSchema,
   UnsignedTransaction,
   WriteEventSchema,
-} from "./validators/index.js";
+} from "./validators/index.ts";
 
-import { setupTestEnv } from "../../../tests/utils/trackAndTrace.js";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
-import { AccountType, Permission } from "../../shared/constants.js";
-import { didToHex } from "../../shared/utils.js";
-import { LedgerService } from "../ledger/ledger.service.js";
-import { JsonRpcModule } from "./jsonrpc.module.js";
-import { formatEthersUnsignedTransaction } from "./jsonrpc.utils.js";
+import { setupTestEnv } from "../../../tests/utils/trackAndTrace.ts";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter.ts";
+import { AccountType, Permission } from "../../shared/constants.ts";
+import { didToHex } from "../../shared/utils.ts";
+import { LedgerService } from "../ledger/ledger.service.ts";
+import { JsonRpcModule } from "./jsonrpc.module.ts";
+import { formatEthersUnsignedTransaction } from "./jsonrpc.utils.ts";
 
 type JsonRpcParams =
   | AuthoriseDidSchema

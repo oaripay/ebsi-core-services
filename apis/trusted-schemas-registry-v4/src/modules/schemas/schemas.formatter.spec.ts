@@ -4,7 +4,7 @@ import {
   formatSchemaRevisionMetadataList,
   formatSchemaRevisions,
   formatSchemas,
-} from "./schemas.formatter.js";
+} from "./schemas.formatter.ts";
 
 describe("formatSchemas", () => {
   const schemas = { items: ["0x1234", "0x5678", "0xffaa"] };

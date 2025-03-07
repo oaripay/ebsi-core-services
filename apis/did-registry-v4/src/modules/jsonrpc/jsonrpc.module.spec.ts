@@ -33,14 +33,14 @@ import {
   vi,
 } from "vitest";
 
-import type { UserDetails } from "../../../tests/utils/data.js";
-import type { ApiConfig } from "../../config/configuration.js";
-import type { JsonRpcResponseObject } from "./jsonrpc.interface.js";
+import type { UserDetails } from "../../../tests/utils/data.ts";
+import type { ApiConfig } from "../../config/configuration.ts";
+import type { JsonRpcResponseObject } from "./jsonrpc.interface.ts";
 
-import { createUser } from "../../../tests/utils/data.js";
-import { setupTestEnv } from "../../../tests/utils/didRegistry.js";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
-import { LedgerService } from "../ledger/ledger.service.js";
+import { createUser } from "../../../tests/utils/data.ts";
+import { setupTestEnv } from "../../../tests/utils/didRegistry.ts";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter.ts";
+import { LedgerService } from "../ledger/ledger.service.ts";
 import {
   AddControllerParam,
   AddVerificationMethodParam,
@@ -52,9 +52,9 @@ import {
   RollVerificationMethodParam,
   UnsignedTransaction,
   UpdateBaseDocumentParam,
-} from "./dto/index.js";
-import { JsonRpcModule } from "./jsonrpc.module.js";
-import { formatEthersUnsignedTransaction } from "./jsonrpc.utils.js";
+} from "./dto/index.ts";
+import { JsonRpcModule } from "./jsonrpc.module.ts";
+import { formatEthersUnsignedTransaction } from "./jsonrpc.utils.ts";
 
 type JsonRpcParams =
   | AddControllerParam

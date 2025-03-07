@@ -7,8 +7,8 @@ import {
   ValidateNested,
 } from "class-validator";
 
-import { JsonRpcDto } from "../jsonrpc.dto.js";
-import { AddVerificationRelationshipParam } from "./add-verification-relationship-param.dto.js";
+import { JsonRpcDto } from "../jsonrpc.dto.ts";
+import { AddVerificationRelationshipParam } from "./add-verification-relationship-param.dto.ts";
 
 export class RequestAddVerificationRelationshipDto extends JsonRpcDto {
   @Equals("addVerificationRelationship")

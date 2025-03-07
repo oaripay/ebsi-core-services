@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { PayloadTooLargeError, ProblemDetailsError } from "../index.js";
+import { PayloadTooLargeError, ProblemDetailsError } from "../index.ts";
 
 describe("error PayloadTooLargeError", () => {
   it("should extend ProblemDetailsError", () => {

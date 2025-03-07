@@ -13,7 +13,7 @@ import {
   vi,
 } from "vitest";
 
-import { setupInterceptors } from "./axiosInterceptors.js";
+import { setupInterceptors } from "./axiosInterceptors.ts";
 
 axios.defaults.adapter = "http";
 

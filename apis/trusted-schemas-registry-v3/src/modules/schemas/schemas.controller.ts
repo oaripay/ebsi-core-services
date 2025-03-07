@@ -4,12 +4,12 @@ import { Accepts } from "@ebsiint-api/shared";
 import { Controller, Get, Header, Param, Query } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
-import type { ApiConfig } from "../../config/configuration.js";
+import type { ApiConfig } from "../../config/configuration.ts";
 import type {
   GetSchemaRevisionMetadataListResponse,
   GetSchemaRevisionsResponse,
   GetSchemasResponse,
-} from "./schemas.interface.js";
+} from "./schemas.interface.ts";
 
 import {
   GetSchemaParams,
@@ -18,13 +18,13 @@ import {
   GetSchemaRevisionParams,
   GetSchemaRevisionsQuery,
   GetSchemasQuery,
-} from "./dto/index.js";
+} from "./dto/index.ts";
 import {
   formatSchemaRevisionMetadataList,
   formatSchemaRevisions,
   formatSchemas,
-} from "./schemas.formatter.js";
-import { SchemasService } from "./schemas.service.js";
+} from "./schemas.formatter.ts";
+import { SchemasService } from "./schemas.service.ts";
 
 @Controller("/schemas")
 export class SchemasController {

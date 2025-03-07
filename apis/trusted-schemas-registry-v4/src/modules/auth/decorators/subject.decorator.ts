@@ -1,8 +1,10 @@
-import { createParamDecorator, ExecutionContext } from "@nestjs/common";
+import type { ExecutionContext } from "@nestjs/common";
 
-import type { SubjectInfo } from "../auth.interface.js";
+import { createParamDecorator } from "@nestjs/common";
 
-export type { SubjectInfo } from "../auth.interface.js";
+import type { SubjectInfo } from "../auth.interface.ts";
+
+export type { SubjectInfo } from "../auth.interface.ts";
 
 export const Subject = createParamDecorator(
   (_data: unknown, ctx: ExecutionContext) => {

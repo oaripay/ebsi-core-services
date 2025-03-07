@@ -7,8 +7,8 @@ import {
   ValidateNested,
 } from "class-validator";
 
-import { JsonRpcDto } from "../jsonrpc.dto.js";
-import { InsertDidDocumentParam } from "./insert-did-document-param.dto.js";
+import { JsonRpcDto } from "../jsonrpc.dto.ts";
+import { InsertDidDocumentParam } from "./insert-did-document-param.dto.ts";
 
 export class RequestInsertDidDocumentDto extends JsonRpcDto {
   @Equals("insertDidDocument")

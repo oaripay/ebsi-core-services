@@ -4,12 +4,12 @@ import { Accepts, PaginationQuery } from "@ebsiint-api/shared";
 import { Controller, Get, Param, Query } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
-import type { ApiConfig } from "../../config/configuration.js";
-import type { UserLink, UserResponseObject } from "./users.interface.js";
+import type { ApiConfig } from "../../config/configuration.ts";
+import type { UserLink, UserResponseObject } from "./users.interface.ts";
 
-import { GetUserParams } from "./dto/index.js";
-import { formatUsers } from "./users.formatter.js";
-import { UsersService } from "./users.service.js";
+import { GetUserParams } from "./dto/index.ts";
+import { formatUsers } from "./users.formatter.ts";
+import { UsersService } from "./users.service.ts";
 
 @Controller("/users")
 export class UsersController {

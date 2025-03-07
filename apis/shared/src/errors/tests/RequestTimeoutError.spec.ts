@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { ProblemDetailsError, RequestTimeoutError } from "../index.js";
+import { ProblemDetailsError, RequestTimeoutError } from "../index.ts";
 
 describe("error RequestTimeoutError", () => {
   it("should extend ProblemDetailsError", () => {

@@ -1,9 +1,6 @@
-import {
-  buildMessage,
-  isHexadecimal,
-  ValidateBy,
-  ValidationOptions,
-} from "class-validator";
+import type { ValidationOptions } from "class-validator";
+
+import { buildMessage, isHexadecimal, ValidateBy } from "class-validator";
 
 export const IS_32_BYTES_HEX = "is32BytesHex";
 

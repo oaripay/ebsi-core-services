@@ -1,11 +1,10 @@
-import "../../../../contracts/did-registry-v4/src/types/hardhat.d.ts";
+import "@ebsiint-sc/did-registry-v4/dist/hardhat.d.ts";
 
 import hre from "hardhat";
 import type { FactoryOptions } from "hardhat/types";
 
 import type {
   DidRegistry,
-  DidRegistry__factory,
   PolicyRegistryMock,
 } from "@ebsiint-sc/did-registry-v4";
 import type { HardhatEthersProvider } from "@nomicfoundation/hardhat-ethers/internal/hardhat-ethers-provider.js";
@@ -13,7 +12,9 @@ import type { HardhatEthersProvider } from "@nomicfoundation/hardhat-ethers/inte
 import "@nomicfoundation/hardhat-ethers";
 import { ethers } from "ethers";
 
-import { createUser, UserDetails } from "./data.js";
+import type { UserDetails } from "./data.ts";
+
+import { createUser } from "./data.ts";
 
 const deployContract = async (
   name: string,
@@ -52,7 +53,7 @@ export async function deployDidRegistryContract(): Promise<{
 
   const vRelationshipsLibAddress = await deployContract("VRelationshipsLib");
 
-  const didRegistryContractFactory = (await hre.ethers.getContractFactory(
+  const didRegistryContractFactory = await hre.ethers.getContractFactory(
     "DidRegistry",
     {
       libraries: {
@@ -64,7 +65,7 @@ export async function deployDidRegistryContract(): Promise<{
         }),
       },
     },
-  )) as DidRegistry__factory;
+  );
 
   const didRegistryContract =
     await didRegistryContractFactory.deploy(testTprAddress);

@@ -2,7 +2,7 @@ import type { Timestamp } from "@ebsiint-sc/timestamp-v2";
 
 import { describe, expect, it } from "vitest";
 
-import { formatHashAlgorithms } from "./hash-algorithms.formatter.js";
+import { formatHashAlgorithms } from "./hash-algorithms.formatter.ts";
 
 describe("formatHashAlgorithms", () => {
   const hashAlgorithms = {

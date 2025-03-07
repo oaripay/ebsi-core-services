@@ -12,11 +12,11 @@ import crypto from "node:crypto";
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
-import { setupTestEnv } from "../../../tests/utils/schemaRegistry.js";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
-import { LedgerService } from "../ledger/ledger.service.js";
-import { SchemasModule } from "./schemas.module.js";
-import { hexToMultibaseBase58Btc } from "./schemas.utils.js";
+import { setupTestEnv } from "../../../tests/utils/schemaRegistry.ts";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter.ts";
+import { LedgerService } from "../ledger/ledger.service.ts";
+import { SchemasModule } from "./schemas.module.ts";
+import { hexToMultibaseBase58Btc } from "./schemas.utils.ts";
 
 const SCHEMAS_TOTAL = 3;
 const SCHEMA_REVISIONS_TOTAL = 3;

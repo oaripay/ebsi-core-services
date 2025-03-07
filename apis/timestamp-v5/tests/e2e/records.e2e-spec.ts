@@ -19,27 +19,27 @@ import crypto from "node:crypto";
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import type { ApiConfig } from "../../src/config/configuration.js";
-import type { HashAlgorithmLink } from "../../src/modules/hash-algorithms/hash-algorithms.interface.js";
-import type { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface.js";
-import type { AppendRecordVersionHashesSchema } from "../../src/modules/jsonrpc/validators/RequestAppendRecordVersionHashes.js";
-import type { DetachRecordVersionHashSchema } from "../../src/modules/jsonrpc/validators/RequestDetachRecordVersionHashes.js";
-import type { InsertRecordOwnerSchema } from "../../src/modules/jsonrpc/validators/RequestInsertRecordOwner.js";
-import type { InsertRecordVersionInfoSchema } from "../../src/modules/jsonrpc/validators/RequestInsertRecordVersionInfo.js";
-import type { RevokeRecordOwnerSchema } from "../../src/modules/jsonrpc/validators/RequestRevokeRecordOwner.js";
-import type { TimestampRecordHashesSchema } from "../../src/modules/jsonrpc/validators/RequestTimestampRecordHashes.js";
-import type { TimestampRecordVersionHashesSchema } from "../../src/modules/jsonrpc/validators/RequestTimestampRecordVersionHashes.js";
-import type { TimestampVersionHashesSchema } from "../../src/modules/jsonrpc/validators/RequestTimestampVersionHashes.js";
-import type { UnsignedTransactionSchema } from "../../src/modules/jsonrpc/validators/UnsignedTransaction.js";
-import type { RecordLink } from "../../src/modules/records/records.interface.js";
+import type { ApiConfig } from "../../src/config/configuration.ts";
+import type { HashAlgorithmLink } from "../../src/modules/hash-algorithms/hash-algorithms.interface.ts";
+import type { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface.ts";
+import type { AppendRecordVersionHashesSchema } from "../../src/modules/jsonrpc/validators/RequestAppendRecordVersionHashes.ts";
+import type { DetachRecordVersionHashSchema } from "../../src/modules/jsonrpc/validators/RequestDetachRecordVersionHashes.ts";
+import type { InsertRecordOwnerSchema } from "../../src/modules/jsonrpc/validators/RequestInsertRecordOwner.ts";
+import type { InsertRecordVersionInfoSchema } from "../../src/modules/jsonrpc/validators/RequestInsertRecordVersionInfo.ts";
+import type { RevokeRecordOwnerSchema } from "../../src/modules/jsonrpc/validators/RequestRevokeRecordOwner.ts";
+import type { TimestampRecordHashesSchema } from "../../src/modules/jsonrpc/validators/RequestTimestampRecordHashes.ts";
+import type { TimestampRecordVersionHashesSchema } from "../../src/modules/jsonrpc/validators/RequestTimestampRecordVersionHashes.ts";
+import type { TimestampVersionHashesSchema } from "../../src/modules/jsonrpc/validators/RequestTimestampVersionHashes.ts";
+import type { UnsignedTransactionSchema } from "../../src/modules/jsonrpc/validators/UnsignedTransaction.ts";
+import type { RecordLink } from "../../src/modules/records/records.interface.ts";
 
-import { AppModule } from "../../src/app.module.js";
-import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
-import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils.js";
-import { getTimestampWriteAccessToken } from "../utils/getAccessToken.js";
-import { getEbsiIssuer } from "../utils/getEbsiIssuer.js";
-import { getServer } from "../utils/getServer.js";
-import { describeWriteOps, itWriteOps, writeOps } from "../utils/writeOps.js";
+import { AppModule } from "../../src/app.module.ts";
+import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.ts";
+import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils.ts";
+import { getTimestampWriteAccessToken } from "../utils/getAccessToken.ts";
+import { getEbsiIssuer } from "../utils/getEbsiIssuer.ts";
+import { getServer } from "../utils/getServer.ts";
+import { describeWriteOps, itWriteOps, writeOps } from "../utils/writeOps.ts";
 
 type JsonRpcParams =
   | AppendRecordVersionHashesSchema

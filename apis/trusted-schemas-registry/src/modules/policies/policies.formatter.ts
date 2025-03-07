@@ -7,7 +7,7 @@ import type {
   PolicyLink,
   PolicyResponseObject,
   PolicyRevisions,
-} from "./policies.interface.js";
+} from "./policies.interface.ts";
 
 export function formatPolicies(
   policies: Awaited<ReturnType<SchemaSCRegistry["getPolicies"]>>,

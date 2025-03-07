@@ -1,1 +1,1 @@
-export * from "./get-user.params.js";
+export * from "./get-user.params.ts";

@@ -7,7 +7,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   isStatusList2021Credential,
   statusList2021CredentialSchema,
-} from "./isStatusList2021Credential.js";
+} from "./isStatusList2021Credential.ts";
 
 vi.mock("@cef-ebsi/verifiable-credential", async () => {
   const mod = await vi.importActual<

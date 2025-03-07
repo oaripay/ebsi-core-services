@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { formatUsers } from "./users.formatter.js";
+import { formatUsers } from "./users.formatter.ts";
 
 describe("formatUsers", () => {
   const users = { items: ["0x123456", "0xab1234", "0xcd1234"] };

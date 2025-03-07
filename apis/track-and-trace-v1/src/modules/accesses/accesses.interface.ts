@@ -20,5 +20,3 @@ export interface Access {
    */
   subject: string;
 }
-
-export default Access;

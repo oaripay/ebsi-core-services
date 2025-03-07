@@ -14,64 +14,64 @@ import { isAxiosError } from "axios";
 import { ethers } from "ethers";
 import { stringify } from "safe-stable-stringify";
 
-import type { ApiConfig } from "../../config/configuration.js";
-import type { JsonRpcSchema } from "./validators/JsonRpcSchema.js";
+import type { ApiConfig } from "../../config/configuration.ts";
+import type { JsonRpcSchema } from "./validators/JsonRpcSchema.ts";
 import type {
   SendSignedTransactionParamsSchema,
   UnsignedTransaction,
-} from "./validators/RequestSendSignedTransactionSchema.js";
+} from "./validators/RequestSendSignedTransactionSchema.ts";
 
-import { DIDR_INVITE_SCOPE, DIDR_WRITE_SCOPE } from "../auth/auth.constants.js";
-import { LedgerService } from "../ledger/ledger.service.js";
+import { DIDR_INVITE_SCOPE, DIDR_WRITE_SCOPE } from "../auth/auth.constants.ts";
+import { LedgerService } from "../ledger/ledger.service.ts";
 import {
   formatEthersSignature,
   formatEthersUnsignedTransaction,
-} from "./jsonrpc.utils.js";
+} from "./jsonrpc.utils.ts";
 import {
   addControllerSchema,
   requestAddControllerDtoSchema,
-} from "./validators/RequestAddControllerSchema.js";
+} from "./validators/RequestAddControllerSchema.ts";
 import {
   addServiceSchema,
   requestAddServiceDtoSchema,
-} from "./validators/RequestAddServiceSchema.js";
+} from "./validators/RequestAddServiceSchema.ts";
 import {
   addVerificationMethodSchema,
   requestAddVerificationMethodDtoSchema,
-} from "./validators/RequestAddVerificationMethodSchema.js";
+} from "./validators/RequestAddVerificationMethodSchema.ts";
 import {
   addVerificationRelationshipSchema,
   requestAddVerificationRelationshipDtoSchema,
-} from "./validators/RequestAddVerificationRelationshipSchema.js";
+} from "./validators/RequestAddVerificationRelationshipSchema.ts";
 import {
   expireVerificationMethodSchema,
   requestExpireVerificationMethodDtoSchema,
-} from "./validators/RequestExpireVerificationMethodSchema.js";
+} from "./validators/RequestExpireVerificationMethodSchema.ts";
 import {
   insertDidDocumentSchema,
   requestInsertDidDocumentDtoSchema,
-} from "./validators/RequestInsertDidDocumentSchema.js";
+} from "./validators/RequestInsertDidDocumentSchema.ts";
 import {
   requestRevokeControllerDtoSchema,
   revokeControllerSchema,
-} from "./validators/RequestRevokeControllerSchema.js";
+} from "./validators/RequestRevokeControllerSchema.ts";
 import {
   requestRevokeServiceDtoSchema,
   revokeServiceSchema,
-} from "./validators/RequestRevokeServiceSchema.js";
+} from "./validators/RequestRevokeServiceSchema.ts";
 import {
   requestRevokeVerificationMethodDtoSchema,
   revokeVerificationMethodSchema,
-} from "./validators/RequestRevokeVerificationMethodSchema.js";
+} from "./validators/RequestRevokeVerificationMethodSchema.ts";
 import {
   requestRollVerificationMethodDtoSchema,
   rollVerificationMethodSchema,
-} from "./validators/RequestRollVerificationMethodSchema.js";
-import { requestSendSignedTransactionDtoSchema } from "./validators/RequestSendSignedTransactionSchema.js";
+} from "./validators/RequestRollVerificationMethodSchema.ts";
+import { requestSendSignedTransactionDtoSchema } from "./validators/RequestSendSignedTransactionSchema.ts";
 import {
   requestUpdateBaseDocumentDtoSchema,
   updateBaseDocumentSchema,
-} from "./validators/RequestUpdateBaseDocumentSchema.js";
+} from "./validators/RequestUpdateBaseDocumentSchema.ts";
 
 function assertDidMatchesSub(did: string, sub: string) {
   if (did !== sub) {

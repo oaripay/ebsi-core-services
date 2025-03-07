@@ -1,4 +1,4 @@
-import { JsonRpcError } from "./JsonRpcError.js";
+import { JsonRpcError } from "./JsonRpcError.ts";
 
 /**
  * InvalidRequestJsonRpcError defines the Invalid Request (-32600) error type.

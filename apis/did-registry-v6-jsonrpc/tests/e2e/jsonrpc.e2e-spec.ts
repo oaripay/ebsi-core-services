@@ -17,31 +17,31 @@ import { randomUUID } from "node:crypto";
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import type { ApiConfig } from "../../src/config/configuration.js";
-import type { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface.js";
-import type { AddControllerSchema } from "../../src/modules/jsonrpc/validators/RequestAddControllerSchema.js";
-import type { AddServiceSchema } from "../../src/modules/jsonrpc/validators/RequestAddServiceSchema.js";
-import type { AddVerificationMethodSchema } from "../../src/modules/jsonrpc/validators/RequestAddVerificationMethodSchema.js";
-import type { AddVerificationRelationshipSchema } from "../../src/modules/jsonrpc/validators/RequestAddVerificationRelationshipSchema.js";
-import type { ExpireVerificationMethodSchema } from "../../src/modules/jsonrpc/validators/RequestExpireVerificationMethodSchema.js";
-import type { InsertDidDocumentSchema } from "../../src/modules/jsonrpc/validators/RequestInsertDidDocumentSchema.js";
-import type { RevokeControllerSchema } from "../../src/modules/jsonrpc/validators/RequestRevokeControllerSchema.js";
-import type { RevokeServiceSchema } from "../../src/modules/jsonrpc/validators/RequestRevokeServiceSchema.js";
-import type { RevokeVerificationMethodSchema } from "../../src/modules/jsonrpc/validators/RequestRevokeVerificationMethodSchema.js";
-import type { RollVerificationMethodSchema } from "../../src/modules/jsonrpc/validators/RequestRollVerificationMethodSchema.js";
-import type { UnsignedTransaction } from "../../src/modules/jsonrpc/validators/RequestSendSignedTransactionSchema.js";
-import type { UpdateBaseDocumentSchema } from "../../src/modules/jsonrpc/validators/RequestUpdateBaseDocumentSchema.js";
+import type { ApiConfig } from "../../src/config/configuration.ts";
+import type { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface.ts";
+import type { AddControllerSchema } from "../../src/modules/jsonrpc/validators/RequestAddControllerSchema.ts";
+import type { AddServiceSchema } from "../../src/modules/jsonrpc/validators/RequestAddServiceSchema.ts";
+import type { AddVerificationMethodSchema } from "../../src/modules/jsonrpc/validators/RequestAddVerificationMethodSchema.ts";
+import type { AddVerificationRelationshipSchema } from "../../src/modules/jsonrpc/validators/RequestAddVerificationRelationshipSchema.ts";
+import type { ExpireVerificationMethodSchema } from "../../src/modules/jsonrpc/validators/RequestExpireVerificationMethodSchema.ts";
+import type { InsertDidDocumentSchema } from "../../src/modules/jsonrpc/validators/RequestInsertDidDocumentSchema.ts";
+import type { RevokeControllerSchema } from "../../src/modules/jsonrpc/validators/RequestRevokeControllerSchema.ts";
+import type { RevokeServiceSchema } from "../../src/modules/jsonrpc/validators/RequestRevokeServiceSchema.ts";
+import type { RevokeVerificationMethodSchema } from "../../src/modules/jsonrpc/validators/RequestRevokeVerificationMethodSchema.ts";
+import type { RollVerificationMethodSchema } from "../../src/modules/jsonrpc/validators/RequestRollVerificationMethodSchema.ts";
+import type { UnsignedTransaction } from "../../src/modules/jsonrpc/validators/RequestSendSignedTransactionSchema.ts";
+import type { UpdateBaseDocumentSchema } from "../../src/modules/jsonrpc/validators/RequestUpdateBaseDocumentSchema.ts";
 
-import { AppModule } from "../../src/app.module.js";
-import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
-import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils.js";
-import { createUser } from "../utils/data.js";
-import { describeWriteOps } from "../utils/describeWriteOps.js";
+import { AppModule } from "../../src/app.module.ts";
+import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.ts";
+import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils.ts";
+import { createUser } from "../utils/data.ts";
+import { describeWriteOps } from "../utils/describeWriteOps.ts";
 import {
   getDidrInviteAccessToken,
   getDidrWriteAccessToken,
-} from "../utils/getAccessToken.js";
-import { getServer } from "../utils/getServer.js";
+} from "../utils/getAccessToken.ts";
+import { getServer } from "../utils/getServer.ts";
 
 type JsonRpcParams =
   | AddControllerSchema

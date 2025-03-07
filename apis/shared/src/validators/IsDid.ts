@@ -1,12 +1,10 @@
+import type { ValidationOptions } from "class-validator";
+
 import { EBSI_DID_METHOD_PREFIX, validate } from "@cef-ebsi/ebsi-did-resolver";
 import { util } from "@cef-ebsi/key-did-resolver";
-import {
-  buildMessage,
-  registerDecorator,
-  ValidationOptions,
-} from "class-validator";
+import { buildMessage, registerDecorator } from "class-validator";
 
-import type { ValidationResult } from "./types.js";
+import type { ValidationResult } from "./types.ts";
 
 export function isDid(value: unknown): ValidationResult {
   if (!value || typeof value !== "string")

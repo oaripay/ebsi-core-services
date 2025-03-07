@@ -1,1 +1,1 @@
-export * from "./method-not-allowed.hook.js";
+export * from "./method-not-allowed.hook.ts";

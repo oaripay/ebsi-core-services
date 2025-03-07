@@ -10,10 +10,10 @@ import { SchemaSCRegistry__factory } from "@ebsiint-sc/trusted-schemas-registry"
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
-import type { ApiConfig } from "../../config/configuration.js";
-import type { PolicyRevisions } from "./policies.interface.js";
+import type { ApiConfig } from "../../config/configuration.ts";
+import type { PolicyRevisions } from "./policies.interface.ts";
 
-import { LedgerService } from "../ledger/ledger.service.js";
+import { LedgerService } from "../ledger/ledger.service.ts";
 
 @Injectable()
 export class PoliciesService {

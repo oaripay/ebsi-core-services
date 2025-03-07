@@ -1,10 +1,11 @@
+import type { ExecutionContext } from "@nestjs/common";
 import type { Observable } from "rxjs";
 
 import { UnauthorizedError } from "@ebsiint-api/shared";
-import { ExecutionContext, Injectable } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
 
-import type { SubjectInfo } from "../auth.interface.js";
+import type { SubjectInfo } from "../auth.interface.ts";
 
 @Injectable()
 export class BearerJwtAuthGuard extends AuthGuard("bearer-jwt") {

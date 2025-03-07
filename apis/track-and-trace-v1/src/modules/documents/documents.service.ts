@@ -5,16 +5,16 @@ import { TrackAndTrace__factory } from "@ebsiint-sc/track-and-trace";
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
-import type { ApiConfig } from "../../config/configuration.js";
+import type { ApiConfig } from "../../config/configuration.ts";
 import type {
   Document,
   DocumentAccesses,
   Event,
-} from "./documents.interface.js";
+} from "./documents.interface.ts";
 
-import { Permission } from "../../shared/constants.js";
-import { hexToDid, permissionToString } from "../../shared/utils.js";
-import { LedgerService } from "../ledger/ledger.service.js";
+import { Permission } from "../../shared/constants.ts";
+import { hexToDid, permissionToString } from "../../shared/utils.ts";
+import { LedgerService } from "../ledger/ledger.service.ts";
 
 @Injectable()
 export default class DocumentsService {

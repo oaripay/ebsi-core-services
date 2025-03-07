@@ -13,7 +13,7 @@ import {
   vi,
 } from "vitest";
 
-import { isIssuerProxy } from "./isIssuerProxy.js";
+import { isIssuerProxy } from "./isIssuerProxy.ts";
 
 const ebsiEnvConfig = {
   hosts: ["api-test.ebsi.eu"],

@@ -1,4 +1,4 @@
-import "../../../../contracts/track-and-trace/src/types/hardhat.d.ts";
+import "@ebsiint-sc/track-and-trace/dist/hardhat.d.ts";
 
 import hre from "hardhat";
 
@@ -11,11 +11,11 @@ import "@nomicfoundation/hardhat-ethers";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { exportJWK, generateKeyPair } from "jose";
 
-import type { TestDocument } from "./data.js";
+import type { TestDocument } from "./data.ts";
 
-import { AccountType, Permission } from "../../src/shared/constants.js";
-import { didToHex } from "../../src/shared/utils.js";
-import { createDocument, createEvent } from "./data.js";
+import { AccountType, Permission } from "../../src/shared/constants.ts";
+import { didToHex } from "../../src/shared/utils.ts";
+import { createDocument, createEvent } from "./data.ts";
 
 export interface SetupOptions {
   documentEventsTotal?: number;

@@ -19,11 +19,11 @@ import {
   vi,
 } from "vitest";
 
-import type { ApiConfig } from "../../config/configuration.js";
+import type { ApiConfig } from "../../config/configuration.ts";
 
-import { configureApp } from "../../../tests/utils/app.js";
-import { DEPENDENCIES } from "../../config/configuration.js";
-import { HealthModule } from "./health.module.js";
+import { configureApp } from "../../../tests/utils/app.ts";
+import { DEPENDENCIES } from "../../config/configuration.ts";
+import { HealthModule } from "./health.module.ts";
 
 describe("HealthController", () => {
   let app: NestFastifyApplication;

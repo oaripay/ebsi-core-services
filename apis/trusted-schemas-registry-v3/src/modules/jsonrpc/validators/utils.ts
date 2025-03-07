@@ -1,8 +1,9 @@
 import type { JSONSchema } from "@apidevtools/json-schema-ref-parser";
+import type { RefinementCtx } from "zod";
 
 import { computeId, prefixWith0x, remove0xPrefix } from "@ebsiint-api/shared";
 import validator from "validator";
-import { type RefinementCtx, z } from "zod";
+import { z } from "zod";
 
 const validators = validator.default;
 

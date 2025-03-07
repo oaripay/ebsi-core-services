@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { ProblemDetailsError, UnsupportedMediaTypeError } from "../index.js";
+import { ProblemDetailsError, UnsupportedMediaTypeError } from "../index.ts";
 
 describe("error UnsupportedMediaTypeError", () => {
   it("should extend ProblemDetailsError", () => {

@@ -9,10 +9,10 @@ import { Test } from "@nestjs/testing";
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { dummyData } from "../../../tests/utils/data.js";
-import { graphServer } from "../../../tests/utils/graphServer.js";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
-import { HashAlgorithmsModule } from "./hash-algorithms.module.js";
+import { dummyData } from "../../../tests/utils/data.ts";
+import { graphServer } from "../../../tests/utils/graphServer.ts";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter.ts";
+import { HashAlgorithmsModule } from "./hash-algorithms.module.ts";
 
 describe("HashAlgorithms Module", () => {
   let app: NestFastifyApplication;

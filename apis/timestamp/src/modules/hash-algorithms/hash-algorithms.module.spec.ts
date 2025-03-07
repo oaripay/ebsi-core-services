@@ -11,10 +11,10 @@ import { Test } from "@nestjs/testing";
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
-import { setupTestEnv } from "../../../tests/utils/timestamp.js";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
-import { LedgerService } from "../ledger/ledger.service.js";
-import { HashAlgorithmsModule } from "./hash-algorithms.module.js";
+import { setupTestEnv } from "../../../tests/utils/timestamp.ts";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter.ts";
+import { LedgerService } from "../ledger/ledger.service.ts";
+import { HashAlgorithmsModule } from "./hash-algorithms.module.ts";
 
 const HASH_ALGORITHMS_TOTAL = 3;
 

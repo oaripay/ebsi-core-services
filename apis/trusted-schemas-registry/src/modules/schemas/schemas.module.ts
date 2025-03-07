@@ -1,9 +1,9 @@
 import { Logger, Module } from "@nestjs/common";
 
-import { ApiConfigModule } from "../../config/configuration.js";
-import { LedgerModule } from "../ledger/ledger.module.js";
-import { SchemasController } from "./schemas.controller.js";
-import { SchemasService } from "./schemas.service.js";
+import { ApiConfigModule } from "../../config/configuration.ts";
+import { LedgerModule } from "../ledger/ledger.module.ts";
+import { SchemasController } from "./schemas.controller.ts";
+import { SchemasService } from "./schemas.service.ts";
 
 @Module({
   controllers: [SchemasController],

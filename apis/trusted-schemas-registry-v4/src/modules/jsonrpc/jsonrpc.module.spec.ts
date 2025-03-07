@@ -32,24 +32,24 @@ import {
   vi,
 } from "vitest";
 
-import type { ApiConfig } from "../../config/configuration.js";
-import type { JsonRpcResponseObject } from "./jsonrpc.interface.js";
-import type { InsertSchemaSchema } from "./validators/RequestInsertSchemaSchema.js";
-import type { UnsignedTransaction } from "./validators/RequestSendSignedTransactionSchema.js";
-import type { UpdateMetadataSchema } from "./validators/RequestUpdateMetadataSchema.js";
-import type { UpdateSchemaSchema } from "./validators/RequestUpdateSchemaSchema.js";
+import type { ApiConfig } from "../../config/configuration.ts";
+import type { JsonRpcResponseObject } from "./jsonrpc.interface.ts";
+import type { InsertSchemaSchema } from "./validators/RequestInsertSchemaSchema.ts";
+import type { UnsignedTransaction } from "./validators/RequestSendSignedTransactionSchema.ts";
+import type { UpdateMetadataSchema } from "./validators/RequestUpdateMetadataSchema.ts";
+import type { UpdateSchemaSchema } from "./validators/RequestUpdateSchemaSchema.ts";
 
 import {
   createDid,
   createSchema,
   createVerifiableAuthorisationSchema,
-} from "../../../tests/utils/data.js";
-import { setupTestEnv } from "../../../tests/utils/schemaRegistry.js";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
-import { LedgerService } from "../ledger/ledger.service.js";
-import { JsonRpcModule } from "./jsonrpc.module.js";
-import { JsonRpcService } from "./jsonrpc.service.js";
-import { formatEthersUnsignedTransaction } from "./jsonrpc.utils.js";
+} from "../../../tests/utils/data.ts";
+import { setupTestEnv } from "../../../tests/utils/schemaRegistry.ts";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter.ts";
+import { LedgerService } from "../ledger/ledger.service.ts";
+import { JsonRpcModule } from "./jsonrpc.module.ts";
+import { JsonRpcService } from "./jsonrpc.service.ts";
+import { formatEthersUnsignedTransaction } from "./jsonrpc.utils.ts";
 
 type JsonRpcParams =
   | InsertSchemaSchema

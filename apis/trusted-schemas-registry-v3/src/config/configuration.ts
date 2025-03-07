@@ -1,4 +1,5 @@
-import { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
+import type { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
+
 import { ConfigModule } from "@nestjs/config";
 import Joi from "joi";
 

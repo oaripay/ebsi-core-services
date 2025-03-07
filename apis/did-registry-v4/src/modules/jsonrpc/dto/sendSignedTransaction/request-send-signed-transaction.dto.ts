@@ -7,8 +7,8 @@ import {
   ValidateNested,
 } from "class-validator";
 
-import { JsonRpcDto } from "../jsonrpc.dto.js";
-import { SignedTransactionParam } from "./signed-transaction-param.dto.js";
+import { JsonRpcDto } from "../jsonrpc.dto.ts";
+import { SignedTransactionParam } from "./signed-transaction-param.dto.ts";
 
 export class RequestSendSignedTransactionDto extends JsonRpcDto {
   @Equals("sendSignedTransaction")

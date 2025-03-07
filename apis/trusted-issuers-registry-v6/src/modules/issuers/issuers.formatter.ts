@@ -7,7 +7,7 @@ import type {
   DidLink,
   IdLink,
   ProxyLink,
-} from "./issuers.interface.js";
+} from "./issuers.interface.ts";
 
 export function formatAttributes(
   attributes: { items: string[] },

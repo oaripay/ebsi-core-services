@@ -1,8 +1,8 @@
 import { Logger, Module } from "@nestjs/common";
 
-import { ApiConfigModule } from "../../config/configuration.js";
-import IdentifiersController from "./identifiers.controller.js";
-import IdentifiersService from "./identifiers.service.js";
+import { ApiConfigModule } from "../../config/configuration.ts";
+import IdentifiersController from "./identifiers.controller.ts";
+import IdentifiersService from "./identifiers.service.ts";
 
 @Module({
   controllers: [IdentifiersController],

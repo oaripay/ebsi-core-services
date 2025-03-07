@@ -1,4 +1,4 @@
-import "../../../../contracts/did-registry-v2/src/types/hardhat.d.ts";
+import "@ebsiint-sc/did-registry-v2/dist/hardhat.d.ts";
 
 import hre from "hardhat";
 import type { FactoryOptions } from "hardhat/types";
@@ -12,8 +12,10 @@ import type { HardhatEthersProvider } from "@nomicfoundation/hardhat-ethers/inte
 import "@nomicfoundation/hardhat-ethers";
 import { ethers } from "ethers";
 
-import { createUser, UserDetails } from "./data.js";
-import { setupTestEnv as setupTestEnvV1 } from "./didRegistryV1.js";
+import type { UserDetails } from "./data.ts";
+
+import { createUser } from "./data.ts";
+import { setupTestEnv as setupTestEnvV1 } from "./didRegistryV1.ts";
 
 const deployContract = async (
   name: string,

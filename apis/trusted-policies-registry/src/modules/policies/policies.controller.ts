@@ -4,12 +4,12 @@ import { Accepts, PaginationQuery } from "@ebsiint-api/shared";
 import { Controller, Get, Param, Query } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
-import type { ApiConfig } from "../../config/configuration.js";
-import type { PolicyLink, PolicyResponseObject } from "./policies.interface.js";
+import type { ApiConfig } from "../../config/configuration.ts";
+import type { PolicyLink, PolicyResponseObject } from "./policies.interface.ts";
 
-import { GetPolicyParams } from "./dto/index.js";
-import { formatPolicies } from "./policies.formatter.js";
-import { PoliciesService } from "./policies.service.js";
+import { GetPolicyParams } from "./dto/index.ts";
+import { formatPolicies } from "./policies.formatter.ts";
+import { PoliciesService } from "./policies.service.ts";
 
 @Controller("/policies")
 export class PoliciesController {

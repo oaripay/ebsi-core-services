@@ -9,10 +9,10 @@ import { Test } from "@nestjs/testing";
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { dummyPolicies, POLICIES_TOTAL } from "../../../tests/utils/data.js";
-import { graphServer } from "../../../tests/utils/graphServer.js";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
-import { PoliciesModule } from "./policies.module.js";
+import { dummyPolicies, POLICIES_TOTAL } from "../../../tests/utils/data.ts";
+import { graphServer } from "../../../tests/utils/graphServer.ts";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter.ts";
+import { PoliciesModule } from "./policies.module.ts";
 
 describe("Policies Module", () => {
   let app: NestFastifyApplication;

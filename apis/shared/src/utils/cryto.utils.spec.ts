@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { decrypt, encrypt } from "./crypto.utils.js";
+import { decrypt, encrypt } from "./crypto.utils.ts";
 
 describe("crypto utils", () => {
   const secret = "secret passphrase";

@@ -1,13 +1,15 @@
-import { ValidateBy, ValidationOptions } from "class-validator";
+import type { ValidationOptions } from "class-validator";
+
+import { ValidateBy } from "class-validator";
 import { importJWK } from "jose";
 import { KeyObject } from "node:crypto";
 import validator from "validator";
 import { z } from "zod";
 
-import type { ValidationResult } from "./types.js";
+import type { ValidationResult } from "./types.ts";
 
-import { encode } from "../utils/encode.utils.js";
-import { getErrorMessage } from "../utils/getErrorMessages.utils.js";
+import { encode } from "../utils/encode.utils.ts";
+import { getErrorMessage } from "../utils/getErrorMessages.utils.ts";
 
 const validators = validator.default;
 

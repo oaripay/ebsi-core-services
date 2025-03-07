@@ -3,8 +3,8 @@ import validator from "validator";
 import { z } from "zod";
 
 import { getBuiltGraphSDK } from "../../../../.graphclient/index.js";
-import { baseParamSchema } from "./BaseParamSchema.js";
-import { jsonRpcSchema } from "./JsonRpcSchema.js";
+import { baseParamSchema } from "./BaseParamSchema.ts";
+import { jsonRpcSchema } from "./JsonRpcSchema.ts";
 
 const { isHexadecimal } = validator.default;
 const sdk = getBuiltGraphSDK();

@@ -15,18 +15,18 @@ import type {
   Document,
   DocumentAccesses,
   Event,
-} from "./documents.interface.js";
+} from "./documents.interface.ts";
 
 import {
   DOCUMENT_EVENTS,
   DOCUMENTS_WITH_BLOCK_SOURCE,
   DOCUMENTS_WITH_EXTERNAL_SOURCE,
   dummyData,
-} from "../../../tests/utils/data.js";
-import { handlers } from "../../../tests/utils/graphServer.js";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
-import { hexToDid } from "../../shared/utils.js";
-import { DocumentsModule } from "./documents.module.js";
+} from "../../../tests/utils/data.ts";
+import { handlers } from "../../../tests/utils/graphServer.ts";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter.ts";
+import { hexToDid } from "../../shared/utils.ts";
+import { DocumentsModule } from "./documents.module.ts";
 
 describe("Documents Module", () => {
   let app: NestFastifyApplication;

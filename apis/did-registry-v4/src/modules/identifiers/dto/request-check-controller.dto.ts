@@ -6,7 +6,7 @@ import {
   IsEthereumAddress,
 } from "class-validator";
 
-import { JsonRpcDto } from "../../jsonrpc/dto/index.js";
+import { JsonRpcDto } from "../../jsonrpc/dto/index.ts";
 
 export class RequestCheckControllerDto extends JsonRpcDto {
   @Equals("checkController")

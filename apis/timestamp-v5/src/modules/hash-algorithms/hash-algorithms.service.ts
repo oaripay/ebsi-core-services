@@ -6,7 +6,7 @@ import type {
   GetHashAlgorithmsQuery,
   HashAlgo_filter,
 } from "../../../.graphclient/index.js";
-import type { HashAlgorithmResponseObject } from "./hash-algorithms.interface.js";
+import type { HashAlgorithmResponseObject } from "./hash-algorithms.interface.ts";
 
 import { getBuiltGraphSDK } from "../../../.graphclient/index.js";
 

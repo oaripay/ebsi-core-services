@@ -12,12 +12,12 @@ import { Test } from "@nestjs/testing";
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import type { ApiConfig } from "../../src/config/configuration.js";
-import type { PolicyLink } from "../../src/modules/policies/policies.interface.js";
+import type { ApiConfig } from "../../src/config/configuration.ts";
+import type { PolicyLink } from "../../src/modules/policies/policies.interface.ts";
 
-import { AppModule } from "../../src/app.module.js";
-import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
-import { getServer } from "../utils/getServer.js";
+import { AppModule } from "../../src/app.module.ts";
+import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.ts";
+import { getServer } from "../utils/getServer.ts";
 
 interface SupertestPoliciesResponse {
   body: PaginatedList<PolicyLink>;

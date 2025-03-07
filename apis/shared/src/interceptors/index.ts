@@ -1,1 +1,1 @@
-export * from "./logging.interceptor.js";
+export * from "./logging.interceptor.ts";

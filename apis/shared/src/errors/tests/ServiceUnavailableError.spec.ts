@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { ProblemDetailsError, ServiceUnavailableError } from "../index.js";
+import { ProblemDetailsError, ServiceUnavailableError } from "../index.ts";
 
 describe("error ServiceUnavailableError", () => {
   it("should extend ProblemDetailsError", () => {

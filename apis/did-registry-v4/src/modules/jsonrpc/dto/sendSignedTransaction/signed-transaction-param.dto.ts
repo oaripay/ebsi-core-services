@@ -2,7 +2,7 @@ import { IsSignedRawTransaction } from "@ebsiint-api/shared";
 import { Type } from "class-transformer";
 import { Contains, Equals, ValidateNested } from "class-validator";
 
-import { UnsignedTransaction } from "./unsigned-transaction.dto.js";
+import { UnsignedTransaction } from "./unsigned-transaction.dto.ts";
 
 export class SignedTransactionParam {
   @Equals("eth")

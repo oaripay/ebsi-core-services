@@ -14,7 +14,7 @@ import type {
 } from "../../../.graphclient/index.js";
 
 import { getBuiltGraphSDK } from "../../../.graphclient/index.js";
-import { schemaIdToHex } from "./schemas.utils.js";
+import { schemaIdToHex } from "./schemas.utils.ts";
 
 const sdk = getBuiltGraphSDK();
 

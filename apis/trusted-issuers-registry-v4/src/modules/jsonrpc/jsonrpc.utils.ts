@@ -1,4 +1,6 @@
-import { ClassConstructor, ClassTransformer } from "class-transformer";
+import type { ClassConstructor } from "class-transformer";
+
+import { ClassTransformer } from "class-transformer";
 import * as ClassValidator from "class-validator";
 import { ethers } from "ethers";
 
@@ -17,7 +19,7 @@ import {
   RequestUpdateIssuerDto,
   RequestUpdateIssuerProxyDto,
   UnsignedTransaction,
-} from "./dto/index.js";
+} from "./dto/index.ts";
 
 type JsonRpcDtos =
   | ArgsAddIssuerProxy

@@ -6,7 +6,7 @@ import type {
   TimestampSet_filter,
 } from "../../.graphclient/index.js";
 
-import { dummyData } from "./data.js";
+import { dummyData } from "./data.ts";
 
 export const graphServer = setupServer(
   graphql.query("GetHashAlgorithms", ({ variables }) => {

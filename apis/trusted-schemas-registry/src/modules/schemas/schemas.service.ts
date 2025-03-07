@@ -10,11 +10,11 @@ import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import pLimit from "p-limit";
 
-import type { ApiConfig } from "../../config/configuration.js";
-import type { ItemsList } from "./schemas.interface.js";
+import type { ApiConfig } from "../../config/configuration.ts";
+import type { ItemsList } from "./schemas.interface.ts";
 
-import { LedgerService } from "../ledger/ledger.service.js";
-import { range, schemaIdToHex } from "./schemas.utils.js";
+import { LedgerService } from "../ledger/ledger.service.ts";
+import { range, schemaIdToHex } from "./schemas.utils.ts";
 
 const MAX_RESULTS_PER_PAGE = 50;
 const MAX_CONCURRENT_PROMISES = 10;

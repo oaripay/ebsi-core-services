@@ -2,9 +2,9 @@ import { isBigNumberish } from "@ebsiint-api/shared";
 import { ethers } from "ethers";
 import { z } from "zod";
 
-import { baseParamSchema } from "./BaseParamSchema.js";
-import { jsonRpcSchema } from "./JsonRpcSchema.js";
-import { insertHashAlgorithmSchema } from "./RequestInsertHashAlgorithm.js";
+import { baseParamSchema } from "./BaseParamSchema.ts";
+import { jsonRpcSchema } from "./JsonRpcSchema.ts";
+import { insertHashAlgorithmSchema } from "./RequestInsertHashAlgorithm.ts";
 
 export const updateHashAlgorithmSchema = baseParamSchema.merge(
   insertHashAlgorithmSchema.merge(

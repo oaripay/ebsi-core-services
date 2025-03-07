@@ -3,7 +3,7 @@ import type { ValidationOptions } from "class-validator";
 import { validate } from "@cef-ebsi/ebsi-did-resolver";
 import { buildMessage, ValidateBy } from "class-validator";
 
-import type { ValidationResult } from "./types.js";
+import type { ValidationResult } from "./types.ts";
 
 export const IS_DID_V1 = "isDidV1";
 

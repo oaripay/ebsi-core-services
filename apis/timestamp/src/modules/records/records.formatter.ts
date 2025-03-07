@@ -3,7 +3,7 @@ import type { Timestamp } from "@ebsiint-sc/timestamp";
 
 import { multibase, paginate } from "@ebsiint-api/shared";
 
-import type { RecordLink, VersionLink } from "./records.interface.js";
+import type { RecordLink, VersionLink } from "./records.interface.ts";
 
 export function formatRecords(
   records: Awaited<ReturnType<Timestamp["getRecordIds"]>>,

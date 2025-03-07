@@ -299,7 +299,7 @@ https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
 This product makes use of software developed by third parties.
 
 ========================================================================================
-- @cef-ebsi/ebsi-uri@^1.0.0
+- @cef-ebsi/ebsi-uri@^1.0.1-alpha.0
 ------------------------------
 This project is licensed under EUPL-1.2.
 
@@ -598,7 +598,7 @@ EUPL version.
 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
 
 ========================================================================================
-- @cef-ebsi/verifiable-credential@^7.0.0
+- @cef-ebsi/verifiable-credential@^7.0.1-alpha.0
 ------------------------------
 This project is licensed under EUPL-1.2.
 
@@ -1835,7 +1835,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ========================================================================================
-- axios@^1.7.9
+- axios@^1.8.2
 ------------------------------
 This project is licensed under MIT.
 
@@ -2286,7 +2286,7 @@ TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 
 ========================================================================================
-- zod@^3.24.1
+- zod@^3.24.2
 ------------------------------
 This project is licensed under MIT.
 

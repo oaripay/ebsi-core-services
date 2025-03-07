@@ -1,8 +1,10 @@
+import type { ClassConstructor } from "class-transformer";
+
 import { getErrorMessages } from "@ebsiint-api/shared";
-import { type ClassConstructor, ClassTransformer } from "class-transformer";
+import { ClassTransformer } from "class-transformer";
 import * as ClassValidator from "class-validator";
 
-import { RequestCheckControllerDto } from "./dto/request-check-controller.dto.js";
+import { RequestCheckControllerDto } from "./dto/request-check-controller.dto.ts";
 
 type JsonRpcDtos = RequestCheckControllerDto;
 

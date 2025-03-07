@@ -2,7 +2,7 @@ import { isEthersError, NotFoundError } from "@ebsiint-api/shared";
 import { Injectable, Logger } from "@nestjs/common";
 
 import type { User_filter } from "../../../.graphclient/index.js";
-import type { UserResponseObject } from "./users.interface.js";
+import type { UserResponseObject } from "./users.interface.ts";
 
 import { getBuiltGraphSDK } from "../../../.graphclient/index.js";
 

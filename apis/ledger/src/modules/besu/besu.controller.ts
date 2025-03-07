@@ -4,7 +4,7 @@ import type { FastifyReply, FastifyRequest } from "fastify";
 import { Accepts } from "@ebsiint-api/shared";
 import { Controller, Post, Req, Response } from "@nestjs/common";
 
-import { BesuService } from "./besu.service.js";
+import { BesuService } from "./besu.service.ts";
 
 @Controller("/blockchains/besu")
 export class BesuController {

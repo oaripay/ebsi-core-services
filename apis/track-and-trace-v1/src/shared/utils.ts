@@ -2,7 +2,7 @@ import { getResolver, util } from "@cef-ebsi/key-did-resolver";
 import { encode, remove0xPrefix } from "@ebsiint-api/shared";
 import { Resolver } from "did-resolver";
 
-import { Permission, PermissionLabel } from "./constants.js";
+import { Permission, PermissionLabel } from "./constants.ts";
 
 export async function didToHex(did: string) {
   if (did.startsWith("did:key")) {

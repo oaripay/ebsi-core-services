@@ -1,4 +1,4 @@
-import type { ArgumentsHost } from "@nestjs/common";
+import type { ArgumentsHost, ExceptionFilter } from "@nestjs/common";
 import type { FastifyReply } from "fastify";
 
 import {
@@ -13,7 +13,6 @@ import {
 import {
   BadRequestException,
   Catch,
-  ExceptionFilter,
   ForbiddenException,
   Logger,
   NotFoundException,
@@ -22,7 +21,7 @@ import {
 import { isAxiosError } from "axios";
 import { stringify } from "safe-stable-stringify";
 
-import { OAuth2Error } from "../modules/authorisation/errors/index.js";
+import { OAuth2Error } from "../modules/authorisation/errors/index.ts";
 
 function getProblemDetailsError(
   error: unknown,

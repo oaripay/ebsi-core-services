@@ -4,7 +4,7 @@ import { multibase, multihashEncode } from "@ebsiint-api/shared";
 import crypto from "node:crypto";
 import { describe, expect, it } from "vitest";
 
-import { formatTimestamps } from "./timestamps.formatter.js";
+import { formatTimestamps } from "./timestamps.formatter.ts";
 
 describe("formatTimestamps", () => {
   const timestamps = {

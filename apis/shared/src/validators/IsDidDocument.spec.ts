@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { contextSchema } from "./IsDidDocument.js";
+import { contextSchema } from "./IsDidDocument.ts";
 
 describe("contextSchema", () => {
   it('should validate "https://www.w3.org/ns/did/v1"', () => {

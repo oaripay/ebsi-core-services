@@ -11,17 +11,17 @@ import { ethers } from "ethers";
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { dids } from "../../../tests/mocks/handlers.js";
-import { graphServer } from "../../../tests/mocks/node.js";
+import { dids } from "../../../tests/mocks/handlers.ts";
+import { graphServer } from "../../../tests/mocks/node.ts";
 import {
   did1,
   did2,
   did2Address,
   did3,
   didDocument,
-} from "../../../tests/utils/constants.js";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
-import { IdentifiersModule } from "./identifiers.module.js";
+} from "../../../tests/utils/constants.ts";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter.ts";
+import { IdentifiersModule } from "./identifiers.module.ts";
 
 describe("Identifiers Module", () => {
   let app: NestFastifyApplication;

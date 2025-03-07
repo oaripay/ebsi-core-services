@@ -7,12 +7,12 @@ import { Controller, Get, Head, HttpCode, Query } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
 import type { Invitation_filter } from "../../../.graphclient/index.js";
-import type { ApiConfig } from "../../config/configuration.js";
-import type { Access } from "./accesses.interface.js";
+import type { ApiConfig } from "../../config/configuration.ts";
+import type { Access } from "./accesses.interface.ts";
 
-import { didToHex } from "../../shared/utils.js";
-import AccessesService from "./accesses.service.js";
-import { HeadAccessesDto, SubjectAccessesDto } from "./dto/index.js";
+import { didToHex } from "../../shared/utils.ts";
+import AccessesService from "./accesses.service.ts";
+import { HeadAccessesDto, SubjectAccessesDto } from "./dto/index.ts";
 
 @Controller("/accesses")
 export default class AccessesController {

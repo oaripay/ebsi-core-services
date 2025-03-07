@@ -20,13 +20,13 @@ import { randomBytes } from "node:crypto";
 import request from "supertest";
 import { expect, it } from "vitest";
 
-import type { ApiConfig } from "../../src/config/configuration.js";
+import type { ApiConfig } from "../../src/config/configuration.ts";
 import type {
   Document,
   DocumentAccesses,
   Event,
-} from "../../src/modules/documents/documents.interface.js";
-import type { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface.js";
+} from "../../src/modules/documents/documents.interface.ts";
+import type { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface.ts";
 import type {
   AuthoriseDidSchema,
   CreateDocumentSchema,
@@ -35,16 +35,16 @@ import type {
   RevokeAccessSchema,
   UnsignedTransaction,
   WriteEventSchema,
-} from "../../src/modules/jsonrpc/validators/index.js";
+} from "../../src/modules/jsonrpc/validators/index.ts";
 
-import { AppModule } from "../../src/app.module.js";
-import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
-import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils.js";
-import { AccountType, Permission } from "../../src/shared/constants.js";
-import { didToHex } from "../../src/shared/utils.js";
-import { describeWriteOps } from "../utils/describeWriteOps.js";
-import { getAccessToken } from "../utils/getAccessToken.js";
-import { getServer } from "../utils/getServer.js";
+import { AppModule } from "../../src/app.module.ts";
+import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.ts";
+import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils.ts";
+import { AccountType, Permission } from "../../src/shared/constants.ts";
+import { didToHex } from "../../src/shared/utils.ts";
+import { describeWriteOps } from "../utils/describeWriteOps.ts";
+import { getAccessToken } from "../utils/getAccessToken.ts";
+import { getServer } from "../utils/getServer.ts";
 
 interface Actor {
   info: EbsiIssuer;

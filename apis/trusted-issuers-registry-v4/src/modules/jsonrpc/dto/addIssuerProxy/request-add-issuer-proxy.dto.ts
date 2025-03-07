@@ -7,8 +7,8 @@ import {
   ValidateNested,
 } from "class-validator";
 
-import { JsonRpcDto } from "../jsonrpc.dto.js";
-import { AddIssuerProxyParam } from "./add-issuer-proxy-param.dto.js";
+import { JsonRpcDto } from "../jsonrpc.dto.ts";
+import { AddIssuerProxyParam } from "./add-issuer-proxy-param.dto.ts";
 
 export class RequestAddIssuerProxyDto extends JsonRpcDto {
   @Equals("addIssuerProxy")

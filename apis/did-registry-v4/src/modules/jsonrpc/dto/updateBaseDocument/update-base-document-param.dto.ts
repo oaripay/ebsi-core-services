@@ -1,6 +1,6 @@
 import { IsEthereumAddress } from "class-validator";
 
-import { ArgsUpdateBaseDocument } from "./args-update-base-document.dto.js";
+import { ArgsUpdateBaseDocument } from "./args-update-base-document.dto.ts";
 
 export class UpdateBaseDocumentParam extends ArgsUpdateBaseDocument {
   @IsEthereumAddress()

@@ -33,7 +33,7 @@ import {
   TPR_WRITE_SCOPE,
   TSR_WRITE_PRESENTATION_DEFINITION,
   TSR_WRITE_SCOPE,
-} from "../../src/modules/authorisation/authorisation.constants.js";
+} from "../../src/modules/authorisation/authorisation.constants.ts";
 
 export interface LegalEntity<T extends "EdDSA" | "ES256" | "ES256K"> {
   address: string;

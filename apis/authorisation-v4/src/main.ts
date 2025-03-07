@@ -14,11 +14,11 @@ import { NestFactory } from "@nestjs/core";
 import { FastifyAdapter } from "@nestjs/platform-fastify";
 import qs from "qs";
 
-import type { ApiConfig } from "./config/configuration.js";
+import type { ApiConfig } from "./config/configuration.ts";
 
-import { AppModule } from "./app.module.js";
-import { AllExceptionsFilter } from "./filters/http-exception.filter.js";
-import { consoleTransport, createLogger } from "./logger/logger.js";
+import { AppModule } from "./app.module.ts";
+import { AllExceptionsFilter } from "./filters/http-exception.filter.ts";
+import { consoleTransport, createLogger } from "./logger/logger.ts";
 
 async function bootstrap(): Promise<void> {
   const logger = createLogger();

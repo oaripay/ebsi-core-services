@@ -7,9 +7,9 @@ import type {
   GetSchemaRevisionsResponse,
   GetSchemasResponse,
   ItemsList,
-} from "./schemas.interface.js";
+} from "./schemas.interface.ts";
 
-import { hexToMultibaseBase58Btc } from "./schemas.utils.js";
+import { hexToMultibaseBase58Btc } from "./schemas.utils.ts";
 
 export function formatSchemaRevisionMetadataList(
   metadata: ItemsList,

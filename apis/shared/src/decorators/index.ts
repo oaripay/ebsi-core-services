@@ -1,2 +1,2 @@
-export * from "./accepts.decorator.js";
-export * from "./log.decorator.js";
+export * from "./accepts.decorator.ts";
+export * from "./log.decorator.ts";

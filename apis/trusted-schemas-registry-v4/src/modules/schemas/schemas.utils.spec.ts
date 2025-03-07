@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { range } from "./schemas.utils.js";
+import { range } from "./schemas.utils.ts";
 
 describe("range", () => {
   it("should return the expected ranges", () => {

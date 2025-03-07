@@ -15,24 +15,24 @@ import { isAxiosError } from "axios";
 import { Resolver } from "did-resolver";
 import { ethers } from "ethers";
 
-import type { ApiConfig } from "../../config/configuration.js";
+import type { ApiConfig } from "../../config/configuration.ts";
 import type {
   JsonRpcSchema,
   SendSignedTransactionParamsSchema,
   UnsignedTransaction,
-} from "./validators/index.js";
+} from "./validators/index.ts";
 
-import { hexToDid } from "../../shared/utils.js";
+import { hexToDid } from "../../shared/utils.ts";
 import {
   TNT_AUTHORISE_SCOPE,
   TNT_CREATE_SCOPE,
   TNT_WRITE_SCOPE,
-} from "../auth/auth.constants.js";
-import { LedgerService } from "../ledger/ledger.service.js";
+} from "../auth/auth.constants.ts";
+import { LedgerService } from "../ledger/ledger.service.ts";
 import {
   formatEthersSignature,
   formatEthersUnsignedTransaction,
-} from "./jsonrpc.utils.js";
+} from "./jsonrpc.utils.ts";
 import {
   authoriseDidSchemaBuilder,
   createDocumentSchema,
@@ -47,7 +47,7 @@ import {
   requestWriteEventDtoSchema,
   revokeAccessSchema,
   writeEventSchema,
-} from "./validators/index.js";
+} from "./validators/index.ts";
 
 function assertDidMatchesSub(did: string, sub: string) {
   if (did !== sub) {

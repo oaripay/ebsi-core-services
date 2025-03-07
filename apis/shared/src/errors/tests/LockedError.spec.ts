@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { LockedError, ProblemDetailsError } from "../index.js";
+import { LockedError, ProblemDetailsError } from "../index.ts";
 
 describe("error LockedError", () => {
   it("should extend ProblemDetailsError", () => {

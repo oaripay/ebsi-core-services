@@ -2,7 +2,7 @@ import { multibase } from "@ebsiint-api/shared";
 import crypto from "node:crypto";
 import { describe, expect, it } from "vitest";
 
-import { formatRecords, formatRecordVersions } from "./records.formatter.js";
+import { formatRecords, formatRecordVersions } from "./records.formatter.ts";
 
 describe("formatRecords", () => {
   const records = {

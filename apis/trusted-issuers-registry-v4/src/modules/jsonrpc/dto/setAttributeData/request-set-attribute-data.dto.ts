@@ -7,8 +7,8 @@ import {
   ValidateNested,
 } from "class-validator";
 
-import { JsonRpcDto } from "../jsonrpc.dto.js";
-import { SetAttributeDataParam } from "./set-attribute-data-param.dto.js";
+import { JsonRpcDto } from "../jsonrpc.dto.ts";
+import { SetAttributeDataParam } from "./set-attribute-data-param.dto.ts";
 
 export class RequestSetAttributeDataDto extends JsonRpcDto {
   @Equals("setAttributeData")

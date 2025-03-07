@@ -20,16 +20,16 @@
     "test:ci": "yarn test:unit --coverage --reporter=default"
   },
   "dependencies": {
-    "@apidevtools/json-schema-ref-parser": "^11.7.3",
-    "@cef-ebsi/ebsi-did-resolver": "^4.0.5",
-    "@cef-ebsi/key-did-resolver": "^2.1.0",
-    "@cef-ebsi/key-encoder": "^2.0.0",
-    "@cef-ebsi/verifiable-credential": "^7.0.0",
+    "@apidevtools/json-schema-ref-parser": "^11.9.3",
+    "@cef-ebsi/ebsi-did-resolver": "^4.0.6-alpha.0",
+    "@cef-ebsi/key-did-resolver": "^2.1.1-alpha.0",
+    "@cef-ebsi/key-encoder": "^2.0.1-alpha.0",
+    "@cef-ebsi/verifiable-credential": "^7.0.1-alpha.0",
     "@fastify/accepts": "^4.3.0",
     "@nestjs/common": "^10.4.15",
     "@nestjs/core": "^10.4.15",
     "@noble/curves": "^1.8.1",
-    "axios": "^1.7.9",
+    "axios": "^1.8.2",
     "canonicalize": "^2.0.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
@@ -44,10 +44,10 @@
     "multiformats": "^9.6.2",
     "multihashes": "^4.0.3",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.1",
+    "rxjs": "^7.8.2",
     "safe-stable-stringify": "^2.5.0",
     "validator": "^13.12.0",
-    "zod": "^3.24.1"
+    "zod": "^3.24.2"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.4.9",
@@ -56,15 +56,15 @@
     "@tsconfig/node22": "^22.0.0",
     "@tsconfig/strictest": "^2.0.5",
     "@types/elliptic": "^6.4.18",
-    "@types/lodash": "^4.17.15",
+    "@types/lodash": "^4.17.16",
     "@types/lodash.clonedeep": "^4.5.9",
-    "@types/node": "^22.12.0",
+    "@types/node": "^22.13.9",
     "@types/validator": "^13.12.2",
-    "@types/ws": "^8.5.14",
-    "@vitest/coverage-v8": "^3.0.4",
-    "msw": "^2.7.0",
+    "@types/ws": "^8.18.0",
+    "@vitest/coverage-v8": "^3.0.8",
+    "msw": "^2.7.3",
     "ts-node": "^10.9.2",
     "typescript": "5.7.2",
-    "vitest": "^3.0.4"
+    "vitest": "^3.0.8"
   }
 }

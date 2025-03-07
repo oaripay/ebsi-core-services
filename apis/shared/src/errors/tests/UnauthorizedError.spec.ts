@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { ProblemDetailsError, UnauthorizedError } from "../index.js";
+import { ProblemDetailsError, UnauthorizedError } from "../index.ts";
 
 describe("error UnauthorizedError", () => {
   it("should extend ProblemDetailsError", () => {

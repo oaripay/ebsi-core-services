@@ -1,17 +1,17 @@
-import { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
+import type { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
+import type {
+  ValidationArguments,
+  ValidatorConstraintInterface,
+} from "class-validator";
+
 import { isStatusList2021Credential } from "@ebsiint-api/shared";
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import axios from "axios";
-import {
-  buildMessage,
-  ValidationArguments,
-  ValidatorConstraint,
-  ValidatorConstraintInterface,
-} from "class-validator";
+import { buildMessage, ValidatorConstraint } from "class-validator";
 import validator from "validator";
 
-import type { ApiConfig } from "../../config/configuration.js";
+import type { ApiConfig } from "../../config/configuration.ts";
 
 const validators = validator.default;
 

@@ -2,7 +2,7 @@ import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 
 import { ConfigService } from "@nestjs/config";
 
-import type { ApiConfig } from "../../src/config/configuration.js";
+import type { ApiConfig } from "../../src/config/configuration.ts";
 
 export const getServer = (
   app: NestFastifyApplication,

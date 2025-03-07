@@ -15,7 +15,7 @@ import type {
   Operator,
 } from "../../.graphclient/index.js";
 
-import { didToHex } from "../../src/shared/utils.js";
+import { didToHex } from "../../src/shared/utils.ts";
 
 export interface InvitationWithWallet extends Invitation {
   wallet: ethers.BaseWallet;

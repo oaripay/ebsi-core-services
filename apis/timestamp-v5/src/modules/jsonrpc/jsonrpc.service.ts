@@ -13,65 +13,65 @@ import { ConfigService } from "@nestjs/config";
 import axios, { isAxiosError } from "axios";
 import { ethers } from "ethers";
 
-import type { ApiConfig } from "../../config/configuration.js";
-import type { UserInfo } from "../auth/auth.interface.js";
+import type { ApiConfig } from "../../config/configuration.ts";
+import type { UserInfo } from "../auth/auth.interface.ts";
+import type { JsonRpcSchema } from "./validators/JsonRpcSchema.ts";
 import type {
   SendSignedTransactionParamsSchema,
   UnsignedTransaction,
-} from "./validators/RequestSendSignedTransaction.js";
+} from "./validators/RequestSendSignedTransaction.ts";
 
 import { getBuiltGraphSDK } from "../../../.graphclient/index.js";
-import { LedgerService } from "../ledger/ledger.service.js";
+import { LedgerService } from "../ledger/ledger.service.ts";
 import {
   formatEthersSignature,
   formatEthersUnsignedTransaction,
-} from "./jsonrpc.utils.js";
-import { JsonRpcSchema } from "./validators/JsonRpcSchema.js";
+} from "./jsonrpc.utils.ts";
 import {
   appendRecordVersionHashesSchema,
   requestAppendRecordVersionHashesDtoSchema,
-} from "./validators/RequestAppendRecordVersionHashes.js";
+} from "./validators/RequestAppendRecordVersionHashes.ts";
 import {
   detachRecordVersionHashSchema,
   requestDetachRecordVersionHashDtoSchema,
-} from "./validators/RequestDetachRecordVersionHashes.js";
+} from "./validators/RequestDetachRecordVersionHashes.ts";
 import {
   insertHashAlgorithmSchema,
   requestInsertHashAlgorithmDtoSchema,
-} from "./validators/RequestInsertHashAlgorithm.js";
+} from "./validators/RequestInsertHashAlgorithm.ts";
 import {
   insertRecordOwnerSchema,
   requestInsertRecordOwnerDtoSchema,
-} from "./validators/RequestInsertRecordOwner.js";
+} from "./validators/RequestInsertRecordOwner.ts";
 import {
   insertRecordVersionInfoSchema,
   requestInsertRecordVersionInfoDtoSchema,
-} from "./validators/RequestInsertRecordVersionInfo.js";
+} from "./validators/RequestInsertRecordVersionInfo.ts";
 import {
   requestRevokeRecordOwnerDtoSchema,
   revokeRecordOwnerSchema,
-} from "./validators/RequestRevokeRecordOwner.js";
-import { requestSendSignedTransactionDtoSchema } from "./validators/RequestSendSignedTransaction.js";
+} from "./validators/RequestRevokeRecordOwner.ts";
+import { requestSendSignedTransactionDtoSchema } from "./validators/RequestSendSignedTransaction.ts";
 import {
   requestTimestampHashesDtoSchema,
   timestampHashesSchema,
-} from "./validators/RequestTimestampHashes.js";
+} from "./validators/RequestTimestampHashes.ts";
 import {
   requestTimestampRecordHashesDtoSchema,
   timestampRecordHashesSchema,
-} from "./validators/RequestTimestampRecordHashes.js";
+} from "./validators/RequestTimestampRecordHashes.ts";
 import {
   requestTimestampRecordVersionHashesDtoSchema,
   timestampRecordVersionHashesSchema,
-} from "./validators/RequestTimestampRecordVersionHashes.js";
+} from "./validators/RequestTimestampRecordVersionHashes.ts";
 import {
   requestTimestampVersionHashesDtoSchema,
   timestampVersionHashesSchema,
-} from "./validators/RequestTimestampVersionHashes.js";
+} from "./validators/RequestTimestampVersionHashes.ts";
 import {
   requestUpdateHashAlgorithmDtoSchema,
   updateHashAlgorithmSchema,
-} from "./validators/RequestUpdateHashAlgorithm.js";
+} from "./validators/RequestUpdateHashAlgorithm.ts";
 
 const sdk = getBuiltGraphSDK();
 

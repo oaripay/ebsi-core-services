@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { multihashEncode } from "./multihash.utils.js";
+import { multihashEncode } from "./multihash.utils.ts";
 
 describe("multihashEncode", () => {
   it("should produce the expected result", () => {

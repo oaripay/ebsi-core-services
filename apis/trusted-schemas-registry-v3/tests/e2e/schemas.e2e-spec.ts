@@ -19,22 +19,22 @@ import crypto from "node:crypto";
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import type { ApiConfig } from "../../src/config/configuration.js";
-import type { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface.js";
-import type { InsertSchemaSchema } from "../../src/modules/jsonrpc/validators/RequestInsertSchemaSchema.js";
-import type { UnsignedTransaction } from "../../src/modules/jsonrpc/validators/RequestSendSignedTransactionSchema.js";
-import type { UpdateMetadataSchema } from "../../src/modules/jsonrpc/validators/RequestUpdateMetadataSchema.js";
-import type { UpdateSchemaSchema } from "../../src/modules/jsonrpc/validators/RequestUpdateSchemaSchema.js";
+import type { ApiConfig } from "../../src/config/configuration.ts";
+import type { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface.ts";
+import type { InsertSchemaSchema } from "../../src/modules/jsonrpc/validators/RequestInsertSchemaSchema.ts";
+import type { UnsignedTransaction } from "../../src/modules/jsonrpc/validators/RequestSendSignedTransactionSchema.ts";
+import type { UpdateMetadataSchema } from "../../src/modules/jsonrpc/validators/RequestUpdateMetadataSchema.ts";
+import type { UpdateSchemaSchema } from "../../src/modules/jsonrpc/validators/RequestUpdateSchemaSchema.ts";
 
-import { AppModule } from "../../src/app.module.js";
-import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
-import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils.js";
-import { hexToMultibaseBase58Btc } from "../../src/modules/schemas/schemas.utils.js";
-import { createVerifiableAuthorisationSchema } from "../utils/data.js";
-import { getTsrWriteAccessToken } from "../utils/getAccessToken.js";
-import { getEbsiIssuer } from "../utils/getEbsiIssuer.js";
-import { getServer } from "../utils/getServer.js";
-import { describeWriteOps, writeOps } from "../utils/writeOps.js";
+import { AppModule } from "../../src/app.module.ts";
+import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.ts";
+import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils.ts";
+import { hexToMultibaseBase58Btc } from "../../src/modules/schemas/schemas.utils.ts";
+import { createVerifiableAuthorisationSchema } from "../utils/data.ts";
+import { getTsrWriteAccessToken } from "../utils/getAccessToken.ts";
+import { getEbsiIssuer } from "../utils/getEbsiIssuer.ts";
+import { getServer } from "../utils/getServer.ts";
+import { describeWriteOps, writeOps } from "../utils/writeOps.ts";
 
 type JsonRpcParams =
   | InsertSchemaSchema

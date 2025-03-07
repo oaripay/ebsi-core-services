@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { encode } from "./encode.utils.js";
+import { encode } from "./encode.utils.ts";
 
 describe("encode", () => {
   it("should convert a public key from hex to jwk", () => {

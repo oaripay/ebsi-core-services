@@ -17,12 +17,12 @@ import crypto from "node:crypto";
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
-import type { TimestampLink } from "./timestamps.interface.js";
+import type { TimestampLink } from "./timestamps.interface.ts";
 
-import { graphServer } from "../../../tests/utils/graphServer.js";
-import { setupTestEnv } from "../../../tests/utils/timestamp.js";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
-import { TimestampsModule } from "./timestamps.module.js";
+import { graphServer } from "../../../tests/utils/graphServer.ts";
+import { setupTestEnv } from "../../../tests/utils/timestamp.ts";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter.ts";
+import { TimestampsModule } from "./timestamps.module.ts";
 
 describe("Timestamps Module", () => {
   let app: NestFastifyApplication;

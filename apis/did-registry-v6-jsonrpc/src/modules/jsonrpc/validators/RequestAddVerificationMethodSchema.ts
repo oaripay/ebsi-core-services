@@ -1,8 +1,8 @@
 import { isDidV1, isPublicKeyHex } from "@ebsiint-api/shared";
 import { z } from "zod";
 
-import { baseParamSchema } from "./BaseParamSchema.js";
-import { jsonRpcSchema } from "./JsonRpcSchema.js";
+import { baseParamSchema } from "./BaseParamSchema.ts";
+import { jsonRpcSchema } from "./JsonRpcSchema.ts";
 
 export const addVerificationMethodSchema = baseParamSchema
   .merge(

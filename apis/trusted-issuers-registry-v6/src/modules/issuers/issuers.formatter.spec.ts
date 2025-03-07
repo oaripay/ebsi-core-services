@@ -4,7 +4,7 @@ import {
   formatAttributes,
   formatIssuers,
   formatProxies,
-} from "./issuers.formatter.js";
+} from "./issuers.formatter.ts";
 
 describe("formatIssuers", () => {
   const issuers = { items: ["did1", "did2", "did3"] };

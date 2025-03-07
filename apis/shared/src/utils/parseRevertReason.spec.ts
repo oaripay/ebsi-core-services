@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { parseRevertReason } from "./parseRevertReason.js";
+import { parseRevertReason } from "./parseRevertReason.ts";
 
 describe("parseRevertReason", () => {
   it("should parse the revert reason", () => {

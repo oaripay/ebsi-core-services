@@ -38,33 +38,33 @@ import { randomBytes, randomUUID } from "node:crypto";
 import request from "supertest";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
-import type { ApiConfig } from "../../src/config/configuration.js";
+import type { ApiConfig } from "../../src/config/configuration.ts";
 import type {
   DidLink,
   IdLink,
   IssuerProxyResponseObject,
-} from "../../src/modules/issuers/issuers.interface.js";
-import type { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface.js";
-import type { AddIssuerProxySchema } from "../../src/modules/jsonrpc/validators/RequestAddIssuerProxySchema.js";
-import type { UnsignedTransaction } from "../../src/modules/jsonrpc/validators/RequestSendSignedTransactionSchema.js";
-import type { SetAttributeDataSchema } from "../../src/modules/jsonrpc/validators/RequestSetAttributeDataSchema.js";
-import type { SetAttributeMetadataSchema } from "../../src/modules/jsonrpc/validators/RequestSetAttributeMetadataSchema.js";
-import type { UpdateIssuerProxySchema } from "../../src/modules/jsonrpc/validators/RequestUpdateIssuerProxySchema.js";
-import type { IssuerObject } from "../utils/tir.js";
+} from "../../src/modules/issuers/issuers.interface.ts";
+import type { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface.ts";
+import type { AddIssuerProxySchema } from "../../src/modules/jsonrpc/validators/RequestAddIssuerProxySchema.ts";
+import type { UnsignedTransaction } from "../../src/modules/jsonrpc/validators/RequestSendSignedTransactionSchema.ts";
+import type { SetAttributeDataSchema } from "../../src/modules/jsonrpc/validators/RequestSetAttributeDataSchema.ts";
+import type { SetAttributeMetadataSchema } from "../../src/modules/jsonrpc/validators/RequestSetAttributeMetadataSchema.ts";
+import type { UpdateIssuerProxySchema } from "../../src/modules/jsonrpc/validators/RequestUpdateIssuerProxySchema.ts";
+import type { IssuerObject } from "../utils/tir.ts";
 
-import { AppModule } from "../../src/app.module.js";
-import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
-import { IssuerType } from "../../src/modules/issuers/issuers.constants.js";
-import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils.js";
-import { describeLocalTestEnvOnly } from "../utils/describeLocalTestEnvOnly.js";
-import { describeWriteOps } from "../utils/describeWriteOps.js";
+import { AppModule } from "../../src/app.module.ts";
+import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.ts";
+import { IssuerType } from "../../src/modules/issuers/issuers.constants.ts";
+import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils.ts";
+import { describeLocalTestEnvOnly } from "../utils/describeLocalTestEnvOnly.ts";
+import { describeWriteOps } from "../utils/describeWriteOps.ts";
 import {
   getDidrWriteAccessToken,
   getTirInviteAccessToken,
   getTirWriteAccessToken,
-} from "../utils/getAccessToken.js";
-import { getServer } from "../utils/getServer.js";
-import { createIssuer } from "../utils/tir.js";
+} from "../utils/getAccessToken.ts";
+import { getServer } from "../utils/getServer.ts";
+import { createIssuer } from "../utils/tir.ts";
 
 interface SupertestAttributesResponse {
   body: {

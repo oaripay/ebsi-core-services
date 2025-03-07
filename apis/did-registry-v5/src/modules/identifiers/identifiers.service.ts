@@ -17,11 +17,11 @@ import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { isAxiosError } from "axios";
 
-import type { ApiConfig } from "../../config/configuration.js";
-import type { JsonRpcSchema } from "./validators/JsonRpcSchema.js";
+import type { ApiConfig } from "../../config/configuration.ts";
+import type { JsonRpcSchema } from "./validators/JsonRpcSchema.ts";
 
-import { LedgerService } from "../ledger/ledger.service.js";
-import { requestCheckControllerDtoSchema } from "./validators/RequestCheckControllerSchema.js";
+import { LedgerService } from "../ledger/ledger.service.ts";
+import { requestCheckControllerDtoSchema } from "./validators/RequestCheckControllerSchema.ts";
 
 @Injectable()
 export default class IdentifiersService {

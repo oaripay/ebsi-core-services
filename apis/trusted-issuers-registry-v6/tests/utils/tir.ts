@@ -1,27 +1,27 @@
-import "../../../../contracts/trusted-issuers-registry-v4/src/types/hardhat.d.ts";
+import "@ebsiint-sc/trusted-issuers-registry-v4/dist/hardhat.d.ts";
 
 import hre from "hardhat";
 
+import type { StatusList2021Credential } from "@ebsiint-api/shared";
 import type {
   DidRegistryMock,
   PolicyRegistryMock,
   TrustedIssuersRegistry,
 } from "@ebsiint-sc/trusted-issuers-registry-v4";
-
-import "@nomicfoundation/hardhat-ethers";
-
 import type { HardhatEthersProvider } from "@nomicfoundation/hardhat-ethers/internal/hardhat-ethers-provider.js";
 
+import "@nomicfoundation/hardhat-ethers";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
-import { StatusList2021Credential } from "@ebsiint-api/shared";
 import { ethers } from "ethers";
 import crypto from "node:crypto";
+
+import type { IssuerGraphObject } from "./data.ts";
 
 import {
   IssuerType,
   IssuerTypeNames,
-} from "../../src/modules/issuers/issuers.constants.js";
-import { dummyIssuers, IssuerGraphObject } from "./data.js";
+} from "../../src/modules/issuers/issuers.constants.ts";
+import { dummyIssuers } from "./data.ts";
 
 export interface IssuerObject {
   attribute: {

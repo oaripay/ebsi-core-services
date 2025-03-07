@@ -7,8 +7,8 @@ import {
   ValidateNested,
 } from "class-validator";
 
-import { JsonRpcDto } from "../jsonrpc.dto.js";
-import { RollVerificationMethodParam } from "./roll-verification-method-param.dto.js";
+import { JsonRpcDto } from "../jsonrpc.dto.ts";
+import { RollVerificationMethodParam } from "./roll-verification-method-param.dto.ts";
 
 export class RequestRollVerificationMethodDto extends JsonRpcDto {
   @Equals("rollVerificationMethod")

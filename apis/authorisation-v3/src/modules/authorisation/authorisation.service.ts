@@ -6,8 +6,10 @@ import type {
 import type { Checked } from "@sphereon/pex";
 import type { PresentationSubmission } from "@sphereon/pex-models";
 import type { IPresentation, IVerifiableCredential } from "@sphereon/ssi-types";
+import type { AxiosResponse } from "axios";
 import type { MemoryCache } from "cache-manager";
 import type { JWTPayload } from "did-jwt";
+import type { JsonWebKey } from "node:crypto";
 import type { ReadonlyDeep } from "type-fest";
 
 import { verifyPresentationJwt } from "@cef-ebsi/verifiable-presentation";
@@ -16,17 +18,17 @@ import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Inject, Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PEXv2 } from "@sphereon/pex";
-import axios, { type AxiosResponse, isAxiosError } from "axios";
+import axios, { isAxiosError } from "axios";
 import { createJWT, decodeJWT, ES256Signer, hexToBytes } from "did-jwt";
-import { JsonWebKey, randomUUID } from "node:crypto";
+import { randomUUID } from "node:crypto";
 
-import type { ApiConfig } from "../../config/configuration.js";
-import type { PresentationDefinition } from "../../shared/interfaces/pex.js";
+import type { ApiConfig } from "../../config/configuration.ts";
+import type { PresentationDefinition } from "../../shared/interfaces/pex.ts";
 import type {
   JsonWebKeySet,
   OPMetadata,
   TokenResponse,
-} from "./authorisation.interfaces.js";
+} from "./authorisation.interfaces.ts";
 
 import {
   CUSTOM_SCOPES,
@@ -39,14 +41,14 @@ import {
   TIR_INVITE_SCOPE,
   TIR_WRITE_PRESENTATION_DEFINITION,
   TIR_WRITE_SCOPE,
-} from "./authorisation.constants.js";
-import { parseDto } from "./authorisation.utils.js";
-import { CreateAccessTokenDto } from "./dto/index.js";
-import { ClassValidatorError, OAuth2TokenError } from "./errors/index.js";
+} from "./authorisation.constants.ts";
+import { parseDto } from "./authorisation.utils.ts";
+import { CreateAccessTokenDto } from "./dto/index.ts";
+import { ClassValidatorError, OAuth2TokenError } from "./errors/index.ts";
 import {
   issuerSchema,
   presentationSubmissionSchema,
-} from "./validators/index.js";
+} from "./validators/index.ts";
 
 @Injectable()
 export class AuthorisationService {

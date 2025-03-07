@@ -1,8 +1,8 @@
 import { isDidV1 } from "@ebsiint-api/shared";
 import { z, ZodError } from "zod";
 
-import { baseParamSchema } from "./BaseParamSchema.js";
-import { jsonRpcSchema } from "./JsonRpcSchema.js";
+import { baseParamSchema } from "./BaseParamSchema.ts";
+import { jsonRpcSchema } from "./JsonRpcSchema.ts";
 
 const credentialRegistryServiceEndpointSchema = z.object({
   byId: z.string().optional(),

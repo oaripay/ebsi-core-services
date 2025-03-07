@@ -6,7 +6,7 @@ import type {
   Access,
   DocumentEventsLink,
   DocumentsLink,
-} from "./documents.interface.js";
+} from "./documents.interface.ts";
 
 export function formatDocumentAccesses(
   accesses: { items: Access[] },

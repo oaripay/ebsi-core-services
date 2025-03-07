@@ -1,6 +1,6 @@
 import { IsHexadecimal, Length, Matches } from "class-validator";
 
-import { GetSchemaParams } from "./get-schema.params.js";
+import { GetSchemaParams } from "./get-schema.params.ts";
 
 export class GetSchemaRevisionParams extends GetSchemaParams {
   @IsHexadecimal()

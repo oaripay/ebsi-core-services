@@ -2,7 +2,7 @@ import type { DidRegistry } from "@ebsiint-sc/did-registry-v3";
 
 import { describe, expect, it } from "vitest";
 
-import { formatIdentifiers } from "./identifiers.formatter.js";
+import { formatIdentifiers } from "./identifiers.formatter.ts";
 
 describe("formatIdentifiers", () => {
   const identifiers = {

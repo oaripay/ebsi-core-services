@@ -31,27 +31,28 @@ import {
   vi,
 } from "vitest";
 
-import type { ApiConfig } from "../../config/configuration.js";
-import type { JsonRpcResponseObject } from "./jsonrpc.interface.js";
-import type { AddControllerSchema } from "./validators/RequestAddControllerSchema.js";
-import type { AddServiceSchema } from "./validators/RequestAddServiceSchema.js";
-import type { AddVerificationMethodSchema } from "./validators/RequestAddVerificationMethodSchema.js";
-import type { AddVerificationRelationshipSchema } from "./validators/RequestAddVerificationRelationshipSchema.js";
-import type { ExpireVerificationMethodSchema } from "./validators/RequestExpireVerificationMethodSchema.js";
-import type { InsertDidDocumentSchema } from "./validators/RequestInsertDidDocumentSchema.js";
-import type { RevokeControllerSchema } from "./validators/RequestRevokeControllerSchema.js";
-import type { RevokeServiceSchema } from "./validators/RequestRevokeServiceSchema.js";
-import type { RevokeVerificationMethodSchema } from "./validators/RequestRevokeVerificationMethodSchema.js";
-import type { RollVerificationMethodSchema } from "./validators/RequestRollVerificationMethodSchema.js";
-import type { UnsignedTransaction } from "./validators/RequestSendSignedTransactionSchema.js";
-import type { UpdateBaseDocumentSchema } from "./validators/RequestUpdateBaseDocumentSchema.js";
+import type { UserDetails } from "../../../tests/utils/data.ts";
+import type { ApiConfig } from "../../config/configuration.ts";
+import type { JsonRpcResponseObject } from "./jsonrpc.interface.ts";
+import type { AddControllerSchema } from "./validators/RequestAddControllerSchema.ts";
+import type { AddServiceSchema } from "./validators/RequestAddServiceSchema.ts";
+import type { AddVerificationMethodSchema } from "./validators/RequestAddVerificationMethodSchema.ts";
+import type { AddVerificationRelationshipSchema } from "./validators/RequestAddVerificationRelationshipSchema.ts";
+import type { ExpireVerificationMethodSchema } from "./validators/RequestExpireVerificationMethodSchema.ts";
+import type { InsertDidDocumentSchema } from "./validators/RequestInsertDidDocumentSchema.ts";
+import type { RevokeControllerSchema } from "./validators/RequestRevokeControllerSchema.ts";
+import type { RevokeServiceSchema } from "./validators/RequestRevokeServiceSchema.ts";
+import type { RevokeVerificationMethodSchema } from "./validators/RequestRevokeVerificationMethodSchema.ts";
+import type { RollVerificationMethodSchema } from "./validators/RequestRollVerificationMethodSchema.ts";
+import type { UnsignedTransaction } from "./validators/RequestSendSignedTransactionSchema.ts";
+import type { UpdateBaseDocumentSchema } from "./validators/RequestUpdateBaseDocumentSchema.ts";
 
-import { createUser, UserDetails } from "../../../tests/utils/data.js";
-import { setupTestEnv } from "../../../tests/utils/didRegistry.js";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
-import { LedgerService } from "../ledger/ledger.service.js";
-import { JsonRpcModule } from "./jsonrpc.module.js";
-import { formatEthersUnsignedTransaction } from "./jsonrpc.utils.js";
+import { createUser } from "../../../tests/utils/data.ts";
+import { setupTestEnv } from "../../../tests/utils/didRegistry.ts";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter.ts";
+import { LedgerService } from "../ledger/ledger.service.ts";
+import { JsonRpcModule } from "./jsonrpc.module.ts";
+import { formatEthersUnsignedTransaction } from "./jsonrpc.utils.ts";
 
 type JsonRpcParams =
   | AddControllerSchema

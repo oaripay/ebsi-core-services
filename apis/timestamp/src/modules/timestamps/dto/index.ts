@@ -1,2 +1,2 @@
-export * from "./get-timestamp.dto.js";
-export * from "./get-timestamps.dto.js";
+export * from "./get-timestamp.dto.ts";
+export * from "./get-timestamps.dto.ts";

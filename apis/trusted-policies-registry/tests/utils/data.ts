@@ -4,7 +4,7 @@ import {
   ATTRIBUTE_OPERATIONS,
   ATTRIBUTE_TYPES,
   OPERATION_TYPES,
-} from "../../src/modules/policies/policies.constants.js";
+} from "../../src/modules/policies/policies.constants.ts";
 
 export function createPolicy(policyId: number, policyName: string) {
   const opType = OPERATION_TYPES.indexOf("AND");

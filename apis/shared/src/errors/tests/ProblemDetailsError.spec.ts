@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { ProblemDetailsError } from "../index.js";
+import { ProblemDetailsError } from "../index.ts";
 
 describe("error ProblemDetailsError", () => {
   it("should have about:blank has default type", () => {

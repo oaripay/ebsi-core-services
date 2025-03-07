@@ -1,8 +1,10 @@
+import type { RefinementCtx } from "zod";
+
 import { isDid } from "@ebsiint-api/shared";
 import validator from "validator";
-import { type RefinementCtx, z } from "zod";
+import { z } from "zod";
 
-import { hexToDid } from "../../../shared/utils.js";
+import { hexToDid } from "../../../shared/utils.ts";
 
 const validators = validator.default;
 

@@ -1,3 +1,3 @@
-export * from "./ClassValidatorError.js";
-export * from "./OAuth2Error.js";
-export * from "./OAuth2TokenError.js";
+export * from "./ClassValidatorError.ts";
+export * from "./OAuth2Error.ts";
+export * from "./OAuth2TokenError.ts";

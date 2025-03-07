@@ -2,11 +2,11 @@ import { Accepts, paginate } from "@ebsiint-api/shared";
 import { Controller, Get, Head, HttpCode, Query } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
-import type { ApiConfig } from "../../config/configuration.js";
-import type { Access } from "./accesses.interface.js";
+import type { ApiConfig } from "../../config/configuration.ts";
+import type { Access } from "./accesses.interface.ts";
 
-import AccessesService from "./accesses.service.js";
-import { HeadAccessesDto, SubjectAccessesDto } from "./dto/index.js";
+import AccessesService from "./accesses.service.ts";
+import { HeadAccessesDto, SubjectAccessesDto } from "./dto/index.ts";
 
 @Controller("/accesses")
 export default class AccessesController {

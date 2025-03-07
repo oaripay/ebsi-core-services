@@ -1,6 +1,6 @@
 import { IsEthereumAddress } from "class-validator";
 
-import { ArgsSetAttributeData } from "../sendSignedTransaction/index.js";
+import { ArgsSetAttributeData } from "../sendSignedTransaction/index.ts";
 
 export class SetAttributeDataParam extends ArgsSetAttributeData {
   @IsEthereumAddress()

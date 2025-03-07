@@ -20,20 +20,20 @@ import crypto from "node:crypto";
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import type { ApiConfig } from "../../src/config/configuration.js";
-import type { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface.js";
-import type { InsertHashAlgorithmSchema } from "../../src/modules/jsonrpc/validators/RequestInsertHashAlgorithm.js";
-import type { TimestampHashesSchema } from "../../src/modules/jsonrpc/validators/RequestTimestampHashes.js";
-import type { UpdateHashAlgorithmSchema } from "../../src/modules/jsonrpc/validators/RequestUpdateHashAlgorithm.js";
-import type { UnsignedTransactionSchema } from "../../src/modules/jsonrpc/validators/UnsignedTransaction.js";
+import type { ApiConfig } from "../../src/config/configuration.ts";
+import type { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface.ts";
+import type { InsertHashAlgorithmSchema } from "../../src/modules/jsonrpc/validators/RequestInsertHashAlgorithm.ts";
+import type { TimestampHashesSchema } from "../../src/modules/jsonrpc/validators/RequestTimestampHashes.ts";
+import type { UpdateHashAlgorithmSchema } from "../../src/modules/jsonrpc/validators/RequestUpdateHashAlgorithm.ts";
+import type { UnsignedTransactionSchema } from "../../src/modules/jsonrpc/validators/UnsignedTransaction.ts";
 
-import { AppModule } from "../../src/app.module.js";
-import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
-import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils.js";
-import { getTimestampWriteAccessToken } from "../utils/getAccessToken.js";
-import { getEbsiIssuer } from "../utils/getEbsiIssuer.js";
-import { getServer } from "../utils/getServer.js";
-import { describeWriteOps, writeOps } from "../utils/writeOps.js";
+import { AppModule } from "../../src/app.module.ts";
+import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.ts";
+import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils.ts";
+import { getTimestampWriteAccessToken } from "../utils/getAccessToken.ts";
+import { getEbsiIssuer } from "../utils/getEbsiIssuer.ts";
+import { getServer } from "../utils/getServer.ts";
+import { describeWriteOps, writeOps } from "../utils/writeOps.ts";
 
 type JsonRpcParams =
   | InsertHashAlgorithmSchema

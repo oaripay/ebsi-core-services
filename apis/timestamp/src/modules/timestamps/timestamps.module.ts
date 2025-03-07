@@ -1,9 +1,9 @@
 import { Logger, Module } from "@nestjs/common";
 
-import { ApiConfigModule } from "../../config/configuration.js";
-import { LedgerModule } from "../ledger/ledger.module.js";
-import TimestampsController from "./timestamps.controller.js";
-import TimestampsService from "./timestamps.service.js";
+import { ApiConfigModule } from "../../config/configuration.ts";
+import { LedgerModule } from "../ledger/ledger.module.ts";
+import TimestampsController from "./timestamps.controller.ts";
+import TimestampsService from "./timestamps.service.ts";
 
 @Module({
   controllers: [TimestampsController],

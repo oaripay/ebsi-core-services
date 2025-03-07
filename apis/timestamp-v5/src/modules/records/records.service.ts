@@ -20,7 +20,7 @@ import type {
   InfoObject,
   RecordResponseObject,
   RecordVersionResponseObject,
-} from "./records.interface.js";
+} from "./records.interface.ts";
 
 import { getBuiltGraphSDK } from "../../../.graphclient/index.js";
 

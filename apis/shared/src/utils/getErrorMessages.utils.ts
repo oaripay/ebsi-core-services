@@ -1,8 +1,8 @@
 import * as ClassValidator from "class-validator";
 import { ZodError } from "zod";
 
-import { ProblemDetailsError } from "../errors/ProblemDetailsError.js";
-import { isEthersError } from "./isEthersError.js";
+import { ProblemDetailsError } from "../errors/ProblemDetailsError.ts";
+import { isEthersError } from "./isEthersError.ts";
 
 export function getErrorMessage(error: unknown, defaultErrorMessage?: string) {
   if (

@@ -14,11 +14,11 @@ import {
   vi,
 } from "vitest";
 
-import type { ApiConfig } from "./config/configuration.js";
+import type { ApiConfig } from "./config/configuration.ts";
 
-import { configureApp } from "../tests/utils/app.js";
-import { AppModule } from "./app.module.js";
-import { DEPENDENCIES } from "./config/configuration.js";
+import { configureApp } from "../tests/utils/app.ts";
+import { AppModule } from "./app.module.ts";
+import { DEPENDENCIES } from "./config/configuration.ts";
 
 const mockedLogger = {
   error: vi.fn(),

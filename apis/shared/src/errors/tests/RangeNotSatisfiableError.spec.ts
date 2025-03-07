@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { ProblemDetailsError, RangeNotSatisfiableError } from "../index.js";
+import { ProblemDetailsError, RangeNotSatisfiableError } from "../index.ts";
 
 describe("error RangeNotSatisfiableError", () => {
   it("should extend ProblemDetailsError", () => {

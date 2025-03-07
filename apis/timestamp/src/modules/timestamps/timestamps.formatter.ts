@@ -3,7 +3,7 @@ import type { Timestamp } from "@ebsiint-sc/timestamp";
 
 import { multibase, multihashEncode, paginate } from "@ebsiint-api/shared";
 
-import type { TimestampLink } from "./timestamps.interface.js";
+import type { TimestampLink } from "./timestamps.interface.ts";
 
 export function formatTimestamps(
   timestamps: Awaited<ReturnType<Timestamp["getTimestamps"]>>,

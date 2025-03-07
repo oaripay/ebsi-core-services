@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { PaymentRequiredError, ProblemDetailsError } from "../index.js";
+import { PaymentRequiredError, ProblemDetailsError } from "../index.ts";
 
 describe("error PaymentRequiredError", () => {
   it("should extend ProblemDetailsError", () => {

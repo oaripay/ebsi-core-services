@@ -12,12 +12,12 @@ import crypto from "node:crypto";
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
-import type { RecordLink } from "./records.interface.js";
+import type { RecordLink } from "./records.interface.ts";
 
-import { graphServer } from "../../../tests/utils/graphServer.js";
-import { setupTestEnv } from "../../../tests/utils/timestamp.js";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
-import { RecordsModule } from "./records.module.js";
+import { graphServer } from "../../../tests/utils/graphServer.ts";
+import { setupTestEnv } from "../../../tests/utils/timestamp.ts";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter.ts";
+import { RecordsModule } from "./records.module.ts";
 
 describe("Records Module", () => {
   let app: NestFastifyApplication;

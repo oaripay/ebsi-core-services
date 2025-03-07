@@ -10,12 +10,12 @@ import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 
-import type { ApiConfig } from "../../config/configuration.js";
-import type { Access } from "./accesses.interface.js";
+import type { ApiConfig } from "../../config/configuration.ts";
+import type { Access } from "./accesses.interface.ts";
 
-import { Permission } from "../../shared/constants.js";
-import { didToHex, hexToDid, permissionToString } from "../../shared/utils.js";
-import { LedgerService } from "../ledger/ledger.service.js";
+import { Permission } from "../../shared/constants.ts";
+import { didToHex, hexToDid, permissionToString } from "../../shared/utils.ts";
+import { LedgerService } from "../ledger/ledger.service.ts";
 
 @Injectable()
 export default class AccessesService {

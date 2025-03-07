@@ -24,10 +24,10 @@ import {
   vi,
 } from "vitest";
 
-import type { BesuJsonRpcError, BesuJsonRpcResult } from "./besu.interface.js";
+import type { BesuJsonRpcError, BesuJsonRpcResult } from "./besu.interface.ts";
 
-import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
-import { BesuModule } from "./besu.module.js";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter.ts";
+import { BesuModule } from "./besu.module.ts";
 
 describe("Besu Module", () => {
   let app: NestFastifyApplication;

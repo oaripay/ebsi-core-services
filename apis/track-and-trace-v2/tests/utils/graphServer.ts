@@ -6,7 +6,7 @@ import type {
   Invitation_filter,
 } from "../../.graphclient/index.js";
 
-import { dummyData } from "./data.js";
+import { dummyData } from "./data.ts";
 
 export const handlers = [
   graphql.query("GetDocuments", ({ variables }) => {

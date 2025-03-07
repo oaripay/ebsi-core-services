@@ -5,10 +5,10 @@ import { Timestamp__factory } from "@ebsiint-sc/timestamp-v2";
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
-import type { ApiConfig } from "../../config/configuration.js";
-import type { HashAlgorithmResponseObject } from "./hash-algorithms.interface.js";
+import type { ApiConfig } from "../../config/configuration.ts";
+import type { HashAlgorithmResponseObject } from "./hash-algorithms.interface.ts";
 
-import { LedgerService } from "../ledger/ledger.service.js";
+import { LedgerService } from "../ledger/ledger.service.ts";
 
 @Injectable()
 export class HashAlgorithmsService {

@@ -1,3 +1,3 @@
-export * from "./add-controller-param.dto.js";
-export * from "./args-add-controller.dto.js";
-export * from "./request-add-controller.dto.js";
+export * from "./add-controller-param.dto.ts";
+export * from "./args-add-controller.dto.ts";
+export * from "./request-add-controller.dto.ts";

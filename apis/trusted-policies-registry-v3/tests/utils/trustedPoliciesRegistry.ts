@@ -1,4 +1,4 @@
-import "../../../../contracts/trusted-policies-registry-v2/src/types/hardhat.d.ts";
+import "@ebsiint-sc/trusted-policies-registry-v2/dist/hardhat.d.ts";
 
 import hre from "hardhat";
 

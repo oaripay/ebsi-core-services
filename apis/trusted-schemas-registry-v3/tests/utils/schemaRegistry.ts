@@ -1,4 +1,4 @@
-import "../../../../contracts/trusted-schemas-registry-v2/src/types/hardhat.d.ts";
+import "@ebsiint-sc/trusted-schemas-registry-v2/dist/hardhat.d.ts";
 
 import hre from "hardhat";
 
@@ -13,7 +13,7 @@ import { computeId } from "@ebsiint-api/shared";
 import { ethers } from "ethers";
 import crypto from "node:crypto";
 
-import { createDid, createSchema } from "./data.js";
+import { createDid, createSchema } from "./data.ts";
 
 export interface SetupOptions {
   schemaMetadataTotal?: number;

@@ -17,7 +17,7 @@ import { randomUUID } from "node:crypto";
 import request from "supertest";
 import { beforeAll, describe, expect, it } from "vitest";
 
-import type { ApiConfig } from "../../src/config/configuration.js";
+import type { ApiConfig } from "../../src/config/configuration.ts";
 import type {
   AddControllerParam,
   AddVerificationMethodParam,
@@ -29,20 +29,20 @@ import type {
   RollVerificationMethodParam,
   UnsignedTransaction,
   UpdateBaseDocumentParam,
-} from "../../src/modules/jsonrpc/dto/index.js";
-import type { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface.js";
+} from "../../src/modules/jsonrpc/dto/index.ts";
+import type { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface.ts";
 
-import { AppModule } from "../../src/app.module.js";
-import { DEV_DEPENDENCIES } from "../../src/config/configuration.js";
-import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
-import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils.js";
-import { createUser } from "../utils/data.js";
-import { describeWriteOps } from "../utils/describeWriteOps.js";
+import { AppModule } from "../../src/app.module.ts";
+import { DEV_DEPENDENCIES } from "../../src/config/configuration.ts";
+import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.ts";
+import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils.ts";
+import { createUser } from "../utils/data.ts";
+import { describeWriteOps } from "../utils/describeWriteOps.ts";
 import {
   getDidrInviteAccessToken,
   getDidrWriteAccessToken,
-} from "../utils/getAccessToken.js";
-import { getServer } from "../utils/getServer.js";
+} from "../utils/getAccessToken.ts";
+import { getServer } from "../utils/getServer.ts";
 
 type JsonRpcParams =
   | AddControllerParam

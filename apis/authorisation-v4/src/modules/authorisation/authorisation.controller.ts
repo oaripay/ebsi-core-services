@@ -16,12 +16,12 @@ import type {
   JsonWebKeySet,
   OPMetadata,
   TokenResponse,
-} from "./authorisation.interfaces.js";
+} from "./authorisation.interfaces.ts";
 
-import { CUSTOM_SCOPES } from "./authorisation.constants.js";
-import { AuthorisationService } from "./authorisation.service.js";
-import { GetPresentationDefinitionsDto } from "./dto/index.js";
-import { OAuth2TokenError } from "./errors/index.js";
+import { CUSTOM_SCOPES } from "./authorisation.constants.ts";
+import { AuthorisationService } from "./authorisation.service.ts";
+import { GetPresentationDefinitionsDto } from "./dto/index.ts";
+import { OAuth2TokenError } from "./errors/index.ts";
 
 @Controller("/")
 export class AuthorisationController {

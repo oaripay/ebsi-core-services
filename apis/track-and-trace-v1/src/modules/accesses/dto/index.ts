@@ -1,2 +1,2 @@
-export * from "./head-accesses.dto.js";
-export * from "./subject-accesses.dto.js";
+export * from "./head-accesses.dto.ts";
+export * from "./subject-accesses.dto.ts";

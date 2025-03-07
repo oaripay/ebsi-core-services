@@ -1,15 +1,11 @@
+import type { CanActivate, ExecutionContext } from "@nestjs/common";
 import type { FastifyRequest } from "fastify";
 
-import {
-  CanActivate,
-  ExecutionContext,
-  Injectable,
-  Logger,
-} from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import "@fastify/accepts"; // Required to have proper types on `request.accepts()`.
 
-import { NotAcceptableError } from "../errors/NotAcceptableError.js";
+import { NotAcceptableError } from "../errors/NotAcceptableError.ts";
 
 @Injectable()
 export class AcceptsGuard implements CanActivate {

@@ -2,7 +2,7 @@ import type { ValidationOptions } from "class-validator";
 
 import { buildMessage, ValidateBy } from "class-validator";
 
-import type { ValidationResult } from "./types.js";
+import type { ValidationResult } from "./types.ts";
 
 export const IS_SIGNED_RAW_TRANSACTION = "isSignedRawTransaction";
 

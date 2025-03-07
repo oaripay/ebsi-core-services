@@ -12,31 +12,31 @@ import { ConfigService } from "@nestjs/config";
 import axios from "axios";
 import { ethers } from "ethers";
 
-import type { ApiConfig } from "../../config/configuration.js";
-import type { JsonRpcSchema } from "./validators/JsonRpcSchema.js";
+import type { ApiConfig } from "../../config/configuration.ts";
+import type { JsonRpcSchema } from "./validators/JsonRpcSchema.ts";
 import type {
   SendSignedTransactionParamsSchema,
   UnsignedTransaction,
-} from "./validators/RequestSendSignedTransactionSchema.js";
+} from "./validators/RequestSendSignedTransactionSchema.ts";
 
-import { LedgerService } from "../ledger/ledger.service.js";
+import { LedgerService } from "../ledger/ledger.service.ts";
 import {
   formatEthersSignature,
   formatEthersUnsignedTransaction,
-} from "./jsonrpc.utils.js";
+} from "./jsonrpc.utils.ts";
 import {
   insertSchemaSchema,
   requestInsertSchemaSchema,
-} from "./validators/RequestInsertSchemaSchema.js";
-import { requestSendSignedTransactionDtoSchema } from "./validators/RequestSendSignedTransactionSchema.js";
+} from "./validators/RequestInsertSchemaSchema.ts";
+import { requestSendSignedTransactionDtoSchema } from "./validators/RequestSendSignedTransactionSchema.ts";
 import {
   requestUpdateMetadataSchema,
   updateMetadataSchema,
-} from "./validators/RequestUpdateMetadataSchema.js";
+} from "./validators/RequestUpdateMetadataSchema.ts";
 import {
   requestUpdateSchemaSchema,
   updateSchemaSchema,
-} from "./validators/RequestUpdateSchemaSchema.js";
+} from "./validators/RequestUpdateSchemaSchema.ts";
 
 @Injectable()
 export class JsonRpcService {

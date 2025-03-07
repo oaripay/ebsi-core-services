@@ -3,7 +3,7 @@ import type { Timestamp } from "@ebsiint-sc/timestamp";
 
 import { paginate } from "@ebsiint-api/shared";
 
-import type { HashAlgorithmLink } from "./hash-algorithms.interface.js";
+import type { HashAlgorithmLink } from "./hash-algorithms.interface.ts";
 
 export function formatHashAlgorithms(
   hashAlgorithms: Awaited<ReturnType<Timestamp["getHashAlgorithms"]>>,

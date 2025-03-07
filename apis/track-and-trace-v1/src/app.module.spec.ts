@@ -39,14 +39,14 @@ import {
   vi,
 } from "vitest";
 
-import type { ApiConfig } from "./config/configuration.js";
+import type { ApiConfig } from "./config/configuration.ts";
 import type {
   Access,
   Document,
   DocumentAccesses,
   Event,
-} from "./modules/documents/documents.interface.js";
-import type { JsonRpcResponseObject } from "./modules/jsonrpc/jsonrpc.interface.js";
+} from "./modules/documents/documents.interface.ts";
+import type { JsonRpcResponseObject } from "./modules/jsonrpc/jsonrpc.interface.ts";
 import type {
   AuthoriseDidSchema,
   CreateDocumentSchema,
@@ -55,20 +55,20 @@ import type {
   RevokeAccessSchema,
   UnsignedTransaction,
   WriteEventSchema,
-} from "./modules/jsonrpc/validators/index.js";
+} from "./modules/jsonrpc/validators/index.ts";
 
-import { setupTestEnv } from "../tests/utils/trackAndTrace.js";
-import { AppModule } from "./app.module.js";
+import { setupTestEnv } from "../tests/utils/trackAndTrace.ts";
+import { AppModule } from "./app.module.ts";
 import {
   BOOTSTRAP_DEPENDENCIES,
   RUNTIME_DEPENDENCIES,
-} from "./config/configuration.js";
-import { AllExceptionsFilter } from "./filters/http-exception.filter.js";
-import { createLogger } from "./logger/logger.js";
-import { formatEthersUnsignedTransaction } from "./modules/jsonrpc/jsonrpc.utils.js";
-import { LedgerService } from "./modules/ledger/ledger.service.js";
-import { AccountType, Permission } from "./shared/constants.js";
-import { didToHex } from "./shared/utils.js";
+} from "./config/configuration.ts";
+import { AllExceptionsFilter } from "./filters/http-exception.filter.ts";
+import { createLogger } from "./logger/logger.ts";
+import { formatEthersUnsignedTransaction } from "./modules/jsonrpc/jsonrpc.utils.ts";
+import { LedgerService } from "./modules/ledger/ledger.service.ts";
+import { AccountType, Permission } from "./shared/constants.ts";
+import { didToHex } from "./shared/utils.ts";
 
 interface Actor {
   did: string;

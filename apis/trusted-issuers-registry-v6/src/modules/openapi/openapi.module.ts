@@ -1,6 +1,6 @@
 import { Module } from "@nestjs/common";
 
-import { OpenApiController } from "./openapi.controller.js";
+import { OpenApiController } from "./openapi.controller.ts";
 
 @Module({
   controllers: [OpenApiController],

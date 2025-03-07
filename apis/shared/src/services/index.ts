@@ -1,1 +1,1 @@
-export * from "./besu.service.js";
+export * from "./besu.service.ts";

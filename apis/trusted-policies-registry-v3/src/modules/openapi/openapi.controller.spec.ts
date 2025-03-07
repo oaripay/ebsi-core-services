@@ -7,7 +7,7 @@ import { Test } from "@nestjs/testing";
 import request from "supertest";
 import { beforeAll, describe, expect, it } from "vitest";
 
-import { OpenApiModule } from "./openapi.module.js";
+import { OpenApiModule } from "./openapi.module.ts";
 
 describe("OpenApiController", () => {
   let app: NestFastifyApplication;

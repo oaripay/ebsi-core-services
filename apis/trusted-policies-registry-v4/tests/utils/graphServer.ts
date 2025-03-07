@@ -3,7 +3,7 @@ import { setupServer } from "msw/node";
 
 import type { Policy_filter, User_filter } from "../../.graphclient/index.js";
 
-import { dummyPolicies, dummyUsers } from "./data.js";
+import { dummyPolicies, dummyUsers } from "./data.ts";
 
 export const graphServer = setupServer(
   graphql.query("GetPolicyNames", ({ variables }) => {

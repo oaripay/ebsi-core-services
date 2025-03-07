@@ -1,8 +1,8 @@
 import { Logger, Module } from "@nestjs/common";
 
-import { ApiConfigModule } from "../../config/configuration.js";
-import { BesuController } from "./besu.controller.js";
-import { BesuService } from "./besu.service.js";
+import { ApiConfigModule } from "../../config/configuration.ts";
+import { BesuController } from "./besu.controller.ts";
+import { BesuService } from "./besu.service.ts";
 
 @Module({
   controllers: [BesuController],

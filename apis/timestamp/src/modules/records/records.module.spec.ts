@@ -12,12 +12,12 @@ import crypto from "node:crypto";
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
-import type { RecordLink } from "./records.interface.js";
+import type { RecordLink } from "./records.interface.ts";
 
-import { setupTestEnv } from "../../../tests/utils/timestamp.js";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
-import { LedgerService } from "../ledger/ledger.service.js";
-import { RecordsModule } from "./records.module.js";
+import { setupTestEnv } from "../../../tests/utils/timestamp.ts";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter.ts";
+import { LedgerService } from "../ledger/ledger.service.ts";
+import { RecordsModule } from "./records.module.ts";
 
 const RECORDS_TOTAL = 3;
 

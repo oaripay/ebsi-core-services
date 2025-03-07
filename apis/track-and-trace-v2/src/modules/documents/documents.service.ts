@@ -11,11 +11,11 @@ import type {
   GetDocumentsQuery,
   Invitation_filter,
 } from "../../../.graphclient/index.js";
-import type { Access } from "../accesses/accesses.interface.js";
-import type { Document, Event } from "./documents.interface.js";
+import type { Access } from "../accesses/accesses.interface.ts";
+import type { Document, Event } from "./documents.interface.ts";
 
 import { getBuiltGraphSDK } from "../../../.graphclient/index.js";
-import { hexToDid } from "../../shared/utils.js";
+import { hexToDid } from "../../shared/utils.ts";
 
 const sdk = getBuiltGraphSDK();
 

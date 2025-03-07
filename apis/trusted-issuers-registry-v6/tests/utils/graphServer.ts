@@ -6,7 +6,7 @@ import type {
   Issuer_filter,
 } from "../../.graphclient/index.js";
 
-import { dummyIssuers } from "./data.js";
+import { dummyIssuers } from "./data.ts";
 
 export const graphServer = setupServer(
   graphql.query("GetIssuers", ({ variables }) => {

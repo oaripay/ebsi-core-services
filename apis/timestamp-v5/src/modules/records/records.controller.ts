@@ -4,20 +4,20 @@ import { Accepts } from "@ebsiint-api/shared";
 import { Controller, Get, Param, Query } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
-import type { ApiConfig } from "../../config/configuration.js";
+import type { ApiConfig } from "../../config/configuration.ts";
 import type {
   RecordLink,
   RecordResponseObject,
   RecordVersionResponseObject,
   VersionLink,
-} from "./records.interface.js";
+} from "./records.interface.ts";
 
-import GetRecordVersionDto from "./dto/get-record-version.dto.js";
-import GetRecordVersionsDto from "./dto/get-record-versions.dto.js";
-import GetRecordDto from "./dto/get-record.dto.js";
-import GetRecordsDto from "./dto/get-records.dto.js";
-import { formatRecords, formatRecordVersions } from "./records.formatter.js";
-import RecordsService from "./records.service.js";
+import GetRecordVersionDto from "./dto/get-record-version.dto.ts";
+import GetRecordVersionsDto from "./dto/get-record-versions.dto.ts";
+import GetRecordDto from "./dto/get-record.dto.ts";
+import GetRecordsDto from "./dto/get-records.dto.ts";
+import { formatRecords, formatRecordVersions } from "./records.formatter.ts";
+import RecordsService from "./records.service.ts";
 
 @Controller("/records")
 export default class RecordsController {

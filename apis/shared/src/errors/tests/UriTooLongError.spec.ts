@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { ProblemDetailsError, UriTooLongError } from "../index.js";
+import { ProblemDetailsError, UriTooLongError } from "../index.ts";
 
 describe("error UriTooLongError", () => {
   it("should extend ProblemDetailsError", () => {

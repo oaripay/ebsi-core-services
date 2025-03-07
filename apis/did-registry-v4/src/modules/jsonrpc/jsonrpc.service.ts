@@ -12,10 +12,10 @@ import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 
-import type { ApiConfig } from "../../config/configuration.js";
+import type { ApiConfig } from "../../config/configuration.ts";
 
-import { DIDR_INVITE_SCOPE, DIDR_WRITE_SCOPE } from "../auth/auth.constants.js";
-import { LedgerService } from "../ledger/ledger.service.js";
+import { DIDR_INVITE_SCOPE, DIDR_WRITE_SCOPE } from "../auth/auth.constants.ts";
+import { LedgerService } from "../ledger/ledger.service.ts";
 import {
   ArgsAddController,
   ArgsAddVerificationMethod,
@@ -38,12 +38,12 @@ import {
   RequestUpdateBaseDocumentDto,
   SignedTransactionParam,
   UnsignedTransaction,
-} from "./dto/index.js";
+} from "./dto/index.ts";
 import {
   formatEthersSignature,
   formatEthersUnsignedTransaction,
   validateClass,
-} from "./jsonrpc.utils.js";
+} from "./jsonrpc.utils.ts";
 
 function assertDidMatchesSub(did: string, sub: string) {
   if (did !== sub) {

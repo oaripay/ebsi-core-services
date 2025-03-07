@@ -32,31 +32,31 @@ import {
   vi,
 } from "vitest";
 
-import type { UserDetails } from "../../../tests/utils/data.js";
-import type { ApiConfig } from "../../config/configuration.js";
-import type { JsonRpcResponseObject } from "./jsonrpc.interface.js";
-import type { AppendRecordVersionHashesSchema } from "./validators/RequestAppendRecordVersionHashes.js";
-import type { DetachRecordVersionHashSchema } from "./validators/RequestDetachRecordVersionHashes.js";
-import type { InsertHashAlgorithmSchema } from "./validators/RequestInsertHashAlgorithm.js";
-import type { InsertRecordOwnerSchema } from "./validators/RequestInsertRecordOwner.js";
-import type { InsertRecordVersionInfoSchema } from "./validators/RequestInsertRecordVersionInfo.js";
-import type { RevokeRecordOwnerSchema } from "./validators/RequestRevokeRecordOwner.js";
-import type { TimestampHashesSchema } from "./validators/RequestTimestampHashes.js";
-import type { TimestampRecordHashesSchema } from "./validators/RequestTimestampRecordHashes.js";
-import type { TimestampRecordVersionHashesSchema } from "./validators/RequestTimestampRecordVersionHashes.js";
-import type { TimestampVersionHashesSchema } from "./validators/RequestTimestampVersionHashes.js";
-import type { UpdateHashAlgorithmSchema } from "./validators/RequestUpdateHashAlgorithm.js";
-import type { UnsignedTransactionSchema } from "./validators/UnsignedTransaction.js";
+import type { UserDetails } from "../../../tests/utils/data.ts";
+import type { ApiConfig } from "../../config/configuration.ts";
+import type { JsonRpcResponseObject } from "./jsonrpc.interface.ts";
+import type { AppendRecordVersionHashesSchema } from "./validators/RequestAppendRecordVersionHashes.ts";
+import type { DetachRecordVersionHashSchema } from "./validators/RequestDetachRecordVersionHashes.ts";
+import type { InsertHashAlgorithmSchema } from "./validators/RequestInsertHashAlgorithm.ts";
+import type { InsertRecordOwnerSchema } from "./validators/RequestInsertRecordOwner.ts";
+import type { InsertRecordVersionInfoSchema } from "./validators/RequestInsertRecordVersionInfo.ts";
+import type { RevokeRecordOwnerSchema } from "./validators/RequestRevokeRecordOwner.ts";
+import type { TimestampHashesSchema } from "./validators/RequestTimestampHashes.ts";
+import type { TimestampRecordHashesSchema } from "./validators/RequestTimestampRecordHashes.ts";
+import type { TimestampRecordVersionHashesSchema } from "./validators/RequestTimestampRecordVersionHashes.ts";
+import type { TimestampVersionHashesSchema } from "./validators/RequestTimestampVersionHashes.ts";
+import type { UpdateHashAlgorithmSchema } from "./validators/RequestUpdateHashAlgorithm.ts";
+import type { UnsignedTransactionSchema } from "./validators/UnsignedTransaction.ts";
 
-import { createUser } from "../../../tests/utils/data.js";
+import { createUser } from "../../../tests/utils/data.ts";
 import {
   multihashToNodeHashAlg,
   setupTestEnv,
-} from "../../../tests/utils/timestamp.js";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
-import { LedgerService } from "../ledger/ledger.service.js";
-import { JsonRpcModule } from "./jsonrpc.module.js";
-import { formatEthersUnsignedTransaction } from "./jsonrpc.utils.js";
+} from "../../../tests/utils/timestamp.ts";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter.ts";
+import { LedgerService } from "../ledger/ledger.service.ts";
+import { JsonRpcModule } from "./jsonrpc.module.ts";
+import { formatEthersUnsignedTransaction } from "./jsonrpc.utils.ts";
 
 type JsonRpcParams =
   | AppendRecordVersionHashesSchema

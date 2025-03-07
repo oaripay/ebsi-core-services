@@ -1,6 +1,6 @@
 import { IsEthereumAddress } from "class-validator";
 
-import { ArgsRevokeVerificationMethod } from "./args-revoke-verification-method.dto.js";
+import { ArgsRevokeVerificationMethod } from "./args-revoke-verification-method.dto.ts";
 
 export class RevokeVerificationMethodParam extends ArgsRevokeVerificationMethod {
   @IsEthereumAddress()

@@ -1,3 +1,3 @@
-export * from "./attributes.validator.js";
-export * from "./IsScope.js";
-export * from "./presentation-submission.validator.js";
+export * from "./attributes.validator.ts";
+export * from "./IsScope.ts";
+export * from "./presentation-submission.validator.ts";

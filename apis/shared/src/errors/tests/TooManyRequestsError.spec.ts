@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { ProblemDetailsError, TooManyRequestsError } from "../index.js";
+import { ProblemDetailsError, TooManyRequestsError } from "../index.ts";
 
 describe("error TooManyRequestsError", () => {
   it("should extend ProblemDetailsError", () => {

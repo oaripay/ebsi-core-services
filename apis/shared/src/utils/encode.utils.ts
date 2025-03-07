@@ -1,6 +1,7 @@
+import type { JWK } from "jose";
+
 import { KeyEncoder } from "@cef-ebsi/key-encoder";
 import elliptic from "elliptic";
-import { JWK } from "jose";
 import { bases, bytes } from "multiformats/basics";
 
 const { base64url } = bases;

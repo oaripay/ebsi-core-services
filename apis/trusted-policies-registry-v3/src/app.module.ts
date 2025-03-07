@@ -3,14 +3,16 @@ import { Module } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { APP_INTERCEPTOR } from "@nestjs/core";
 
-import { AppController } from "./app.controller.js";
-import { AppService } from "./app.service.js";
-import { type ApiConfig, ApiConfigModule } from "./config/configuration.js";
-import { HealthModule } from "./modules/health/health.module.js";
-import { JsonRpcModule } from "./modules/jsonrpc/jsonrpc.module.js";
-import { OpenApiModule } from "./modules/openapi/openapi.module.js";
-import { PoliciesModule } from "./modules/policies/policies.module.js";
-import { UsersModule } from "./modules/users/users.module.js";
+import type { ApiConfig } from "./config/configuration.ts";
+
+import { AppController } from "./app.controller.ts";
+import { AppService } from "./app.service.ts";
+import { ApiConfigModule } from "./config/configuration.ts";
+import { HealthModule } from "./modules/health/health.module.ts";
+import { JsonRpcModule } from "./modules/jsonrpc/jsonrpc.module.ts";
+import { OpenApiModule } from "./modules/openapi/openapi.module.ts";
+import { PoliciesModule } from "./modules/policies/policies.module.ts";
+import { UsersModule } from "./modules/users/users.module.ts";
 
 @Module({
   controllers: [AppController],

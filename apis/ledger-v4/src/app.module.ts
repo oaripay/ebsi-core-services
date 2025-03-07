@@ -3,11 +3,13 @@ import { Module } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { APP_INTERCEPTOR } from "@nestjs/core";
 
-import { AppController } from "./app.controller.js";
-import { type ApiConfig, ApiConfigModule } from "./config/configuration.js";
-import { BesuModule } from "./modules/besu/besu.module.js";
-import { HealthModule } from "./modules/health/health.module.js";
-import { OpenApiModule } from "./modules/openapi/openapi.module.js";
+import type { ApiConfig } from "./config/configuration.ts";
+
+import { AppController } from "./app.controller.ts";
+import { ApiConfigModule } from "./config/configuration.ts";
+import { BesuModule } from "./modules/besu/besu.module.ts";
+import { HealthModule } from "./modules/health/health.module.ts";
+import { OpenApiModule } from "./modules/openapi/openapi.module.ts";
 
 @Module({
   controllers: [AppController],

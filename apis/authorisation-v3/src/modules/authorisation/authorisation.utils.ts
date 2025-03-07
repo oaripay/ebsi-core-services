@@ -1,7 +1,9 @@
-import { type ClassConstructor, ClassTransformer } from "class-transformer";
+import type { ClassConstructor } from "class-transformer";
+
+import { ClassTransformer } from "class-transformer";
 import { validateSync } from "class-validator";
 
-import { ClassValidatorError } from "./errors/index.js";
+import { ClassValidatorError } from "./errors/index.ts";
 
 /**
  * Validates and transforms DTO.

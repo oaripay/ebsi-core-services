@@ -7,8 +7,8 @@ import {
   ValidateNested,
 } from "class-validator";
 
-import { JsonRpcDto } from "../jsonrpc.dto.js";
-import { UpdateBaseDocumentParam } from "./update-base-document-param.dto.js";
+import { JsonRpcDto } from "../jsonrpc.dto.ts";
+import { UpdateBaseDocumentParam } from "./update-base-document-param.dto.ts";
 
 export class RequestUpdateBaseDocumentDto extends JsonRpcDto {
   @Equals("updateBaseDocument")

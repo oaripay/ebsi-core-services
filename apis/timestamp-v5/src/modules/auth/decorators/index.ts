@@ -1,1 +1,1 @@
-export * from "./user.decorator.js";
+export * from "./user.decorator.ts";

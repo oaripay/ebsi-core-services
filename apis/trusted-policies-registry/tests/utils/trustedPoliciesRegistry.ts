@@ -1,4 +1,4 @@
-import "../../../../contracts/trusted-policies-registry/src/types/hardhat.d.ts";
+import "@ebsiint-sc/trusted-policies-registry/dist/hardhat.d.ts";
 
 import hre from "hardhat";
 
@@ -13,7 +13,7 @@ import {
   ATTRIBUTE_OPERATIONS,
   ATTRIBUTE_TYPES,
   OPERATION_TYPES,
-} from "../../src/modules/policies/policies.constants.js";
+} from "../../src/modules/policies/policies.constants.ts";
 
 export interface PolicyObject {
   description: string;

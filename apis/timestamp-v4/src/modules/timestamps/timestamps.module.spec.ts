@@ -17,12 +17,12 @@ import crypto from "node:crypto";
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
-import type { TimestampLink } from "./timestamps.interface.js";
+import type { TimestampLink } from "./timestamps.interface.ts";
 
-import { insertHash, setupTestEnv } from "../../../tests/utils/timestamp.js";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
-import { LedgerService } from "../ledger/ledger.service.js";
-import { TimestampsModule } from "./timestamps.module.js";
+import { insertHash, setupTestEnv } from "../../../tests/utils/timestamp.ts";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter.ts";
+import { LedgerService } from "../ledger/ledger.service.ts";
+import { TimestampsModule } from "./timestamps.module.ts";
 
 const HASHES_TOTAL = 3;
 

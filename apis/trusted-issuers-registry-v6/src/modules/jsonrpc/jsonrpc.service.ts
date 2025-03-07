@@ -13,18 +13,18 @@ import { ConfigService } from "@nestjs/config";
 import axios, { isAxiosError } from "axios";
 import { ethers } from "ethers";
 
-import type { ApiConfig } from "../../config/configuration.js";
+import type { ApiConfig } from "../../config/configuration.ts";
 import type {
   JsonRpcSchema,
   SendSignedTransactionParamsSchema,
   UnsignedTransaction,
-} from "./validators/index.js";
+} from "./validators/index.ts";
 
-import { LedgerService } from "../ledger/ledger.service.js";
+import { LedgerService } from "../ledger/ledger.service.ts";
 import {
   formatEthersSignature,
   formatEthersUnsignedTransaction,
-} from "./jsonrpc.utils.js";
+} from "./jsonrpc.utils.ts";
 import {
   createAddIssuerProxySchema,
   createRequestAddIssuerProxySchema,
@@ -37,7 +37,7 @@ import {
   requestSetAttributeMetadataSchema,
   setAttributeDataSchema,
   setAttributeMetadataSchema,
-} from "./validators/index.js";
+} from "./validators/index.ts";
 
 function assertDidMatchesSub(did: string, sub: string) {
   if (did !== sub) {

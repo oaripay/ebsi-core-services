@@ -1,9 +1,9 @@
 import { Logger, Module } from "@nestjs/common";
 
-import { ApiConfigModule } from "../../config/configuration.js";
-import { LedgerModule } from "../ledger/ledger.module.js";
-import AccessesController from "./accesses.controller.js";
-import AccessesService from "./accesses.service.js";
+import { ApiConfigModule } from "../../config/configuration.ts";
+import { LedgerModule } from "../ledger/ledger.module.ts";
+import AccessesController from "./accesses.controller.ts";
+import AccessesService from "./accesses.service.ts";
 
 @Module({
   controllers: [AccessesController],
