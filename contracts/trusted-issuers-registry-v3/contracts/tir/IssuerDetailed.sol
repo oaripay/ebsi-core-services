@@ -344,10 +344,34 @@ abstract contract IssuerDetailed is IssuerStorage {
      * @dev Return the list of proxies of a given issuer.
      */
     function getIssuerProxies(
-        string memory did
-    ) external view returns (bytes32[] memory) {
+        string memory did,
+        uint256 page,
+        uint256 pageSize
+    )
+        external
+        view
+        returns (
+            bytes32[] memory items,
+            uint256 total,
+            uint256 howMany,
+            uint256 prev,
+            uint256 next
+        )
+    {
+        require(pageSize <= 50, "PageSize must be <= 50");
+        require(pageSize > 0, "PageSize must be > 0");
+        require(page > 0, "Page must be > 0");
         Issuers storage ds = issuerStorage();
-        return ds.issuerStore[did].proxies;
+        uint256[] memory ids;
+        (ids, total, howMany, prev, next) = ds
+            .issuerStore[did]
+            .proxies
+            .length
+            .paginate(page, pageSize);
+        items = new bytes32[](howMany);
+        for (uint256 i = 0; i < howMany; i++) {
+            items[i] = ds.issuerStore[did].proxies[ids[i]];
+        }
     }
 
     // internal functions

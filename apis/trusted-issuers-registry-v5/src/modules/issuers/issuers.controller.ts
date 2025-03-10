@@ -90,11 +90,16 @@ export class IssuersController {
   @Get("/:did/proxies")
   @UsePipes(validationPipe)
   async getIssuerProxies(
+    @Query() query: PaginationQuery,
     @Param() params: GetIssuerParamsDto,
   ): Promise<PaginatedList<ProxyLink>> {
     const { did } = params;
 
-    const proxies = await this.issuersService.getIssuerProxies(did);
+    const proxies = await this.issuersService.getIssuerProxies(
+      did,
+      query["page[after]"],
+      query["page[size]"],
+    );
 
     const apiUrlPrefix = this.configService.get("apiUrlPrefix", {
       infer: true,
@@ -102,7 +107,12 @@ export class IssuersController {
     const domain = this.configService.get("domain", { infer: true });
     const baseUrl = `${domain}${apiUrlPrefix}/issuers/${did}/proxies`;
 
-    return formatProxies(proxies, baseUrl);
+    return formatProxies(
+      proxies,
+      query["page[after]"],
+      query["page[size]"],
+      baseUrl,
+    );
   }
 
   @Accepts("application/json")

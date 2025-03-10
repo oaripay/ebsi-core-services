@@ -118,6 +118,7 @@ describe("Issuers", () => {
   ti1.revisionId2 = ethers.sha256(ti1.attribute2);
 
   const proxyData1 = randomProxy();
+  const proxyId = ethers.sha256(Buffer.from(proxyData1));
   const didIssuer = "did:ebsi:issuer";
 
   before(async () => {
@@ -792,9 +793,14 @@ describe("Issuers", () => {
         tir,
         "AddIssuerProxy",
       );
-      const issuerProxies = await tir.getIssuerProxies(didIssuer);
-      expect(issuerProxies).to.be.an("array");
-      expect(issuerProxies).to.have.length(1);
+      const issuerProxies = await tir.getIssuerProxies(didIssuer, 1, 50);
+      expect(decodeResult(issuerProxies)).to.eql({
+        howMany: BigInt(1),
+        items: [proxyId],
+        next: 1n,
+        prev: 1n,
+        total: BigInt(1),
+      });
     });
 
     it("addIssuerProxy permissions: did controller and TIR:updateIssuer", async () => {
@@ -844,7 +850,6 @@ describe("Issuers", () => {
         "AddIssuerProxy",
       );
 
-      const [proxyId] = await tir.getIssuerProxies(didIssuer);
       const proxyDataReturned = await tir.getIssuerProxyById(
         didIssuer,
         proxyId,
@@ -862,20 +867,21 @@ describe("Issuers", () => {
         "AddIssuerProxy",
       );
 
-      const [proxyId] = await tir.getIssuerProxies(didIssuer);
-      // Get previous proxy config and change/update it.
-      let proxyData = await tir.getIssuerProxyById(didIssuer, proxyId);
-
-      proxyData = randomProxy();
+      const proxyData = await tir.getIssuerProxyById(didIssuer, proxyId);
 
       await expect(
         tir.updateIssuerProxy(didIssuer, proxyId, proxyData),
       ).to.emit(tir, "UpdateIssuerProxy");
 
       // No new records should be added.
-      const issuerProxies = await tir.getIssuerProxies(didIssuer);
-      expect(issuerProxies).to.be.an("array");
-      expect(issuerProxies).to.have.length(1);
+      const issuerProxies = await tir.getIssuerProxies(didIssuer, 1, 50);
+      expect(decodeResult(issuerProxies)).to.eql({
+        howMany: BigInt(1),
+        items: [proxyId],
+        next: 1n,
+        prev: 1n,
+        total: BigInt(1),
+      });
     });
 
     it("should pass check controller when addIssuerProxy is called", async () => {
@@ -895,7 +901,6 @@ describe("Issuers", () => {
       await didContractMock.setDidResult(true);
 
       await tir.addIssuerProxy(didIssuer, proxyData1);
-      const [proxyId] = await tir.getIssuerProxies(didIssuer);
 
       const proxyData = randomProxy();
 
@@ -912,8 +917,6 @@ describe("Issuers", () => {
         tir,
         "AddIssuerProxy",
       );
-
-      const [proxyId] = await tir.getIssuerProxies(didIssuer);
 
       // Toggle permissions
       await policyContractMock.setPolicyResult(false);

@@ -489,6 +489,16 @@ paths:
               description: Valid Pilot DID
               value: did:ebsi:zsqBYQuKunNdr3XfGfPUvU7
           required: true
+        - in: query
+          name: page[after]
+          schema:
+            type: string
+          description: Cursor that points to the end of the page of data that has been returned.
+        - schema:
+            type: integer
+          in: query
+          name: page[size]
+          description: Defines the maximum number of objects that may be returned.
       responses:
         "200":
           description: Success
@@ -497,6 +507,9 @@ paths:
               schema:
                 type: object
                 properties:
+                  self:
+                    type: string
+                    description: URI to proxies
                   items:
                     type: array
                     description: List of proxies
@@ -512,6 +525,11 @@ paths:
                   total:
                     type: integer
                     description: Total number of items in a collection
+                  pageSize:
+                    type: integer
+                    description: Number of items to be returned per page
+                  links:
+                    $ref: "#/components/schemas/links"
               examples:
                 Success:
                   value:

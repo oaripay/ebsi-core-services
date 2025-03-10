@@ -27,12 +27,12 @@ export interface IssuerObject {
   attributeIdTao: string;
   did: string;
   issuerType: IssuerType;
-  proxy: {
+  proxies: {
     id: string;
     obj: IssuerProxyObject;
     statusList2021Credential: StatusList2021Credential;
     utf8: string;
-  };
+  }[];
   rootTao: string;
   tao: string;
 }
@@ -86,6 +86,22 @@ export function createIssuer(
   }
 
   // create proxy
+  const proxies = Array.from({ length: 5 })
+    .fill(0)
+    .map(() => createProxy(issuerDid));
+
+  return {
+    attribute,
+    attributeIdTao,
+    did: issuerDid,
+    issuerType,
+    proxies,
+    rootTao,
+    tao: taoDid,
+  };
+}
+
+export function createProxy(issuerDid: string) {
   const proxyObject: IssuerProxyObject = {
     headers: {
       Authorization: `Bearer ${crypto.randomBytes(16).toString("hex")}`,
@@ -123,21 +139,11 @@ export function createIssuer(
     validFrom: "2021-04-05T14:27:40Z",
   };
 
-  const proxy = {
+  return {
     id: proxyId,
     obj: proxyObject,
     statusList2021Credential,
     utf8: proxyUtf8,
-  };
-
-  return {
-    attribute,
-    attributeIdTao,
-    did: issuerDid,
-    issuerType,
-    proxy,
-    rootTao,
-    tao: taoDid,
   };
 }
 
@@ -222,7 +228,9 @@ export async function insertIssuer(
     issuer.attribute.buffer,
   );
 
-  await contract.addIssuerProxy(issuer.did, issuer.proxy.utf8);
+  for (const proxy of issuer.proxies) {
+    await contract.addIssuerProxy(issuer.did, proxy.utf8);
+  }
   return issuer;
 }
 

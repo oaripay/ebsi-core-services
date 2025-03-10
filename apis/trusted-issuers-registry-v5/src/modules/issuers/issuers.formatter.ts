@@ -48,18 +48,18 @@ export function formatIssuers(
 
 export function formatProxies(
   issuerProxies: Awaited<ReturnType<Tir["getIssuerProxies"]>>,
+  page: number,
+  pageSize: number,
   baseUrl: string,
 ): PaginatedList<ProxyLink> {
-  const items: ProxyLink[] = issuerProxies.map((proxy) => ({
-    href: `${baseUrl}/${proxy}`,
-    proxyId: proxy,
-  }));
-  const total = items.length;
+  const total = Number(issuerProxies.total);
 
-  return {
-    items,
-    total,
-  };
+  const items: ProxyLink[] = issuerProxies.items.map((proxyId) => ({
+    href: `${baseUrl}/${proxyId}`,
+    proxyId,
+  }));
+
+  return paginate<ProxyLink>(items, baseUrl, total, page, pageSize);
 }
 
 export function formatRevisions(

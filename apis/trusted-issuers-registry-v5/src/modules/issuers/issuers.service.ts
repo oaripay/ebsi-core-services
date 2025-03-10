@@ -261,7 +261,7 @@ export class IssuersService {
     }
   }
 
-  async getIssuerProxies(did: string) {
+  async getIssuerProxies(did: string, page: number, pageSize: number) {
     const provider = this.ledgerService.getProvider();
 
     // Make sure the issuer exists
@@ -273,7 +273,7 @@ export class IssuersService {
       proxies = await this.contract
         // @ts-expect-error Error due to CommonJS vs ESM modules imports
         .connect(provider)
-        .getIssuerProxies(did);
+        .getIssuerProxies(did, page, pageSize);
     } catch (error) {
       if (isEthersError(error)) {
         this.logger.error(error, error.stack);

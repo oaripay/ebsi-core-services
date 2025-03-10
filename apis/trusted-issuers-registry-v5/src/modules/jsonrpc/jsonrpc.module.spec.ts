@@ -107,7 +107,9 @@ describe("JsonRpc Module", () => {
         param = {
           did: issuer1.did,
           from: signer.address,
-          proxyData: tamper ? issuer2.proxy.utf8 : issuer1.proxy.utf8,
+          proxyData: tamper
+            ? issuer2.proxies[0]!.utf8
+            : issuer1.proxies[0]!.utf8,
         } satisfies AddIssuerProxySchema;
         break;
       }
@@ -137,8 +139,8 @@ describe("JsonRpc Module", () => {
         param = {
           did: issuer1.did,
           from: signer.address,
-          proxyData: issuer2.proxy.utf8,
-          proxyId: tamper ? issuer2.proxy.id : issuer1.proxy.id,
+          proxyData: issuer2.proxies[0]!.utf8,
+          proxyId: tamper ? issuer2.proxies[0]!.id : issuer1.proxies[0]!.id,
         } satisfies UpdateIssuerProxySchema;
         break;
       }
@@ -294,7 +296,7 @@ describe("JsonRpc Module", () => {
 
     const issuerV1StatusList2021CredentialJwt =
       await createVerifiableCredentialJwt(
-        issuers[0]!.proxy.statusList2021Credential,
+        issuers[0]!.proxies[0]!.statusList2021Credential,
         issuer,
         ebsiEnvConfig,
         {
@@ -320,7 +322,7 @@ describe("JsonRpc Module", () => {
       // Make test status list JWT available
       http.get(
         escapeDid(
-          `${issuers[0]!.proxy.obj.prefix}${issuers[0]!.proxy.obj.testSuffix}`,
+          `${issuers[0]!.proxies[0]!.obj.prefix}${issuers[0]!.proxies[0]!.obj.testSuffix}`,
         ),
         () => HttpResponse.json(issuerV1StatusList2021CredentialJwt),
       ),
@@ -983,7 +985,7 @@ describe("JsonRpc Module", () => {
                   from: signer.address,
                   // Missing "did"
                   // did: issuer1.did,
-                  proxyData: issuer1.proxy.utf8,
+                  proxyData: issuer1.proxies[0]!.utf8,
                 } as AddIssuerProxySchema,
               },
               {
@@ -994,7 +996,7 @@ describe("JsonRpc Module", () => {
                   // Invalid "did"
                   did: "did:key:z2dmzD81cgPx8Vki7JbuuMmFYrWPgYoytykUZ3eyqht1j9KbqWsaTDqWzTdxV8Up5ZsKEyY2287nhqc9wPxspHkyEn5xHi9Lnnt9kEkPJd2tFpmpx8z8dgHfbLmLhFRm5jpfvxGUwoykD87ec7znw9NhN9fMTBXmm4zb3amdW5SqZ7QW5A",
                   from: signer.address,
-                  proxyData: issuer1.proxy.utf8,
+                  proxyData: issuer1.proxies[0]!.utf8,
                 } as AddIssuerProxySchema,
               },
               {
@@ -1004,7 +1006,7 @@ describe("JsonRpc Module", () => {
                   did: issuer1.did,
                   from: signer.address,
                   // Missing "proxyData"
-                  // proxyData: issuer1.proxy.utf8,
+                  // proxyData: issuer1.proxies[0]!.utf8,
                 } as AddIssuerProxySchema,
               },
               {
@@ -1079,7 +1081,7 @@ describe("JsonRpc Module", () => {
                 params: {
                   did: issuer1.did,
                   from: "bad address",
-                  proxyData: issuer1.proxy.utf8,
+                  proxyData: issuer1.proxies[0]!.utf8,
                 } as AddIssuerProxySchema,
               },
             );
@@ -1393,10 +1395,10 @@ describe("JsonRpc Module", () => {
                 expectedErrorMessage: "Invalid 'params.0.did': Required",
                 params: {
                   from: signer.address,
-                  proxyData: issuer1.proxy.utf8,
+                  proxyData: issuer1.proxies[0]!.utf8,
                   // Missing "did"
                   // did: issuer1.did,
-                  proxyId: issuer1.proxy.id,
+                  proxyId: issuer1.proxies[0]!.id,
                 } as UpdateIssuerProxySchema,
               },
               {
@@ -1407,8 +1409,8 @@ describe("JsonRpc Module", () => {
                   // Invalid "did"
                   did: "did:key:z2dmzD81cgPx8Vki7JbuuMmFYrWPgYoytykUZ3eyqht1j9KbqWsaTDqWzTdxV8Up5ZsKEyY2287nhqc9wPxspHkyEn5xHi9Lnnt9kEkPJd2tFpmpx8z8dgHfbLmLhFRm5jpfvxGUwoykD87ec7znw9NhN9fMTBXmm4zb3amdW5SqZ7QW5A",
                   from: signer.address,
-                  proxyData: issuer1.proxy.utf8,
-                  proxyId: issuer1.proxy.id,
+                  proxyData: issuer1.proxies[0]!.utf8,
+                  proxyId: issuer1.proxies[0]!.id,
                 } as UpdateIssuerProxySchema,
               },
               {
@@ -1418,8 +1420,8 @@ describe("JsonRpc Module", () => {
                   did: issuer1.did,
                   from: signer.address,
                   // Missing "proxyId"
-                  // proxyId: issuer1.proxy.id,
-                  proxyData: issuer1.proxy.utf8,
+                  // proxyId: issuer1.proxies[0]!.id,
+                  proxyData: issuer1.proxies[0]!.utf8,
                 } as UpdateIssuerProxySchema,
               },
               {
@@ -1432,7 +1434,7 @@ describe("JsonRpc Module", () => {
                 params: {
                   did: issuer1.did,
                   from: signer.address,
-                  proxyData: issuer1.proxy.utf8,
+                  proxyData: issuer1.proxies[0]!.utf8,
                   // Invalid "proxyId"
                   proxyId: "not 66 chars and not hex",
                 } as UpdateIssuerProxySchema,
@@ -1443,9 +1445,9 @@ describe("JsonRpc Module", () => {
                 params: {
                   did: issuer1.did,
                   from: signer.address,
-                  proxyId: issuer1.proxy.id,
+                  proxyId: issuer1.proxies[0]!.id,
                   // Missing "proxyData"
-                  // proxyData: issuer1.proxy.utf8,
+                  // proxyData: issuer1.proxies[0]!.utf8,
                 } as UpdateIssuerProxySchema,
               },
               {
@@ -1459,7 +1461,7 @@ describe("JsonRpc Module", () => {
                   proxyData: JSON.stringify({
                     // "prefix" attribute is missing
                   }),
-                  proxyId: issuer1.proxy.id,
+                  proxyId: issuer1.proxies[0]!.id,
                 } as UpdateIssuerProxySchema,
               },
               {
@@ -1474,7 +1476,7 @@ describe("JsonRpc Module", () => {
                     prefix: "https://example.net",
                     // Missing "headers" attribute
                   }),
-                  proxyId: issuer1.proxy.id,
+                  proxyId: issuer1.proxies[0]!.id,
                 } as UpdateIssuerProxySchema,
               },
               {
@@ -1494,7 +1496,7 @@ describe("JsonRpc Module", () => {
                     prefix: "https://example.net",
                     // Missing "testSuffix" attribute
                   }),
-                  proxyId: issuer1.proxy.id,
+                  proxyId: issuer1.proxies[0]!.id,
                 } as UpdateIssuerProxySchema,
               },
               {
@@ -1514,7 +1516,7 @@ describe("JsonRpc Module", () => {
                     prefix: "https://not-found.net",
                     testSuffix: "/cred/1",
                   }),
-                  proxyId: issuer1.proxy.id,
+                  proxyId: issuer1.proxies[0]!.id,
                 } as UpdateIssuerProxySchema,
               },
               {
@@ -1524,8 +1526,8 @@ describe("JsonRpc Module", () => {
                 params: {
                   did: issuer1.did,
                   from: "bad address",
-                  proxyData: issuer1.proxy.utf8,
-                  proxyId: issuer1.proxy.id,
+                  proxyData: issuer1.proxies[0]!.utf8,
+                  proxyId: issuer1.proxies[0]!.id,
                 } as UpdateIssuerProxySchema,
               },
             );

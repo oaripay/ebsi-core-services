@@ -686,16 +686,25 @@ describe("TIR API v5 - Issuers (e2e)", () => {
         server,
       ).get(`/issuers/${testIssuerWithProxyDid}/proxies`);
 
+      const url = `/trusted-issuers-registry/v5/issuers/${testIssuerWithProxyDid}/proxies`;
       expect(response.body).toStrictEqual(
         expect.objectContaining({
           items: expect.arrayContaining([
             expect.objectContaining({
-              href: expect.stringContaining(
-                `/trusted-issuers-registry/v5/issuers/${testIssuerWithProxyDid}/proxies/0x`,
-              ),
+              href: expect.stringContaining(`${url}/0x`),
               proxyId: expect.stringContaining("0x"),
             }),
           ]),
+          links: {
+            first: expect.stringContaining(
+              `${url}?page[after]=1&page[size]=10`,
+            ),
+            last: expect.stringContaining(`${url}?page[after]=`),
+            next: expect.stringContaining(`${url}?page[after]=`),
+            prev: expect.stringContaining(`${url}?page[after]=1&page[size]=10`),
+          },
+          pageSize: 10,
+          self: expect.stringContaining(`${url}?page[after]=1&page[size]=10`),
           total: expect.any(Number),
         }),
       );

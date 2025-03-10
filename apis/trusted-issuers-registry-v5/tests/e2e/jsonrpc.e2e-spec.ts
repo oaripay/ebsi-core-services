@@ -158,7 +158,7 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
           encodedList:
             "H4sIAAAAAAAAA-3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAAAAAAIC3AYbSVKsAQAAA",
           // Note: the VC lib requires that credentialSubject.id is a valid EBSI DID. We can't use a URL here!
-          // id: `${issuer.proxy.rawProxyData.prefix}${issuer.proxy.rawProxyData.testSuffix}#list`,
+          // id: `${issuer.proxies[0]!.rawProxyData.prefix}${issuer.proxies[0]!.rawProxyData.testSuffix}#list`,
           id: issuer.did,
           statusPurpose: "revocation",
           type: "StatusList2021",
@@ -1164,13 +1164,13 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
             const statusList2021CredentialJwt =
               await createStatusList2021CredentialJwt(
                 testIssuerWithProxy.info,
-                newIssuer1.proxy.obj,
+                newIssuer1.proxies[0]!.obj,
                 ebsiEnvConfig,
               );
 
             mockServer.use(
               http.get(
-                `${newIssuer1.proxy.obj.prefix}${newIssuer1.proxy.obj.testSuffix}`,
+                `${newIssuer1.proxies[0]!.obj.prefix}${newIssuer1.proxies[0]!.obj.testSuffix}`,
                 () => HttpResponse.json(statusList2021CredentialJwt),
               ),
             );
@@ -1193,7 +1193,7 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
                 params = {
                   did,
                   from: testIssuerWithProxyWallet.address,
-                  proxyData: newIssuer1.proxy.utf8,
+                  proxyData: newIssuer1.proxies[0]!.utf8,
                 } satisfies AddIssuerProxySchema;
 
                 extraTestUrl = `/issuers/${did}/proxies`;
@@ -1202,9 +1202,9 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
                   items: expect.arrayContaining([
                     {
                       href: expect.stringContaining(
-                        `/proxies/${newIssuer1.proxy.id}`,
+                        `/proxies/${newIssuer1.proxies[0]!.id}`,
                       ),
-                      proxyId: newIssuer1.proxy.id,
+                      proxyId: newIssuer1.proxies[0]!.id,
                     },
                   ]),
                   total: expect.any(Number),
@@ -1216,12 +1216,12 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
                 params = {
                   did,
                   from: testIssuerWithProxyWallet.address,
-                  proxyData: newIssuer2.proxy.utf8,
-                  proxyId: newIssuer1.proxy.id,
+                  proxyData: newIssuer2.proxies[0]!.utf8,
+                  proxyId: newIssuer1.proxies[0]!.id,
                 } satisfies UpdateIssuerProxySchema;
 
-                extraTestUrl = `/issuers/${did}/proxies/${newIssuer1.proxy.id}`;
-                extraTestExpectedResponse = newIssuer2.proxy.obj;
+                extraTestUrl = `/issuers/${did}/proxies/${newIssuer1.proxies[0]!.id}`;
+                extraTestExpectedResponse = newIssuer2.proxies[0]!.obj;
                 break;
               }
               default: {

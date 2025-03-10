@@ -247,15 +247,18 @@ describe("formatAttributes", () => {
 });
 
 describe("formatProxies", () => {
-  const proxies = ["0xProxy1", "0xProxy2"] as Awaited<
-    ReturnType<Tir["getIssuerProxies"]>
-  >;
+  const proxies = {
+    howMany: 2n,
+    items: ["0xProxy1", "0xProxy2"],
+    total: 2n,
+  } as Awaited<ReturnType<Tir["getIssuerProxies"]>>;
   const baseUrl = "";
 
   it("should use the values returned by the smart contract (except pageSize)", () => {
     expect.assertions(1);
-
-    expect(formatProxies(proxies, baseUrl)).toStrictEqual({
+    const page = 1;
+    const pageSize = 10;
+    expect(formatProxies(proxies, page, pageSize, baseUrl)).toStrictEqual({
       items: [
         {
           href: "/0xProxy1",
@@ -266,7 +269,15 @@ describe("formatProxies", () => {
           proxyId: "0xProxy2",
         },
       ],
-      total: proxies.length,
+      links: {
+        first: `?page[after]=1&page[size]=${pageSize}`,
+        last: `?page[after]=1&page[size]=${pageSize}`,
+        next: `?page[after]=1&page[size]=${pageSize}`,
+        prev: `?page[after]=1&page[size]=${pageSize}`,
+      },
+      pageSize,
+      self: `?page[after]=${page}&page[size]=${pageSize}`,
+      total: 2,
     });
   });
 });
