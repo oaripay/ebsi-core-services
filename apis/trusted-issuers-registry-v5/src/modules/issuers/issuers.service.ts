@@ -20,7 +20,6 @@ import type { ApiConfig } from "../../config/configuration.ts";
 import type {
   AttributeObject,
   IssuerProxyResponseObject,
-  IssuerResponseObject,
 } from "./issuers.interface.ts";
 
 import { LedgerService } from "../ledger/ledger.service.ts";
@@ -50,95 +49,22 @@ export class IssuersService {
   }
 
   async assertIssuerExists(did: string): Promise<void> {
-    const provider = this.ledgerService.getProvider();
-
-    try {
-      await this.contract
-        // @ts-expect-error Error due to CommonJS vs ESM modules imports
-        .connect(provider)
-        .getIssuer(did);
-    } catch (error) {
-      if (isEthersError(error)) {
-        this.logger.error(error, error.stack);
-      }
-      throw new NotFoundError("Issuer Not Found", {
-        detail: `Issuer ${did} not found`,
-      });
-    }
+    await this.getAttributes(did, 1, 1);
   }
 
-  async didIncludesAttribute(
+  async getAttribute(
     did: string,
     attributeId: string,
-  ): Promise<boolean> {
-    const provider = this.ledgerService.getProvider();
-
-    const attribId = prefixWith0x(attributeId);
-    let attributesLastHash: string[];
-
-    try {
-      attributesLastHash = await this.contract
-        // @ts-expect-error Error due to CommonJS vs ESM modules imports
-        .connect(provider)
-        .getIssuer(did);
-    } catch (error) {
-      if (isEthersError(error)) {
-        this.logger.error(error, error.stack);
-      }
-      throw new NotFoundError("Issuer Not Found", {
-        detail: `Issuer ${did} not found`,
-      });
-    }
-
-    if (attributesLastHash.length === 0) {
-      return false;
-    }
-
-    // /!\ only checks the first 50 revisions of each hash
-    // Known issue: if there are more than 50 revisions, didIncludesAttribute may wrongly return false
-    try {
-      const revisionHashesList = await Promise.all(
-        attributesLastHash.map(async (hash) => {
-          return (
-            this.contract
-              // @ts-expect-error Error due to CommonJS vs ESM modules imports
-              .connect(provider)
-              .getIssuerAttributeRevisions(hash, 1, 50)
-          );
-        }),
-      );
-
-      return !!revisionHashesList.some((revisionHashes) => {
-        return revisionHashes.items.find((hash) => hash === attribId);
-      });
-    } catch (error) {
-      if (isEthersError(error)) {
-        this.logger.error(error, error.stack);
-      }
-      throw new NotFoundError("Attribute Not Found", {
-        detail: `Attribute ${attribId} not found`,
-      });
-    }
-  }
-
-  async getAttribute(attributeId: string): Promise<AttributeObject> {
+  ): Promise<AttributeObject> {
     const provider = this.ledgerService.getProvider();
 
     const hash = prefixWith0x(attributeId);
-    let revisionHashes: Awaited<ReturnType<Tir["getIssuerAttributeRevisions"]>>;
+    let lastRevision: string;
     try {
-      // get the first attribute revision
-      revisionHashes = await this.contract
+      lastRevision = await this.contract
         // @ts-expect-error Error due to CommonJS vs ESM modules imports
         .connect(provider)
-        .getIssuerAttributeRevisions(hash, 1, 1);
-
-      // use total revisions to get the latest attribute revision
-      const totalRevisions = Number(revisionHashes.total);
-      revisionHashes = await this.contract
-        // @ts-expect-error Error due to CommonJS vs ESM modules imports
-        .connect(provider)
-        .getIssuerAttributeRevisions(hash, totalRevisions, 1);
+        .getLatestRevisionAttributeId(did, hash);
     } catch (error) {
       if (isEthersError(error)) {
         this.logger.error(error, error.stack);
@@ -148,7 +74,7 @@ export class IssuersService {
       });
     }
 
-    return this.getAttributeRevision(revisionHashes.items[0]!);
+    return this.getAttributeRevision(lastRevision);
   }
 
   async getAttributeRevision(revisionId: string): Promise<AttributeObject> {
@@ -188,13 +114,36 @@ export class IssuersService {
     };
   }
 
-  async getAttributes(issuerDid: string): Promise<AttributeObject[]> {
+  async getAttributes(
+    issuerDid: string,
+    page: number,
+    pageSize: number,
+  ): ReturnType<Tir["getIssuerAttributes"]> {
     const provider = this.ledgerService.getProvider();
 
-    let attributesLastHash: string[];
+    try {
+      return await this.contract
+        // @ts-expect-error Error due to CommonJS vs ESM modules imports
+        .connect(provider)
+        .getIssuerAttributes(issuerDid, page, pageSize);
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error, error.stack);
+      } else {
+        this.logger.error(error);
+      }
+
+      throw new NotFoundError("Issuer Not Found", {
+        detail: `Issuer ${issuerDid} not found`,
+      });
+    }
+  }
+
+  async getIssuer(issuerDid: string): ReturnType<Tir["getIssuer"]> {
+    const provider = this.ledgerService.getProvider();
 
     try {
-      attributesLastHash = await this.contract
+      return await this.contract
         // @ts-expect-error Error due to CommonJS vs ESM modules imports
         .connect(provider)
         .getIssuer(issuerDid);
@@ -209,23 +158,6 @@ export class IssuersService {
         detail: `Issuer ${issuerDid} not found`,
       });
     }
-
-    if (attributesLastHash.length === 0) {
-      throw new NotFoundError("Issuer Not Found", {
-        detail: `Issuer ${issuerDid} not found`,
-      });
-    }
-
-    return Promise.all(
-      attributesLastHash.map(async (hash) => {
-        return this.getAttributeRevision(hash);
-      }),
-    );
-  }
-
-  async getIssuer(did: string): Promise<IssuerResponseObject> {
-    const attributes = await this.getAttributes(did);
-    return { attributes, did };
   }
 
   async getIssuerAttributeIdRevisions(
@@ -256,7 +188,7 @@ export class IssuersService {
         this.logger.error(error, error.stack);
       }
       throw new NotFoundError("Attribute Not Found", {
-        detail: `Attribute with ${hash} not found`,
+        detail: `Attribute ${remove0xPrefix(hash)} not found`,
       });
     }
   }

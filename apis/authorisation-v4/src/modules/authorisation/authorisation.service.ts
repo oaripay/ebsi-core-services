@@ -1090,9 +1090,7 @@ export class AuthorisationService {
     }
 
     // new users (tir_invite scope) should not have accreditations
-    const hasAccreditations = parsedIssuer.data.attributes.some(
-      (attribute) => !!attribute.body,
-    );
+    const hasAccreditations = parsedIssuer.data.hasAttributes;
     if (requireNewUser && hasAccreditations) {
       throw new OAuth2TokenError("invalid_request", {
         errorDescription: `Invalid Verifiable Presentation: Trusted Issuer ${did} already has accreditations. Request an access token with scope "tir_write"`,

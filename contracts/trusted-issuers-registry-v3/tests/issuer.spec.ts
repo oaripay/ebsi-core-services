@@ -180,7 +180,8 @@ describe("Issuers", () => {
     ).to.emit(tir, "AddAttributeRevision");
 
     // get RootTAO attribute
-    let issuerHashes = await tir.getIssuer(rootTAO1.did);
+    let issuerHashes = (await tir.getIssuerAttributes(rootTAO1.did, 1, 50))
+      .items;
     expect(issuerHashes).to.eql([rootTAO1.attributeId]);
     let issuerAttr = await tir.getIssuerAttributeByHash(issuerHashes[0]);
     expect(decodeResult(issuerAttr)).to.deep.equal({
@@ -197,6 +198,13 @@ describe("Issuers", () => {
       ),
     ).to.eq(1);
 
+    // get the status of the user
+    let issuer = await tir.getIssuer(rootTAO1.did);
+    expect(decodeResult(issuer)).to.deep.equal({
+      noAttributesAccepted: true,
+      totalAttributes: 1,
+    });
+
     await policyContractMock.setPolicyResult(false); // not admin
     await didContractMock.setDidResult(true); // controller of the DID
 
@@ -210,15 +218,26 @@ describe("Issuers", () => {
     ).to.emit(tir, "AddAttributeRevision");
 
     // get RootTAO attribute
-    issuerHashes = await tir.getIssuer(rootTAO1.did);
-    expect(issuerHashes).to.eql([rootTAO1.revisionId]);
-    issuerAttr = await tir.getIssuerAttributeByHash(issuerHashes[0]);
+    issuerHashes = (await tir.getIssuerAttributes(rootTAO1.did, 1, 50)).items;
+    expect(issuerHashes).to.eql([rootTAO1.attributeId]);
+    const lastRevision = await tir.getLatestRevisionAttributeId(
+      rootTAO1.did,
+      rootTAO1.attributeId,
+    );
+    issuerAttr = await tir.getIssuerAttributeByHash(lastRevision);
     expect(decodeResult(issuerAttr)).to.deep.equal({
       attribData: rootTAO1.attribute,
       did: rootTAO1.did,
       issuerType: IssuerType.RootTAO.toString(),
       rootTao: rootTAO1.did,
       tao: rootTAO1.did,
+    });
+
+    // get the status of the user
+    issuer = await tir.getIssuer(rootTAO1.did);
+    expect(decodeResult(issuer)).to.deep.equal({
+      noAttributesAccepted: false,
+      totalAttributes: 1,
     });
   }
 
@@ -237,21 +256,39 @@ describe("Issuers", () => {
       ),
     ).to.emit(tir, "AddAttributeRevision");
 
+    // get the status of the user
+    let issuer = await tir.getIssuer(tao1.did);
+    expect(decodeResult(issuer)).to.deep.equal({
+      noAttributesAccepted: true,
+      totalAttributes: 1,
+    });
+
     // TAO registers the credential
     await expect(
       tir.setAttributeData(tao1.did, tao1.attributeId, tao1.attribute),
     ).to.emit(tir, "AddAttributeRevision");
 
     // get TAO attribute
-    const issuerHashes = await tir.getIssuer(tao1.did);
-    expect(issuerHashes).to.eql([tao1.revisionId]);
-    const issuerAttr = await tir.getIssuerAttributeByHash(issuerHashes[0]);
+    const issuerHashes = (await tir.getIssuerAttributes(tao1.did, 1, 50)).items;
+    expect(issuerHashes).to.eql([tao1.attributeId]);
+    const lastRevision = await tir.getLatestRevisionAttributeId(
+      tao1.did,
+      tao1.attributeId,
+    );
+    const issuerAttr = await tir.getIssuerAttributeByHash(lastRevision);
     expect(decodeResult(issuerAttr)).to.deep.equal({
       attribData: tao1.attribute,
       did: tao1.did,
       issuerType: IssuerType.TAO.toString(),
       rootTao: rootTAO1.did,
       tao: rootTAO1.did,
+    });
+
+    // get the status of the user
+    issuer = await tir.getIssuer(tao1.did);
+    expect(decodeResult(issuer)).to.deep.equal({
+      noAttributesAccepted: false,
+      totalAttributes: 1,
     });
   }
 
@@ -270,21 +307,39 @@ describe("Issuers", () => {
       ),
     ).to.emit(tir, "AddAttributeRevision");
 
+    // get the status of the user
+    let issuer = await tir.getIssuer(tao2.did);
+    expect(decodeResult(issuer)).to.deep.equal({
+      noAttributesAccepted: true,
+      totalAttributes: 1,
+    });
+
     // TAO registers the credential
     await expect(
       tir.setAttributeData(tao2.did, tao2.attributeId, tao2.attribute),
     ).to.emit(tir, "AddAttributeRevision");
 
     // get TAO attribute
-    const issuerHashes = await tir.getIssuer(tao2.did);
-    expect(issuerHashes).to.eql([tao2.revisionId]);
-    const issuerAttr = await tir.getIssuerAttributeByHash(issuerHashes[0]);
+    const issuerHashes = (await tir.getIssuerAttributes(tao2.did, 1, 50)).items;
+    expect(issuerHashes).to.eql([tao2.attributeId]);
+    const lastRevision = await tir.getLatestRevisionAttributeId(
+      tao2.did,
+      tao2.attributeId,
+    );
+    const issuerAttr = await tir.getIssuerAttributeByHash(lastRevision);
     expect(decodeResult(issuerAttr)).to.deep.equal({
       attribData: tao2.attribute,
       did: tao2.did,
       issuerType: IssuerType.TAO.toString(),
       rootTao: rootTAO1.did,
       tao: rootTAO1.did,
+    });
+
+    // get the status of the user
+    issuer = await tir.getIssuer(tao2.did);
+    expect(decodeResult(issuer)).to.deep.equal({
+      noAttributesAccepted: false,
+      totalAttributes: 1,
     });
   }
 
@@ -303,21 +358,39 @@ describe("Issuers", () => {
       ),
     ).to.emit(tir, "AddAttributeRevision");
 
+    // get the status of the user
+    let issuer = await tir.getIssuer(ti1.did);
+    expect(decodeResult(issuer)).to.deep.equal({
+      noAttributesAccepted: true,
+      totalAttributes: 1,
+    });
+
     // TI registers the credential
     await expect(
       tir.setAttributeData(ti1.did, ti1.attributeId1, ti1.attribute1),
     ).to.emit(tir, "AddAttributeRevision");
 
     // get TI attribute
-    const issuerHashes = await tir.getIssuer(ti1.did);
-    expect(issuerHashes).to.eql([ti1.revisionId1]);
-    const issuerAttr = await tir.getIssuerAttributeByHash(issuerHashes[0]);
+    const issuerHashes = (await tir.getIssuerAttributes(ti1.did, 1, 50)).items;
+    expect(issuerHashes).to.eql([ti1.attributeId1]);
+    const lastRevision = await tir.getLatestRevisionAttributeId(
+      ti1.did,
+      ti1.attributeId1,
+    );
+    const issuerAttr = await tir.getIssuerAttributeByHash(lastRevision);
     expect(decodeResult(issuerAttr)).to.deep.equal({
       attribData: ti1.attribute1,
       did: ti1.did,
       issuerType: IssuerType.TI.toString(),
       rootTao: rootTAO1.did,
       tao: tao1.did,
+    });
+
+    // get the status of the user
+    issuer = await tir.getIssuer(ti1.did);
+    expect(decodeResult(issuer)).to.deep.equal({
+      noAttributesAccepted: false,
+      totalAttributes: 1,
     });
   }
 
@@ -361,8 +434,13 @@ describe("Issuers", () => {
       ).to.emit(tir, "AddAttributeRevision");
 
       // get TAO attribute
-      const issuerHashes = await tir.getIssuer(tao1.did);
-      const issuerAttr = await tir.getIssuerAttributeByHash(issuerHashes[0]);
+      const issuerHashes = (await tir.getIssuerAttributes(tao1.did, 1, 50))
+        .items;
+      const lastRevision = await tir.getLatestRevisionAttributeId(
+        tao1.did,
+        issuerHashes[0],
+      );
+      const issuerAttr = await tir.getIssuerAttributeByHash(lastRevision);
       expect(decodeResult(issuerAttr)).to.deep.equal({
         attribData: "0x",
         did: tao1.did,
@@ -413,9 +491,9 @@ describe("Issuers", () => {
     });
 
     it("should fail to get issuer if it doesn't exist", async () => {
-      await expect(tir.getIssuer(randomDid())).to.be.revertedWith(
-        "issuer does not exist",
-      );
+      await expect(
+        tir.getIssuerAttributes(randomDid(), 1, 50),
+      ).to.be.revertedWith("issuer does not exist");
     });
 
     it("should fail to init", async () => {
@@ -541,12 +619,17 @@ describe("Issuers", () => {
       await tir.setAttributeData(rootTAO1.did, rootTAO1.attributeId, attr);
 
       // expect the attribute to be revoked
-      const issuerHashes = await tir.getIssuer(rootTAO1.did);
+      const issuerHashes = (await tir.getIssuerAttributes(rootTAO1.did, 1, 50))
+        .items;
       expect(issuerHashes).to.be.an("array");
       expect(issuerHashes).to.have.length(1);
 
       // get the second attribute
-      const issuerAttr = await tir.getIssuerAttributeByHash(issuerHashes[0]);
+      const lastRevision = await tir.getLatestRevisionAttributeId(
+        rootTAO1.did,
+        issuerHashes[0],
+      );
+      const issuerAttr = await tir.getIssuerAttributeByHash(lastRevision);
       expect(decodeResult(issuerAttr)).to.deep.equal({
         attribData: attr,
         did: rootTAO1.did,
@@ -571,12 +654,17 @@ describe("Issuers", () => {
       );
 
       // expect the attribute to be revoked
-      const issuerHashes = await tir.getIssuer(rootTAO1.did);
+      const issuerHashes = (await tir.getIssuerAttributes(rootTAO1.did, 1, 50))
+        .items;
       expect(issuerHashes).to.be.an("array");
       expect(issuerHashes).to.have.length(1);
 
       // get the second attribute
-      const issuerAttr = await tir.getIssuerAttributeByHash(issuerHashes[0]);
+      const lastRevision = await tir.getLatestRevisionAttributeId(
+        rootTAO1.did,
+        issuerHashes[0],
+      );
+      const issuerAttr = await tir.getIssuerAttributeByHash(lastRevision);
       expect(decodeResult(issuerAttr)).to.deep.equal({
         attribData: "0x",
         did: rootTAO1.did,

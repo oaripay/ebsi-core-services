@@ -2,8 +2,6 @@ import type { Tir } from "@ebsiint-sc/trusted-issuers-registry-v3";
 
 import { describe, expect, it } from "vitest";
 
-import type { AttributeObject } from "./issuers.interface.ts";
-
 import {
   formatAttributes,
   formatIssuers,
@@ -54,113 +52,13 @@ describe("formatIssuers", () => {
 });
 
 describe("formatAttributes", () => {
-  const attributes: AttributeObject[] = [
-    {
-      body: "abc",
-      hash: "0x001",
-      issuerType: "TI",
-      rootTao: "did:ebsi:123",
-      tao: "did:ebsi:123",
-    },
-    {
-      body: "abc",
-      hash: "0x002",
-      issuerType: "TI",
-      rootTao: "did:ebsi:123",
-      tao: "did:ebsi:123",
-    },
-    {
-      body: "abc",
-      hash: "0x003",
-      issuerType: "TI",
-      rootTao: "did:ebsi:123",
-      tao: "did:ebsi:123",
-    },
-    {
-      body: "abc",
-      hash: "0x004",
-      issuerType: "TI",
-      rootTao: "did:ebsi:123",
-      tao: "did:ebsi:123",
-    },
-    {
-      body: "abc",
-      hash: "0x005",
-      issuerType: "TI",
-      rootTao: "did:ebsi:123",
-      tao: "did:ebsi:123",
-    },
-    {
-      body: "abc",
-      hash: "0x006",
-      issuerType: "TI",
-      rootTao: "did:ebsi:123",
-      tao: "did:ebsi:123",
-    },
-    {
-      body: "abc",
-      hash: "0x007",
-      issuerType: "TI",
-      rootTao: "did:ebsi:123",
-      tao: "did:ebsi:123",
-    },
-    {
-      body: "abc",
-      hash: "0x008",
-      issuerType: "TI",
-      rootTao: "did:ebsi:123",
-      tao: "did:ebsi:123",
-    },
-    {
-      body: "abc",
-      hash: "0x009",
-      issuerType: "TI",
-      rootTao: "did:ebsi:123",
-      tao: "did:ebsi:123",
-    },
-    {
-      body: "abc",
-      hash: "0x00A",
-      issuerType: "TI",
-      rootTao: "did:ebsi:123",
-      tao: "did:ebsi:123",
-    },
-    {
-      body: "abc",
-      hash: "0x00B",
-      issuerType: "TI",
-      rootTao: "did:ebsi:123",
-      tao: "did:ebsi:123",
-    },
-    {
-      body: "abc",
-      hash: "0x00C",
-      issuerType: "TI",
-      rootTao: "did:ebsi:123",
-      tao: "did:ebsi:123",
-    },
-    {
-      body: "abc",
-      hash: "0x00D",
-      issuerType: "TI",
-      rootTao: "did:ebsi:123",
-      tao: "did:ebsi:123",
-    },
-    {
-      body: "abc",
-      hash: "0x00E",
-      issuerType: "TI",
-      rootTao: "did:ebsi:123",
-      tao: "did:ebsi:123",
-    },
-    {
-      body: "abc",
-      hash: "0x00F",
-      issuerType: "TI",
-      rootTao: "did:ebsi:123",
-      tao: "did:ebsi:123",
-    },
-  ];
+  const attributes = {
+    howMany: 3n,
+    items: ["0x001", "0x002"],
+    next: 3n,
+    prev: 1n,
+    total: 16n,
+  } as Awaited<ReturnType<Tir["getIssuerAttributes"]>>;
 
   it("should display only the first 2 items", () => {
     expect.assertions(1);
@@ -171,12 +69,12 @@ describe("formatAttributes", () => {
     expect(formatAttributes(attributes, page, 2, "")).toStrictEqual({
       items: [
         {
-          href: `/${attributes[0]!.hash}`,
-          id: attributes[0]!.hash,
+          href: "/001",
+          id: "001",
         },
         {
-          href: `/${attributes[1]!.hash}`,
-          id: attributes[1]!.hash,
+          href: "/002",
+          id: "002",
         },
       ],
       links: {
@@ -187,61 +85,7 @@ describe("formatAttributes", () => {
       },
       pageSize,
       self: `?page[after]=${page}&page[size]=${pageSize}`,
-      total: attributes.length,
-    });
-  });
-
-  it("should display the last page", () => {
-    expect.assertions(1);
-
-    const page = 8;
-    const pageSize = 2;
-
-    expect(formatAttributes(attributes, page, pageSize, "")).toStrictEqual({
-      items: [
-        {
-          href: `/${attributes[14]!.hash}`,
-          id: attributes[14]!.hash,
-        },
-      ],
-      links: {
-        first: `?page[after]=1&page[size]=${pageSize}`,
-        last: `?page[after]=8&page[size]=${pageSize}`,
-        next: `?page[after]=8&page[size]=${pageSize}`,
-        prev: `?page[after]=7&page[size]=${pageSize}`,
-      },
-      pageSize,
-      self: `?page[after]=${page}&page[size]=${pageSize}`,
-      total: attributes.length,
-    });
-  });
-
-  it("should display the third page", () => {
-    expect.assertions(1);
-
-    const page = 3;
-    const pageSize = 2;
-
-    expect(formatAttributes(attributes, page, pageSize, "")).toStrictEqual({
-      items: [
-        {
-          href: `/${attributes[4]!.hash}`,
-          id: attributes[4]!.hash,
-        },
-        {
-          href: `/${attributes[5]!.hash}`,
-          id: attributes[5]!.hash,
-        },
-      ],
-      links: {
-        first: `?page[after]=1&page[size]=${pageSize}`,
-        last: `?page[after]=8&page[size]=${pageSize}`,
-        next: `?page[after]=4&page[size]=${pageSize}`,
-        prev: `?page[after]=2&page[size]=${pageSize}`,
-      },
-      pageSize,
-      self: `?page[after]=${page}&page[size]=${pageSize}`,
-      total: attributes.length,
+      total: Number(attributes.total),
     });
   });
 });

@@ -260,16 +260,11 @@ describe("Issuers Module", () => {
       const response = await request(server).get(`/issuers/${issuer.did}`);
 
       expect(response.body).toStrictEqual({
-        attributes: [
-          {
-            body: issuer.attribute.utf8,
-            hash: remove0xPrefix(issuer.attribute.id),
-            issuerType: IssuerTypeNames[issuer.issuerType],
-            rootTao: rootTao.did,
-            tao: issuer.tao,
-          },
-        ],
+        attributes: expect.stringContaining(
+          `/issuers/${issuer.did}/attributes`,
+        ),
         did: issuer.did,
+        hasAttributes: true,
       });
       expect(response.status).toBe(200);
     });
@@ -407,7 +402,7 @@ describe("Issuers Module", () => {
       expect(response.body).toStrictEqual({
         attribute: {
           body: issuer.attribute.utf8,
-          hash: attributeId,
+          hash: remove0xPrefix(issuer.attribute.revisionId),
           issuerType: IssuerTypeNames[issuer.issuerType],
           rootTao: rootTao.did,
           tao: issuer.tao,

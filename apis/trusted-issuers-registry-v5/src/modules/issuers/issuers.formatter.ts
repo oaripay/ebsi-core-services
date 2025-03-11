@@ -1,7 +1,7 @@
 import type { PaginatedList } from "@ebsiint-api/shared";
 import type { Tir } from "@ebsiint-sc/trusted-issuers-registry-v3";
 
-import { paginate } from "@ebsiint-api/shared";
+import { paginate, remove0xPrefix } from "@ebsiint-api/shared";
 
 import type {
   AttributeObject,
@@ -11,20 +11,21 @@ import type {
 } from "./issuers.interface.ts";
 
 export function formatAttributes(
-  attributes: AttributeObject[],
+  attributes: Awaited<ReturnType<Tir["getIssuerAttributes"]>>,
   page: number,
   pageSize: number,
   baseUrl: string,
 ): PaginatedList<IdLink> {
-  const total = attributes.length;
+  const total = Number(attributes.total);
 
-  // Extract and reshape items
-  const items = attributes
-    .slice((page - 1) * pageSize, page * pageSize)
-    .map((attr) => ({
-      href: `${baseUrl}/${attr.hash}`,
-      id: attr.hash,
-    }));
+  // Reshape items
+  const items = attributes.items.map((attrId) => {
+    const id = remove0xPrefix(attrId);
+    return {
+      href: `${baseUrl}/${id}`,
+      id,
+    };
+  });
 
   return paginate<IdLink>(items, baseUrl, total, page, pageSize);
 }

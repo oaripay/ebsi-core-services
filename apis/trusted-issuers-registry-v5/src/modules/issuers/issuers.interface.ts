@@ -30,8 +30,9 @@ export interface IssuerProxyResponseObject {
 }
 
 export interface IssuerResponseObject {
-  attributes: AttributeObject[];
+  attributes: string;
   did: string;
+  hasAttributes: boolean;
 }
 
 export type IssuerTypeName = (typeof IssuerTypeNames)[number];

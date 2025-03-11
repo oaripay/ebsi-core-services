@@ -22,6 +22,7 @@ export interface IssuerObject {
     buffer: Buffer;
     hex: string;
     id: string;
+    revisionId: string;
     utf8: string;
   };
   attributeIdTao: string;
@@ -61,13 +62,15 @@ export function createIssuer(
     },
     name: `test-${issuerDid}`,
   });
+  const attributeId = `0x${crypto.randomBytes(32).toString("hex")}`;
   const attributeBuffer = Buffer.from(attributeUtf8);
   const attributeHex = `0x${attributeBuffer.toString("hex")}`;
-  const attributeId = ethers.sha256(attributeBuffer);
+  const revisionId = ethers.sha256(attributeBuffer);
   const attribute = {
     buffer: attributeBuffer,
     hex: attributeHex,
     id: attributeId,
+    revisionId,
     utf8: attributeUtf8,
   };
 
@@ -212,11 +215,9 @@ export async function insertIssuer(
     inputRootTaoDid,
   );
 
-  const firstAttributeId = crypto.randomBytes(32);
-
   await contract.setAttributeMetadata(
     issuer.did,
-    firstAttributeId,
+    issuer.attribute.id,
     issuer.issuerType,
     issuer.tao,
     issuer.attributeIdTao,
@@ -224,7 +225,7 @@ export async function insertIssuer(
 
   await contract.setAttributeData(
     issuer.did,
-    firstAttributeId,
+    issuer.attribute.id,
     issuer.attribute.buffer,
   );
 

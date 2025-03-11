@@ -138,12 +138,8 @@ paths:
                 Success:
                   value:
                     did: did:ebsi:zZeKyEJfUTGwajhNyNX928z
-                    attributes:
-                      - hash: 447867bafab4c4ad26d4f4650e2390f92a831b6343b7c36ecb7c51fee336fa14
-                        body: eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImRpZDplYnNpOnpaZUt5RUpmVVRHd2FqaE55Tlg5Mjh6I1NvMUhJUnQwS3FmMF9CU3dxdjRWTU5na2F4M21DRjlJamNRSndNbkIzYnMifQ.eyJpYXQiOjE2OTE0OTgyNzgsImp0aSI6InVybjp1dWlkOjdmYWIyMmZiLWY1Y2UtNDczNi1hNzQwLWY5YjQzNmMxYmI3NSIsIm5iZiI6MTY5MTQ5ODI3OCwiZXhwIjoxNzIzMDM0Mjc4LCJzdWIiOiJkaWQ6ZWJzaTp6WmVLeUVKZlVUR3dhamhOeU5YOTI4eiIsInZjIjp7IkBjb250ZXh0IjpbImh0dHBzOi8vd3d3LnczLm9yZy8yMDE4L2NyZWRlbnRpYWxzL3YxIl0sImlkIjoidXJuOnV1aWQ6N2ZhYjIyZmItZjVjZS00NzM2LWE3NDAtZjliNDM2YzFiYjc1IiwidHlwZSI6WyJWZXJpZmlhYmxlQ3JlZGVudGlhbCIsIlZlcmlmaWFibGVBdHRlc3RhdGlvbiIsIlZlcmlmaWFibGVBY2NyZWRpdGF0aW9uIiwiVmVyaWZpYWJsZUFjY3JlZGl0YXRpb25Ub0F0dGVzdCJdLCJpc3N1ZXIiOiJkaWQ6ZWJzaTp6WmVLeUVKZlVUR3dhamhOeU5YOTI4eiIsImlzc3VhbmNlRGF0ZSI6IjIwMjMtMDgtMDhUMTI6Mzc6NThaIiwiaXNzdWVkIjoiMjAyMy0wOC0wOFQxMjozNzo1OFoiLCJ2YWxpZEZyb20iOiIyMDIzLTA4LTA4VDEyOjM3OjU4WiIsImV4cGlyYXRpb25EYXRlIjoiMjAyNC0wOC0wN1QxMjozNzo1OFoiLCJjcmVkZW50aWFsU3ViamVjdCI6eyJpZCI6ImRpZDplYnNpOnpaZUt5RUpmVVRHd2FqaE55Tlg5Mjh6IiwiYWNjcmVkaXRlZEZvciI6W3sic2NoZW1hSWQiOiJodHRwczovL2FwaS1waWxvdC5lYnNpLmV1L3RydXN0ZWQtc2NoZW1hcy1yZWdpc3RyeS92My9zY2hlbWFzL3ozTWdVRlVrYjcyMnVxNHgzZHY1eUFKbW5ObXpERmVLNVVDOHg4M1FvZUxKTSIsInR5cGVzIjpbIlZlcmlmaWFibGVDcmVkZW50aWFsIiwiVmVyaWZpYWJsZUF0dGVzdGF0aW9uIiwiVmVyaWZpYWJsZUF1dGhvcmlzYXRpb25Gb3JUcnVzdENoYWluIl19XSwicmVzZXJ2ZWRBdHRyaWJ1dGVJZCI6ImNmODllNDdlMjYwZWRhNTNiYjE5OTA5NmNhOTczNDc3OTBjODRkMmM4YTVmMmNlM2Y0MTFlYWJhMTRkMDAwM2UifSwiY3JlZGVudGlhbFNjaGVtYSI6eyJpZCI6Imh0dHBzOi8vYXBpLXBpbG90LmVic2kuZXUvdHJ1c3RlZC1zY2hlbWFzLXJlZ2lzdHJ5L3YzL3NjaGVtYXMvempWRk52YkVCUEFyM2E3MjREdHRpb1pwZ1ptTnI3NUJCdFJ6WnFrN3BrRGUiLCJ0eXBlIjoiRnVsbEpzb25TY2hlbWFWYWxpZGF0b3IyMDIxIn19LCJpc3MiOiJkaWQ6ZWJzaTp6WmVLeUVKZlVUR3dhamhOeU5YOTI4eiJ9.AeYv7qp8OE-cVvcSDmDo6X8u8sgCZ40hVE2flaLQSg82wlgS_yGp2FOKjr-nKwflEKoY8LBX-6fQfvFrEpjMnw
-                        issuerType: RootTAO
-                        tao: did:ebsi:zZeKyEJfUTGwajhNyNX928z
-                        rootTao: did:ebsi:zZeKyEJfUTGwajhNyNX928z
+                    attributes: https://api-pilot.ebsi.eu/trusted-issuers-registry/v5/issuers/did:ebsi:zZeKyEJfUTGwajhNyNX928z/attributes
+                    hasAttributes: true
         "400":
           description: Bad Request
           content:
@@ -1023,10 +1019,11 @@ components:
           type: string
           description: did of the issuer
         attributes:
-          type: array
-          description: Array of attributes
-          items:
-            $ref: "#/components/schemas/attribute"
+          type: string
+          description: Link to issuer attributes
+        hasAttributes:
+          type: boolean
+          description: This boolean is true when at least one credential is registered. It is false when the issuer is created but none of the credentials has been accepted yet.
     attribute:
       title: Attribute
       type: object

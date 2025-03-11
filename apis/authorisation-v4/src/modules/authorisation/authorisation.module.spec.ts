@@ -770,23 +770,9 @@ describe.each(["EBSI URI", "URL"] as const)(
                     ),
                     () =>
                       HttpResponse.json({
-                        attributes: [
-                          {
-                            body: "",
-                            hash: "c5f705998e64792887cca48553f57b67b2a511fc271c2a49e677a4c995320aa4",
-                            issuerType: "RootTAO",
-                            rootTao: credentialIssuer.did,
-                            tao: credentialIssuer.did,
-                          },
-                          {
-                            body: "",
-                            hash: "04647216cf99e4ea91c5ee230129bededf92c349663d4d99945ac510c4897a12",
-                            issuerType: "RootTAO",
-                            rootTao: credentialIssuer.did,
-                            tao: credentialIssuer.did,
-                          },
-                        ],
+                        attributes: `${domain}/trusted-issuers-registry/v5/issuers/${credentialSubject.did}/attributes`,
                         did: credentialSubject.did,
+                        hasAttributes: false,
                       }),
                   ),
                 );
@@ -800,23 +786,9 @@ describe.each(["EBSI URI", "URL"] as const)(
                     ),
                     () =>
                       HttpResponse.json({
-                        attributes: [
-                          {
-                            body: "eyJhbGciOiJFUzI1NiI...",
-                            hash: "c5f705998e64792887cca48553f57b67b2a511fc271c2a49e677a4c995320aa4",
-                            issuerType: "RootTAO",
-                            rootTao: credentialIssuer.did,
-                            tao: credentialIssuer.did,
-                          },
-                          {
-                            body: "eyJhbGciOiJFUzI1NiI...",
-                            hash: "04647216cf99e4ea91c5ee230129bededf92c349663d4d99945ac510c4897a12",
-                            issuerType: "RootTAO",
-                            rootTao: credentialIssuer.did,
-                            tao: credentialIssuer.did,
-                          },
-                        ],
+                        attributes: `${domain}/trusted-issuers-registry/v5/issuers/${credentialSubject.did}/attributes`,
                         did: credentialSubject.did,
+                        hasAttributes: true,
                       }),
                   ),
                 );

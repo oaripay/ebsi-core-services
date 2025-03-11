@@ -1,7 +1,7 @@
 import type { PaginatedList } from "@ebsiint-api/shared";
 import type { FastifyRequest } from "fastify";
 
-import { Accepts, NotFoundError, PaginationQuery } from "@ebsiint-api/shared";
+import { Accepts, PaginationQuery } from "@ebsiint-api/shared";
 import {
   Controller,
   Get,
@@ -58,7 +58,20 @@ export class IssuersController {
     @Param() params: GetIssuerParamsDto,
   ): Promise<IssuerResponseObject> {
     const { did } = params;
-    return this.issuersService.getIssuer(did);
+    const issuer = await this.issuersService.getIssuer(did);
+    const { noAttributesAccepted } = issuer;
+
+    const apiUrlPrefix = this.configService.get("apiUrlPrefix", {
+      infer: true,
+    });
+    const domain = this.configService.get("domain", { infer: true });
+    const attributes = `${domain}${apiUrlPrefix}/issuers/${did}/attributes`;
+
+    return {
+      attributes,
+      did,
+      hasAttributes: !noAttributesAccepted,
+    };
   }
 
   @Accepts("application/json")
@@ -70,7 +83,11 @@ export class IssuersController {
   ): Promise<PaginatedList<IdLink>> {
     const { did } = params;
 
-    const attributes = await this.issuersService.getAttributes(did);
+    const attributes = await this.issuersService.getAttributes(
+      did,
+      query["page[after]"],
+      query["page[size]"],
+    );
 
     const apiUrlPrefix = this.configService.get("apiUrlPrefix", {
       infer: true,
@@ -134,13 +151,8 @@ export class IssuersController {
   ): Promise<AttributeDetailsObject> {
     const { attributeId, did } = params;
 
-    if (!(await this.issuersService.didIncludesAttribute(did, attributeId))) {
-      throw new NotFoundError("Attribute Not Found", {
-        detail: `Attribute ${attributeId} not found`,
-      });
-    }
-
-    const attribute = await this.issuersService.getAttribute(attributeId);
+    await this.issuersService.assertIssuerExists(did);
+    const attribute = await this.issuersService.getAttribute(did, attributeId);
 
     return {
       attribute,
@@ -157,11 +169,7 @@ export class IssuersController {
   ): Promise<PaginatedList<AttributeObject>> {
     const { attributeId, did } = params;
 
-    if (!(await this.issuersService.didIncludesAttribute(did, attributeId))) {
-      throw new NotFoundError("Attribute Not Found", {
-        detail: `Attribute ${attributeId} not found`,
-      });
-    }
+    await this.issuersService.assertIssuerExists(did);
 
     const { revisions, total } =
       await this.issuersService.getIssuerAttributeIdRevisions(

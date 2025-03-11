@@ -609,8 +609,10 @@ describe("JsonRpc Module", () => {
 
     const transaction = {
       chainId: "0x1b3b",
-      data: tirContract.interface.encodeFunctionData("getIssuer", [
+      data: tirContract.interface.encodeFunctionData("getIssuerAttributes", [
         "random_issuer",
+        "0x01",
+        "0x01",
       ]),
       from: wallet.address,
       gasLimit: "0x1000000",

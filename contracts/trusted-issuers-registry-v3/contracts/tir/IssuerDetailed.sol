@@ -41,6 +41,7 @@ abstract contract IssuerDetailed is IssuerStorage {
         // insert the issuer if it doesn't exist
         if (iss.attributes.length == 0) {
             ds.didStore.push(did);
+            iss.noAttributesAccepted = true;
         }
 
         bytes32 attributeId;
@@ -113,6 +114,7 @@ abstract contract IssuerDetailed is IssuerStorage {
             "Not the issuer itself"
         );
         Issuers storage ds = issuerStorage();
+        ds.issuerStore[did].noAttributesAccepted = false;
 
         bytes32 lastRevisionId = getLatestRevisionAttributeId(did, attributeId);
         AttributeMetadata memory lastAttrMetadata = ds.attributeMetadataStore[
@@ -200,32 +202,18 @@ abstract contract IssuerDetailed is IssuerStorage {
         emit UpdateIssuerProxy(did, proxyId);
     }
 
-    /**
-     * @dev get an issuer by its did
-     * @param did string
-     * @return bytes32[] attributeLastHash
-     */
-
     function getIssuer(
         string memory did
-    ) external view returns (bytes32[] memory) {
+    )
+        external
+        view
+        returns (bool noAttributesAccepted, uint256 totalAttributes)
+    {
         Issuers storage ds = issuerStorage();
         bytes32[] memory attributesFirstHash = ds.issuerStore[did].attributes;
         require(attributesFirstHash.length > 0, "issuer does not exist");
-        bytes32[] memory attributesLastHash = new bytes32[](
-            attributesFirstHash.length
-        );
-        //list all the attributes
-        for (uint256 index = 0; index < attributesFirstHash.length; index++) {
-            // get all the versions for the current attribute
-            bytes32[] memory versions = ds.issuerStore[did].revisionHashes[
-                attributesFirstHash[index]
-            ];
-
-            //get the last version hash for this attribute
-            attributesLastHash[index] = versions[versions.length - 1];
-        }
-        return attributesLastHash;
+        noAttributesAccepted = ds.issuerStore[did].noAttributesAccepted;
+        totalAttributes = attributesFirstHash.length;
     }
 
     function getIssuers(
@@ -254,6 +242,41 @@ abstract contract IssuerDetailed is IssuerStorage {
         items = new string[](howMany);
         for (uint256 i = 0; i < howMany; i++) {
             items[i] = ds.didStore[ids[i]];
+        }
+    }
+
+    function getIssuerAttributes(
+        string memory did,
+        uint256 page,
+        uint256 pageSize
+    )
+        external
+        view
+        returns (
+            bytes32[] memory items,
+            uint256 total,
+            uint256 howMany,
+            uint256 prev,
+            uint256 next
+        )
+    {
+        require(pageSize <= 50, "PageSize must be <= 50");
+        require(pageSize > 0, "PageSize must be > 0");
+        require(page > 0, "Page must be > 0");
+        Issuers storage ds = issuerStorage();
+        uint256[] memory ids;
+        require(
+            ds.issuerStore[did].attributes.length > 0,
+            "issuer does not exist"
+        );
+        (ids, total, howMany, prev, next) = ds
+            .issuerStore[did]
+            .attributes
+            .length
+            .paginate(page, pageSize);
+        items = new bytes32[](howMany);
+        for (uint256 i = 0; i < howMany; i++) {
+            items[i] = ds.issuerStore[did].attributes[ids[i]];
         }
     }
 
@@ -298,6 +321,25 @@ abstract contract IssuerDetailed is IssuerStorage {
                 ids[i]
             ];
         }
+    }
+
+    function getLatestRevisionAttributeId(
+        string calldata did,
+        bytes32 attributeId
+    ) public view returns (bytes32 latestRevisionAttributeId) {
+        Issuers storage ds = issuerStorage();
+        Entity storage iss = ds.issuerStore[did];
+        require(iss.attributes.length > 0, "issuer does not exist");
+        require(
+            keccak256(bytes(ds.attributeMetadataStore[attributeId].did)) ==
+                keccak256(bytes(did)),
+            "attributeId is not link to DID"
+        );
+        bytes32 firstAttrHash = ds
+            .attributeMetadataStore[attributeId]
+            .attributeId;
+        bytes32[] memory revisionHashes = iss.revisionHashes[firstAttrHash];
+        latestRevisionAttributeId = revisionHashes[revisionHashes.length - 1];
     }
 
     function getIssuerAttributeByHash(
@@ -420,7 +462,6 @@ abstract contract IssuerDetailed is IssuerStorage {
         string memory policy
     ) internal view {
         Issuers storage ds = issuerStorage();
-        Entity storage iss = ds.issuerStore[did];
         bool hasTprPolicy = getTrustedPolicyRegistry().checkPolicy(
             policy,
             msg.sender
@@ -472,25 +513,6 @@ abstract contract IssuerDetailed is IssuerStorage {
                 )
             )
         );
-    }
-
-    function getLatestRevisionAttributeId(
-        string calldata did,
-        bytes32 attributeId
-    ) internal view returns (bytes32 latestRevisionAttributeId) {
-        Issuers storage ds = issuerStorage();
-        Entity storage iss = ds.issuerStore[did];
-        require(iss.attributes.length > 0, "issuer does not exist");
-        require(
-            keccak256(bytes(ds.attributeMetadataStore[attributeId].did)) ==
-                keccak256(bytes(did)),
-            "attributeId is not link to DID"
-        );
-        bytes32 firstAttrHash = ds
-            .attributeMetadataStore[attributeId]
-            .attributeId;
-        bytes32[] memory revisionHashes = iss.revisionHashes[firstAttrHash];
-        latestRevisionAttributeId = revisionHashes[revisionHashes.length - 1];
     }
 
     function checkController(

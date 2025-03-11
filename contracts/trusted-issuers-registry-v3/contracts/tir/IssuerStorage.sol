@@ -38,6 +38,7 @@ contract IssuerStorage {
         // Proxying issuer's statusList(s)
         bytes32[] proxies;
         mapping(bytes32 => string) proxiesStore;
+        bool noAttributesAccepted;
     }
 
     struct Issuers {
