@@ -174,6 +174,7 @@ export class IssuersController {
     const { revisions, total } =
       await this.issuersService.getIssuerAttributeIdRevisions(
         attributeId,
+        did,
         query["page[after]"],
         query["page[size]"],
       );

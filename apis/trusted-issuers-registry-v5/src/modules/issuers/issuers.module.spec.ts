@@ -489,7 +489,7 @@ describe("Issuers Module", () => {
       );
 
       expect(response2.body).toStrictEqual({
-        detail: expect.stringContaining(`Attribute ${dataHash2} not found`),
+        detail: `Attribute ${dataHash2} not found`,
         status: 404,
         title: "Attribute Not Found",
         type: "about:blank",
@@ -646,6 +646,22 @@ describe("Issuers Module", () => {
 
       expect(response.body).toStrictEqual({
         detail: `Attribute ${wrongDataHash} not found`,
+        status: 404,
+        title: "Attribute Not Found",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+    });
+
+    it("should throw an error if the attribute belongs to other issuer", async () => {
+      expect.assertions(2);
+
+      const url = `/issuers/${issuer.did}/attributes/${issuer2.attribute.id}/revisions`;
+
+      const response = await request(server).get(url);
+
+      expect(response.body).toStrictEqual({
+        detail: `Attribute ${issuer2.attribute.id.slice(2)} not found`,
         status: 404,
         title: "Attribute Not Found",
         type: "about:blank",

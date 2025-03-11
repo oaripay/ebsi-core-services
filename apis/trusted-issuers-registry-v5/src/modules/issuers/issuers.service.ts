@@ -77,7 +77,10 @@ export class IssuersService {
     return this.getAttributeRevision(lastRevision);
   }
 
-  async getAttributeRevision(revisionId: string): Promise<AttributeObject> {
+  async getAttributeRevision(
+    revisionId: string,
+    expectedDid?: string,
+  ): Promise<AttributeObject> {
     const provider = this.ledgerService.getProvider();
 
     // This function assumes that the revisionId exists
@@ -96,6 +99,12 @@ export class IssuersService {
       }
       throw new NotFoundError("Revision Not Found", {
         detail: `Revision ${hash} not found`,
+      });
+    }
+
+    if (expectedDid && expectedDid !== attributeByHash.did) {
+      throw new NotFoundError("Attribute Not Found", {
+        detail: `Attribute ${hash} not found`,
       });
     }
 
@@ -162,6 +171,7 @@ export class IssuersService {
 
   async getIssuerAttributeIdRevisions(
     attributeId: string,
+    did: string,
     page: number,
     pageSize: number,
   ): Promise<{ revisions: AttributeObject[]; total: number }> {
@@ -178,11 +188,14 @@ export class IssuersService {
 
       const revisions = await Promise.all(
         revisionHashes.items.map(async (revisionHash) => {
-          return this.getAttributeRevision(revisionHash);
+          return this.getAttributeRevision(revisionHash, did);
         }),
       );
 
-      return { revisions, total: Number(revisionHashes.total) };
+      const total = Number(revisionHashes.total);
+      if (total === 0) throw new Error("not found");
+
+      return { revisions, total };
     } catch (error) {
       if (isEthersError(error)) {
         this.logger.error(error, error.stack);
