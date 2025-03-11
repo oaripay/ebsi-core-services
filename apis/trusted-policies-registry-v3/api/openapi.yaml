@@ -220,6 +220,242 @@ paths:
                   $ref: "#/components/examples/NotFound"
         "500":
           $ref: "#/components/responses/500"
+  /trusted-policies-registry/v3/subjects:
+    get:
+      operationId: get-subjects
+      summary: List subjects
+      description: Returns a list of subjects registered in the registry.
+      tags:
+        - Subjects
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  self:
+                    type: string
+                    description: URI to subjects
+                  items:
+                    type: array
+                    description: List of subjects
+                    items:
+                      type: object
+                      properties:
+                        subject:
+                          type: string
+                          description: Subject address
+                        href:
+                          type: string
+                          description: Link to the resource
+                  total:
+                    type: integer
+                    description: Total number of items in a collection
+                  pageSize:
+                    type: integer
+                    description: Number of items to be returned per page
+                  links:
+                    $ref: "#/components/schemas/Links"
+              examples:
+                Success:
+                  value:
+                    self: https://api-pilot.ebsi.eu/trusted-policies-registry/v3/subjects?page[after]=3&page[size]=2
+                    items:
+                      - subject: "0x7E918E979A5FFa5e540d8C8d6dB220E3f0704858"
+                        href: https://api-pilot.ebsi.eu/trusted-policies-registry/v3/subjects/0x7E918E979A5FFa5e540d8C8d6dB220E3f0704858
+                      - subject: "0x69e48d89bf5e09588E858D757323b4abBBB3f814"
+                        href: https://api-pilot.ebsi.eu/trusted-policies-registry/v3/subjects/0x69e48d89bf5e09588E858D757323b4abBBB3f814
+                    total: 124
+                    pageSize: 2
+                    links:
+                      first: https://api-pilot.ebsi.eu/trusted-policies-registry/v3/subjects?page[after]=1&page[size]=2
+                      prev: https://api-pilot.ebsi.eu/trusted-policies-registry/v3/subjects?page[after]=2&page[size]=2
+                      next: https://api-pilot.ebsi.eu/trusted-policies-registry/v3/subjects?page[after]=4&page[size]=2
+                      last: https://api-pilot.ebsi.eu/trusted-policies-registry/v3/subjects?page[after]=62&page[size]=2
+        "400":
+          $ref: "#/components/responses/400"
+        "500":
+          $ref: "#/components/responses/500"
+  /trusted-policies-registry/v3/subjects/{subject}:
+    get:
+      operationId: get-subject
+      summary: Get a subject
+      description: Returns a subject identified by its address.
+      tags:
+        - Subjects
+      parameters:
+        - name: subject
+          in: path
+          schema:
+            type: string
+          required: true
+          examples:
+            subject:
+              description: Valid Pilot subject
+              value: "0x69e48d89bf5e09588E858D757323b4abBBB3f814"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Subject"
+              examples:
+                Success:
+                  value:
+                    subject: "0x69e48d89bf5e09588E858D757323b4abBBB3f814"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Invalid {policyId} Parameter:
+                  value:
+                    title: Bad Request
+                    status: 400
+                    detail: The format of {policyId} parameter is not valid
+        "404":
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Policy Not Found:
+                  $ref: "#/components/examples/NotFound"
+        "500":
+          $ref: "#/components/responses/500"
+  /trusted-policies-registry/v3/subjects/{subject}/policies:
+    get:
+      operationId: get-subject-policies
+      summary: List subject policies
+      description: Returns a list of policies assigned to an subject.
+      tags:
+        - Subjects
+      parameters:
+        - name: subject
+          in: path
+          schema:
+            type: string
+          required: true
+          examples:
+            subject:
+              description: Valid Pilot subject
+              value: "0x69e48d89bf5e09588E858D757323b4abBBB3f814"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  self:
+                    type: string
+                    description: URI to policies
+                  items:
+                    type: array
+                    description: List of policies
+                    items:
+                      type: object
+                      properties:
+                        policyName:
+                          type: string
+                          description: Policy name
+                        href:
+                          type: string
+                          description: Link to the resource
+                  total:
+                    type: integer
+                    description: Total number of items in a collection
+                  pageSize:
+                    type: integer
+                    description: Number of items to be returned per page
+                  links:
+                    $ref: "#/components/schemas/Links"
+              examples:
+                Success:
+                  value:
+                    self: https://api-pilot.ebsi.eu/trusted-policies-registry/v3/subjects/0x69e48d89bf5e09588E858D757323b4abBBB3f814/policies?page[after]=3&page[size]=2
+                    items:
+                      - policyName: TSR:insertSchema
+                        href: https://api-pilot.ebsi.eu/trusted-policies-registry/v3/subjects/0x69e48d89bf5e09588E858D757323b4abBBB3f814/policies/TSR:insertSchema
+                    total: 1
+                    pageSize: 10
+                    links:
+                      first: https://api-pilot.ebsi.eu/trusted-policies-registry/v3/subjects/0x69e48d89bf5e09588E858D757323b4abBBB3f814/policies?page[after]=1&page[size]=2
+                      prev: https://api-pilot.ebsi.eu/trusted-policies-registry/v3/subjects/0x69e48d89bf5e09588E858D757323b4abBBB3f814/policies?page[after]=2&page[size]=2
+                      next: https://api-pilot.ebsi.eu/trusted-policies-registry/v3/subjects/0x69e48d89bf5e09588E858D757323b4abBBB3f814/policies?page[after]=4&page[size]=2
+                      last: https://api-pilot.ebsi.eu/trusted-policies-registry/v3/subjects/0x69e48d89bf5e09588E858D757323b4abBBB3f814/policies?page[after]=62&page[size]=2
+        "400":
+          $ref: "#/components/responses/400"
+        "500":
+          $ref: "#/components/responses/500"
+  /trusted-policies-registry/v3/subjects/{subject}/policies/{policyName}:
+    get:
+      operationId: get-subject-policy
+      summary: Get subject policy
+      description: Returns the policy defined for a subject.
+      tags:
+        - Subjects
+      parameters:
+        - name: subject
+          in: path
+          schema:
+            type: string
+          required: true
+          examples:
+            subject:
+              description: Valid Pilot subject
+              value: "0x69e48d89bf5e09588E858D757323b4abBBB3f814"
+        - name: policyName
+          in: path
+          schema:
+            type: string
+          required: true
+          examples:
+            subject:
+              description: Valid Pilot policy
+              value: TSR:insertSchema
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserPolicy"
+              examples:
+                Success:
+                  value:
+                    subject: "0x69e48d89bf5e09588E858D757323b4abBBB3f814"
+                    policyName: "TSR:insertSchema"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Invalid {policyId} Parameter:
+                  value:
+                    title: Bad Request
+                    status: 400
+                    detail: The format of {policyId} parameter is not valid
+        "404":
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Policy Not Found:
+                  $ref: "#/components/examples/NotFound"
+        "500":
+          $ref: "#/components/responses/500"
   /trusted-policies-registry/v3/abi:
     get:
       operationId: get-abi
@@ -531,6 +767,25 @@ components:
           type: array
           items:
             type: string
+    Subject:
+      title: User
+      type: object
+      description: User data model
+      properties:
+        user:
+          type: string
+          description: User address
+    UserPolicy:
+      title: User
+      type: object
+      description: User data model
+      properties:
+        policyName:
+          type: string
+          description: Policy name
+        user:
+          type: string
+          description: User address
     Policy:
       title: Policy
       type: object

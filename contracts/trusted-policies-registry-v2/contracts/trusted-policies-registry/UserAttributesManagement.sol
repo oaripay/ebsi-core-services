@@ -162,6 +162,18 @@ abstract contract UserAttributesManagement is
         }
     }
 
+    function isUserAttribute(
+        address user,
+        string calldata attribute
+    ) external view returns (bool) {
+        PolicyContractStorage storage ps = policyStorage();
+        require(
+            ps.listOfUserAttributes[user].length > 0,
+            "Policy: invalid user"
+        );
+        return ps.userAttributes[user][attribute].defined;
+    }
+
     // Reserved storage space to allow for layout changes in the future.
     uint256[50] private __gap;
 }

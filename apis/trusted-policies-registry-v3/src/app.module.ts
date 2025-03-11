@@ -12,6 +12,7 @@ import { HealthModule } from "./modules/health/health.module.ts";
 import { JsonRpcModule } from "./modules/jsonrpc/jsonrpc.module.ts";
 import { OpenApiModule } from "./modules/openapi/openapi.module.ts";
 import { PoliciesModule } from "./modules/policies/policies.module.ts";
+import { SubjectsModule } from "./modules/subjects/subjects.module.ts";
 import { UsersModule } from "./modules/users/users.module.ts";
 
 @Module({
@@ -22,6 +23,7 @@ import { UsersModule } from "./modules/users/users.module.ts";
     JsonRpcModule,
     PoliciesModule,
     UsersModule,
+    SubjectsModule,
     OpenApiModule,
   ],
   providers: [

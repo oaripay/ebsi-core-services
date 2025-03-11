@@ -209,6 +209,21 @@ describe("UserAttributesManagement", () => {
     });
   });
 
+  describe("isUserAttribute", () => {
+    it("should check if user has attribute", async () => {
+      let result = await policyContract.isUserAttribute(user.address, "attr1");
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+      expect(result).to.be.true;
+
+      result = await policyContract.isUserAttribute(
+        user.address,
+        "bad-attribute",
+      );
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+      expect(result).to.be.false;
+    });
+  });
+
   describe("PolicyEngine", () => {
     it("should check user has access", async () => {
       await policyContract.insertPolicy(
