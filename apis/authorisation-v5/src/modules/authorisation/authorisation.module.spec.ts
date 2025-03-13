@@ -148,7 +148,7 @@ describe.each(["EBSI URI", "URL"] as const)(
       credentialSubject = await createLegalEntity(["ES256K", "ES256", "EdDSA"]);
     });
 
-    beforeEach(async () => {
+    async function mockCredentialIssuer() {
       mockServer.use(
         http.get(
           escapeDid(
@@ -243,6 +243,10 @@ describe.each(["EBSI URI", "URL"] as const)(
           HttpResponse.json({ attribute: { body: accreditationVcJwt } }),
         ),
       );
+    }
+
+    beforeEach(async () => {
+      await mockCredentialIssuer();
     });
 
     afterEach(() => {
@@ -675,7 +679,9 @@ describe.each(["EBSI URI", "URL"] as const)(
             let issuanceDate: Date;
             let expirationDate: Date;
 
-            beforeEach(() => {
+            async function setupEnvironment() {
+              await mockCredentialIssuer();
+
               issuanceDate = new Date(Date.now() - 5000); // issue 5 seconds ago
               // JWT access token must have 2 hours expiration time and there are no Refresh Tokens.
               expirationDate = new Date(
@@ -834,6 +840,10 @@ describe.each(["EBSI URI", "URL"] as const)(
                   ),
                 );
               }
+            }
+
+            beforeEach(async () => {
+              await setupEnvironment();
             });
 
             afterEach(() => {
@@ -1747,226 +1757,571 @@ describe.each(["EBSI URI", "URL"] as const)(
             });
 
             it("should return an error if the conditions specific to the scope are not met", async () => {
-              let expectedErrorMessage: string;
-              let vpSigner: EbsiIssuer = credentialSubject.keys.ES256;
+              let expectedError = {
+                error: "",
+                error_description: "",
+              };
+              let vpSigner: EbsiIssuer;
+
+              const testCases: {
+                setup: () => Promise<void> | void;
+              }[] = [];
 
               switch (customScope) {
                 case DIDR_INVITE_SCOPE: {
-                  vpSigner = credentialSubject.keys.ES256K;
+                  testCases.push(
+                    // Present a VC without VerifiableAuthorisationToOnboard
+                    {
+                      setup() {
+                        vcPayload.type = [
+                          "VerifiableCredential",
+                          "VerifiableAttestation",
+                        ];
 
-                  // Present a VC without VerifiableAuthorisationToOnboard
-                  vcPayload.type = [
-                    "VerifiableCredential",
-                    "VerifiableAttestation",
-                  ];
-                  expectedErrorMessage =
-                    "Invalid Presentation Submission:\nFilterEvaluation tag: Input candidate failed filter evaluation: $.input_descriptors[0]: $.verifiableCredential[0];,MarkForSubmissionEvaluation tag: The input candidate is not eligible for submission: $.input_descriptors[0]: $.verifiableCredential[0];";
+                        vpSigner = credentialSubject.keys.ES256K;
+
+                        expectedError = {
+                          error: "invalid_request",
+                          error_description:
+                            "Invalid Presentation Submission:\nFilterEvaluation tag: Input candidate failed filter evaluation: submission.descriptor_map[0]: presentation $ with nested credential $.vp.verifiableCredential[0];,MarkForSubmissionEvaluation tag: The input candidate is not eligible for submission: submission.descriptor_map[0]: presentation $ with nested credential $.vp.verifiableCredential[0];",
+                        };
+                      },
+                    },
+                  );
+
                   break;
                 }
                 case DIDR_WRITE_SCOPE: {
-                  // VP Signer is not registered in the DIDR
-                  const legalEntity = await createLegalEntity(["ES256K"]);
-                  vpSigner = legalEntity.keys.ES256K;
-                  vpPayload.holder = vpSigner.did;
+                  testCases.push(
+                    // VP Signer is not registered in the DIDR
+                    {
+                      async setup() {
+                        const legalEntity = await createLegalEntity(["ES256K"]);
+                        vpSigner = legalEntity.keys.ES256K;
+                        vpPayload.holder = vpSigner.did;
 
-                  mockServer.use(
-                    http.get(
-                      escapeDid(
-                        `${domain}/did-registry/v6/identifiers/${vpSigner.did}`,
-                      ),
-                      () => HttpResponse.text("Not found", { status: 404 }),
-                    ),
+                        mockServer.use(
+                          http.get(
+                            escapeDid(
+                              `${domain}/did-registry/v6/identifiers/${vpSigner.did}`,
+                            ),
+                            () =>
+                              HttpResponse.text("Not found", { status: 404 }),
+                          ),
+                        );
+
+                        expectedError = {
+                          error: "invalid_request",
+                          error_description: `Invalid Verifiable Presentation: Unable to resolve ${vpSigner.did}. Error: notFound. Not Found | Registry used: ${domain}/did-registry/v6/identifiers`,
+                        };
+                      },
+                    },
+                    // DIDR API returns an internal error
+                    {
+                      async setup() {
+                        const legalEntity = await createLegalEntity(["ES256K"]);
+                        vpSigner = legalEntity.keys.ES256K;
+                        vpPayload.holder = vpSigner.did;
+
+                        mockServer.use(
+                          http.get(
+                            escapeDid(
+                              `${domain}/did-registry/v6/identifiers/${vpSigner.did}`,
+                            ),
+                            () =>
+                              HttpResponse.text("Internal Server Error", {
+                                status: 500,
+                              }),
+                          ),
+                        );
+
+                        expectedError = {
+                          error: "server_error",
+                          error_description: `Unable to resolve ${vpSigner.did}. Error: internalServerError. Internal Server Error | Registry used: ${domain}/did-registry/v6/identifiers`,
+                        };
+                      },
+                    },
                   );
-
-                  expectedErrorMessage = `Invalid Verifiable Presentation: Unable to resolve ${vpSigner.did}. Error: notFound. Not Found | Registry used: ${domain}/did-registry/v6/identifiers`;
                   break;
                 }
                 case TIMESTAMP_WRITE_SCOPE:
                 case TPR_WRITE_SCOPE:
                 case TSR_WRITE_SCOPE: {
-                  // VP Signer is not registered in the DIDR
-                  const legalEntity = await createLegalEntity(["ES256"]);
-                  vpSigner = legalEntity.keys.ES256;
-                  vpPayload.holder = vpSigner.did;
+                  testCases.push(
+                    // VP Signer is not registered in the DIDR
+                    {
+                      async setup() {
+                        const legalEntity = await createLegalEntity(["ES256"]);
+                        vpSigner = legalEntity.keys.ES256;
+                        vpPayload.holder = vpSigner.did;
 
-                  mockServer.use(
-                    http.get(
-                      escapeDid(
-                        `${domain}/did-registry/v6/identifiers/${vpSigner.did}`,
-                      ),
-                      () => HttpResponse.text("Not found", { status: 404 }),
-                    ),
+                        mockServer.use(
+                          http.get(
+                            escapeDid(
+                              `${domain}/did-registry/v6/identifiers/${vpSigner.did}`,
+                            ),
+                            () =>
+                              HttpResponse.text("Not found", { status: 404 }),
+                          ),
+                        );
+
+                        expectedError = {
+                          error: "invalid_request",
+                          error_description: `Invalid Verifiable Presentation: Unable to resolve ${vpSigner.did}. Error: notFound. Not Found | Registry used: ${domain}/did-registry/v6/identifiers`,
+                        };
+                      },
+                    },
+                    // DIDR API returns an internal error
+                    {
+                      async setup() {
+                        const legalEntity = await createLegalEntity(["ES256"]);
+                        vpSigner = legalEntity.keys.ES256;
+                        vpPayload.holder = vpSigner.did;
+
+                        mockServer.use(
+                          http.get(
+                            escapeDid(
+                              `${domain}/did-registry/v6/identifiers/${vpSigner.did}`,
+                            ),
+                            () =>
+                              HttpResponse.text("Internal Server Error", {
+                                status: 500,
+                              }),
+                          ),
+                        );
+
+                        expectedError = {
+                          error: "server_error",
+                          error_description: `Unable to resolve ${vpSigner.did}. Error: internalServerError. Internal Server Error | Registry used: ${domain}/did-registry/v6/identifiers`,
+                        };
+                      },
+                    },
                   );
-
-                  expectedErrorMessage = `Invalid Verifiable Presentation: Unable to resolve ${vpSigner.did}. Error: notFound. Not Found | Registry used: ${domain}/did-registry/v6/identifiers`;
                   break;
                 }
                 case TIR_INVITE_SCOPE: {
-                  // Present a VC without any of VerifiableAuthorisationForTrustChain, VerifiableAccreditationToAttest or VerifiableAccreditationToAccredit
-                  vcPayload.type = [
-                    "VerifiableCredential",
-                    "VerifiableAttestation",
-                  ];
-                  expectedErrorMessage =
-                    "Invalid Presentation Submission:\nFilterEvaluation tag: Input candidate failed filter evaluation: $.input_descriptors[0]: $.verifiableCredential[0];,MarkForSubmissionEvaluation tag: The input candidate is not eligible for submission: $.input_descriptors[0]: $.verifiableCredential[0];";
+                  testCases.push(
+                    // Present a VC without any of VerifiableAuthorisationForTrustChain, VerifiableAccreditationToAttest or VerifiableAccreditationToAccredit
+                    {
+                      setup() {
+                        vcPayload.type = [
+                          "VerifiableCredential",
+                          "VerifiableAttestation",
+                        ];
+
+                        expectedError = {
+                          error: "invalid_request",
+                          error_description:
+                            "Invalid Presentation Submission:\nFilterEvaluation tag: Input candidate failed filter evaluation: submission.descriptor_map[0]: presentation $ with nested credential $.vp.verifiableCredential[0];,MarkForSubmissionEvaluation tag: The input candidate is not eligible for submission: submission.descriptor_map[0]: presentation $ with nested credential $.vp.verifiableCredential[0];",
+                        };
+                      },
+                    },
+                    // For an unknown reason, the response from TIR is not as expected
+                    {
+                      setup() {
+                        mockServer.use(
+                          http.get(
+                            escapeDid(
+                              `${domain}/trusted-issuers-registry/v6/issuers/${vpSigner.did}`,
+                            ),
+                            () =>
+                              HttpResponse.json({
+                                // Invalid body
+                              }),
+                          ),
+                        );
+
+                        expectedError = {
+                          error: "server_error",
+                          error_description:
+                            "Trusted Issuers Registry sent an invalid response",
+                        };
+                      },
+                    },
+                    // Issuer already has attributes
+                    {
+                      setup() {
+                        mockServer.use(
+                          http.get(
+                            escapeDid(
+                              `${domain}/trusted-issuers-registry/v6/issuers/${vpSigner.did}`,
+                            ),
+                            () =>
+                              HttpResponse.json({
+                                attributes: [
+                                  {
+                                    body: "eyJhbGciOiJFUzI1NiI...",
+                                    hash: "c5f705998e64792887cca48553f57b67b2a511fc271c2a49e677a4c995320aa4",
+                                    issuerType: "RootTAO",
+                                    rootTao: credentialIssuer.did,
+                                    tao: credentialIssuer.did,
+                                  },
+                                  {
+                                    body: "eyJhbGciOiJFUzI1NiI...",
+                                    hash: "04647216cf99e4ea91c5ee230129bededf92c349663d4d99945ac510c4897a12",
+                                    issuerType: "RootTAO",
+                                    rootTao: credentialIssuer.did,
+                                    tao: credentialIssuer.did,
+                                  },
+                                ],
+                                did: credentialSubject.did,
+                              }),
+                          ),
+                        );
+
+                        expectedError = {
+                          error: "invalid_request",
+                          error_description: `Invalid Verifiable Presentation: Trusted Issuer ${vpSigner.did} already has accreditations. Request an access token with scope "tir_write"`,
+                        };
+                      },
+                    },
+                  );
                   break;
                 }
                 case TIR_WRITE_SCOPE: {
-                  // VP Signer is not registered in the TIR
-                  const legalEntity = await createLegalEntity(["ES256"]);
-                  vpSigner = legalEntity.keys.ES256;
-                  vpPayload.holder = vpSigner.did;
+                  testCases.push(
+                    // Issuer can't be found
+                    {
+                      async setup() {
+                        // VP Signer is not registered in the TIR
+                        const legalEntity = await createLegalEntity(["ES256"]);
+                        vpSigner = legalEntity.keys.ES256;
+                        vpPayload.holder = vpSigner.did;
 
-                  mockServer.use(
-                    http.get(
-                      escapeDid(
-                        `${domain}/did-registry/v6/identifiers/${vpSigner.did}`,
-                      ),
-                      () => HttpResponse.json(legalEntity.didDocument),
-                    ),
-                    http.get(
-                      escapeDid(
-                        `${domain}/trusted-issuers-registry/v6/issuers/${vpSigner.did}`,
-                      ),
-                      () => HttpResponse.text("Not found", { status: 404 }),
-                    ),
+                        mockServer.use(
+                          http.get(
+                            escapeDid(
+                              `${domain}/did-registry/v6/identifiers/${vpSigner.did}`,
+                            ),
+                            () => HttpResponse.json(legalEntity.didDocument),
+                          ),
+                          http.get(
+                            escapeDid(
+                              `${domain}/trusted-issuers-registry/v6/issuers/${vpSigner.did}`,
+                            ),
+                            () =>
+                              HttpResponse.text("Not found", { status: 404 }),
+                          ),
+                        );
+
+                        expectedError = {
+                          error: "invalid_request",
+                          error_description: `Invalid Verifiable Presentation: DID ${vpSigner.did} is not registered in the Trusted Issuers Registry`,
+                        };
+                      },
+                    },
+                    // TIR API returns an internal error
+                    {
+                      async setup() {
+                        const legalEntity = await createLegalEntity(["ES256"]);
+                        vpSigner = legalEntity.keys.ES256;
+                        vpPayload.holder = vpSigner.did;
+
+                        mockServer.use(
+                          http.get(
+                            escapeDid(
+                              `${domain}/did-registry/v6/identifiers/${vpSigner.did}`,
+                            ),
+                            () => HttpResponse.json(legalEntity.didDocument),
+                          ),
+                          http.get(
+                            escapeDid(
+                              `${domain}/trusted-issuers-registry/v6/issuers/${vpSigner.did}`,
+                            ),
+                            () =>
+                              HttpResponse.text("Internal Server Error", {
+                                status: 500,
+                              }),
+                          ),
+                        );
+
+                        expectedError = {
+                          error: "server_error",
+                          error_description:
+                            "Trusted Issuers Registry responded with an internal error",
+                        };
+                      },
+                    },
+                    // Issuer doesn't have any attribute
+                    {
+                      async setup() {
+                        const legalEntity = await createLegalEntity(["ES256"]);
+                        vpSigner = legalEntity.keys.ES256;
+                        vpPayload.holder = vpSigner.did;
+
+                        mockServer.use(
+                          http.get(
+                            escapeDid(
+                              `${domain}/did-registry/v6/identifiers/${vpSigner.did}`,
+                            ),
+                            () => HttpResponse.json(legalEntity.didDocument),
+                          ),
+                          http.get(
+                            escapeDid(
+                              `${domain}/trusted-issuers-registry/v6/issuers/${vpSigner.did}`,
+                            ),
+                            () =>
+                              HttpResponse.json({
+                                attributes: [],
+                                did: credentialSubject.did,
+                              }),
+                          ),
+                        );
+
+                        expectedError = {
+                          error: "invalid_request",
+                          error_description: `Invalid Verifiable Presentation: Trusted Issuer ${vpSigner.did} doesn't have accreditations. Request an access token with scope "tir_invite"`,
+                        };
+                      },
+                    },
                   );
-
-                  expectedErrorMessage = `Invalid Verifiable Presentation: DID ${vpSigner.did} is not registered in the Trusted Issuers Registry`;
                   break;
                 }
                 case TNT_AUTHORISE_SCOPE: {
-                  // Present a VC without VerifiableAuthorisationToOnboard
-                  vcPayload.type = [
-                    "VerifiableCredential",
-                    "VerifiableAttestation",
-                  ];
+                  testCases.push(
+                    // Present a VC without VerifiableAuthorisationToOnboard
+                    {
+                      setup() {
+                        vcPayload.type = [
+                          "VerifiableCredential",
+                          "VerifiableAttestation",
+                        ];
 
-                  expectedErrorMessage = [
-                    "Invalid Presentation Submission:",
-                    "FilterEvaluation tag: Input candidate failed filter evaluation: $.input_descriptors[0]: $.verifiableCredential[0];,MarkForSubmissionEvaluation tag: The input candidate is not eligible for submission: $.input_descriptors[0]: $.verifiableCredential[0];",
-                  ].join("\n");
+                        expectedError = {
+                          error: "invalid_request",
+                          error_description: [
+                            "Invalid Presentation Submission:",
+                            "FilterEvaluation tag: Input candidate failed filter evaluation: submission.descriptor_map[0]: presentation $ with nested credential $.vp.verifiableCredential[0];,MarkForSubmissionEvaluation tag: The input candidate is not eligible for submission: submission.descriptor_map[0]: presentation $ with nested credential $.vp.verifiableCredential[0];",
+                          ].join("\n"),
+                        };
+                      },
+                    },
+                    // TPR API returns an internal error
+                    {
+                      setup() {
+                        mockServer.use(
+                          http.get(
+                            `${domain}/trusted-policies-registry/v4/users/${credentialSubject.address}`,
+                            () =>
+                              HttpResponse.text("Internal Server Error", {
+                                status: 500,
+                              }),
+                          ),
+                        );
+
+                        expectedError = {
+                          error: "server_error",
+                          error_description: `Trusted Policies Registry API responded with an internal error`,
+                        };
+                      },
+                    },
+                  );
                   break;
                 }
                 case TNT_CREATE_SCOPE: {
-                  mockServer.use(
-                    http.head(
-                      `${domain}/track-and-trace/v2/accesses`,
-                      ({ request: req }) => {
-                        const creator = new URL(req.url).searchParams.get(
-                          "creator",
+                  testCases.push(
+                    {
+                      setup() {
+                        mockServer.use(
+                          http.head(
+                            `${domain}/track-and-trace/v2/accesses`,
+                            ({ request: req }) => {
+                              const creator = new URL(req.url).searchParams.get(
+                                "creator",
+                              );
+
+                              if (creator === vpSigner.did) {
+                                return new HttpResponse(undefined, {
+                                  status: 404,
+                                });
+                              }
+
+                              throw new Error(
+                                `Unexpected TnT Document creator: ${creator}`,
+                              );
+                            },
+                          ),
                         );
 
-                        if (creator === vpSigner.did) {
-                          return new HttpResponse(undefined, { status: 404 });
-                        }
-
-                        throw new Error(
-                          `Unexpected TnT Document creator: ${creator}`,
-                        );
+                        expectedError = {
+                          error: "invalid_request",
+                          error_description: `Invalid Verifiable Presentation: DID ${vpSigner.did} is not allowlisted as a TnT Document creator`,
+                        };
                       },
-                    ),
-                  );
+                    },
+                    // TNT API returns an internal error
+                    {
+                      setup() {
+                        mockServer.use(
+                          http.head(
+                            `${domain}/track-and-trace/v2/accesses`,
+                            ({ request: req }) => {
+                              const creator = new URL(req.url).searchParams.get(
+                                "creator",
+                              );
 
-                  expectedErrorMessage = `Invalid Verifiable Presentation: DID ${vpSigner.did} is not allowlisted as a TnT Document creator`;
+                              if (creator === vpSigner.did) {
+                                return new HttpResponse(undefined, {
+                                  status: 500,
+                                });
+                              }
+
+                              throw new Error(
+                                `Unexpected TnT Document creator: ${creator}`,
+                              );
+                            },
+                          ),
+                        );
+
+                        expectedError = {
+                          error: "server_error",
+                          error_description:
+                            "Track And Trace API responded with an internal error",
+                        };
+                      },
+                    },
+                  );
                   break;
                 }
                 case TNT_WRITE_SCOPE: {
-                  mockServer.use(
-                    http.get(
-                      `${domain}/track-and-trace/v2/accesses`,
-                      ({ request: req }) => {
-                        const subject = new URL(req.url).searchParams.get(
-                          "subject",
+                  testCases.push(
+                    // Subject has no access
+                    {
+                      setup() {
+                        mockServer.use(
+                          http.get(
+                            `${domain}/track-and-trace/v2/accesses`,
+                            ({ request: req }) => {
+                              const subject = new URL(req.url).searchParams.get(
+                                "subject",
+                              );
+
+                              if (subject === vpSigner.did) {
+                                return HttpResponse.json(
+                                  {
+                                    items: [],
+                                    links: {
+                                      first: "",
+                                      last: "",
+                                      next: "",
+                                      prev: "",
+                                    },
+                                    self: "",
+                                    total: 0,
+                                  } satisfies PaginatedList<Access>,
+                                  { status: 200 },
+                                );
+                              }
+
+                              throw new Error(
+                                `Unexpected TnT subject: ${subject}`,
+                              );
+                            },
+                          ),
                         );
 
-                        if (subject === vpSigner.did) {
-                          return HttpResponse.json(
-                            {
-                              items: [],
-                              links: {
-                                first: "",
-                                last: "",
-                                next: "",
-                                prev: "",
-                              },
-                              self: "",
-                              total: 0,
-                            } satisfies PaginatedList<Access>,
-                            { status: 200 },
-                          );
-                        }
-
-                        throw new Error(`Unexpected TnT subject: ${subject}`);
+                        expectedError = {
+                          error: "invalid_request",
+                          error_description: `Invalid Verifiable Presentation: DID ${vpSigner.did} doesn't have write or delegate permission in TnT`,
+                        };
                       },
-                    ),
-                  );
+                    },
+                    // TNT API returns an internal error
+                    {
+                      setup() {
+                        mockServer.use(
+                          http.get(
+                            `${domain}/track-and-trace/v2/accesses`,
+                            () =>
+                              HttpResponse.text("Internal Server Error", {
+                                status: 500,
+                              }),
+                          ),
+                        );
 
-                  expectedErrorMessage = `Invalid Verifiable Presentation: DID ${vpSigner.did} doesn't have write or delegate permission in TnT`;
+                        expectedError = {
+                          error: "server_error",
+                          error_description:
+                            "Track And Trace API responded with an internal error",
+                        };
+                      },
+                    },
+                  );
                   break;
                 }
                 default: {
-                  expectedErrorMessage = "";
+                  throw new Error("Unexpected case");
                 }
               }
 
-              if (
-                [
-                  DIDR_INVITE_SCOPE,
-                  TIR_INVITE_SCOPE,
-                  TNT_AUTHORISE_SCOPE,
-                ].includes(customScope)
-              ) {
-                const vcJwt = await createVerifiableCredentialJwt(
-                  vcPayload,
-                  credentialIssuer.keys.ES256,
-                  ebsiEnvConfig,
-                  {
-                    skipValidation: true,
-                  },
-                );
+              for (const testCase of testCases) {
+                await setupEnvironment();
+                vpSigner = credentialSubject.keys.ES256;
+                await testCase.setup();
 
-                vpPayload.verifiableCredential.push(vcJwt);
+                // Execute test
+                try {
+                  if (
+                    [
+                      DIDR_INVITE_SCOPE,
+                      TIR_INVITE_SCOPE,
+                      TNT_AUTHORISE_SCOPE,
+                    ].includes(customScope)
+                  ) {
+                    const vcJwt = await createVerifiableCredentialJwt(
+                      vcPayload,
+                      credentialIssuer.keys.ES256,
+                      ebsiEnvConfig,
+                      {
+                        skipValidation: true,
+                      },
+                    );
+
+                    vpPayload.verifiableCredential.push(vcJwt);
+                  }
+
+                  const nonce = randomUUID();
+                  const now = Math.floor(Date.now() / 1000);
+
+                  const vpJwt = await createVerifiablePresentationJwt(
+                    vpPayload,
+                    vpSigner,
+                    serviceEndpoint,
+                    ebsiEnvConfig,
+                    {
+                      exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
+                      nbf: now,
+                      nonce,
+                      skipValidation: true,
+                    },
+                  );
+
+                  const response = await request(server)
+                    .post("/token")
+                    .set("Content-Type", "application/x-www-form-urlencoded")
+                    .send(
+                      new URLSearchParams({
+                        grant_type: "vp_token",
+                        presentation_submission: JSON.stringify(
+                          presentationSubmission,
+                        ),
+                        scope,
+                        vp_token: vpJwt,
+                      } satisfies CreateAccessTokenDto).toString(),
+                    );
+
+                  expect(response.body).toStrictEqual(expectedError);
+                  expect(response.status).toBe(400);
+                  expect(
+                    (response.headers as Record<string, unknown>)[
+                      "content-type"
+                    ],
+                  ).toBe("application/json; charset=utf-8");
+                } finally {
+                  // Teardown
+                  mockServer.resetHandlers();
+                }
               }
-
-              const nonce = randomUUID();
-              const now = Math.floor(Date.now() / 1000);
-
-              const vpJwt = await createVerifiablePresentationJwt(
-                vpPayload,
-                vpSigner,
-                serviceEndpoint,
-                ebsiEnvConfig,
-                {
-                  exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
-                  nbf: now,
-                  nonce,
-                  skipValidation: true,
-                },
-              );
-
-              const response = await request(server)
-                .post("/token")
-                .set("Content-Type", "application/x-www-form-urlencoded")
-                .send(
-                  new URLSearchParams({
-                    grant_type: "vp_token",
-                    presentation_submission: JSON.stringify(
-                      presentationSubmission,
-                    ),
-                    scope,
-                    vp_token: vpJwt,
-                  } satisfies CreateAccessTokenDto).toString(),
-                );
-
-              expect(response.body).toStrictEqual({
-                error: "invalid_request",
-                error_description: expectedErrorMessage,
-              });
-              expect(response.status).toBe(400);
-              expect(
-                (response.headers as Record<string, unknown>)["content-type"],
-              ).toBe("application/json; charset=utf-8");
             });
 
             it("should return an error when the VP JWT is not signed with the expected algorithm (validateCredentialsAlgos)", async () => {
@@ -2085,7 +2440,7 @@ describe.each(["EBSI URI", "URL"] as const)(
               expect(response.status).toBe(400);
             });
 
-            it("should return an error when descriptor_map[0].path is invalid (validateCredentialsAlgos)", async () => {
+            it("should return an error when descriptor_map[0].path is invalid", async () => {
               if (
                 [
                   DIDR_WRITE_SCOPE,
@@ -2152,13 +2507,13 @@ describe.each(["EBSI URI", "URL"] as const)(
               expect(response.body).toStrictEqual({
                 error: "invalid_request",
                 error_description:
-                  "Invalid Verifiable Presentation submission: descriptor root path must be '$'",
+                  "Invalid Presentation Submission:\nSubmissionPathNotFound tag: Unable to extract path $[0] for submission.descriptor_path[0] from presentation(s);",
               });
 
               expect(response.status).toBe(400);
             });
 
-            it("should return an error when descriptor_map[0].format is invalid (validateCredentialsAlgos)", async () => {
+            it("should return an error when descriptor_map[0].format is invalid", async () => {
               if (
                 [
                   DIDR_WRITE_SCOPE,
@@ -2225,7 +2580,7 @@ describe.each(["EBSI URI", "URL"] as const)(
               expect(response.body).toStrictEqual({
                 error: "invalid_request",
                 error_description:
-                  "Invalid Verifiable Presentation submission: format 'jwt' is not supported in 'descriptor_map[0].format'",
+                  "Invalid Presentation Submission:\nSubmissionFormatNoMatch tag: VP at path $ has format jwt_vp, while submission.descriptor_path[0] has format jwt;",
               });
 
               expect(response.status).toBe(400);
@@ -2376,7 +2731,7 @@ describe.each(["EBSI URI", "URL"] as const)(
               expect(response.status).toBe(400);
             });
 
-            it("should return an error when descriptor_map[0].path_nested.path is invalid (validateCredentialsAlgos)", async () => {
+            it("should return an error when descriptor_map[0].path_nested.path is invalid", async () => {
               if (
                 [
                   DIDR_WRITE_SCOPE,
@@ -2444,13 +2799,13 @@ describe.each(["EBSI URI", "URL"] as const)(
               expect(response.body).toStrictEqual({
                 error: "invalid_request",
                 error_description:
-                  "Invalid Verifiable Presentation submission: path_nested.path '$.vp.verifiableCredential' is not valid",
+                  "Invalid Presentation Submission:\nSubmissionPathNotFound tag: Unable to find wrapped vc;",
               });
 
               expect(response.status).toBe(400);
             });
 
-            it("should return an error when descriptor_map[0].path_nested.path doesn't match any credential (validateCredentialsAlgos)", async () => {
+            it("should return an error when descriptor_map[0].path_nested.path doesn't match any credential", async () => {
               if (
                 [
                   DIDR_WRITE_SCOPE,
@@ -2518,7 +2873,7 @@ describe.each(["EBSI URI", "URL"] as const)(
               expect(response.body).toStrictEqual({
                 error: "invalid_request",
                 error_description:
-                  "Invalid Verifiable Presentation submission: $.vp.verifiableCredential[1] not found",
+                  "Invalid Presentation Submission:\nSubmissionPathNotFound tag: Unable to extract path_nested.path $.vp.verifiableCredential[1] for submission.descriptor_path[0] from verifiable presentation;",
               });
 
               expect(response.status).toBe(400);

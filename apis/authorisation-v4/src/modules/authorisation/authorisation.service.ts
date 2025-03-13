@@ -171,6 +171,13 @@ export class AuthorisationService {
     const presentationSubmission =
       parsedPresentationSubmission.data as PresentationSubmission;
 
+    // Replace "jwt_vp_json" with "jwt_vp" as Sphereon SSI types library incorrectly handles "jwt_vp_json"
+    presentationSubmission.descriptor_map =
+      presentationSubmission.descriptor_map.map((desc) => ({
+        ...desc,
+        format: desc.format === "jwt_vp_json" ? "jwt_vp" : desc.format,
+      }));
+
     let vpTokenDecoded: ReturnType<typeof decodeJWT>;
     try {
       vpTokenDecoded = decodeJWT(vpToken);
@@ -400,31 +407,35 @@ export class AuthorisationService {
       );
       didDocument = response.data;
     } catch (error) {
-      if (isAxiosError(error)) {
-        logAxiosError(error, this.logger, 500);
-
-        if (error.response?.status === 404) {
-          throw new OAuth2TokenError("invalid_request", {
-            errorDescription: `Invalid Verifiable Presentation: DID document ${did} cannot be resolved`,
-          });
-        }
-
-        if (error.response?.status === 500) {
-          throw new OAuth2TokenError("server_error", {
-            errorDescription:
-              "DID Registry API responded with an internal error",
-          });
-        }
-      } else if (error instanceof Error) {
-        this.logger.error(error.message, error.stack);
-      } else {
+      /* v8 ignore start */
+      if (!isAxiosError(error)) {
         this.logger.error(error);
+        throw new OAuth2TokenError("server_error", {
+          errorDescription: "Unexpected error when querying DID Registry API",
+        });
+      }
+      /* v8 ignore stop */
+
+      logAxiosError(error, this.logger, 500);
+
+      if (error.response?.status === 404) {
+        throw new OAuth2TokenError("invalid_request", {
+          errorDescription: `Invalid Verifiable Presentation: DID document ${did} cannot be resolved`,
+        });
       }
 
+      if (error.response?.status === 500) {
+        throw new OAuth2TokenError("server_error", {
+          errorDescription: "DID Registry API responded with an internal error",
+        });
+      }
+
+      /* v8 ignore start */
       // Fallback (should not be triggered)
       throw new OAuth2TokenError("server_error", {
-        errorDescription: "Unexpected error",
+        errorDescription: "Unexpected error when querying DID Registry API",
       });
+      /* v8 ignore stop */
     }
 
     if (!didDocument.capabilityInvocation) {
@@ -539,9 +550,8 @@ export class AuthorisationService {
     } catch (error) {
       if (isAxiosError(error)) {
         logAxiosError(error, this.logger, 500);
-      } else if (error instanceof Error) {
-        this.logger.error(error.message, error.stack);
       } else {
+        /* v8 ignore next 1 */
         this.logger.error(error);
       }
 
@@ -628,25 +638,14 @@ export class AuthorisationService {
       index,
       descriptor,
     ] of presentationSubmission.descriptor_map.entries()) {
-      if (descriptor.path !== "$") {
-        throw new OAuth2TokenError("invalid_request", {
-          errorDescription:
-            "Invalid Verifiable Presentation submission: descriptor root path must be '$'",
-        });
-      }
-
       if (!presentationDefinition.format) continue; // Invalid presentation definition
 
       const { format: vpFormat } = descriptor;
 
-      if (!Object.keys(presentationDefinition.format).includes(vpFormat)) {
-        throw new OAuth2TokenError("invalid_request", {
-          errorDescription: `Invalid Verifiable Presentation submission: format '${vpFormat}' is not supported in 'descriptor_map[${index}].format'`,
-        });
-      }
-
-      // Extra check to narrow down the type of vpFormat
-      if (vpFormat !== "jwt_vp" && vpFormat !== "jwt_vp_json") {
+      if (
+        !Object.keys(presentationDefinition.format).includes(vpFormat) ||
+        (vpFormat !== "jwt_vp" && vpFormat !== "jwt_vp_json")
+      ) {
         throw new OAuth2TokenError("invalid_request", {
           errorDescription: `Invalid Verifiable Presentation submission: format '${vpFormat}' is not supported in 'descriptor_map[${index}].format'`,
         });
@@ -679,14 +678,10 @@ export class AuthorisationService {
 
       if (!matchingInputDescriptor.format) continue; // Invalid presentation definition
 
-      if (!Object.keys(matchingInputDescriptor.format).includes(vcFormat)) {
-        throw new OAuth2TokenError("invalid_request", {
-          errorDescription: `Invalid Verifiable Presentation submission: format '${vcFormat}' is not supported in 'descriptor_map[${index}].path_nested.format'`,
-        });
-      }
-
-      // Extra check to narrow down the type of vcFormat
-      if (vcFormat !== "jwt_vc" && vcFormat !== "jwt_vc_json") {
+      if (
+        !Object.keys(matchingInputDescriptor.format).includes(vcFormat) ||
+        (vcFormat !== "jwt_vc" && vcFormat !== "jwt_vc_json")
+      ) {
         throw new OAuth2TokenError("invalid_request", {
           errorDescription: `Invalid Verifiable Presentation submission: format '${vcFormat}' is not supported in 'descriptor_map[${index}].path_nested.format'`,
         });
@@ -702,6 +697,7 @@ export class AuthorisationService {
           errorDescription: `Invalid Verifiable Presentation submission: path_nested.path '${descriptor.path_nested.path}' is not valid`,
         });
       }
+
       const vcIndex = Number.parseInt(matches[1]!, 10);
 
       const vcJwt = presentation.verifiableCredential[vcIndex];
@@ -776,6 +772,7 @@ export class AuthorisationService {
       }
 
       // Unhandled error
+      /* v8 ignore next 1 */
       throw error;
     }
 
@@ -912,41 +909,35 @@ export class AuthorisationService {
               valid: true,
             };
           } catch (error) {
-            if (isAxiosError(error)) {
-              logAxiosError(error, this.logger, 500);
+            /* v8 ignore start */
+            if (!isAxiosError(error)) {
+              this.logger.error(error);
 
-              if (error.response?.status === 404) {
-                return {
-                  error: `address ${address} not in Trusted Policies Registry`,
-                  valid: false,
-                };
-              }
+              throw new OAuth2TokenError("server_error", {
+                errorDescription:
+                  "Unexpected error when querying Trusted Policies Registry API",
+              });
+            }
+            /* v8 ignore stop */
 
-              if (error.response?.status === 500) {
-                return {
-                  error:
-                    "Trusted Policies Registry API responded with an internal error",
-                  valid: false,
-                };
-              }
+            logAxiosError(error, this.logger, 500);
 
+            if (error.response?.status === 404) {
               return {
-                error: `Error from Trusted Policies Registry: ${error.message}`,
+                error: `address ${address} not in Trusted Policies Registry`,
                 valid: false,
               };
             }
 
-            if (error instanceof Error) {
-              this.logger.error(error.message, error.stack);
-              return {
-                error: `Error from Trusted Policies Registry: ${error.message}`,
-                valid: false,
-              };
+            if (error.response?.status === 500) {
+              throw new OAuth2TokenError("server_error", {
+                errorDescription:
+                  "Trusted Policies Registry API responded with an internal error",
+              });
             }
 
-            this.logger.error(error);
             return {
-              error: `Unknown error from Trusted Policies Registry`,
+              error: `Error from Trusted Policies Registry: ${error.message}`,
               valid: false,
             };
           }
@@ -969,31 +960,38 @@ export class AuthorisationService {
         }).toString()}`,
       );
     } catch (error) {
-      if (isAxiosError(error)) {
-        logAxiosError(error, this.logger, 500);
-
-        if (error.response?.status === 404) {
-          throw new OAuth2TokenError("invalid_request", {
-            errorDescription: `Invalid Verifiable Presentation: DID ${did} is not allowlisted as a TnT Document creator`,
-          });
-        }
-
-        if (error.response?.status === 500) {
-          throw new OAuth2TokenError("server_error", {
-            errorDescription:
-              "Track And Trace API responded with an internal error",
-          });
-        }
-      } else if (error instanceof Error) {
-        this.logger.error(error.message, error.stack);
-      } else {
+      /* v8 ignore start */
+      if (!isAxiosError(error)) {
         this.logger.error(error);
+
+        throw new OAuth2TokenError("server_error", {
+          errorDescription:
+            "Unexpected error when querying Track And Trace API",
+        });
+      }
+      /* v8 ignore stop */
+
+      logAxiosError(error, this.logger, 500);
+
+      if (error.response?.status === 404) {
+        throw new OAuth2TokenError("invalid_request", {
+          errorDescription: `Invalid Verifiable Presentation: DID ${did} is not allowlisted as a TnT Document creator`,
+        });
       }
 
+      if (error.response?.status === 500) {
+        throw new OAuth2TokenError("server_error", {
+          errorDescription:
+            "Track And Trace API responded with an internal error",
+        });
+      }
+
+      /* v8 ignore start */
       // Fallback (should not be triggered)
       throw new OAuth2TokenError("server_error", {
-        errorDescription: "Unexpected error",
+        errorDescription: "Unexpected error when querying Track And Trace API",
       });
+      /* v8 ignore stop */
     }
   }
 
@@ -1007,31 +1005,32 @@ export class AuthorisationService {
       );
       accesses = data.items;
     } catch (error) {
-      if (isAxiosError(error)) {
-        logAxiosError(error, this.logger, 500);
-
-        if (error.response?.status === 400) {
-          throw new OAuth2TokenError("invalid_request", {
-            errorDescription: `Invalid Verifiable Presentation: DID ${did} doesn't have write permission in TnT`,
-          });
-        }
-
-        if (error.response?.status === 500) {
-          throw new OAuth2TokenError("server_error", {
-            errorDescription:
-              "Track And Trace API responded with an internal error",
-          });
-        }
-      } else if (error instanceof Error) {
-        this.logger.error(error.message, error.stack);
-      } else {
+      /* v8 ignore start */
+      if (!isAxiosError(error)) {
         this.logger.error(error);
+
+        throw new OAuth2TokenError("server_error", {
+          errorDescription:
+            "Unexpected error when querying Track And Trace API",
+        });
+      }
+      /* v8 ignore stop */
+
+      logAxiosError(error, this.logger, 500);
+
+      if (error.response?.status === 500) {
+        throw new OAuth2TokenError("server_error", {
+          errorDescription:
+            "Track And Trace API responded with an internal error",
+        });
       }
 
+      /* v8 ignore start */
       // Fallback (should not be triggered)
       throw new OAuth2TokenError("server_error", {
-        errorDescription: "Unexpected error",
+        errorDescription: "Unexpected error when querying Track And Trace API",
       });
+      /* v8 ignore stop */
     }
 
     if (!accesses || accesses.length === 0) {
@@ -1054,31 +1053,39 @@ export class AuthorisationService {
         `${this.trustedIssuersRegistry}/${did}`,
       );
     } catch (error) {
-      if (isAxiosError(error)) {
-        logAxiosError(error, this.logger, 500);
-
-        if (error.response?.status === 404) {
-          throw new OAuth2TokenError("invalid_request", {
-            errorDescription: `Invalid Verifiable Presentation: DID ${did} is not registered in the Trusted Issuers Registry`,
-          });
-        }
-
-        if (error.response?.status === 500) {
-          throw new OAuth2TokenError("server_error", {
-            errorDescription:
-              "Trusted Issuers Registry responded with an internal error",
-          });
-        }
-      } else if (error instanceof Error) {
-        this.logger.error(error.message, error.stack);
-      } else {
+      /* v8 ignore start */
+      if (!isAxiosError(error)) {
         this.logger.error(error);
+
+        throw new OAuth2TokenError("server_error", {
+          errorDescription:
+            "Unexpected error when querying Trusted Issuers Registry API",
+        });
+      }
+      /* v8 ignore stop */
+
+      logAxiosError(error, this.logger, 500);
+
+      if (error.response?.status === 404) {
+        throw new OAuth2TokenError("invalid_request", {
+          errorDescription: `Invalid Verifiable Presentation: DID ${did} is not registered in the Trusted Issuers Registry`,
+        });
       }
 
+      if (error.response?.status === 500) {
+        throw new OAuth2TokenError("server_error", {
+          errorDescription:
+            "Trusted Issuers Registry responded with an internal error",
+        });
+      }
+
+      /* v8 ignore start */
       // Fallback (should not be triggered)
       throw new OAuth2TokenError("server_error", {
-        errorDescription: "Unexpected error",
+        errorDescription:
+          "Unexpected error when querying Trusted Issuers Registry API",
       });
+      /* v8 ignore stop */
     }
 
     // Parse response
@@ -1139,10 +1146,17 @@ export class AuthorisationService {
         error instanceof Error ? error.stack : undefined,
       );
 
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+
+      if (errorMessage.includes("Error: internalServerError")) {
+        throw new OAuth2TokenError("server_error", {
+          errorDescription: errorMessage,
+        });
+      }
+
       throw new OAuth2TokenError("invalid_request", {
-        errorDescription: `Invalid Verifiable Presentation: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`,
+        errorDescription: `Invalid Verifiable Presentation: ${errorMessage}`,
       });
     }
   }

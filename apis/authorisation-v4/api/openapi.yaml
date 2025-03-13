@@ -11,6 +11,7 @@ info:
     + [Authorisation Server discovery](https://openid.net/specs/openid-connect-discovery-1_0.html) the /.well-known/openid-configuration
     + [OpenID for Verifiable Presentation](https://openid.net/specs/openid-4-verifiable-presentations-1_0-14.html) capabilities (v 0.14)
     + [OIDC](https://openid.net/specs/openid-connect-core-1_0.html) capabilities (v1.0)
+    + [Presentation Exchange 2.1.1](https://identity.foundation/presentation-exchange/spec/v2.1.1/)
 
     The EBSI Platform distinguishes between two types of users:
     - **Identified Users:** Legal Entities who already use the trusted registries (DID registry and Trusted Issuer Registry).
@@ -1284,9 +1285,7 @@ components:
     presentation_definition_response:
       title: Presentation Definition
       description: |
-        Presentation Definition schema as defined in [Presentation Exchange
-         V2.0.0 JSON Schemas](https://identity.foundation/presentation-exchange/spec/v2.0.0/#json-schemas)
-         section
+        Presentation Definition schema as defined in [Presentation Exchange 2.1.1 JSON Schema](https://identity.foundation/presentation-exchange/spec/v2.1.1/#json-schema) section
       type: object
       properties:
         id:
