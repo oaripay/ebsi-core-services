@@ -415,7 +415,6 @@ describe("Documents Module", () => {
 
       expect(response.body).toStrictEqual({
         creator: document.didEbsiCreator,
-        events: document.events.map((event) => event.eventHash),
         metadata: document.documentMetadata,
         timestamp: {
           datetime: document.timestamp.datetime,
@@ -440,7 +439,6 @@ describe("Documents Module", () => {
 
       expect(response.body).toStrictEqual({
         creator: document.didEbsiCreator,
-        events: [],
         metadata: document.documentMetadata,
         timestamp: {
           datetime: expect.stringMatching(/^0x/),

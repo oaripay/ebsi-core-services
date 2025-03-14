@@ -23,7 +23,6 @@ export interface Access {
 
 export interface Document {
   creator: string;
-  events: string[];
   metadata: string;
   timestamp: Timestamp;
 }

@@ -53,7 +53,6 @@ export default class DocumentsService {
 
     return {
       creator: document.creator,
-      events: document.eventHashes,
       metadata: document.documentMetadata,
       timestamp: {
         datetime: `0x${document.documentTimestamp.timestamp.toString(16)}`,

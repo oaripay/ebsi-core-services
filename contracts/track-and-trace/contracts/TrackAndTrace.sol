@@ -329,7 +329,6 @@ contract TrackAndTrace is
         doc.creator = iDoc.creator;
         doc.documentMetadata = iDoc.documentMetadata;
         doc.documentTimestamp = iDoc.documentTimestamp;
-        doc.eventHashes = iDoc.eventHashes;
         return doc;
     }
 

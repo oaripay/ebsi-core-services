@@ -282,7 +282,15 @@ describe("TrackAndTrace - tests", () => {
       ]);
       const docHash = ethers.encodeBytes32String("e68905e6");
       const doc = await trackAndTrace.getDocument(docHash);
-      expect(doc.creator).to.be.equal("didEbsi");
+      expect(decodeResult(doc)).to.eql({
+        creator: "didEbsi",
+        documentMetadata: "metadata",
+        documentTimestamp: {
+          proof: doc.documentTimestamp.proof,
+          source: 0n,
+          timestamp: doc.documentTimestamp.timestamp,
+        },
+      });
     });
 
     it("should grant delegate access to a did ebsi", async () => {

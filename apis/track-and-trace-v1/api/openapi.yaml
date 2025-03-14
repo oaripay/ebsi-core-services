@@ -146,7 +146,6 @@ paths:
                   datetime: "0x65b24e0d"
                   source: block
                   proof: "0x0000000000000000000000000000000000000000000000000000000000000006"
-                events: []
                 creator: did:ebsi:ztqWJAmfyuUEf9Jvh97p167
         "400":
           description: Bad Request
@@ -977,12 +976,6 @@ components:
               type: string
               description: |
                 Proof of the source. Either a block number or a hash of timestamp certificate
-        events:
-          type: array
-          description: List of event hashes
-          items:
-            type: string
-            description: Event hash
         creator:
           type: string
           description: The `did:key` or `did:ebsi` that created the document

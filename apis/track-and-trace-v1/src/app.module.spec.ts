@@ -1103,7 +1103,6 @@ describe("App Module", () => {
 
     expect(response.body).toStrictEqual({
       creator: document1.creator,
-      events: [],
       metadata: document1.metadata,
       timestamp: {
         datetime: document1.timestamp.datetime,
@@ -1186,7 +1185,6 @@ describe("App Module", () => {
 
     expect(response.body).toStrictEqual({
       creator: document1.creator,
-      events: [document1Event1.hash],
       metadata: document1.metadata,
       timestamp: {
         datetime: document1.timestamp.datetime,
@@ -1338,7 +1336,6 @@ describe("App Module", () => {
 
     expect(response.body).toStrictEqual({
       creator: document1.creator,
-      events: [document1Event1.hash, document1Event2.hash],
       metadata: document1.metadata,
       timestamp: {
         datetime: document1.timestamp.datetime,
@@ -1576,11 +1573,6 @@ describe("App Module", () => {
 
     expect(response.body).toStrictEqual({
       creator: document1.creator,
-      events: [
-        document1Event1.hash,
-        document1Event2.hash,
-        document1Event3.hash,
-      ],
       metadata: document1.metadata,
       timestamp: {
         datetime: document1.timestamp.datetime,

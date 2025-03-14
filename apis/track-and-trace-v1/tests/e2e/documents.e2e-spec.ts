@@ -203,7 +203,6 @@ describe("Track and Trace API v1 - Documents (e2e)", () => {
       expect(response.body).toStrictEqual(
         expect.objectContaining({
           creator: expect.any(String),
-          events: expect.arrayContaining([]),
           metadata: expect.any(String),
           timestamp: {
             datetime: expect.any(String),
