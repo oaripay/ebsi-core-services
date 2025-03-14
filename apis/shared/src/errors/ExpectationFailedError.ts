@@ -30,5 +30,3 @@ export class ExpectationFailedError extends ProblemDetailsError {
     this.name = "ExpectationFailedError";
   }
 }
-
-export default ExpectationFailedError;

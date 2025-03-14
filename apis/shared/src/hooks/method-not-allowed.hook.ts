@@ -44,5 +44,3 @@ export const methodNotAllowed: onRequestHookHandler = (
 
   done();
 };
-
-export default methodNotAllowed;

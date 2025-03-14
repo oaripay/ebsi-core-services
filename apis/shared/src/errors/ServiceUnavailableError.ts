@@ -30,5 +30,3 @@ export class ServiceUnavailableError extends ProblemDetailsError {
     this.name = "ServiceUnavailableError";
   }
 }
-
-export default ServiceUnavailableError;

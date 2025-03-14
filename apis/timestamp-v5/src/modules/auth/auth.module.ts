@@ -11,5 +11,3 @@ import { BearerJwtStrategy } from "./strategies/index.ts";
   providers: [AuthService, BearerJwtStrategy],
 })
 export class AuthModule {}
-
-export default AuthModule;

@@ -18,5 +18,3 @@ export function getSigner(
 
   throw new Error(`Unsupported algorithm ${alg as string}`);
 }
-
-export default getSigner;

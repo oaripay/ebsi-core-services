@@ -6,5 +6,3 @@ export class UpdateIssuerProxyParam extends ArgsUpdateIssuerProxy {
   @IsEthereumAddress()
   from!: string;
 }
-
-export default { UpdateIssuerProxyParam };

@@ -16,5 +16,3 @@ export class ArgsAddVerificationMethod {
   @IsBoolean()
   isSecp256k1!: boolean;
 }
-
-export default { ArgsAddVerificationMethod };

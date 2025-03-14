@@ -102,5 +102,3 @@ export function setupInterceptors(
     },
   );
 }
-
-export default setupInterceptors;

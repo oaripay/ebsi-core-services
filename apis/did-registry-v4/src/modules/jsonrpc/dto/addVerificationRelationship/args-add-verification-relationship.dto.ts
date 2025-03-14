@@ -27,5 +27,3 @@ export class ArgsAddVerificationRelationship {
   @Min(0)
   notAfter!: number;
 }
-
-export default { ArgsAddVerificationRelationship };

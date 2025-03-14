@@ -17,5 +17,3 @@ export const besuJsonRpcRequestPayload = z.object({
 export type BesuJsonRpcRequestPayload = z.infer<
   typeof besuJsonRpcRequestPayload
 >;
-
-export default besuJsonRpcRequestPayload;

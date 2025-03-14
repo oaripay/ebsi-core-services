@@ -24,5 +24,3 @@ export function createDidDocument(
     ],
   };
 }
-
-export default createDidDocument;

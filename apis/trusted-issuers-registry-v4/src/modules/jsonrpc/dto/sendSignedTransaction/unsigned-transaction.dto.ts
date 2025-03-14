@@ -25,5 +25,3 @@ export class UnsignedTransaction {
   @IsString()
   value!: string;
 }
-
-export default UnsignedTransaction;

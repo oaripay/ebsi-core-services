@@ -32,15 +32,58 @@ import {
   GetIdentifiersDto,
 } from "./dto/index.ts";
 import { formatEvents, formatIdentifiers } from "./identifiers.formatter.ts";
-import IdentifiersService from "./identifiers.service.ts";
+import { IdentifiersService } from "./identifiers.service.ts";
 import { jsonRpcSchema } from "./validators/JsonRpcSchema.ts";
 
 @Controller("/identifiers")
-export default class IdentifiersController {
+export class IdentifiersController {
   constructor(
     private identifiersService: IdentifiersService,
     private configService: ConfigService<ApiConfig, true>,
   ) {}
+
+  @Accepts("application/json")
+  @Get("")
+  async getIdentifiers(
+    @Query() query: GetIdentifiersDto,
+  ): Promise<PaginatedListWithoutTotal<DidLink>> {
+    const identifiers = await this.identifiersService.getIdentifiers(
+      query["page[after]"],
+      query["page[size]"],
+      query.controller,
+      query["verification-method-id"],
+      query["verification-relationship"],
+    );
+
+    const apiUrlPrefix = this.configService.get("apiUrlPrefix", {
+      infer: true,
+    });
+    const domain = this.configService.get("domain", { infer: true });
+    const baseUrl = `${domain}${apiUrlPrefix}/identifiers`;
+
+    const searchParams = new URLSearchParams();
+    for (const k of Object.keys(query)) {
+      const key = k as keyof GetIdentifiersDto;
+      if (
+        query[key] !== undefined &&
+        key !== "page[after]" &&
+        key !== "page[size]"
+      ) {
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+        searchParams.append(key, query[key]!);
+      }
+    }
+    const extraQuery =
+      searchParams.size > 0 ? `&${searchParams.toString()}` : "";
+
+    return formatIdentifiers(
+      identifiers,
+      query["page[after]"],
+      query["page[size]"],
+      baseUrl,
+      extraQuery,
+    );
+  }
 
   @Accepts("application/did+ld+json", "application/did+json")
   @Get("/:did")
@@ -90,49 +133,6 @@ export default class IdentifiersController {
       query["page[after]"],
       query["page[size]"],
       baseUrl,
-    );
-  }
-
-  @Accepts("application/json")
-  @Get("")
-  async getIdentifiers(
-    @Query() query: GetIdentifiersDto,
-  ): Promise<PaginatedListWithoutTotal<DidLink>> {
-    const identifiers = await this.identifiersService.getIdentifiers(
-      query["page[after]"],
-      query["page[size]"],
-      query.controller,
-      query["verification-method-id"],
-      query["verification-relationship"],
-    );
-
-    const apiUrlPrefix = this.configService.get("apiUrlPrefix", {
-      infer: true,
-    });
-    const domain = this.configService.get("domain", { infer: true });
-    const baseUrl = `${domain}${apiUrlPrefix}/identifiers`;
-
-    const searchParams = new URLSearchParams();
-    for (const k of Object.keys(query)) {
-      const key = k as keyof GetIdentifiersDto;
-      if (
-        query[key] !== undefined &&
-        key !== "page[after]" &&
-        key !== "page[size]"
-      ) {
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-        searchParams.append(key, query[key]!);
-      }
-    }
-    const extraQuery =
-      searchParams.size > 0 ? `&${searchParams.toString()}` : "";
-
-    return formatIdentifiers(
-      identifiers,
-      query["page[after]"],
-      query["page[size]"],
-      baseUrl,
-      extraQuery,
     );
   }
 

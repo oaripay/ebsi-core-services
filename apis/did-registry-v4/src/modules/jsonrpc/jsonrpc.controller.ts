@@ -34,14 +34,14 @@ function formatJsonRpcResponse(
 }
 
 @Controller("/jsonrpc")
-export default class AppController {
+export class JsonRpcController {
   constructor(private jsonRpcService: JsonRpcService) {}
 
   @Accepts("application/json")
   @HttpCode(200)
   @Post()
   @UseGuards(BearerJwtAuthGuard)
-  async jsonRPC(
+  async jsonRpc(
     @Body() body: JsonRpcDto,
     @Subject() subject: SubjectInfo,
   ): Promise<JsonRpcResponseObject> {

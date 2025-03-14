@@ -116,6 +116,15 @@ export default tseslint.config(
   // APIS //
   //////////
 
+  // Controllers
+  {
+    files: ["apis/**/*.controller.ts"],
+    rules: {
+      // Don't change the order of class members in controllers, so we can manually define the order of the endpoints
+      "perfectionist/sort-classes": ["off"],
+    },
+  },
+
   // DTOs
   {
     files: ["apis/**/*.dto.ts"],

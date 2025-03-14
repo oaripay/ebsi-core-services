@@ -24,7 +24,7 @@ import {
   formatDocumentEvents,
   formatDocuments,
 } from "./documents.formatter.ts";
-import DocumentsService from "./documents.service.ts";
+import { DocumentsService } from "./documents.service.ts";
 import {
   GetDocumentAccessesDto,
   GetDocumentAccessesParamsDto,
@@ -36,11 +36,61 @@ import {
 } from "./dto/index.ts";
 
 @Controller("/documents")
-export default class DocumentsController {
+export class DocumentsController {
   constructor(
     private documentsService: DocumentsService,
     private configService: ConfigService<ApiConfig, true>,
   ) {}
+
+  @Accepts("application/json")
+  @Get("")
+  async getDocuments(
+    @Query() query: GetDocumentsDto,
+  ): Promise<PaginatedListWithoutTotal<DocumentsLink>> {
+    const where: Document_filter = {
+      ...(query.creator && {
+        creator: query.creator,
+      }),
+      ...(query.source && {
+        source: query.source,
+      }),
+    };
+
+    const documents = await this.documentsService.getDocuments(
+      query["page[after]"],
+      query["page[size]"],
+      where,
+    );
+
+    const apiUrlPrefix = this.configService.get("apiUrlPrefix", {
+      infer: true,
+    });
+    const domain = this.configService.get("domain", { infer: true });
+    const baseUrl = `${domain}${apiUrlPrefix}/documents`;
+
+    const searchParams = new URLSearchParams();
+    for (const k of Object.keys(query)) {
+      const key = k as keyof GetDocumentsDto;
+      if (
+        query[key] !== undefined &&
+        key !== "page[after]" &&
+        key !== "page[size]"
+      ) {
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+        searchParams.append(key, query[key]!);
+      }
+    }
+    const extraQuery =
+      searchParams.size > 0 ? `&${searchParams.toString()}` : "";
+
+    return formatDocuments(
+      documents,
+      query["page[after]"],
+      query["page[size]"],
+      baseUrl,
+      extraQuery,
+    );
+  }
 
   @Accepts("application/json")
   @Get("/:documentId")
@@ -50,6 +100,85 @@ export default class DocumentsController {
     const document = await this.documentsService.getDocument(documentId);
 
     return document;
+  }
+
+  @Accepts("application/json")
+  @Get("/:documentId/events")
+  async getDocumentEvents(
+    @Param() params: GetDocumentEventsParamsDto,
+    @Query() query: GetDocumentEventsDto,
+  ): Promise<PaginatedListWithoutTotal<DocumentEventsLink>> {
+    const { documentId } = params;
+
+    let sender: string | undefined;
+
+    try {
+      if (query.sender) {
+        sender = await didToHex(query.sender);
+      }
+    } catch {
+      throw new BadRequestError(BadRequestError.defaultTitle, {
+        detail: "sender must be a DID",
+      });
+    }
+
+    const where: Event_filter = {
+      ...(query["external-hash"] && { externalHash: query["external-hash"] }),
+      ...(query.origin && { origin: query.origin }),
+      ...(sender && { sender }),
+      ...(query.source && { source: query.source }),
+    };
+
+    const events = await this.documentsService.getDocumentEvents(
+      documentId,
+      query["page[after]"],
+      query["page[size]"],
+      where,
+    );
+
+    const apiUrlPrefix = this.configService.get("apiUrlPrefix", {
+      infer: true,
+    });
+    const domain = this.configService.get("domain", { infer: true });
+    const baseUrl = `${domain}${apiUrlPrefix}/documents/${documentId}/events`;
+
+    const searchParams = new URLSearchParams();
+    for (const k of Object.keys(query)) {
+      const key = k as keyof GetDocumentEventsDto;
+      if (
+        query[key] !== undefined &&
+        key !== "page[after]" &&
+        key !== "page[size]"
+      ) {
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+        searchParams.append(key, query[key]!);
+      }
+    }
+    const extraQuery =
+      searchParams.size > 0 ? `&${searchParams.toString()}` : "";
+
+    return formatDocumentEvents(
+      events,
+      query["page[after]"],
+      query["page[size]"],
+      baseUrl,
+      extraQuery,
+    );
+  }
+
+  @Accepts("application/json")
+  @Get("/:documentId/events/:eventId")
+  async getDocumentEvent(
+    @Param() params: GetDocumentEventParamsDto,
+  ): Promise<Event> {
+    const { documentId, eventId } = params;
+
+    const event = await this.documentsService.getDocumentEvent(
+      documentId,
+      eventId,
+    );
+
+    return event;
   }
 
   @Accepts("application/json")
@@ -119,135 +248,6 @@ export default class DocumentsController {
 
     return formatDocumentAccesses(
       accesses,
-      query["page[after]"],
-      query["page[size]"],
-      baseUrl,
-      extraQuery,
-    );
-  }
-
-  @Accepts("application/json")
-  @Get("/:documentId/events/:eventId")
-  async getDocumentEvent(
-    @Param() params: GetDocumentEventParamsDto,
-  ): Promise<Event> {
-    const { documentId, eventId } = params;
-
-    const event = await this.documentsService.getDocumentEvent(
-      documentId,
-      eventId,
-    );
-
-    return event;
-  }
-
-  @Accepts("application/json")
-  @Get("/:documentId/events")
-  async getDocumentEvents(
-    @Param() params: GetDocumentEventsParamsDto,
-    @Query() query: GetDocumentEventsDto,
-  ): Promise<PaginatedListWithoutTotal<DocumentEventsLink>> {
-    const { documentId } = params;
-
-    let sender: string | undefined;
-
-    try {
-      if (query.sender) {
-        sender = await didToHex(query.sender);
-      }
-    } catch {
-      throw new BadRequestError(BadRequestError.defaultTitle, {
-        detail: "sender must be a DID",
-      });
-    }
-
-    const where: Event_filter = {
-      ...(query["external-hash"] && { externalHash: query["external-hash"] }),
-      ...(query.origin && { origin: query.origin }),
-      ...(sender && { sender }),
-      ...(query.source && { source: query.source }),
-    };
-
-    const events = await this.documentsService.getDocumentEvents(
-      documentId,
-      query["page[after]"],
-      query["page[size]"],
-      where,
-    );
-
-    const apiUrlPrefix = this.configService.get("apiUrlPrefix", {
-      infer: true,
-    });
-    const domain = this.configService.get("domain", { infer: true });
-    const baseUrl = `${domain}${apiUrlPrefix}/documents/${documentId}/events`;
-
-    const searchParams = new URLSearchParams();
-    for (const k of Object.keys(query)) {
-      const key = k as keyof GetDocumentEventsDto;
-      if (
-        query[key] !== undefined &&
-        key !== "page[after]" &&
-        key !== "page[size]"
-      ) {
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-        searchParams.append(key, query[key]!);
-      }
-    }
-    const extraQuery =
-      searchParams.size > 0 ? `&${searchParams.toString()}` : "";
-
-    return formatDocumentEvents(
-      events,
-      query["page[after]"],
-      query["page[size]"],
-      baseUrl,
-      extraQuery,
-    );
-  }
-
-  @Accepts("application/json")
-  @Get("")
-  async getDocuments(
-    @Query() query: GetDocumentsDto,
-  ): Promise<PaginatedListWithoutTotal<DocumentsLink>> {
-    const where: Document_filter = {
-      ...(query.creator && {
-        creator: query.creator,
-      }),
-      ...(query.source && {
-        source: query.source,
-      }),
-    };
-
-    const documents = await this.documentsService.getDocuments(
-      query["page[after]"],
-      query["page[size]"],
-      where,
-    );
-
-    const apiUrlPrefix = this.configService.get("apiUrlPrefix", {
-      infer: true,
-    });
-    const domain = this.configService.get("domain", { infer: true });
-    const baseUrl = `${domain}${apiUrlPrefix}/documents`;
-
-    const searchParams = new URLSearchParams();
-    for (const k of Object.keys(query)) {
-      const key = k as keyof GetDocumentsDto;
-      if (
-        query[key] !== undefined &&
-        key !== "page[after]" &&
-        key !== "page[size]"
-      ) {
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-        searchParams.append(key, query[key]!);
-      }
-    }
-    const extraQuery =
-      searchParams.size > 0 ? `&${searchParams.toString()}` : "";
-
-    return formatDocuments(
-      documents,
       query["page[after]"],
       query["page[size]"],
       baseUrl,

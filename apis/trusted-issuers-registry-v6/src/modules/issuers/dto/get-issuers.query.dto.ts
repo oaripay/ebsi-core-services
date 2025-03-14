@@ -10,5 +10,3 @@ export class GetIssuersQueryDto extends PaginationQuery {
   @IsHexadecimal()
   "proxy-id"?: string;
 }
-
-export default GetIssuersQueryDto;

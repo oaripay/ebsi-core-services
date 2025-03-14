@@ -31,5 +31,3 @@ export const frameworkErrors =
       });
     }
   };
-
-export default frameworkErrors;

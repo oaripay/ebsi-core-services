@@ -23,7 +23,7 @@ export class HashAlgorithmsController {
 
   @Accepts("application/json")
   @Get("")
-  async getHahsAlgorithms(
+  async getHashAlgorithms(
     @Query() query: GetHashAlgorithmsDto,
   ): Promise<PaginatedList<HashAlgorithmLink>> {
     const pageAfter = query["page[after]"];
@@ -52,5 +52,3 @@ export class HashAlgorithmsController {
     return this.hashAlgorithmsService.getHashAlgorithm(hashAlgorithmId);
   }
 }
-
-export default HashAlgorithmsController;

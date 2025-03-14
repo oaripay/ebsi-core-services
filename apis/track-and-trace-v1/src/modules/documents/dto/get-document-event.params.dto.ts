@@ -7,5 +7,3 @@ export class GetDocumentEventParamsDto {
   @Is32BytesHex()
   "eventId"!: string;
 }
-
-export default GetDocumentEventParamsDto;

@@ -14,5 +14,3 @@ export class GetDocumentAccessesDto extends PaginationQuery {
   @IsString()
   subject?: string;
 }
-
-export default GetDocumentAccessesDto;

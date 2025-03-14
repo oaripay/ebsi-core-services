@@ -4,5 +4,3 @@ export class SubjectAccessesDto extends PaginationQuery {
   @IsDid()
   "subject"!: string;
 }
-
-export default SubjectAccessesDto;

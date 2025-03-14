@@ -6,5 +6,3 @@ export class AddVerificationRelationshipParam extends ArgsAddVerificationRelatio
   @IsEthereumAddress()
   from!: string;
 }
-
-export default { AddVerificationRelationshipParam };

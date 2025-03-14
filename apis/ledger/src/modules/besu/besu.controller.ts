@@ -24,5 +24,3 @@ export class BesuController {
     return ledgerResponse.data;
   }
 }
-
-export default BesuController;

@@ -29,5 +29,3 @@ export class OpenApiController {
     return this.spec;
   }
 }
-
-export default OpenApiController;

@@ -4,5 +4,3 @@ export class GetUserParams {
   @IsEthereumAddress()
   address!: string;
 }
-
-export default GetUserParams;

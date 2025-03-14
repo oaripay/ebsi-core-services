@@ -17,5 +17,3 @@ export async function getEbsiIssuer(
   };
   return issuer;
 }
-
-export default getEbsiIssuer;

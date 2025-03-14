@@ -17,7 +17,7 @@ import { hexToDid, permissionToString } from "../../shared/utils.ts";
 import { LedgerService } from "../ledger/ledger.service.ts";
 
 @Injectable()
-export default class DocumentsService {
+export class DocumentsService {
   private readonly contract: TrackAndTrace;
 
   private readonly logger = new Logger(DocumentsService.name);

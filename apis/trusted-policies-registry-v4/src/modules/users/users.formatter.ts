@@ -27,5 +27,3 @@ export function formatUsers(
     extraQuery,
   );
 }
-
-export default formatUsers;

@@ -34,47 +34,11 @@ export class SchemasController {
   ) {}
 
   @Accepts("application/json")
-  @Get("/:schemaId")
-  async getSchema(@Param() params: GetSchemaParams): Promise<unknown> {
-    const { schemaId } = params;
-    return this.schemasService.getSchema(schemaId);
-  }
-
-  @Accepts("application/json")
-  @Get("/:schemaId/revisions/:schemaRevisionId")
-  async getSchemaRevision(
-    @Param() params: GetSchemaRevisionParams,
-  ): Promise<unknown> {
-    const { schemaId, schemaRevisionId } = params;
-    return this.schemasService.getSchemaRevision(schemaId, schemaRevisionId);
-  }
-
-  @Accepts("application/ld+json")
-  @Get("/:schemaId/revisions/:schemaRevisionId/metadata/:metadataId")
-  @Header("Content-type", "application/ld+json")
-  async getSchemaRevisionMetadata(
-    @Param() params: GetSchemaRevisionMetadataParams,
-  ): Promise<unknown> {
-    const { metadataId, schemaId, schemaRevisionId } = params;
-
-    return this.schemasService.getSchemaRevisionMetadata(
-      schemaId,
-      schemaRevisionId,
-      metadataId,
-    );
-  }
-
-  @Accepts("application/json")
-  @Get("/:schemaId/revisions/:schemaRevisionId/metadata")
-  async getSchemaRevisionMetadataList(
-    @Param() params: GetSchemaRevisionParams,
-    @Query() query: GetSchemaRevisionMetadataQuery,
-  ): Promise<PaginatedList<GetSchemaRevisionMetadataListResponse>> {
-    const { schemaId, schemaRevisionId } = params;
-
-    const metadata = await this.schemasService.getSchemaRevisionMetadataList(
-      schemaId,
-      schemaRevisionId,
+  @Get("")
+  async getSchemas(
+    @Query() query: GetSchemasQuery,
+  ): Promise<PaginatedList<GetSchemasResponse>> {
+    const schemas = await this.schemasService.getSchemas(
       query["page[after]"],
       query["page[size]"],
     );
@@ -83,14 +47,21 @@ export class SchemasController {
       infer: true,
     });
     const domain = this.configService.get("domain", { infer: true });
-    const baseUrl = `${domain}${apiUrlPrefix}/schemas/${schemaId}/revisions/${schemaRevisionId}/metadata`;
+    const baseUrl = `${domain}${apiUrlPrefix}/schemas`;
 
-    return formatSchemaRevisionMetadataList(
-      metadata,
+    return formatSchemas(
+      schemas,
       query["page[after]"],
       query["page[size]"],
       baseUrl,
     );
+  }
+
+  @Accepts("application/json")
+  @Get("/:schemaId")
+  async getSchema(@Param() params: GetSchemaParams): Promise<unknown> {
+    const { schemaId } = params;
+    return this.schemasService.getSchema(schemaId);
   }
 
   @Accepts("application/json")
@@ -124,11 +95,25 @@ export class SchemasController {
   }
 
   @Accepts("application/json")
-  @Get("")
-  async getSchemas(
-    @Query() query: GetSchemasQuery,
-  ): Promise<PaginatedList<GetSchemasResponse>> {
-    const schemas = await this.schemasService.getSchemas(
+  @Get("/:schemaId/revisions/:schemaRevisionId")
+  async getSchemaRevision(
+    @Param() params: GetSchemaRevisionParams,
+  ): Promise<unknown> {
+    const { schemaId, schemaRevisionId } = params;
+    return this.schemasService.getSchemaRevision(schemaId, schemaRevisionId);
+  }
+
+  @Accepts("application/json")
+  @Get("/:schemaId/revisions/:schemaRevisionId/metadata")
+  async getSchemaRevisionMetadataList(
+    @Param() params: GetSchemaRevisionParams,
+    @Query() query: GetSchemaRevisionMetadataQuery,
+  ): Promise<PaginatedList<GetSchemaRevisionMetadataListResponse>> {
+    const { schemaId, schemaRevisionId } = params;
+
+    const metadata = await this.schemasService.getSchemaRevisionMetadataList(
+      schemaId,
+      schemaRevisionId,
       query["page[after]"],
       query["page[size]"],
     );
@@ -137,15 +122,28 @@ export class SchemasController {
       infer: true,
     });
     const domain = this.configService.get("domain", { infer: true });
-    const baseUrl = `${domain}${apiUrlPrefix}/schemas`;
+    const baseUrl = `${domain}${apiUrlPrefix}/schemas/${schemaId}/revisions/${schemaRevisionId}/metadata`;
 
-    return formatSchemas(
-      schemas,
+    return formatSchemaRevisionMetadataList(
+      metadata,
       query["page[after]"],
       query["page[size]"],
       baseUrl,
     );
   }
-}
 
-export default SchemasController;
+  @Accepts("application/ld+json")
+  @Get("/:schemaId/revisions/:schemaRevisionId/metadata/:metadataId")
+  @Header("Content-type", "application/ld+json")
+  async getSchemaRevisionMetadata(
+    @Param() params: GetSchemaRevisionMetadataParams,
+  ): Promise<unknown> {
+    const { metadataId, schemaId, schemaRevisionId } = params;
+
+    return this.schemasService.getSchemaRevisionMetadata(
+      schemaId,
+      schemaRevisionId,
+      metadataId,
+    );
+  }
+}

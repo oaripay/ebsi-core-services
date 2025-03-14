@@ -183,5 +183,3 @@ export class AuthService {
     return jwks.keys.find((key) => key.kid === kid);
   }
 }
-
-export default AuthService;

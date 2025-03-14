@@ -13,5 +13,3 @@ import { JsonRpcService } from "./jsonrpc.service.ts";
   providers: [IsIssuerProxy, Logger, JsonRpcService],
 })
 export class JsonRpcModule {}
-
-export default JsonRpcModule;

@@ -54,7 +54,7 @@ export class JsonRpcController {
   @HttpCode(200)
   @Post()
   @UseGuards(BearerJwtAuthGuard)
-  async jsonRPC(
+  async jsonRpc(
     @Body() unsafeBody: unknown,
     @Subject() subject: SubjectInfo,
   ): Promise<JsonRpcResponseObject> {
@@ -121,5 +121,3 @@ export class JsonRpcController {
     }
   }
 }
-
-export default JsonRpcController;

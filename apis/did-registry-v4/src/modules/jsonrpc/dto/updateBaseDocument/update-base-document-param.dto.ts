@@ -6,5 +6,3 @@ export class UpdateBaseDocumentParam extends ArgsUpdateBaseDocument {
   @IsEthereumAddress()
   from!: string;
 }
-
-export default { UpdateBaseDocumentParam };

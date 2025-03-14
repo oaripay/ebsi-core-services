@@ -18,5 +18,3 @@ export class RequestCheckControllerDto extends JsonRpcDto {
   @IsEthereumAddress({ each: true })
   declare params: string[];
 }
-
-export default RequestCheckControllerDto;

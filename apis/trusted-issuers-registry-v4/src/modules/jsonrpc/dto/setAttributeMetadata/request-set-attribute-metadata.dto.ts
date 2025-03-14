@@ -21,5 +21,3 @@ export class RequestSetAttributeMetadataDto extends JsonRpcDto {
   @Type(() => SetAttributeMetadataParam)
   declare params: SetAttributeMetadataParam[];
 }
-
-export default RequestSetAttributeMetadataDto;

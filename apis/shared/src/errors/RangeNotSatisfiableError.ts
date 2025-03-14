@@ -30,5 +30,3 @@ export class RangeNotSatisfiableError extends ProblemDetailsError {
     this.name = "RangeNotSatisfiableError";
   }
 }
-
-export default RangeNotSatisfiableError;

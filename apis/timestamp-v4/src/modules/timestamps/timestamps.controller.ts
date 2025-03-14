@@ -12,23 +12,14 @@ import type {
 
 import { GetTimestampDto, GetTimestampsDto } from "./dto/index.ts";
 import { formatTimestamps } from "./timestamps.formatter.ts";
-import TimestampsService from "./timestamps.service.ts";
+import { TimestampsService } from "./timestamps.service.ts";
 
 @Controller("/timestamps")
-export default class TimestampsController {
+export class TimestampsController {
   constructor(
     private timestampsService: TimestampsService,
     private configService: ConfigService<ApiConfig, true>,
   ) {}
-
-  @Accepts("application/json")
-  @Get("/:timestampId")
-  async getTimestamp(
-    @Param() params: GetTimestampDto,
-  ): Promise<TimestampResponseObject> {
-    const { timestampId } = params;
-    return this.timestampsService.getTimestamp(timestampId);
-  }
 
   @Accepts("application/json")
   @Get("")
@@ -50,5 +41,14 @@ export default class TimestampsController {
     const baseUrl = `${domain}${apiUrlPrefix}/timestamps`;
 
     return formatTimestamps(timestamps, pageAfter, pageSize, baseUrl);
+  }
+
+  @Accepts("application/json")
+  @Get("/:timestampId")
+  async getTimestamp(
+    @Param() params: GetTimestampDto,
+  ): Promise<TimestampResponseObject> {
+    const { timestampId } = params;
+    return this.timestampsService.getTimestamp(timestampId);
   }
 }

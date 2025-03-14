@@ -30,5 +30,3 @@ export class BadRequestError extends ProblemDetailsError {
     this.name = "BadRequestError";
   }
 }
-
-export default BadRequestError;

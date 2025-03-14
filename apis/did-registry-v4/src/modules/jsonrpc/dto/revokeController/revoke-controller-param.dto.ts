@@ -6,5 +6,3 @@ export class RevokeControllerParam extends ArgsRevokeController {
   @IsEthereumAddress()
   from!: string;
 }
-
-export default { RevokeControllerParam };

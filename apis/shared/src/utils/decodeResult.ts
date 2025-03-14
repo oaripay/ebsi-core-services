@@ -38,5 +38,3 @@ function fixValue(val: unknown): unknown {
 
   return fixObject(val as Record<string, unknown>);
 }
-
-export default decodeResult;

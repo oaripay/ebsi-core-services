@@ -13,5 +13,3 @@ export class ArgsSetAttributeData {
   @Matches(/^0x/, { message: "must start with 0x" })
   attributeData!: string;
 }
-
-export default ArgsSetAttributeData;

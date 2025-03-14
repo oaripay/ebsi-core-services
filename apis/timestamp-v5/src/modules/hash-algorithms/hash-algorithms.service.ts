@@ -79,5 +79,3 @@ export class HashAlgorithmsService {
     return { items: ids };
   }
 }
-
-export default HashAlgorithmsService;

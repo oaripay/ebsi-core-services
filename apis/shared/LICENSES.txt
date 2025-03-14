@@ -1526,7 +1526,7 @@ EUPL version.
 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
 
 ========================================================================================
-- @fastify/accepts@^4.3.0
+- @fastify/accepts@^5.0.2
 ------------------------------
 This project is licensed under MIT.
 
@@ -1557,7 +1557,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ========================================================================================
-- @nestjs/common@^10.4.15
+- @nestjs/common@^11.0.11
 ------------------------------
 This project is licensed under MIT.
 
@@ -1567,7 +1567,7 @@ MIT License: https://opensource.org/license/mit/
 
 (The MIT License)
 
-Copyright (c) 2017-2024 Kamil Mysliwiec <https://kamilmysliwiec.com>
+Copyright (c) 2017-2025 Kamil Mysliwiec <https://kamilmysliwiec.com>
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
@@ -1589,7 +1589,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ========================================================================================
-- @nestjs/core@^10.4.15
+- @nestjs/core@^11.0.11
 ------------------------------
 This project is licensed under MIT.
 
@@ -1599,7 +1599,7 @@ MIT License: https://opensource.org/license/mit/
 
 (The MIT License)
 
-Copyright (c) 2017-2024 Kamil Mysliwiec <https://kamilmysliwiec.com>
+Copyright (c) 2017-2025 Kamil Mysliwiec <https://kamilmysliwiec.com>
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
@@ -1652,7 +1652,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 ========================================================================================
-- axios@^1.8.2
+- axios@^1.8.3
 ------------------------------
 This project is licensed under MIT.
 
@@ -2412,7 +2412,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ========================================================================================
-- fastify@4.28.1
+- fastify@5.2.1
 ------------------------------
 This project is licensed under MIT.
 

@@ -46,5 +46,3 @@ export class MethodNotAllowedError extends ProblemDetailsError {
     };
   }
 }
-
-export default MethodNotAllowedError;

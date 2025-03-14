@@ -6,5 +6,3 @@ export class GetUsersQuery extends PaginationQuery {
   @IsString()
   "attribute": string;
 }
-
-export default GetUsersQuery;

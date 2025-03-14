@@ -6,5 +6,3 @@ export class GetPoliciesQuery extends PaginationQuery {
   @IsOptional()
   "status": string;
 }
-
-export default GetPoliciesQuery;

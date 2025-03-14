@@ -7,7 +7,7 @@ import type { Checked } from "@sphereon/pex";
 import type { PresentationSubmission } from "@sphereon/pex-models";
 import type { IPresentation, IVerifiableCredential } from "@sphereon/ssi-types";
 import type { AxiosResponse } from "axios";
-import type { MemoryCache } from "cache-manager";
+import type { Cache } from "cache-manager";
 import type { JWTPayload } from "did-jwt";
 import type { JsonWebKey } from "node:crypto";
 import type { ReadonlyDeep } from "type-fest";
@@ -68,9 +68,9 @@ export class AuthorisationService {
 
   constructor(
     configService: ConfigService<ApiConfig, true>,
-    @Inject(CACHE_MANAGER) private cacheManager: MemoryCache,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {
-    this.ebsiEnvConfig = configService.get("ebsiEnvConfig");
+    this.ebsiEnvConfig = configService.get("ebsiEnvConfig", { infer: true });
     const apiUrlPrefix = configService.get("apiUrlPrefix", { infer: true });
     const domain = configService.get("domain", { infer: true });
     this.issuer = `${domain}${apiUrlPrefix}`;
@@ -712,5 +712,3 @@ export class AuthorisationService {
     return this.publicKeyJwk;
   }
 }
-
-export default AuthorisationService;

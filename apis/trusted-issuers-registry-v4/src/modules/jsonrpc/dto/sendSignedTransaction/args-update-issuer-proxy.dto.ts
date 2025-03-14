@@ -14,5 +14,3 @@ export class ArgsUpdateIssuerProxy {
   @Validate(IsIssuerProxy)
   proxyData!: string;
 }
-
-export default ArgsUpdateIssuerProxy;

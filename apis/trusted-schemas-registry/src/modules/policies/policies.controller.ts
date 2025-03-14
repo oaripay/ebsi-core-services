@@ -87,5 +87,3 @@ export class PoliciesController {
     );
   }
 }
-
-export default PoliciesController;

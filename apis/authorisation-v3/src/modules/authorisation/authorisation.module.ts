@@ -11,5 +11,3 @@ import { AuthorisationService } from "./authorisation.service.ts";
   providers: [Logger, AuthorisationService],
 })
 export class AuthorisationModule {}
-
-export default AuthorisationModule;

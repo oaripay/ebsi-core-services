@@ -21,5 +21,3 @@ export class RequestUpdateIssuerDto extends JsonRpcDto {
   @Type(() => UpdateIssuerParam)
   declare params: UpdateIssuerParam[];
 }
-
-export default RequestUpdateIssuerDto;

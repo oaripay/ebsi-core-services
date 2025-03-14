@@ -56,5 +56,3 @@ export class JsonRpcError extends Error {
     return `${this.error.code} - ${this.error.message}`;
   }
 }
-
-export default JsonRpcError;

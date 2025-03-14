@@ -12,5 +12,3 @@ export class StringPaginationQuery {
   @Type(() => Number)
   "page[size]" = 10;
 }
-
-export default StringPaginationQuery;

@@ -112,10 +112,10 @@ describe.each(["EBSI URI", "URL"] as const)(
       const configService =
         moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
 
-      ebsiEnvConfig = configService.get("ebsiEnvConfig");
+      ebsiEnvConfig = configService.get("ebsiEnvConfig", { infer: true });
 
-      domain = configService.get("domain");
-      const apiUrlPrefix = configService.get("apiUrlPrefix");
+      domain = configService.get("domain", { infer: true });
+      const apiUrlPrefix = configService.get("apiUrlPrefix", { infer: true });
       serviceEndpoint = `${domain}${apiUrlPrefix}`;
       authorisationCredentialSchema = `${domain}/trusted-schemas-registry/v2/schemas/${attestationMetadata.id.multibase_base58btc}`;
       credentialIssuer = await createLegalEntity("ES256K");

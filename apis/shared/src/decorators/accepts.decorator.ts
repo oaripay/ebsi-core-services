@@ -4,5 +4,3 @@ import { AcceptsGuard } from "../guards/accepts.guard.ts";
 
 export const Accepts = (...types: string[]) =>
   applyDecorators(SetMetadata("accepts", types), UseGuards(AcceptsGuard));
-
-export default Accepts;

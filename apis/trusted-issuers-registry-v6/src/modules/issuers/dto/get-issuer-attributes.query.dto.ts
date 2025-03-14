@@ -8,5 +8,3 @@ export class GetIssuerAttributesQueryDto extends PaginationQuery {
   @IsIn(["RootTAO", "TAO", "TI", "Revoked"])
   "issuer-type"?: IssuerType;
 }
-
-export default GetIssuerAttributesQueryDto;

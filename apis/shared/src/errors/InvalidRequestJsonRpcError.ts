@@ -25,5 +25,3 @@ export class InvalidRequestJsonRpcError extends JsonRpcError {
     this.name = "InvalidRequestJsonRpcError";
   }
 }
-
-export default InvalidRequestJsonRpcError;

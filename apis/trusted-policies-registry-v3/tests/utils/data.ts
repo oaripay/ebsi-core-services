@@ -10,5 +10,3 @@ export function createPolicy(policyId: number, policyName: string) {
     status: true,
   };
 }
-
-export default createPolicy;

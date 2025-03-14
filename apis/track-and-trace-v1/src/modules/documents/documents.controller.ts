@@ -18,7 +18,7 @@ import {
   formatDocumentEvents,
   formatDocuments,
 } from "./documents.formatter.ts";
-import DocumentsService from "./documents.service.ts";
+import { DocumentsService } from "./documents.service.ts";
 import {
   GetDocumentAccessesDto,
   GetDocumentAccessesParamsDto,
@@ -30,11 +30,35 @@ import {
 } from "./dto/index.ts";
 
 @Controller("/documents")
-export default class DocumentsController {
+export class DocumentsController {
   constructor(
     private documentsService: DocumentsService,
     private configService: ConfigService<ApiConfig, true>,
   ) {}
+
+  @Accepts("application/json")
+  @Get("")
+  async getDocuments(
+    @Query() query: GetDocumentsDto,
+  ): Promise<PaginatedList<DocumentsLink>> {
+    const documents = await this.documentsService.getDocuments(
+      query["page[after]"],
+      query["page[size]"],
+    );
+
+    const apiUrlPrefix = this.configService.get("apiUrlPrefix", {
+      infer: true,
+    });
+    const domain = this.configService.get("domain", { infer: true });
+    const baseUrl = `${domain}${apiUrlPrefix}/documents`;
+
+    return formatDocuments(
+      documents,
+      query["page[after]"],
+      query["page[size]"],
+      baseUrl,
+    );
+  }
 
   @Accepts("application/json")
   @Get("/:documentId")
@@ -44,46 +68,6 @@ export default class DocumentsController {
     const document = await this.documentsService.getDocument(documentId);
 
     return document;
-  }
-
-  @Accepts("application/json")
-  @Get("/:documentId/accesses")
-  async getDocumentAccesses(
-    @Param() params: GetDocumentAccessesParamsDto,
-    @Query() query: GetDocumentAccessesDto,
-  ): Promise<PaginatedList<Access>> {
-    const { documentId } = params;
-
-    const accesses =
-      await this.documentsService.getDocumentAccesses(documentId);
-
-    const apiUrlPrefix = this.configService.get("apiUrlPrefix", {
-      infer: true,
-    });
-    const domain = this.configService.get("domain", { infer: true });
-    const baseUrl = `${domain}${apiUrlPrefix}/documents/${documentId}/accesses`;
-
-    return formatDocumentAccesses(
-      accesses,
-      query["page[after]"],
-      query["page[size]"],
-      baseUrl,
-    );
-  }
-
-  @Accepts("application/json")
-  @Get("/:documentId/events/:eventId")
-  async getDocumentEvent(
-    @Param() params: GetDocumentEventParamsDto,
-  ): Promise<Event> {
-    const { documentId, eventId } = params;
-
-    const event = await this.documentsService.getDocumentEvent(
-      documentId,
-      eventId,
-    );
-
-    return event;
   }
 
   @Accepts("application/json")
@@ -115,23 +99,39 @@ export default class DocumentsController {
   }
 
   @Accepts("application/json")
-  @Get("")
-  async getDocuments(
-    @Query() query: GetDocumentsDto,
-  ): Promise<PaginatedList<DocumentsLink>> {
-    const documents = await this.documentsService.getDocuments(
-      query["page[after]"],
-      query["page[size]"],
+  @Get("/:documentId/events/:eventId")
+  async getDocumentEvent(
+    @Param() params: GetDocumentEventParamsDto,
+  ): Promise<Event> {
+    const { documentId, eventId } = params;
+
+    const event = await this.documentsService.getDocumentEvent(
+      documentId,
+      eventId,
     );
+
+    return event;
+  }
+
+  @Accepts("application/json")
+  @Get("/:documentId/accesses")
+  async getDocumentAccesses(
+    @Param() params: GetDocumentAccessesParamsDto,
+    @Query() query: GetDocumentAccessesDto,
+  ): Promise<PaginatedList<Access>> {
+    const { documentId } = params;
+
+    const accesses =
+      await this.documentsService.getDocumentAccesses(documentId);
 
     const apiUrlPrefix = this.configService.get("apiUrlPrefix", {
       infer: true,
     });
     const domain = this.configService.get("domain", { infer: true });
-    const baseUrl = `${domain}${apiUrlPrefix}/documents`;
+    const baseUrl = `${domain}${apiUrlPrefix}/documents/${documentId}/accesses`;
 
-    return formatDocuments(
-      documents,
+    return formatDocumentAccesses(
+      accesses,
       query["page[after]"],
       query["page[size]"],
       baseUrl,

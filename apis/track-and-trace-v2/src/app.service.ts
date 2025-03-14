@@ -79,5 +79,3 @@ export class AppService implements OnApplicationBootstrap {
     this.logger.debug("All the bootstrap dependencies are ready");
   }
 }
-
-export default AppService;

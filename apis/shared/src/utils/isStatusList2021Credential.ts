@@ -104,5 +104,3 @@ export async function isStatusList2021Credential(
 
   return success;
 }
-
-export default isStatusList2021Credential;

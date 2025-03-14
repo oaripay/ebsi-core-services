@@ -33,7 +33,7 @@ export class JsonRpcController {
   @Accepts("application/json")
   @HttpCode(200)
   @Post()
-  async jsonRPC(
+  async jsonRpc(
     @Body() unsafeBody: unknown,
     @Subject() subject: SubjectInfo,
   ): Promise<JsonRpcResponseObject> {
@@ -119,5 +119,3 @@ export class JsonRpcController {
     }
   }
 }
-
-export default JsonRpcController;

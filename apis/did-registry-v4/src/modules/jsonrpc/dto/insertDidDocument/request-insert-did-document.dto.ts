@@ -21,5 +21,3 @@ export class RequestInsertDidDocumentDto extends JsonRpcDto {
   @Type(() => InsertDidDocumentParam)
   declare params: InsertDidDocumentParam[];
 }
-
-export default RequestInsertDidDocumentDto;

@@ -21,5 +21,3 @@ export class RequestRevokeControllerDto extends JsonRpcDto {
   @Type(() => RevokeControllerParam)
   declare params: RevokeControllerParam[];
 }
-
-export default RequestRevokeControllerDto;

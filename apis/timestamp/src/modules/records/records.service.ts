@@ -23,7 +23,7 @@ import type {
 import { LedgerService } from "../ledger/ledger.service.ts";
 
 @Injectable()
-export default class RecordsService {
+export class RecordsService {
   private readonly contract: Timestamp;
 
   private readonly logger = new Logger(RecordsService.name);

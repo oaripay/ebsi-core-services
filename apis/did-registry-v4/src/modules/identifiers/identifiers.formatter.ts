@@ -32,5 +32,3 @@ export function formatIdentifiers(
 
   return paginate<DidLink>(items, baseUrl, total, page, pageSize, extraQuery);
 }
-
-export default formatIdentifiers;

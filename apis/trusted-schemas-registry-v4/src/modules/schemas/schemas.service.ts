@@ -318,5 +318,3 @@ export class SchemasService {
     return { items: schemasIds };
   }
 }
-
-export default SchemasService;

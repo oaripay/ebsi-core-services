@@ -11,5 +11,3 @@ export function parseRevertReason(revertReason: string): string {
 
   return revertReason;
 }
-
-export default parseRevertReason;

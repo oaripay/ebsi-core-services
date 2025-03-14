@@ -73,5 +73,3 @@ export async function getTimestampWriteAccessToken(
     throw new Error("Failed to get access token");
   }
 }
-
-export default getTimestampWriteAccessToken;

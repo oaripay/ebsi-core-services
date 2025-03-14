@@ -18,5 +18,3 @@ export class CreateAccessTokenDto {
   @IsJSON()
   readonly "presentation_submission": string;
 }
-
-export default CreateAccessTokenDto;

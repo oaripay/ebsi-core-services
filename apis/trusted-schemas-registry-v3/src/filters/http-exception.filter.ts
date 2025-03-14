@@ -125,5 +125,3 @@ export class AllExceptionsFilter implements ExceptionFilter {
       .send(problemError.toJSON());
   }
 }
-
-export default AllExceptionsFilter;

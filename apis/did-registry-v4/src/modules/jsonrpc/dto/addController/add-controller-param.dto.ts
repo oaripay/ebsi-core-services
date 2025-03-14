@@ -6,5 +6,3 @@ export class AddControllerParam extends ArgsAddController {
   @IsEthereumAddress()
   from!: string;
 }
-
-export default { AddControllerParam };

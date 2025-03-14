@@ -311,8 +311,9 @@ describe("App Module", () => {
 
       // All the dependencies return a 200
       mockServer.use(
-        http.get(configService.get("besuReadinessEndpoint"), () =>
-          HttpResponse.json({}),
+        http.get(
+          configService.get("besuReadinessEndpoint", { infer: true }),
+          () => HttpResponse.json({}),
         ),
       );
 
@@ -341,8 +342,9 @@ describe("App Module", () => {
 
       // All the dependencies return a 200
       mockServer.use(
-        http.get(configService.get("besuReadinessEndpoint"), () =>
-          HttpResponse.json({}),
+        http.get(
+          configService.get("besuReadinessEndpoint", { infer: true }),
+          () => HttpResponse.json({}),
         ),
       );
 
@@ -390,8 +392,9 @@ describe("App Module", () => {
 
       // All the dependencies return a 200
       mockServer.use(
-        http.get(configService.get("besuReadinessEndpoint"), () =>
-          HttpResponse.json({}),
+        http.get(
+          configService.get("besuReadinessEndpoint", { infer: true }),
+          () => HttpResponse.json({}),
         ),
       );
 

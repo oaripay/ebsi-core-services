@@ -30,5 +30,3 @@ export class LengthRequiredError extends ProblemDetailsError {
     this.name = "LengthRequiredError";
   }
 }
-
-export default LengthRequiredError;

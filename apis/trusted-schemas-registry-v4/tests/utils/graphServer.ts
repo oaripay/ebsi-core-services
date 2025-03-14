@@ -204,5 +204,3 @@ export const graphServer = setupServer(
     });
   }),
 );
-
-export default graphServer;

@@ -11,7 +11,7 @@ import type {
   PresentationSubmission,
 } from "@sphereon/pex-models";
 import type { AxiosResponse } from "axios";
-import type { MemoryCache } from "cache-manager";
+import type { Cache } from "cache-manager";
 import type { JWTHeader, JWTPayload } from "did-jwt";
 import type { DIDDocument } from "did-resolver";
 import type { JsonWebKey } from "node:crypto";
@@ -78,12 +78,12 @@ export class AuthorisationService {
 
   constructor(
     configService: ConfigService<ApiConfig, true>,
-    @Inject(CACHE_MANAGER) private cacheManager: MemoryCache,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {
     const domain = configService.get("domain", { infer: true });
     const apiUrlPrefix = configService.get("apiUrlPrefix", { infer: true });
     this.issuer = `${domain}${apiUrlPrefix}`;
-    this.ebsiEnvConfig = configService.get("ebsiEnvConfig");
+    this.ebsiEnvConfig = configService.get("ebsiEnvConfig", { infer: true });
     this.didRegistry = configService.get("didRegistry", { infer: true });
     this.trustedIssuersRegistry = configService.get("trustedIssuersRegistry", {
       infer: true,
@@ -1179,5 +1179,3 @@ export class AuthorisationService {
     return this.publicKeyJwk!;
   }
 }
-
-export default AuthorisationService;

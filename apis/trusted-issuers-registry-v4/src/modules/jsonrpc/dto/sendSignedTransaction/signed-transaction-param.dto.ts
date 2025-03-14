@@ -24,5 +24,3 @@ export class SignedTransactionParam {
   @IsSignedRawTransaction()
   signedRawTransaction!: string;
 }
-
-export default SignedTransactionParam;

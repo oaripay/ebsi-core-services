@@ -76,5 +76,3 @@ export class ProblemDetailsError extends Error {
     return `${this.status} - ${this.title}`;
   }
 }
-
-export default ProblemDetailsError;

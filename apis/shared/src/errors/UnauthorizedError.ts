@@ -30,5 +30,3 @@ export class UnauthorizedError extends ProblemDetailsError {
     this.name = "UnauthorizedError";
   }
 }
-
-export default UnauthorizedError;

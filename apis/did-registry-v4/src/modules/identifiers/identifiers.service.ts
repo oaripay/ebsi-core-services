@@ -24,7 +24,7 @@ import { RequestCheckControllerDto } from "./dto/request-check-controller.dto.ts
 import { validateClass } from "./identifiers.utils.ts";
 
 @Injectable()
-export default class IdentifiersService {
+export class IdentifiersService {
   private readonly didRegistryV1Contract: DidRegistryV1;
 
   private readonly didRegistryV2Contract: DidRegistryV2;

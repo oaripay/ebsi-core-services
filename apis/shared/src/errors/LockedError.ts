@@ -30,5 +30,3 @@ export class LockedError extends ProblemDetailsError {
     this.name = "LockedError";
   }
 }
-
-export default LockedError;

@@ -36,5 +36,3 @@ export function isEthersError(err: unknown): err is EthersError {
   }
   return false;
 }
-
-export default isEthersError;

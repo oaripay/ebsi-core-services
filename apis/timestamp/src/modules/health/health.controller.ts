@@ -12,8 +12,6 @@ import {
 
 import type { ApiConfig } from "../../config/configuration.ts";
 
-import { RUNTIME_DEPENDENCIES } from "../../config/configuration.ts";
-
 @Controller("/health")
 export class HealthController {
   constructor(
@@ -27,22 +25,6 @@ export class HealthController {
   @HealthCheck()
   check(): Promise<HealthCheckResult> {
     return this.health.check([
-      ...(
-        Object.keys(
-          RUNTIME_DEPENDENCIES,
-        ) as (keyof typeof RUNTIME_DEPENDENCIES)[]
-      ).map((service) => async () => {
-        const version = RUNTIME_DEPENDENCIES[service];
-        return this.http.pingCheck(
-          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-          `${service}@${version}`,
-          `${
-            this.configService.get("localOrigin", { infer: true }) ??
-            this.configService.get("domain", { infer: true })
-            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-          }/${service}/${version}`,
-        );
-      }),
       () =>
         this.http.pingCheck(
           "Besu",
@@ -51,5 +33,3 @@ export class HealthController {
     ]);
   }
 }
-
-export default HealthController;

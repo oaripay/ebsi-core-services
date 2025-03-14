@@ -11,5 +11,3 @@ import { HashAlgorithmsService } from "./hash-algorithms.service.ts";
   providers: [Logger, HashAlgorithmsService],
 })
 export class HashAlgorithmsModule {}
-
-export default HashAlgorithmsModule;

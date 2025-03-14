@@ -20,5 +20,3 @@ export const getServer = (
 
   return app.getHttpServer();
 };
-
-export default getServer;

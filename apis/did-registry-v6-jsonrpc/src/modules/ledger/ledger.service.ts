@@ -15,5 +15,3 @@ export class LedgerService extends BesuService {
     super(url, requestTimeout, logger);
   }
 }
-
-export default LedgerService;

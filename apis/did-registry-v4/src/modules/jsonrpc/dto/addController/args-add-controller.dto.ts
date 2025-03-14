@@ -7,5 +7,3 @@ export class ArgsAddController {
   @IsDidV1()
   controller!: string;
 }
-
-export default { ArgsAddController };

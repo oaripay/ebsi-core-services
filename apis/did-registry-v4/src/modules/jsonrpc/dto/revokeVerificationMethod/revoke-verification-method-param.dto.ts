@@ -6,5 +6,3 @@ export class RevokeVerificationMethodParam extends ArgsRevokeVerificationMethod 
   @IsEthereumAddress()
   from!: string;
 }
-
-export default { RevokeVerificationMethodParam };

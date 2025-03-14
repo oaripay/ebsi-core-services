@@ -13,5 +13,3 @@ export class JsonRpcDto {
   @IsOptional()
   id?: number | string;
 }
-
-export default { JsonRpcDto };

@@ -10,5 +10,3 @@ export class GetDocumentsDto extends PaginationQuery {
   @IsIn(["block", "external"])
   source?: "block" | "external";
 }
-
-export default GetDocumentsDto;

@@ -30,5 +30,3 @@ export class NotFoundError extends ProblemDetailsError {
     this.name = "NotFoundError";
   }
 }
-
-export default NotFoundError;

@@ -101,5 +101,3 @@ export class SubjectsService {
     }
   }
 }
-
-export default SubjectsService;

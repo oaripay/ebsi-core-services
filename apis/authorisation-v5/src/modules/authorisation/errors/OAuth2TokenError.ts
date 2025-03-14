@@ -47,5 +47,3 @@ export class OAuth2TokenError extends OAuth2Error<OAuth2TokenErrorCode> {
     this.name = "OAuth2TokenError";
   }
 }
-
-export default OAuth2TokenError;

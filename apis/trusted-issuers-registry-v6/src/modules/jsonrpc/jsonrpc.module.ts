@@ -12,5 +12,3 @@ import { JsonRpcService } from "./jsonrpc.service.ts";
   providers: [Logger, JsonRpcService],
 })
 export class JsonRpcModule {}
-
-export default JsonRpcModule;

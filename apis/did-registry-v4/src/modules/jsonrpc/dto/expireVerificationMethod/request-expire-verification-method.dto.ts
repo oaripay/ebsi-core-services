@@ -21,5 +21,3 @@ export class RequestExpireVerificationMethodDto extends JsonRpcDto {
   @Type(() => ExpireVerificationMethodParam)
   declare params: ExpireVerificationMethodParam[];
 }
-
-export default RequestExpireVerificationMethodDto;

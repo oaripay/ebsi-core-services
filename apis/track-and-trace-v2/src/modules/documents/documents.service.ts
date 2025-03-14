@@ -20,7 +20,7 @@ import { hexToDid } from "../../shared/utils.ts";
 const sdk = getBuiltGraphSDK();
 
 @Injectable()
-export default class DocumentsService {
+export class DocumentsService {
   private readonly logger = new Logger(DocumentsService.name);
 
   async getDocument(documentId: string): Promise<Document> {

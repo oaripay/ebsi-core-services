@@ -21,5 +21,3 @@ export class RequestSendSignedTransactionDto extends JsonRpcDto {
   @Type(() => SignedTransactionParam)
   declare params: SignedTransactionParam[];
 }
-
-export default { RequestSendSignedTransactionDto };

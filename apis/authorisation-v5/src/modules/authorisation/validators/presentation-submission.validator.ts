@@ -20,5 +20,3 @@ export const presentationSubmissionSchema = z.object({
   descriptor_map: z.array(pexDescriptorSchema),
   id: z.string(),
 });
-
-export default presentationSubmissionSchema;

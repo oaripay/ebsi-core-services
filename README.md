@@ -89,7 +89,7 @@ Please refer to services' `README` files for more information regarding specific
 
 ## License
 
-Copyright (C) 2024 European Union
+Copyright (C) 2025 European Union
 
 This program is free software: you can redistribute it and/or modify it under the terms of the EUROPEAN UNION PUBLIC LICENCE v. 1.2 as published by the European Union.
 

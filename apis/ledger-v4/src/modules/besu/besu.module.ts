@@ -10,5 +10,3 @@ import { BesuService } from "./besu.service.ts";
   providers: [Logger, BesuService],
 })
 export class BesuModule {}
-
-export default BesuModule;

@@ -13,28 +13,19 @@ import type {
   VersionLink,
 } from "./records.interface.ts";
 
-import GetRecordVersionDto from "./dto/get-record-version.dto.ts";
-import GetRecordVersionsDto from "./dto/get-record-versions.dto.ts";
-import GetRecordDto from "./dto/get-record.dto.ts";
-import GetRecordsDto from "./dto/get-records.dto.ts";
+import { GetRecordVersionDto } from "./dto/get-record-version.dto.ts";
+import { GetRecordVersionsDto } from "./dto/get-record-versions.dto.ts";
+import { GetRecordDto } from "./dto/get-record.dto.ts";
+import { GetRecordsDto } from "./dto/get-records.dto.ts";
 import { formatRecords, formatRecordVersions } from "./records.formatter.ts";
-import RecordsService from "./records.service.ts";
+import { RecordsService } from "./records.service.ts";
 
 @Controller("/records")
-export default class RecordsController {
+export class RecordsController {
   constructor(
     private recordsService: RecordsService,
     private configService: ConfigService<ApiConfig, true>,
   ) {}
-
-  @Accepts("application/json")
-  @Get("/:recordId")
-  async getRecord(
-    @Param() params: GetRecordDto,
-  ): Promise<RecordResponseObject> {
-    const { recordId } = params;
-    return this.recordsService.getRecord(recordId);
-  }
 
   @Accepts("application/json")
   @Get("")
@@ -86,12 +77,12 @@ export default class RecordsController {
   }
 
   @Accepts("application/json")
-  @Get("/:recordId/versions/:versionId")
-  async getRecordVersion(
-    @Param() params: GetRecordVersionDto,
-  ): Promise<RecordVersionResponseObject> {
-    const { recordId, versionId } = params;
-    return this.recordsService.getRecordVersion(recordId, versionId);
+  @Get("/:recordId")
+  async getRecord(
+    @Param() params: GetRecordDto,
+  ): Promise<RecordResponseObject> {
+    const { recordId } = params;
+    return this.recordsService.getRecord(recordId);
   }
 
   @Accepts("application/json")
@@ -115,5 +106,14 @@ export default class RecordsController {
       query["page[size]"],
       baseUrl,
     );
+  }
+
+  @Accepts("application/json")
+  @Get("/:recordId/versions/:versionId")
+  async getRecordVersion(
+    @Param() params: GetRecordVersionDto,
+  ): Promise<RecordVersionResponseObject> {
+    const { recordId, versionId } = params;
+    return this.recordsService.getRecordVersion(recordId, versionId);
   }
 }

@@ -84,5 +84,3 @@ export class OAuth2Error<T extends string = OAuth2ErrorCode> extends Error {
     return `${this.name} - ${this.error}`;
   }
 }
-
-export default OAuth2Error;

@@ -30,5 +30,3 @@ export class UriTooLongError extends ProblemDetailsError {
     this.name = "UriTooLongError";
   }
 }
-
-export default UriTooLongError;

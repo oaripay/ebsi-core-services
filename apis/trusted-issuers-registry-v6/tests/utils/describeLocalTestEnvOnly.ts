@@ -7,5 +7,3 @@ export const describeLocalTestEnvOnly = () => {
 
   return describe.skip;
 };
-
-export default describeLocalTestEnvOnly;

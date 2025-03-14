@@ -15,5 +15,3 @@ export const jsonRpcSchema = z.object({
 });
 
 export type JsonRpcSchema = z.infer<typeof jsonRpcSchema>;
-
-export default jsonRpcSchema;

@@ -20,7 +20,7 @@ import { decodeJwt, decodeProtectedHeader, importJWK, jwtVerify } from "jose";
 import type { ApiConfig } from "../../config/configuration.ts";
 import type { SubjectInfo } from "./auth.interface.ts";
 
-import TIMESTAMP_WRITE_SCOPE from "./auth.constants.ts";
+import { TIMESTAMP_WRITE_SCOPE } from "./auth.constants.ts";
 import { jwksSchema } from "./validators/jwks.validator.ts";
 import { openidConfigurationSchema } from "./validators/openid-configuration.validator.ts";
 
@@ -183,5 +183,3 @@ export class AuthService {
     return jwks.keys.find((key) => key.kid === kid);
   }
 }
-
-export default AuthService;

@@ -21,5 +21,3 @@ export class RequestRevokeVerificationMethodDto extends JsonRpcDto {
   @Type(() => RevokeVerificationMethodParam)
   declare params: RevokeVerificationMethodParam[];
 }
-
-export default RequestRevokeVerificationMethodDto;

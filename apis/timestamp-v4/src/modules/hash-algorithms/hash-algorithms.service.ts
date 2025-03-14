@@ -80,5 +80,3 @@ export class HashAlgorithmsService {
     }
   }
 }
-
-export default HashAlgorithmsService;

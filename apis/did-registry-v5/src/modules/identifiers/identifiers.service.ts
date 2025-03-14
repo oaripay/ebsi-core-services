@@ -24,7 +24,7 @@ import { LedgerService } from "../ledger/ledger.service.ts";
 import { requestCheckControllerDtoSchema } from "./validators/RequestCheckControllerSchema.ts";
 
 @Injectable()
-export default class IdentifiersService {
+export class IdentifiersService {
   private readonly didRegistryContract: DidRegistry;
 
   private readonly logger = new Logger(IdentifiersService.name);

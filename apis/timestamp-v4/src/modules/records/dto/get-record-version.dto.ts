@@ -2,7 +2,7 @@ import { IsMultibase64urlEncoded } from "@ebsiint-api/shared";
 import { Type } from "class-transformer";
 import { IsNumber, Min } from "class-validator";
 
-export default class GetRecordVersionDto {
+export class GetRecordVersionDto {
   @IsMultibase64urlEncoded()
   recordId!: string;
 

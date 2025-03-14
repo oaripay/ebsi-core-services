@@ -144,5 +144,3 @@ export async function isIssuerProxy(
     timeout,
   });
 }
-
-export default isIssuerProxy;

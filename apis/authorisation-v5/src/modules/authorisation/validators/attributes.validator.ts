@@ -12,5 +12,3 @@ export const issuerSchema = z.object({
   ),
   did: z.string(),
 });
-
-export default issuerSchema;

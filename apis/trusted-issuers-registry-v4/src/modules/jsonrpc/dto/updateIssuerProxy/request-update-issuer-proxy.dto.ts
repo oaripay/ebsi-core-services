@@ -21,5 +21,3 @@ export class RequestUpdateIssuerProxyDto extends JsonRpcDto {
   @Type(() => UpdateIssuerProxyParam)
   declare params: UpdateIssuerProxyParam[];
 }
-
-export default RequestUpdateIssuerProxyDto;

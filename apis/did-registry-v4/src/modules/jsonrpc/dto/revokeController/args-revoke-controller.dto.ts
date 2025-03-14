@@ -7,5 +7,3 @@ export class ArgsRevokeController {
   @IsDidV1()
   controller!: string;
 }
-
-export default { ArgsRevokeController };

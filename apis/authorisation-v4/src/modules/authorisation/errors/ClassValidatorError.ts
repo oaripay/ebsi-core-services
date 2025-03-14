@@ -8,5 +8,3 @@ export class ClassValidatorError extends Error {
     this.validationError = validationError;
   }
 }
-
-export default ClassValidatorError;

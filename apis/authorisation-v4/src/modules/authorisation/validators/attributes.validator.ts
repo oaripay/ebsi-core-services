@@ -5,5 +5,3 @@ export const issuerSchema = z.object({
   did: z.string(),
   hasAttributes: z.boolean(),
 });
-
-export default issuerSchema;

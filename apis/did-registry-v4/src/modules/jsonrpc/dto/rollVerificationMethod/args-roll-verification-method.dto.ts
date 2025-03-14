@@ -38,5 +38,3 @@ export class ArgsRollVerificationMethod {
   @Min(0)
   duration!: number;
 }
-
-export default { ArgsRollVerificationMethod };

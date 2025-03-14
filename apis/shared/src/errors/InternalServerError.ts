@@ -30,5 +30,3 @@ export class InternalServerError extends ProblemDetailsError {
     this.name = "InternalServerError";
   }
 }
-
-export default InternalServerError;

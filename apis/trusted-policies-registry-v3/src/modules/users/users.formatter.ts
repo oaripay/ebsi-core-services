@@ -23,5 +23,3 @@ export function formatUsers(
 
   return paginate<UserLink>(items, baseUrl, total, page, pageSize);
 }
-
-export default formatUsers;

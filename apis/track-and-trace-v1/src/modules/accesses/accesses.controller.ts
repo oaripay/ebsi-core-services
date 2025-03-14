@@ -5,15 +5,23 @@ import { ConfigService } from "@nestjs/config";
 import type { ApiConfig } from "../../config/configuration.ts";
 import type { Access } from "./accesses.interface.ts";
 
-import AccessesService from "./accesses.service.ts";
+import { AccessesService } from "./accesses.service.ts";
 import { HeadAccessesDto, SubjectAccessesDto } from "./dto/index.ts";
 
 @Controller("/accesses")
-export default class AccessesController {
+export class AccessesController {
   constructor(
     private accessesService: AccessesService,
     private configService: ConfigService<ApiConfig, true>,
   ) {}
+
+  @Head("")
+  @HttpCode(204)
+  async isCreator(@Query() query: HeadAccessesDto): Promise<void> {
+    const { creator } = query;
+
+    await this.accessesService.isCreator(creator);
+  }
 
   @Accepts("application/json")
   @Get("")
@@ -40,13 +48,5 @@ export default class AccessesController {
       pageSize,
       `&subject=${query.subject}`,
     );
-  }
-
-  @Head("")
-  @HttpCode(204)
-  async isCreator(@Query() query: HeadAccessesDto): Promise<void> {
-    const { creator } = query;
-
-    await this.accessesService.isCreator(creator);
   }
 }

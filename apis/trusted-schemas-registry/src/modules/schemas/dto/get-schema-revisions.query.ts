@@ -6,5 +6,3 @@ export class GetSchemaRevisionsQuery extends PaginationQuery {
   @IsOptional()
   "valid-at"?: string;
 }
-
-export default GetSchemaRevisionsQuery;

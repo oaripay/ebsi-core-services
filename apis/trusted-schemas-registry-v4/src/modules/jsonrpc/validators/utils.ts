@@ -119,5 +119,3 @@ export const refinements = {
     }
   },
 };
-
-export default refinements;

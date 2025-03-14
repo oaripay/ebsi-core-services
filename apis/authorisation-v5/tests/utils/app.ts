@@ -68,5 +68,3 @@ export async function configureApp(moduleFixture: TestingModule) {
 
   return app;
 }
-
-export default configureApp;

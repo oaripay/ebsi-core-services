@@ -7,5 +7,3 @@ export class ArgsUpdateBaseDocument {
   @IsBaseDocument()
   baseDocument!: string;
 }
-
-export default { ArgsUpdateBaseDocument };

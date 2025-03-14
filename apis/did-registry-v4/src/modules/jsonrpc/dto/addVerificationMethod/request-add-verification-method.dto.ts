@@ -21,5 +21,3 @@ export class RequestAddVerificationMethodDto extends JsonRpcDto {
   @Type(() => AddVerificationMethodParam)
   declare params: AddVerificationMethodParam[];
 }
-
-export default RequestAddVerificationMethodDto;

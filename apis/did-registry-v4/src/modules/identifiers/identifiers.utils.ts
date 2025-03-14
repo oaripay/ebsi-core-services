@@ -30,5 +30,3 @@ export const validateClass = async (
     );
   }
 };
-
-export default validateClass;

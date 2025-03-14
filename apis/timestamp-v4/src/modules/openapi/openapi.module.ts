@@ -8,5 +8,3 @@ import { OpenApiController } from "./openapi.controller.ts";
   providers: [],
 })
 export class OpenApiModule {}
-
-export default OpenApiModule;

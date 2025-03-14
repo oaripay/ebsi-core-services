@@ -7,7 +7,7 @@ import {
   Matches,
 } from "class-validator";
 
-export default class GetRecordsDto extends PaginationQuery {
+export class GetRecordsDto extends PaginationQuery {
   @IsOptional()
   @IsHexadecimal()
   @Matches(/^0x/, { message: "must start with 0x" })

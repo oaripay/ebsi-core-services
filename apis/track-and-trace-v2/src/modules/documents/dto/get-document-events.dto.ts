@@ -18,5 +18,3 @@ export class GetDocumentEventsDto extends PaginationQuery {
   @IsString()
   origin?: string;
 }
-
-export default GetDocumentEventsDto;

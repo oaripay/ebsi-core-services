@@ -6,5 +6,3 @@ export class AddIssuerProxyParam extends ArgsAddIssuerProxy {
   @IsEthereumAddress()
   from!: string;
 }
-
-export default { AddIssuerProxyParam };

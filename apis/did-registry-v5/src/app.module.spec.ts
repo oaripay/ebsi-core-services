@@ -571,8 +571,9 @@ describe("App Module", () => {
               () => HttpResponse.json({}),
             ),
           ),
-          http.get(configService.get("besuReadinessEndpoint"), () =>
-            HttpResponse.json({}),
+          http.get(
+            configService.get("besuReadinessEndpoint", { infer: true }),
+            () => HttpResponse.json({}),
           ),
         );
 
@@ -611,8 +612,9 @@ describe("App Module", () => {
               () => HttpResponse.json({}),
             ),
           ),
-          http.get(configService.get("besuReadinessEndpoint"), () =>
-            HttpResponse.json({}),
+          http.get(
+            configService.get("besuReadinessEndpoint", { infer: true }),
+            () => HttpResponse.json({}),
           ),
         );
 
@@ -670,8 +672,9 @@ describe("App Module", () => {
               () => HttpResponse.json({}),
             ),
           ),
-          http.get(configService.get("besuReadinessEndpoint"), () =>
-            HttpResponse.json({}),
+          http.get(
+            configService.get("besuReadinessEndpoint", { infer: true }),
+            () => HttpResponse.json({}),
           ),
         );
 

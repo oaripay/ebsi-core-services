@@ -27,5 +27,3 @@ export function formatPolicies(
     extraQuery,
   );
 }
-
-export default formatPolicies;

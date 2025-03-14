@@ -60,5 +60,3 @@ function formatError(error: AxiosError, message: string) {
     2,
   )}`;
 }
-
-export default logAxiosError;

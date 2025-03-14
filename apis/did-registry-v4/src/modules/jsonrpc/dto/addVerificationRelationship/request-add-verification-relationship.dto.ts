@@ -21,5 +21,3 @@ export class RequestAddVerificationRelationshipDto extends JsonRpcDto {
   @Type(() => AddVerificationRelationshipParam)
   declare params: AddVerificationRelationshipParam[];
 }
-
-export default RequestAddVerificationRelationshipDto;

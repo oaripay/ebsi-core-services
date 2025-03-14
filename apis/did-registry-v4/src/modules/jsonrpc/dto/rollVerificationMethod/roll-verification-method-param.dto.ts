@@ -6,5 +6,3 @@ export class RollVerificationMethodParam extends ArgsRollVerificationMethod {
   @IsEthereumAddress()
   from!: string;
 }
-
-export default { RollVerificationMethodParam };

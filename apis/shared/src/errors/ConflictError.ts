@@ -30,5 +30,3 @@ export class ConflictError extends ProblemDetailsError {
     this.name = "ConflictError";
   }
 }
-
-export default ConflictError;

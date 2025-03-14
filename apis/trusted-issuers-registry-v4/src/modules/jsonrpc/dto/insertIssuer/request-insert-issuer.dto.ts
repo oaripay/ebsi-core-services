@@ -21,5 +21,3 @@ export class RequestInsertIssuerDto extends JsonRpcDto {
   @Type(() => InsertIssuerParam)
   declare params: InsertIssuerParam[];
 }
-
-export default RequestInsertIssuerDto;

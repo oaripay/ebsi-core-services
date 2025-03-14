@@ -4,5 +4,3 @@ export class GetPolicyParams {
   @IsString()
   policyName!: string;
 }
-
-export default GetPolicyParams;

@@ -33,5 +33,3 @@ export class BearerJwtAuthGuard extends AuthGuard("bearer-jwt") {
     return subjectInfo;
   }
 }
-
-export default BearerJwtAuthGuard;

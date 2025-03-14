@@ -4,5 +4,3 @@ export class GetIssuerParamsDto {
   @IsDidV1()
   "did": string;
 }
-
-export default GetIssuerParamsDto;

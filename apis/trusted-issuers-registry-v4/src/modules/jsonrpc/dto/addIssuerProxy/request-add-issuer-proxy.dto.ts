@@ -21,5 +21,3 @@ export class RequestAddIssuerProxyDto extends JsonRpcDto {
   @Type(() => AddIssuerProxyParam)
   declare params: AddIssuerProxyParam[];
 }
-
-export default RequestAddIssuerProxyDto;

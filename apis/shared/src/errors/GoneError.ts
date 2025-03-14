@@ -30,5 +30,3 @@ export class GoneError extends ProblemDetailsError {
     this.name = "GoneError";
   }
 }
-
-export default GoneError;

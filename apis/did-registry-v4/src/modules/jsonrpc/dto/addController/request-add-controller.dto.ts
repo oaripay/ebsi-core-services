@@ -21,5 +21,3 @@ export class RequestAddControllerDto extends JsonRpcDto {
   @Type(() => AddControllerParam)
   declare params: AddControllerParam[];
 }
-
-export default RequestAddControllerDto;

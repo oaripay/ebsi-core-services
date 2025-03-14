@@ -2,8 +2,8 @@ import { Logger, Module } from "@nestjs/common";
 
 import { ApiConfigModule } from "../../config/configuration.ts";
 import { LedgerModule } from "../ledger/ledger.module.ts";
-import RecordsController from "./records.controller.ts";
-import RecordsService from "./records.service.ts";
+import { RecordsController } from "./records.controller.ts";
+import { RecordsService } from "./records.service.ts";
 
 @Module({
   controllers: [RecordsController],
@@ -11,5 +11,3 @@ import RecordsService from "./records.service.ts";
   providers: [Logger, RecordsService],
 })
 export class RecordsModule {}
-
-export default RecordsModule;

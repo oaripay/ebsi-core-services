@@ -19,5 +19,3 @@ export class BearerJwtStrategy extends PassportStrategy(
     return this.authService.validateToken(bearerToken);
   }
 }
-
-export default BearerJwtStrategy;

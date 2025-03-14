@@ -5,5 +5,3 @@ export class ValueTooLargeError extends PayloadTooLargeError {
     super(PayloadTooLargeError.defaultTitle, { detail });
   }
 }
-
-export default ValueTooLargeError;

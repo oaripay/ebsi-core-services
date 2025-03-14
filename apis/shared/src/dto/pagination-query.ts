@@ -14,5 +14,3 @@ export class PaginationQuery {
   @Type(() => Number)
   "page[size]" = 10;
 }
-
-export default PaginationQuery;

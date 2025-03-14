@@ -6,5 +6,3 @@ export class AddVerificationMethodParam extends ArgsAddVerificationMethod {
   @IsEthereumAddress()
   from!: string;
 }
-
-export default { AddVerificationMethodParam };

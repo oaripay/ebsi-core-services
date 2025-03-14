@@ -21,5 +21,3 @@ export class RequestRollVerificationMethodDto extends JsonRpcDto {
   @Type(() => RollVerificationMethodParam)
   declare params: RollVerificationMethodParam[];
 }
-
-export default RequestRollVerificationMethodDto;

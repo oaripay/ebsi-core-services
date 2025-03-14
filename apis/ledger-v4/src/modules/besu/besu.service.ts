@@ -253,5 +253,3 @@ export class BesuService extends AbstractBesuService {
     return query;
   }
 }
-
-export default { BesuService };

@@ -4,5 +4,3 @@ export class HeadAccessesDto {
   @IsDidV1()
   "creator"!: string;
 }
-
-export default HeadAccessesDto;

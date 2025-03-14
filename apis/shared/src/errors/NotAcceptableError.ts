@@ -30,5 +30,3 @@ export class NotAcceptableError extends ProblemDetailsError {
     this.name = "NotAcceptableError";
   }
 }
-
-export default NotAcceptableError;

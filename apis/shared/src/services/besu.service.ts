@@ -185,5 +185,3 @@ export abstract class BesuService implements OnModuleDestroy, OnModuleInit {
     });
   }
 }
-
-export default BesuService;

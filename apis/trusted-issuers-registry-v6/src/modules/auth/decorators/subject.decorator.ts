@@ -12,5 +12,3 @@ export const Subject = createParamDecorator(
     return request.user ?? {};
   },
 );
-
-export default Subject;

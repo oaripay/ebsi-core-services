@@ -6,5 +6,3 @@ export class UpdateIssuerParam extends ArgsUpdateIssuer {
   @IsEthereumAddress()
   from!: string;
 }
-
-export default UpdateIssuerParam;

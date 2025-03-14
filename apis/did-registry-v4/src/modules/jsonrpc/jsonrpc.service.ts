@@ -693,5 +693,3 @@ export class JsonRpcService {
     };
   }
 }
-
-export default { JsonRpcService };

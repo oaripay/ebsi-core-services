@@ -7,5 +7,3 @@ export const describeWriteOps = () => {
 
   return describe.skip;
 };
-
-export default describeWriteOps;

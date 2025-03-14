@@ -37,5 +37,3 @@ export class AcceptsGuard implements CanActivate {
     return true;
   }
 }
-
-export default AcceptsGuard;

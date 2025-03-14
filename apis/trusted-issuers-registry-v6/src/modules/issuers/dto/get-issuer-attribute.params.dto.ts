@@ -6,5 +6,3 @@ export class GetIssuerAttributeParamsDto extends GetIssuerParamsDto {
   @IsHexadecimal()
   "attributeId": string;
 }
-
-export default GetIssuerAttributeParamsDto;

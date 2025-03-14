@@ -25,7 +25,7 @@ import { requestCheckControllerDtoSchema } from "./validators/RequestCheckContro
 const sdk = getBuiltGraphSDK();
 
 @Injectable()
-export default class IdentifiersService {
+export class IdentifiersService {
   private readonly logger = new Logger(IdentifiersService.name);
 
   async checkController(

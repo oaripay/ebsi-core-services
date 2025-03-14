@@ -14,7 +14,7 @@ import { didToHex, hexToDid } from "../../shared/utils.ts";
 const sdk = getBuiltGraphSDK();
 
 @Injectable()
-export default class AccessesService {
+export class AccessesService {
   private readonly logger = new Logger(AccessesService.name);
 
   async getAccessesBySubject(

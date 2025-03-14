@@ -52,6 +52,30 @@ export class IssuersController {
   ) {}
 
   @Accepts("application/json")
+  @Get("")
+  @UsePipes(validationPipe)
+  async issuers(
+    @Query() query: PaginationQuery,
+  ): Promise<PaginatedList<DidLink>> {
+    const issuers = await this.issuersService.getIssuers(
+      query["page[after]"],
+      query["page[size]"],
+    );
+    const apiUrlPrefix = this.configService.get("apiUrlPrefix", {
+      infer: true,
+    });
+    const domain = this.configService.get("domain", { infer: true });
+    const baseUrl = `${domain}${apiUrlPrefix}/issuers`;
+
+    return formatIssuers(
+      issuers,
+      query["page[after]"],
+      query["page[size]"],
+      baseUrl,
+    );
+  }
+
+  @Accepts("application/json")
   @Get("/:did")
   @UsePipes(validationPipe)
   async getIssuer(
@@ -104,49 +128,9 @@ export class IssuersController {
   }
 
   @Accepts("application/json")
-  @Get("/:did/proxies")
-  @UsePipes(validationPipe)
-  async getIssuerProxies(
-    @Query() query: PaginationQuery,
-    @Param() params: GetIssuerParamsDto,
-  ): Promise<PaginatedList<ProxyLink>> {
-    const { did } = params;
-
-    const proxies = await this.issuersService.getIssuerProxies(
-      did,
-      query["page[after]"],
-      query["page[size]"],
-    );
-
-    const apiUrlPrefix = this.configService.get("apiUrlPrefix", {
-      infer: true,
-    });
-    const domain = this.configService.get("domain", { infer: true });
-    const baseUrl = `${domain}${apiUrlPrefix}/issuers/${did}/proxies`;
-
-    return formatProxies(
-      proxies,
-      query["page[after]"],
-      query["page[size]"],
-      baseUrl,
-    );
-  }
-
-  @Accepts("application/json")
-  @Get("/:did/proxies/:proxyId")
-  @UsePipes(validationPipe)
-  async getIssuerProxy(
-    @Param() params: GetIssuerProxyParamsDto,
-  ): Promise<IssuerProxyResponseObject> {
-    const { did, proxyId } = params;
-
-    return this.issuersService.getIssuerProxy(did, proxyId);
-  }
-
-  @Accepts("application/json")
   @Get("/:did/attributes/:attributeId")
   @UsePipes(validationPipe)
-  async issuerAttributeId(
+  async getIssuerAttribute(
     @Param() params: GetIssuerAttributeParamsDto,
   ): Promise<AttributeDetailsObject> {
     const { attributeId, did } = params;
@@ -195,27 +179,43 @@ export class IssuersController {
   }
 
   @Accepts("application/json")
-  @Get("")
+  @Get("/:did/proxies")
   @UsePipes(validationPipe)
-  async issuers(
+  async getIssuerProxies(
     @Query() query: PaginationQuery,
-  ): Promise<PaginatedList<DidLink>> {
-    const issuers = await this.issuersService.getIssuers(
+    @Param() params: GetIssuerParamsDto,
+  ): Promise<PaginatedList<ProxyLink>> {
+    const { did } = params;
+
+    const proxies = await this.issuersService.getIssuerProxies(
+      did,
       query["page[after]"],
       query["page[size]"],
     );
+
     const apiUrlPrefix = this.configService.get("apiUrlPrefix", {
       infer: true,
     });
     const domain = this.configService.get("domain", { infer: true });
-    const baseUrl = `${domain}${apiUrlPrefix}/issuers`;
+    const baseUrl = `${domain}${apiUrlPrefix}/issuers/${did}/proxies`;
 
-    return formatIssuers(
-      issuers,
+    return formatProxies(
+      proxies,
       query["page[after]"],
       query["page[size]"],
       baseUrl,
     );
+  }
+
+  @Accepts("application/json")
+  @Get("/:did/proxies/:proxyId")
+  @UsePipes(validationPipe)
+  async getIssuerProxy(
+    @Param() params: GetIssuerProxyParamsDto,
+  ): Promise<IssuerProxyResponseObject> {
+    const { did, proxyId } = params;
+
+    return this.issuersService.getIssuerProxy(did, proxyId);
   }
 
   @Accepts("text/plain")
@@ -234,5 +234,3 @@ export class IssuersController {
     return this.issuersService.proxyRequest(did, proxyId, url);
   }
 }
-
-export default IssuersController;

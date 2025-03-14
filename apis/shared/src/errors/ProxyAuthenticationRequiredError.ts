@@ -30,5 +30,3 @@ export class ProxyAuthenticationRequiredError extends ProblemDetailsError {
     this.name = "ProxyAuthenticationRequiredError";
   }
 }
-
-export default ProxyAuthenticationRequiredError;

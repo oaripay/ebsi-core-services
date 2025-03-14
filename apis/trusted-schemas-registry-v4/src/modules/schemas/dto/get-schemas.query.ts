@@ -8,5 +8,3 @@ export class GetSchemasQuery extends PaginationQuery {
   @Matches(/^0x/, { message: "schema-revision-id must start with 0x" })
   "schema-revision-id": string;
 }
-
-export default GetSchemasQuery;

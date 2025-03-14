@@ -5,5 +5,3 @@ export class ExcessiveAppUsageError extends BadRequestError {
     super("Excessive app usage", detail ? { detail } : {});
   }
 }
-
-export default ExcessiveAppUsageError;

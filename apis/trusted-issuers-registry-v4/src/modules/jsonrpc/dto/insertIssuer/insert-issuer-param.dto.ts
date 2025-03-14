@@ -6,5 +6,3 @@ export class InsertIssuerParam extends ArgsInsertIssuer {
   @IsEthereumAddress()
   from!: string;
 }
-
-export default { InsertIssuerParam };

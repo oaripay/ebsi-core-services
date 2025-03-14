@@ -30,5 +30,3 @@ export class PaymentRequiredError extends ProblemDetailsError {
     this.name = "PaymentRequiredError";
   }
 }
-
-export default PaymentRequiredError;

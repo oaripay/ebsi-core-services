@@ -12,5 +12,3 @@ export class ArgsRevokeVerificationMethod {
   @Min(0)
   notAfter!: number;
 }
-
-export default { ArgsRevokeVerificationMethod };

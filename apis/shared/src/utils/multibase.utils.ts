@@ -14,5 +14,3 @@ export const multibase: {
   base64: bases.base64,
   base64url: bases.base64url,
 } as const;
-
-export default multibase;

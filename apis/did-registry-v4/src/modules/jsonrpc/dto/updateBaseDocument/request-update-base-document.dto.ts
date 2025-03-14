@@ -21,5 +21,3 @@ export class RequestUpdateBaseDocumentDto extends JsonRpcDto {
   @Type(() => UpdateBaseDocumentParam)
   declare params: UpdateBaseDocumentParam[];
 }
-
-export default RequestUpdateBaseDocumentDto;

@@ -7,5 +7,3 @@ export class GetSubjectPolicyParams {
   @IsEthereumAddress()
   subject!: string;
 }
-
-export default GetSubjectPolicyParams;

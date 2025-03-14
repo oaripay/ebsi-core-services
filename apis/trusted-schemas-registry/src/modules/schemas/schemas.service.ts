@@ -396,5 +396,3 @@ export class SchemasService {
     }
   }
 }
-
-export default SchemasService;

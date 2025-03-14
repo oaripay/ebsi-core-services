@@ -51,5 +51,3 @@ export class HealthController {
     ]);
   }
 }
-
-export default HealthController;

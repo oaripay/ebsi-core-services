@@ -22,7 +22,7 @@ import { getBuiltGraphSDK } from "../../../.graphclient/index.js";
 const sdk = getBuiltGraphSDK();
 
 @Injectable()
-export default class TimestampsService {
+export class TimestampsService {
   private readonly logger = new Logger(TimestampsService.name);
 
   async getTimestamp(

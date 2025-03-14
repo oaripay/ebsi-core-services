@@ -11,5 +11,3 @@ export class AppController {
     return "ok";
   }
 }
-
-export default AppController;

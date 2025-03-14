@@ -29,38 +29,15 @@ import {
   GetIdentifiersDto,
 } from "./dto/index.ts";
 import { formatIdentifiers } from "./identifiers.formatter.ts";
-import IdentifiersService from "./identifiers.service.ts";
+import { IdentifiersService } from "./identifiers.service.ts";
 import { jsonRpcSchema } from "./validators/JsonRpcSchema.ts";
 
 @Controller("/identifiers")
-export default class IdentifiersController {
+export class IdentifiersController {
   constructor(
     private identifiersService: IdentifiersService,
     private configService: ConfigService<ApiConfig, true>,
   ) {}
-
-  @Accepts("application/did+ld+json", "application/did+json")
-  @Get("/:did")
-  async getDidDocument(
-    @Param() params: GetIdentifierParamsDto,
-    @Query() query: GetIdentifierQueryDto,
-    @Headers("Accept") accept: string,
-    @Res() res: FastifyReply,
-  ): Promise<Record<string, unknown>> {
-    const { did } = params;
-
-    const didDocument = await this.identifiersService.getDidDocument(
-      did,
-      query["valid-at"],
-    );
-
-    if (accept === "application/did+json") {
-      const { "@context": context, ...otherProps } = didDocument;
-      return res.type("application/did+json").send(otherProps);
-    }
-
-    return res.type("application/did+ld+json").send(didDocument);
-  }
 
   @Accepts("application/json")
   @Get("")
@@ -90,6 +67,29 @@ export default class IdentifiersController {
       query["verification-method-id"],
       query["verification-relationship"],
     );
+  }
+
+  @Accepts("application/did+ld+json", "application/did+json")
+  @Get("/:did")
+  async getDidDocument(
+    @Param() params: GetIdentifierParamsDto,
+    @Query() query: GetIdentifierQueryDto,
+    @Headers("Accept") accept: string,
+    @Res() res: FastifyReply,
+  ): Promise<Record<string, unknown>> {
+    const { did } = params;
+
+    const didDocument = await this.identifiersService.getDidDocument(
+      did,
+      query["valid-at"],
+    );
+
+    if (accept === "application/did+json") {
+      const { "@context": context, ...otherProps } = didDocument;
+      return res.type("application/did+json").send(otherProps);
+    }
+
+    return res.type("application/did+ld+json").send(didDocument);
   }
 
   @HttpCode(200)

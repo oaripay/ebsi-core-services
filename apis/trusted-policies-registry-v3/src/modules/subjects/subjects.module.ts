@@ -11,5 +11,3 @@ import { SubjectsService } from "./subjects.service.ts";
   providers: [Logger, SubjectsService],
 })
 export class SubjectsModule {}
-
-export default SubjectsModule;

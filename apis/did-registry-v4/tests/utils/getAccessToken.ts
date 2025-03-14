@@ -96,5 +96,3 @@ export async function getDidrWriteAccessToken(
 
   return accessToken;
 }
-
-export default getDidrWriteAccessToken;

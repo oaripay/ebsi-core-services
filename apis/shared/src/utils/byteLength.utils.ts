@@ -19,5 +19,3 @@ export const byteLength = (
 
   return Buffer.byteLength(input, encoding);
 };
-
-export default byteLength;

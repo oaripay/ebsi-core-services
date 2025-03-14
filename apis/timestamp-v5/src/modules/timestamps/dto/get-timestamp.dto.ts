@@ -4,5 +4,3 @@ export class GetTimestampDto {
   @IsMultihashMultibase64urlEncoded()
   timestampId!: string;
 }
-
-export default GetTimestampDto;

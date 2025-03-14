@@ -11,5 +11,3 @@ export class GetIssuerProxyParamsDto extends GetIssuerParamsDto {
   @IsOptional()
   "path"?: string;
 }
-
-export default GetIssuerProxyParamsDto;

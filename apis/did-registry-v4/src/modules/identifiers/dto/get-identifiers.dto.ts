@@ -22,5 +22,3 @@ export class GetIdentifiersDto extends PaginationQuery {
   @IsIn(verificationRelationships)
   "verification-relationship"?: (typeof verificationRelationships)[number];
 }
-
-export default GetIdentifiersDto;

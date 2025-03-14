@@ -30,5 +30,3 @@ export class PreconditionFailedError extends ProblemDetailsError {
     this.name = "PreconditionFailedError";
   }
 }
-
-export default PreconditionFailedError;

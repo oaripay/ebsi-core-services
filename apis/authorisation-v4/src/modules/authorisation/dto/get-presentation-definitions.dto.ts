@@ -6,5 +6,3 @@ export class GetPresentationDefinitionsDto {
   @IsScope()
   readonly "scope": Scope;
 }
-
-export default GetPresentationDefinitionsDto;

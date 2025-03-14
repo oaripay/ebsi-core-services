@@ -24,6 +24,30 @@ export class SubjectsController {
   ) {}
 
   @Accepts("application/json")
+  @Get("")
+  async getSubjects(
+    @Query() query: PaginationQuery,
+  ): Promise<PaginatedList<SubjectLink>> {
+    const subjects = await this.subjectsService.getSubjects(
+      query["page[after]"],
+      query["page[size]"],
+    );
+
+    const apiUrlPrefix = this.configService.get("apiUrlPrefix", {
+      infer: true,
+    });
+    const domain = this.configService.get("domain", { infer: true });
+    const baseUrl = `${domain}${apiUrlPrefix}/subjects`;
+
+    return formatSubjects(
+      subjects,
+      query["page[after]"],
+      query["page[size]"],
+      baseUrl,
+    );
+  }
+
+  @Accepts("application/json")
   @Get("/:subject")
   async getSubject(
     @Param() params: GetSubjectParams,
@@ -59,32 +83,8 @@ export class SubjectsController {
   }
 
   @Accepts("application/json")
-  @Get("")
-  async getSubjects(
-    @Query() query: PaginationQuery,
-  ): Promise<PaginatedList<SubjectLink>> {
-    const subjects = await this.subjectsService.getSubjects(
-      query["page[after]"],
-      query["page[size]"],
-    );
-
-    const apiUrlPrefix = this.configService.get("apiUrlPrefix", {
-      infer: true,
-    });
-    const domain = this.configService.get("domain", { infer: true });
-    const baseUrl = `${domain}${apiUrlPrefix}/subjects`;
-
-    return formatSubjects(
-      subjects,
-      query["page[after]"],
-      query["page[size]"],
-      baseUrl,
-    );
-  }
-
-  @Accepts("application/json")
   @Get("/:subject/policies/:policyName")
-  async isSubjectPolicy(
+  async getSubjectPolicy(
     @Param() params: GetSubjectPolicyParams,
   ): Promise<SubjectPolicy> {
     const { policyName, subject } = params;
@@ -103,5 +103,3 @@ export class SubjectsController {
     };
   }
 }
-
-export default SubjectsController;

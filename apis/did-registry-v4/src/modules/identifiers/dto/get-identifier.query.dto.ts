@@ -5,5 +5,3 @@ export class GetIdentifierQueryDto {
   @IsDateString()
   "valid-at"?: string;
 }
-
-export default GetIdentifierQueryDto;

@@ -67,5 +67,3 @@ export async function getPublicKeyJwk(
 
   throw new Error(`Unsupported algorithm ${alg as string}`);
 }
-
-export default getPublicKeyJwk;

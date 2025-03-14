@@ -30,5 +30,3 @@ export class PayloadTooLargeError extends ProblemDetailsError {
     this.name = "PayloadTooLargeError";
   }
 }
-
-export default PayloadTooLargeError;

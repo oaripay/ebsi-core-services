@@ -29,6 +29,31 @@ export class AuthorisationController {
   constructor(private authorisationService: AuthorisationService) {}
 
   @Accepts("application/json")
+  @Get("/.well-known/openid-configuration")
+  @HttpCode(200)
+  getOPMetadata(): OPMetadata {
+    return this.authorisationService.getOPMetadata();
+  }
+
+  @Accepts("application/jwk-set+json")
+  @Get("/jwks")
+  @Header("Content-type", "application/jwk-set+json")
+  @HttpCode(200)
+  getJwks(): Promise<JsonWebKeySet> {
+    return this.authorisationService.getJwks();
+  }
+
+  @Accepts("application/json")
+  @Get("/presentation-definitions")
+  @HttpCode(200)
+  getPresentationDefinitions(
+    @Query() { scope }: GetPresentationDefinitionsDto,
+  ): ReadonlyDeep<PresentationDefinition> {
+    const customScope = scope.split(" ")[1] as (typeof CUSTOM_SCOPES)[number];
+    return this.authorisationService.getPresentationDefinitions(customScope);
+  }
+
+  @Accepts("application/json")
   @Header("Cache-Control", "no-store")
   @Header("Pragma", "no-cache")
   @HttpCode(200)
@@ -50,31 +75,4 @@ export class AuthorisationController {
 
     return this.authorisationService.createAccessToken(body);
   }
-
-  @Accepts("application/jwk-set+json")
-  @Get("/jwks")
-  @Header("Content-type", "application/jwk-set+json")
-  @HttpCode(200)
-  getJwks(): Promise<JsonWebKeySet> {
-    return this.authorisationService.getJwks();
-  }
-
-  @Accepts("application/json")
-  @Get("/.well-known/openid-configuration")
-  @HttpCode(200)
-  getOPMetadata(): OPMetadata {
-    return this.authorisationService.getOPMetadata();
-  }
-
-  @Accepts("application/json")
-  @Get("/presentation-definitions")
-  @HttpCode(200)
-  getPresentationDefinitions(
-    @Query() { scope }: GetPresentationDefinitionsDto,
-  ): ReadonlyDeep<PresentationDefinition> {
-    const customScope = scope.split(" ")[1] as (typeof CUSTOM_SCOPES)[number];
-    return this.authorisationService.getPresentationDefinitions(customScope);
-  }
 }
-
-export default AuthorisationController;

@@ -11,5 +11,3 @@ import { PoliciesService } from "./policies.service.ts";
   providers: [Logger, PoliciesService],
 })
 export class PoliciesModule {}
-
-export default PoliciesModule;

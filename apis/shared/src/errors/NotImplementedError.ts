@@ -30,5 +30,3 @@ export class NotImplementedError extends ProblemDetailsError {
     this.name = "NotImplementedError";
   }
 }
-
-export default NotImplementedError;

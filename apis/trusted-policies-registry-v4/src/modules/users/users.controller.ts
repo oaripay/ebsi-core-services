@@ -20,12 +20,6 @@ export class UsersController {
   ) {}
 
   @Accepts("application/json")
-  @Get("/:user")
-  async getUser(@Param() params: GetUserParams): Promise<UserResponseObject> {
-    return this.usersService.getUser(params.user);
-  }
-
-  @Accepts("application/json")
   @Get("")
   async getUsers(
     @Query() query: GetUsersQuery,
@@ -70,6 +64,10 @@ export class UsersController {
       extraQuery,
     );
   }
-}
 
-export default UsersController;
+  @Accepts("application/json")
+  @Get("/:user")
+  async getUser(@Param() params: GetUserParams): Promise<UserResponseObject> {
+    return this.usersService.getUser(params.user);
+  }
+}

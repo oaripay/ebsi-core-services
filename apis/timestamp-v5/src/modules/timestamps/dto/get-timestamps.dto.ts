@@ -10,5 +10,3 @@ export class GetTimestampsDto extends PaginationQuery {
   @IsNumberString({ no_symbols: true })
   "hash-algorithm-id"?: string;
 }
-
-export default GetTimestampsDto;

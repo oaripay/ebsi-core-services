@@ -362,5 +362,3 @@ export class IssuersService {
     return res.data;
   }
 }
-
-export default IssuersService;

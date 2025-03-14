@@ -34,5 +34,3 @@ export function formatTimestamps(
     extraQuery,
   );
 }
-
-export default { formatTimestamps };

@@ -31,11 +31,9 @@ import { UsersModule } from "./modules/users/users.module.ts";
       inject: [ConfigService],
       provide: APP_INTERCEPTOR,
       useFactory: (configService: ConfigService<ApiConfig, true>) =>
-        new LoggingInterceptor(configService.get("logLevel")),
+        new LoggingInterceptor(configService.get("logLevel", { infer: true })),
     },
     AppService,
   ],
 })
 export class AppModule {}
-
-export default AppModule;

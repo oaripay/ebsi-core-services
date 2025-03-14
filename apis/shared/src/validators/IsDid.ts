@@ -41,5 +41,3 @@ export function IsDid(validationOptions?: ValidationOptions) {
     });
   };
 }
-
-export default IsDid;

@@ -23,5 +23,3 @@ export function formatPolicies(
 
   return paginate<PolicyLink>(items, baseUrl, total, page, pageSize);
 }
-
-export default formatPolicies;

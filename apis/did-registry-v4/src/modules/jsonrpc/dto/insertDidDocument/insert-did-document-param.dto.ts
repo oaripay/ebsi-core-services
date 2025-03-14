@@ -6,5 +6,3 @@ export class InsertDidDocumentParam extends ArgsInsertDidDocument {
   @IsEthereumAddress()
   from!: string;
 }
-
-export default { InsertDidDocumentParam };

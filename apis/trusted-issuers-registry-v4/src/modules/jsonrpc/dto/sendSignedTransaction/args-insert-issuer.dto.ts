@@ -22,5 +22,3 @@ export class ArgsInsertIssuer {
   @Matches(/^0x/, { message: "must start with 0x" })
   taoAttributeId!: string;
 }
-
-export default ArgsInsertIssuer;

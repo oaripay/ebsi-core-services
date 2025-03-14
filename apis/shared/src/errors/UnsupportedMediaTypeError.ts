@@ -30,5 +30,3 @@ export class UnsupportedMediaTypeError extends ProblemDetailsError {
     this.name = "UnsupportedMediaTypeError";
   }
 }
-
-export default UnsupportedMediaTypeError;

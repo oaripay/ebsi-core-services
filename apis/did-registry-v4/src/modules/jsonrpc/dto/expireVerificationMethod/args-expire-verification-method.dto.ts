@@ -12,5 +12,3 @@ export class ArgsExpireVerificationMethod {
   @Min(0)
   notAfter!: number;
 }
-
-export default { ArgsExpireVerificationMethod };

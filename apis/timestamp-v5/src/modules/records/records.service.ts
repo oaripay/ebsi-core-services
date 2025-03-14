@@ -27,7 +27,7 @@ import { getBuiltGraphSDK } from "../../../.graphclient/index.js";
 const sdk = getBuiltGraphSDK();
 
 @Injectable()
-export default class RecordsService {
+export class RecordsService {
   private readonly logger = new Logger(RecordsService.name);
 
   async getRecord(recordIdEncoded: string): Promise<RecordResponseObject> {

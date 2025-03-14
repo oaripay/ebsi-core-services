@@ -43,5 +43,3 @@ export function formatIdentifiers(
     extraQuery,
   );
 }
-
-export default formatIdentifiers;

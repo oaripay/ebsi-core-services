@@ -8,5 +8,3 @@ export class GetSchemaRevisionParams extends GetSchemaParams {
   @Matches(/^0x/, { message: "schemaRevisionId must start with 0x" })
   schemaRevisionId!: string;
 }
-
-export default GetSchemaRevisionParams;

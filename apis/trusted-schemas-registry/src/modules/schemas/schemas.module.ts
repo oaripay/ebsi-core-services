@@ -11,5 +11,3 @@ import { SchemasService } from "./schemas.service.ts";
   providers: [Logger, SchemasService],
 })
 export class SchemasModule {}
-
-export default SchemasModule;

@@ -30,5 +30,3 @@ export class TooManyRequestsError extends ProblemDetailsError {
     this.name = "TooManyRequestsError";
   }
 }
-
-export default TooManyRequestsError;

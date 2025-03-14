@@ -9,5 +9,3 @@ import { LedgerService } from "./ledger.service.ts";
   providers: [LedgerService],
 })
 export class LedgerModule {}
-
-export default LedgerModule;

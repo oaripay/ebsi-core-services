@@ -20,7 +20,7 @@ import type { TimestampResponseObject } from "./timestamps.interface.ts";
 import { LedgerService } from "../ledger/ledger.service.ts";
 
 @Injectable()
-export default class TimestampsService {
+export class TimestampsService {
   private readonly contract: Timestamp;
 
   private readonly logger = new Logger(TimestampsService.name);

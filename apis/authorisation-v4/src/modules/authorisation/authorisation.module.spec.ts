@@ -139,7 +139,7 @@ describe.each(["EBSI URI", "URL"] as const)(
       domain = configService.get("domain", { infer: true });
       const apiUrlPrefix = configService.get("apiUrlPrefix", { infer: true });
       serviceEndpoint = `${domain}${apiUrlPrefix}`;
-      ebsiEnvConfig = configService.get("ebsiEnvConfig");
+      ebsiEnvConfig = configService.get("ebsiEnvConfig", { infer: true });
 
       credentialIssuer = await createLegalEntity(["ES256", "EdDSA"]);
       credentialIssuerAccreditationUrl = `${domain}/trusted-issuers-registry/v5/issuers/${

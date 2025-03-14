@@ -34,5 +34,3 @@ export class ArgsInsertDidDocument {
   @Min(0)
   notAfter!: number;
 }
-
-export default { ArgsInsertDidDocument };

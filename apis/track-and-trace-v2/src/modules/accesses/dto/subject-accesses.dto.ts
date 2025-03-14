@@ -13,5 +13,3 @@ export class SubjectAccessesDto extends PaginationQuery {
   @IsString()
   "granted-by"?: string;
 }
-
-export default SubjectAccessesDto;

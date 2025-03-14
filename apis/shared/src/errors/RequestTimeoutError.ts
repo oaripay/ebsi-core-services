@@ -30,5 +30,3 @@ export class RequestTimeoutError extends ProblemDetailsError {
     this.name = "RequestTimeoutError";
   }
 }
-
-export default RequestTimeoutError;

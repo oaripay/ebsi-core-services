@@ -26,5 +26,3 @@ export function parseDto<T extends object>(
 
   return dataClass;
 }
-
-export default parseDto;

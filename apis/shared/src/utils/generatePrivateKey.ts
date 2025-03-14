@@ -17,5 +17,3 @@ export function generatePrivateKey(alg: "EdDSA" | "ES256" | "ES256K") {
 
   throw new Error(`Unsupported algorithm ${alg as string}`);
 }
-
-export default generatePrivateKey;

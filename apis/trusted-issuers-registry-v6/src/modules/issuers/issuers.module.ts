@@ -11,5 +11,3 @@ import { IssuersService } from "./issuers.service.ts";
   providers: [Logger, IssuersService],
 })
 export class IssuersModule {}
-
-export default IssuersModule;

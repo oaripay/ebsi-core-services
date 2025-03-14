@@ -25,5 +25,3 @@ export function formatHashAlgorithms(
     extraQuery,
   );
 }
-
-export default { formatHashAlgorithms };

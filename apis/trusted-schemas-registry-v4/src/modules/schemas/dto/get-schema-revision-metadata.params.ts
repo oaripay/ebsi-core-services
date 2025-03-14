@@ -8,5 +8,3 @@ export class GetSchemaRevisionMetadataParams extends GetSchemaRevisionParams {
   @Matches(/^0x/, { message: "metadataId must start with 0x" })
   metadataId!: string;
 }
-
-export default GetSchemaRevisionMetadataParams;

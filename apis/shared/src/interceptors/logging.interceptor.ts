@@ -151,5 +151,3 @@ export class LoggingInterceptor implements NestInterceptor {
     );
   }
 }
-
-export default LoggingInterceptor;

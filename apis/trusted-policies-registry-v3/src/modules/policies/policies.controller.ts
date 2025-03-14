@@ -52,5 +52,3 @@ export class PoliciesController {
     return this.policiesService.getPolicy(policyName);
   }
 }
-
-export default PoliciesController;

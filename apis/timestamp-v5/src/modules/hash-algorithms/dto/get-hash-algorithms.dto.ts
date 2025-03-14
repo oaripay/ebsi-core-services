@@ -22,5 +22,3 @@ export class GetHashAlgorithmsDto extends PaginationQuery {
   @IsIn(["active", "revoked"])
   status?: "active" | "revoked";
 }
-
-export default GetHashAlgorithmsDto;

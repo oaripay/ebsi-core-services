@@ -16,5 +16,3 @@ import { HealthController } from "./health.controller.ts";
   providers: [ConfigService],
 })
 export class HealthModule {}
-
-export default HealthModule;

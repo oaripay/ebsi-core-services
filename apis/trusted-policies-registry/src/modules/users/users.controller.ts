@@ -19,12 +19,6 @@ export class UsersController {
   ) {}
 
   @Accepts("application/json")
-  @Get("/:address")
-  async getUser(@Param() params: GetUserParams): Promise<UserResponseObject> {
-    return this.usersService.getUser(params.address);
-  }
-
-  @Accepts("application/json")
   @Get("")
   async getUsers(
     @Query() query: PaginationQuery,
@@ -47,6 +41,10 @@ export class UsersController {
       baseUrl,
     );
   }
-}
 
-export default UsersController;
+  @Accepts("application/json")
+  @Get("/:address")
+  async getUser(@Param() params: GetUserParams): Promise<UserResponseObject> {
+    return this.usersService.getUser(params.address);
+  }
+}

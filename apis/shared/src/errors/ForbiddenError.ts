@@ -30,5 +30,3 @@ export class ForbiddenError extends ProblemDetailsError {
     this.name = "ForbiddenError";
   }
 }
-
-export default ForbiddenError;

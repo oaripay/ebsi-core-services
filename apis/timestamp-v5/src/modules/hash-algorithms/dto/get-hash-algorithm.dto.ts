@@ -7,5 +7,3 @@ export class GetHashAlgorithmDto {
   @Type(() => Number) // We receive a string (in the URL), we must convert it to Number
   hashAlgorithmId!: number;
 }
-
-export default GetHashAlgorithmDto;
