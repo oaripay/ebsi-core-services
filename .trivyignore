@@ -1,7 +1,10 @@
 # CVEs related to @ebsiint-subgraph/subgraphs-deployer
 
-# axios@0.21.4 (MEDIUM, found in /app/node_modules)
+# axios@0.21.4, axios@0.26.1 (MEDIUM, found in /app/node_modules/apisauce/node_modules and /app/node_modules/binary-install/node_modules)
 CVE-2023-45857
+
+# axios@0.21.4, axios@0.26.1 (HIGH, found in /app/node_modules/apisauce/node_modules and /app/node_modules/binary-install/node_modules)
+CVE-2025-27152
 
 # cookie@0.4.2 (LOW, found in /app/node_modules)
 CVE-2024-47764
