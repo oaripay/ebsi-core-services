@@ -19,7 +19,7 @@
     "deploy-box": "yarn clean && yarn compile && yarn box"
   },
   "dependencies": {
-    "@cef-ebsi/wallet-lib": "^6.0.1-alpha.0",
+    "@cef-ebsi/wallet-lib": "^6.0.1-alpha.1",
     "@ebsiint-sc/bootstrap": "^1.0.1-rc.10",
     "@ebsiint-sc/bootstrap-v2": "^2.0.0-rc.6",
     "@ebsiint-sc/did-registry": "^1.1.0-rc.10",
@@ -107,7 +107,7 @@
     "hardhat-abi-exporter": "^2.10.1",
     "hardhat-deploy": "^0.14.0",
     "hardhat-deploy-ethers": "^0.4.2",
-    "jose": "^4.15.4",
+    "jose": "^5.10.0",
     "ts-node": "^10.9.2",
     "typechain": "^8.3.2"
   },

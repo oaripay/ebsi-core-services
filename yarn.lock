@@ -1033,12 +1033,12 @@
   resolved "https://registry.yarnpkg.com/@bytecodealliance/preview2-shim/-/preview2-shim-0.17.0.tgz#9bc1cadbb9f86c446c6f579d3431c08a06a6672e"
   integrity sha512-JorcEwe4ud0x5BS/Ar2aQWOQoFzjq/7jcnxYXCvSMh0oRm0dQXzOA+hqLDBnOMks1LLBA7dmiLLsEBl09Yd6iQ==
 
-"@cef-ebsi/ebsi-did-resolver@^4.0.6-alpha.0":
-  version "4.0.6-alpha.0"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/ebsi-did-resolver/-/ebsi-did-resolver-4.0.6-alpha.0.tgz#cee43eba010667733d719b1161b96caf010c97fa"
-  integrity sha512-n4veIZ/RXMVK+VxtOLeC95yk8a6rtn90SbzL4iFjw8ezXy0bTN7pTnaWuVm3ywoIFgun/Y6PPvWtH9gHLlsQSA==
+"@cef-ebsi/ebsi-did-resolver@^4.0.6-alpha.2":
+  version "4.0.6-alpha.2"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/ebsi-did-resolver/-/ebsi-did-resolver-4.0.6-alpha.2.tgz#c1dc1affeba891c55d1abba4c3b1cc456631c217"
+  integrity sha512-Ue0JlUNGjaScjo23UM1otiIjnT6Lyuf4R911mg3aP1Wlqy6lVDaVFrArHRRgbrpdyCQi91E0rPX4RktKWcswBA==
   dependencies:
-    axios "^1.8.1"
+    axios "^1.8.3"
     did-resolver "^4.1.0"
     multiformats "^9.6.2"
 
@@ -1047,10 +1047,10 @@
   resolved "https://registry.yarnpkg.com/@cef-ebsi/ebsi-uri/-/ebsi-uri-1.0.1-alpha.0.tgz#136c6954e359ca1f28607c17ef2ca10e1ac3ef07"
   integrity sha512-PJ2Fbd4IdOND/q7ZKgfrp/zx1/o+Ic9OsC8JjmLZ7Y37N2YcpdA0bzBl9OLK4WB3dgwKEZsDdgTLVK3HPKOliQ==
 
-"@cef-ebsi/key-did-resolver@^2.1.1-alpha.0":
-  version "2.1.1-alpha.0"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/key-did-resolver/-/key-did-resolver-2.1.1-alpha.0.tgz#dfc60303689d8590497b61d3e59679b291f5dfcb"
-  integrity sha512-hjYEOL2mYNi7kshxPyE0ktTZqp9fe+fEwHHpDn/ArsjSIsjr8fploSic+4zoC5ZXADnfukkqrB/smdZHC5ay1Q==
+"@cef-ebsi/key-did-resolver@^2.1.1-alpha.1":
+  version "2.1.1-alpha.1"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/key-did-resolver/-/key-did-resolver-2.1.1-alpha.1.tgz#4913ab4676f4b9ca32fcc4a6e49bb4b12f49e9ac"
+  integrity sha512-ZeiEabvySvhme+7iEahAd5OTiXjCyUfVU5kENw6Y1zey3QIx3/T6TlhAwtO2CbPyHyrtziruHleO0GyqRzM3IQ==
   dependencies:
     did-resolver "^4.1.0"
     lodash.isplainobject "^4.0.6"
@@ -1387,14 +1387,14 @@
   dependencies:
     "@cef-ebsi/vcdm2.0-attestation-schema" "1.2.1"
 
-"@cef-ebsi/verifiable-credential@^7.0.1-alpha.0":
-  version "7.0.1-alpha.0"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/verifiable-credential/-/verifiable-credential-7.0.1-alpha.0.tgz#d55b79d5582c0ed76075f61ab427cec934f74fb0"
-  integrity sha512-xbuwWl1vNVhev3FmAESVY3fRza3gxHClt2aK84D58eszW5dhDKCoNoW3zJWbHmWWVJGIX4d2s79oARQtbRnpyQ==
+"@cef-ebsi/verifiable-credential@^7.0.1-alpha.2":
+  version "7.0.1-alpha.2"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/verifiable-credential/-/verifiable-credential-7.0.1-alpha.2.tgz#4fb3e7e4910a0bba79bbf167f05481f63bfbdd5e"
+  integrity sha512-GkpT626lzERp90BYtmQwNBnKuqOe9ZlgZF+V73l/3Wgu90/dInLBKyhksaRE5vV+HQ6njDU33hkM6oxFZyS4zw==
   dependencies:
-    "@cef-ebsi/ebsi-did-resolver" "^4.0.6-alpha.0"
+    "@cef-ebsi/ebsi-did-resolver" "^4.0.6-alpha.2"
     "@cef-ebsi/ebsi-uri" "^1.0.1-alpha.0"
-    "@cef-ebsi/key-did-resolver" "^2.1.1-alpha.0"
+    "@cef-ebsi/key-did-resolver" "^2.1.1-alpha.1"
     "@cef-ebsi/vcdm1.1-accreditation-schema" "^1.4.1"
     "@cef-ebsi/vcdm1.1-attestation-schema" "^1.3.1"
     "@cef-ebsi/vcdm1.1-revocation-statuslist-schema" "^1.3.1"
@@ -1403,7 +1403,7 @@
     "@segment/ajv-human-errors" "^2.15.0"
     ajv "^8.17.1"
     ajv-formats "^3.0.1"
-    axios "^1.8.1"
+    axios "^1.8.3"
     did-jwt "^8.0.8"
     did-resolver "^4.1.0"
     memoize "^10.1.0"
@@ -1411,28 +1411,28 @@
     pako "^2.1.0"
     uint8arrays "3.1.1"
 
-"@cef-ebsi/verifiable-presentation@^8.0.1-alpha.0":
-  version "8.0.1-alpha.0"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/verifiable-presentation/-/verifiable-presentation-8.0.1-alpha.0.tgz#f3336da3712183a46768be2dee69f601e76367d1"
-  integrity sha512-tf9GnJnpJiK6E5OOkkb3TDf2TInHzShA39ydE+klIbQA8Q+diaIK7NuU2ac9izErgme72UFrrvAltolIcNkIqQ==
+"@cef-ebsi/verifiable-presentation@^8.0.1-alpha.1":
+  version "8.0.1-alpha.1"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/verifiable-presentation/-/verifiable-presentation-8.0.1-alpha.1.tgz#24dc2e262e014318560346f2f29bcec0a9617074"
+  integrity sha512-k5rkM1Dy1tN37OJViijLqnjpV6zC6utTk+wVHDNA6+tXKIssyXRFbpjzxVhV4KIyeqpDW/PlbAFtR4VkaPuvGw==
   dependencies:
-    "@cef-ebsi/ebsi-did-resolver" "^4.0.6-alpha.0"
+    "@cef-ebsi/ebsi-did-resolver" "^4.0.6-alpha.2"
     "@cef-ebsi/ebsi-uri" "^1.0.1-alpha.0"
-    "@cef-ebsi/key-did-resolver" "^2.1.1-alpha.0"
+    "@cef-ebsi/key-did-resolver" "^2.1.1-alpha.1"
     "@cef-ebsi/vcdm1.1-presentation-schema" "^1.0.4"
-    "@cef-ebsi/verifiable-credential" "^7.0.1-alpha.0"
+    "@cef-ebsi/verifiable-credential" "^7.0.1-alpha.2"
     "@segment/ajv-human-errors" "^2.15.0"
     did-jwt "^8.0.8"
     did-resolver "^4.1.0"
     memoize "^10.1.0"
 
-"@cef-ebsi/wallet-lib@^6.0.1-alpha.0":
-  version "6.0.1-alpha.0"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/wallet-lib/-/wallet-lib-6.0.1-alpha.0.tgz#baa09247cad710441ee2eeec93fd019cfbaef669"
-  integrity sha512-87CmDm6/dVwOeimKdfxcOs0BfXJTGOgdWo6jsgpunqSWtqmGLqYTiBQ8RSb8Zpo6UNnBPt0lRsJ5z6D5z9f+7g==
+"@cef-ebsi/wallet-lib@^6.0.1-alpha.1":
+  version "6.0.1-alpha.1"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/wallet-lib/-/wallet-lib-6.0.1-alpha.1.tgz#1c0676f5ece7ccd404d0ac984551c705a278d7ce"
+  integrity sha512-8ex2qcog/LDGxYA6CBCgzrKrCaNK2htmKCMtsWuX+lazE3/9An3cS5d3+1JRTExufQI8bTAjiIDhkYM4ejg1xg==
   dependencies:
-    "@cef-ebsi/ebsi-did-resolver" "^4.0.6-alpha.0"
-    "@cef-ebsi/key-did-resolver" "^2.1.1-alpha.0"
+    "@cef-ebsi/ebsi-did-resolver" "^4.0.6-alpha.2"
+    "@cef-ebsi/key-did-resolver" "^2.1.1-alpha.1"
     "@cef-ebsi/key-encoder" "^2.0.1-alpha.0"
     "@noble/hashes" "^1.7.1"
     "@noble/secp256k1" "^2.2.3"
@@ -7065,7 +7065,7 @@ axios@^0.26.1:
   dependencies:
     follow-redirects "^1.14.8"
 
-axios@^1.5.1, axios@^1.7.4, axios@^1.8.1, axios@^1.8.3:
+axios@^1.5.1, axios@^1.7.4, axios@^1.8.3:
   version "1.8.3"
   resolved "https://registry.yarnpkg.com/axios/-/axios-1.8.3.tgz#9ebccd71c98651d547162a018a1a95a4b4ed4de8"
   integrity sha512-iP4DebzoNlP/YN2dpwCgb8zoCmhtkajzS48JvwmkSkXvPI3DHc7m+XYL5tGnSlJtR6nImXZmdCuN5aP8dh1d8A==
@@ -11284,10 +11284,10 @@ joi@^17.13.3:
     "@sideway/formula" "^3.0.1"
     "@sideway/pinpoint" "^2.0.0"
 
-jose@^4.15.4, jose@^4.15.5:
-  version "4.15.9"
-  resolved "https://registry.yarnpkg.com/jose/-/jose-4.15.9.tgz#9b68eda29e9a0614c042fa29387196c7dd800100"
-  integrity sha512-1vUQX+IdDMVPj4k8kOxgUqlcK518yluMuGZwqlr44FS1ppZB/5GWh4rZG89erpOBOJjU/OBsnCVFfapsRz6nEA==
+jose@^5.10.0:
+  version "5.10.0"
+  resolved "https://registry.yarnpkg.com/jose/-/jose-5.10.0.tgz#c37346a099d6467c401351a9a0c2161e0f52c4be"
+  integrity sha512-s+3Al/p9g32Iq+oqXxkW//7jk2Vig6FF1CFqzVXoTUXt2qz89YWbL+OwS17NFYEvxC35n0FKeGO2LGYSxeM2Gg==
 
 js-base64@^3.7.6:
   version "3.7.7"

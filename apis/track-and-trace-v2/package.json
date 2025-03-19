@@ -26,9 +26,9 @@
     "test:ci": "yarn test:unit --coverage --reporter=default"
   },
   "dependencies": {
-    "@cef-ebsi/ebsi-did-resolver": "^4.0.6-alpha.0",
+    "@cef-ebsi/ebsi-did-resolver": "^4.0.6-alpha.2",
     "@cef-ebsi/ebsi-uri": "^1.0.1-alpha.0",
-    "@cef-ebsi/key-did-resolver": "^2.1.1-alpha.0",
+    "@cef-ebsi/key-did-resolver": "^2.1.1-alpha.1",
     "@ebsiint-api/shared": "^1.1.0-rc.12",
     "@ebsiint-sc/track-and-trace-v2": "2.0.0-rc.2",
     "@ebsiint-subgraph/track-and-trace-v2": "^0.0.0-rc.2",
@@ -52,7 +52,7 @@
     "ethers": "^6.13.5",
     "graphql": "^16.8.1",
     "joi": "^17.13.3",
-    "jose": "^4.15.5",
+    "jose": "^5.10.0",
     "keyv": "^5.3.2",
     "nest-winston": "^1.10.2",
     "passport": "^0.7.0",
@@ -65,9 +65,9 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
-    "@cef-ebsi/verifiable-credential": "^7.0.1-alpha.0",
-    "@cef-ebsi/verifiable-presentation": "^8.0.1-alpha.0",
-    "@cef-ebsi/wallet-lib": "^6.0.1-alpha.0",
+    "@cef-ebsi/verifiable-credential": "^7.0.1-alpha.2",
+    "@cef-ebsi/verifiable-presentation": "^8.0.1-alpha.1",
+    "@cef-ebsi/wallet-lib": "^6.0.1-alpha.1",
     "@nestjs/cli": "^11.0.5",
     "@nestjs/schematics": "^11.0.2",
     "@nestjs/testing": "^11.0.11",

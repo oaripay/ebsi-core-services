@@ -217,7 +217,7 @@ export async function isPublicKeyHex(
 
   let key;
   try {
-    key = await importJWK(jwk, undefined, true);
+    key = await importJWK(jwk);
   } catch (error) {
     return {
       error: getErrorMessage(error, "The public key is not a valid JWK"),

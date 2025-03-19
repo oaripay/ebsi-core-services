@@ -1,7 +1,9 @@
+import type { JWK, KeyLike } from "jose";
+
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import elliptic from "elliptic";
 import { ethers } from "ethers";
-import { calculateJwkThumbprint, importJWK, JWK, KeyLike } from "jose";
+import { calculateJwkThumbprint, importJWK } from "jose";
 import { base64url } from "multiformats/bases/base64";
 
 const EC = elliptic.ec;
