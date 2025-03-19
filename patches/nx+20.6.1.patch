@@ -1,8 +1,8 @@
 diff --git a/node_modules/nx/src/tasks-runner/task-env.js b/node_modules/nx/src/tasks-runner/task-env.js
-index 7c80c20..276eab5 100644
+index 8a1c701..0d7f295 100644
 --- a/node_modules/nx/src/tasks-runner/task-env.js
 +++ b/node_modules/nx/src/tasks-runner/task-env.js
-@@ -16,7 +16,7 @@ exports.getEnvVariablesForBatchProcess = getEnvVariablesForBatchProcess;
+@@ -20,7 +20,7 @@ function getEnvVariablesForBatchProcess(skipNxCache, captureStderr) {
  function getTaskSpecificEnv(task) {
      // Unload any dot env files at the root of the workspace that were loaded on init of Nx.
      const taskEnv = unloadDotEnvFiles({ ...process.env });

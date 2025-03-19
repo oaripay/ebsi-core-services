@@ -8,4 +8,5 @@ apis/*/.graphclient
 contracts/*/src
 subgraphs/*/generated
 .nx/cache
+.nx/workspace-data
 tests/data

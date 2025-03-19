@@ -9,6 +9,12 @@ yarn-error.log
 *log
 .idea
 
+#NX
+.nx/cache
+.nx/workspace-data
+# manifest created by nx for Jenkins CD
+affected.yaml
+
 # SC
 .clinic
 .secret*
@@ -22,9 +28,6 @@ cache
 coverage.json
 key/private.pem
 typechain
-
-# manifest created by nx for Jenkins CD
-affected.yaml
 
 # Subgraphs
 subgraphs/*/subgraph.yaml
