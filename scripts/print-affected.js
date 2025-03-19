@@ -20,19 +20,23 @@ const deprecatedServices = new Set([
   "@ebsiint-sc/trusted-apps-registry-v3",
 ]);
 
-// for the jenkins pipeline, read GIT_PREVIOUS_SUCCESSFUL_COMMIT so that the diff is done between last succesful build and HEAD
+// for the jenkins pipeline, read GIT_PREVIOUS_SUCCESSFUL_COMMIT so that the diff is done between last successful build and HEAD
 // otherwise, if the variable is not present, make the diff with the previous commit
 const baseCommit = process.env["GIT_PREVIOUS_SUCCESSFUL_COMMIT"] ?? "main~1";
 
 console.log("Comparing HEAD to commit:", baseCommit);
 
-const processResult = spawnSync("sh", [
-  "-c",
-  `yarn nx print-affected --base=${baseCommit} --head=main | sed '/^{/,/^}/!d'`,
+const processResult = spawnSync("./node_modules/.bin/nx", [
+  "show",
+  "projects",
+  "--affected",
+  `--base=${baseCommit}`,
+  "--head=main",
+  "--json",
 ]);
 
 try {
-  const { projects } = JSON.parse(processResult.stdout.toString());
+  const projects = JSON.parse(processResult.stdout.toString());
   const affected = projects
     // microservices and apps
     .filter(
