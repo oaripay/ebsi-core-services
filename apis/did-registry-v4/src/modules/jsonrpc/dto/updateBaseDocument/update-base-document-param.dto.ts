@@ -1,4 +1,4 @@
-import { IsEthereumAddress } from "class-validator";
+import { IsEthereumAddress } from "@ebsiint-api/shared";
 
 import { ArgsUpdateBaseDocument } from "./args-update-base-document.dto.ts";
 

@@ -1,4 +1,4 @@
-import { IsEthereumAddress } from "class-validator";
+import { IsEthereumAddress } from "@ebsiint-api/shared";
 
 export class GetUserParams {
   @IsEthereumAddress()

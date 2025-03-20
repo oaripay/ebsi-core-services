@@ -2,6 +2,7 @@ import type { HashName } from "multihashes";
 import type { RefinementCtx } from "zod";
 
 import { remove0xPrefix } from "@ebsiint-api/shared";
+import { isAddress } from "ethers";
 import { coerceCode } from "multihashes";
 import validator from "validator";
 import { z } from "zod";
@@ -76,7 +77,7 @@ function isMultihash(
 
 export const refinements = {
   isEthereumAddress: (val: string, ctx: RefinementCtx) => {
-    if (!validators.isEthereumAddress(val)) {
+    if (!isAddress(val)) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         fatal: true,

@@ -1,4 +1,4 @@
-import { IsEthereumAddress } from "class-validator";
+import { IsEthereumAddress } from "@ebsiint-api/shared";
 
 import { ArgsExpireVerificationMethod } from "./args-expire-verification-method.dto.ts";
 

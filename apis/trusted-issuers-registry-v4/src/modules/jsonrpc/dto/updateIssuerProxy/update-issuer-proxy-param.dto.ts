@@ -1,4 +1,4 @@
-import { IsEthereumAddress } from "class-validator";
+import { IsEthereumAddress } from "@ebsiint-api/shared";
 
 import { ArgsUpdateIssuerProxy } from "../sendSignedTransaction/index.ts";
 

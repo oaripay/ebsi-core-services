@@ -1,10 +1,5 @@
-import {
-  ArrayMaxSize,
-  ArrayMinSize,
-  Equals,
-  IsArray,
-  IsEthereumAddress,
-} from "class-validator";
+import { IsEthereumAddress } from "@ebsiint-api/shared";
+import { ArrayMaxSize, ArrayMinSize, Equals, IsArray } from "class-validator";
 
 import { JsonRpcDto } from "../../jsonrpc/dto/index.ts";
 

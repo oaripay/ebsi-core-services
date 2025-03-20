@@ -1,4 +1,4 @@
-import { IsEthereumAddress } from "class-validator";
+import { IsEthereumAddress } from "@ebsiint-api/shared";
 
 import { ArgsRevokeVerificationMethod } from "./args-revoke-verification-method.dto.ts";
 

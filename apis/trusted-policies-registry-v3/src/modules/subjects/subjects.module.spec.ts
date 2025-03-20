@@ -266,6 +266,22 @@ describe("Subjects Module", () => {
       expect(response.status).toBe(400);
     });
 
+    it("should throw an error for bad requests (invalid checksum)", async () => {
+      expect.assertions(2);
+
+      const response = await request(server).get(
+        "/subjects/0x69e48d89bf5e09588E858D757323b4abBAB3f814",
+      );
+
+      expect(response.body).toStrictEqual({
+        detail: `["subject must be an Ethereum address"]`,
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+    });
+
     it("should throw an error if the user is not found", async () => {
       expect.assertions(2);
 
@@ -479,6 +495,22 @@ describe("Subjects Module", () => {
       expect(response4.status).toBe(400);
     });
 
+    it("should throw an error for bad requests (invalid checksum)", async () => {
+      expect.assertions(2);
+
+      const response = await request(server).get(
+        "/subjects/0x69e48d89bf5e09588E858D757323b4abBAB3f814/policies",
+      );
+
+      expect(response.body).toStrictEqual({
+        detail: `["subject must be an Ethereum address"]`,
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+    });
+
     it("should throw an error if the user is not found", async () => {
       expect.assertions(2);
 
@@ -510,6 +542,22 @@ describe("Subjects Module", () => {
         subject: user.user,
       });
       expect(response.status).toBe(200);
+    });
+
+    it("should throw an error for bad requests (invalid checksum)", async () => {
+      expect.assertions(2);
+
+      const response = await request(server).get(
+        "/subjects/0x69e48d89bf5e09588E858D757323b4abBAB3f814/policies/test-attr1",
+      );
+
+      expect(response.body).toStrictEqual({
+        detail: `["subject must be an Ethereum address"]`,
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
     });
 
     it("should throw if the subject does not exist", async () => {

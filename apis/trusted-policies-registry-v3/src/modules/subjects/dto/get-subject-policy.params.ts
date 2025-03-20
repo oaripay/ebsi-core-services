@@ -1,4 +1,5 @@
-import { IsEthereumAddress, IsString } from "class-validator";
+import { IsEthereumAddress } from "@ebsiint-api/shared";
+import { IsString } from "class-validator";
 
 export class GetSubjectPolicyParams {
   @IsString()
