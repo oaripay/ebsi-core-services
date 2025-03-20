@@ -313,11 +313,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/ProblemDetails"
               examples:
-                Invalid {policyId} Parameter:
+                Invalid {subject} Parameter:
                   value:
                     title: Bad Request
                     status: 400
-                    detail: The format of {policyId} parameter is not valid
+                    detail: The format of {subject} parameter is not valid
         "404":
           description: Not found
           content:
@@ -325,7 +325,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ProblemDetails"
               examples:
-                Policy Not Found:
+                Subject Not Found:
                   $ref: "#/components/examples/NotFound"
         "500":
           $ref: "#/components/responses/500"
@@ -393,6 +393,15 @@ paths:
                       last: https://api-pilot.ebsi.eu/trusted-policies-registry/v3/subjects/0x69e48d89bf5e09588E858D757323b4abBBB3f814/policies?page[after]=62&page[size]=2
         "400":
           $ref: "#/components/responses/400"
+        "404":
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Subject Not Found:
+                  $ref: "#/components/examples/NotFound"
         "500":
           $ref: "#/components/responses/500"
   /trusted-policies-registry/v3/subjects/{subject}/policies/{policyName}:

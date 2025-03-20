@@ -22,6 +22,7 @@ declare global {
       TEST_ENABLE_WRITE_OPS?: string;
       TEST_ENV?: string;
       TEST_SPECIFIC_NODE_DOMAIN?: string;
+      TEST_SUBJECT_ADDRESS?: string;
       TEST_USER_KID: string;
       TEST_USER_PRIVATE_KEY: string;
       URI_SCHEME?: string;

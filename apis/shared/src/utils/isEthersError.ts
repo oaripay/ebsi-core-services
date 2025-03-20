@@ -1,4 +1,4 @@
-import type { EthersError } from "ethers";
+import type { EthersError, Interface } from "ethers";
 
 const errorsCodes = [
   // Generic Errors
@@ -29,6 +29,30 @@ const errorsCodes = [
   // User Interaction
   "ACTION_REJECTED",
 ];
+
+export function decodeContractError(
+  contractInterface: Interface,
+  error: unknown,
+): string | undefined {
+  if (
+    !(error instanceof Error) ||
+    !("data" in error) ||
+    typeof error.data !== "string"
+  ) {
+    return undefined;
+  }
+
+  const key = error.data.slice(0, 10);
+  const errorFragment = contractInterface.getError(key);
+
+  if (!errorFragment) {
+    return undefined;
+  }
+
+  const res = contractInterface.decodeErrorResult(errorFragment, error.data);
+
+  return res.toString();
+}
 
 export function isEthersError(err: unknown): err is EthersError {
   if (err instanceof Error && "code" in err && typeof err.code === "string") {

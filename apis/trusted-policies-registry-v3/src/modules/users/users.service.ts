@@ -61,7 +61,7 @@ export class UsersService {
         this.logger.error(error, error.stack);
       }
       throw new NotFoundError("User Not Found", {
-        detail: `User ${user} not found:`,
+        detail: `User ${user} not found`,
       });
     }
   }

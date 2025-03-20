@@ -1,6 +1,10 @@
 import type { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry-v2";
 
-import { isEthersError, NotFoundError } from "@ebsiint-api/shared";
+import {
+  decodeContractError,
+  InternalServerError,
+  NotFoundError,
+} from "@ebsiint-api/shared";
 import { PolicyRegistry__factory } from "@ebsiint-sc/trusted-policies-registry-v2";
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
@@ -24,17 +28,8 @@ export class SubjectsService {
   }
 
   async getSubject(user: string): Promise<boolean> {
-    try {
-      await this.getSubjectPolicies(user, 1, 1);
-      return true;
-    } catch (error) {
-      if (isEthersError(error)) {
-        this.logger.error(error, error.stack);
-      }
-      throw new NotFoundError("Subject Not Found", {
-        detail: `Subject ${user} not found:`,
-      });
-    }
+    await this.getSubjectPolicies(user, 1, 1);
+    return true;
   }
 
   async getSubjectPolicies(
@@ -50,11 +45,19 @@ export class SubjectsService {
         .connect(provider)
         .getUserAttributes(user, page, pageSize);
     } catch (error) {
-      if (isEthersError(error)) {
-        this.logger.error(error, error.stack);
+      this.logger.error(error);
+
+      // @ts-expect-error Argument of type 'PolicyRegistryInterface' is not assignable to parameter of type 'Interface'
+      const decodedError = decodeContractError(this.contract.interface, error);
+
+      if (decodedError === "Policy: invalid user") {
+        throw new NotFoundError("Subject Not Found", {
+          detail: `Subject ${user} not found`,
+        });
       }
-      throw new NotFoundError("Subject Policies Not Found", {
-        detail: `"Subject Policies Not Found"`,
+
+      throw new InternalServerError(InternalServerError.defaultTitle, {
+        detail: "Unexpected smart contract error",
       });
     }
   }
@@ -71,11 +74,10 @@ export class SubjectsService {
         .connect(provider)
         .getUsers(page, pageSize);
     } catch (error) {
-      if (isEthersError(error)) {
-        this.logger.error(error, error.stack);
-      }
-      throw new NotFoundError("Subjects Not Found", {
-        detail: "Subjects Not Found",
+      this.logger.error(error);
+
+      throw new InternalServerError(InternalServerError.defaultTitle, {
+        detail: "Unexpected smart contract error",
       });
     }
   }
@@ -92,11 +94,19 @@ export class SubjectsService {
         .connect(provider)
         .isUserAttribute(user, policyName);
     } catch (error) {
-      if (isEthersError(error)) {
-        this.logger.error(error, error.stack);
+      this.logger.error(error);
+
+      // @ts-expect-error Argument of type 'PolicyRegistryInterface' is not assignable to parameter of type 'Interface'
+      const decodedError = decodeContractError(this.contract.interface, error);
+
+      if (decodedError === "Policy: invalid user") {
+        throw new NotFoundError("Subject Not Found", {
+          detail: `Subject ${user} not found`,
+        });
       }
-      throw new NotFoundError("Subject Not Found", {
-        detail: "Subject Not Found",
+
+      throw new InternalServerError(InternalServerError.defaultTitle, {
+        detail: "Unexpected smart contract error",
       });
     }
   }

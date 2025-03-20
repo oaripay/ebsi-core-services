@@ -88,15 +88,18 @@ export class SubjectsController {
     @Param() params: GetSubjectPolicyParams,
   ): Promise<SubjectPolicy> {
     const { policyName, subject } = params;
+
     const policyExists = await this.subjectsService.isSubjectPolicy(
       subject,
       policyName,
     );
+
     if (!policyExists) {
       throw new NotFoundError("Subject Policy Not Found", {
-        detail: "Subject Policy Not Found",
+        detail: `Subject ${subject} doesn't have the policy ${policyName}`,
       });
     }
+
     return {
       policyName,
       subject,

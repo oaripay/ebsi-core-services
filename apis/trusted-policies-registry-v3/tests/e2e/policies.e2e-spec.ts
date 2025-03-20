@@ -75,7 +75,7 @@ describe("TPR API v3 - Policies (e2e)", () => {
     await app.close();
   });
 
-  describe("/policies", () => {
+  describe("GET /policies", () => {
     it("should return a collection of policies", async () => {
       expect.assertions(2);
       const response: SupertestPoliciesResponse =

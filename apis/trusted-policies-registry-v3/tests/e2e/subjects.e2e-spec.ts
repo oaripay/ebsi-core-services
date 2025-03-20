@@ -2,53 +2,31 @@ import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 
 import { methodNotAllowed } from "@ebsiint-api/shared";
-import { PolicyRegistry__factory } from "@ebsiint-sc/trusted-policies-registry-v2";
 import { fastifyAccepts } from "@fastify/accepts";
+import { fastifyHelmet } from "@fastify/helmet";
 import { Logger, ValidationPipe } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { FastifyAdapter } from "@nestjs/platform-fastify";
 import { Test } from "@nestjs/testing";
 import { ethers } from "ethers";
 import request from "supertest";
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import type { UserObject } from "../../../tests/utils/trustedPoliciesRegistry.ts";
+import type { ApiConfig } from "../../src/config/configuration.ts";
 
-import { setupTestEnv } from "../../../tests/utils/trustedPoliciesRegistry.ts";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter.ts";
-import { LedgerService } from "../ledger/ledger.service.ts";
-import { SubjectsModule } from "./subjects.module.ts";
+import { AppModule } from "../../src/app.module.ts";
+import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.ts";
+import { getServer } from "../utils/getServer.ts";
 
-const USERS_TOTAL = 12;
-
-describe("Subjects Module", () => {
+describe("TPR API v3 - Subjects (e2e)", () => {
   let app: NestFastifyApplication;
-  let server: RawServerDefault;
-  let testEnv: Awaited<ReturnType<typeof setupTestEnv>>;
-  let user: UserObject;
+  let server: RawServerDefault | string;
+  let configService: ConfigService<ApiConfig, true>;
+  let subjectAddress: string;
 
   beforeAll(async () => {
-    // Spin up test blockchain
-    testEnv = await setupTestEnv({
-      usersTotal: USERS_TOTAL,
-    });
-    user = testEnv.users[0]!;
-
-    const { policiesRegistryContract } = testEnv;
-
-    // Mock TPR contract
-    vi.spyOn(PolicyRegistry__factory, "connect").mockImplementation(
-      // Create new instance without runner (provider)
-      () => policiesRegistryContract.connect(),
-    );
-
-    // Mock LedgerService
-    vi.spyOn(LedgerService.prototype, "getProvider").mockImplementation(
-      // @ts-expect-error Error due to a mismatch between ESM and CommonJS modules
-      () => testEnv.provider,
-    );
-
     const moduleFixture = await Test.createTestingModule({
-      imports: [SubjectsModule],
+      imports: [AppModule],
     }).compile();
 
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
@@ -57,6 +35,23 @@ describe("Subjects Module", () => {
 
     // Turn off logger
     Logger.overrideLogger(false);
+
+    configService =
+      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
+
+    subjectAddress = configService.get("testSubjectAddress", { infer: true });
+
+    // https://cheatsheetseries.owasp.org/cheatsheets/REST_Security_Cheat_Sheet.html#security-headers
+    await app.register(fastifyHelmet, {
+      contentSecurityPolicy: {
+        directives: {
+          "frame-ancestors": ["'none'"],
+        },
+      },
+      xFrameOptions: {
+        action: "deny",
+      },
+    });
 
     // Parse "Accept" request header
     await app.register(fastifyAccepts);
@@ -70,7 +65,7 @@ describe("Subjects Module", () => {
     await app.init();
     await fastifyInstance.ready();
 
-    server = app.getHttpServer();
+    server = getServer(app, configService);
   });
 
   afterAll(async () => {
@@ -79,7 +74,7 @@ describe("Subjects Module", () => {
 
   describe("GET /subjects", () => {
     it("should return a paginated collection of subjects", async () => {
-      expect.assertions(3);
+      expect.assertions(2);
 
       const response = await request(server).get("/subjects");
       expect(response.body).toStrictEqual({
@@ -88,14 +83,11 @@ describe("Subjects Module", () => {
           first: expect.stringContaining(
             "/subjects?page[after]=1&page[size]=10",
           ),
-          last: expect.stringContaining(
-            `/subjects?page[after]=${Math.ceil(USERS_TOTAL / 10)}&page[size]=10`,
+          last: expect.stringMatching(
+            /\/subjects\?page\[after\]=\d*&page\[size\]=10/,
           ),
-          next: expect.stringContaining(
-            `/subjects?page[after]=${Math.min(
-              Math.ceil(USERS_TOTAL / 10),
-              2,
-            )}&page[size]=10`,
+          next: expect.stringMatching(
+            /\/subjects\?page\[after\]=\d*&page\[size\]=10/,
           ),
           prev: expect.stringContaining(
             "/subjects?page[after]=1&page[size]=10",
@@ -103,16 +95,13 @@ describe("Subjects Module", () => {
         },
         pageSize: 10,
         self: expect.stringContaining("/subjects?page[after]=1&page[size]=10"),
-        total: USERS_TOTAL,
+        total: expect.any(Number),
       });
-      expect((response.body as { items: string }).items).toHaveLength(
-        Math.min(10, USERS_TOTAL),
-      );
       expect(response.status).toBe(200);
     });
 
     it("should handle the pagination properly", async () => {
-      expect.assertions(12);
+      expect.assertions(11);
 
       const response1 = await request(server).get("/subjects?page[size]=3");
       expect(response1.body).toStrictEqual({
@@ -121,14 +110,19 @@ describe("Subjects Module", () => {
           first: expect.stringContaining(
             "/subjects?page[after]=1&page[size]=3",
           ),
-          last: expect.stringContaining("/subjects?page[after]=4&page[size]=3"),
-          next: expect.stringContaining("/subjects?page[after]=2&page[size]=3"),
+          last: expect.stringMatching(
+            /\/subjects\?page\[after\]=\d*&page\[size\]=3/,
+          ),
+          next: expect.stringMatching(
+            /\/subjects\?page\[after\]=\d*&page\[size\]=3/,
+          ),
           prev: expect.stringContaining("/subjects?page[after]=1&page[size]=3"),
         },
         pageSize: 3,
         self: expect.stringContaining("/subjects?page[after]=1&page[size]=3"),
-        total: USERS_TOTAL,
+        total: expect.any(Number),
       });
+
       expect((response1.body as { items: string }).items).toHaveLength(3);
       expect(response1.status).toBe(200);
 
@@ -142,13 +136,17 @@ describe("Subjects Module", () => {
           first: expect.stringContaining(
             "/subjects?page[after]=1&page[size]=3",
           ),
-          last: expect.stringContaining("/subjects?page[after]=4&page[size]=3"),
-          next: expect.stringContaining("/subjects?page[after]=3&page[size]=3"),
+          last: expect.stringMatching(
+            /\/subjects\?page\[after\]=\d*&page\[size\]=3/,
+          ),
+          next: expect.stringMatching(
+            /\/subjects\?page\[after\]=\d*&page\[size\]=3/,
+          ),
           prev: expect.stringContaining("/subjects?page[after]=1&page[size]=3"),
         },
         pageSize: 3,
         self: expect.stringContaining("/subjects"),
-        total: USERS_TOTAL,
+        total: expect.any(Number),
       });
       expect((response2.body as { items: string }).items).toHaveLength(3);
       expect(response2.status).toBe(200);
@@ -163,15 +161,20 @@ describe("Subjects Module", () => {
           first: expect.stringContaining(
             "/subjects?page[after]=1&page[size]=3",
           ),
-          last: expect.stringContaining("/subjects?page[after]=4&page[size]=3"),
-          next: expect.stringContaining("/subjects?page[after]=4&page[size]=3"),
-          prev: expect.stringContaining("/subjects?page[after]=4&page[size]=3"),
+          last: expect.stringMatching(
+            /\/subjects\?page\[after\]=\d*&page\[size\]=3/,
+          ),
+          next: expect.stringMatching(
+            /\/subjects\?page\[after\]=\d*&page\[size\]=3/,
+          ),
+          prev: expect.stringMatching(
+            /\/subjects\?page\[after\]=\d*&page\[size\]=3/,
+          ),
         },
         pageSize: 3,
         self: expect.stringContaining("/subjects?page[after]=100&page[size]=3"),
-        total: USERS_TOTAL,
+        total: expect.any(Number),
       });
-      expect((response3.body as { items: string }).items).toHaveLength(0);
       expect(response3.status).toBe(200);
 
       // page after defined but page size undefined
@@ -182,11 +185,11 @@ describe("Subjects Module", () => {
           first: expect.stringContaining(
             "/subjects?page[after]=1&page[size]=10",
           ),
-          last: expect.stringContaining(
-            "/subjects?page[after]=2&page[size]=10",
+          last: expect.stringMatching(
+            /\/subjects\?page\[after\]=\d*&page\[size\]=10/,
           ),
-          next: expect.stringContaining(
-            "/subjects?page[after]=2&page[size]=10",
+          next: expect.stringMatching(
+            /\/subjects\?page\[after\]=\d*&page\[size\]=10/,
           ),
           prev: expect.stringContaining(
             "/subjects?page[after]=1&page[size]=10",
@@ -194,7 +197,7 @@ describe("Subjects Module", () => {
         },
         pageSize: 10,
         self: expect.stringContaining("/subjects"),
-        total: USERS_TOTAL,
+        total: expect.any(Number),
       });
       expect((response4.body as { items: string }).items).toHaveLength(10);
       expect(response4.status).toBe(200);
@@ -246,9 +249,9 @@ describe("Subjects Module", () => {
     it("should return a specific subject", async () => {
       expect.assertions(2);
 
-      const response = await request(server).get(`/subjects/${user.user}`);
+      const response = await request(server).get(`/subjects/${subjectAddress}`);
 
-      expect(response.body).toStrictEqual({ subject: user.user });
+      expect(response.body).toStrictEqual({ subject: subjectAddress });
       expect(response.status).toBe(200);
     });
 
@@ -284,149 +287,144 @@ describe("Subjects Module", () => {
 
   describe("GET /subjects/{address}/policies", () => {
     it("should return a paginated collection of policies", async () => {
-      expect.assertions(3);
+      expect.assertions(2);
 
       const response = await request(server).get(
-        `/subjects/${user.user}/policies`,
+        `/subjects/${subjectAddress}/policies`,
       );
       expect(response.body).toStrictEqual({
         items: expect.arrayContaining([]),
         links: {
           first: expect.stringContaining(
-            `/subjects/${user.user}/policies?page[after]=1&page[size]=10`,
+            `/subjects/${subjectAddress}/policies?page[after]=1&page[size]=10`,
           ),
-          last: expect.stringContaining(
-            `/subjects/${user.user}/policies?page[after]=1&page[size]=10`,
+          last: expect.stringMatching(
+            /\/subjects\/0x\w*\/policies\?page\[after\]=\d*&page\[size\]=10/,
           ),
-          next: expect.stringContaining(
-            `/subjects/${user.user}/policies?page[after]=1&page[size]=10`,
+          next: expect.stringMatching(
+            /\/subjects\/0x\w*\/policies\?page\[after\]=\d*&page\[size\]=10/,
           ),
           prev: expect.stringContaining(
-            `/subjects/${user.user}/policies?page[after]=1&page[size]=10`,
+            `/subjects/${subjectAddress}/policies?page[after]=1&page[size]=10`,
           ),
         },
         pageSize: 10,
         self: expect.stringContaining(
-          `/subjects/${user.user}/policies?page[after]=1&page[size]=10`,
+          `/subjects/${subjectAddress}/policies?page[after]=1&page[size]=10`,
         ),
-        total: 3,
+        total: expect.any(Number),
       });
-      expect((response.body as { items: string }).items).toHaveLength(3);
       expect(response.status).toBe(200);
     });
 
     it("should handle the pagination properly", async () => {
-      expect.assertions(12);
+      expect.assertions(8);
 
       const response1 = await request(server).get(
-        `/subjects/${user.user}/policies?page[size]=2`,
+        `/subjects/${subjectAddress}/policies?page[size]=2`,
       );
       expect(response1.body).toStrictEqual({
         items: expect.arrayContaining([]),
         links: {
           first: expect.stringContaining(
-            `/subjects/${user.user}/policies?page[after]=1&page[size]=2`,
+            `/subjects/${subjectAddress}/policies?page[after]=1&page[size]=2`,
           ),
-          last: expect.stringContaining(
-            `/subjects/${user.user}/policies?page[after]=2&page[size]=2`,
+          last: expect.stringMatching(
+            /\/subjects\/0x\w*\/policies\?page\[after\]=\d*&page\[size\]=2/,
           ),
-          next: expect.stringContaining(
-            `/subjects/${user.user}/policies?page[after]=2&page[size]=2`,
+          next: expect.stringMatching(
+            /\/subjects\/0x\w*\/policies\?page\[after\]=\d*&page\[size\]=2/,
           ),
           prev: expect.stringContaining(
-            `/subjects/${user.user}/policies?page[after]=1&page[size]=2`,
+            `/subjects/${subjectAddress}/policies?page[after]=1&page[size]=2`,
           ),
         },
         pageSize: 2,
         self: expect.stringContaining(
-          `/subjects/${user.user}/policies?page[after]=1&page[size]=2`,
+          `/subjects/${subjectAddress}/policies?page[after]=1&page[size]=2`,
         ),
-        total: 3,
+        total: expect.any(Number),
       });
-      expect((response1.body as { items: string }).items).toHaveLength(2);
       expect(response1.status).toBe(200);
 
       // next page
       const response2 = await request(server).get(
-        `/subjects/${user.user}/policies?page[after]=2&page[size]=2`,
+        `/subjects/${subjectAddress}/policies?page[after]=2&page[size]=2`,
       );
       expect(response2.body).toStrictEqual({
         items: expect.arrayContaining([]),
         links: {
           first: expect.stringContaining(
-            `/subjects/${user.user}/policies?page[after]=1&page[size]=2`,
+            `/subjects/${subjectAddress}/policies?page[after]=1&page[size]=2`,
           ),
-          last: expect.stringContaining(
-            `/subjects/${user.user}/policies?page[after]=2&page[size]=2`,
+          last: expect.stringMatching(
+            /\/subjects\/0x\w*\/policies\?page\[after\]=\d*&page\[size\]=2/,
           ),
-          next: expect.stringContaining(
-            `/subjects/${user.user}/policies?page[after]=2&page[size]=2`,
+          next: expect.stringMatching(
+            /\/subjects\/0x\w*\/policies\?page\[after\]=\d*&page\[size\]=2/,
           ),
           prev: expect.stringContaining(
-            `/subjects/${user.user}/policies?page[after]=1&page[size]=2`,
+            `/subjects/${subjectAddress}/policies?page[after]=1&page[size]=2`,
           ),
         },
         pageSize: 2,
         self: expect.stringContaining("/subjects"),
-        total: 3,
+        total: expect.any(Number),
       });
-      expect((response2.body as { items: string }).items).toHaveLength(1);
       expect(response2.status).toBe(200);
 
       // big page
       const response3 = await request(server).get(
-        `/subjects/${user.user}/policies?page[after]=100&page[size]=2`,
+        `/subjects/${subjectAddress}/policies?page[after]=100&page[size]=2`,
       );
       expect(response3.body).toStrictEqual({
         items: expect.arrayContaining([]),
         links: {
           first: expect.stringContaining(
-            `/subjects/${user.user}/policies?page[after]=1&page[size]=2`,
+            `/subjects/${subjectAddress}/policies?page[after]=1&page[size]=2`,
           ),
-          last: expect.stringContaining(
-            `/subjects/${user.user}/policies?page[after]=2&page[size]=2`,
+          last: expect.stringMatching(
+            /\/subjects\/0x\w*\/policies\?page\[after\]=\d*&page\[size\]=2/,
           ),
-          next: expect.stringContaining(
-            `/subjects/${user.user}/policies?page[after]=2&page[size]=2`,
+          next: expect.stringMatching(
+            /\/subjects\/0x\w*\/policies\?page\[after\]=\d*&page\[size\]=2/,
           ),
-          prev: expect.stringContaining(
-            `/subjects/${user.user}/policies?page[after]=2&page[size]=2`,
+          prev: expect.stringMatching(
+            /\/subjects\/0x\w*\/policies\?page\[after\]=\d*&page\[size\]=2/,
           ),
         },
         pageSize: 2,
         self: expect.stringContaining(
-          `/subjects/${user.user}/policies?page[after]=100&page[size]=2`,
+          `/subjects/${subjectAddress}/policies?page[after]=100&page[size]=2`,
         ),
-        total: 3,
+        total: expect.any(Number),
       });
-      expect((response3.body as { items: string }).items).toHaveLength(0);
       expect(response3.status).toBe(200);
 
       // page after defined but page size undefined
       const response4 = await request(server).get(
-        `/subjects/${user.user}/policies?page[after]=1`,
+        `/subjects/${subjectAddress}/policies?page[after]=1`,
       );
       expect(response4.body).toStrictEqual({
         items: expect.arrayContaining([]),
         links: {
           first: expect.stringContaining(
-            `/subjects/${user.user}/policies?page[after]=1&page[size]=10`,
+            `/subjects/${subjectAddress}/policies?page[after]=1&page[size]=10`,
           ),
-          last: expect.stringContaining(
-            `/subjects/${user.user}/policies?page[after]=1&page[size]=10`,
+          last: expect.stringMatching(
+            /\/subjects\/0x\w*\/policies\?page\[after\]=\d*&page\[size\]=10/,
           ),
-          next: expect.stringContaining(
-            `/subjects/${user.user}/policies?page[after]=1&page[size]=10`,
+          next: expect.stringMatching(
+            /\/subjects\/0x\w*\/policies\?page\[after\]=\d*&page\[size\]=10/,
           ),
           prev: expect.stringContaining(
-            `/subjects/${user.user}/policies?page[after]=1&page[size]=10`,
+            `/subjects/${subjectAddress}/policies?page[after]=1&page[size]=10`,
           ),
         },
         pageSize: 10,
         self: expect.stringContaining("/subjects"),
-        total: 3,
+        total: expect.any(Number),
       });
-      expect((response4.body as { items: string }).items).toHaveLength(3);
       expect(response4.status).toBe(200);
     });
 
@@ -434,7 +432,7 @@ describe("Subjects Module", () => {
       expect.assertions(8);
 
       const response1 = await request(server).get(
-        `/subjects/${user.user}/policies?page[size]=100`,
+        `/subjects/${subjectAddress}/policies?page[size]=100`,
       );
       expect(response1.body).toStrictEqual({
         detail: '["page[size] must not be greater than 50"]',
@@ -445,7 +443,7 @@ describe("Subjects Module", () => {
       expect(response1.status).toBe(400);
 
       const response2 = await request(server).get(
-        `/subjects/${user.user}/policies?page[size]=0`,
+        `/subjects/${subjectAddress}/policies?page[size]=0`,
       );
       expect(response2.body).toStrictEqual({
         detail: '["page[size] must not be less than 1"]',
@@ -456,7 +454,7 @@ describe("Subjects Module", () => {
       expect(response2.status).toBe(400);
 
       const response3 = await request(server).get(
-        `/subjects/${user.user}/policies?page[after]=0`,
+        `/subjects/${subjectAddress}/policies?page[after]=0`,
       );
       expect(response3.body).toStrictEqual({
         detail: '["page[after] must not be less than 1"]',
@@ -467,7 +465,7 @@ describe("Subjects Module", () => {
       expect(response3.status).toBe(400);
 
       const response4 = await request(server).get(
-        `/subjects/${user.user}/policies?page[after]=abc`,
+        `/subjects/${subjectAddress}/policies?page[after]=abc`,
       );
       expect(response4.body).toStrictEqual({
         detail:
@@ -502,12 +500,12 @@ describe("Subjects Module", () => {
       expect.assertions(2);
 
       const response = await request(server).get(
-        `/subjects/${user.user}/policies/test-attr1`,
+        `/subjects/${subjectAddress}/policies/DIDR:insertHashAlgorithm`,
       );
 
       expect(response.body).toStrictEqual({
-        policyName: "test-attr1",
-        subject: user.user,
+        policyName: "DIDR:insertHashAlgorithm",
+        subject: subjectAddress,
       });
       expect(response.status).toBe(200);
     });
@@ -517,7 +515,7 @@ describe("Subjects Module", () => {
 
       const randomAddress = ethers.Wallet.createRandom().address;
       const response = await request(server).get(
-        `/subjects/${randomAddress}/policies/test-attr1`,
+        `/subjects/${randomAddress}/policies/DIDR:insertHashAlgorithm`,
       );
 
       expect(response.body).toStrictEqual({
@@ -533,11 +531,11 @@ describe("Subjects Module", () => {
       expect.assertions(2);
 
       const response = await request(server).get(
-        `/subjects/${user.user}/policies/bad-policy`,
+        `/subjects/${subjectAddress}/policies/bad-policy`,
       );
 
       expect(response.body).toStrictEqual({
-        detail: `Subject ${user.user} doesn't have the policy bad-policy`,
+        detail: `Subject ${subjectAddress} doesn't have the policy bad-policy`,
         status: 404,
         title: "Subject Policy Not Found",
         type: "about:blank",

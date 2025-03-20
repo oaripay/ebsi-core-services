@@ -29,6 +29,7 @@ export interface ApiConfig {
   testAdminKid: string;
   testAdminPrivateKey: string;
   testSpecificNodeDomain: string | undefined;
+  testSubjectAddress: string;
   testUserKid: string;
   testUserPrivateKey: string;
 }
@@ -112,6 +113,7 @@ export const loadConfig = () => {
     testAdminKid: process.env.TEST_ADMIN_KID ?? "",
     testAdminPrivateKey: process.env.TEST_ADMIN_PRIVATE_KEY ?? "",
     testSpecificNodeDomain: process.env.TEST_SPECIFIC_NODE_DOMAIN,
+    testSubjectAddress: process.env.TEST_SUBJECT_ADDRESS ?? "",
     testUserKid: process.env.TEST_USER_KID ?? "",
     testUserPrivateKey: process.env.TEST_USER_PRIVATE_KEY ?? "",
   } as const satisfies ApiConfig;
@@ -157,6 +159,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     TEST_ENABLE_WRITE_OPS: Joi.string(),
     TEST_ENV: Joi.string(),
     TEST_SPECIFIC_NODE_DOMAIN: Joi.string().uri(),
+    TEST_SUBJECT_ADDRESS: Joi.string().allow(""),
     TEST_USER_KID: Joi.string().allow(""),
     TEST_USER_PRIVATE_KEY: Joi.string().allow(""),
     // Generic variables

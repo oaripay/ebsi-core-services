@@ -254,7 +254,7 @@ describe("Users Module", () => {
       const response = await request(server).get(`/users/${randomAddress}`);
 
       expect(response.body).toStrictEqual({
-        detail: expect.stringContaining(`User ${randomAddress} not found`),
+        detail: `User ${randomAddress} not found`,
         status: 404,
         title: "User Not Found",
         type: "about:blank",
