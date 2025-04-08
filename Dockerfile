@@ -57,6 +57,7 @@ COPY ./contracts/trusted-schemas-registry/package.json ./contracts/trusted-schem
 COPY ./contracts/trusted-schemas-registry-v2/package.json ./contracts/trusted-schemas-registry-v2/
 COPY ./contracts/trusted-schemas-registry-v3/package.json ./contracts/trusted-schemas-registry-v3/
 COPY ./subgraphs/deployer/package.json ./subgraphs/deployer/
+COPY ./subgraphs/did-registry-v3/package.json ./subgraphs/did-registry-v3/
 COPY ./subgraphs/did-registry-v4/package.json ./subgraphs/did-registry-v4/
 COPY ./subgraphs/timestamp-v3/package.json ./subgraphs/timestamp-v3/
 COPY ./subgraphs/track-and-trace-v2/package.json ./subgraphs/track-and-trace-v2/

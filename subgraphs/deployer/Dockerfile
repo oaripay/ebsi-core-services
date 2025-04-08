@@ -15,6 +15,12 @@ COPY --from=builder /app/yarn.lock ./yarn.lock
 COPY --from=builder /app/package.json ./package.json
 # Copy Bootstrap SC v2
 COPY --from=builder /app/contracts/bootstrap-v2 ./contracts/bootstrap-v2
+# Copy TPR SC v2
+COPY --from=builder /app/contracts/trusted-policies-registry-v2 ./contracts/trusted-policies-registry-v2
+# Copy DID Registry SC v3
+COPY --from=builder /app/contracts/did-registry-v3 ./contracts/did-registry-v3
+# Copy DID Registry SC v3 subgraph
+COPY --from=builder /app/subgraphs/did-registry-v3 ./subgraphs/did-registry-v3
 # Copy DID Registry SC v4
 COPY --from=builder /app/contracts/did-registry-v4 ./contracts/did-registry-v4
 # Copy DID Registry SC v4 subgraph

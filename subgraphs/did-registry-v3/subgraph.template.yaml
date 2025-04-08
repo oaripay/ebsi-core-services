@@ -1,0 +1,42 @@
+specVersion: 0.0.4
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum/contract
+    name: DidRegistry
+    network: besu
+    source:
+      abi: DidRegistry
+      address: "{{ address }}"
+      # prettier-ignore
+      startBlock: {{ startBlock }}
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - DidDocument
+      abis:
+        - name: DidRegistry
+          # prettier-ignore
+          file: {{ &abi }}
+      callHandlers:
+        - function: insertDidDocument(string,string,string,bytes,bool,uint256,uint256)
+          handler: handleInsertDidDocumentCall
+        - function: updateBaseDocument(string,string)
+          handler: handleUpdateBaseDocumentCall
+        - function: addController(string,string)
+          handler: handleAddControllerCall
+        - function: revokeController(string,string)
+          handler: handleRevokeControllerCall
+        - function: addVerificationMethod(string,string,bytes,bool)
+          handler: handleAddVerificationMethodCall
+        - function: addVerificationRelationship(string,string,string,uint256,uint256)
+          handler: handleAddVerificationRelationshipCall
+        - function: revokeVerificationMethod(string,string,uint256)
+          handler: handleRevokeVerificationMethodCall
+        - function: expireVerificationMethod(string,string,uint256)
+          handler: handleExpireVerificationMethodCall
+        - function: rollVerificationMethod((string,string,bytes,bool,uint256,uint256,string,uint256))
+          handler: handleRollVerificationMethodCall
+      file: ./src/mappings.ts
