@@ -1,0 +1,56 @@
+type DidDocument @entity {
+  id: String!
+  baseDocument: String!
+  controllers: [ControllerRelationship!]!
+    @derivedFrom(field: "controlledDocument")
+  verificationRelationships: [VerificationRelationship!]!
+    @derivedFrom(field: "did")
+  verificationMethods: [VerificationMethod!]! @derivedFrom(field: "did")
+  events: [Event!]! @derivedFrom(field: "did")
+}
+
+type ControllerRelationship @entity {
+  id: String!
+  controller: DidDocument!
+  controlledDocument: DidDocument!
+  status: ControllerStatus!
+}
+
+type VerificationRelationship @entity {
+  id: String!
+  name: String!
+  notBefore: BigInt!
+  notAfter: BigInt!
+  did: DidDocument!
+  vMethodId: String!
+}
+
+type VerificationMethod @entity {
+  id: String!
+  publicKey: Bytes!
+  isSecp256k1: Boolean!
+  status: VerificationMethodStatus!
+  did: DidDocument!
+}
+
+type Event @entity {
+  id: Bytes!
+  signer: Bytes!
+  blockNumber: BigInt!
+  timestamp: BigInt!
+  event: String!
+  txId: Bytes!
+  did: DidDocument!
+}
+
+enum VerificationMethodStatus {
+  Active
+  Revoked
+  Expired
+}
+
+enum ControllerStatus {
+  Active
+  Revoked
+  Expired
+}

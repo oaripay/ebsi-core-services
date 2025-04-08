@@ -142,16 +142,6 @@ export function handleVerificationMethodRevoked(
     }
   }
 
-  for (let i = 0; i < relationships.length; i += 1) {
-    const verificationRelationship = VerificationRelationship.load(
-      `${event.params.did} ${relationships[i]} ${event.params.vMethodId}`,
-    );
-    if (verificationRelationship) {
-      verificationRelationship.notAfter = event.params.notAfter;
-      verificationRelationship.save();
-    }
-  }
-
   storeEvent(event, "VerificationMethodRevoked", event.params.did);
 }
 
