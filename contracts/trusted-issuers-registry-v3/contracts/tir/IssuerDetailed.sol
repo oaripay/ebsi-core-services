@@ -210,10 +210,12 @@ abstract contract IssuerDetailed is IssuerStorage {
         returns (bool noAttributesAccepted, uint256 totalAttributes)
     {
         Issuers storage ds = issuerStorage();
-        bytes32[] memory attributesFirstHash = ds.issuerStore[did].attributes;
-        require(attributesFirstHash.length > 0, "issuer does not exist");
+        require(
+            ds.issuerStore[did].attributes.length > 0,
+            "issuer does not exist"
+        );
         noAttributesAccepted = ds.issuerStore[did].noAttributesAccepted;
-        totalAttributes = attributesFirstHash.length;
+        totalAttributes = ds.issuerStore[did].attributes.length;
     }
 
     function getIssuers(
