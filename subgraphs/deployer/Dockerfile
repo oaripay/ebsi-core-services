@@ -25,6 +25,10 @@ COPY --from=builder /app/subgraphs/did-registry-v3 ./subgraphs/did-registry-v3
 COPY --from=builder /app/contracts/did-registry-v4 ./contracts/did-registry-v4
 # Copy DID Registry SC v4 subgraph
 COPY --from=builder /app/subgraphs/did-registry-v4 ./subgraphs/did-registry-v4
+# Copy Timestamp SC v2
+COPY --from=builder /app/contracts/timestamp-v2 ./contracts/timestamp-v2
+# Copy Timestamp SC v2 subgraph
+COPY --from=builder /app/subgraphs/timestamp-v2 ./subgraphs/timestamp-v2
 # Copy Timestamp SC v3
 COPY --from=builder /app/contracts/timestamp-v3 ./contracts/timestamp-v3
 # Copy Timestamp SC v3 subgraph
