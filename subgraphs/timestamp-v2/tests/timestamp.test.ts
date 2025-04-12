@@ -1,0 +1,1165 @@
+import { Address, BigInt, Bytes } from "@graphprotocol/graph-ts";
+import {
+  afterAll,
+  assert,
+  beforeAll,
+  clearStore,
+  countEntities,
+  describe,
+  test,
+} from "matchstick-as";
+
+import { Record, RecordOwner, TimestampedHash } from "../generated/schema";
+import {
+  getRecordId,
+  getVersionId,
+  handleAppendRecordVersionHashesCall,
+  handleDetachRecordVersionHashCall,
+  handleInsertRecordOwnerCall,
+  handleInsertRecordVersionInfoCall,
+  handleRevokeRecordOwnerCall,
+  handleTimestampRecordHashesCall,
+  handleTimestampRecordVersionHashesCall,
+  handleTimestampVersionHashesCall,
+} from "../src/mappings";
+import {
+  createAppendRecordVersionHashesCall,
+  createDetachRecordVersionHashCall,
+  createInsertRecordOwnerCall,
+  createInsertRecordVersionInfoCall,
+  createRevokeRecordOwnerCall,
+  createTimestampRecordHashesCall,
+  createTimestampRecordVersionHashes,
+  createTimestampVersionHashesCall,
+  insertHashAlgorithm,
+  timestampHashes,
+  updateHashAlgorithm,
+} from "./timestamp-utils";
+
+const defaultSender = "0xa16081f360e3847006db660bae1c6d1b2e17ec2a";
+const defaultTransactionHash = "0xa16081f360e3847006db660bae1c6d1b2e17ec2a";
+const defaultBlock = "1";
+const defaultTimestamp = "1";
+
+describe("Hash algorithms", () => {
+  afterAll(() => {
+    clearStore();
+  });
+
+  test("Insert hash algorithm", () => {
+    insertHashAlgorithm(
+      1,
+      256,
+      "sha-256",
+      "2.16.840.1.101.3.4.2.1",
+      1,
+      "sha2-256",
+    );
+
+    assert.entityCount("HashAlgorithm", 1);
+    assert.fieldEquals("HashAlgorithm", "1", "ianaName", "sha-256");
+    assert.fieldEquals("HashAlgorithm", "1", "multiHash", "sha2-256");
+    assert.fieldEquals("HashAlgorithm", "1", "oid", "2.16.840.1.101.3.4.2.1");
+    assert.fieldEquals("HashAlgorithm", "1", "outputLength", "256");
+    assert.fieldEquals("HashAlgorithm", "1", "status", "active");
+  });
+
+  test("Update hash algorithm", () => {
+    insertHashAlgorithm(2, 384, "sha-384", "bad-oid", 1, "sha2-384");
+    updateHashAlgorithm(
+      2,
+      384,
+      "sha-384",
+      "2.16.840.1.101.3.4.2.2",
+      1,
+      "sha2-384",
+    );
+
+    assert.entityCount("HashAlgorithm", 2);
+    assert.fieldEquals("HashAlgorithm", "2", "ianaName", "sha-384");
+    assert.fieldEquals("HashAlgorithm", "2", "multiHash", "sha2-384");
+    assert.fieldEquals("HashAlgorithm", "2", "oid", "2.16.840.1.101.3.4.2.2");
+    assert.fieldEquals("HashAlgorithm", "2", "outputLength", "384");
+    assert.fieldEquals("HashAlgorithm", "2", "status", "active");
+  });
+});
+
+describe("Timestamps and Records", () => {
+  beforeAll(() => {
+    // Insert hash algorithm to be used in the following tests
+    insertHashAlgorithm(
+      1,
+      256,
+      "sha-256",
+      "2.16.840.1.101.3.4.2.1",
+      1,
+      "sha2-256",
+    );
+  });
+
+  afterAll(() => {
+    clearStore();
+  });
+
+  test("Timestamp hashes", () => {
+    timestampHashes(
+      [1],
+      [Bytes.fromHexString("0x00010000")],
+      [Bytes.fromHexString("0x00010001")],
+    );
+    assert.entityCount("TimestampedHash", 1);
+    assert.fieldEquals("TimestampedHash", "0x00010000", "hashAlgorithm", "1");
+    assert.fieldEquals("TimestampedHash", "0x00010000", "data", "0x00010001");
+    assert.fieldEquals(
+      "TimestampedHash",
+      "0x00010000",
+      "hashValue",
+      "0x00010000",
+    );
+    assert.fieldEquals(
+      "TimestampedHash",
+      "0x00010000",
+      "timestampedBy",
+      defaultSender,
+    );
+    assert.fieldEquals(
+      "TimestampedHash",
+      "0x00010000",
+      "blockNumber",
+      defaultBlock,
+    );
+    assert.fieldEquals(
+      "TimestampedHash",
+      "0x00010000",
+      "blockTimestamp",
+      defaultTimestamp,
+    );
+    assert.fieldEquals(
+      "TimestampedHash",
+      "0x00010000",
+      "transactionHash",
+      defaultTransactionHash,
+    );
+    assert.fieldEquals("TimestampedHash", "0x00010000", "records", "[]");
+  });
+
+  test("Timestamp hashes with different data length", () => {
+    timestampHashes([1], [Bytes.fromHexString("0x00020000")], []);
+
+    assert.entityCount("TimestampedHash", 2);
+    assert.fieldEquals("TimestampedHash", "0x00020000", "hashAlgorithm", "1");
+    assert.fieldEquals("TimestampedHash", "0x00020000", "data", "0x");
+    assert.fieldEquals(
+      "TimestampedHash",
+      "0x00020000",
+      "hashValue",
+      "0x00020000",
+    );
+    assert.fieldEquals(
+      "TimestampedHash",
+      "0x00020000",
+      "timestampedBy",
+      defaultSender,
+    );
+    assert.fieldEquals(
+      "TimestampedHash",
+      "0x00020000",
+      "blockNumber",
+      defaultBlock,
+    );
+    assert.fieldEquals(
+      "TimestampedHash",
+      "0x00020000",
+      "blockTimestamp",
+      defaultTimestamp,
+    );
+    assert.fieldEquals(
+      "TimestampedHash",
+      "0x00020000",
+      "transactionHash",
+      defaultTransactionHash,
+    );
+    assert.fieldEquals("TimestampedHash", "0x00020000", "records", "[]");
+  });
+
+  test("Create a new record by using timestampRecordHashes", () => {
+    const recordCount = countEntities("Record");
+    const recordOwnerCount = countEntities("RecordOwner");
+    const versionCount = countEntities("RecordVersion");
+    const timestampedHashCount = countEntities("TimestampedHash");
+
+    // Create a new record
+    const call = createTimestampRecordHashesCall(
+      [1],
+      [Bytes.fromHexString("0x00030000")],
+      [Bytes.fromHexString("0x00ef")],
+      Bytes.fromHexString("0xc23e"),
+    );
+
+    handleTimestampRecordHashesCall(call);
+
+    // Check entities count
+    assert.entityCount("Record", recordCount + 1);
+    assert.entityCount("RecordOwner", recordOwnerCount + 1);
+    assert.entityCount("RecordVersion", versionCount + 1);
+    assert.entityCount("TimestampedHash", timestampedHashCount + 1);
+
+    // Load newly created record
+    const recordId = getRecordId(
+      call.from,
+      call.block.number,
+      call.inputs.hashValues[0],
+    );
+
+    const record = Record.load(recordId);
+
+    if (!record) {
+      throw new Error(`Record ${recordId.toHexString()} not found`);
+    }
+
+    // Record should have 1 owner
+    const recordOwners = record.owners.load();
+    assert.i32Equals(1, recordOwners.length);
+    const recordOwnerId = recordId.concat(call.from);
+    assert.bytesEquals(recordOwnerId, recordOwners[0].id);
+
+    // Load record owner
+    const recordOwner = RecordOwner.load(recordOwnerId);
+
+    if (!recordOwner) {
+      throw new Error(`RecordOwner ${recordOwnerId.toHexString()} not found`);
+    }
+
+    // Check record owner
+    assert.addressEquals(call.from, Address.fromBytes(recordOwner.address));
+    assert.bigIntEquals(call.block.timestamp, recordOwner.notBefore);
+    assert.bigIntEquals(
+      BigInt.fromString("18446744073709551615"), // max u64
+      recordOwner.notAfter,
+    );
+
+    // Load derived versions
+    const versions = record.versions.load();
+
+    // Check version
+    assert.i32Equals(1, versions.length);
+    const recordVersionId = getVersionId(recordId, 0);
+    assert.bytesEquals(recordVersionId, versions[0].id);
+    assert.bytesEquals(recordId, versions[0].record);
+    assert.bigIntEquals(BigInt.fromI32(0), versions[0].versionNumber);
+    assert.i32Equals(1, versions[0].infos.length, "Version should have 1 info");
+    assert.bytesEquals(Bytes.fromHexString("0xc23e"), versions[0].infos[0]);
+
+    // Check timestamped hashes attached to the version
+    assert.i32Equals(
+      1,
+      versions[0].timestamps.length,
+      "Version should have 1 timestamped hash",
+    );
+
+    // Load timestamped hash
+    const timestampedHash = TimestampedHash.load(versions[0].timestamps[0]);
+
+    if (!timestampedHash) {
+      throw new Error(
+        `TimestampedHash ${versions[0].timestamps[0].toHexString()} not found`,
+      );
+    }
+
+    // Check timestamped hash
+    assert.bytesEquals(
+      Bytes.fromHexString("0x00030000"),
+      timestampedHash.hashValue,
+    );
+    assert.i32Equals(1, timestampedHash.records.length);
+    assert.bytesEquals(recordId, timestampedHash.records[0]);
+    assert.stringEquals("1", timestampedHash.hashAlgorithm);
+    assert.bytesEquals(
+      Bytes.fromHexString("0x00030000"),
+      timestampedHash.hashValue,
+    );
+    assert.bytesEquals(Bytes.fromHexString("0x00ef"), timestampedHash.data);
+    assert.addressEquals(
+      call.transaction.from,
+      Address.fromBytes(timestampedHash.timestampedBy),
+    );
+    assert.bigIntEquals(call.block.timestamp, timestampedHash.blockTimestamp);
+    assert.bigIntEquals(call.block.number, timestampedHash.blockNumber);
+    assert.bytesEquals(call.transaction.hash, timestampedHash.transactionHash);
+  });
+
+  test("Create a new version on a record by using timestampVersionHashes", () => {
+    let recordCount = countEntities("Record");
+    let recordOwnerCount = countEntities("RecordOwner");
+    let versionCount = countEntities("RecordVersion");
+    let timestampedHashCount = countEntities("TimestampedHash");
+
+    // Create a new record
+    const timestampRecordHashesCall = createTimestampRecordHashesCall(
+      [1],
+      [Bytes.fromHexString("0x00040000")],
+      [Bytes.fromHexString("0x00ef")],
+      Bytes.fromHexString("0xc23e"),
+    );
+
+    handleTimestampRecordHashesCall(timestampRecordHashesCall);
+
+    // Check entities count
+    assert.entityCount("Record", recordCount + 1);
+    assert.entityCount("RecordOwner", recordOwnerCount + 1);
+    assert.entityCount("RecordVersion", versionCount + 1);
+    assert.entityCount("TimestampedHash", timestampedHashCount + 1);
+
+    // Update counts
+    recordCount = recordCount + 1;
+    recordOwnerCount = recordOwnerCount + 1;
+    versionCount = versionCount + 1;
+    timestampedHashCount = timestampedHashCount + 1;
+
+    // Create a new version with 2 new timestamped hashes
+    const timestampVersionHashesCall = createTimestampVersionHashesCall(
+      timestampRecordHashesCall.inputs.hashValues[0],
+      [1, 1],
+      [Bytes.fromHexString("0x00040001"), Bytes.fromHexString("0x00040002")],
+      [Bytes.fromHexString("0x00ef")],
+      Bytes.fromHexString("0xc23e"),
+    );
+
+    handleTimestampVersionHashesCall(timestampVersionHashesCall);
+
+    // Check entities count
+    assert.entityCount("Record", recordCount);
+    assert.entityCount("RecordOwner", recordOwnerCount);
+    assert.entityCount("RecordVersion", versionCount + 1);
+    assert.entityCount("TimestampedHash", timestampedHashCount + 2);
+
+    // Load newly created record
+    const recordId = getRecordId(
+      timestampRecordHashesCall.from,
+      timestampRecordHashesCall.block.number,
+      timestampRecordHashesCall.inputs.hashValues[0],
+    );
+
+    const record = Record.load(recordId);
+
+    if (!record) {
+      throw new Error(`Record ${recordId.toHexString()} not found`);
+    }
+
+    // Load versions
+    const versions = record.versions.load();
+
+    assert.i32Equals(2, versions.length, "Record should have 2 versions");
+
+    // Check first version
+    const recordVersion1Id = getVersionId(recordId, 0);
+    assert.bytesEquals(recordVersion1Id, versions[0].id);
+    assert.bytesEquals(recordId, versions[0].record);
+    assert.bigIntEquals(BigInt.fromI32(0), versions[0].versionNumber);
+    assert.i32Equals(1, versions[0].infos.length, "Version should have 1 info");
+    assert.bytesEquals(Bytes.fromHexString("0xc23e"), versions[0].infos[0]);
+
+    // Check timestamped hashes attached to the version
+    assert.i32Equals(
+      1,
+      versions[0].timestamps.length,
+      "Version should have 1 timestamped hash",
+    );
+
+    // Load timestamped hash
+    let timestampedHash = TimestampedHash.load(versions[0].timestamps[0]);
+
+    if (!timestampedHash) {
+      throw new Error(
+        `TimestampedHash ${versions[0].timestamps[0].toHexString()} not found`,
+      );
+    }
+
+    // Check timestamped hash
+    assert.bytesEquals(
+      Bytes.fromHexString("0x00040000"),
+      timestampedHash.hashValue,
+    );
+    assert.i32Equals(1, timestampedHash.records.length);
+    assert.bytesEquals(recordId, timestampedHash.records[0]);
+    assert.stringEquals("1", timestampedHash.hashAlgorithm);
+    assert.bytesEquals(Bytes.fromHexString("0x00ef"), timestampedHash.data);
+    assert.addressEquals(
+      timestampRecordHashesCall.transaction.from,
+      Address.fromBytes(timestampedHash.timestampedBy),
+    );
+    assert.bigIntEquals(
+      timestampRecordHashesCall.block.timestamp,
+      timestampedHash.blockTimestamp,
+    );
+    assert.bigIntEquals(
+      timestampRecordHashesCall.block.number,
+      timestampedHash.blockNumber,
+    );
+    assert.bytesEquals(
+      timestampRecordHashesCall.transaction.hash,
+      timestampedHash.transactionHash,
+    );
+
+    // Check second version
+    const recordVersion2Id = getVersionId(recordId, 1);
+    assert.bytesEquals(recordVersion2Id, versions[1].id);
+    assert.bytesEquals(recordId, versions[1].record);
+    assert.bigIntEquals(BigInt.fromI32(1), versions[1].versionNumber);
+    assert.i32Equals(1, versions[1].infos.length, "Version should have 1 info");
+    assert.bytesEquals(Bytes.fromHexString("0xc23e"), versions[1].infos[0]);
+
+    // Check timestamped hashes attached to the version
+    assert.i32Equals(
+      2,
+      versions[1].timestamps.length,
+      "Version should have 2 timestamped hash",
+    );
+
+    // Load timestamped hash #1
+    timestampedHash = TimestampedHash.load(versions[1].timestamps[0]);
+
+    if (!timestampedHash) {
+      throw new Error(
+        `TimestampedHash ${versions[1].timestamps[0].toHexString()} not found`,
+      );
+    }
+
+    // Check timestamped hash #1
+    assert.bytesEquals(
+      Bytes.fromHexString("0x00040001"),
+      timestampedHash.hashValue,
+    );
+    assert.i32Equals(1, timestampedHash.records.length);
+    assert.bytesEquals(recordId, timestampedHash.records[0]);
+    assert.stringEquals("1", timestampedHash.hashAlgorithm);
+    assert.bytesEquals(Bytes.fromHexString("0x00ef"), timestampedHash.data);
+    assert.addressEquals(
+      timestampRecordHashesCall.transaction.from,
+      Address.fromBytes(timestampedHash.timestampedBy),
+    );
+    assert.bigIntEquals(
+      timestampRecordHashesCall.block.timestamp,
+      timestampedHash.blockTimestamp,
+    );
+    assert.bigIntEquals(
+      timestampRecordHashesCall.block.number,
+      timestampedHash.blockNumber,
+    );
+    assert.bytesEquals(
+      timestampRecordHashesCall.transaction.hash,
+      timestampedHash.transactionHash,
+    );
+
+    // Load timestamped hash #2
+    timestampedHash = TimestampedHash.load(versions[1].timestamps[1]);
+
+    if (!timestampedHash) {
+      throw new Error(
+        `TimestampedHash ${versions[1].timestamps[1].toHexString()} not found`,
+      );
+    }
+
+    // Check timestamped hash #2
+    assert.bytesEquals(
+      Bytes.fromHexString("0x00040002"),
+      timestampedHash.hashValue,
+    );
+    assert.i32Equals(1, timestampedHash.records.length);
+    assert.bytesEquals(recordId, timestampedHash.records[0]);
+    assert.stringEquals("1", timestampedHash.hashAlgorithm);
+    assert.bytesEquals(Bytes.fromHexString("0x"), timestampedHash.data); // Empty value
+    assert.addressEquals(
+      timestampRecordHashesCall.transaction.from,
+      Address.fromBytes(timestampedHash.timestampedBy),
+    );
+    assert.bigIntEquals(
+      timestampRecordHashesCall.block.timestamp,
+      timestampedHash.blockTimestamp,
+    );
+    assert.bigIntEquals(
+      timestampRecordHashesCall.block.number,
+      timestampedHash.blockNumber,
+    );
+    assert.bytesEquals(
+      timestampRecordHashesCall.transaction.hash,
+      timestampedHash.transactionHash,
+    );
+  });
+
+  test("Create a new version on a record by using timestampRecordVersionHashes", () => {
+    let recordCount = countEntities("Record");
+    let recordOwnerCount = countEntities("RecordOwner");
+    let versionCount = countEntities("RecordVersion");
+    let timestampedHashCount = countEntities("TimestampedHash");
+
+    // Create a new record
+    const timestampRecordHashesCall = createTimestampRecordHashesCall(
+      [1],
+      [Bytes.fromHexString("0x00050000")],
+      [Bytes.fromHexString("0x00ef")],
+      Bytes.fromHexString("0xc23e"),
+    );
+
+    handleTimestampRecordHashesCall(timestampRecordHashesCall);
+
+    // Check entities count
+    assert.entityCount("Record", recordCount + 1);
+    assert.entityCount("RecordOwner", recordOwnerCount + 1);
+    assert.entityCount("RecordVersion", versionCount + 1);
+    assert.entityCount("TimestampedHash", timestampedHashCount + 1);
+
+    // Update counts
+    recordCount = recordCount + 1;
+    recordOwnerCount = recordOwnerCount + 1;
+    versionCount = versionCount + 1;
+    timestampedHashCount = timestampedHashCount + 1;
+
+    // Compute record ID
+    const recordId = getRecordId(
+      timestampRecordHashesCall.from,
+      timestampRecordHashesCall.block.number,
+      timestampRecordHashesCall.inputs.hashValues[0],
+    );
+
+    // Create a new version with 2 new timestamped hashes
+    const timestampRecordVersionHashes = createTimestampRecordVersionHashes(
+      recordId,
+      [1, 1],
+      [Bytes.fromHexString("0x00050001"), Bytes.fromHexString("0x00050002")],
+      [Bytes.fromHexString("0x00ef")],
+      Bytes.fromHexString("0xc23e"),
+    );
+
+    handleTimestampRecordVersionHashesCall(timestampRecordVersionHashes);
+
+    // Check entities count
+    assert.entityCount("Record", recordCount);
+    assert.entityCount("RecordOwner", recordOwnerCount);
+    assert.entityCount("RecordVersion", versionCount + 1);
+    assert.entityCount("TimestampedHash", timestampedHashCount + 2);
+
+    const record = Record.load(recordId);
+
+    if (!record) {
+      throw new Error(`Record ${recordId.toHexString()} not found`);
+    }
+
+    // Load versions
+    const versions = record.versions.load();
+
+    assert.i32Equals(2, versions.length, "Record should have 2 versions");
+
+    // Check first version
+    const recordVersion1Id = getVersionId(recordId, 0);
+    assert.bytesEquals(recordVersion1Id, versions[0].id);
+    assert.bytesEquals(recordId, versions[0].record);
+    assert.bigIntEquals(BigInt.fromI32(0), versions[0].versionNumber);
+    assert.i32Equals(1, versions[0].infos.length, "Version should have 1 info");
+    assert.bytesEquals(Bytes.fromHexString("0xc23e"), versions[0].infos[0]);
+
+    // Check timestamped hashes attached to the version
+    assert.i32Equals(
+      1,
+      versions[0].timestamps.length,
+      "Version should have 1 timestamped hash",
+    );
+
+    // Load timestamped hash
+    let timestampedHash = TimestampedHash.load(versions[0].timestamps[0]);
+
+    if (!timestampedHash) {
+      throw new Error(
+        `TimestampedHash ${versions[0].timestamps[0].toHexString()} not found`,
+      );
+    }
+
+    // Check timestamped hash
+    assert.bytesEquals(
+      Bytes.fromHexString("0x00050000"),
+      timestampedHash.hashValue,
+    );
+    assert.i32Equals(1, timestampedHash.records.length);
+    assert.bytesEquals(recordId, timestampedHash.records[0]);
+    assert.stringEquals("1", timestampedHash.hashAlgorithm);
+    assert.bytesEquals(Bytes.fromHexString("0x00ef"), timestampedHash.data);
+    assert.addressEquals(
+      timestampRecordHashesCall.transaction.from,
+      Address.fromBytes(timestampedHash.timestampedBy),
+    );
+    assert.bigIntEquals(
+      timestampRecordHashesCall.block.timestamp,
+      timestampedHash.blockTimestamp,
+    );
+    assert.bigIntEquals(
+      timestampRecordHashesCall.block.number,
+      timestampedHash.blockNumber,
+    );
+    assert.bytesEquals(
+      timestampRecordHashesCall.transaction.hash,
+      timestampedHash.transactionHash,
+    );
+
+    // Check second version
+    const recordVersion2Id = getVersionId(recordId, 1);
+    assert.bytesEquals(recordVersion2Id, versions[1].id);
+    assert.bytesEquals(recordId, versions[1].record);
+    assert.bigIntEquals(BigInt.fromI32(1), versions[1].versionNumber);
+    assert.i32Equals(1, versions[1].infos.length, "Version should have 1 info");
+    assert.bytesEquals(Bytes.fromHexString("0xc23e"), versions[1].infos[0]);
+
+    // Check timestamped hashes attached to the version
+    assert.i32Equals(
+      2,
+      versions[1].timestamps.length,
+      "Version should have 2 timestamped hash",
+    );
+
+    // Load timestamped hash #1
+    timestampedHash = TimestampedHash.load(versions[1].timestamps[0]);
+
+    if (!timestampedHash) {
+      throw new Error(
+        `TimestampedHash ${versions[1].timestamps[0].toHexString()} not found`,
+      );
+    }
+
+    // Check timestamped hash #1
+    assert.bytesEquals(
+      Bytes.fromHexString("0x00050001"),
+      timestampedHash.hashValue,
+    );
+    assert.i32Equals(1, timestampedHash.records.length);
+    assert.bytesEquals(recordId, timestampedHash.records[0]);
+    assert.stringEquals("1", timestampedHash.hashAlgorithm);
+    assert.bytesEquals(Bytes.fromHexString("0x00ef"), timestampedHash.data);
+    assert.addressEquals(
+      timestampRecordHashesCall.transaction.from,
+      Address.fromBytes(timestampedHash.timestampedBy),
+    );
+    assert.bigIntEquals(
+      timestampRecordHashesCall.block.timestamp,
+      timestampedHash.blockTimestamp,
+    );
+    assert.bigIntEquals(
+      timestampRecordHashesCall.block.number,
+      timestampedHash.blockNumber,
+    );
+    assert.bytesEquals(
+      timestampRecordHashesCall.transaction.hash,
+      timestampedHash.transactionHash,
+    );
+
+    // Load timestamped hash #2
+    timestampedHash = TimestampedHash.load(versions[1].timestamps[1]);
+
+    if (!timestampedHash) {
+      throw new Error(
+        `TimestampedHash ${versions[1].timestamps[1].toHexString()} not found`,
+      );
+    }
+
+    // Check timestamped hash #2
+    assert.bytesEquals(
+      Bytes.fromHexString("0x00050002"),
+      timestampedHash.hashValue,
+    );
+    assert.i32Equals(1, timestampedHash.records.length);
+    assert.bytesEquals(recordId, timestampedHash.records[0]);
+    assert.stringEquals("1", timestampedHash.hashAlgorithm);
+    assert.bytesEquals(Bytes.fromHexString("0x"), timestampedHash.data); // Empty value
+    assert.addressEquals(
+      timestampRecordHashesCall.transaction.from,
+      Address.fromBytes(timestampedHash.timestampedBy),
+    );
+    assert.bigIntEquals(
+      timestampRecordHashesCall.block.timestamp,
+      timestampedHash.blockTimestamp,
+    );
+    assert.bigIntEquals(
+      timestampRecordHashesCall.block.number,
+      timestampedHash.blockNumber,
+    );
+    assert.bytesEquals(
+      timestampRecordHashesCall.transaction.hash,
+      timestampedHash.transactionHash,
+    );
+  });
+
+  test("Append hashes to an existing version", () => {
+    let recordCount = countEntities("Record");
+    let recordOwnerCount = countEntities("RecordOwner");
+    let versionCount = countEntities("RecordVersion");
+    let timestampedHashCount = countEntities("TimestampedHash");
+
+    // Create a new record
+    const timestampRecordHashesCall = createTimestampRecordHashesCall(
+      [1],
+      [Bytes.fromHexString("0x00060000")],
+      [Bytes.fromHexString("0x00ef")],
+      Bytes.fromHexString("0xc23e"),
+    );
+
+    handleTimestampRecordHashesCall(timestampRecordHashesCall);
+
+    // Check entities count
+    assert.entityCount("Record", recordCount + 1);
+    assert.entityCount("RecordOwner", recordOwnerCount + 1);
+    assert.entityCount("RecordVersion", versionCount + 1);
+    assert.entityCount("TimestampedHash", timestampedHashCount + 1);
+
+    // Update counts
+    recordCount = recordCount + 1;
+    recordOwnerCount = recordOwnerCount + 1;
+    versionCount = versionCount + 1;
+    timestampedHashCount = timestampedHashCount + 1;
+
+    // Compute record ID
+    const recordId = getRecordId(
+      timestampRecordHashesCall.from,
+      timestampRecordHashesCall.block.number,
+      timestampRecordHashesCall.inputs.hashValues[0],
+    );
+
+    // Append 2 new timestamped hashes to the existing version 0
+    const appendRecordVersionHashesCall = createAppendRecordVersionHashesCall(
+      recordId,
+      BigInt.fromI32(0),
+      [1, 1],
+      [Bytes.fromHexString("0x00060001"), Bytes.fromHexString("0x00060002")],
+      [Bytes.fromHexString("0x00ef")],
+      Bytes.fromHexString("0xc234"),
+    );
+
+    handleAppendRecordVersionHashesCall(appendRecordVersionHashesCall);
+
+    // Check entities count
+    assert.entityCount("Record", recordCount);
+    assert.entityCount("RecordOwner", recordOwnerCount);
+    assert.entityCount("RecordVersion", versionCount);
+    assert.entityCount("TimestampedHash", timestampedHashCount + 2);
+
+    const record = Record.load(recordId);
+
+    if (!record) {
+      throw new Error(`Record ${recordId.toHexString()} not found`);
+    }
+
+    // Load versions
+    const versions = record.versions.load();
+
+    assert.i32Equals(1, versions.length, "Record should have 1 version");
+
+    // Check first version
+    const recordVersion1Id = getVersionId(recordId, 0);
+    assert.bytesEquals(recordVersion1Id, versions[0].id);
+    assert.bytesEquals(recordId, versions[0].record);
+    assert.bigIntEquals(BigInt.fromI32(0), versions[0].versionNumber);
+    assert.i32Equals(2, versions[0].infos.length, "Version should have 2 info");
+    assert.bytesEquals(Bytes.fromHexString("0xc23e"), versions[0].infos[0]);
+    assert.bytesEquals(Bytes.fromHexString("0xc234"), versions[0].infos[1]);
+
+    // Check timestamped hashes attached to the version
+    assert.i32Equals(
+      3,
+      versions[0].timestamps.length,
+      "Version should have 3 timestamped hashes",
+    );
+
+    // Load timestamped hash #1
+    let timestampedHash = TimestampedHash.load(versions[0].timestamps[0]);
+
+    if (!timestampedHash) {
+      throw new Error(
+        `TimestampedHash ${versions[0].timestamps[0].toHexString()} not found`,
+      );
+    }
+
+    // Check timestamped hash #1
+    assert.bytesEquals(
+      Bytes.fromHexString("0x00060000"),
+      timestampedHash.hashValue,
+    );
+    assert.i32Equals(1, timestampedHash.records.length);
+    assert.bytesEquals(recordId, timestampedHash.records[0]);
+    assert.stringEquals("1", timestampedHash.hashAlgorithm);
+    assert.bytesEquals(Bytes.fromHexString("0x00ef"), timestampedHash.data);
+    assert.addressEquals(
+      timestampRecordHashesCall.transaction.from,
+      Address.fromBytes(timestampedHash.timestampedBy),
+    );
+    assert.bigIntEquals(
+      timestampRecordHashesCall.block.timestamp,
+      timestampedHash.blockTimestamp,
+    );
+    assert.bigIntEquals(
+      timestampRecordHashesCall.block.number,
+      timestampedHash.blockNumber,
+    );
+    assert.bytesEquals(
+      timestampRecordHashesCall.transaction.hash,
+      timestampedHash.transactionHash,
+    );
+
+    // Load timestamped hash #2
+    timestampedHash = TimestampedHash.load(versions[0].timestamps[1]);
+
+    if (!timestampedHash) {
+      throw new Error(
+        `TimestampedHash ${versions[0].timestamps[1].toHexString()} not found`,
+      );
+    }
+
+    // Check timestamped hash #2
+    assert.bytesEquals(
+      Bytes.fromHexString("0x00060001"),
+      timestampedHash.hashValue,
+    );
+    assert.i32Equals(1, timestampedHash.records.length);
+    assert.bytesEquals(recordId, timestampedHash.records[0]);
+    assert.stringEquals("1", timestampedHash.hashAlgorithm);
+    assert.bytesEquals(Bytes.fromHexString("0x00ef"), timestampedHash.data);
+    assert.addressEquals(
+      timestampRecordHashesCall.transaction.from,
+      Address.fromBytes(timestampedHash.timestampedBy),
+    );
+    assert.bigIntEquals(
+      timestampRecordHashesCall.block.timestamp,
+      timestampedHash.blockTimestamp,
+    );
+    assert.bigIntEquals(
+      timestampRecordHashesCall.block.number,
+      timestampedHash.blockNumber,
+    );
+    assert.bytesEquals(
+      timestampRecordHashesCall.transaction.hash,
+      timestampedHash.transactionHash,
+    );
+
+    // Load timestamped hash #3
+    timestampedHash = TimestampedHash.load(versions[0].timestamps[2]);
+
+    if (!timestampedHash) {
+      throw new Error(
+        `TimestampedHash ${versions[0].timestamps[2].toHexString()} not found`,
+      );
+    }
+
+    // Check timestamped hash #3
+    assert.bytesEquals(
+      Bytes.fromHexString("0x00060002"),
+      timestampedHash.hashValue,
+    );
+    assert.i32Equals(1, timestampedHash.records.length);
+    assert.bytesEquals(recordId, timestampedHash.records[0]);
+    assert.stringEquals("1", timestampedHash.hashAlgorithm);
+    assert.bytesEquals(Bytes.fromHexString("0x"), timestampedHash.data); // Empty data
+    assert.addressEquals(
+      timestampRecordHashesCall.transaction.from,
+      Address.fromBytes(timestampedHash.timestampedBy),
+    );
+    assert.bigIntEquals(
+      timestampRecordHashesCall.block.timestamp,
+      timestampedHash.blockTimestamp,
+    );
+    assert.bigIntEquals(
+      timestampRecordHashesCall.block.number,
+      timestampedHash.blockNumber,
+    );
+    assert.bytesEquals(
+      timestampRecordHashesCall.transaction.hash,
+      timestampedHash.transactionHash,
+    );
+  });
+
+  test("Insert a new version info", () => {
+    let recordCount = countEntities("Record");
+    let recordOwnerCount = countEntities("RecordOwner");
+    let versionCount = countEntities("RecordVersion");
+    let timestampedHashCount = countEntities("TimestampedHash");
+
+    // Create a new record
+    const timestampRecordHashesCall = createTimestampRecordHashesCall(
+      [1],
+      [Bytes.fromHexString("0x00070000")],
+      [Bytes.fromHexString("0x00ef")],
+      Bytes.fromHexString("0xc23e"),
+    );
+
+    handleTimestampRecordHashesCall(timestampRecordHashesCall);
+
+    // Check entities count
+    assert.entityCount("Record", recordCount + 1);
+    assert.entityCount("RecordOwner", recordOwnerCount + 1);
+    assert.entityCount("RecordVersion", versionCount + 1);
+    assert.entityCount("TimestampedHash", timestampedHashCount + 1);
+
+    // Update counts
+    recordCount = recordCount + 1;
+    recordOwnerCount = recordOwnerCount + 1;
+    versionCount = versionCount + 1;
+    timestampedHashCount = timestampedHashCount + 1;
+
+    // Compute record ID
+    const recordId = getRecordId(
+      timestampRecordHashesCall.from,
+      timestampRecordHashesCall.block.number,
+      timestampRecordHashesCall.inputs.hashValues[0],
+    );
+
+    // Add new version info
+    const insertRecordVersionInfoCall = createInsertRecordVersionInfoCall(
+      recordId,
+      BigInt.fromI32(0),
+      Bytes.fromHexString("0xc234"),
+    );
+
+    handleInsertRecordVersionInfoCall(insertRecordVersionInfoCall);
+
+    // Check entities count
+    assert.entityCount("Record", recordCount);
+    assert.entityCount("RecordOwner", recordOwnerCount);
+    assert.entityCount("RecordVersion", versionCount);
+    assert.entityCount("TimestampedHash", timestampedHashCount);
+
+    const record = Record.load(recordId);
+
+    if (!record) {
+      throw new Error(`Record ${recordId.toHexString()} not found`);
+    }
+
+    // Load versions
+    const versions = record.versions.load();
+
+    assert.i32Equals(1, versions.length, "Record should have 1 version");
+
+    // Check first version
+    const recordVersion1Id = getVersionId(recordId, 0);
+    assert.bytesEquals(recordVersion1Id, versions[0].id);
+    assert.bytesEquals(recordId, versions[0].record);
+    assert.bigIntEquals(BigInt.fromI32(0), versions[0].versionNumber);
+    assert.i32Equals(2, versions[0].infos.length, "Version should have 2 info");
+    assert.bytesEquals(Bytes.fromHexString("0xc23e"), versions[0].infos[0]);
+    assert.bytesEquals(Bytes.fromHexString("0xc234"), versions[0].infos[1]);
+  });
+
+  test("Remove a timestamp from a version", () => {
+    let recordCount = countEntities("Record");
+    let recordOwnerCount = countEntities("RecordOwner");
+    let versionCount = countEntities("RecordVersion");
+    let timestampedHashCount = countEntities("TimestampedHash");
+
+    // Create a new record with 2 timestamped hashes
+    const timestampRecordHashesCall = createTimestampRecordHashesCall(
+      [1, 1],
+      [Bytes.fromHexString("0x00080000"), Bytes.fromHexString("0x00080001")],
+      [Bytes.fromHexString("0x00ef"), Bytes.fromHexString("0x00ef")],
+      Bytes.fromHexString("0xc23e"),
+    );
+
+    handleTimestampRecordHashesCall(timestampRecordHashesCall);
+
+    // Check entities count
+    assert.entityCount("Record", recordCount + 1);
+    assert.entityCount("RecordOwner", recordOwnerCount + 1);
+    assert.entityCount("RecordVersion", versionCount + 1);
+    assert.entityCount("TimestampedHash", timestampedHashCount + 2);
+
+    // Update counts
+    recordCount = recordCount + 1;
+    recordOwnerCount = recordOwnerCount + 1;
+    versionCount = versionCount + 1;
+    timestampedHashCount = timestampedHashCount + 2;
+
+    // Compute record ID
+    const recordId = getRecordId(
+      timestampRecordHashesCall.from,
+      timestampRecordHashesCall.block.number,
+      timestampRecordHashesCall.inputs.hashValues[0],
+    );
+
+    // Remove first timestamped hash
+    const detachRecordVersionHashCall = createDetachRecordVersionHashCall(
+      recordId,
+      BigInt.fromI32(0),
+      Bytes.fromHexString("0x00080000"),
+    );
+
+    handleDetachRecordVersionHashCall(detachRecordVersionHashCall);
+
+    // Check entities count
+    assert.entityCount("Record", recordCount);
+    assert.entityCount("RecordOwner", recordOwnerCount);
+    assert.entityCount("RecordVersion", versionCount);
+    assert.entityCount("TimestampedHash", timestampedHashCount);
+
+    const record = Record.load(recordId);
+
+    if (!record) {
+      throw new Error(`Record ${recordId.toHexString()} not found`);
+    }
+
+    // Load versions
+    const versions = record.versions.load();
+
+    assert.i32Equals(1, versions.length, "Record should have 1 version");
+
+    // Check first version
+    const recordVersion1Id = getVersionId(recordId, 0);
+    assert.bytesEquals(recordVersion1Id, versions[0].id);
+    assert.bytesEquals(recordId, versions[0].record);
+    assert.bigIntEquals(BigInt.fromI32(0), versions[0].versionNumber);
+    assert.i32Equals(1, versions[0].infos.length, "Version should have 1 info");
+    assert.bytesEquals(Bytes.fromHexString("0xc23e"), versions[0].infos[0]);
+
+    // Check timestamped hashes attached to the version
+    assert.i32Equals(
+      1,
+      versions[0].timestamps.length,
+      "Version should have 1 timestamped hash",
+    );
+
+    // Load timestamped hash #1
+    const timestampedHash = TimestampedHash.load(versions[0].timestamps[0]);
+
+    if (!timestampedHash) {
+      throw new Error(
+        `TimestampedHash ${versions[0].timestamps[0].toHexString()} not found`,
+      );
+    }
+
+    // Check timestamped hash #1
+    assert.bytesEquals(
+      Bytes.fromHexString("0x00080001"),
+      timestampedHash.hashValue,
+    );
+    assert.i32Equals(1, timestampedHash.records.length);
+    assert.bytesEquals(recordId, timestampedHash.records[0]);
+    assert.stringEquals("1", timestampedHash.hashAlgorithm);
+    assert.bytesEquals(Bytes.fromHexString("0x00ef"), timestampedHash.data);
+    assert.addressEquals(
+      timestampRecordHashesCall.transaction.from,
+      Address.fromBytes(timestampedHash.timestampedBy),
+    );
+    assert.bigIntEquals(
+      timestampRecordHashesCall.block.timestamp,
+      timestampedHash.blockTimestamp,
+    );
+    assert.bigIntEquals(
+      timestampRecordHashesCall.block.number,
+      timestampedHash.blockNumber,
+    );
+    assert.bytesEquals(
+      timestampRecordHashesCall.transaction.hash,
+      timestampedHash.transactionHash,
+    );
+  });
+
+  test("Insert and revoke record owner", () => {
+    const recordCount = countEntities("Record");
+    const recordOwnerCount = countEntities("RecordOwner");
+
+    // Create a new record
+    const timestampRecordHashesCall = createTimestampRecordHashesCall(
+      [1],
+      [Bytes.fromHexString("0x00090000")],
+      [Bytes.fromHexString("0x00ef")],
+      Bytes.fromHexString("0xc23e"),
+    );
+
+    handleTimestampRecordHashesCall(timestampRecordHashesCall);
+
+    // Check entities count
+    assert.entityCount("Record", recordCount + 1);
+    assert.entityCount("RecordOwner", recordOwnerCount + 1);
+
+    // Compute record ID
+    const recordId = getRecordId(
+      timestampRecordHashesCall.from,
+      timestampRecordHashesCall.block.number,
+      timestampRecordHashesCall.inputs.hashValues[0],
+    );
+
+    // Insert new record owner
+    const newRecordOwner = "0xa16081f360e3847006db660bae1c6d1b2e17ec2b";
+    const insertRecordOwnerCall = createInsertRecordOwnerCall(
+      recordId,
+      newRecordOwner,
+      BigInt.fromI32(1000),
+      BigInt.fromI32(2000),
+    );
+
+    handleInsertRecordOwnerCall(insertRecordOwnerCall);
+
+    // Check entities count
+    assert.entityCount("RecordOwner", recordOwnerCount + 2);
+
+    // Load record
+    const record = Record.load(recordId);
+
+    if (!record) {
+      throw new Error(`Record ${recordId.toHexString()} not found`);
+    }
+
+    // Record should have 2 owner
+    let recordOwners = record.owners.load();
+    assert.i32Equals(2, recordOwners.length);
+
+    // Load record owner #1
+    const recordOwner1Id = recordId.concat(timestampRecordHashesCall.from);
+    assert.bytesEquals(recordOwner1Id, recordOwners[0].id);
+    const recordOwner1 = RecordOwner.load(recordOwner1Id);
+
+    if (!recordOwner1) {
+      throw new Error(`RecordOwner ${recordOwner1Id.toHexString()} not found`);
+    }
+
+    // Check record owner #1
+    assert.addressEquals(
+      timestampRecordHashesCall.from,
+      Address.fromBytes(recordOwner1.address),
+    );
+    assert.bigIntEquals(
+      timestampRecordHashesCall.block.timestamp,
+      recordOwner1.notBefore,
+    );
+    assert.bigIntEquals(
+      BigInt.fromString("18446744073709551615"), // max u64
+      recordOwner1.notAfter,
+    );
+
+    // Load record owner #2
+    const recordOwner2Id = recordId.concat(
+      Address.fromHexString(newRecordOwner),
+    );
+    assert.bytesEquals(recordOwner2Id, recordOwners[1].id);
+    const recordOwner2 = RecordOwner.load(recordOwner2Id);
+
+    if (!recordOwner2) {
+      throw new Error(`RecordOwner ${recordOwner2Id.toHexString()} not found`);
+    }
+
+    // Check record owner #2
+    assert.addressEquals(
+      Address.fromString(newRecordOwner),
+      Address.fromBytes(recordOwner2.address),
+    );
+    assert.bigIntEquals(BigInt.fromI32(1000), recordOwner2.notBefore);
+    assert.bigIntEquals(BigInt.fromI32(2000), recordOwner2.notAfter);
+
+    // Revoke record owner #2
+    const revokeRecordOwnerCall = createRevokeRecordOwnerCall(
+      recordId,
+      newRecordOwner,
+    );
+
+    handleRevokeRecordOwnerCall(revokeRecordOwnerCall);
+
+    // Check entities count
+    assert.entityCount("RecordOwner", recordOwnerCount + 1);
+
+    // Record should have 1 owner
+    recordOwners = record.owners.load();
+    assert.i32Equals(1, recordOwners.length);
+  });
+});

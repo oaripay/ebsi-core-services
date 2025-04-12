@@ -302,6 +302,9 @@ export default tseslint.config(
       "unicorn/no-for-loop": "off",
       // Use ternary instead of logical operators
       "unicorn/prefer-logical-operator-over-ternary": "off",
+
+      // Disable "Prefer the spread operator over `Array#concat(…)`"
+      "unicorn/prefer-spread": "off",
     },
   },
 

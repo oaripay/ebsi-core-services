@@ -1,0 +1,52 @@
+specVersion: 0.0.4
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: Timestamp
+    network: besu
+    source:
+      abi: Timestamp
+      address: "{{ address }}"
+      # prettier-ignore
+      startBlock: {{ startBlock }}
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - HashAlgorithm
+        - TimestampedHash
+        - VersionInfo
+        - Version
+        - RecordOwner
+        - Record
+      abis:
+        - name: Timestamp
+          # prettier-ignore
+          file: {{ &abi }}
+      eventHandlers:
+        - event: AddNewHashAlgo(indexed uint256,indexed string,uint256,string,uint8,string)
+          handler: handleAddNewHashAlgoEvent
+        - event: UpdateHashAlgo(indexed uint256,indexed string,string,uint256,string,uint8,string)
+          handler: handleUpdateHashAlgoEvent
+      callHandlers:
+        - function: timestampHashes(uint256[],bytes[],bytes[])
+          handler: handleTimestampHashesCall
+        - function: timestampVersionHashes(bytes,uint256[],bytes[],bytes[],bytes)
+          handler: handleTimestampVersionHashesCall
+        - function: timestampRecordHashes(uint256[],bytes[],bytes[],bytes)
+          handler: handleTimestampRecordHashesCall
+        - function: timestampRecordVersionHashes(bytes32,uint256[],bytes[],bytes[],bytes)
+          handler: handleTimestampRecordVersionHashesCall
+        - function: appendRecordVersionHashes(bytes32,uint256,uint256[],bytes[],bytes[],bytes)
+          handler: handleAppendRecordVersionHashesCall
+        - function: insertRecordVersionInfo(bytes32,uint256,bytes)
+          handler: handleInsertRecordVersionInfoCall
+        - function: detachRecordVersionHash(bytes32,uint256,bytes)
+          handler: handleDetachRecordVersionHashCall
+        - function: insertRecordOwner(bytes32,string,uint256,uint256)
+          handler: handleInsertRecordOwnerCall
+        - function: revokeRecordOwner(bytes32,string)
+          handler: handleRevokeRecordOwnerCall
+      file: ./src/mappings.ts
