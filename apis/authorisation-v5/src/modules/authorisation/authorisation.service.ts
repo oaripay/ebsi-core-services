@@ -1170,12 +1170,10 @@ export class AuthorisationService {
    * @returns The public key JWK (including "kid")
    */
   private async getPublicKeyJwk() {
-    if (!this.publicKeyJwk) {
-      this.publicKeyJwk = await getPublicKeyJwk(
-        this.apiES256PrivateKey,
-        "ES256",
-      );
-    }
+    this.publicKeyJwk ??= await getPublicKeyJwk(
+      this.apiES256PrivateKey,
+      "ES256",
+    );
 
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     return this.publicKeyJwk!;

@@ -287,6 +287,9 @@ export default tseslint.config(
       // Disable for of loop
       "@typescript-eslint/prefer-for-of": "off",
 
+      // Disable using nullish coalescing operator (`??=`)
+      "@typescript-eslint/prefer-nullish-coalescing": "off",
+
       // Different behavior in AssemblyScript.
       // Remove rule when AssemblyScript version >= 0.20 in graph-tooling
       // https://github.com/graphprotocol/graph-tooling/issues/1187

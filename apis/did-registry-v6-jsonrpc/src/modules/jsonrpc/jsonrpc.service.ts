@@ -213,10 +213,7 @@ export class JsonRpcService {
         );
       }
 
-      if (!baseDocument.service) {
-        baseDocument.service = [];
-      }
-
+      baseDocument.service ??= [];
       baseDocument.service.push(JSON.parse(service));
 
       const data = this.contract.interface.encodeFunctionData(
