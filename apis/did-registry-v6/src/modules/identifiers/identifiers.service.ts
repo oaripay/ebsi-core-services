@@ -157,12 +157,11 @@ export class IdentifiersService {
         !document.didDocument?.verificationMethods.find(
           (v) => v.id === vMethodId,
         )
-      )
+      ) {
         continue;
-      if (!verificationRelationships[vRelationship.name]) {
-        verificationRelationships[vRelationship.name] = [];
       }
 
+      verificationRelationships[vRelationship.name] ??= [];
       verificationRelationships[vRelationship.name]!.push(vMethodId);
       validVerificationMethodIds.push(vMethodId);
     }

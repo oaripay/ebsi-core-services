@@ -187,9 +187,7 @@ export class IdentifiersService {
 
       const verificationRelationships: Record<string, string[]> = {};
       for (const vRelationship of document.vRelationships) {
-        if (!verificationRelationships[vRelationship.name]) {
-          verificationRelationships[vRelationship.name] = [];
-        }
+        verificationRelationships[vRelationship.name] ??= [];
         verificationRelationships[vRelationship.name]!.push(
           `${did}#${vRelationship.vMethodId}`,
         );

@@ -51,7 +51,7 @@ export class ProblemDetailsError extends Error {
     }
 
     // Set type if no value was provided
-    if (!this.type) this.type = "about:blank";
+    this.type ??= "about:blank";
   }
 
   toJSON(): {
