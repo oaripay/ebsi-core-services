@@ -15,8 +15,6 @@ COPY --from=builder /app/yarn.lock ./yarn.lock
 COPY --from=builder /app/package.json ./package.json
 # Copy Bootstrap SC v2
 COPY --from=builder /app/contracts/bootstrap-v2 ./contracts/bootstrap-v2
-# Copy TPR SC v2
-COPY --from=builder /app/contracts/trusted-policies-registry-v2 ./contracts/trusted-policies-registry-v2
 # Copy DID Registry SC v3
 COPY --from=builder /app/contracts/did-registry-v3 ./contracts/did-registry-v3
 # Copy DID Registry SC v3 subgraph
@@ -41,6 +39,10 @@ COPY --from=builder /app/subgraphs/track-and-trace-v2 ./subgraphs/track-and-trac
 COPY --from=builder /app/contracts/trusted-issuers-registry-v4 ./contracts/trusted-issuers-registry-v4
 # Copy TIR SC v4 subgraph
 COPY --from=builder /app/subgraphs/trusted-issuers-registry-v4 ./subgraphs/trusted-issuers-registry-v4
+# Copy TPR SC v2
+COPY --from=builder /app/contracts/trusted-policies-registry-v2 ./contracts/trusted-policies-registry-v2
+# Copy TPR SC v2 subgraph
+COPY --from=builder /app/subgraphs/trusted-policies-registry-v2 ./subgraphs/trusted-policies-registry-v2
 # Copy TPR SC v3
 COPY --from=builder /app/contracts/trusted-policies-registry-v3 ./contracts/trusted-policies-registry-v3
 # Copy TPR SC v3 subgraph
