@@ -6,7 +6,7 @@ import {
   clearStore,
   describe,
   test,
-} from "matchstick-as/assembly/index";
+} from "matchstick-as";
 
 import {
   handlePolicyActivated,
@@ -15,7 +15,7 @@ import {
   handlePolicyUpdated,
   handleUserAttributeDeleted,
   handleUserAttributeInserted,
-} from "../src/trusted-policies-registry";
+} from "../src/mappings";
 import {
   createPolicyActivatedEvent,
   createPolicyDeactivatedEvent,
@@ -23,9 +23,9 @@ import {
   createPolicyUpdatedEvent,
   createUserAttributeDeletedEvent,
   createUserAttributeInsertedEvent,
-} from "./trusted-policies-registry-utils";
+} from "./utils";
 
-describe("Trusted Policies Registry - entity assertions", () => {
+describe("Trusted Policies Registry v2 - entity assertions", () => {
   const policyId = "1";
   const user = "0x6309baa4eed7daed1db2b32cadabe3fe558c5ff3";
 
@@ -35,6 +35,7 @@ describe("Trusted Policies Registry - entity assertions", () => {
       "TIR:setAttributeMetadata",
       "description TIR",
     );
+
     handlePolicyInserted(event);
   });
 

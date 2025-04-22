@@ -16,7 +16,6 @@ abstract contract UserAttributesManagement is
     using Pagination for uint256;
 
     event UserAttributeInserted(address user, string attribute);
-    event UserAttributeUpdated(address user, string attribute, bytes value);
     event UserAttributeDeleted(address user, string attribute);
 
     // insert user attributes

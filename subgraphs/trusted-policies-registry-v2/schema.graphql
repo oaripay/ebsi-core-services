@@ -1,0 +1,11 @@
+type Policy @entity {
+  id: String!
+  policyName: String!
+  description: String!
+  status: Boolean!
+}
+
+type User @entity {
+  id: Bytes!
+  attributes: [String!]!
+}
