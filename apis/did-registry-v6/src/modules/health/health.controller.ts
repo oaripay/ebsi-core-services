@@ -15,7 +15,11 @@ const sdk = getBuiltGraphSDK();
 
 @Controller("/health")
 export class HealthController {
-  constructor(private health: HealthCheckService) {}
+  private readonly health: HealthCheckService;
+
+  constructor(health: HealthCheckService) {
+    this.health = health;
+  }
 
   @Accepts("application/json")
   @Get()

@@ -27,12 +27,15 @@ import { requestCheckControllerDtoSchema } from "./validators/RequestCheckContro
 export class IdentifiersService {
   private readonly didRegistryContract: DidRegistry;
 
+  private readonly ledgerService: LedgerService;
+
   private readonly logger = new Logger(IdentifiersService.name);
 
   constructor(
     configService: ConfigService<ApiConfig, true>,
-    private ledgerService: LedgerService,
+    ledgerService: LedgerService,
   ) {
+    this.ledgerService = ledgerService;
     const didRegistryAddress = configService.get("contractAddr", {
       infer: true,
     });

@@ -1592,11 +1592,20 @@ MIT License
 
 Copyright (c) <year> <copyright holders>
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and 
+associated documentation files (the "Software"), to deal in the Software without restriction, including 
+without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
+copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the 
+following conditions:
 
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+The above copyright notice and this permission notice shall be included in all copies or substantial 
+portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT 
+LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO 
+EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER 
+IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE 
+USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ========================================================================================
 - @nestjs/axios@^4.0.0
@@ -1630,7 +1639,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ========================================================================================
-- @nestjs/cache-manager@^3.0.0
+- @nestjs/cache-manager@^3.0.1
 ------------------------------
 This project is licensed under MIT.
 
@@ -1661,7 +1670,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ========================================================================================
-- @nestjs/common@^11.0.11
+- @nestjs/common@^11.1.0
 ------------------------------
 This project is licensed under MIT.
 
@@ -1693,7 +1702,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ========================================================================================
-- @nestjs/config@^4.0.1
+- @nestjs/config@^4.0.2
 ------------------------------
 This project is licensed under MIT.
 
@@ -1724,7 +1733,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ========================================================================================
-- @nestjs/core@^11.0.11
+- @nestjs/core@^11.1.0
 ------------------------------
 This project is licensed under MIT.
 
@@ -1788,7 +1797,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ========================================================================================
-- @nestjs/platform-fastify@^11.0.11
+- @nestjs/platform-fastify@^11.1.0
 ------------------------------
 This project is licensed under MIT.
 
@@ -1852,7 +1861,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ========================================================================================
-- axios@^1.8.3
+- axios@^1.8.4
 ------------------------------
 This project is licensed under MIT.
 
@@ -1892,7 +1901,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 ========================================================================================
-- cache-manager@^6.4.1
+- cache-manager@^6.4.2
 ------------------------------
 This project is licensed under MIT.
 
@@ -1983,7 +1992,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 ========================================================================================
-- did-jwt@^8.0.8
+- did-jwt@^8.0.13
 ------------------------------
 This project is licensed under Apache-2.0.
 
@@ -2194,7 +2203,7 @@ Apache License 2.0: https://www.apache.org/licenses/LICENSE-2.0
    limitations under the License.
 
 ========================================================================================
-- dotenv@^16.4.7
+- dotenv@^16.5.0
 ------------------------------
 This project is licensed under BSD-2-Clause.
 
@@ -2341,7 +2350,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ========================================================================================
-- keyv@^5.3.2
+- keyv@^5.3.3
 ------------------------------
 This project is licensed under MIT.
 
@@ -2559,7 +2568,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ========================================================================================
-- validator@^13.12.0
+- validator@^13.15.0
 ------------------------------
 This project is licensed under MIT.
 
@@ -2618,7 +2627,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 ========================================================================================
-- yaml@^2.7.0
+- yaml@^2.7.1
 ------------------------------
 This project is licensed under ISC.
 
@@ -2641,7 +2650,7 @@ TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 
 ========================================================================================
-- zod@^3.24.2
+- zod@^3.24.3
 ------------------------------
 This project is licensed under MIT.
 

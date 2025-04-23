@@ -25,7 +25,7 @@ export interface IssuerObject {
     utf8: string;
   };
   did: string;
-  issuerType: IssuerType;
+  issuerType: (typeof IssuerType)[keyof typeof IssuerType];
   proxy: {
     id: string;
     obj: IssuerProxyObject;
@@ -48,7 +48,7 @@ export interface SetupOptions {
 }
 
 export function createIssuer(
-  issuerType: IssuerType,
+  issuerType: (typeof IssuerType)[keyof typeof IssuerType],
   inputTaoDid?: string,
   inputTaoAttributeId?: string,
   inputRootTaoDid?: string,
@@ -204,7 +204,7 @@ export async function deployTirContract(): Promise<{
 
 export async function insertIssuer(
   contract: Tir,
-  issuerType: IssuerType,
+  issuerType: (typeof IssuerType)[keyof typeof IssuerType],
   inputTaoDid?: string,
   inputTaoAttributeId?: string,
   inputRootTaoDid?: string,

@@ -1,7 +1,7 @@
 import "@ebsiint-sc/did-registry/dist/hardhat.d.ts";
 
 import hre from "hardhat";
-import type { Artifact, FactoryOptions } from "hardhat/types";
+import type { Artifact, FactoryOptions } from "hardhat/types/index.js";
 
 import type {
   DidRegistry as DidRegistryV1,

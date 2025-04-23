@@ -14,10 +14,16 @@ import { UsersService } from "./users.service.ts";
 
 @Controller("/users")
 export class UsersController {
+  private readonly usersService: UsersService;
+  private readonly configService: ConfigService<ApiConfig, true>;
+
   constructor(
-    private usersService: UsersService,
-    private configService: ConfigService<ApiConfig, true>,
-  ) {}
+    usersService: UsersService,
+    configService: ConfigService<ApiConfig, true>,
+  ) {
+    this.usersService = usersService;
+    this.configService = configService;
+  }
 
   @Accepts("application/json")
   @Get("")

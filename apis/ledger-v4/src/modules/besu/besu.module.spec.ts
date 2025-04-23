@@ -1,6 +1,6 @@
 import hre from "hardhat";
 import * as taskNames from "hardhat/builtin-tasks/task-names.js";
-import type { JsonRpcServer } from "hardhat/types";
+import type { JsonRpcServer } from "hardhat/types/index.js";
 
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { JsonRpcError, JsonRpcResult } from "ethers";

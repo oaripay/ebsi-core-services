@@ -11,8 +11,11 @@ export class BearerJwtStrategy extends PassportStrategy(
   Strategy,
   "bearer-jwt",
 ) {
-  constructor(private authService: AuthService) {
+  private readonly authService: AuthService;
+
+  constructor(authService: AuthService) {
     super();
+    this.authService = authService;
   }
 
   async validate(bearerToken: string): Promise<SubjectInfo> {

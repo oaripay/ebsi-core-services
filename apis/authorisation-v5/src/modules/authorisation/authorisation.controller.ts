@@ -25,7 +25,11 @@ import { OAuth2TokenError } from "./errors/index.ts";
 
 @Controller("/")
 export class AuthorisationController {
-  constructor(private authorisationService: AuthorisationService) {}
+  private readonly authorisationService: AuthorisationService;
+
+  constructor(authorisationService: AuthorisationService) {
+    this.authorisationService = authorisationService;
+  }
 
   @Accepts("application/json")
   @Get("/.well-known/openid-configuration")

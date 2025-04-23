@@ -23,15 +23,19 @@ export class LoggingInterceptor implements NestInterceptor {
 
   private readonly logger: Logger = new Logger(this.ctxPrefix);
 
+  private readonly logLevel:
+    | "debug"
+    | "error"
+    | "info"
+    | "silent"
+    | "verbose"
+    | "warn";
+
   constructor(
-    private logLevel:
-      | "debug"
-      | "error"
-      | "info"
-      | "silent"
-      | "verbose"
-      | "warn",
-  ) {}
+    logLevel: "debug" | "error" | "info" | "silent" | "verbose" | "warn",
+  ) {
+    this.logLevel = logLevel;
+  }
 
   /**
    * Intercept method, logs before and after the request being processed

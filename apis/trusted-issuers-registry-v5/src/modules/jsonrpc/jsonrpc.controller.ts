@@ -28,7 +28,11 @@ function formatJsonRpcResponse(
 @Controller("/jsonrpc")
 @UseGuards(BearerJwtAuthGuard)
 export class JsonRpcController {
-  constructor(private jsonRpcService: JsonRpcService) {}
+  private readonly jsonRpcService: JsonRpcService;
+
+  constructor(jsonRpcService: JsonRpcService) {
+    this.jsonRpcService = jsonRpcService;
+  }
 
   @Accepts("application/json")
   @HttpCode(200)

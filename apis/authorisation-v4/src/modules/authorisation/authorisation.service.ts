@@ -58,6 +58,8 @@ import {
 export class AuthorisationService {
   private readonly apiES256PrivateKey: Uint8Array;
 
+  private readonly cacheManager: Cache;
+
   private readonly didRegistry: string;
 
   private readonly ebsiEnvConfig: EbsiVpEnvConfiguration;
@@ -78,8 +80,9 @@ export class AuthorisationService {
 
   constructor(
     configService: ConfigService<ApiConfig, true>,
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    @Inject(CACHE_MANAGER) cacheManager: Cache,
   ) {
+    this.cacheManager = cacheManager;
     const domain = configService.get("domain", { infer: true });
     const apiUrlPrefix = configService.get("apiUrlPrefix", { infer: true });
     this.issuer = `${domain}${apiUrlPrefix}`;

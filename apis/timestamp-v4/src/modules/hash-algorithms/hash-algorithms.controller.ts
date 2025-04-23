@@ -16,10 +16,16 @@ import { HashAlgorithmsService } from "./hash-algorithms.service.ts";
 
 @Controller("/hash-algorithms")
 export class HashAlgorithmsController {
+  private readonly hashAlgorithmsService: HashAlgorithmsService;
+  private readonly configService: ConfigService<ApiConfig, true>;
+
   constructor(
-    private hashAlgorithmsService: HashAlgorithmsService,
-    private configService: ConfigService<ApiConfig, true>,
-  ) {}
+    hashAlgorithmsService: HashAlgorithmsService,
+    configService: ConfigService<ApiConfig, true>,
+  ) {
+    this.hashAlgorithmsService = hashAlgorithmsService;
+    this.configService = configService;
+  }
 
   @Accepts("application/json")
   @Get("")

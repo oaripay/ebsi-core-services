@@ -13,10 +13,16 @@ import { PoliciesService } from "./policies.service.ts";
 
 @Controller("/policies")
 export class PoliciesController {
+  private readonly policiesService: PoliciesService;
+  private readonly configService: ConfigService<ApiConfig, true>;
+
   constructor(
-    private policiesService: PoliciesService,
-    private configService: ConfigService<ApiConfig, true>,
-  ) {}
+    policiesService: PoliciesService,
+    configService: ConfigService<ApiConfig, true>,
+  ) {
+    this.policiesService = policiesService;
+    this.configService = configService;
+  }
 
   @Accepts("application/json")
   @Get("")

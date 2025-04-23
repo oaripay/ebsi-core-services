@@ -23,12 +23,15 @@ const MAX_CONCURRENT_PROMISES = 10;
 export class SchemasService {
   private readonly contract: SchemaSCRegistry;
 
+  private readonly ledgerService: LedgerService;
+
   private readonly logger = new Logger(SchemasService.name);
 
   constructor(
     configService: ConfigService<ApiConfig, true>,
-    private ledgerService: LedgerService,
+    ledgerService: LedgerService,
   ) {
+    this.ledgerService = ledgerService;
     const contractAddress = configService.get("contractAddr", {
       infer: true,
     });

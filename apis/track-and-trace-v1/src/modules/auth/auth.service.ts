@@ -30,14 +30,17 @@ const CACHE_TTL = 300_000; // 5 minutes
 export class AuthService {
   private readonly authorisationApiUrl: string;
 
+  private readonly cacheManager: Cache;
+
   private readonly logger = new Logger(AuthService.name);
 
   private readonly timeout: number;
 
   constructor(
     configService: ConfigService<ApiConfig, true>,
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    @Inject(CACHE_MANAGER) cacheManager: Cache,
   ) {
+    this.cacheManager = cacheManager;
     this.timeout = configService.get("requestTimeout", { infer: true });
     this.authorisationApiUrl = configService.get("authorisationApiUrl", {
       infer: true,

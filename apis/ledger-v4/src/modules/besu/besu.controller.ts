@@ -8,7 +8,11 @@ import { BesuService } from "./besu.service.ts";
 
 @Controller("/blockchains/besu")
 export class BesuController {
-  constructor(private besuService: BesuService) {}
+  private readonly besuService: BesuService;
+
+  constructor(besuService: BesuService) {
+    this.besuService = besuService;
+  }
 
   @Accepts("application/json")
   @Post()

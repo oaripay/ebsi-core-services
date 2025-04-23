@@ -11,7 +11,11 @@ import { NotAcceptableError } from "../errors/NotAcceptableError.ts";
 export class AcceptsGuard implements CanActivate {
   private readonly logger = new Logger(AcceptsGuard.name);
 
-  constructor(private reflector: Reflector) {}
+  private readonly reflector: Reflector;
+
+  constructor(reflector: Reflector) {
+    this.reflector = reflector;
+  }
 
   canActivate(context: ExecutionContext): boolean {
     const acceptedContentTypes = this.reflector.get<string[]>(

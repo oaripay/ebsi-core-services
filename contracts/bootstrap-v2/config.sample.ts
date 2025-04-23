@@ -1,4 +1,4 @@
-import { NetworksUserConfig } from "hardhat/types";
+import { NetworksUserConfig } from "hardhat/types/index.js";
 
 export const networks: NetworksUserConfig = {
   // Needed for `solidity-coverage`

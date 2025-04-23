@@ -85,6 +85,8 @@ export class JsonRpcService {
 
   private readonly contractAddress: string;
 
+  private readonly ledgerService: LedgerService;
+
   private readonly logger = new Logger(JsonRpcService.name);
 
   private readonly requestAuthoriseDidDtoSchema: ReturnType<
@@ -92,9 +94,11 @@ export class JsonRpcService {
   >;
 
   constructor(
-    private ledgerService: LedgerService,
+    ledgerService: LedgerService,
     configService: ConfigService<ApiConfig, true>,
   ) {
+    this.ledgerService = ledgerService;
+
     this.contractAddress = configService.get("contractAddr", {
       infer: true,
     });

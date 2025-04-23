@@ -46,10 +46,16 @@ const validationPipe = new ValidationPipe({
 
 @Controller("/issuers")
 export class IssuersController {
+  private readonly issuersService: IssuersService;
+  private readonly configService: ConfigService<ApiConfig, true>;
+
   constructor(
-    private issuersService: IssuersService,
-    private configService: ConfigService<ApiConfig, true>,
-  ) {}
+    issuersService: IssuersService,
+    configService: ConfigService<ApiConfig, true>,
+  ) {
+    this.issuersService = issuersService;
+    this.configService = configService;
+  }
 
   @Accepts("application/json")
   @Get("")
