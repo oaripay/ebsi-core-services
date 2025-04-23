@@ -1,0 +1,33 @@
+{
+  "private": true,
+  "name": "@ebsiint-subgraph/trusted-schemas-registry-v2",
+  "version": "0.0.0-rc.0",
+  "type": "module",
+  "license": "EUPL-1.2",
+  "scripts": {
+    "deploy": "node ./scripts/prepare.mjs && node ./scripts/deploy.mjs",
+    "lint": "eslint .",
+    "prepare": "cross-env NODE_ENV=test TSR_SC_V2_ADDRESS=0x3B3B6Faa80f88aD7Da4ff1451aE716Bf6f741700 TSR_SC_V2_START_BLOCK=8290972 node ./scripts/prepare.mjs && yarn graph codegen",
+    "test": "yarn graph test -d",
+    "test:unit": "yarn graph test -d"
+  },
+  "dependencies": {
+    "@ebsiint-sc/trusted-schemas-registry-v2": "^2.0.0-rc.6",
+    "@graphprotocol/graph-ts": "0.36.0"
+  },
+  "devDependencies": {
+    "@graphprotocol/graph-cli": "0.94.0",
+    "assemblyscript-json": "^1.1.0",
+    "execa": "^8.0.1",
+    "matchstick-as": "0.6.0"
+  },
+  "nx": {
+    "targets": {
+      "deploy": {
+        "dependsOn": [
+          "^build"
+        ]
+      }
+    }
+  }
+}

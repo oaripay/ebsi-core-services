@@ -5,9 +5,9 @@ pragma solidity 0.8.12;
 import "./SchemaStorage.sol";
 
 library SchemaLib {
-    event SchemaInserted(bytes indexed schema, bytes revision, bytes metadata);
+    event SchemaInserted(bytes indexed schemaId, bytes schema, bytes metadata);
 
-    event SchemaUpdated(bytes indexed schema, bytes revision, bytes metadata);
+    event SchemaUpdated(bytes indexed schemaId, bytes schema, bytes metadata);
 
     event MetadataUpdated(bytes32 indexed schemaRevisionId, bytes metadata);
 

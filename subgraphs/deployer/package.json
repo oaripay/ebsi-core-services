@@ -17,6 +17,7 @@
     "@ebsiint-subgraph/trusted-issuers-registry-v4": "^0.0.0-rc.2",
     "@ebsiint-subgraph/trusted-policies-registry-v2": "^0.0.0-rc.0",
     "@ebsiint-subgraph/trusted-policies-registry-v3": "^0.0.0-rc.2",
+    "@ebsiint-subgraph/trusted-schemas-registry-v2": "^0.0.0-rc.0",
     "@ebsiint-subgraph/trusted-schemas-registry-v3": "^0.0.0-rc.2"
   }
 }

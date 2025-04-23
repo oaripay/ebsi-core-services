@@ -1,0 +1,18 @@
+type Schema @entity {
+  id: Bytes!
+  revisions: [Revision!]! @derivedFrom(field: "schema")
+  # lastRevision: Revision!
+}
+
+type Revision @entity {
+  id: Bytes! # Set to `schema.id.concat(keccak(content))`
+  content: String!
+  schema: Schema!
+  metadata: [Metadata!]! @derivedFrom(field: "revision")
+}
+
+type Metadata @entity {
+  id: Bytes! # Set to `revision.id.concat(keccak(content))`
+  content: String!
+  revision: Revision!
+}

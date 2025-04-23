@@ -22,11 +22,11 @@ dataSources:
         - name: TrustedSchemasRegistry
           # prettier-ignore
           file: {{ &abi }}
-      eventHandlers:
-        - event: SchemaInserted(bytes,bytes32,bytes32,bytes,bytes)
-          handler: handleSchemaInserted
-        - event: SchemaUpdated(bytes,bytes32,bytes32,bytes,bytes)
-          handler: handleSchemaUpdated
-        - event: MetadataUpdated(bytes32,bytes32,bytes)
-          handler: handleMetadataUpdated
-      file: ./src/trusted-schemas-registry.ts
+      callHandlers:
+        - function: insertSchema(bytes,bytes,bytes)
+          handler: handleInsertSchemaCall
+        - function: updateSchema(bytes,bytes,bytes)
+          handler: handleUpdateSchemaCall
+        - function: updateMetadata(bytes32,bytes)
+          handler: handleUpdateMetadataCall
+      file: ./src/mappings.ts
