@@ -47,6 +47,10 @@ COPY --from=builder /app/subgraphs/trusted-policies-registry-v2 ./subgraphs/trus
 COPY --from=builder /app/contracts/trusted-policies-registry-v3 ./contracts/trusted-policies-registry-v3
 # Copy TPR SC v3 subgraph
 COPY --from=builder /app/subgraphs/trusted-policies-registry-v3 ./subgraphs/trusted-policies-registry-v3
+# Copy TSR SC v2
+COPY --from=builder /app/contracts/trusted-schemas-registry-v2 ./contracts/trusted-schemas-registry-v2
+# Copy TSR SC v2 subgraph
+COPY --from=builder /app/subgraphs/trusted-schemas-registry-v2 ./subgraphs/trusted-schemas-registry-v2
 # Copy TSR SC v3
 COPY --from=builder /app/contracts/trusted-schemas-registry-v3 ./contracts/trusted-schemas-registry-v3
 # Copy TSR SC v3 subgraph

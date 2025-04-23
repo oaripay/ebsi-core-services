@@ -14,9 +14,9 @@ abstract contract SchemaDetailed is SchemaStorage {
 
     event SchemaInserted(bytes indexed schemaId, bytes schema, bytes metadata);
 
-    event SchemaUpdated(bytes indexed schema, bytes revision, bytes metadata);
+    event SchemaUpdated(bytes indexed schemaId, bytes schema, bytes metadata);
 
-    event MetadataUpdated(bytes32 indexed shemaRevisionId, bytes metadata);
+    event MetadataUpdated(bytes32 indexed schemaRevisionId, bytes metadata);
 
     /**
      * @dev insertSchema enables to register new schema.
