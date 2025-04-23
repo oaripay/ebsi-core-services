@@ -34,10 +34,16 @@ import { jsonRpcSchema } from "./validators/JsonRpcSchema.ts";
 
 @Controller("/identifiers")
 export class IdentifiersController {
+  private readonly identifiersService: IdentifiersService;
+  private readonly configService: ConfigService<ApiConfig, true>;
+
   constructor(
-    private identifiersService: IdentifiersService,
-    private configService: ConfigService<ApiConfig, true>,
-  ) {}
+    identifiersService: IdentifiersService,
+    configService: ConfigService<ApiConfig, true>,
+  ) {
+    this.identifiersService = identifiersService;
+    this.configService = configService;
+  }
 
   @Accepts("application/json")
   @Get("")

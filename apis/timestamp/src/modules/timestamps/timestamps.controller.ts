@@ -16,10 +16,16 @@ import { TimestampsService } from "./timestamps.service.ts";
 
 @Controller("/timestamps")
 export class TimestampsController {
+  private readonly timestampsService: TimestampsService;
+  private readonly configService: ConfigService<ApiConfig, true>;
+
   constructor(
-    private timestampsService: TimestampsService,
-    private configService: ConfigService<ApiConfig, true>,
-  ) {}
+    timestampsService: TimestampsService,
+    configService: ConfigService<ApiConfig, true>,
+  ) {
+    this.timestampsService = timestampsService;
+    this.configService = configService;
+  }
 
   @Accepts("application/json")
   @Get("")

@@ -716,7 +716,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ========================================================================================
-- @nestjs/common@^11.0.11
+- @nestjs/common@^11.1.0
 ------------------------------
 This project is licensed under MIT.
 
@@ -748,7 +748,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ========================================================================================
-- @nestjs/config@^4.0.1
+- @nestjs/config@^4.0.2
 ------------------------------
 This project is licensed under MIT.
 
@@ -779,7 +779,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ========================================================================================
-- @nestjs/core@^11.0.11
+- @nestjs/core@^11.1.0
 ------------------------------
 This project is licensed under MIT.
 
@@ -811,7 +811,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ========================================================================================
-- @nestjs/platform-fastify@^11.0.11
+- @nestjs/platform-fastify@^11.1.0
 ------------------------------
 This project is licensed under MIT.
 
@@ -875,7 +875,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ========================================================================================
-- axios@^1.8.3
+- axios@^1.8.4
 ------------------------------
 This project is licensed under MIT.
 
@@ -1098,7 +1098,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 ========================================================================================
-- yaml@^2.7.0
+- yaml@^2.7.1
 ------------------------------
 This project is licensed under ISC.
 
@@ -1121,7 +1121,7 @@ TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 
 ========================================================================================
-- zod@^3.24.2
+- zod@^3.24.3
 ------------------------------
 This project is licensed under MIT.
 

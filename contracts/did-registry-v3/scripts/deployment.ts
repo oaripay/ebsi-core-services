@@ -1,5 +1,5 @@
 import { ethers } from "hardhat";
-import type { Artifact } from "hardhat/types";
+import type { Artifact } from "hardhat/types/index.js";
 
 import fs from "node:fs";
 import path from "node:path";

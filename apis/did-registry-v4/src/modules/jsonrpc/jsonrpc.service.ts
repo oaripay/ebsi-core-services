@@ -81,12 +81,15 @@ export class JsonRpcService {
 
   private readonly didRegistryV2Contract: DidRegistryV2;
 
+  private readonly ledgerService: LedgerService;
+
   private readonly logger = new Logger(JsonRpcService.name);
 
   constructor(
     configService: ConfigService<ApiConfig, true>,
-    private ledgerService: LedgerService,
+    ledgerService: LedgerService,
   ) {
+    this.ledgerService = ledgerService;
     this.didRegistryV1Address = configService.get("contractAddrV1", {
       infer: true,
     });

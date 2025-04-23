@@ -21,12 +21,15 @@ import { LedgerService } from "../ledger/ledger.service.ts";
 export class AccessesService {
   private readonly contract: TrackAndTrace;
 
+  private readonly ledgerService: LedgerService;
+
   private readonly logger = new Logger(AccessesService.name);
 
   constructor(
     configService: ConfigService<ApiConfig, true>,
-    private ledgerService: LedgerService,
+    ledgerService: LedgerService,
   ) {
+    this.ledgerService = ledgerService;
     const contractAddress = configService.get("contractAddr", {
       infer: true,
     });

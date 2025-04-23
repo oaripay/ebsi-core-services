@@ -1,4 +1,4 @@
-import type { HardhatRuntimeEnvironment } from "hardhat/types";
+import type { HardhatRuntimeEnvironment } from "hardhat/types/index.js";
 
 import type { DeployFunction } from "hardhat-deploy/types";
 

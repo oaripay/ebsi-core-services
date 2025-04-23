@@ -22,10 +22,16 @@ import { RecordsService } from "./records.service.ts";
 
 @Controller("/records")
 export class RecordsController {
+  private readonly recordsService: RecordsService;
+  private readonly configService: ConfigService<ApiConfig, true>;
+
   constructor(
-    private recordsService: RecordsService,
-    private configService: ConfigService<ApiConfig, true>,
-  ) {}
+    recordsService: RecordsService,
+    configService: ConfigService<ApiConfig, true>,
+  ) {
+    this.recordsService = recordsService;
+    this.configService = configService;
+  }
 
   @Accepts("application/json")
   @Get("")

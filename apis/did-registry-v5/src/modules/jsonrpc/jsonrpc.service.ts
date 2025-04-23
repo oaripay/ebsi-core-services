@@ -102,12 +102,14 @@ export class JsonRpcService {
   private chainId: string | undefined;
   private readonly contract: DidRegistry;
   private readonly contractAddress: string;
+  private readonly ledgerService: LedgerService;
   private readonly logger = new Logger(JsonRpcService.name);
 
   constructor(
     configService: ConfigService<ApiConfig, true>,
-    private ledgerService: LedgerService,
+    ledgerService: LedgerService,
   ) {
+    this.ledgerService = ledgerService;
     this.contractAddress = configService.get("contractAddr", {
       infer: true,
     });

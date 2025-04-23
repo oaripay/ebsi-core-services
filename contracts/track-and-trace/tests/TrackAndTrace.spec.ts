@@ -1,5 +1,5 @@
 import { config, ethers, upgrades } from "hardhat";
-import type { HardhatNetworkHDAccountsConfig } from "hardhat/types";
+import type { HardhatNetworkHDAccountsConfig } from "hardhat/types/index.js";
 
 import type { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
 import type { BytesLike, HDNodeWallet, Result, Wallet } from "ethers";

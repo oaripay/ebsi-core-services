@@ -32,14 +32,17 @@ export class IssuersService {
 
   private ebsiEnvConfig: EbsiEnvConfiguration;
 
+  private readonly ledgerService: LedgerService;
+
   private readonly logger = new Logger(IssuersService.name);
 
   private readonly timeout: number;
 
   constructor(
-    private ledgerService: LedgerService,
+    ledgerService: LedgerService,
     configService: ConfigService<ApiConfig, true>,
   ) {
+    this.ledgerService = ledgerService;
     this.ebsiEnvConfig = configService.get("ebsiEnvConfig", { infer: true });
     this.timeout = configService.get("requestTimeout", { infer: true });
     const contractAddress = configService.get(

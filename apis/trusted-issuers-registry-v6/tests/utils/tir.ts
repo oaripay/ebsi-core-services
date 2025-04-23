@@ -33,7 +33,7 @@ export interface IssuerObject {
   };
   attributeIdTao: string;
   did: string;
-  issuerType: IssuerType;
+  issuerType: (typeof IssuerType)[keyof typeof IssuerType];
   proxy: {
     id: string;
     obj: IssuerProxyObject;
@@ -51,7 +51,7 @@ export interface IssuerProxyObject {
 }
 
 export function createIssuer(
-  issuerType: IssuerType,
+  issuerType: (typeof IssuerType)[keyof typeof IssuerType],
   inputTaoDid?: string,
   inputTaoAttributeId?: string,
   inputRootTaoDid?: string,
@@ -295,7 +295,7 @@ export async function setupTestEnv(): Promise<{
         did: i.id,
         issuerType: IssuerTypeNames.indexOf(
           i.attributes[0]!.lastRevision.issuerType,
-        ),
+        ) as (typeof IssuerType)[keyof typeof IssuerType],
         proxy: {
           id: i.proxies[0]!.id,
           obj: proxyObject,

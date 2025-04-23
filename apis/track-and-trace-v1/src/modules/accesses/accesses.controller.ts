@@ -10,10 +10,16 @@ import { HeadAccessesDto, SubjectAccessesDto } from "./dto/index.ts";
 
 @Controller("/accesses")
 export class AccessesController {
+  private readonly accessesService: AccessesService;
+  private readonly configService: ConfigService<ApiConfig, true>;
+
   constructor(
-    private accessesService: AccessesService,
-    private configService: ConfigService<ApiConfig, true>,
-  ) {}
+    accessesService: AccessesService,
+    configService: ConfigService<ApiConfig, true>,
+  ) {
+    this.accessesService = accessesService;
+    this.configService = configService;
+  }
 
   @Head("")
   @HttpCode(204)

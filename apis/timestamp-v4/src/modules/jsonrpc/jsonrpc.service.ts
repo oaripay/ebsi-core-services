@@ -84,20 +84,27 @@ export class JsonRpcService {
 
   private chainId: string | undefined;
 
+  private readonly configService: ConfigService<ApiConfig, true>;
+
   private readonly contract: Timestamp;
 
   private readonly contractAddress: string;
 
   private readonly didRegistry: string;
 
+  private readonly ledgerService: LedgerService;
+
   private readonly logger = new Logger(JsonRpcService.name);
 
   private readonly timeout: number;
 
   constructor(
-    private configService: ConfigService<ApiConfig, true>,
-    private ledgerService: LedgerService,
+    configService: ConfigService<ApiConfig, true>,
+    ledgerService: LedgerService,
   ) {
+    this.configService = configService;
+    this.ledgerService = ledgerService;
+
     this.didRegistry = this.configService.get("didRegistryApiUrl", {
       infer: true,
     });

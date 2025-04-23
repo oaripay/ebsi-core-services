@@ -51,14 +51,17 @@ export class JsonRpcService {
 
   private readonly didRegistry: string;
 
+  private readonly ledgerService: LedgerService;
+
   private readonly logger = new Logger(JsonRpcService.name);
 
   private readonly timeout: number;
 
   constructor(
     configService: ConfigService<ApiConfig, true>,
-    private ledgerService: LedgerService,
+    ledgerService: LedgerService,
   ) {
+    this.ledgerService = ledgerService;
     this.didRegistry = configService.get("didRegistryApiUrl", { infer: true });
     this.contractAddress = configService.get("contractAddr", { infer: true });
     this.contract = PolicyRegistry__factory.connect(this.contractAddress);

@@ -81,6 +81,8 @@ export class JsonRpcService {
 
   private readonly didRegistryApiUrl: string;
 
+  private readonly ledgerService: LedgerService;
+
   private readonly logger = new Logger(JsonRpcService.name);
 
   private requestAddIssuerProxySchema: ReturnType<
@@ -99,8 +101,9 @@ export class JsonRpcService {
 
   constructor(
     configService: ConfigService<ApiConfig, true>,
-    private ledgerService: LedgerService,
+    ledgerService: LedgerService,
   ) {
+    this.ledgerService = ledgerService;
     this.didRegistryApiUrl = configService.get("didRegistryApiUrl", {
       infer: true,
     });

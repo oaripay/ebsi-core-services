@@ -29,6 +29,7 @@
     "allowImportingTsExtensions": true,
     "rewriteRelativeImportExtensions": true,
     "verbatimModuleSyntax": true,
+    "erasableSyntaxOnly": true,
     "incremental": true,
     "outDir": "./dist",
     "baseUrl": "./"

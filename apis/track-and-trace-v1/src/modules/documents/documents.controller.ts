@@ -31,10 +31,16 @@ import {
 
 @Controller("/documents")
 export class DocumentsController {
+  private readonly documentsService: DocumentsService;
+  private readonly configService: ConfigService<ApiConfig, true>;
+
   constructor(
-    private documentsService: DocumentsService,
-    private configService: ConfigService<ApiConfig, true>,
-  ) {}
+    documentsService: DocumentsService,
+    configService: ConfigService<ApiConfig, true>,
+  ) {
+    this.documentsService = documentsService;
+    this.configService = configService;
+  }
 
   @Accepts("application/json")
   @Get("")

@@ -18,10 +18,16 @@ import { SubjectsService } from "./subjects.service.ts";
 
 @Controller("/subjects")
 export class SubjectsController {
+  private readonly subjectsService: SubjectsService;
+  private readonly configService: ConfigService<ApiConfig, true>;
+
   constructor(
-    private subjectsService: SubjectsService,
-    private configService: ConfigService<ApiConfig, true>,
-  ) {}
+    subjectsService: SubjectsService,
+    configService: ConfigService<ApiConfig, true>,
+  ) {
+    this.subjectsService = subjectsService;
+    this.configService = configService;
+  }
 
   @Accepts("application/json")
   @Get("")

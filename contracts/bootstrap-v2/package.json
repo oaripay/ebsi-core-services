@@ -25,7 +25,6 @@
   "devDependencies": {
     "@gnosis-guild/typechain-ethers-v6": "^0.5.5",
     "@gnosis-guild/typechain-hardhat": "^9.2.2",
-    "@nomicfoundation/hardhat-chai-matchers": "^2.0.8",
     "@nomicfoundation/hardhat-ethers": "^3.0.8",
     "@nomiclabs/hardhat-solhint": "^4.0.1",
     "@openzeppelin/hardhat-upgrades": "^3.9.0",
@@ -34,7 +33,7 @@
     "ethers": "^6.13.5",
     "hardhat": "^2.22.19",
     "hardhat-abi-exporter": "^2.10.1",
-    "solidity-coverage": "^0.8.14",
+    "solidity-coverage": "^0.8.15",
     "ts-node": "^10.9.2",
     "typechain": "^8.3.2"
   },

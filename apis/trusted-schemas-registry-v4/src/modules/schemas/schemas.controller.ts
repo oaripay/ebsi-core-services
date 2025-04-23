@@ -32,10 +32,16 @@ import { SchemasService } from "./schemas.service.ts";
 
 @Controller("/schemas")
 export class SchemasController {
+  private readonly schemasService: SchemasService;
+  private readonly configService: ConfigService<ApiConfig, true>;
+
   constructor(
-    private schemasService: SchemasService,
-    private configService: ConfigService<ApiConfig, true>,
-  ) {}
+    schemasService: SchemasService,
+    configService: ConfigService<ApiConfig, true>,
+  ) {
+    this.schemasService = schemasService;
+    this.configService = configService;
+  }
 
   @Accepts("application/json")
   @Get("")
