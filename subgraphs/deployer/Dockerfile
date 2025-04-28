@@ -31,6 +31,10 @@ COPY --from=builder /app/subgraphs/timestamp-v2 ./subgraphs/timestamp-v2
 COPY --from=builder /app/contracts/timestamp-v3 ./contracts/timestamp-v3
 # Copy Timestamp SC v3 subgraph
 COPY --from=builder /app/subgraphs/timestamp-v3 ./subgraphs/timestamp-v3
+# Copy TnT SC v1
+COPY --from=builder /app/contracts/track-and-trace ./contracts/track-and-trace
+# Copy TnT SC v1 subgraph
+COPY --from=builder /app/subgraphs/track-and-trace-v1 ./subgraphs/track-and-trace-v1
 # Copy TnT SC v2
 COPY --from=builder /app/contracts/track-and-trace-v2 ./contracts/track-and-trace-v2
 # Copy TnT SC v2 subgraph
