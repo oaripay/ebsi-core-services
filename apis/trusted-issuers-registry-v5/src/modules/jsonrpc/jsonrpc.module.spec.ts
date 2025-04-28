@@ -6,7 +6,13 @@ import type { GenerateKeyPairResult } from "jose";
 import type { MockInstance } from "vitest";
 
 import { createVerifiableCredentialJwt } from "@cef-ebsi/verifiable-credential";
-import { methodNotAllowed } from "@ebsiint-api/shared";
+import {
+  generatePrivateKey,
+  getPublicKeyJwk,
+  getSigner,
+  methodNotAllowed,
+} from "@ebsiint-api/shared";
+// eslint-disable-next-line import/namespace
 import * as StatusList2021CredentialHelpers from "@ebsiint-api/shared";
 import { Tir__factory } from "@ebsiint-sc/trusted-issuers-registry-v3";
 import { fastifyAccepts } from "@fastify/accepts";
@@ -74,7 +80,7 @@ function escapeDid(url: string) {
   return url.replace("did:ebsi:", String.raw`did\:ebsi\:`);
 }
 
-describe("JsonRpc Module", () => {
+describe("JSON-RPC Module", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault;
   let tirContract: Tir;
@@ -274,22 +280,18 @@ describe("JsonRpc Module", () => {
       .sign(authApiKeyPair.privateKey);
 
     // Generate proxy
-    const privateKey =
-      StatusList2021CredentialHelpers.generatePrivateKey("ES256K");
+    const privateKey = generatePrivateKey("ES256K");
     const {
       alg: publicKeyJwkAlg,
       kid: publicKeyJwkKid,
       ...publicKeyJwk
-    } = await StatusList2021CredentialHelpers.getPublicKeyJwk(
-      privateKey,
-      "ES256K",
-    );
+    } = await getPublicKeyJwk(privateKey, "ES256K");
 
     const issuer = {
       alg: "ES256K",
       did: issuers[0]!.did,
       kid: `${issuers[0]!.did}#keys-1`,
-      signer: StatusList2021CredentialHelpers.getSigner(privateKey, "ES256K"),
+      signer: getSigner(privateKey, "ES256K"),
     } satisfies EbsiIssuer;
 
     const ebsiEnvConfig = configService.get("ebsiEnvConfig", { infer: true });

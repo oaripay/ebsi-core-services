@@ -84,7 +84,7 @@ function escapeDid(url: string) {
   return url.replace("did:ebsi:", String.raw`did\:ebsi\:`);
 }
 
-describe("JsonRpc Module", () => {
+describe("JSON-RPC Module", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault;
   let trackAndTraceContract: TrackAndTrace;

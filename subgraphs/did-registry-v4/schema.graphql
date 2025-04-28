@@ -1,4 +1,4 @@
-type DidDocument @entity {
+type DidDocument @entity(immutable: false) {
   id: String!
   baseDocument: String!
   controllers: [ControllerRelationship!]!
@@ -9,14 +9,14 @@ type DidDocument @entity {
   events: [Event!]! @derivedFrom(field: "did")
 }
 
-type ControllerRelationship @entity {
+type ControllerRelationship @entity(immutable: false) {
   id: String!
   controller: DidDocument!
   controlledDocument: DidDocument!
   status: ControllerStatus!
 }
 
-type VerificationRelationship @entity {
+type VerificationRelationship @entity(immutable: false) {
   id: String!
   name: String!
   notBefore: BigInt!
@@ -25,7 +25,7 @@ type VerificationRelationship @entity {
   vMethodId: String!
 }
 
-type VerificationMethod @entity {
+type VerificationMethod @entity(immutable: false) {
   id: String!
   publicKey: Bytes!
   isSecp256k1: Boolean!
@@ -33,7 +33,7 @@ type VerificationMethod @entity {
   did: DidDocument!
 }
 
-type Event @entity {
+type Event @entity(immutable: false) {
   id: Bytes!
   signer: Bytes!
   blockNumber: BigInt!

@@ -99,7 +99,7 @@
     "@nomiclabs/hardhat-solhint": "^4.0.1",
     "@openzeppelin/hardhat-upgrades": "^3.9.0",
     "@types/elliptic": "^6.4.18",
-    "@types/node": "^22.13.10",
+    "@types/node": "^22.15.3",
     "canonicalize": "^2.0.0",
     "dotenv": "^16.5.0",
     "ethers": "^6.13.5",

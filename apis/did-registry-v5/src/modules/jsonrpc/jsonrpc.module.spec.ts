@@ -72,7 +72,7 @@ interface SupertestJsonRpcResponse {
   status: number;
 }
 
-describe("JsonRpc Module", () => {
+describe("JSON-RPC Module", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault;
   let configService: ConfigService<ApiConfig, true>;

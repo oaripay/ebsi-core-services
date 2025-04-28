@@ -9,7 +9,7 @@ import {
   test,
 } from "matchstick-as/assembly/index";
 
-import { Schema } from "../generated/schema";
+import { Revision, Schema } from "../generated/schema";
 import {
   InsertSchemaCall,
   UpdateMetadataCall,
@@ -20,13 +20,14 @@ import {
   handleUpdateMetadataCall,
   handleUpdateSchemaCall,
 } from "../src/mappings";
+import { assertArrayContainsAllValues } from "./utils";
 
 describe("Trusted Schemas Registry - entity assertions", () => {
   const schemaId = "0xfa01";
-  const revisionId1 = "0xba32";
+  const revision1Id = "0xba32";
   const schema1 = `{"$schema":"https://json-schema.org/d...`;
   const metadata1 = "{}";
-  const revisionId2 = "0xefa0";
+  const revision2Id = "0xefa0";
   const schema2 = `{"$schema":"https://json-schema.org/draft...`;
   const metadata2 = "{...}";
   const metadata3 = "{......}";
@@ -52,7 +53,7 @@ describe("Trusted Schemas Registry - entity assertions", () => {
     call.outputValues = [
       new ethereum.EventParam(
         "schemaRevisionId",
-        ethereum.Value.fromBytes(Bytes.fromHexString(revisionId1)),
+        ethereum.Value.fromBytes(Bytes.fromHexString(revision1Id)),
       ),
     ];
 
@@ -77,7 +78,7 @@ describe("Trusted Schemas Registry - entity assertions", () => {
     // Check schema revisions
     const revisions = schema.revisions.load();
     assert.i32Equals(1, revisions.length, "The schema should have 1 revision");
-    assert.bytesEquals(Bytes.fromHexString(revisionId1), revisions[0].id);
+    assert.bytesEquals(Bytes.fromHexString(revision1Id), revisions[0].id);
     assert.stringEquals(schema1, revisions[0].content);
 
     // Check revision metadata
@@ -107,7 +108,7 @@ describe("Trusted Schemas Registry - entity assertions", () => {
     call.outputValues = [
       new ethereum.EventParam(
         "schemaRevisionId",
-        ethereum.Value.fromBytes(Bytes.fromHexString(revisionId2)),
+        ethereum.Value.fromBytes(Bytes.fromHexString(revision2Id)),
       ),
     ];
 
@@ -127,10 +128,21 @@ describe("Trusted Schemas Registry - entity assertions", () => {
     const revisions = schema.revisions.load();
     assert.i32Equals(2, revisions.length, "The schema should have 2 revisions");
 
+    // We can't trust the order of the revisions, hence we can simply check that they're all included
+    const actualRevisionIds = revisions.map<string>((revision) =>
+      revision.id.toHexString(),
+    );
+    assertArrayContainsAllValues(
+      actualRevisionIds,
+      [revision1Id, revision2Id],
+      "Schema should contain the revisions [revision1Id, revision2Id]",
+    );
+
     // Check revision #1
-    assert.bytesEquals(Bytes.fromHexString(revisionId1), revisions[0].id);
-    assert.stringEquals(schema1, revisions[0].content);
-    const revision1Metadata = revisions[0].metadata.load();
+    const revision1 = Revision.load(Bytes.fromHexString(revision1Id));
+    if (!revision1) throw new Error("Revision not found");
+    assert.stringEquals(schema1, revision1.content);
+    const revision1Metadata = revision1.metadata.load();
     assert.i32Equals(
       1,
       revision1Metadata.length,
@@ -139,9 +151,10 @@ describe("Trusted Schemas Registry - entity assertions", () => {
     assert.stringEquals(metadata1, revision1Metadata[0].content);
 
     // Check revision #2
-    assert.bytesEquals(Bytes.fromHexString(revisionId2), revisions[1].id);
-    assert.stringEquals(schema2, revisions[1].content);
-    const revision2Metadata = revisions[1].metadata.load();
+    const revision2 = Revision.load(Bytes.fromHexString(revision2Id));
+    if (!revision2) throw new Error("Revision not found");
+    assert.stringEquals(schema2, revision2.content);
+    const revision2Metadata = revision2.metadata.load();
     assert.i32Equals(
       1,
       revision2Metadata.length,
@@ -156,7 +169,7 @@ describe("Trusted Schemas Registry - entity assertions", () => {
     call.inputValues = [
       new ethereum.EventParam(
         "schemaRevisionId",
-        ethereum.Value.fromBytes(Bytes.fromHexString(revisionId2)),
+        ethereum.Value.fromBytes(Bytes.fromHexString(revision2Id)),
       ),
       new ethereum.EventParam(
         "metadata",
@@ -177,9 +190,10 @@ describe("Trusted Schemas Registry - entity assertions", () => {
     assert.i32Equals(2, revisions.length, "The schema should have 2 revisions");
 
     // Check revision #1
-    assert.bytesEquals(Bytes.fromHexString(revisionId1), revisions[0].id);
-    assert.stringEquals(schema1, revisions[0].content);
-    const revision1Metadata = revisions[0].metadata.load();
+    const revision1 = Revision.load(Bytes.fromHexString(revision1Id));
+    if (!revision1) throw new Error("Revision not found");
+    assert.stringEquals(schema1, revision1.content);
+    const revision1Metadata = revision1.metadata.load();
     assert.i32Equals(
       1,
       revision1Metadata.length,
@@ -188,15 +202,24 @@ describe("Trusted Schemas Registry - entity assertions", () => {
     assert.stringEquals(metadata1, revision1Metadata[0].content);
 
     // Check revision #2
-    assert.bytesEquals(Bytes.fromHexString(revisionId2), revisions[1].id);
-    assert.stringEquals(schema2, revisions[1].content);
-    const revision2Metadata = revisions[1].metadata.load();
+    const revision2 = Revision.load(Bytes.fromHexString(revision2Id));
+    if (!revision2) throw new Error("Revision not found");
+    assert.stringEquals(schema2, revision2.content);
+    const revision2Metadata = revision2.metadata.load();
     assert.i32Equals(
       2,
       revision2Metadata.length,
       "The revision should have 2 metadata",
     );
-    assert.stringEquals(metadata2, revision2Metadata[0].content);
-    assert.stringEquals(metadata3, revision2Metadata[1].content);
+
+    // We can't trust the order of the metadata
+    const actualMetadataContents = revision2Metadata.map<string>(
+      (metadata) => metadata.content,
+    );
+    assertArrayContainsAllValues(
+      actualMetadataContents,
+      [metadata2, metadata3],
+      "Revision #2 should contain the metadata [metadata2, metadata3]",
+    );
   });
 });

@@ -1,8 +1,8 @@
 diff --git a/node_modules/@graphprotocol/graph-cli/dist/commands/test.js b/node_modules/@graphprotocol/graph-cli/dist/commands/test.js
-index c38dc3f..cab095e 100644
+index 179ec3b..d4d0819 100644
 --- a/node_modules/@graphprotocol/graph-cli/dist/commands/test.js
 +++ b/node_modules/@graphprotocol/graph-cli/dist/commands/test.js
-@@ -233,7 +233,7 @@ async function runDocker(datasource, opts) {
+@@ -252,7 +252,7 @@ async function runDocker(datasource, opts) {
          // Build the `docker run` command options and flags
          const dockerRunOpts = [
              'run',
@@ -11,7 +11,7 @@ index c38dc3f..cab095e 100644
              '--rm',
              '--mount',
              `type=bind,source=${current_folder},target=/matchstick`,
-@@ -259,14 +259,18 @@ async function runDocker(datasource, opts) {
+@@ -278,14 +278,18 @@ async function runDocker(datasource, opts) {
                  stdio: 'inherit',
              }).on('close', code => {
                  if (code === 0) {

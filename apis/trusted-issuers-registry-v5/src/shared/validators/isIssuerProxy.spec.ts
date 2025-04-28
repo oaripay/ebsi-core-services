@@ -1,5 +1,6 @@
 import type { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
 
+// eslint-disable-next-line import/namespace
 import * as SharedLib from "@ebsiint-api/shared";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";

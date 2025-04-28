@@ -1,16 +1,16 @@
-type Schema @entity {
+type Schema @entity(immutable: false) {
   id: Bytes!
   revisions: [Revision!]!
   lastRevision: Revision!
 }
 
-type Revision @entity {
+type Revision @entity(immutable: false) {
   id: Bytes!
   content: String!
   metadata: [Metadata!]!
 }
 
-type Metadata @entity {
+type Metadata @entity(immutable: false) {
   id: Bytes!
   content: String!
 }

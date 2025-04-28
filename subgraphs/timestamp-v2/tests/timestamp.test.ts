@@ -9,7 +9,12 @@ import {
   test,
 } from "matchstick-as";
 
-import { Record, RecordOwner, TimestampedHash } from "../generated/schema";
+import {
+  Record,
+  RecordOwner,
+  RecordVersion,
+  TimestampedHash,
+} from "../generated/schema";
 import {
   getRecordId,
   getVersionId,
@@ -23,6 +28,7 @@ import {
   handleTimestampVersionHashesCall,
 } from "../src/mappings";
 import {
+  assertArrayContainsAllValues,
   createAppendRecordVersionHashesCall,
   createDetachRecordVersionHashCall,
   createInsertRecordOwnerCall,
@@ -34,7 +40,7 @@ import {
   insertHashAlgorithm,
   timestampHashes,
   updateHashAlgorithm,
-} from "./timestamp-utils";
+} from "./utils";
 
 const defaultSender = "0xa16081f360e3847006db660bae1c6d1b2e17ec2a";
 const defaultTransactionHash = "0xa16081f360e3847006db660bae1c6d1b2e17ec2a";
@@ -351,27 +357,49 @@ describe("Timestamps and Records", () => {
 
     assert.i32Equals(2, versions.length, "Record should have 2 versions");
 
-    // Check first version
+    // We can't trust the order of the versions, hence we can simply check that they're all included
     const recordVersion1Id = getVersionId(recordId, 0);
-    assert.bytesEquals(recordVersion1Id, versions[0].id);
-    assert.bytesEquals(recordId, versions[0].record);
-    assert.bigIntEquals(BigInt.fromI32(0), versions[0].versionNumber);
-    assert.i32Equals(1, versions[0].infos.length, "Version should have 1 info");
-    assert.bytesEquals(Bytes.fromHexString("0xc23e"), versions[0].infos[0]);
+    const recordVersion2Id = getVersionId(recordId, 1);
+    const actualVersionIds = versions.map<string>((version) =>
+      version.id.toHexString(),
+    );
+    assertArrayContainsAllValues(
+      actualVersionIds,
+      [recordVersion1Id.toHexString(), recordVersion2Id.toHexString()],
+      "Record should contain the versions [recordVersion1Id, recordVersion2Id]",
+    );
+
+    // Check first version
+    const recordVersion1 = RecordVersion.load(recordVersion1Id);
+
+    if (!recordVersion1) {
+      throw new Error(
+        `RecordVersion ${recordVersion1Id.toHexString()} not found`,
+      );
+    }
+
+    assert.bytesEquals(recordId, recordVersion1.record);
+    assert.bigIntEquals(BigInt.fromI32(0), recordVersion1.versionNumber);
+    assert.i32Equals(
+      1,
+      recordVersion1.infos.length,
+      "Version should have 1 info",
+    );
+    assert.bytesEquals(Bytes.fromHexString("0xc23e"), recordVersion1.infos[0]);
 
     // Check timestamped hashes attached to the version
     assert.i32Equals(
       1,
-      versions[0].timestamps.length,
+      recordVersion1.timestamps.length,
       "Version should have 1 timestamped hash",
     );
 
     // Load timestamped hash
-    let timestampedHash = TimestampedHash.load(versions[0].timestamps[0]);
+    let timestampedHash = TimestampedHash.load(recordVersion1.timestamps[0]);
 
     if (!timestampedHash) {
       throw new Error(
-        `TimestampedHash ${versions[0].timestamps[0].toHexString()} not found`,
+        `TimestampedHash ${recordVersion1.timestamps[0].toHexString()} not found`,
       );
     }
 
@@ -402,26 +430,36 @@ describe("Timestamps and Records", () => {
     );
 
     // Check second version
-    const recordVersion2Id = getVersionId(recordId, 1);
-    assert.bytesEquals(recordVersion2Id, versions[1].id);
-    assert.bytesEquals(recordId, versions[1].record);
-    assert.bigIntEquals(BigInt.fromI32(1), versions[1].versionNumber);
-    assert.i32Equals(1, versions[1].infos.length, "Version should have 1 info");
-    assert.bytesEquals(Bytes.fromHexString("0xc23e"), versions[1].infos[0]);
+    const recordVersion2 = RecordVersion.load(recordVersion2Id);
+
+    if (!recordVersion2) {
+      throw new Error(
+        `RecordVersion ${recordVersion2Id.toHexString()} not found`,
+      );
+    }
+
+    assert.bytesEquals(recordId, recordVersion2.record);
+    assert.bigIntEquals(BigInt.fromI32(1), recordVersion2.versionNumber);
+    assert.i32Equals(
+      1,
+      recordVersion2.infos.length,
+      "Version should have 1 info",
+    );
+    assert.bytesEquals(Bytes.fromHexString("0xc23e"), recordVersion2.infos[0]);
 
     // Check timestamped hashes attached to the version
     assert.i32Equals(
       2,
-      versions[1].timestamps.length,
-      "Version should have 2 timestamped hash",
+      recordVersion2.timestamps.length,
+      "Version should have 2 timestamped hashes",
     );
 
     // Load timestamped hash #1
-    timestampedHash = TimestampedHash.load(versions[1].timestamps[0]);
+    timestampedHash = TimestampedHash.load(recordVersion2.timestamps[0]);
 
     if (!timestampedHash) {
       throw new Error(
-        `TimestampedHash ${versions[1].timestamps[0].toHexString()} not found`,
+        `TimestampedHash ${recordVersion2.timestamps[0].toHexString()} not found`,
       );
     }
 
@@ -452,11 +490,11 @@ describe("Timestamps and Records", () => {
     );
 
     // Load timestamped hash #2
-    timestampedHash = TimestampedHash.load(versions[1].timestamps[1]);
+    timestampedHash = TimestampedHash.load(recordVersion2.timestamps[1]);
 
     if (!timestampedHash) {
       throw new Error(
-        `TimestampedHash ${versions[1].timestamps[1].toHexString()} not found`,
+        `TimestampedHash ${recordVersion2.timestamps[1].toHexString()} not found`,
       );
     }
 
@@ -550,27 +588,49 @@ describe("Timestamps and Records", () => {
 
     assert.i32Equals(2, versions.length, "Record should have 2 versions");
 
-    // Check first version
+    // We can't trust the order of the versions, hence we can simply check that they're all included
     const recordVersion1Id = getVersionId(recordId, 0);
-    assert.bytesEquals(recordVersion1Id, versions[0].id);
-    assert.bytesEquals(recordId, versions[0].record);
-    assert.bigIntEquals(BigInt.fromI32(0), versions[0].versionNumber);
-    assert.i32Equals(1, versions[0].infos.length, "Version should have 1 info");
-    assert.bytesEquals(Bytes.fromHexString("0xc23e"), versions[0].infos[0]);
+    const recordVersion2Id = getVersionId(recordId, 1);
+    const actualVersionIds = versions.map<string>((version) =>
+      version.id.toHexString(),
+    );
+    assertArrayContainsAllValues(
+      actualVersionIds,
+      [recordVersion1Id.toHexString(), recordVersion2Id.toHexString()],
+      "Record should contain the versions [recordVersion1Id, recordVersion2Id]",
+    );
+
+    // Check first version
+    const recordVersion1 = RecordVersion.load(recordVersion1Id);
+
+    if (!recordVersion1) {
+      throw new Error(
+        `RecordVersion ${recordVersion1Id.toHexString()} not found`,
+      );
+    }
+    assert.bytesEquals(recordVersion1Id, recordVersion1.id);
+    assert.bytesEquals(recordId, recordVersion1.record);
+    assert.bigIntEquals(BigInt.fromI32(0), recordVersion1.versionNumber);
+    assert.i32Equals(
+      1,
+      recordVersion1.infos.length,
+      "Version should have 1 info",
+    );
+    assert.bytesEquals(Bytes.fromHexString("0xc23e"), recordVersion1.infos[0]);
 
     // Check timestamped hashes attached to the version
     assert.i32Equals(
       1,
-      versions[0].timestamps.length,
+      recordVersion1.timestamps.length,
       "Version should have 1 timestamped hash",
     );
 
     // Load timestamped hash
-    let timestampedHash = TimestampedHash.load(versions[0].timestamps[0]);
+    let timestampedHash = TimestampedHash.load(recordVersion1.timestamps[0]);
 
     if (!timestampedHash) {
       throw new Error(
-        `TimestampedHash ${versions[0].timestamps[0].toHexString()} not found`,
+        `TimestampedHash ${recordVersion1.timestamps[0].toHexString()} not found`,
       );
     }
 
@@ -601,26 +661,35 @@ describe("Timestamps and Records", () => {
     );
 
     // Check second version
-    const recordVersion2Id = getVersionId(recordId, 1);
-    assert.bytesEquals(recordVersion2Id, versions[1].id);
-    assert.bytesEquals(recordId, versions[1].record);
-    assert.bigIntEquals(BigInt.fromI32(1), versions[1].versionNumber);
-    assert.i32Equals(1, versions[1].infos.length, "Version should have 1 info");
-    assert.bytesEquals(Bytes.fromHexString("0xc23e"), versions[1].infos[0]);
+    const recordVersion2 = RecordVersion.load(recordVersion2Id);
+
+    if (!recordVersion2) {
+      throw new Error(
+        `RecordVersion ${recordVersion2Id.toHexString()} not found`,
+      );
+    }
+
+    assert.bigIntEquals(BigInt.fromI32(1), recordVersion2.versionNumber);
+    assert.i32Equals(
+      1,
+      recordVersion2.infos.length,
+      "Version should have 1 info",
+    );
+    assert.bytesEquals(Bytes.fromHexString("0xc23e"), recordVersion2.infos[0]);
 
     // Check timestamped hashes attached to the version
     assert.i32Equals(
       2,
-      versions[1].timestamps.length,
-      "Version should have 2 timestamped hash",
+      recordVersion2.timestamps.length,
+      "Version should have 2 timestamped hashes",
     );
 
     // Load timestamped hash #1
-    timestampedHash = TimestampedHash.load(versions[1].timestamps[0]);
+    timestampedHash = TimestampedHash.load(recordVersion2.timestamps[0]);
 
     if (!timestampedHash) {
       throw new Error(
-        `TimestampedHash ${versions[1].timestamps[0].toHexString()} not found`,
+        `TimestampedHash ${recordVersion2.timestamps[0].toHexString()} not found`,
       );
     }
 
@@ -651,11 +720,11 @@ describe("Timestamps and Records", () => {
     );
 
     // Load timestamped hash #2
-    timestampedHash = TimestampedHash.load(versions[1].timestamps[1]);
+    timestampedHash = TimestampedHash.load(recordVersion2.timestamps[1]);
 
     if (!timestampedHash) {
       throw new Error(
-        `TimestampedHash ${versions[1].timestamps[1].toHexString()} not found`,
+        `TimestampedHash ${recordVersion2.timestamps[1].toHexString()} not found`,
       );
     }
 
@@ -1101,13 +1170,25 @@ describe("Timestamps and Records", () => {
       throw new Error(`Record ${recordId.toHexString()} not found`);
     }
 
-    // Record should have 2 owner
+    // Record should have 2 owners
     let recordOwners = record.owners.load();
     assert.i32Equals(2, recordOwners.length);
 
-    // Load record owner #1
+    // We can't trust the order of the owners, hence we can simply check that they're all included
     const recordOwner1Id = recordId.concat(timestampRecordHashesCall.from);
-    assert.bytesEquals(recordOwner1Id, recordOwners[0].id);
+    const recordOwner2Id = recordId.concat(
+      Address.fromHexString(newRecordOwner),
+    );
+    const actualRecordOwnerIds = recordOwners.map<string>((recordOwner) =>
+      recordOwner.id.toHexString(),
+    );
+    assertArrayContainsAllValues(
+      actualRecordOwnerIds,
+      [recordOwner1Id.toHexString(), recordOwner2Id.toHexString()],
+      "Record should have the owners [recordOwner1Id, recordOwner2Id]",
+    );
+
+    // Load record owner #1
     const recordOwner1 = RecordOwner.load(recordOwner1Id);
 
     if (!recordOwner1) {
@@ -1129,10 +1210,6 @@ describe("Timestamps and Records", () => {
     );
 
     // Load record owner #2
-    const recordOwner2Id = recordId.concat(
-      Address.fromHexString(newRecordOwner),
-    );
-    assert.bytesEquals(recordOwner2Id, recordOwners[1].id);
     const recordOwner2 = RecordOwner.load(recordOwner2Id);
 
     if (!recordOwner2) {

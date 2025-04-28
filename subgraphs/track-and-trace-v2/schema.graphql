@@ -9,18 +9,18 @@ enum Permission {
   creator
 }
 
-type Creator @entity {
+type Creator @entity(immutable: false) {
   id: String!
   active: Boolean!
   documents: [Document!]!
 }
 
-type Operator @entity {
+type Operator @entity(immutable: false) {
   id: Bytes!
   invitations: [Invitation!]!
 }
 
-type Document @entity {
+type Document @entity(immutable: false) {
   id: Bytes!
   creator: String!
   timestamp: BigInt!
@@ -31,7 +31,7 @@ type Document @entity {
   invitations: [Invitation!]!
 }
 
-type Invitation @entity {
+type Invitation @entity(immutable: false) {
   id: String!
   document: Document!
   type: Permission!
@@ -40,7 +40,7 @@ type Invitation @entity {
   children: [Invitation!]!
 }
 
-type Event @entity {
+type Event @entity(immutable: false) {
   id: Bytes!
   externalHash: String!
   hash: Bytes!

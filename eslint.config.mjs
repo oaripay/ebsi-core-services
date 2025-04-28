@@ -303,8 +303,12 @@ export default tseslint.config(
 
       // Disable for of loop
       "unicorn/no-for-loop": "off",
+
       // Use ternary instead of logical operators
       "unicorn/prefer-logical-operator-over-ternary": "off",
+
+      // Allow calling Array#push() multiple times
+      "unicorn/prefer-single-call": "off",
 
       // Disable "Prefer the spread operator over `Array#concat(…)`"
       "unicorn/prefer-spread": "off",

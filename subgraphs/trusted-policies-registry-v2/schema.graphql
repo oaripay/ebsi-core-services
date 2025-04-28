@@ -1,11 +1,11 @@
-type Policy @entity {
+type Policy @entity(immutable: false) {
   id: String!
   policyName: String!
   description: String!
   status: Boolean!
 }
 
-type User @entity {
+type User @entity(immutable: false) {
   id: Bytes!
   attributes: [String!]!
 }

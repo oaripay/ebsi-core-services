@@ -1,4 +1,4 @@
-specVersion: 0.0.4
+specVersion: 1.2.0
 schema:
   file: ./schema.graphql
 dataSources:
@@ -12,13 +12,13 @@ dataSources:
       startBlock: {{ startBlock }}
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.6
+      apiVersion: 0.0.9
       language: wasm/assemblyscript
       entities:
         - DidDocument
-        - Controller
-        - VerificationMethod
+        - ControllerRelationship
         - VerificationRelationship
+        - VerificationMethod
         - Event
       abis:
         - name: DidRegistry
