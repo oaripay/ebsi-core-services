@@ -1,0 +1,55 @@
+enum Source {
+  block
+  external
+}
+
+enum Permission {
+  delegate
+  write
+  creator
+}
+
+type Creator @entity {
+  id: String!
+  active: Boolean!
+  documents: [Document!]! @derivedFrom(field: "creator")
+}
+
+type Operator @entity {
+  id: Bytes!
+  invitations: [Invitation!]! @derivedFrom(field: "subject")
+}
+
+type Document @entity {
+  id: Bytes!
+  creator: Creator!
+  timestamp: BigInt!
+  source: Source!
+  proof: Bytes!
+  metadata: String!
+  events: [Event!]! @derivedFrom(field: "document")
+  invitations: [Invitation!]! @derivedFrom(field: "document")
+}
+
+type Invitation @entity {
+  id: Bytes! # Set to document.id.concat(subject.id).concatI32(permission)
+  document: Document!
+  type: Permission!
+  grantedBy: Bytes!
+  subject: Operator!
+  parent: Invitation
+  children: [Invitation!]! @derivedFrom(field: "parent")
+}
+
+type Event @entity {
+  id: Bytes!
+  document: Document!
+  externalHash: String!
+  hash: Bytes!
+  timestamp: BigInt!
+  source: Source!
+  proof: Bytes!
+  sender: Bytes!
+  origin: String!
+  metadata: String!
+}

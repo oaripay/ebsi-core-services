@@ -1,0 +1,33 @@
+{
+  "private": true,
+  "name": "@ebsiint-subgraph/track-and-trace-v1",
+  "version": "0.0.0-rc.0",
+  "type": "module",
+  "license": "EUPL-1.2",
+  "scripts": {
+    "deploy": "node ./scripts/prepare.mjs && node ./scripts/deploy.mjs",
+    "lint": "eslint .",
+    "prepare": "cross-env NODE_ENV=test TNT_SC_V1_ADDRESS=0x5D4ee65803447c3E5A79BCd045FE4b6Bd068dFF7 TNT_SC_V1_START_BLOCK=10433488 node ./scripts/prepare.mjs && yarn graph codegen",
+    "test": "yarn graph test -d",
+    "test:unit": "yarn graph test -d"
+  },
+  "dependencies": {
+    "@ebsiint-sc/track-and-trace": "1.0.0-rc.5",
+    "@graphprotocol/graph-ts": "0.36.0"
+  },
+  "devDependencies": {
+    "@graphprotocol/graph-cli": "0.94.0",
+    "assemblyscript-json": "^1.1.0",
+    "execa": "^8.0.1",
+    "matchstick-as": "0.6.0"
+  },
+  "nx": {
+    "targets": {
+      "deploy": {
+        "dependsOn": [
+          "^build"
+        ]
+      }
+    }
+  }
+}
