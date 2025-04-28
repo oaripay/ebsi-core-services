@@ -4,7 +4,7 @@ enum HashAlgoStatus {
   revoked
 }
 
-type HashAlgo @entity {
+type HashAlgo @entity(immutable: false) {
   id: String!
   ianaName: String!
   multiHash: String!
@@ -13,7 +13,7 @@ type HashAlgo @entity {
   status: HashAlgoStatus!
 }
 
-type TimestampSet @entity {
+type TimestampSet @entity(immutable: false) {
   id: Bytes!
   creator: Bytes!
   blockNumber: BigInt!
@@ -25,12 +25,12 @@ type TimestampSet @entity {
   recordIdsFirstVersion: [Record!]!
 }
 
-type VersionInfo @entity {
+type VersionInfo @entity(immutable: false) {
   id: Bytes!
   content: Bytes!
 }
 
-type Version @entity {
+type Version @entity(immutable: false) {
   id: Bytes!
   recordId: Bytes!
   versionNumber: BigInt!
@@ -38,19 +38,19 @@ type Version @entity {
   infos: [VersionInfo!]!
 }
 
-type Owner @entity {
+type Owner @entity(immutable: false) {
   id: String!
   recordIds: [Record!]!
 }
 
-type OwnerRecord @entity {
+type OwnerRecord @entity(immutable: false) {
   id: String!
   address: String!
   notBefore: BigInt!
   notAfter: BigInt!
 }
 
-type Record @entity {
+type Record @entity(immutable: false) {
   id: Bytes!
   owners: [OwnerRecord!]!
   versions: [Version!]!

@@ -6,19 +6,19 @@ enum IssuerType {
   Revoked
 }
 
-type Issuer @entity {
+type Issuer @entity(immutable: false) {
   id: String!
   attributes: [Attribute!]!
   proxies: [Proxy!]!
 }
 
-type Attribute @entity {
+type Attribute @entity(immutable: false) {
   id: Bytes!
   revisions: [Revision!]!
   lastRevision: Revision!
 }
 
-type Revision @entity {
+type Revision @entity(immutable: false) {
   id: Bytes!
   data: String!
   issuerType: IssuerType!
@@ -26,12 +26,12 @@ type Revision @entity {
   rootTao: String!
 }
 
-type Proxy @entity {
+type Proxy @entity(immutable: false) {
   id: Bytes!
   data: String!
 }
 
-type Metadata @entity {
+type Metadata @entity(immutable: false) {
   id: Bytes!
   content: String!
 }

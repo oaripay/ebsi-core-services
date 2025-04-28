@@ -1,5 +1,5 @@
 import { BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts";
-import { newMockCall, newMockEvent } from "matchstick-as";
+import { assert, newMockCall, newMockEvent } from "matchstick-as";
 
 import {
   AddNewHashAlgo,
@@ -19,6 +19,16 @@ import {
   handleTimestampHashesCall,
   handleUpdateHashAlgoEvent,
 } from "../src/mappings";
+
+export function assertArrayContainsAllValues<T>(
+  array: T[],
+  values: T[],
+  message: string,
+): void {
+  for (let i = 0, k = values.length; i < k; ++i) {
+    assert.booleanEquals(true, array.includes(values[i]) as boolean, message);
+  }
+}
 
 export function createAddNewHashAlgoEvent(
   hashId: BigInt,

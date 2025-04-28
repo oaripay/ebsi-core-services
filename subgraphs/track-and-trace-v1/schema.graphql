@@ -9,18 +9,18 @@ enum Permission {
   creator
 }
 
-type Creator @entity {
+type Creator @entity(immutable: false) {
   id: String!
   active: Boolean!
   documents: [Document!]! @derivedFrom(field: "creator")
 }
 
-type Operator @entity {
+type Operator @entity(immutable: false) {
   id: Bytes!
   invitations: [Invitation!]! @derivedFrom(field: "subject")
 }
 
-type Document @entity {
+type Document @entity(immutable: false) {
   id: Bytes!
   creator: Creator!
   timestamp: BigInt!
@@ -31,7 +31,7 @@ type Document @entity {
   invitations: [Invitation!]! @derivedFrom(field: "document")
 }
 
-type Invitation @entity {
+type Invitation @entity(immutable: false) {
   id: Bytes! # Set to document.id.concat(subject.id).concatI32(permission)
   document: Document!
   type: Permission!
@@ -41,7 +41,7 @@ type Invitation @entity {
   children: [Invitation!]! @derivedFrom(field: "parent")
 }
 
-type Event @entity {
+type Event @entity(immutable: false) {
   id: Bytes!
   document: Document!
   externalHash: String!

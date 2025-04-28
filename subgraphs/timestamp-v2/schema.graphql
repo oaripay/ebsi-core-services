@@ -4,7 +4,7 @@ enum HashAlgorithmStatus {
   revoked
 }
 
-type HashAlgorithm @entity {
+type HashAlgorithm @entity(immutable: false) {
   id: String! # Auto-incremented ID emitted by the smart contract
   ianaName: String!
   multiHash: String!
@@ -13,7 +13,7 @@ type HashAlgorithm @entity {
   status: HashAlgorithmStatus!
 }
 
-type TimestampedHash @entity {
+type TimestampedHash @entity(immutable: false) {
   id: Bytes! # Set to `hashValue`
   hashValue: Bytes!
   hashAlgorithm: HashAlgorithm!
@@ -25,7 +25,7 @@ type TimestampedHash @entity {
   records: [Record!]! # Only useful in the context of timestampVersionHashes
 }
 
-type RecordVersion @entity {
+type RecordVersion @entity(immutable: false) {
   id: Bytes! # Set to `record.id.concat(versionNumber)`
   record: Record!
   versionNumber: BigInt!
@@ -33,7 +33,7 @@ type RecordVersion @entity {
   infos: [Bytes!]!
 }
 
-type RecordOwner @entity {
+type RecordOwner @entity(immutable: false) {
   id: Bytes! # Set to `record.id.concat(address)`
   address: Bytes!
   notBefore: BigInt!
@@ -41,7 +41,7 @@ type RecordOwner @entity {
   record: Record!
 }
 
-type Record @entity {
+type Record @entity(immutable: false) {
   id: Bytes! # Set to `from.concat(blockNumber).concat(hashValue)`
   owners: [RecordOwner!]! @derivedFrom(field: "record")
   versions: [RecordVersion!]! @derivedFrom(field: "record")

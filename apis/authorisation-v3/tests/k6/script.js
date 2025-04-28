@@ -1,6 +1,5 @@
 import { check, group } from "k6";
-// @ts-nocheck
-import http from "k6/http";
+import { get } from "k6/http";
 
 const BASE_URL = __ENV["BASE_URL"] ?? "http://0.0.0.0:3000";
 
@@ -17,7 +16,7 @@ export const options = {
 export default function loadTesting() {
   group("/authorisation/v3/.well-known/openid-configuration", () => {
     const url = `${BASE_URL}/authorisation/v3/.well-known/openid-configuration`;
-    const request = http.get(url);
+    const request = get(url);
     check(request, {
       Success: (r) => r.status === 200,
     });

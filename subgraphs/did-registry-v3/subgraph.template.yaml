@@ -1,4 +1,4 @@
-specVersion: 0.0.4
+specVersion: 1.2.0
 schema:
   file: ./schema.graphql
 dataSources:
@@ -16,6 +16,10 @@ dataSources:
       language: wasm/assemblyscript
       entities:
         - DidDocument
+        - ControllerRelationship
+        - VerificationRelationship
+        - VerificationMethod
+        - Event
       abis:
         - name: DidRegistry
           # prettier-ignore
