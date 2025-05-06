@@ -15,6 +15,7 @@
     "@ebsiint-subgraph/timestamp-v3": "^0.0.0-rc.2",
     "@ebsiint-subgraph/track-and-trace-v1": "^0.0.0-rc.0",
     "@ebsiint-subgraph/track-and-trace-v2": "^0.0.0-rc.2",
+    "@ebsiint-subgraph/trusted-issuers-registry-v3": "^0.0.0-rc.0",
     "@ebsiint-subgraph/trusted-issuers-registry-v4": "^0.0.0-rc.2",
     "@ebsiint-subgraph/trusted-policies-registry-v2": "^0.0.0-rc.0",
     "@ebsiint-subgraph/trusted-policies-registry-v3": "^0.0.0-rc.2",

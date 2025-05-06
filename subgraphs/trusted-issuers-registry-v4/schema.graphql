@@ -30,8 +30,3 @@ type Proxy @entity(immutable: false) {
   id: Bytes!
   data: String!
 }
-
-type Metadata @entity(immutable: false) {
-  id: Bytes!
-  content: String!
-}

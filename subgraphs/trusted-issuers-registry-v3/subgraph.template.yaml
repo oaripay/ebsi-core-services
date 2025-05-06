@@ -24,12 +24,13 @@ dataSources:
           # prettier-ignore
           file: {{ &abi }}
       eventHandlers:
-        - event: AttributeMetadataUpdated((string,bytes32,uint8,string,string),bytes32)
-          handler: handleAttributeMetadataUpdated
-        - event: AttributeDataUpdated((string,bytes32,uint8,string,string),bytes32,bytes)
-          handler: handleAttributeDataUpdated
-        - event: ProxyUpdated(string,bytes32,string)
-          handler: handleProxyUpdated
-        - event: ProxyRemoved(string,bytes32)
-          handler: handleProxyRemoved
-      file: ./src/trusted-issuers-registry.ts
+        - event: AddAttributeRevision(string,indexed bytes32,indexed bytes32,uint8)
+          handler: handleAddAttributeRevisionEvent
+        # Support old event name with typo (required on testnet)
+        - event: AddAtrributeRevision(string,indexed bytes32,indexed bytes32,uint8)
+          handler: handleAddAttributeRevisionEvent
+        - event: AddIssuerProxy(string,indexed bytes32)
+          handler: handleAddIssuerProxyEvent
+        - event: UpdateIssuerProxy(string,indexed bytes32)
+          handler: handleUpdateIssuerProxyEvent
+      file: ./src/mappings.ts

@@ -1,0 +1,35 @@
+enum IssuerType {
+  RootTAO
+  TAO
+  TI
+  Revoked
+}
+
+type Issuer @entity(immutable: true) {
+  id: String!
+  attributes: [Attribute!]! @derivedFrom(field: "issuer")
+  proxies: [Proxy!]! @derivedFrom(field: "issuer")
+}
+
+type Attribute @entity(immutable: false) {
+  id: Bytes!
+  issuer: Issuer!
+  revisions: [Revision!]! @derivedFrom(field: "attribute")
+  latestRevision: Revision!
+}
+
+type Revision @entity(immutable: true) {
+  id: Bytes!
+  attribute: Attribute!
+  body: String!
+  issuerType: IssuerType!
+  tao: String!
+  rootTao: String!
+  timestamp: BigInt!
+}
+
+type Proxy @entity(immutable: false) {
+  id: Bytes!
+  issuer: Issuer!
+  data: String!
+}

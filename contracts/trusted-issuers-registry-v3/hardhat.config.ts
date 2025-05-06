@@ -31,6 +31,7 @@ const config: HardhatUserConfig = {
     clear: true,
     flat: true,
     path: "./src/abi",
+    runOnCompile: true,
   },
   defaultNetwork: "hardhat",
   networks: {
