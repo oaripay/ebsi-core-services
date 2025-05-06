@@ -304,6 +304,9 @@ export default tseslint.config(
       // Disable for of loop
       "unicorn/no-for-loop": "off",
 
+      // Allow using null
+      "unicorn/no-null": "off",
+
       // Use ternary instead of logical operators
       "unicorn/prefer-logical-operator-over-ternary": "off",
 
