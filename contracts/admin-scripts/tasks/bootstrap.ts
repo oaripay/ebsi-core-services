@@ -1,9 +1,9 @@
 import { task } from "hardhat/config";
 
-import type { DidRegistry } from "@ebsiint-sc/did-registry-v4";
-import type { TrustedIssuersRegistry } from "@ebsiint-sc/trusted-issuers-registry-v4";
-import type { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry-v3";
-import type { TrustedSchemasRegistry } from "@ebsiint-sc/trusted-schemas-registry-v3";
+import type { DidRegistry } from "@ebsiint-sc/did-registry-v3";
+import type { Tir } from "@ebsiint-sc/trusted-issuers-registry-v3";
+import type { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry-v2";
+import type { SchemaSCRegistry } from "@ebsiint-sc/trusted-schemas-registry-v2";
 
 /* eslint-disable perfectionist/sort-imports */
 import schema1 from "@cef-ebsi/vcdm1.1-accreditation-schema";
@@ -134,11 +134,11 @@ task(
   const domain = process.env.EBSI_DOMAIN;
 
   if (
-    !process.env.TPR_SC_V3_ADDRESS ||
-    !process.env.DIDR_SC_V4_ADDRESS ||
-    !process.env.TIMESTAMP_SC_V3_ADDRESS ||
-    !process.env.TIR_SC_V4_ADDRESS ||
-    !process.env.TSR_SC_V3_ADDRESS
+    !process.env.TPR_SC_V2_ADDRESS ||
+    !process.env.DIDR_SC_V3_ADDRESS ||
+    !process.env.TIMESTAMP_SC_V2_ADDRESS ||
+    !process.env.TIR_SC_V3_ADDRESS ||
+    !process.env.TSR_SC_V2_ADDRESS
   ) {
     console.log("deploy contracts first");
     return;
@@ -187,14 +187,14 @@ task(
   const soSigner = soOp.connect(ethers.provider);
 
   const tprContract = (await ethers.getContractAt(
-    "contracts/trusted-policies-registry-v3/trusted-policies-registry/PolicyRegistry.sol:PolicyRegistry",
-    process.env.TPR_SC_V3_ADDRESS,
+    "contracts/trusted-policies-registry-v2/trusted-policies-registry/PolicyRegistry.sol:PolicyRegistry",
+    process.env.TPR_SC_V2_ADDRESS,
   )) as unknown as PolicyRegistry;
 
   // move admin to next signer
   const tprContractProxy = await ethers.getContractAt(
     "OwnedUpgradeabilityProxy",
-    process.env.TPR_SC_V3_ADDRESS,
+    process.env.TPR_SC_V2_ADDRESS,
   );
   if (
     (await tprContractProxy.admin()) === (await ethers.getSigners())[0].address
@@ -262,8 +262,8 @@ task(
   // Register DIDs for tprOp and SO in the did registry
 
   const didrContract = (await ethers.getContractAt(
-    "contracts/did-registry-v4/did-registry/DidRegistry.sol:DidRegistry",
-    process.env.DIDR_SC_V4_ADDRESS,
+    "contracts/did-registry-v3/did-registry/DidRegistry.sol:DidRegistry",
+    process.env.DIDR_SC_V3_ADDRESS,
   )) as unknown as DidRegistry;
 
   async function registerDidDocument(userData: UserData, signer: BaseWallet) {
@@ -343,7 +343,7 @@ task(
   console.log(`inserting hash algs in timestamp...`);
   const timestampContract = await ethers.getContractAt(
     "contracts/timestamp-v3/timestamp/Timestamp.sol:Timestamp",
-    process.env.TIMESTAMP_SC_V3_ADDRESS,
+    process.env.TIMESTAMP_SC_V2_ADDRESS,
     soSigner,
   );
 
@@ -372,10 +372,10 @@ task(
 
   // register SO as root tao in tir
   const tirContract = (await ethers.getContractAt(
-    "contracts/trusted-issuers-registry-v4/tir/TrustedIssuersRegistry.sol:TrustedIssuersRegistry",
-    process.env.TIR_SC_V4_ADDRESS,
+    "contracts/trusted-issuers-registry-v3/tir/Tir.sol:Tir",
+    process.env.TIR_SC_V3_ADDRESS,
     tprSigner,
-  )) as unknown as TrustedIssuersRegistry;
+  )) as unknown as Tir;
 
   async function registerUserAsSupportOffice(
     userData: UserData,
@@ -468,9 +468,9 @@ task(
 
   // register schemas
   const tsrContract = (await ethers.getContractAt(
-    "contracts/trusted-schemas-registry-v3/trusted-schemas-registry/TrustedSchemasRegistry.sol:TrustedSchemasRegistry",
-    process.env.TSR_SC_V3_ADDRESS,
-  )) as unknown as TrustedSchemasRegistry;
+    "contracts/trusted-schemas-registry-v2/trusted-schemas-registry/TrustedSchemasRegistry.sol:TrustedSchemasRegistry",
+    process.env.TSR_SC_V2_ADDRESS,
+  )) as unknown as SchemaSCRegistry;
   for (const { metadata, schema } of schemas) {
     try {
       await tsrContract

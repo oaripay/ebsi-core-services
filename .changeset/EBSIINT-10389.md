@@ -1,7 +1,6 @@
 ---
 "@ebsiint-api/timestamp-api-v3": patch
 "@ebsiint-api/timestamp-api-v4": patch
-"@ebsiint-api/timestamp-api-v5": patch
 "@ebsiint-api/shared": patch
 ---
 

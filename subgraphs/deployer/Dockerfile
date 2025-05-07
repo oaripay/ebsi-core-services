@@ -18,31 +18,19 @@ COPY --from=builder /app/package.json ./package.json
 # Copy contracts
 COPY --from=builder /app/contracts/bootstrap-v2 ./contracts/bootstrap-v2
 COPY --from=builder /app/contracts/did-registry-v3 ./contracts/did-registry-v3
-COPY --from=builder /app/contracts/did-registry-v4 ./contracts/did-registry-v4
 COPY --from=builder /app/contracts/timestamp-v2 ./contracts/timestamp-v2
-COPY --from=builder /app/contracts/timestamp-v3 ./contracts/timestamp-v3
 COPY --from=builder /app/contracts/track-and-trace ./contracts/track-and-trace
-COPY --from=builder /app/contracts/track-and-trace-v2 ./contracts/track-and-trace-v2
 COPY --from=builder /app/contracts/trusted-issuers-registry-v3 ./contracts/trusted-issuers-registry-v3
-COPY --from=builder /app/contracts/trusted-issuers-registry-v4 ./contracts/trusted-issuers-registry-v4
 COPY --from=builder /app/contracts/trusted-policies-registry-v2 ./contracts/trusted-policies-registry-v2
-COPY --from=builder /app/contracts/trusted-policies-registry-v3 ./contracts/trusted-policies-registry-v3
 COPY --from=builder /app/contracts/trusted-schemas-registry-v2 ./contracts/trusted-schemas-registry-v2
-COPY --from=builder /app/contracts/trusted-schemas-registry-v3 ./contracts/trusted-schemas-registry-v3
 
 # Copy subgraphs
 COPY --from=builder /app/subgraphs/did-registry-v3 ./subgraphs/did-registry-v3
-COPY --from=builder /app/subgraphs/did-registry-v4 ./subgraphs/did-registry-v4
 COPY --from=builder /app/subgraphs/timestamp-v2 ./subgraphs/timestamp-v2
-COPY --from=builder /app/subgraphs/timestamp-v3 ./subgraphs/timestamp-v3
 COPY --from=builder /app/subgraphs/track-and-trace-v1 ./subgraphs/track-and-trace-v1
-COPY --from=builder /app/subgraphs/track-and-trace-v2 ./subgraphs/track-and-trace-v2
 COPY --from=builder /app/subgraphs/trusted-issuers-registry-v3 ./subgraphs/trusted-issuers-registry-v3
-COPY --from=builder /app/subgraphs/trusted-issuers-registry-v4 ./subgraphs/trusted-issuers-registry-v4
 COPY --from=builder /app/subgraphs/trusted-policies-registry-v2 ./subgraphs/trusted-policies-registry-v2
-COPY --from=builder /app/subgraphs/trusted-policies-registry-v3 ./subgraphs/trusted-policies-registry-v3
 COPY --from=builder /app/subgraphs/trusted-schemas-registry-v2 ./subgraphs/trusted-schemas-registry-v2
-COPY --from=builder /app/subgraphs/trusted-schemas-registry-v3 ./subgraphs/trusted-schemas-registry-v3
 
 # Install all the dependencies
 RUN --mount=type=cache,target=/app/.yarn-cache YARN_CACHE_FOLDER=/app/.yarn-cache yarn install --frozen-lockfile --silent

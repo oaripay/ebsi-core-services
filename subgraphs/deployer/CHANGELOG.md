@@ -8,9 +8,3 @@
 - [319b62b1ff7ba0b9ed295b5dfd083339a2706532](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/319b62b1ff7ba0b9ed295b5dfd083339a2706532): Bump dependencies and update Node.js to v22.
 - [cc207c5d7adfa0843ff285edee10347283d5acff](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/cc207c5d7adfa0843ff285edee10347283d5acff): Update Node.js to v22.13.1 and bump dependencies.
 - Updated dependencies [cc207c5d7adfa0843ff285edee10347283d5acff](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/cc207c5d7adfa0843ff285edee10347283d5acff)
-  - @ebsiint-subgraph/did-registry-v4@0.0.0-rc.2
-  - @ebsiint-subgraph/timestamp-v3@0.0.0-rc.2
-  - @ebsiint-subgraph/track-and-trace-v2@0.0.0-rc.2
-  - @ebsiint-subgraph/trusted-issuers-registry-v4@0.0.0-rc.2
-  - @ebsiint-subgraph/trusted-policies-registry-v3@0.0.0-rc.2
-  - @ebsiint-subgraph/trusted-schemas-registry-v3@0.0.0-rc.2
