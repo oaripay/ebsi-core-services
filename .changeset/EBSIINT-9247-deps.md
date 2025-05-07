@@ -18,7 +18,6 @@
 "@ebsiint-api/trusted-apps-registry-api-v3": patch
 "@ebsiint-sc/did-registry-v2": patch
 "@ebsiint-sc/did-registry-v3": patch
-"@ebsiint-sc/did-registry-v4": patch
 "@ebsiint-sc/track-and-trace": patch
 "@ebsiint-api/track-and-trace-api-v1": patch
 "@ebsiint-sc/admin-scripts": patch

@@ -55,9 +55,9 @@ tsrRegistry=`echo $output | grep -o '\b0x[a-fA-F0-9]\{40\}\b' | tail -1`
 
 
 # output
-echo "DIDR_SC_V4_ADDRESS=$DIDRegistryProxy" >> deployments.env
-echo "TIMESTAMP_SC_V3_ADDRESS=$TimestampProxy" >> deployments.env
+echo "DIDR_SC_V3_ADDRESS=$DIDRegistryProxy" >> deployments.env
+echo "TIMESTAMP_SC_V2_ADDRESS=$TimestampProxy" >> deployments.env
 echo "TNT_SC_V2_ADDRESS=$TrackAndTraceProxy" >> deployments.env
-echo "TIR_SC_V4_ADDRESS=$tirRegistry" >> deployments.env
-echo "TPR_SC_V3_ADDRESS=$tprProxy" >> deployments.env
-echo "TSR_SC_V3_ADDRESS=$tsrRegistry" >> deployments.env
+echo "TIR_SC_V3_ADDRESS=$tirRegistry" >> deployments.env
+echo "TPR_SC_V2_ADDRESS=$tprProxy" >> deployments.env
+echo "TSR_SC_V2_ADDRESS=$tsrRegistry" >> deployments.env
