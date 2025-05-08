@@ -26,7 +26,7 @@ Ensure correct `.env.default.local` file for the specific service you will be wo
 
 ### Prerequisites
 
-Please read [the main documentation](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/browse/README.md) first.
+Please read [the main documentation](../README.md) first.
 
 ### Run a project locally
 
@@ -90,7 +90,7 @@ yarn nx lint:tsc {service-name}
 
 ## Testing
 
-Reminder: you need to set `TEST_APP_NAME`, `TEST_APP_PRIVATE_KEY`, `TEST_CLIENT_DID`, `TEST_CLIENT_KID_ES256K`, `TEST_CLIENT_KID_ES256`, `TEST_CLIENT_KID_RS256`, `TEST_CLIENT_KID_EDDSA`, and `TEST_CLIENT_PRIVATE_KEY` (preferably in `.env.test.local`) before running the e2e tests!
+Reminder: you need to set the environment variables before running the e2e tests!
 
 Run all the tests:
 

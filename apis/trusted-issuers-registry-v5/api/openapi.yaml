@@ -411,7 +411,7 @@ paths:
                     self: https://api-pilot.ebsi.eu/trusted-issuers-registry/v5/issuers/did:ebsi:zZeKyEJfUTGwajhNyNX928z/attributes/447867bafab4c4ad26d4f4650e2390f92a831b6343b7c36ecb7c51fee336fa14/revisions?page[after]=1&page[size]=10
                     items:
                       - hash: cf89e47e260eda53bb199096ca97347790c84d2c8a5f2ce3f411eaba14d0003e
-                        body:
+                        body: ""
                         issuerType: RootTAO
                         tao: did:ebsi:zZeKyEJfUTGwajhNyNX928z
                         rootTao: did:ebsi:zZeKyEJfUTGwajhNyNX928z
@@ -421,7 +421,7 @@ paths:
                         tao: did:ebsi:zZeKyEJfUTGwajhNyNX928z
                         rootTao: did:ebsi:zZeKyEJfUTGwajhNyNX928z
                       - hash: 314b372250375b81f5e386df243e44adb3e4de7ef31dd84fa25e93346de99eab
-                        body:
+                        body: ""
                         issuerType: RootTAO
                         tao: did:ebsi:zZeKyEJfUTGwajhNyNX928z
                         rootTao: did:ebsi:zZeKyEJfUTGwajhNyNX928z
@@ -595,13 +595,14 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/attributeDetails"
+                $ref: "#/components/schemas/proxy"
               examples:
                 Success:
                   value:
-                    prefix: https://root-tao.ebsi.eu/root-tao/v1
+                    prefix: https://example.com
                     headers:
-                    testSuffix: /credentials/status/1
+                      authorization: Bearer 6e9b01cb7b2a269be20aaebc17657d7d
+                    testSuffix: /creds/1
         "400":
           description: Bad Request
           content:
@@ -1033,12 +1034,16 @@ components:
           type: string
           description: sha256 hash of the payload
         body:
+          type: string
           description: Base64 encoded content
         issuerType:
+          type: string
           description: RootTAO, TAO, TI, Revoked or Undefined
         tao:
+          type: string
           description: Trusted Accredited Organization that accredited the insertion of the attribute
         rootTao:
+          type: string
           description: Root chain of accreditations
     attributeDetails:
       title: Attribute details
@@ -1050,6 +1055,24 @@ components:
           description: DID of the attribute owner
         attribute:
           $ref: "#/components/schemas/attribute"
+    proxy:
+      title: Attribute
+      type: object
+      description: Attribute object.
+      properties:
+        headers:
+          type: object
+          description: Custom headers to be sent with the request
+          example:
+            authorization: Bearer 6e9b01cb7b2a269be20aaebc17657d7d
+        prefix:
+          type: string
+          description: Actual URI to which the request will be sent
+          example: https://example.com
+        testSuffix:
+          type: string
+          description: Suffix to be used when testing the proxy
+          example: /creds/1
   examples:
     BadRequest:
       value:

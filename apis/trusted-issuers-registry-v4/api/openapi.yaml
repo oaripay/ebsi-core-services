@@ -567,7 +567,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/attributeDetails"
+                $ref: "#/components/schemas/proxy"
               examples:
                 Success:
                   value:
@@ -1070,12 +1070,16 @@ components:
           type: string
           description: sha256 hash of the payload
         body:
+          type: string
           description: Base64 encoded content
         issuerType:
+          type: string
           description: RootTAO, TAO, TI, Revoked or Undefined
         tao:
+          type: string
           description: Trusted Accredited Organization that accredited the insertion of the attribute
         rootTao:
+          type: string
           description: Root chain of accreditations
     attributeDetails:
       title: Attribute details
@@ -1087,6 +1091,22 @@ components:
           description: DID of the attribute owner
         attribute:
           $ref: "#/components/schemas/attribute"
+    proxy:
+      title: Attribute
+      type: object
+      description: Attribute object.
+      properties:
+        headers:
+          type: object
+          description: Custom headers to be sent with the request
+        prefix:
+          type: string
+          description: Actual URI to which the request will be sent
+          example: https://root-tao.ebsi.eu/root-tao/v1
+        testSuffix:
+          type: string
+          description: Suffix to be used when testing the proxy
+          example: /credentials/status/1
   examples:
     BadRequest:
       value:

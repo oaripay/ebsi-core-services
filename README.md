@@ -73,8 +73,6 @@ When working on a PR, run `yarn changeset add` to create a new changeset file, o
 
 When creating a new release, run `yarn changeset version`, open a PR, and merge it.
 
-For details on changesets please see [this excellent evaluation](https://ec.europa.eu/digital-building-blocks/tracker/browse/EBSIINT-4611).
-
 ## Auditing the dependencies
 
 Using [audit-ci](https://github.com/IBM/audit-ci) (this is the one we run during CI):

@@ -67,8 +67,6 @@ export const ApiConfigModule = ConfigModule.forRoot({
       .valid("development", "production", "test")
       .default("development"),
     REQUEST_TIMEOUT: Joi.string(),
-    TEST_APP_NAME: Joi.string(),
-    TEST_APP_PRIVATE_KEY: Joi.string(),
     TEST_ENV: Joi.string(),
     TEST_SPECIFIC_NODE_DOMAIN: Joi.string().uri(),
     // Generic variables
