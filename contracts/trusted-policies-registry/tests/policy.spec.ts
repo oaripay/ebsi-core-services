@@ -1,6 +1,7 @@
 import { ethers } from "hardhat";
 
-import type { Result, Signer } from "ethers";
+import type { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
+import type { Result } from "ethers";
 
 import { expect } from "chai";
 
@@ -66,7 +67,7 @@ describe("Policy", () => {
     },
   ];
 
-  let addr1: Signer;
+  let addr1: HardhatEthersSigner;
   const OPERATOR_ROLE =
     "0x97667070c54ef182b0f5858b034beac1b6f3089aa2d3188bb1e8929f4fa9b929";
 

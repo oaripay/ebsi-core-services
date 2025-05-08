@@ -1,5 +1,7 @@
 import { task } from "hardhat/config";
 
+import type { Signer } from "ethers";
+
 import type { Timestamp } from "../src/types";
 
 // follows ETH/BTC's BIP 39 protocol
@@ -13,7 +15,7 @@ task(
     const ts = (await ethers.getContractAt(
       taskArgs.contract,
       taskArgs.proxy,
-      admin,
+      admin as unknown as Signer,
     )) as unknown as Timestamp;
 
     console.log(
@@ -24,31 +26,31 @@ task(
     console.log(initialVersion);
     console.log("initialVersion:", initialVersion.toString());
     /**
-   * SHA-256	1	256 bits	SHA-256	2.16.840.1.101.3.4.2.1
-   https://www.iana.org/assignments/named-information/named-information.xhtml
-   http://oid-info.com/cgi-bin/display?oid=2.16.840.1.101.3.4.2.1&action=display
-   SHA-256-12	2	12 bits	SHA-256-12
-
-   SHA-256-120	3	120 bits	SHA-256-120
-
-   SHA-256-96	4	96 bits	SHA-256-96
-
-   SHA-256-64	5	64 bits	SHA-256-64
-
-   SHA-256-32	6	32 bits	SHA-256-32
-
-   SHA-384	7
-   384 bits
-
-   SHA-384	2.16.840.1.101.3.4.2.2
-   SHA-512	8	512 bits	SHA-512	2.16.840.1.101.3.4.2.3
-   SHA3-224	9	224 bits	SHA3-224	2.16.840.1.101.3.4.2.7
-   SHA3-256	10	256 bits	SHA3-256	2.16.840.1.101.3.4.2.8
-   SHA3-384	11	384 bis	SHA3-384	2.16.840.1.101.3.4.2.9
-   SHA3-512	12	512 bits	SHA3-512	2.16.840.1.101.3.4.2.10
-   https://www.iana.org/assignments/named-information/named-information.xhtml
-   http://oid-info.com/get/2.16.840.1.101.3.4.2.10
-   */
+     * SHA-256	1	256 bits	SHA-256	2.16.840.1.101.3.4.2.1
+     * https://www.iana.org/assignments/named-information/named-information.xhtml
+     * http://oid-info.com/cgi-bin/display?oid=2.16.840.1.101.3.4.2.1&action=display
+     * SHA-256-12	2	12 bits	SHA-256-12
+     *
+     * SHA-256-120	3	120 bits	SHA-256-120
+     *
+     * SHA-256-96	4	96 bits	SHA-256-96
+     *
+     * SHA-256-64	5	64 bits	SHA-256-64
+     *
+     * SHA-256-32	6	32 bits	SHA-256-32
+     *
+     * SHA-384	7
+     * 384 bits
+     *
+     * SHA-384	2.16.840.1.101.3.4.2.2
+     * SHA-512	8	512 bits	SHA-512	2.16.840.1.101.3.4.2.3
+     * SHA3-224	9	224 bits	SHA3-224	2.16.840.1.101.3.4.2.7
+     * SHA3-256	10	256 bits	SHA3-256	2.16.840.1.101.3.4.2.8
+     * SHA3-384	11	384 bis	SHA3-384	2.16.840.1.101.3.4.2.9
+     * SHA3-512	12	512 bits	SHA3-512	2.16.840.1.101.3.4.2.10
+     * https://www.iana.org/assignments/named-information/named-information.xhtml
+     * http://oid-info.com/get/2.16.840.1.101.3.4.2.10
+     */
     // add hashAlgo
     console.log("alg sha256");
     try {

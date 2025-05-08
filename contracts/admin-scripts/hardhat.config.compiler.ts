@@ -1,7 +1,6 @@
 import type { HardhatUserConfig } from "hardhat/config";
 
 import type { TypechainUserConfig } from "@gnosis-guild/typechain-hardhat/dist/types";
-import type { AbiExporterUserConfig } from "hardhat-abi-exporter";
 
 import "@nomiclabs/hardhat-solhint";
 import "@gnosis-guild/typechain-hardhat";
@@ -14,7 +13,6 @@ import "hardhat-abi-exporter";
 // when running yarn test
 
 const config: HardhatUserConfig & {
-  abiExporter: AbiExporterUserConfig;
   namedAccounts?: Record<
     string,
     number | Record<string, null | number | string> | string

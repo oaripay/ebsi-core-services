@@ -1284,7 +1284,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 ========================================================================================
-- ethers@^6.13.7
+- ethers@^6.14.0
 ------------------------------
 This project is licensed under MIT.
 
