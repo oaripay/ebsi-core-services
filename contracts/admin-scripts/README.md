@@ -92,7 +92,7 @@ Copy the address of the proxy and use it to deploy the implementation:
 yarn hardhat --network test initProxy --proxy PROXY_ADDRESS_TPR --implementation PolicyRegistryV2
 ```
 
-Grant the role operator to some addresses. This operator will have the right to insert data (policies and users) in this registry (see [test-scripts](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/test-scripts/browse/scripts/bootstrap)):
+Grant the role operator to some addresses. This operator will have the right to insert data (policies and users) in this registry (see the [CLI bootstrap script](https://code.europa.eu/ebsi/public/cli/-/tree/main/src/scripts/bootstrap)):
 
 ```sh
 yarn hardhat --network test grantRole --proxy PROXY_ADDRESS_TPR --operator OPERATOR_ADDRESS

@@ -12,15 +12,6 @@ It enables consumers to interact with the DID Registry Smart Contract to:
 - Resolve a DID (and obtain a DID document)
 - Resolve a version of a DID document at a certain point in time
 
-For more information, see:
-
-- [Technical Specifications](https://ec.europa.eu/digital-building-blocks/wikis/x/MYiWFQ)
-- [DID Registry Smart Contract Technical Specifications](https://ec.europa.eu/digital-building-blocks/wikis/x/AofkFQ)
-- [DID Registry v2 Smart Contract](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/browse/contracts/did-registry-v2)
-- API catalogs:
-  - [EBSI Pilot network API Catalog](https://api-pilot.ebsi.eu/docs/apis)
-  - [EBSI Conformance network API Catalog](https://api-conformance.ebsi.eu/docs/apis)
-
 ## Service configuration
 
 Create a `.env.default.local` file locally. You can duplicate the content of `.env.default` or only set the necessary variables.

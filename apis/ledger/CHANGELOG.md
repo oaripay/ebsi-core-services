@@ -4,215 +4,215 @@
 
 ### Minor Changes
 
-- [8e3c158d3672b3418417ab49704e075414c62691](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/8e3c158d3672b3418417ab49704e075414c62691): Support batch requests for Besu.
+- [8e3c158d3672b3418417ab49704e075414c62691](https://code.europa.eu/ebsi/public/core-services/-/commit/8e3c158d3672b3418417ab49704e075414c62691): Support batch requests for Besu.
 
 ### Patch Changes
 
-- [41adeeb787055864668f26a1a09ab33276e68597](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/41adeeb787055864668f26a1a09ab33276e68597): Improve Axios errors logging.
-- [14279f52a0c8955c61db5a3940a79a614e2712d1](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/14279f52a0c8955c61db5a3940a79a614e2712d1): Return error 405 when the HTTP method is not allowed.
+- [41adeeb787055864668f26a1a09ab33276e68597](https://code.europa.eu/ebsi/public/core-services/-/commit/41adeeb787055864668f26a1a09ab33276e68597): Improve Axios errors logging.
+- [14279f52a0c8955c61db5a3940a79a614e2712d1](https://code.europa.eu/ebsi/public/core-services/-/commit/14279f52a0c8955c61db5a3940a79a614e2712d1): Return error 405 when the HTTP method is not allowed.
   Return error 406 when the `Accept` header is not supported by the endpoint.
-- [1a655b05daf57a3ef3d91f87c634c543d3736ea8](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/1a655b05daf57a3ef3d91f87c634c543d3736ea8): Bump dependencies, update Node.js to v20.18.0.
-- [41e25b0dccbb5b40dbb201641611cbda585df050](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/41e25b0dccbb5b40dbb201641611cbda585df050): Return error 405 when the HTTP method is not allowed.
+- [1a655b05daf57a3ef3d91f87c634c543d3736ea8](https://code.europa.eu/ebsi/public/core-services/-/commit/1a655b05daf57a3ef3d91f87c634c543d3736ea8): Bump dependencies, update Node.js to v20.18.0.
+- [41e25b0dccbb5b40dbb201641611cbda585df050](https://code.europa.eu/ebsi/public/core-services/-/commit/41e25b0dccbb5b40dbb201641611cbda585df050): Return error 405 when the HTTP method is not allowed.
   Return error 406 when the `Accept` header is not supported by the endpoint.
-- [319b62b1ff7ba0b9ed295b5dfd083339a2706532](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/319b62b1ff7ba0b9ed295b5dfd083339a2706532): Bump dependencies and update Node.js to v22.
-- [6dcd58e4abc78ddf0a544865a487246d12ebbb73](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/6dcd58e4abc78ddf0a544865a487246d12ebbb73): Bump dependencies.
-- [559f4decb4e3e8fd53fc34f169c3c324997e285d](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/559f4decb4e3e8fd53fc34f169c3c324997e285d): Update VC and VP libraries and refactor API configuration.
-- [7e42f8c84a70118162ed118c60250bdbcd0ae022](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/7e42f8c84a70118162ed118c60250bdbcd0ae022): Handle WebSockets errors.
-- [f45aed61262eb6d4033e9cf62fee067f7f2c3773](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/f45aed61262eb6d4033e9cf62fee067f7f2c3773): Update Core Libs.
-- [cc207c5d7adfa0843ff285edee10347283d5acff](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/cc207c5d7adfa0843ff285edee10347283d5acff): Update Node.js to v22.13.1 and bump dependencies.
-- [3b4ad1dc4f039c54ec79787bf717ffc83c33691f](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/3b4ad1dc4f039c54ec79787bf717ffc83c33691f): Update ethers.js to v6.
-- Updated dependencies [41adeeb787055864668f26a1a09ab33276e68597](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/41adeeb787055864668f26a1a09ab33276e68597)
-- Updated dependencies [14279f52a0c8955c61db5a3940a79a614e2712d1](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/14279f52a0c8955c61db5a3940a79a614e2712d1)
-- Updated dependencies [41e25b0dccbb5b40dbb201641611cbda585df050](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/41e25b0dccbb5b40dbb201641611cbda585df050)
-- Updated dependencies [319b62b1ff7ba0b9ed295b5dfd083339a2706532](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/319b62b1ff7ba0b9ed295b5dfd083339a2706532)
-- Updated dependencies [6dcd58e4abc78ddf0a544865a487246d12ebbb73](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/6dcd58e4abc78ddf0a544865a487246d12ebbb73)
-- Updated dependencies [559f4decb4e3e8fd53fc34f169c3c324997e285d](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/559f4decb4e3e8fd53fc34f169c3c324997e285d)
-- Updated dependencies [7e42f8c84a70118162ed118c60250bdbcd0ae022](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/7e42f8c84a70118162ed118c60250bdbcd0ae022)
-- Updated dependencies [f45aed61262eb6d4033e9cf62fee067f7f2c3773](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/f45aed61262eb6d4033e9cf62fee067f7f2c3773)
-- Updated dependencies [cc207c5d7adfa0843ff285edee10347283d5acff](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/cc207c5d7adfa0843ff285edee10347283d5acff)
-- Updated dependencies [3849b3d0a244d5385671ce8afa618f53bbddf35a](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/3849b3d0a244d5385671ce8afa618f53bbddf35a)
-- Updated dependencies [3b4ad1dc4f039c54ec79787bf717ffc83c33691f](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/3b4ad1dc4f039c54ec79787bf717ffc83c33691f)
+- [319b62b1ff7ba0b9ed295b5dfd083339a2706532](https://code.europa.eu/ebsi/public/core-services/-/commit/319b62b1ff7ba0b9ed295b5dfd083339a2706532): Bump dependencies and update Node.js to v22.
+- [6dcd58e4abc78ddf0a544865a487246d12ebbb73](https://code.europa.eu/ebsi/public/core-services/-/commit/6dcd58e4abc78ddf0a544865a487246d12ebbb73): Bump dependencies.
+- [559f4decb4e3e8fd53fc34f169c3c324997e285d](https://code.europa.eu/ebsi/public/core-services/-/commit/559f4decb4e3e8fd53fc34f169c3c324997e285d): Update VC and VP libraries and refactor API configuration.
+- [7e42f8c84a70118162ed118c60250bdbcd0ae022](https://code.europa.eu/ebsi/public/core-services/-/commit/7e42f8c84a70118162ed118c60250bdbcd0ae022): Handle WebSockets errors.
+- [f45aed61262eb6d4033e9cf62fee067f7f2c3773](https://code.europa.eu/ebsi/public/core-services/-/commit/f45aed61262eb6d4033e9cf62fee067f7f2c3773): Update Core Libs.
+- [cc207c5d7adfa0843ff285edee10347283d5acff](https://code.europa.eu/ebsi/public/core-services/-/commit/cc207c5d7adfa0843ff285edee10347283d5acff): Update Node.js to v22.13.1 and bump dependencies.
+- [3b4ad1dc4f039c54ec79787bf717ffc83c33691f](https://code.europa.eu/ebsi/public/core-services/-/commit/3b4ad1dc4f039c54ec79787bf717ffc83c33691f): Update ethers.js to v6.
+- Updated dependencies [41adeeb787055864668f26a1a09ab33276e68597](https://code.europa.eu/ebsi/public/core-services/-/commit/41adeeb787055864668f26a1a09ab33276e68597)
+- Updated dependencies [14279f52a0c8955c61db5a3940a79a614e2712d1](https://code.europa.eu/ebsi/public/core-services/-/commit/14279f52a0c8955c61db5a3940a79a614e2712d1)
+- Updated dependencies [41e25b0dccbb5b40dbb201641611cbda585df050](https://code.europa.eu/ebsi/public/core-services/-/commit/41e25b0dccbb5b40dbb201641611cbda585df050)
+- Updated dependencies [319b62b1ff7ba0b9ed295b5dfd083339a2706532](https://code.europa.eu/ebsi/public/core-services/-/commit/319b62b1ff7ba0b9ed295b5dfd083339a2706532)
+- Updated dependencies [6dcd58e4abc78ddf0a544865a487246d12ebbb73](https://code.europa.eu/ebsi/public/core-services/-/commit/6dcd58e4abc78ddf0a544865a487246d12ebbb73)
+- Updated dependencies [559f4decb4e3e8fd53fc34f169c3c324997e285d](https://code.europa.eu/ebsi/public/core-services/-/commit/559f4decb4e3e8fd53fc34f169c3c324997e285d)
+- Updated dependencies [7e42f8c84a70118162ed118c60250bdbcd0ae022](https://code.europa.eu/ebsi/public/core-services/-/commit/7e42f8c84a70118162ed118c60250bdbcd0ae022)
+- Updated dependencies [f45aed61262eb6d4033e9cf62fee067f7f2c3773](https://code.europa.eu/ebsi/public/core-services/-/commit/f45aed61262eb6d4033e9cf62fee067f7f2c3773)
+- Updated dependencies [cc207c5d7adfa0843ff285edee10347283d5acff](https://code.europa.eu/ebsi/public/core-services/-/commit/cc207c5d7adfa0843ff285edee10347283d5acff)
+- Updated dependencies [3849b3d0a244d5385671ce8afa618f53bbddf35a](https://code.europa.eu/ebsi/public/core-services/-/commit/3849b3d0a244d5385671ce8afa618f53bbddf35a)
+- Updated dependencies [3b4ad1dc4f039c54ec79787bf717ffc83c33691f](https://code.europa.eu/ebsi/public/core-services/-/commit/3b4ad1dc4f039c54ec79787bf717ffc83c33691f)
   - @ebsiint-api/shared@1.1.0-rc.12
 
 ## 3.0.0-rc.12
 
 ### Minor Changes
 
-- [426cf3113318345473cfdfc9da7102820e613a08](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/426cf3113318345473cfdfc9da7102820e613a08): Make API read-only.
+- [426cf3113318345473cfdfc9da7102820e613a08](https://code.europa.eu/ebsi/public/core-services/-/commit/426cf3113318345473cfdfc9da7102820e613a08): Make API read-only.
 
 ### Patch Changes
 
-- [0b2fc67ae0f01006cd8de8a6c4fe09e1c4273a89](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/0b2fc67ae0f01006cd8de8a6c4fe09e1c4273a89): Bump dependencies.
-- [426cf3113318345473cfdfc9da7102820e613a08](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/426cf3113318345473cfdfc9da7102820e613a08): Bump dependencies.
-- [6314280d6e274c381e67008b5c2960ad4ce7e757](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/6314280d6e274c381e67008b5c2960ad4ce7e757): Add the possibility to disable the LoggingInterceptor for specific endpoints.
-- Updated dependencies [e9c5b06ea71f49dc964520bac26281a9c7430a6f](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/e9c5b06ea71f49dc964520bac26281a9c7430a6f)
-- Updated dependencies [0b2fc67ae0f01006cd8de8a6c4fe09e1c4273a89](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/0b2fc67ae0f01006cd8de8a6c4fe09e1c4273a89)
-- Updated dependencies [4053ea85d8cf551558770ec35243ae983eefb1ca](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/4053ea85d8cf551558770ec35243ae983eefb1ca)
-- Updated dependencies [426cf3113318345473cfdfc9da7102820e613a08](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/426cf3113318345473cfdfc9da7102820e613a08)
-- Updated dependencies [6314280d6e274c381e67008b5c2960ad4ce7e757](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/6314280d6e274c381e67008b5c2960ad4ce7e757)
+- [0b2fc67ae0f01006cd8de8a6c4fe09e1c4273a89](https://code.europa.eu/ebsi/public/core-services/-/commit/0b2fc67ae0f01006cd8de8a6c4fe09e1c4273a89): Bump dependencies.
+- [426cf3113318345473cfdfc9da7102820e613a08](https://code.europa.eu/ebsi/public/core-services/-/commit/426cf3113318345473cfdfc9da7102820e613a08): Bump dependencies.
+- [6314280d6e274c381e67008b5c2960ad4ce7e757](https://code.europa.eu/ebsi/public/core-services/-/commit/6314280d6e274c381e67008b5c2960ad4ce7e757): Add the possibility to disable the LoggingInterceptor for specific endpoints.
+- Updated dependencies [e9c5b06ea71f49dc964520bac26281a9c7430a6f](https://code.europa.eu/ebsi/public/core-services/-/commit/e9c5b06ea71f49dc964520bac26281a9c7430a6f)
+- Updated dependencies [0b2fc67ae0f01006cd8de8a6c4fe09e1c4273a89](https://code.europa.eu/ebsi/public/core-services/-/commit/0b2fc67ae0f01006cd8de8a6c4fe09e1c4273a89)
+- Updated dependencies [4053ea85d8cf551558770ec35243ae983eefb1ca](https://code.europa.eu/ebsi/public/core-services/-/commit/4053ea85d8cf551558770ec35243ae983eefb1ca)
+- Updated dependencies [426cf3113318345473cfdfc9da7102820e613a08](https://code.europa.eu/ebsi/public/core-services/-/commit/426cf3113318345473cfdfc9da7102820e613a08)
+- Updated dependencies [6314280d6e274c381e67008b5c2960ad4ce7e757](https://code.europa.eu/ebsi/public/core-services/-/commit/6314280d6e274c381e67008b5c2960ad4ce7e757)
   - @ebsiint-api/shared@1.1.0-rc.11
 
 ## 3.0.0-rc.11
 
 ### Patch Changes
 
-- [7a4068e0d9804be6295aedec7e610cbc253cb03e](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/7a4068e0d9804be6295aedec7e610cbc253cb03e): Update Node.js to v20.14.0
-- [90b8973cbf68a6e6d34ba2a79ce8469f34eaa5c4](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/90b8973cbf68a6e6d34ba2a79ce8469f34eaa5c4): Catch error for malformed uri
-- [a983eb905a08f3f3c2e25b69b320112726a088e1](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/a983eb905a08f3f3c2e25b69b320112726a088e1): Remove dependency on TAR API v4.
-- [4c4d31138e5ba5c9cedd3e598a0017b90335119e](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/4c4d31138e5ba5c9cedd3e598a0017b90335119e): Refactor Axios error logging.
-- [50694cacbd827eeefecbcd2cc765b5660083cccd](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/50694cacbd827eeefecbcd2cc765b5660083cccd): Check Besu readiness in health check.
-- [4c68d45d647735cefa90e5545ff1b5b0c89703ae](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/4c68d45d647735cefa90e5545ff1b5b0c89703ae): Do not return "EBSI-Image-Tag" header anymore.
-- [917370b20c6efe84f3f7c7128dfdb2a7a5457c81](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/917370b20c6efe84f3f7c7128dfdb2a7a5457c81): Bump dependencies and upgrade Node.js to v20.16.0.
-- Updated dependencies [90b8973cbf68a6e6d34ba2a79ce8469f34eaa5c4](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/90b8973cbf68a6e6d34ba2a79ce8469f34eaa5c4)
-- Updated dependencies [8993a31a472a9ad2a59dbc2999f20e863f4c581d](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/8993a31a472a9ad2a59dbc2999f20e863f4c581d)
-- Updated dependencies [9c3dba3e038d65e5970171ce242a8e7b93c2970f](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/9c3dba3e038d65e5970171ce242a8e7b93c2970f)
-- Updated dependencies [651235bffbb0168f18ff4631b750103de7312477](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/651235bffbb0168f18ff4631b750103de7312477)
-- Updated dependencies [4c4d31138e5ba5c9cedd3e598a0017b90335119e](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/4c4d31138e5ba5c9cedd3e598a0017b90335119e)
-- Updated dependencies [917370b20c6efe84f3f7c7128dfdb2a7a5457c81](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/917370b20c6efe84f3f7c7128dfdb2a7a5457c81)
+- [7a4068e0d9804be6295aedec7e610cbc253cb03e](https://code.europa.eu/ebsi/public/core-services/-/commit/7a4068e0d9804be6295aedec7e610cbc253cb03e): Update Node.js to v20.14.0
+- [90b8973cbf68a6e6d34ba2a79ce8469f34eaa5c4](https://code.europa.eu/ebsi/public/core-services/-/commit/90b8973cbf68a6e6d34ba2a79ce8469f34eaa5c4): Catch error for malformed uri
+- [a983eb905a08f3f3c2e25b69b320112726a088e1](https://code.europa.eu/ebsi/public/core-services/-/commit/a983eb905a08f3f3c2e25b69b320112726a088e1): Remove dependency on TAR API v4.
+- [4c4d31138e5ba5c9cedd3e598a0017b90335119e](https://code.europa.eu/ebsi/public/core-services/-/commit/4c4d31138e5ba5c9cedd3e598a0017b90335119e): Refactor Axios error logging.
+- [50694cacbd827eeefecbcd2cc765b5660083cccd](https://code.europa.eu/ebsi/public/core-services/-/commit/50694cacbd827eeefecbcd2cc765b5660083cccd): Check Besu readiness in health check.
+- [4c68d45d647735cefa90e5545ff1b5b0c89703ae](https://code.europa.eu/ebsi/public/core-services/-/commit/4c68d45d647735cefa90e5545ff1b5b0c89703ae): Do not return "EBSI-Image-Tag" header anymore.
+- [917370b20c6efe84f3f7c7128dfdb2a7a5457c81](https://code.europa.eu/ebsi/public/core-services/-/commit/917370b20c6efe84f3f7c7128dfdb2a7a5457c81): Bump dependencies and upgrade Node.js to v20.16.0.
+- Updated dependencies [90b8973cbf68a6e6d34ba2a79ce8469f34eaa5c4](https://code.europa.eu/ebsi/public/core-services/-/commit/90b8973cbf68a6e6d34ba2a79ce8469f34eaa5c4)
+- Updated dependencies [8993a31a472a9ad2a59dbc2999f20e863f4c581d](https://code.europa.eu/ebsi/public/core-services/-/commit/8993a31a472a9ad2a59dbc2999f20e863f4c581d)
+- Updated dependencies [9c3dba3e038d65e5970171ce242a8e7b93c2970f](https://code.europa.eu/ebsi/public/core-services/-/commit/9c3dba3e038d65e5970171ce242a8e7b93c2970f)
+- Updated dependencies [651235bffbb0168f18ff4631b750103de7312477](https://code.europa.eu/ebsi/public/core-services/-/commit/651235bffbb0168f18ff4631b750103de7312477)
+- Updated dependencies [4c4d31138e5ba5c9cedd3e598a0017b90335119e](https://code.europa.eu/ebsi/public/core-services/-/commit/4c4d31138e5ba5c9cedd3e598a0017b90335119e)
+- Updated dependencies [917370b20c6efe84f3f7c7128dfdb2a7a5457c81](https://code.europa.eu/ebsi/public/core-services/-/commit/917370b20c6efe84f3f7c7128dfdb2a7a5457c81)
   - @ebsiint-api/shared@1.1.0-rc.10
 
 ## 3.0.0-rc.10
 
 ### Patch Changes
 
-- [1960638f1c5cce829eae0535733d0714632d8841](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/1960638f1c5cce829eae0535733d0714632d8841): Bump dependencies.
-- [1960638f1c5cce829eae0535733d0714632d8841](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/1960638f1c5cce829eae0535733d0714632d8841): Bump jose to v4.15.5, fix CVE-2024-28176.
-- [ddfc40a1f21fae1498059618e71bf1f2e9271ee8](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/ddfc40a1f21fae1498059618e71bf1f2e9271ee8): Bump VC and VP libraries.
-- [e5e5cd041db2e6c9670a596d7526d0e7159efcc5](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/e5e5cd041db2e6c9670a596d7526d0e7159efcc5): Bump dependencies.
-- [85e2c4cd45daea5e75d1f68484a0a062348068e0](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/85e2c4cd45daea5e75d1f68484a0a062348068e0): Do not log requests made by the EBSI healthcheck service.
-- Updated dependencies [82e12c8c38442379aadb957fee5ec8ca4fea4fac](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/82e12c8c38442379aadb957fee5ec8ca4fea4fac)
-- Updated dependencies [3900b6f7697df366effd4110dc1827b6c36c169f](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/3900b6f7697df366effd4110dc1827b6c36c169f)
-- Updated dependencies [1960638f1c5cce829eae0535733d0714632d8841](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/1960638f1c5cce829eae0535733d0714632d8841)
-- Updated dependencies [1960638f1c5cce829eae0535733d0714632d8841](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/1960638f1c5cce829eae0535733d0714632d8841)
-- Updated dependencies [ddfc40a1f21fae1498059618e71bf1f2e9271ee8](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/ddfc40a1f21fae1498059618e71bf1f2e9271ee8)
-- Updated dependencies [520038797ef25f4c8ac19150274b8a5368175dfc](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/520038797ef25f4c8ac19150274b8a5368175dfc)
-- Updated dependencies [e5e5cd041db2e6c9670a596d7526d0e7159efcc5](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/e5e5cd041db2e6c9670a596d7526d0e7159efcc5)
+- [1960638f1c5cce829eae0535733d0714632d8841](https://code.europa.eu/ebsi/public/core-services/-/commit/1960638f1c5cce829eae0535733d0714632d8841): Bump dependencies.
+- [1960638f1c5cce829eae0535733d0714632d8841](https://code.europa.eu/ebsi/public/core-services/-/commit/1960638f1c5cce829eae0535733d0714632d8841): Bump jose to v4.15.5, fix CVE-2024-28176.
+- [ddfc40a1f21fae1498059618e71bf1f2e9271ee8](https://code.europa.eu/ebsi/public/core-services/-/commit/ddfc40a1f21fae1498059618e71bf1f2e9271ee8): Bump VC and VP libraries.
+- [e5e5cd041db2e6c9670a596d7526d0e7159efcc5](https://code.europa.eu/ebsi/public/core-services/-/commit/e5e5cd041db2e6c9670a596d7526d0e7159efcc5): Bump dependencies.
+- [85e2c4cd45daea5e75d1f68484a0a062348068e0](https://code.europa.eu/ebsi/public/core-services/-/commit/85e2c4cd45daea5e75d1f68484a0a062348068e0): Do not log requests made by the EBSI healthcheck service.
+- Updated dependencies [82e12c8c38442379aadb957fee5ec8ca4fea4fac](https://code.europa.eu/ebsi/public/core-services/-/commit/82e12c8c38442379aadb957fee5ec8ca4fea4fac)
+- Updated dependencies [3900b6f7697df366effd4110dc1827b6c36c169f](https://code.europa.eu/ebsi/public/core-services/-/commit/3900b6f7697df366effd4110dc1827b6c36c169f)
+- Updated dependencies [1960638f1c5cce829eae0535733d0714632d8841](https://code.europa.eu/ebsi/public/core-services/-/commit/1960638f1c5cce829eae0535733d0714632d8841)
+- Updated dependencies [1960638f1c5cce829eae0535733d0714632d8841](https://code.europa.eu/ebsi/public/core-services/-/commit/1960638f1c5cce829eae0535733d0714632d8841)
+- Updated dependencies [ddfc40a1f21fae1498059618e71bf1f2e9271ee8](https://code.europa.eu/ebsi/public/core-services/-/commit/ddfc40a1f21fae1498059618e71bf1f2e9271ee8)
+- Updated dependencies [520038797ef25f4c8ac19150274b8a5368175dfc](https://code.europa.eu/ebsi/public/core-services/-/commit/520038797ef25f4c8ac19150274b8a5368175dfc)
+- Updated dependencies [e5e5cd041db2e6c9670a596d7526d0e7159efcc5](https://code.europa.eu/ebsi/public/core-services/-/commit/e5e5cd041db2e6c9670a596d7526d0e7159efcc5)
   - @ebsiint-api/shared@1.1.0-rc.7
 
 ## 3.0.0-rc.9
 
 ### Patch Changes
 
-- [48b06089e979a20d1ca3df1be08ac614e5b6856e](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/48b06089e979a20d1ca3df1be08ac614e5b6856e): Bump dependencies, support Verifiable Attestation 2024-01 schema.
-- [733354a1d2e4e6a18a9a834a96b7b9a4eb321060](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/733354a1d2e4e6a18a9a834a96b7b9a4eb321060): Bump dependencies, update Node.js to v20.11.0.
-- [fe81418ed2d3d8759944423997e4371fff61e348](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/fe81418ed2d3d8759944423997e4371fff61e348): Setup axios agents with `keepAlive: true`.
-- [f84767e4aedf5c103d6aad87f81c3708ad915e73](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/f84767e4aedf5c103d6aad87f81c3708ad915e73): Bump dependencies.
-- Updated dependencies [61fffd7ccdb3e8aa20dfe2ea6e546b3784a9adcd](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/61fffd7ccdb3e8aa20dfe2ea6e546b3784a9adcd)
-- Updated dependencies [5c6c9e9227b705958af5a1869ddfbdbe237d6262](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/5c6c9e9227b705958af5a1869ddfbdbe237d6262)
-- Updated dependencies [48b06089e979a20d1ca3df1be08ac614e5b6856e](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/48b06089e979a20d1ca3df1be08ac614e5b6856e)
-- Updated dependencies [99abef34ed7e8a91e3335e712173a45027f9277e](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/99abef34ed7e8a91e3335e712173a45027f9277e)
-- Updated dependencies [733354a1d2e4e6a18a9a834a96b7b9a4eb321060](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/733354a1d2e4e6a18a9a834a96b7b9a4eb321060)
-- Updated dependencies [fe81418ed2d3d8759944423997e4371fff61e348](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/fe81418ed2d3d8759944423997e4371fff61e348)
-- Updated dependencies [f84767e4aedf5c103d6aad87f81c3708ad915e73](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/f84767e4aedf5c103d6aad87f81c3708ad915e73)
-- Updated dependencies [79dc01786e983e02373501ec858f4897d8ae3680](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/79dc01786e983e02373501ec858f4897d8ae3680)
+- [48b06089e979a20d1ca3df1be08ac614e5b6856e](https://code.europa.eu/ebsi/public/core-services/-/commit/48b06089e979a20d1ca3df1be08ac614e5b6856e): Bump dependencies, support Verifiable Attestation 2024-01 schema.
+- [733354a1d2e4e6a18a9a834a96b7b9a4eb321060](https://code.europa.eu/ebsi/public/core-services/-/commit/733354a1d2e4e6a18a9a834a96b7b9a4eb321060): Bump dependencies, update Node.js to v20.11.0.
+- [fe81418ed2d3d8759944423997e4371fff61e348](https://code.europa.eu/ebsi/public/core-services/-/commit/fe81418ed2d3d8759944423997e4371fff61e348): Setup axios agents with `keepAlive: true`.
+- [f84767e4aedf5c103d6aad87f81c3708ad915e73](https://code.europa.eu/ebsi/public/core-services/-/commit/f84767e4aedf5c103d6aad87f81c3708ad915e73): Bump dependencies.
+- Updated dependencies [61fffd7ccdb3e8aa20dfe2ea6e546b3784a9adcd](https://code.europa.eu/ebsi/public/core-services/-/commit/61fffd7ccdb3e8aa20dfe2ea6e546b3784a9adcd)
+- Updated dependencies [5c6c9e9227b705958af5a1869ddfbdbe237d6262](https://code.europa.eu/ebsi/public/core-services/-/commit/5c6c9e9227b705958af5a1869ddfbdbe237d6262)
+- Updated dependencies [48b06089e979a20d1ca3df1be08ac614e5b6856e](https://code.europa.eu/ebsi/public/core-services/-/commit/48b06089e979a20d1ca3df1be08ac614e5b6856e)
+- Updated dependencies [99abef34ed7e8a91e3335e712173a45027f9277e](https://code.europa.eu/ebsi/public/core-services/-/commit/99abef34ed7e8a91e3335e712173a45027f9277e)
+- Updated dependencies [733354a1d2e4e6a18a9a834a96b7b9a4eb321060](https://code.europa.eu/ebsi/public/core-services/-/commit/733354a1d2e4e6a18a9a834a96b7b9a4eb321060)
+- Updated dependencies [fe81418ed2d3d8759944423997e4371fff61e348](https://code.europa.eu/ebsi/public/core-services/-/commit/fe81418ed2d3d8759944423997e4371fff61e348)
+- Updated dependencies [f84767e4aedf5c103d6aad87f81c3708ad915e73](https://code.europa.eu/ebsi/public/core-services/-/commit/f84767e4aedf5c103d6aad87f81c3708ad915e73)
+- Updated dependencies [79dc01786e983e02373501ec858f4897d8ae3680](https://code.europa.eu/ebsi/public/core-services/-/commit/79dc01786e983e02373501ec858f4897d8ae3680)
   - @ebsiint-api/shared@1.1.0-rc.6
 
 ## 3.0.0-rc.8
 
 ### Patch Changes
 
-- [f3024ac17c5031e011757bbf4e52700943842ba0](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/f3024ac17c5031e011757bbf4e52700943842ba0): Upgrade Node.js to v18 and bump dependencies.
-- [2de71cb9cf78177e0f60ab150571d03f12d4ab57](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/2de71cb9cf78177e0f60ab150571d03f12d4ab57): Bump dependencies.
-- [ca9544d2978218570fcdf58e57de8144317fc5c8](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/ca9544d2978218570fcdf58e57de8144317fc5c8): Update Node.js to v20.9.0 (LTS).
-- [e69bbf27731eaeeedb149b4d155a0b2cc9366aa8](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/e69bbf27731eaeeedb149b4d155a0b2cc9366aa8): Refactor service's health check.
-- [a82cf5865669f7fd184a0bf000573856e85c9837](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/a82cf5865669f7fd184a0bf000573856e85c9837): Bump dependencies.
-- [4fa0f0414daebd2e721434108ee63f7b5802abe9](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/4fa0f0414daebd2e721434108ee63f7b5802abe9): Bump dependencies and update Node.js to v20.10.0.
-- Updated dependencies [f3024ac17c5031e011757bbf4e52700943842ba0](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/f3024ac17c5031e011757bbf4e52700943842ba0)
-- Updated dependencies [2de71cb9cf78177e0f60ab150571d03f12d4ab57](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/2de71cb9cf78177e0f60ab150571d03f12d4ab57)
-- Updated dependencies [ca9544d2978218570fcdf58e57de8144317fc5c8](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/ca9544d2978218570fcdf58e57de8144317fc5c8)
-- Updated dependencies [e69bbf27731eaeeedb149b4d155a0b2cc9366aa8](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/e69bbf27731eaeeedb149b4d155a0b2cc9366aa8)
-- Updated dependencies [a82cf5865669f7fd184a0bf000573856e85c9837](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/a82cf5865669f7fd184a0bf000573856e85c9837)
-- Updated dependencies [4fa0f0414daebd2e721434108ee63f7b5802abe9](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/4fa0f0414daebd2e721434108ee63f7b5802abe9)
+- [f3024ac17c5031e011757bbf4e52700943842ba0](https://code.europa.eu/ebsi/public/core-services/-/commit/f3024ac17c5031e011757bbf4e52700943842ba0): Upgrade Node.js to v18 and bump dependencies.
+- [2de71cb9cf78177e0f60ab150571d03f12d4ab57](https://code.europa.eu/ebsi/public/core-services/-/commit/2de71cb9cf78177e0f60ab150571d03f12d4ab57): Bump dependencies.
+- [ca9544d2978218570fcdf58e57de8144317fc5c8](https://code.europa.eu/ebsi/public/core-services/-/commit/ca9544d2978218570fcdf58e57de8144317fc5c8): Update Node.js to v20.9.0 (LTS).
+- [e69bbf27731eaeeedb149b4d155a0b2cc9366aa8](https://code.europa.eu/ebsi/public/core-services/-/commit/e69bbf27731eaeeedb149b4d155a0b2cc9366aa8): Refactor service's health check.
+- [a82cf5865669f7fd184a0bf000573856e85c9837](https://code.europa.eu/ebsi/public/core-services/-/commit/a82cf5865669f7fd184a0bf000573856e85c9837): Bump dependencies.
+- [4fa0f0414daebd2e721434108ee63f7b5802abe9](https://code.europa.eu/ebsi/public/core-services/-/commit/4fa0f0414daebd2e721434108ee63f7b5802abe9): Bump dependencies and update Node.js to v20.10.0.
+- Updated dependencies [f3024ac17c5031e011757bbf4e52700943842ba0](https://code.europa.eu/ebsi/public/core-services/-/commit/f3024ac17c5031e011757bbf4e52700943842ba0)
+- Updated dependencies [2de71cb9cf78177e0f60ab150571d03f12d4ab57](https://code.europa.eu/ebsi/public/core-services/-/commit/2de71cb9cf78177e0f60ab150571d03f12d4ab57)
+- Updated dependencies [ca9544d2978218570fcdf58e57de8144317fc5c8](https://code.europa.eu/ebsi/public/core-services/-/commit/ca9544d2978218570fcdf58e57de8144317fc5c8)
+- Updated dependencies [e69bbf27731eaeeedb149b4d155a0b2cc9366aa8](https://code.europa.eu/ebsi/public/core-services/-/commit/e69bbf27731eaeeedb149b4d155a0b2cc9366aa8)
+- Updated dependencies [a82cf5865669f7fd184a0bf000573856e85c9837](https://code.europa.eu/ebsi/public/core-services/-/commit/a82cf5865669f7fd184a0bf000573856e85c9837)
+- Updated dependencies [4fa0f0414daebd2e721434108ee63f7b5802abe9](https://code.europa.eu/ebsi/public/core-services/-/commit/4fa0f0414daebd2e721434108ee63f7b5802abe9)
   - @ebsiint-api/shared@1.1.0-rc.5
 
 ## 3.0.0-rc.7
 
 ### Minor Changes
 
-- [469152af](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/469152af): Support access tokens issued by Authorisation API v4
+- [469152af](https://code.europa.eu/ebsi/public/core-services/-/commit/469152af): Support access tokens issued by Authorisation API v4
 
 ### Patch Changes
 
-- [548f2121](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/548f2121): Minor updates in the APIs (logger)
-- Updated dependencies [d5a179ce](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/d5a179ce)
-- Updated dependencies [915b2da7](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/915b2da7)
+- [548f2121](https://code.europa.eu/ebsi/public/core-services/-/commit/548f2121): Minor updates in the APIs (logger)
+- Updated dependencies [d5a179ce](https://code.europa.eu/ebsi/public/core-services/-/commit/d5a179ce)
+- Updated dependencies [915b2da7](https://code.europa.eu/ebsi/public/core-services/-/commit/915b2da7)
   - @ebsiint-api/shared@1.1.0-rc.4
 
 ## 3.0.0-rc.6
 
 ### Patch Changes
 
-- [f0d3dde3](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/f0d3dde3): Improve error handling
-- [f520c43a](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/f520c43a): Bump dependencies and update Node.js to v16.20.1
-- Updated dependencies [f0d3dde3](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/f0d3dde3)
-- Updated dependencies [38b9d313](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/38b9d313)
-- Updated dependencies [f520c43a](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/f520c43a)
-- Updated dependencies [07e3176d](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/07e3176d)
+- [f0d3dde3](https://code.europa.eu/ebsi/public/core-services/-/commit/f0d3dde3): Improve error handling
+- [f520c43a](https://code.europa.eu/ebsi/public/core-services/-/commit/f520c43a): Bump dependencies and update Node.js to v16.20.1
+- Updated dependencies [f0d3dde3](https://code.europa.eu/ebsi/public/core-services/-/commit/f0d3dde3)
+- Updated dependencies [38b9d313](https://code.europa.eu/ebsi/public/core-services/-/commit/38b9d313)
+- Updated dependencies [f520c43a](https://code.europa.eu/ebsi/public/core-services/-/commit/f520c43a)
+- Updated dependencies [07e3176d](https://code.europa.eu/ebsi/public/core-services/-/commit/07e3176d)
   - @ebsiint-api/shared@1.1.0-rc.3
 
 ## 3.0.0-rc.5
 
 ### Patch Changes
 
-- [2966fa3c](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/2966fa3c): Expose service OpenAPI specification
-- [443664aa](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/443664aa): Bump EBSI libraries.
-- [357775c1](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/357775c1): Fix vulnerabilities related to the Docker image.
-- [1fb98741](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/1fb98741): Bump dependencies.
-- [8a245129](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/8a245129): Bump EBSI libraries.
-- Updated dependencies [443664aa](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/443664aa)
-- Updated dependencies [70631f93](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/70631f93)
-- Updated dependencies [1fb98741](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/1fb98741)
-- Updated dependencies [8a245129](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/8a245129)
+- [2966fa3c](https://code.europa.eu/ebsi/public/core-services/-/commit/2966fa3c): Expose service OpenAPI specification
+- [443664aa](https://code.europa.eu/ebsi/public/core-services/-/commit/443664aa): Bump EBSI libraries.
+- [357775c1](https://code.europa.eu/ebsi/public/core-services/-/commit/357775c1): Fix vulnerabilities related to the Docker image.
+- [1fb98741](https://code.europa.eu/ebsi/public/core-services/-/commit/1fb98741): Bump dependencies.
+- [8a245129](https://code.europa.eu/ebsi/public/core-services/-/commit/8a245129): Bump EBSI libraries.
+- Updated dependencies [443664aa](https://code.europa.eu/ebsi/public/core-services/-/commit/443664aa)
+- Updated dependencies [70631f93](https://code.europa.eu/ebsi/public/core-services/-/commit/70631f93)
+- Updated dependencies [1fb98741](https://code.europa.eu/ebsi/public/core-services/-/commit/1fb98741)
+- Updated dependencies [8a245129](https://code.europa.eu/ebsi/public/core-services/-/commit/8a245129)
   - @ebsiint-api/shared@1.1.0-rc.2
 
 ## 3.0.0-rc.4
 
 ### Patch Changes
 
-- [adc663ea](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/adc663ea): Bump dependencies.
-- [78ee438b](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/78ee438b): Bump dependencies.
-- Updated dependencies [adc663ea](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/adc663ea)
-- Updated dependencies [a6a1f685](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/a6a1f685)
-- Updated dependencies [f2257d7d](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/f2257d7d)
-- Updated dependencies [78ee438b](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/78ee438b)
+- [adc663ea](https://code.europa.eu/ebsi/public/core-services/-/commit/adc663ea): Bump dependencies.
+- [78ee438b](https://code.europa.eu/ebsi/public/core-services/-/commit/78ee438b): Bump dependencies.
+- Updated dependencies [adc663ea](https://code.europa.eu/ebsi/public/core-services/-/commit/adc663ea)
+- Updated dependencies [a6a1f685](https://code.europa.eu/ebsi/public/core-services/-/commit/a6a1f685)
+- Updated dependencies [f2257d7d](https://code.europa.eu/ebsi/public/core-services/-/commit/f2257d7d)
+- Updated dependencies [78ee438b](https://code.europa.eu/ebsi/public/core-services/-/commit/78ee438b)
   - @ebsiint-api/shared@1.1.0-rc.1
 
 ## 3.0.0-rc.3
 
 ### Patch Changes
 
-- [2f8b1686](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/2f8b1686): Bump dependencies.
-- [c9f6e302](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/c9f6e302): Refactor common code with Sonar-reported high complexity.
+- [2f8b1686](https://code.europa.eu/ebsi/public/core-services/-/commit/2f8b1686): Bump dependencies.
+- [c9f6e302](https://code.europa.eu/ebsi/public/core-services/-/commit/c9f6e302): Refactor common code with Sonar-reported high complexity.
   Update rules for http patch path attribute args to have any order.
-- [6d699188](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/6d699188): Bump dependencies, refactor tests.
-- [1e62e0cc](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/1e62e0cc): Move custom errors from `@cef-ebsi/problem-details-errors` to `@ebsiint-api/shared`
-- Updated dependencies [6d699188](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/6d699188)
-- Updated dependencies [be8604c9](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/be8604c9)
-- Updated dependencies [1e62e0cc](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/1e62e0cc)
+- [6d699188](https://code.europa.eu/ebsi/public/core-services/-/commit/6d699188): Bump dependencies, refactor tests.
+- [1e62e0cc](https://code.europa.eu/ebsi/public/core-services/-/commit/1e62e0cc): Move custom errors from `@cef-ebsi/problem-details-errors` to `@ebsiint-api/shared`
+- Updated dependencies [6d699188](https://code.europa.eu/ebsi/public/core-services/-/commit/6d699188)
+- Updated dependencies [be8604c9](https://code.europa.eu/ebsi/public/core-services/-/commit/be8604c9)
+- Updated dependencies [1e62e0cc](https://code.europa.eu/ebsi/public/core-services/-/commit/1e62e0cc)
   - @ebsiint-api/shared@1.1.0-rc.0
 
-## [3.0.0-rc.2](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/compare/diff?targetBranch=refs%2Ftags%2Fv3.0.0-rc.1&sourceBranch=refs%2Ftags%2Fv3.0.0-rc.2&targetRepoId=244) (2022-09-21)
+## 3.0.0-rc.2 (2022-09-21)
 
 ### 🚀 Features
 
-- add timeout to http requests ([#144](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/pull-requests/144/overview)) - EBSIINT-4529 ([3a622dc](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/3a622dc82c3c6f8f580f41f158ac3d580a566129))
+- add timeout to http requests (#144) - EBSIINT-4529
 
 ### 🐛 Bug Fixes
 
-- fix vulnerability ([#147](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/pull-requests/147/overview)) - EBSIINT-4639 ([bdff691](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/bdff691534f75d0d71936d1314c3b4d6314dbef4))
-- remove health check config ([2437120](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/2437120e9dd9c581124596512983d9e3de5ffa55))
+- fix vulnerability (#147) - EBSIINT-4639
+- remove health check config
 
-## [3.0.0-rc.1](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/compare/diff?targetBranch=refs%2Ftags%2Fv3.0.0-rc.0&sourceBranch=refs%2Ftags%2Fv3.0.0-rc.1&targetRepoId=244) (2022-07-06)
+## 3.0.0-rc.1 (2022-07-06)
 
 ### 🚀 Features
 
-- show docker image tag as response header on TEST environment ([#125](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/pull-requests/125/overview)) - EBSIINT-4242 ([2036f21](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/2036f215533bc135b1ad61283bf4cf6f2b2420d9))
+- show docker image tag as response header on TEST environment (#125) - EBSIINT-4242
 
 ### 🐛 Bug Fixes
 
-- vulnerabilities, update deps ([#137](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/pull-requests/137/overview)) - EBSIINT-4332 ([5d0001a](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/5d0001a159d7c41fd5afe089ed00d27e7a033e0f))
+- vulnerabilities, update deps (#137) - EBSIINT-4332
 
-## [3.0.0-rc.0](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.8&sourceBranch=refs%2Ftags%2Fv3.0.0-rc.0&targetRepoId=244) (2022-06-08)
+## 3.0.0-rc.0 (2022-06-08)
 
 ### ⚠ BREAKING CHANGES
 
@@ -220,94 +220,94 @@
 
 ### 🐛 Bug Fixes
 
-- bump protobufjs ([#118](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/pull-requests/118/overview)) - EBSIINT-4241 ([5e942ec](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/5e942ec77ee5c7a222a3acf7e09f244b0145255f))
-- update nconf version, fix GHSA-6xwr-q98w-rvg7 ([#113](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/pull-requests/113/overview)) - EBSIINT-4121 ([3905b73](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/3905b73f40479a6a67fd2854e092b42ccb444149))
-- update Node.js to v16.14.2 ([#111](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/pull-requests/111/overview)) - EBSIINT-3981 ([4973ff4](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/4973ff40d5fa993967b9d9b422d869f9d675d194))
+- bump protobufjs (#118) - EBSIINT-4241
+- update nconf version, fix GHSA-6xwr-q98w-rvg7 (#113) - EBSIINT-4121
+- update Node.js to v16.14.2 (#111) - EBSIINT-3981
 
 ### 🚀 Features
 
-- bump dependencies - EBSIINT-4227 ([666d827](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/666d8277cef585df723a6b325933dc66c773764d))
-- update libs, use Authorisation API v2 and TAR v3 ([#105](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/pull-requests/105/overview)) - EBSIINT-3996 ([25927bf](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/25927bf4ed60666151f3ed1e943f330ea2c94957))
+- bump dependencies - EBSIINT-4227
+- update libs, use Authorisation API v2 and TAR v3 (#105) - EBSIINT-3996
 
-## [2.0.0-rc.8](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.7&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.8&targetRepoId=244) (2022-03-16)
-
-### 🚀 Features
-
-- log requests and responses ([#93](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/pull-requests/93/overview)) - EBSIINT-3651 ([b98ba8e](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/b98ba8eac756068c556f550c2267b844b10ceb77))
-
-## [2.0.0-rc.7](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.6&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.7&targetRepoId=244) (2021-12-10)
-
-## [2.0.0-rc.6](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.5&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.6&targetRepoId=244) (2021-11-15)
+## 2.0.0-rc.8 (2022-03-16)
 
 ### 🚀 Features
 
-- update Node.js to v16.13.0 ([#83](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/pull-requests/83/overview)) - EBSIINT-3496 ([8a7b184](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/8a7b184c8e4c7a4b8e49d649c812b77a35ec6546))
+- log requests and responses (#93) - EBSIINT-3651
 
-## [2.0.0-rc.5](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.4&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.5&targetRepoId=244) (2021-10-27)
+## 2.0.0-rc.7 (2021-12-10)
+
+## 2.0.0-rc.6 (2021-11-15)
 
 ### 🚀 Features
 
-- add Fabric "sendProposal" method ([#80](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/pull-requests/80/overview)) - EBSIINT-3437 ([a8cbb0f](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/a8cbb0f5fb7b1d97c9c09191ac5b1c8bfc961bec))
-- implement Fabric JSON-RPC readContract method ([#78](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/pull-requests/78/overview)) - EBSIINT-3436 ([b8abbcb](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/b8abbcb7bedd917bb096dd554ddd91eb21b99fe5))
-- method commitTransaction for jsonrpc endpoint fabric ([#81](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/pull-requests/81/overview)) - EBSIINT-3438 ([79992e7](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/79992e76546087f00dbf1d6c051059b26b72ee19))
+- update Node.js to v16.13.0 (#83) - EBSIINT-3496
+
+## 2.0.0-rc.5 (2021-10-27)
+
+### 🚀 Features
+
+- add Fabric "sendProposal" method (#80) - EBSIINT-3437
+- implement Fabric JSON-RPC readContract method (#78) - EBSIINT-3436
+- method commitTransaction for jsonrpc endpoint fabric (#81) - EBSIINT-3438
 
 ### 🐛 Bug Fixes
 
-- update Node.js version to v14.18.1 ([#77](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/pull-requests/77/overview)) - EBSIINT-3432 ([4cee632](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/4cee632a41034b3f93920ad405f11b465fffa034))
+- update Node.js version to v14.18.1 (#77) - EBSIINT-3432
 
-## [2.0.0-rc.4](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.3&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.4&targetRepoId=244) (2021-10-04)
-
-### 🚀 Features
-
-- support DID JWT with publicKeyMultibase ([#73](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/pull-requests/73/overview)) - EBSIINT-3367 ([a09f6a4](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/a09f6a4da5fa94f774614ff1209a3421cb4c25f9))
-
-### 🐛 Bug Fixes
-
-- prevent SIOP auth for /besu eth_sendRawTransaction ([#74](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/pull-requests/74/overview)) - EBSIINT-3377 ([27ac2fe](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/27ac2fe71355a7e59cbab1f442f804a40f4d076b))
-
-## [2.0.0-rc.3](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.2&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.3&targetRepoId=244) (2021-09-09)
+## 2.0.0-rc.4 (2021-10-04)
 
 ### 🚀 Features
 
-- add GET /blockchains/fabric/channels/{channel}/blocks ([#59](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/pull-requests/59/overview)) - EBSIINT-2632 ([4d08e9a](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/4d08e9a0a323f52076ec697711bdffcf0aed4bb9))
-- allow public Besu methods to be accessed without a JWT ([#67](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/pull-requests/67/overview)) - EBSIINT-3265 ([e972fef](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/e972feffc2f813b850aee0f196d28d12f0efb331))
-- allow siop tokens ([#66](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/pull-requests/66/overview)) - EBSIINT-3253 ([1de5901](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/1de5901ed625bbd36d155b14cc2fd89f6a54d663))
-- connect to Besu using WebSocket instead of HTTPS ([#52](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/pull-requests/52/overview)) - EBSIINT-3134 ([f76b7ff](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/f76b7ffe3b747c3b2e15b8f2f6dbb7f0a4f69ced))
-- get fabric transactions ([#62](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/pull-requests/62/overview)) - EBSIINT-2634 ([85f8178](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/85f8178154cb43d432d1c95f3b2bd816c65443a5))
-- implement /blockchains/fabric/channels endpoint ([#56](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/pull-requests/56/overview)) - EBSIINT-2630 ([88193dc](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/88193dc8a8e3c399510d54e9afeaca4ed8d670ec))
-- implement /blockchains/fabric/channels/{channel} endpoint ([#58](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/pull-requests/58/overview)) - EBSIINT-2631 ([c10de2d](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/c10de2d64ac9be93de163df042684ed107635276))
-- implement /blockchains/fabric/channels/{channel}/blocks/{blockNumber} ([#61](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/pull-requests/61/overview)) - EBSIINT-2633 ([3eba656](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/3eba65673ec3460907daf1c4070e30b03b6da018))
-- implement GET /blockchains/fabric/channels/{channel}/transactions/{transactionId} ([#65](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/pull-requests/65/overview)) - EBSIINT-2635 ([9fb2f8b](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/9fb2f8bf6e482e9f55060731e390adffcf481a97))
+- support DID JWT with publicKeyMultibase (#73) - EBSIINT-3367
 
 ### 🐛 Bug Fixes
 
-- access wallet folder for fabric ([#69](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/pull-requests/69/overview)) - EBSIINT-3255 ([b725b28](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/b725b28138c391a229c1fed69cd7562502be275d))
-- check if url includes /blockchains/besu ([#68](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/pull-requests/68/overview)) - EBSIINT-3265 ([45ab46a](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/45ab46a1aa4724b65452226224000eb05883be9e))
-- update dependencies and upgrade Node.js to 14.17.2 - EBSIINT-3174 ([05f2282](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/05f2282ed5e64b65fa236681e4f2924af5a3bf16))
-- update Node.js to v14.17.5 ([#63](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/pull-requests/63/overview)) - EBSIINT-3220 ([58954c9](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/58954c9bd4f49f42e9f7e67f091f467565aabb44))
-- upgrade Node.js to v14.17.4 ([#57](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/pull-requests/57/overview)) - EBSIINT-3206 ([b453813](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/b45381367eb4a033cc33027c6d29767f5a0ff96f))
+- prevent SIOP auth for /besu eth_sendRawTransaction (#74) - EBSIINT-3377
 
-## [2.0.0-rc.2](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.1&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.2&targetRepoId=244) (2021-06-17)
+## 2.0.0-rc.3 (2021-09-09)
 
 ### 🚀 Features
 
-- intercept Axios requests and redirect them to the local network ([#44](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/pull-requests/44/overview)) - EBSIINT-3026 ([3c30fdf](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/3c30fdf16b48b122cae409da057c2d81d84926eb))
-- store local API JWTs in cache ([#45](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/pull-requests/45/overview)) - EBSIINT-3038 ([c18e447](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/c18e447e24805e2353bafc5f9180bcb61994e5d2))
+- add GET /blockchains/fabric/channels/{channel}/blocks (#59) - EBSIINT-2632
+- allow public Besu methods to be accessed without a JWT (#67) - EBSIINT-3265
+- allow siop tokens (#66) - EBSIINT-3253
+- connect to Besu using WebSocket instead of HTTPS (#52) - EBSIINT-3134
+- get fabric transactions (#62) - EBSIINT-2634
+- implement /blockchains/fabric/channels endpoint (#56) - EBSIINT-2630
+- implement /blockchains/fabric/channels/{channel} endpoint (#58) - EBSIINT-2631
+- implement /blockchains/fabric/channels/{channel}/blocks/{blockNumber} (#61) - EBSIINT-2633
+- implement GET /blockchains/fabric/channels/{channel}/transactions/{transactionId} (#65) - EBSIINT-2635
 
 ### 🐛 Bug Fixes
 
-- handle local API 404 response ([#48](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/pull-requests/48/overview)) - EBSIINT-3039 ([5016f40](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/5016f40859602adeb403d3de7ba4e10bb497daad))
+- access wallet folder for fabric (#69) - EBSIINT-3255
+- check if url includes /blockchains/besu (#68) - EBSIINT-3265
+- update dependencies and upgrade Node.js to 14.17.2 - EBSIINT-3174
+- update Node.js to v14.17.5 (#63) - EBSIINT-3220
+- upgrade Node.js to v14.17.4 (#57) - EBSIINT-3206
 
-## [2.0.0-rc.1](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.0&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.1&targetRepoId=244) (2021-05-20)
+## 2.0.0-rc.2 (2021-06-17)
 
 ### 🚀 Features
 
-- jwt authentication ([#37](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/pull-requests/37/overview)) - EBSIINT-2937 ([5f2b0fc](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/5f2b0fc48189eea7b4ea1bcdab01bcbf8d55db74))
+- intercept Axios requests and redirect them to the local network (#44) - EBSIINT-3026
+- store local API JWTs in cache (#45) - EBSIINT-3038
 
 ### 🐛 Bug Fixes
 
-- dependencies - EBSIINT-2937 ([5a2c289](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/5a2c28984069012bffda67a573057f9291d2cdcd))
-- temporary fix - EBSIINT-2937 ([30142dd](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/30142dd4f18ab633af9ad8696eb4216d258d4098))
+- handle local API 404 response (#48) - EBSIINT-3039
+
+## 2.0.0-rc.1 (2021-05-20)
+
+### 🚀 Features
+
+- jwt authentication (#37) - EBSIINT-2937
+
+### 🐛 Bug Fixes
+
+- dependencies - EBSIINT-2937
+- temporary fix - EBSIINT-2937
 
 ## 2.0.0-rc.0 (2021-04-08)
 

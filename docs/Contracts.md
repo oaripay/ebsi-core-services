@@ -21,7 +21,7 @@ All the commands described below are run from the root folder.
 
 ### Prerequisites
 
-Please read [the main documentation](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/browse/README.md) first.
+Please read [the main documentation](../README.md) first.
 
 ## Linting
 

@@ -1,7 +1,6 @@
 // @ts-check
 
-const projectUrl =
-  "https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services";
+const projectUrl = "https://code.europa.eu/ebsi/public/core-services";
 
 const getReleaseLine = async (
   /** @type {import('@changesets/types').NewChangesetWithCommit} */
@@ -15,7 +14,7 @@ const getReleaseLine = async (
 
   let returnVal = `- ${
     changeset.commit
-      ? `[${changeset.commit}](${projectUrl}/commits/${changeset.commit}): `
+      ? `[${changeset.commit}](${projectUrl}/-/commit/${changeset.commit}): `
       : ""
   }${firstLine}`;
 
@@ -38,7 +37,7 @@ const getDependencyReleaseLine = async (
     (changeset) =>
       `- Updated dependencies${
         changeset.commit
-          ? ` [${changeset.commit}](${projectUrl}/commits/${changeset.commit})`
+          ? ` [${changeset.commit}](${projectUrl}/-/commit/${changeset.commit})`
           : ""
       }`,
   );
