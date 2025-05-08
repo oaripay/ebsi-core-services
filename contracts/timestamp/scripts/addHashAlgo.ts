@@ -5,6 +5,8 @@
 // Runtime Environment's members available in the global scope.
 import { ethers } from "hardhat";
 
+import type { Signer } from "ethers";
+
 import type { Timestamp } from "../src/types";
 
 async function main() {
@@ -25,7 +27,7 @@ async function main() {
       RecordLib: "0xE65d87135cA2e45C705581CcACDe55CFD1A78AD4",
       TimestampLib: "0x0654fC6108A0C8C9aEB2E134414F161BBE8e1854",
     },
-    signer: admin,
+    signer: admin as unknown as Signer,
   });
   const ts = contractFactory.attach(proxyAddress) as Timestamp;
 

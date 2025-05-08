@@ -10,7 +10,6 @@ import "@openzeppelin/hardhat-upgrades";
 import "./tasks/index";
 
 import type { TypechainUserConfig } from "@gnosis-guild/typechain-hardhat/dist/types";
-import type { AbiExporterUserConfig } from "hardhat-abi-exporter";
 
 import * as dotenv from "dotenv";
 import * as fs from "node:fs";
@@ -136,7 +135,6 @@ const config = {
     target: require.resolve("@gnosis-guild/typechain-ethers-v6"),
   },
 } satisfies HardhatUserConfig & {
-  abiExporter: AbiExporterUserConfig;
   namedAccounts?: Record<
     string,
     number | Record<string, null | number | string> | string

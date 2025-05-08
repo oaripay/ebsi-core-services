@@ -1,5 +1,7 @@
 import { task } from "hardhat/config";
 
+import type { Signer } from "ethers";
+
 import canonicalize from "canonicalize";
 import { readFile } from "node:fs/promises";
 
@@ -17,7 +19,7 @@ task(
     const tsr = await ethers.getContractAt(
       "SchemaSCRegistry",
       taskArgs.proxy,
-      admin,
+      admin as unknown as Signer,
     );
 
     console.log(

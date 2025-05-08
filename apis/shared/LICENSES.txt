@@ -2390,7 +2390,7 @@ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTI
 USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ========================================================================================
-- ethers@^6.13.7
+- ethers@^6.14.0
 ------------------------------
 This project is licensed under MIT.
 
@@ -2966,7 +2966,7 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ========================================================================================
-- zod@^3.24.3
+- zod@^3.24.4
 ------------------------------
 This project is licensed under MIT.
 
