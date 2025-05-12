@@ -357,16 +357,24 @@ function recordTimestampedHashes(
   transaction: ethereum.Transaction,
 ): void {
   for (let i = 0; i < hashAlgorithmIds.length; i += 1) {
-    const timestamp = new TimestampedHash(hashValues[i]);
+    let timestamp = TimestampedHash.load(hashValues[i]);
 
-    timestamp.blockNumber = block.number;
-    timestamp.blockTimestamp = block.timestamp;
-    timestamp.timestampedBy = transaction.from;
-    timestamp.transactionHash = transaction.hash;
-    timestamp.hashAlgorithm = hashAlgorithmIds[i].toString();
-    timestamp.hashValue = hashValues[i];
-    timestamp.records = records;
-    timestamp.data = i < timestampData.length ? timestampData[i] : new Bytes(0);
+    if (timestamp) {
+      const allRecords = timestamp.records.concat(records);
+      timestamp.records = allRecords;
+    } else {
+      timestamp = new TimestampedHash(hashValues[i]);
+
+      timestamp.blockNumber = block.number;
+      timestamp.blockTimestamp = block.timestamp;
+      timestamp.timestampedBy = transaction.from;
+      timestamp.transactionHash = transaction.hash;
+      timestamp.hashAlgorithm = hashAlgorithmIds[i].toString();
+      timestamp.hashValue = hashValues[i];
+      timestamp.records = records;
+      timestamp.data =
+        i < timestampData.length ? timestampData[i] : new Bytes(0);
+    }
 
     timestamp.save();
   }

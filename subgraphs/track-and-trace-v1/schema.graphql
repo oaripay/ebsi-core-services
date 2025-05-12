@@ -15,7 +15,7 @@ type Creator @entity(immutable: false) {
   documents: [Document!]! @derivedFrom(field: "creator")
 }
 
-type Operator @entity(immutable: false) {
+type Operator @entity(immutable: true) {
   id: Bytes!
   invitations: [Invitation!]! @derivedFrom(field: "subject")
 }
@@ -41,8 +41,9 @@ type Invitation @entity(immutable: false) {
   children: [Invitation!]! @derivedFrom(field: "parent")
 }
 
+# `Event` is not immutable because it can be removed
 type Event @entity(immutable: false) {
-  id: Bytes!
+  id: Bytes! # Set to document.id.concat(event.eventHash)
   document: Document!
   externalHash: String!
   hash: Bytes!

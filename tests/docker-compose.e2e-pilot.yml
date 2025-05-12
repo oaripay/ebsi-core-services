@@ -1,7 +1,7 @@
 services:
   # Start The Graph
   graph-node:
-    image: graphprotocol/graph-node:v0.35.0
+    image: graphprotocol/graph-node:v0.38.0
     ports:
       - "8000:8000"
       - "8001:8001"
@@ -25,6 +25,13 @@ services:
       postgres_db: graph-node
       ipfs: "ipfs:5001"
       ethereum: "besu:https://api-pilot.ebsi.eu/ledger/v4/blockchains/besu"
+      # JSON-RPC configuration for EVM chains — https://github.com/graphprotocol/graph-node/blob/master/docs/environment-variables.md#json-rpc-configuration-for-evm-chains
+      ETHEREUM_POLLING_INTERVAL: 2000
+      ETHEREUM_BLOCK_BATCH_SIZE: 5
+      GRAPH_ETHEREUM_MAX_BLOCK_RANGE_SIZE: 500
+      GRAPH_ETHEREUM_BLOCK_INGESTOR_MAX_CONCURRENT_JSON_RPC_CALLS_FOR_TXN_RECEIPTS: 500
+      GRAPH_ETHEREUM_FETCH_TXN_RECEIPTS_IN_BATCHES: true
+      # Miscellaneous — https://github.com/graphprotocol/graph-node/blob/master/docs/environment-variables.md#miscellaneous
       GRAPH_LOG: info
     healthcheck:
       test: "bash -c 'printf \"GET / HTTP/1.1\n\n\" > /dev/tcp/127.0.0.1/8020; exit $?;'"
@@ -39,7 +46,7 @@ services:
     volumes:
       - ./data/ipfs:/data/ipfs:Z
   postgres:
-    image: postgres:14
+    image: postgres:17
     ports:
       - "5432:5432"
     command:

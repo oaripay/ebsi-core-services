@@ -720,7 +720,11 @@ describe("Track and Trace - entity assertions", () => {
       events.length,
       "The document should have 1 related event",
     );
-    assert.bytesEquals(Bytes.fromHexString("0xeeda"), events[0].id);
+
+    const expectedEventId = Bytes.fromHexString(docId).concat(
+      Bytes.fromHexString("0xeeda"),
+    );
+    assert.bytesEquals(expectedEventId, events[0].id);
 
     const documentInvitations = document.invitations.load();
     assert.i32Equals(
@@ -734,21 +738,23 @@ describe("Track and Trace - entity assertions", () => {
       `The document invitation ID should be ${creatorInvitationId.toHexString()}`,
     );
 
+    const eventId = events[0].id.toHexString();
+
     assert.entityCount("Event", 1);
     assert.fieldEquals(
       "Event",
-      "0xeeda",
+      eventId,
       "externalHash",
       "0x962f17c263a79e31fd42cc6f64268eb7ced50e284fc0dd5be0dd06c1b4ca9b22",
     );
-    assert.fieldEquals("Event", "0xeeda", "hash", "0xeeda");
-    assert.fieldEquals("Event", "0xeeda", "timestamp", "1722931438");
-    assert.fieldEquals("Event", "0xeeda", "source", "block");
-    assert.fieldEquals("Event", "0xeeda", "proof", "0xb87554");
-    assert.fieldEquals("Event", "0xeeda", "sender", creatorHex);
-    assert.fieldEquals("Event", "0xeeda", "origin", "origin1");
-    assert.fieldEquals("Event", "0xeeda", "metadata", "metadata2");
-    assert.fieldEquals("Event", "0xeeda", "document", docId);
+    assert.fieldEquals("Event", eventId, "hash", "0xeeda");
+    assert.fieldEquals("Event", eventId, "timestamp", "1722931438");
+    assert.fieldEquals("Event", eventId, "source", "block");
+    assert.fieldEquals("Event", eventId, "proof", "0xb87554");
+    assert.fieldEquals("Event", eventId, "sender", creatorHex);
+    assert.fieldEquals("Event", eventId, "origin", "origin1");
+    assert.fieldEquals("Event", eventId, "metadata", "metadata2");
+    assert.fieldEquals("Event", eventId, "document", docId);
   });
 
   test("remove document", () => {
@@ -818,10 +824,15 @@ describe("Track and Trace - entity assertions", () => {
       events.length,
       `The document should have 1 related event. Expected: 1, Actual: ${events.length}`,
     );
-    assert.bytesEquals(
+
+    const expectedEventId = Bytes.fromHexString(docId).concat(
       Bytes.fromHexString("0xeeda"),
+    );
+
+    assert.bytesEquals(
+      expectedEventId,
       events[0].id,
-      `events[0].id should be equal to 0xeeda. Expected: 0xeeda, Actual: ${events[0].id.toHexString()}`,
+      `events[0].id should be correct. Expected: ${expectedEventId.toHexString()}, actual: ${events[0].id.toHexString()}`,
     );
 
     const documentInvitations = document.invitations.load();

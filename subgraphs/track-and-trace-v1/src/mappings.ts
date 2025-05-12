@@ -159,16 +159,16 @@ export function handleEventWrittenEvent(event: EventWritten): void {
     return;
   }
 
-  let writeEvent = Event.load(event.params.eventHash);
+  const eventId = document.id.concat(event.params.eventHash);
+
+  let writeEvent = Event.load(eventId);
 
   if (writeEvent) {
-    log.error("Event {} already exists", [
-      event.params.eventHash.toHexString(),
-    ]);
+    log.error("Event {} already exists", [eventId.toHexString()]);
     return;
   }
 
-  writeEvent = new Event(event.params.eventHash);
+  writeEvent = new Event(eventId);
   writeEvent.document = document.id;
   writeEvent.hash = event.params.eventHash;
   writeEvent.externalHash = externalHash;

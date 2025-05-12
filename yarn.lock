@@ -2124,12 +2124,12 @@
     web3-eth-abi "4.4.1"
     yaml "2.7.0"
 
-"@graphprotocol/graph-ts@0.36.0":
-  version "0.36.0"
-  resolved "https://registry.yarnpkg.com/@graphprotocol/graph-ts/-/graph-ts-0.36.0.tgz#68ed937806bc7b2f8fe0ae2e15447255144f6a41"
-  integrity sha512-yJNQK5YZWEThuawSboQQ+U4Fb2C78KBjmaoeOK7Nn0CFoChmHc+woRvW3yj+IKVSPc7JNHt4JSUHxVDJfUZbTA==
+"@graphprotocol/graph-ts@0.38.0":
+  version "0.38.0"
+  resolved "https://registry.yarnpkg.com/@graphprotocol/graph-ts/-/graph-ts-0.38.0.tgz#a73cba73bf7931af1c603563416ed6779c4311d7"
+  integrity sha512-fx9IpqbXHWMskl6wLDstKLy0VeszTQg6K5xsUEHXPkpOtceDkWAiDE8FyqsGF0IVTmE2Pxafw4t6+rEG8lVfyw==
   dependencies:
-    assemblyscript "0.19.10"
+    assemblyscript "0.27.31"
 
 "@hapi/hoek@^9.0.0", "@hapi/hoek@^9.3.0":
   version "9.3.0"
@@ -5772,7 +5772,7 @@ assemblyscript-json@^1.1.0:
   resolved "https://registry.yarnpkg.com/assemblyscript-json/-/assemblyscript-json-1.1.0.tgz#49d38bc21f1ac36f2887528a35de6cf7d59c17be"
   integrity sha512-UbE8ts8csTWQgd5TnSPN7MRV9NveuHv1bVnKmDLoo/tzjqxkmsZb3lu59Uk8H7SGoqdkDSEE049alx/nHnSdFw==
 
-assemblyscript@0.19.10, assemblyscript@0.19.23:
+assemblyscript@0.19.23, assemblyscript@0.27.31:
   version "0.19.23"
   resolved "https://registry.yarnpkg.com/assemblyscript/-/assemblyscript-0.19.23.tgz#16ece69f7f302161e2e736a0f6a474e6db72134c"
   integrity sha512-fwOQNZVTMga5KRsfY80g7cpOl4PsFQczMwHzdtgoqLXaYhkhavufKb0sB0l3T1DUxpAufA0KNhlbpuuhZUwxMA==
