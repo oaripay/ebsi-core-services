@@ -2,6 +2,7 @@
 import Mustache from "mustache";
 import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 if (!process.env["TNT_SC_V1_ADDRESS"]) {
   console.error("TNT_SC_V1_ADDRESS must be defined");
@@ -20,9 +21,11 @@ const source = readFileSync(
 ).toString();
 
 const contents = Mustache.render(source, {
-  abi: import.meta
-    .resolve("@ebsiint-sc/track-and-trace/src/abi/TrackAndTrace.json")
-    .replace("file://", ""),
+  abi: fileURLToPath(
+    import.meta.resolve(
+      "@ebsiint-sc/track-and-trace/src/abi/TrackAndTrace.json",
+    ),
+  ),
   address: process.env["TNT_SC_V1_ADDRESS"] || "",
   startBlock: Number.parseInt(process.env["TNT_SC_V1_START_BLOCK"] || "0", 10),
 });

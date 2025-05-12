@@ -53,6 +53,7 @@ const PUBLIC_BESU_METHODS = new Set([
   "eth_chainId",
   "eth_getBlockByHash",
   "eth_getBlockByNumber",
+  "eth_getBlockReceipts",
   "eth_getBlockTransactionCountByHash",
   "eth_getBlockTransactionCountByNumber",
   "eth_getCode",

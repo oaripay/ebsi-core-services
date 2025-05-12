@@ -1,10 +1,10 @@
-type Schema @entity(immutable: false) {
+type Schema @entity(immutable: true) {
   id: Bytes!
   revisions: [Revision!]! @derivedFrom(field: "schema")
   # lastRevision: Revision!
 }
 
-type Revision @entity(immutable: false) {
+type Revision @entity(immutable: true) {
   id: Bytes! # Set to `schema.id.concat(keccak(content))`
   content: String!
   schema: Schema!

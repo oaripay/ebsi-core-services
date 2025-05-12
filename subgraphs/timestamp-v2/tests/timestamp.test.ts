@@ -147,6 +147,14 @@ describe("Timestamps and Records", () => {
       defaultTransactionHash,
     );
     assert.fieldEquals("TimestampedHash", "0x00010000", "records", "[]");
+
+    // Timestamp the same hash again: there should be no new record
+    timestampHashes(
+      [1],
+      [Bytes.fromHexString("0x00010000")],
+      [Bytes.fromHexString("0x00010001")],
+    );
+    assert.entityCount("TimestampedHash", 1);
   });
 
   test("Timestamp hashes with different data length", () => {
@@ -277,7 +285,11 @@ describe("Timestamps and Records", () => {
       Bytes.fromHexString("0x00030000"),
       timestampedHash.hashValue,
     );
-    assert.i32Equals(1, timestampedHash.records.length);
+    assert.i32Equals(
+      1,
+      timestampedHash.records.length,
+      "TimestampedHash 0x00030000 should have 1 record",
+    );
     assert.bytesEquals(recordId, timestampedHash.records[0]);
     assert.stringEquals("1", timestampedHash.hashAlgorithm);
     assert.bytesEquals(
@@ -322,11 +334,15 @@ describe("Timestamps and Records", () => {
     versionCount = versionCount + 1;
     timestampedHashCount = timestampedHashCount + 1;
 
-    // Create a new version with 2 new timestamped hashes
+    // Create a new version with 1 new timestamped hash, 1 existing timestamped hash tied to a record, and 1 existing timestamped hash not tied to any record
     const timestampVersionHashesCall = createTimestampVersionHashesCall(
       timestampRecordHashesCall.inputs.hashValues[0],
-      [1, 1],
-      [Bytes.fromHexString("0x00040001"), Bytes.fromHexString("0x00040002")],
+      [1, 1, 1],
+      [
+        Bytes.fromHexString("0x00040001"),
+        Bytes.fromHexString("0x00030000"),
+        Bytes.fromHexString("0x00010000"),
+      ],
       [Bytes.fromHexString("0x00ef")],
       Bytes.fromHexString("0xc23e"),
     );
@@ -337,7 +353,7 @@ describe("Timestamps and Records", () => {
     assert.entityCount("Record", recordCount);
     assert.entityCount("RecordOwner", recordOwnerCount);
     assert.entityCount("RecordVersion", versionCount + 1);
-    assert.entityCount("TimestampedHash", timestampedHashCount + 2);
+    assert.entityCount("TimestampedHash", timestampedHashCount + 1);
 
     // Load newly created record
     const recordId = getRecordId(
@@ -449,9 +465,9 @@ describe("Timestamps and Records", () => {
 
     // Check timestamped hashes attached to the version
     assert.i32Equals(
-      2,
+      3,
       recordVersion2.timestamps.length,
-      "Version should have 2 timestamped hashes",
+      "Version should have 3 timestamped hashes",
     );
 
     // Load timestamped hash #1
@@ -498,30 +514,50 @@ describe("Timestamps and Records", () => {
       );
     }
 
-    // Check timestamped hash #2
+    // Check timestamped hash #2 (existing timestamped hash tied to another record)
     assert.bytesEquals(
-      Bytes.fromHexString("0x00040002"),
+      Bytes.fromHexString("0x00030000"),
       timestampedHash.hashValue,
     );
-    assert.i32Equals(1, timestampedHash.records.length);
-    assert.bytesEquals(recordId, timestampedHash.records[0]);
-    assert.stringEquals("1", timestampedHash.hashAlgorithm);
-    assert.bytesEquals(Bytes.fromHexString("0x"), timestampedHash.data); // Empty value
-    assert.addressEquals(
-      timestampRecordHashesCall.transaction.from,
-      Address.fromBytes(timestampedHash.timestampedBy),
+    assert.i32Equals(
+      2,
+      timestampedHash.records.length,
+      "TimestampedHash 0x00030000 should have 2 records",
     );
-    assert.bigIntEquals(
-      timestampRecordHashesCall.block.timestamp,
-      timestampedHash.blockTimestamp,
-    );
-    assert.bigIntEquals(
+    const previousRecordId = getRecordId(
+      timestampRecordHashesCall.from,
       timestampRecordHashesCall.block.number,
-      timestampedHash.blockNumber,
+      Bytes.fromHexString("0x00030000"),
     );
+    assertArrayContainsAllValues(
+      timestampedHash.records,
+      [previousRecordId, recordId],
+      "Timestamped hash #2 should contain the 2 records [previousRecordId, recordId]",
+    );
+
+    // Load timestamped hash #3
+    timestampedHash = TimestampedHash.load(recordVersion2.timestamps[2]);
+
+    if (!timestampedHash) {
+      throw new Error(
+        `TimestampedHash ${recordVersion2.timestamps[2].toHexString()} not found`,
+      );
+    }
+
+    // Check timestamped hash #3 (existing timestamped hash not tied to another record)
     assert.bytesEquals(
-      timestampRecordHashesCall.transaction.hash,
-      timestampedHash.transactionHash,
+      Bytes.fromHexString("0x00010000"),
+      timestampedHash.hashValue,
+    );
+    assert.i32Equals(
+      1,
+      timestampedHash.records.length,
+      "TimestampedHash 0x00010000 should have 1 record",
+    );
+    assertArrayContainsAllValues(
+      timestampedHash.records,
+      [recordId],
+      "Timestamped hash #3 should contain the 1 record [recordId]",
     );
   });
 

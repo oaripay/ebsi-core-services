@@ -2,13 +2,14 @@
 import Mustache from "mustache";
 import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
-if (!process.env.TIMESTAMP_SC_V2_ADDRESS) {
+if (!process.env["TIMESTAMP_SC_V2_ADDRESS"]) {
   console.error("TIMESTAMP_SC_V2_ADDRESS must be defined");
   process.exit(1);
 }
 
-if (!process.env.TIMESTAMP_SC_V2_START_BLOCK) {
+if (!process.env["TIMESTAMP_SC_V2_START_BLOCK"]) {
   console.error("TIMESTAMP_SC_V2_START_BLOCK must be defined");
   process.exit(1);
 }
@@ -20,12 +21,12 @@ const source = readFileSync(
 ).toString();
 
 const contents = Mustache.render(source, {
-  abi: import.meta
-    .resolve("@ebsiint-sc/timestamp-v2/src/abi/Timestamp.json")
-    .replace("file://", ""),
-  address: process.env.TIMESTAMP_SC_V2_ADDRESS || "",
+  abi: fileURLToPath(
+    import.meta.resolve("@ebsiint-sc/timestamp-v2/src/abi/Timestamp.json"),
+  ),
+  address: process.env["TIMESTAMP_SC_V2_ADDRESS"] || "",
   startBlock: Number.parseInt(
-    process.env.TIMESTAMP_SC_V2_START_BLOCK || "0",
+    process.env["TIMESTAMP_SC_V2_START_BLOCK"] || "0",
     10,
   ),
 });

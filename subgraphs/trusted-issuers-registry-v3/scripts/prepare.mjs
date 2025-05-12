@@ -2,6 +2,7 @@
 import Mustache from "mustache";
 import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 if (!process.env["TIR_SC_V3_ADDRESS"]) {
   console.error("TIR_SC_V3_ADDRESS must be defined");
@@ -21,9 +22,11 @@ const source = readFileSync(
 
 const abi = JSON.parse(
   readFileSync(
-    import.meta
-      .resolve("@ebsiint-sc/trusted-issuers-registry-v3/src/abi/Tir.json")
-      .replace("file://", ""),
+    fileURLToPath(
+      import.meta.resolve(
+        "@ebsiint-sc/trusted-issuers-registry-v3/src/abi/Tir.json",
+      ),
+    ),
   ).toString(),
 );
 

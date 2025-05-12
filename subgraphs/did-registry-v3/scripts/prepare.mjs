@@ -2,13 +2,14 @@
 import Mustache from "mustache";
 import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
-if (!process.env.DIDR_SC_V3_ADDRESS) {
+if (!process.env["DIDR_SC_V3_ADDRESS"]) {
   console.error("DIDR_SC_V3_ADDRESS must be defined");
   process.exit(1);
 }
 
-if (!process.env.DIDR_SC_V3_START_BLOCK) {
+if (!process.env["DIDR_SC_V3_START_BLOCK"]) {
   console.error("DIDR_SC_V3_START_BLOCK must be defined");
   process.exit(1);
 }
@@ -20,11 +21,11 @@ const source = readFileSync(
 ).toString();
 
 const contents = Mustache.render(source, {
-  abi: import.meta
-    .resolve("@ebsiint-sc/did-registry-v3/src/abi/DidRegistry.json")
-    .replace("file://", ""),
-  address: process.env.DIDR_SC_V3_ADDRESS || "",
-  startBlock: Number.parseInt(process.env.DIDR_SC_V3_START_BLOCK || "0", 10),
+  abi: fileURLToPath(
+    import.meta.resolve("@ebsiint-sc/did-registry-v3/src/abi/DidRegistry.json"),
+  ),
+  address: process.env["DIDR_SC_V3_ADDRESS"] || "",
+  startBlock: Number.parseInt(process.env["DIDR_SC_V3_START_BLOCK"] || "0", 10),
 });
 
 writeFileSync(path.resolve(dirname, "../subgraph.yaml"), contents);
