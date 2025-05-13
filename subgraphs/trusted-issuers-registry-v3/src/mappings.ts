@@ -1,9 +1,10 @@
-import { Bytes, log } from "@graphprotocol/graph-ts";
+import { Bytes, log, store } from "@graphprotocol/graph-ts";
 
 import { Attribute, Issuer, Proxy, Revision } from "../generated/schema";
 import {
   AddAttributeRevision,
   AddIssuerProxy,
+  RemoveIssuerProxy,
   UpdateIssuerProxy,
 } from "../generated/TrustedIssuersRegistry/TrustedIssuersRegistry";
 import { ROOT_TAO } from "./constants";
@@ -14,6 +15,7 @@ import { decodeTransactionInput, getIssuerType } from "./utils";
 // 0x1bef3e0c <-> setAttributeData(string,bytes32,bytes)
 // 0xf4fd7649 <-> addIssuerProxy(string,string)
 // 0x7beeda81 <-> updateIssuerProxy(string,bytes32,string)
+// 0xa6256c18 <-> removeIssuerProxy(string,bytes32)
 
 export function handleAddAttributeRevisionEvent(
   event: AddAttributeRevision,
@@ -74,6 +76,15 @@ export function handleAddIssuerProxyEvent(event: AddIssuerProxy): void {
   proxy.data = decoded.toTuple()[1].toString();
 
   proxy.save();
+}
+
+export function handleRemoveIssuerProxyEvent(event: RemoveIssuerProxy): void {
+  log.info("Removing proxy {} to {}", [
+    event.params.proxyId.toHexString(),
+    event.params.did,
+  ]);
+
+  store.remove("Proxy", event.params.proxyId.toHexString());
 }
 
 export function handleUpdateIssuerProxyEvent(event: UpdateIssuerProxy): void {

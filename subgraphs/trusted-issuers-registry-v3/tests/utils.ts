@@ -4,6 +4,7 @@ import { assert, newMockEvent } from "matchstick-as";
 import {
   AddAttributeRevision,
   AddIssuerProxy,
+  RemoveIssuerProxy,
   UpdateIssuerProxy,
 } from "../generated/TrustedIssuersRegistry/TrustedIssuersRegistry";
 
@@ -43,6 +44,20 @@ export function createAddIssuerProxyEvent(
   proxyId: Bytes,
 ): AddIssuerProxy {
   const event = changetype<AddIssuerProxy>(newMockEvent());
+
+  event.parameters = [
+    new ethereum.EventParam("did", ethereum.Value.fromString(did)),
+    new ethereum.EventParam("proxyId", ethereum.Value.fromBytes(proxyId)),
+  ];
+
+  return event;
+}
+
+export function createRemoveIssuerProxyEvent(
+  did: string,
+  proxyId: Bytes,
+): RemoveIssuerProxy {
+  const event = changetype<RemoveIssuerProxy>(newMockEvent());
 
   event.parameters = [
     new ethereum.EventParam("did", ethereum.Value.fromString(did)),

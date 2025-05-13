@@ -47,6 +47,7 @@ import type { IssuerObject } from "../../../tests/utils/tir.ts";
 import type { ApiConfig } from "../../config/configuration.ts";
 import type { JsonRpcResponseObject } from "./jsonrpc.interface.ts";
 import type { AddIssuerProxySchema } from "./validators/RequestAddIssuerProxySchema.ts";
+import type { RemoveIssuerProxySchema } from "./validators/RequestRemoveIssuerProxySchema.ts";
 import type { UnsignedTransaction } from "./validators/RequestSendSignedTransactionSchema.ts";
 import type { SetAttributeDataSchema } from "./validators/RequestSetAttributeDataSchema.ts";
 import type { SetAttributeMetadataSchema } from "./validators/RequestSetAttributeMetadataSchema.ts";
@@ -63,6 +64,7 @@ import { formatEthersUnsignedTransaction } from "./jsonrpc.utils.ts";
 
 type JsonRpcParams =
   | AddIssuerProxySchema
+  | RemoveIssuerProxySchema
   | SetAttributeDataSchema
   | SetAttributeMetadataSchema
   | UpdateIssuerProxySchema;
@@ -117,6 +119,14 @@ describe("JSON-RPC Module", () => {
             ? issuer2.proxies[0]!.utf8
             : issuer1.proxies[0]!.utf8,
         } satisfies AddIssuerProxySchema;
+        break;
+      }
+      case "removeIssuerProxy": {
+        param = {
+          did: issuer1.did,
+          from: signer.address,
+          proxyId: tamper ? issuer2.proxies[0]!.id : issuer1.proxies[0]!.id,
+        } satisfies RemoveIssuerProxySchema;
         break;
       }
       case "setAttributeData": {
@@ -862,6 +872,7 @@ describe("JSON-RPC Module", () => {
     { method: "setAttributeData", useTirInviteToken: true },
     { method: "addIssuerProxy" },
     { method: "updateIssuerProxy" },
+    { method: "removeIssuerProxy" },
   ] as const)(
     "/jsonrpc with method %o",
     ({ method, useTirInviteToken = false }) => {
@@ -1087,6 +1098,67 @@ describe("JSON-RPC Module", () => {
                   from: "bad address",
                   proxyData: issuer1.proxies[0]!.utf8,
                 } as AddIssuerProxySchema,
+              },
+            );
+
+            break;
+          }
+          case "removeIssuerProxy": {
+            testSetup.push(
+              {
+                accessToken: tao1TirWriteAccessToken,
+                expectedErrorMessage: "Invalid 'params.0.did': Required",
+                params: {
+                  from: signer.address,
+                  // Missing "did"
+                  // did: issuer1.did,
+                  proxyId: issuer1.proxies[0]!.id,
+                } as RemoveIssuerProxySchema,
+              },
+              {
+                accessToken: tao1TirWriteAccessToken,
+                expectedErrorMessage:
+                  "Invalid 'params.0.did': The DID must start with \"did:ebsi:\"",
+                params: {
+                  // Invalid "did"
+                  did: "did:key:z2dmzD81cgPx8Vki7JbuuMmFYrWPgYoytykUZ3eyqht1j9KbqWsaTDqWzTdxV8Up5ZsKEyY2287nhqc9wPxspHkyEn5xHi9Lnnt9kEkPJd2tFpmpx8z8dgHfbLmLhFRm5jpfvxGUwoykD87ec7znw9NhN9fMTBXmm4zb3amdW5SqZ7QW5A",
+                  from: signer.address,
+                  proxyId: issuer1.proxies[0]!.id,
+                } as RemoveIssuerProxySchema,
+              },
+              {
+                accessToken: tao1TirWriteAccessToken,
+                expectedErrorMessage: "Invalid 'params.0.proxyId': Required",
+                params: {
+                  did: issuer1.did,
+                  from: signer.address,
+                  // Missing "proxyId"
+                  // proxyId: issuer1.proxies[0]!.id,
+                } as RemoveIssuerProxySchema,
+              },
+              {
+                accessToken: tao1TirWriteAccessToken,
+                expectedErrorMessage: [
+                  "Invalid 'params.0.proxyId': Must be prefixed with 0x",
+                  "Invalid 'params.0.proxyId': String must contain exactly 66 character(s)",
+                  "Invalid 'params.0.proxyId': Must be hexadecimal",
+                ].join("\n"),
+                params: {
+                  did: issuer1.did,
+                  from: signer.address,
+                  // Invalid "proxyId"
+                  proxyId: "not 66 chars and not hex",
+                } as RemoveIssuerProxySchema,
+              },
+              {
+                accessToken: tao1TirWriteAccessToken,
+                expectedErrorMessage:
+                  "Invalid 'params.0.from': Invalid Ethereum address",
+                params: {
+                  did: issuer1.did,
+                  from: "bad address",
+                  proxyId: issuer1.proxies[0]!.id,
+                } as RemoveIssuerProxySchema,
               },
             );
 

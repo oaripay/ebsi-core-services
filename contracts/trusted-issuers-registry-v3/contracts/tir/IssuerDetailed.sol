@@ -20,6 +20,7 @@ abstract contract IssuerDetailed is IssuerStorage {
 
     event AddIssuerProxy(string did, bytes32 indexed proxyId);
     event UpdateIssuerProxy(string did, bytes32 indexed proxyId);
+    event RemoveIssuerProxy(string did, bytes32 indexed proxyId);
 
     // external functions
 
@@ -167,6 +168,7 @@ abstract contract IssuerDetailed is IssuerStorage {
             "proxy already stored"
         );
         iss.proxies.push(proxyId);
+        iss.proxyIndex[proxyId] = iss.proxies.length;
         iss.proxiesStore[proxyId] = proxyData;
         emit AddIssuerProxy(did, proxyId);
     }
@@ -200,6 +202,44 @@ abstract contract IssuerDetailed is IssuerStorage {
         require(bytes(iss.proxiesStore[proxyId]).length > 0, "proxy not found");
         iss.proxiesStore[proxyId] = proxyData;
         emit UpdateIssuerProxy(did, proxyId);
+    }
+
+    /**
+     * @dev Remove an issuer proxy.
+     */
+    function removeIssuerProxy(string calldata did, bytes32 proxyId) external {
+        Issuers storage ds = issuerStorage();
+
+        require(
+            getTrustedPolicyRegistry().checkPolicy(
+                "TIR:updateIssuer",
+                msg.sender
+            ) || checkController(bytes(did), msg.sender),
+            string(
+                abi.encodePacked(
+                    "Policy error: sender is not controller of the did ",
+                    did,
+                    " and it doesn't have the attribute TIR:updateIssuer"
+                )
+            )
+        );
+
+        Entity storage iss = ds.issuerStore[did];
+
+        require(bytes(iss.proxiesStore[proxyId]).length > 0, "proxy not found");
+        iss.proxiesStore[proxyId] = "";
+
+        require(iss.proxyIndex[proxyId] > 0, "proxyId unknown or old");
+        iss.proxies[iss.proxyIndex[proxyId] - 1] = iss.proxies[
+            iss.proxies.length - 1
+        ];
+        iss.proxyIndex[iss.proxies[iss.proxies.length - 1]] = iss.proxyIndex[
+            proxyId
+        ];
+        iss.proxies.pop();
+        iss.proxyIndex[proxyId] = 0;
+
+        emit RemoveIssuerProxy(did, proxyId);
     }
 
     function getIssuer(

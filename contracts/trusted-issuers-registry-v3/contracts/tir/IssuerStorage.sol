@@ -39,6 +39,7 @@ contract IssuerStorage {
         bytes32[] proxies;
         mapping(bytes32 => string) proxiesStore;
         bool noAttributesAccepted;
+        mapping(bytes32 => uint256) proxyIndex;
     }
 
     struct Issuers {

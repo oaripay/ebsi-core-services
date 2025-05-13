@@ -29,6 +29,10 @@ import {
   createAddIssuerProxySchema,
   createRequestAddIssuerProxySchema,
 } from "./validators/RequestAddIssuerProxySchema.ts";
+import {
+  removeIssuerProxySchema,
+  requestRemoveIssuerProxySchema,
+} from "./validators/RequestRemoveIssuerProxySchema.ts";
 import { requestSendSignedTransactionDtoSchema } from "./validators/RequestSendSignedTransactionSchema.ts";
 import {
   requestSetAttributeDataSchema,
@@ -192,6 +196,35 @@ export class JsonRpcService {
       const data = this.contract.interface.encodeFunctionData(method, [
         did,
         proxyData,
+      ]);
+
+      return await this.buildTransaction(from, data);
+    } catch (error_) {
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(error_), id);
+      if (error_ instanceof Error && error_.stack) {
+        error.stack = error_.stack;
+      }
+      throw error;
+    }
+  }
+
+  async buildTransactionRemoveIssuerProxy(
+    body: JsonRpcSchema,
+    id: null | number | string | undefined,
+    scope: string,
+  ): Promise<UnsignedTransaction> {
+    const method = "removeIssuerProxy";
+
+    try {
+      assertScopeContains(scope, "tir_write", method);
+
+      const parsedBody = await requestRemoveIssuerProxySchema.parseAsync(body);
+
+      const { did, from, proxyId } = parsedBody.params[0]!;
+
+      const data = this.contract.interface.encodeFunctionData(method, [
+        did,
+        proxyId,
       ]);
 
       return await this.buildTransaction(from, data);
@@ -504,6 +537,11 @@ export class JsonRpcService {
       case "addIssuerProxy": {
         assertScopeContains(scope, "tir_write", fragment.name);
         await this.addIssuerProxySchema.parseAsync(argsObject);
+        break;
+      }
+      case "removeIssuerProxy": {
+        assertScopeContains(scope, "tir_write", fragment.name);
+        await removeIssuerProxySchema.parseAsync(argsObject);
         break;
       }
       case "setAttributeData": {

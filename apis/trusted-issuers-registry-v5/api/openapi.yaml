@@ -807,6 +807,18 @@ paths:
             any VCs are issued. The validation will fail if the credential status proxy doesn't exist.
             It must be a JSON object converted to a string. Example: `JSON.stringify({"prefix":"https://example.net","headers":{"Authorization":"Bearer 1234567890"},"testSuffix":"/cred/1"})`.
 
+          #### removeIssuerProxy
+
+          Call to build an unsigned transaction to remove an existing proxy of an issuer. It can be
+          removed by the issuer itself or an admin registered in the Trusted Policies Registry
+          to update issuers.
+          Requires an access token with "tir_write" scope.
+
+          Parameters:
+          - **from**: Ethereum address of the signer
+          - **did**: DID of the issuer
+          - **proxyId**: ID of the existing proxy (hexadecimal string prefixed with 0x)
+
           #### sendSignedTransaction
 
           Call to send a signed transaction to the blockchain.
@@ -876,6 +888,15 @@ paths:
                       did: did:ebsi:zZviptEhFN1r2u18hhi7Hof
                       proxyId: "0xfb33cccb447605de75846617385f6d2aac28010f53a89ecb5ce151751c53c8d4"
                       proxyData: '{"prefix":"https://example.net","headers":{"Authorization":"Bearer 63829b578ccaa61f27c889ab270642f2"},"testSuffix":"/cred/1"}'
+                  id: 667
+              Build tx to remove an issuer proxy:
+                value:
+                  jsonrpc: "2.0"
+                  method: removeIssuerProxy
+                  params:
+                    - from: "0x8445fC96e27ceB0d1794be16a1Ac8BF5D765AACB"
+                      did: did:ebsi:zZviptEhFN1r2u18hhi7Hof
+                      proxyId: "0xfb33cccb447605de75846617385f6d2aac28010f53a89ecb5ce151751c53c8d4"
                   id: 667
               Send Transaction:
                 description: Call to send a signed transaction to the blockchain.
