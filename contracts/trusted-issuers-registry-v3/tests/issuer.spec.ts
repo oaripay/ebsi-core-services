@@ -67,7 +67,9 @@ function randomHash(): string {
 function randomProxy(): string {
   return Buffer.from(
     JSON.stringify({
-      headers: { Authorization: "Bearer ABC" },
+      headers: {
+        Authorization: `Bearer ${crypto.randomBytes(32).toString("hex")}`,
+      },
       prefix: "https://localhost/my-provider/revocation/",
       testSuffix: "/credentials/status/1",
     }),
@@ -1015,6 +1017,59 @@ describe("Issuers", () => {
       ).to.be.revertedWith(
         "Policy error: sender is not controller of the did did:ebsi:issuer and it doesn't have the attribute TIR:updateIssuer",
       );
+    });
+
+    it("should remove a proxy", async () => {
+      await policyContractMock.setPolicyResult(false);
+      await didContractMock.setDidResult(true);
+
+      // create multiple proxies
+      const proxies = Array.from({ length: 6 })
+        .fill(0)
+        .map(() => {
+          const data = randomProxy();
+          const id = ethers.sha256(Buffer.from(data));
+          return { data, id };
+        });
+      for (const proxy of proxies) {
+        await tir.addIssuerProxy(didIssuer, proxy.data);
+      }
+
+      let issuerProxies = await tir.getIssuerProxies(didIssuer, 1, 50);
+      expect(decodeResult(issuerProxies)).to.eql({
+        howMany: BigInt(6),
+        items: [
+          proxies[0].id,
+          proxies[1].id,
+          proxies[2].id,
+          proxies[3].id,
+          proxies[4].id,
+          proxies[5].id,
+        ],
+        next: 1n,
+        prev: 1n,
+        total: BigInt(6),
+      });
+
+      await expect(tir.removeIssuerProxy(didIssuer, proxies[2].id)).to.emit(
+        tir,
+        "RemoveIssuerProxy",
+      );
+
+      issuerProxies = await tir.getIssuerProxies(didIssuer, 1, 50);
+      expect(decodeResult(issuerProxies)).to.eql({
+        howMany: BigInt(5),
+        items: [
+          proxies[0].id,
+          proxies[1].id,
+          proxies[5].id, // proxies[2] removed, and replace by [5]
+          proxies[3].id,
+          proxies[4].id,
+        ],
+        next: 1n,
+        prev: 1n,
+        total: BigInt(5),
+      });
     });
   });
 });

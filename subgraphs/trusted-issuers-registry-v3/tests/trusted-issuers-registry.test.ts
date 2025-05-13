@@ -13,6 +13,7 @@ import { ROOT_TAO, TAO, TI } from "../src/constants";
 import {
   handleAddAttributeRevisionEvent,
   handleAddIssuerProxyEvent,
+  handleRemoveIssuerProxyEvent,
   handleUpdateIssuerProxyEvent,
 } from "../src/mappings";
 import { getIssuerType } from "../src/utils";
@@ -20,6 +21,7 @@ import {
   assertArrayContainsAllValues,
   createAddAttributeRevisionEvent,
   createAddIssuerProxyEvent,
+  createRemoveIssuerProxyEvent,
   createUpdateIssuerProxyEvent,
   encodeTransactionInput,
 } from "./utils";
@@ -505,5 +507,41 @@ describe("Trusted Issuers Registry - entity assertions", () => {
       "The proxy ID should be correct",
     );
     assert.fieldEquals("Proxy", proxyId, "data", proxyDataUpdated);
+  });
+
+  test("Remove a proxy", () => {
+    const event = createRemoveIssuerProxyEvent(
+      rootTao,
+      Bytes.fromHexString(proxyId),
+    );
+
+    // Create transaction input
+    const tuple: ethereum.Value[] = [
+      ethereum.Value.fromString(rootTao),
+      ethereum.Value.fromBytes(Bytes.fromHexString(proxyId)),
+    ];
+
+    // Set transaction input
+    event.transaction.input = encodeTransactionInput(
+      "removeIssuerProxy(string,bytes32)",
+      ethereum.Value.fromTuple(changetype<ethereum.Tuple>(tuple)),
+    );
+
+    // Process event
+    handleRemoveIssuerProxyEvent(event);
+
+    const issuer = Issuer.load(rootTao);
+
+    if (!issuer) {
+      throw new Error("Issuer not found");
+    }
+
+    const proxies = issuer.proxies.load();
+
+    assert.i32Equals(
+      0,
+      proxies.length,
+      `The issuer should have 0 proxies. Actual: ${proxies.length}`,
+    );
   });
 });

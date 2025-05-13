@@ -77,6 +77,15 @@ export class JsonRpcController {
           );
         return formatJsonRpcResponse(transaction, id);
       }
+      case "removeIssuerProxy": {
+        const transaction =
+          await this.jsonRpcService.buildTransactionRemoveIssuerProxy(
+            body,
+            id,
+            scope,
+          );
+        return formatJsonRpcResponse(transaction, id);
+      }
       case "sendSignedTransaction": {
         const result = await this.jsonRpcService.sendTransaction(
           sub,

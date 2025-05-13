@@ -305,8 +305,9 @@ describe("TIR API v5 - Issuers (e2e)", () => {
         `/issuers/${lastExistingIssuerDid}`,
       );
       expect(response.body).toStrictEqual({
-        attributes: expect.arrayContaining([]),
+        attributes: expect.any(String),
         did: lastExistingIssuerDid,
+        hasAttributes: expect.any(Boolean),
       });
       expect(response.status).toBe(200);
     });
@@ -458,7 +459,7 @@ describe("TIR API v5 - Issuers (e2e)", () => {
       expect(response.body).toStrictEqual({
         attribute: {
           body: expect.any(String),
-          hash: attributeId,
+          hash: expect.any(String),
           issuerType: expect.any(String),
           rootTao: expect.any(String),
           tao: expect.any(String),
@@ -547,7 +548,9 @@ describe("TIR API v5 - Issuers (e2e)", () => {
         `/issuers/${lastExistingIssuerDid}/attributes/${attributeId2}`,
       );
       expect(response2.body).toStrictEqual({
-        detail: expect.stringContaining(`Attribute ${attributeId2} not found`),
+        detail: expect.stringContaining(
+          `Attribute 0x${attributeId2} not found`,
+        ),
         status: 404,
         title: "Attribute Not Found",
         type: "about:blank",
@@ -669,7 +672,9 @@ describe("TIR API v5 - Issuers (e2e)", () => {
         `/issuers/${lastExistingIssuerDid}/attributes/${attributeId2}`,
       );
       expect(response2.body).toStrictEqual({
-        detail: expect.stringContaining(`Attribute ${attributeId2} not found`),
+        detail: expect.stringContaining(
+          `Attribute 0x${attributeId2} not found`,
+        ),
         status: 404,
         title: "Attribute Not Found",
         type: "about:blank",

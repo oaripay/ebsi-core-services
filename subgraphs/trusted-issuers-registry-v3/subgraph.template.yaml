@@ -33,4 +33,6 @@ dataSources:
           handler: handleAddIssuerProxyEvent
         - event: UpdateIssuerProxy(string,indexed bytes32)
           handler: handleUpdateIssuerProxyEvent
+        - event: RemoveIssuerProxy(string,indexed bytes32)
+          handler: handleRemoveIssuerProxyEvent
       file: ./src/mappings.ts
