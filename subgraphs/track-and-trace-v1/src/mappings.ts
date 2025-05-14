@@ -283,10 +283,14 @@ function getTransactionArguments(event: ethereum.Event): TransactionArguments {
 }
 
 function recursivelyDeleteInvitation(invitationId: Bytes): void {
+  log.info("Removing invitation {}", [invitationId.toHexString()]);
+
   const invitation = Invitation.load(invitationId);
 
   if (!invitation) {
-    // The invitation has already been deleted
+    log.info("The invitation {} has already been deleted", [
+      invitationId.toHexString(),
+    ]);
     return;
   }
 
