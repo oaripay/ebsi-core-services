@@ -35,8 +35,8 @@ type RecordVersion @entity(immutable: true) {
 }
 
 type RecordOwner @entity(immutable: false) {
-  id: Bytes! # Set to `record.id.concat(address)`
-  address: Bytes!
+  id: Bytes! # Set to `record.id.concat(ownerId)`
+  ownerId: String!
   notBefore: BigInt!
   notAfter: BigInt!
   record: Record!

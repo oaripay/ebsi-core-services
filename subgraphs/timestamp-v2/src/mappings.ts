@@ -1,11 +1,4 @@
-import {
-  Address,
-  BigInt,
-  Bytes,
-  ethereum,
-  log,
-  store,
-} from "@graphprotocol/graph-ts";
+import { BigInt, Bytes, ethereum, log, store } from "@graphprotocol/graph-ts";
 
 import {
   HashAlgorithm,
@@ -128,15 +121,13 @@ export function handleInsertRecordOwnerCall(call: InsertRecordOwnerCall): void {
     return;
   }
 
-  const recordOwnerId = record.id.concat(
-    Address.fromString(call.inputs.ownerId),
-  );
+  const recordOwnerId = record.id.concat(Bytes.fromUTF8(call.inputs.ownerId));
 
   // Create record owner
   const recordOwner = new RecordOwner(recordOwnerId);
   recordOwner.notBefore = call.inputs.notBefore;
   recordOwner.notAfter = call.inputs.notAfter;
-  recordOwner.address = Address.fromString(call.inputs.ownerId);
+  recordOwner.ownerId = call.inputs.ownerId;
   recordOwner.record = record.id;
   recordOwner.save();
 }
@@ -172,9 +163,7 @@ export function handleRevokeRecordOwnerCall(call: RevokeRecordOwnerCall): void {
     return;
   }
 
-  const recordOwnerId = record.id.concat(
-    Address.fromString(call.inputs.ownerId),
-  );
+  const recordOwnerId = record.id.concat(Bytes.fromUTF8(call.inputs.ownerId));
 
   // Load record owner
   const recordOwner = RecordOwner.load(recordOwnerId);
@@ -211,11 +200,12 @@ export function handleTimestampRecordHashesCall(
 
   const record = new Record(recordId);
 
-  const recordOwnerId = record.id.concat(call.from);
+  const ownerId = call.from.toHexString().toLowerCase();
+  const recordOwnerId = record.id.concat(Bytes.fromUTF8(ownerId));
   const recordOwner = new RecordOwner(recordOwnerId);
   recordOwner.notBefore = call.block.timestamp;
   recordOwner.notAfter = BigInt.fromString("18446744073709551615"); // max u64
-  recordOwner.address = call.from;
+  recordOwner.ownerId = ownerId;
   recordOwner.record = record.id;
   recordOwner.save();
 

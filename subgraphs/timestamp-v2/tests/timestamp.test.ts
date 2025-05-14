@@ -234,7 +234,9 @@ describe("Timestamps and Records", () => {
     // Record should have 1 owner
     const recordOwners = record.owners.load();
     assert.i32Equals(1, recordOwners.length);
-    const recordOwnerId = recordId.concat(call.from);
+    const recordOwnerId = recordId.concat(
+      Bytes.fromUTF8(call.from.toHexString().toLowerCase()),
+    );
     assert.bytesEquals(recordOwnerId, recordOwners[0].id);
 
     // Load record owner
@@ -245,7 +247,7 @@ describe("Timestamps and Records", () => {
     }
 
     // Check record owner
-    assert.addressEquals(call.from, Address.fromBytes(recordOwner.address));
+    assert.stringEquals(call.from.toHexString(), recordOwner.ownerId);
     assert.bigIntEquals(call.block.timestamp, recordOwner.notBefore);
     assert.bigIntEquals(
       BigInt.fromString("18446744073709551615"), // max u64
@@ -1211,17 +1213,19 @@ describe("Timestamps and Records", () => {
     assert.i32Equals(2, recordOwners.length);
 
     // We can't trust the order of the owners, hence we can simply check that they're all included
-    const recordOwner1Id = recordId.concat(timestampRecordHashesCall.from);
-    const recordOwner2Id = recordId.concat(
-      Address.fromHexString(newRecordOwner),
+    const recordOwner1Id = recordId.concat(
+      Bytes.fromUTF8(
+        timestampRecordHashesCall.from.toHexString().toLowerCase(),
+      ),
     );
+    const recordOwner2Id = recordId.concat(Bytes.fromUTF8(newRecordOwner));
     const actualRecordOwnerIds = recordOwners.map<string>((recordOwner) =>
       recordOwner.id.toHexString(),
     );
     assertArrayContainsAllValues(
       actualRecordOwnerIds,
       [recordOwner1Id.toHexString(), recordOwner2Id.toHexString()],
-      "Record should have the owners [recordOwner1Id, recordOwner2Id]",
+      `Record should have the owners [recordOwner1Id, recordOwner2Id]. Expected: [${recordOwner1Id.toHexString()}, ${recordOwner2Id.toHexString()}], Actual: [${actualRecordOwnerIds.join(", ")}]`,
     );
 
     // Load record owner #1
@@ -1232,9 +1236,9 @@ describe("Timestamps and Records", () => {
     }
 
     // Check record owner #1
-    assert.addressEquals(
-      timestampRecordHashesCall.from,
-      Address.fromBytes(recordOwner1.address),
+    assert.stringEquals(
+      timestampRecordHashesCall.from.toHexString(),
+      recordOwner1.ownerId,
     );
     assert.bigIntEquals(
       timestampRecordHashesCall.block.timestamp,
@@ -1253,10 +1257,7 @@ describe("Timestamps and Records", () => {
     }
 
     // Check record owner #2
-    assert.addressEquals(
-      Address.fromString(newRecordOwner),
-      Address.fromBytes(recordOwner2.address),
-    );
+    assert.stringEquals(newRecordOwner, recordOwner2.ownerId);
     assert.bigIntEquals(BigInt.fromI32(1000), recordOwner2.notBefore);
     assert.bigIntEquals(BigInt.fromI32(2000), recordOwner2.notAfter);
 
