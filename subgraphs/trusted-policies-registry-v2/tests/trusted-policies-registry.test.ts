@@ -27,12 +27,13 @@ import {
 
 describe("Trusted Policies Registry v2 - entity assertions", () => {
   const policyId = "1";
+  const policyName = "TIR:setAttributeMetadata";
   const user = "0x6309baa4eed7daed1db2b32cadabe3fe558c5ff3";
 
   beforeAll(() => {
     const event = createPolicyInsertedEvent(
       BigInt.fromString(policyId),
-      "TIR:setAttributeMetadata",
+      policyName,
       "description TIR",
     );
 
@@ -45,14 +46,12 @@ describe("Trusted Policies Registry v2 - entity assertions", () => {
 
   test("Insert policy", () => {
     assert.entityCount("Policy", 1);
-    assert.fieldEquals(
-      "Policy",
-      policyId,
-      "policyName",
-      "TIR:setAttributeMetadata",
-    );
-    assert.fieldEquals("Policy", policyId, "description", "description TIR");
-    assert.fieldEquals("Policy", policyId, "status", "true");
+    assert.fieldEquals("Policy", policyName, "policyId", policyId);
+    assert.fieldEquals("Policy", policyName, "description", "description TIR");
+    assert.fieldEquals("Policy", policyName, "status", "true");
+
+    assert.entityCount("PolicyById", 1);
+    assert.fieldEquals("PolicyById", policyId, "policy", policyName);
   });
 
   test("Update policy", () => {
@@ -64,7 +63,8 @@ describe("Trusted Policies Registry v2 - entity assertions", () => {
     handlePolicyUpdated(event);
 
     assert.entityCount("Policy", 1);
-    assert.fieldEquals("Policy", policyId, "description", "new description");
+    assert.fieldEquals("Policy", policyName, "description", "new description");
+    assert.entityCount("PolicyById", 1);
   });
 
   test("Activate policy", () => {
@@ -72,7 +72,8 @@ describe("Trusted Policies Registry v2 - entity assertions", () => {
     handlePolicyActivated(event);
 
     assert.entityCount("Policy", 1);
-    assert.fieldEquals("Policy", policyId, "status", "true");
+    assert.fieldEquals("Policy", policyName, "status", "true");
+    assert.entityCount("PolicyById", 1);
   });
 
   test("Deactivate policy", () => {
@@ -80,16 +81,14 @@ describe("Trusted Policies Registry v2 - entity assertions", () => {
     handlePolicyDeactivated(event);
 
     assert.entityCount("Policy", 1);
-    assert.fieldEquals("Policy", policyId, "status", "false");
+    assert.fieldEquals("Policy", policyName, "status", "false");
+    assert.entityCount("PolicyById", 1);
   });
 
   test("Insert user attribute", () => {
     const userAddress = new Address(20);
     userAddress.set(Bytes.fromByteArray(Bytes.fromHexString(user)));
-    let event = createUserAttributeInsertedEvent(
-      userAddress,
-      "TIR:setAttributeMetadata",
-    );
+    let event = createUserAttributeInsertedEvent(userAddress, policyName);
     handleUserAttributeInserted(event);
 
     assert.entityCount("User", 1);
@@ -115,10 +114,7 @@ describe("Trusted Policies Registry v2 - entity assertions", () => {
   test("Delete user attribute", () => {
     const userAddress = new Address(20);
     userAddress.set(Bytes.fromByteArray(Bytes.fromHexString(user)));
-    let event = createUserAttributeDeletedEvent(
-      userAddress,
-      "TIR:setAttributeMetadata",
-    );
+    let event = createUserAttributeDeletedEvent(userAddress, policyName);
     handleUserAttributeDeleted(event);
 
     assert.entityCount("User", 1);
