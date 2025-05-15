@@ -147,6 +147,11 @@ abstract contract IssuerDetailed is IssuerStorage {
         Issuers storage ds = issuerStorage();
 
         require(
+            ds.issuerStore[did].attributes.length > 0,
+            "issuer does not exist"
+        );
+
+        require(
             getTrustedPolicyRegistry().checkPolicy(
                 "TIR:updateIssuer",
                 msg.sender

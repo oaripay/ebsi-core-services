@@ -121,7 +121,7 @@ describe("Issuers", () => {
 
   const proxyData1 = randomProxy();
   const proxyId = ethers.sha256(Buffer.from(proxyData1));
-  const didIssuer = "did:ebsi:issuer";
+  const didIssuer = ti1.did;
 
   before(async () => {
     const policyRegistryFactory =
@@ -874,6 +874,25 @@ describe("Issuers", () => {
   });
 
   describe("Proxies", () => {
+    beforeEach(async () => {
+      await registerRootTAO1();
+      await registerTAO1();
+      await registerTAO2();
+      await registerTI();
+    });
+
+    it("addIssuerProxy: rejects if the issuer does not exist", async () => {
+      // Focus only on proxy management logic regardless of policy and did validations.
+      await policyContractMock.setPolicyResult(true);
+      await didContractMock.setDidResult(true);
+
+      const randomDidResult = randomDid();
+
+      await expect(
+        tir.addIssuerProxy(randomDidResult, proxyData1),
+      ).to.be.revertedWith("issuer does not exist");
+    });
+
     it("addIssuerProxy: inserts a new proxy record", async () => {
       // Focus only on proxy management logic regardless of policy and did validations.
       await policyContractMock.setPolicyResult(true);
@@ -901,7 +920,7 @@ describe("Issuers", () => {
       await expect(
         tir.addIssuerProxy(didIssuer, proxyData1),
       ).to.be.revertedWith(
-        "Policy error: sender is not controller of the did did:ebsi:issuer and it doesn't have the attribute TIR:updateIssuer",
+        `Policy error: sender is not controller of the did ${didIssuer} and it doesn't have the attribute TIR:updateIssuer`,
       );
     });
 
@@ -978,9 +997,7 @@ describe("Issuers", () => {
       await policyContractMock.setPolicyResult(false);
       await didContractMock.setDidResult(true);
 
-      const randomDidResult = randomDid();
-
-      await expect(tir.addIssuerProxy(randomDidResult, proxyData1)).to.emit(
+      await expect(tir.addIssuerProxy(didIssuer, proxyData1)).to.emit(
         tir,
         "AddIssuerProxy",
       );
@@ -1015,7 +1032,7 @@ describe("Issuers", () => {
       await expect(
         tir.updateIssuerProxy(didIssuer, proxyId, proxyData1),
       ).to.be.revertedWith(
-        "Policy error: sender is not controller of the did did:ebsi:issuer and it doesn't have the attribute TIR:updateIssuer",
+        `Policy error: sender is not controller of the did ${didIssuer} and it doesn't have the attribute TIR:updateIssuer`,
       );
     });
 
