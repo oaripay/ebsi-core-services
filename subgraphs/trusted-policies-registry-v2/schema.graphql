@@ -1,11 +1,17 @@
 type Policy @entity(immutable: false) {
-  id: String!
-  policyName: String!
+  id: String! # Policy name
+  policyId: String!
   description: String!
   status: Boolean!
 }
 
+# Special entity that creates an easy way to retrieve a policy by its ID
+type PolicyById @entity(immutable: true) {
+  id: String! # Policy ID
+  policy: Policy! # Policy
+}
+
 type User @entity(immutable: false) {
-  id: Bytes!
+  id: Bytes! # Address
   attributes: [String!]!
 }

@@ -1,4 +1,4 @@
-import { Policy, User } from "../generated/schema";
+import { Policy, PolicyById, User } from "../generated/schema";
 import {
   PolicyActivated,
   PolicyDeactivated,
@@ -7,33 +7,39 @@ import {
   UserAttributeDeleted,
   UserAttributeInserted,
 } from "../generated/TrustedPoliciesRegistry/TrustedPoliciesRegistry";
+import { loadPolicyById } from "./utils";
 
 export function handlePolicyActivated(event: PolicyActivated): void {
-  const policy = Policy.load(event.params.policyId.toString());
+  const policy = loadPolicyById(event.params.policyId.toString());
   if (!policy) return;
   policy.status = true;
   policy.save();
 }
 
 export function handlePolicyDeactivated(event: PolicyDeactivated): void {
-  const policy = Policy.load(event.params.policyId.toString());
+  const policy = loadPolicyById(event.params.policyId.toString());
   if (!policy) return;
   policy.status = false;
   policy.save();
 }
 
 export function handlePolicyInserted(event: PolicyInserted): void {
-  const policy = new Policy(event.params.policyId.toString());
+  const policy = new Policy(event.params.policyName);
 
-  policy.policyName = event.params.policyName;
+  policy.policyId = event.params.policyId.toString();
   policy.description = event.params.description;
   policy.status = true;
 
   policy.save();
+
+  // Create "PolicyById" entity for ID-based access
+  const policyById = new PolicyById(event.params.policyId.toString());
+  policyById.policy = policy.id;
+  policyById.save();
 }
 
 export function handlePolicyUpdated(event: PolicyUpdated): void {
-  const policy = Policy.load(event.params.policyId.toString());
+  const policy = loadPolicyById(event.params.policyId.toString());
   if (!policy) return;
   policy.description = event.params.newDescription;
   policy.save();
