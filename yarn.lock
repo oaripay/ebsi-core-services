@@ -969,10 +969,10 @@
   dependencies:
     "@cef-ebsi/vcdm2.0-attestation-schema" "1.2.1"
 
-"@cef-ebsi/verifiable-credential@^7.0.1-alpha.2":
-  version "7.0.1-alpha.2"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/verifiable-credential/-/verifiable-credential-7.0.1-alpha.2.tgz#4fb3e7e4910a0bba79bbf167f05481f63bfbdd5e"
-  integrity sha512-GkpT626lzERp90BYtmQwNBnKuqOe9ZlgZF+V73l/3Wgu90/dInLBKyhksaRE5vV+HQ6njDU33hkM6oxFZyS4zw==
+"@cef-ebsi/verifiable-credential@^7.1.0-alpha.0":
+  version "7.1.0-alpha.0"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/verifiable-credential/-/verifiable-credential-7.1.0-alpha.0.tgz#f2d387e20cc15ec6fb899d9612ab722fc6a3a136"
+  integrity sha512-VWDKpiCY1CRicjMm9G+2Hbwaf++8BlToEu2eeEnpX0+OMp9CCxl93XxT8vlsZ0/BjakA2aKxEZyJBIRbrwBYZA==
   dependencies:
     "@cef-ebsi/ebsi-did-resolver" "^4.0.6-alpha.2"
     "@cef-ebsi/ebsi-uri" "^1.0.1-alpha.0"
@@ -993,16 +993,16 @@
     pako "^2.1.0"
     uint8arrays "3.1.1"
 
-"@cef-ebsi/verifiable-presentation@^8.0.1-alpha.1":
-  version "8.0.1-alpha.1"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/verifiable-presentation/-/verifiable-presentation-8.0.1-alpha.1.tgz#24dc2e262e014318560346f2f29bcec0a9617074"
-  integrity sha512-k5rkM1Dy1tN37OJViijLqnjpV6zC6utTk+wVHDNA6+tXKIssyXRFbpjzxVhV4KIyeqpDW/PlbAFtR4VkaPuvGw==
+"@cef-ebsi/verifiable-presentation@^8.0.1-alpha.2":
+  version "8.0.1-alpha.2"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/verifiable-presentation/-/verifiable-presentation-8.0.1-alpha.2.tgz#d178b1da8803d550e165016ee0f9a571dee35ec4"
+  integrity sha512-KFA4E4brW/rVEgbjH30J0E+FpK3uXB7k1RAApyH2E8PFajK3gk13ionIUT3ZpRBr5nqRuT2fBFHWsNECE0oLZg==
   dependencies:
     "@cef-ebsi/ebsi-did-resolver" "^4.0.6-alpha.2"
     "@cef-ebsi/ebsi-uri" "^1.0.1-alpha.0"
     "@cef-ebsi/key-did-resolver" "^2.1.1-alpha.1"
     "@cef-ebsi/vcdm1.1-presentation-schema" "^1.0.4"
-    "@cef-ebsi/verifiable-credential" "^7.0.1-alpha.2"
+    "@cef-ebsi/verifiable-credential" "^7.1.0-alpha.0"
     "@segment/ajv-human-errors" "^2.15.0"
     did-jwt "^8.0.8"
     did-resolver "^4.1.0"

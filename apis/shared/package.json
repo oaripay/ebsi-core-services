@@ -24,7 +24,7 @@
     "@cef-ebsi/ebsi-did-resolver": "^4.0.6-alpha.2",
     "@cef-ebsi/key-did-resolver": "^2.1.1-alpha.1",
     "@cef-ebsi/key-encoder": "^2.0.1-alpha.0",
-    "@cef-ebsi/verifiable-credential": "^7.0.1-alpha.2",
+    "@cef-ebsi/verifiable-credential": "^7.1.0-alpha.0",
     "@fastify/accepts": "^5.0.2",
     "@nestjs/common": "^11.1.0",
     "@nestjs/core": "^11.1.0",
