@@ -18,6 +18,17 @@ paths:
       description: Returns a list of policies registered in the blockchain.
       tags:
         - Policies
+      parameters:
+        - in: query
+          name: page[after]
+          schema:
+            type: string
+          description: Cursor that points to the end of the page of data that has been returned.
+        - schema:
+            type: integer
+          in: query
+          name: page[size]
+          description: Defines the maximum number of objects that may be returned.
       responses:
         "200":
           description: Success
@@ -142,6 +153,17 @@ paths:
       description: Returns a list of users registered in the registry.
       tags:
         - Users
+      parameters:
+        - in: query
+          name: page[after]
+          schema:
+            type: string
+          description: Cursor that points to the end of the page of data that has been returned.
+        - schema:
+            type: integer
+          in: query
+          name: page[size]
+          description: Defines the maximum number of objects that may be returned.
       responses:
         "200":
           description: Success
