@@ -10,7 +10,7 @@ const { isMultihash } = refinements;
 
 export const insertHashAlgorithmSchema = baseParamSchema.merge(
   z.object({
-    ianaName: z.string().optional(),
+    ianaName: z.string().nonempty("ianaName can't be empty"),
     multiHash: z.string().superRefine(isMultihash),
     oid: z.string().optional(),
     outputLength: z
