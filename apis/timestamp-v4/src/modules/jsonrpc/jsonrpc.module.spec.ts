@@ -2295,4 +2295,40 @@ describe("JSON-RPC Module", () => {
       });
     },
   );
+
+  // Fix EBSIINT-11202
+  // Before the fix, the API would accept the empty IANA name and the smart contract would revert with the message: 'ianaName unknown'
+  // After the fix, the API should not accept the empty IANA name
+  it("Fix EBSIINT-11202 - the API should not allow an empty IANA name", async () => {
+    expect.assertions(2);
+
+    const param = {
+      from: testAdmin.wallet.address,
+      ianaName: "",
+      multiHash: "sha3-256",
+      oid: "2.16.840.1.101.3.4.2.1",
+      outputLength: 256,
+      status: 1,
+    } satisfies InsertHashAlgorithmSchema;
+
+    const responseBuild: SupertestJsonRpcResponse = await request(server)
+      .post("/jsonrpc")
+      .auth(testAdmin.token, { type: "bearer" })
+      .send({
+        id: 231,
+        jsonrpc: "2.0",
+        method: "insertHashAlgorithm",
+        params: [param],
+      });
+
+    expect(responseBuild.body).toStrictEqual({
+      error: {
+        code: -32_600,
+        message: "Invalid 'params.0.ianaName': ianaName can't be empty",
+      },
+      id: 231,
+      jsonrpc: "2.0",
+    });
+    expect(responseBuild.status).toBe(400);
+  });
 });
