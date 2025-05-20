@@ -139,6 +139,10 @@ abstract contract SchemaDetailed is SchemaStorage {
         require(pageSize > 0, "PageSize must be > 0");
         require(page > 0, "Page must be > 0");
         Schemas storage ss = schemaStorage();
+        require(
+            ss.schemaIdToRevisionIds[schemaId].length > 0,
+            "Schema not found"
+        );
         uint256[] memory ids;
         (ids, total, howMany, prev, next) = ss
             .schemaIdToRevisionIds[schemaId]
@@ -154,10 +158,11 @@ abstract contract SchemaDetailed is SchemaStorage {
      * @dev getSchemaRevision returns a specific schema revision for a specific SchemaRevisionId.
      */
     function getSchemaRevision(
+        bytes calldata schemaId,
         bytes32 schemaRevisionId
     ) external view returns (bytes memory schema) {
         Schemas storage ss = schemaStorage();
-        schema = ss.getSchemaRevision(schemaRevisionId);
+        schema = ss.getSchemaRevision(schemaId, schemaRevisionId);
     }
 
     /**
@@ -176,6 +181,7 @@ abstract contract SchemaDetailed is SchemaStorage {
      * @dev getSchemaRevisionMetadataIds returns a paginated list of schema revision metadata ids, for a specific SchemaRevisionId
      */
     function getSchemaRevisionMetadataIds(
+        bytes calldata schemaId,
         bytes32 schemaRevisionId,
         uint256 page,
         uint256 pageSize
@@ -195,6 +201,7 @@ abstract contract SchemaDetailed is SchemaStorage {
         require(pageSize > 0, "PageSize must be > 0");
         require(page > 0, "Page must be > 0");
         Schemas storage ss = schemaStorage();
+        ss.getSchemaRevision(schemaId, schemaRevisionId);
         uint256[] memory ids;
         (ids, total, howMany, prev, next) = ss
             .revisionIdToMetadataIds[schemaRevisionId]
@@ -210,10 +217,16 @@ abstract contract SchemaDetailed is SchemaStorage {
      * @dev getSchemaRevisionMetadataByMetadataId returns schema revision metadata for the given schema revision metadata id.
      */
     function getSchemaRevisionMetadataByMetadataId(
+        bytes calldata schemaId,
+        bytes32 schemaRevisionId,
         bytes32 metadataId
     ) external view returns (bytes memory metadata) {
         Schemas storage ss = schemaStorage();
-        metadata = ss.getSchemaRevisionMetadataByMetadataId(metadataId);
+        metadata = ss.getSchemaRevisionMetadataByMetadataId(
+            schemaId,
+            schemaRevisionId,
+            metadataId
+        );
     }
 
     // internal functions

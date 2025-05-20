@@ -13,7 +13,7 @@ import type { ApiConfig } from "../../config/configuration.ts";
 import type { ItemsList } from "./schemas.interface.ts";
 
 import { LedgerService } from "../ledger/ledger.service.ts";
-import { schemaIdToHex } from "./schemas.utils.ts";
+import { getContractError, schemaIdToHex } from "./schemas.utils.ts";
 
 @Injectable()
 export class SchemasService {
@@ -51,8 +51,14 @@ export class SchemasService {
       if (isEthersError(error)) {
         this.logger.error(error, error.stack);
       }
+
+      const contractError = getContractError(error);
+
       throw new NotFoundError("Schema Not Found", {
-        detail: `Schema ${schemaId} not found`,
+        detail:
+          contractError === "Schema not found"
+            ? `Schema ${schemaId} not found`
+            : contractError,
       });
     }
 
@@ -71,35 +77,37 @@ export class SchemasService {
 
     const hexSchemaId = schemaIdToHex(schemaId);
 
-    // Make sure the schema exists
-    try {
-      await this.contract
-        // @ts-expect-error Error due to CommonJS vs ESM modules imports
-        .connect(provider)
-        .getLatestSchemaRevision(hexSchemaId);
-    } catch (error) {
-      if (isEthersError(error)) {
-        this.logger.error(error, error.stack);
-      }
-      throw new NotFoundError("Schema Not Found", {
-        detail: `Schema ${schemaId} not found`,
-      });
-    }
-
     // Get revision
     let revision: Awaited<ReturnType<SchemaSCRegistry["getSchemaRevision"]>>;
     try {
       revision = await this.contract
         // @ts-expect-error Error due to CommonJS vs ESM modules imports
         .connect(provider)
-        .getSchemaRevision(schemaRevisionId);
+        .getSchemaRevision(hexSchemaId, schemaRevisionId);
     } catch (error) {
       if (isEthersError(error)) {
         this.logger.error(error, error.stack);
       }
-      throw new NotFoundError("Revision Not Found", {
-        detail: `Revision ${schemaRevisionId} not found`,
-      });
+
+      const contractError = getContractError(error);
+
+      switch (contractError) {
+        case "Schema not found": {
+          throw new NotFoundError("Schema Not Found", {
+            detail: `Schema ${schemaId} not found`,
+          });
+        }
+        case "No revision": {
+          throw new NotFoundError("Revision Not Found", {
+            detail: `Revision ${schemaRevisionId} not found`,
+          });
+        }
+        default: {
+          throw new NotFoundError("Not Found", {
+            detail: contractError,
+          });
+        }
+      }
     }
 
     const decodedSchemaRevisionInfo = JSON.parse(
@@ -118,36 +126,6 @@ export class SchemasService {
 
     const hexSchemaId = schemaIdToHex(schemaId);
 
-    // Make sure the schema exists
-    try {
-      await this.contract
-        // @ts-expect-error Error due to CommonJS vs ESM modules imports
-        .connect(provider)
-        .getLatestSchemaRevision(hexSchemaId);
-    } catch (error) {
-      if (isEthersError(error)) {
-        this.logger.error(error, error.stack);
-      }
-      throw new NotFoundError("Schema Not Found", {
-        detail: `Schema ${schemaId} not found`,
-      });
-    }
-
-    // Make sure the revision exists
-    try {
-      await this.contract
-        // @ts-expect-error Error due to CommonJS vs ESM modules imports
-        .connect(provider)
-        .getSchemaRevision(schemaRevisionId);
-    } catch (error) {
-      if (isEthersError(error)) {
-        this.logger.error(error, error.stack);
-      }
-      throw new NotFoundError("Revision Not Found", {
-        detail: `Revision ${schemaRevisionId} not found`,
-      });
-    }
-
     // Get metadata
     let metadata: Awaited<
       ReturnType<SchemaSCRegistry["getSchemaRevisionMetadataByMetadataId"]>
@@ -156,14 +134,40 @@ export class SchemasService {
       metadata = await this.contract
         // @ts-expect-error Error due to CommonJS vs ESM modules imports
         .connect(provider)
-        .getSchemaRevisionMetadataByMetadataId(metadataId);
+        .getSchemaRevisionMetadataByMetadataId(
+          hexSchemaId,
+          schemaRevisionId,
+          metadataId,
+        );
     } catch (error) {
       if (isEthersError(error)) {
         this.logger.error(error, error.stack);
       }
-      throw new NotFoundError("Metadata Not Found", {
-        detail: `Metadata ${metadataId} not found`,
-      });
+
+      const contractError = getContractError(error);
+
+      switch (contractError) {
+        case "Schema not found": {
+          throw new NotFoundError("Schema Not Found", {
+            detail: `Schema ${schemaId} not found`,
+          });
+        }
+        case "No revision": {
+          throw new NotFoundError("Revision Not Found", {
+            detail: `Revision ${schemaRevisionId} not found`,
+          });
+        }
+        case "No metadata": {
+          throw new NotFoundError("Metadata Not Found", {
+            detail: `Metadata ${metadataId} not found`,
+          });
+        }
+        default: {
+          throw new NotFoundError("Not Found", {
+            detail: contractError,
+          });
+        }
+      }
     }
 
     const decodedMetadata = JSON.parse(
@@ -183,42 +187,17 @@ export class SchemasService {
 
     const hexSchemaId = schemaIdToHex(schemaId);
 
-    // Make sure the schema exists
-    try {
-      await this.contract
-        // @ts-expect-error Error due to CommonJS vs ESM modules imports
-        .connect(provider)
-        .getLatestSchemaRevision(hexSchemaId);
-    } catch (error) {
-      if (isEthersError(error)) {
-        this.logger.error(error, error.stack);
-      }
-      throw new NotFoundError("Schema Not Found", {
-        detail: `Schema ${schemaId} not found`,
-      });
-    }
-
-    // Make sure the revision exists
-    try {
-      await this.contract
-        // @ts-expect-error Error due to CommonJS vs ESM modules imports
-        .connect(provider)
-        .getSchemaRevision(schemaRevisionId);
-    } catch (error) {
-      if (isEthersError(error)) {
-        this.logger.error(error, error.stack);
-      }
-      throw new NotFoundError("Revision Not Found", {
-        detail: `Revision ${schemaRevisionId} not found`,
-      });
-    }
-
     try {
       // Get metadata
       const metadata = await this.contract
         // @ts-expect-error Error due to CommonJS vs ESM modules imports
         .connect(provider)
-        .getSchemaRevisionMetadataIds(schemaRevisionId, page, pageSize);
+        .getSchemaRevisionMetadataIds(
+          hexSchemaId,
+          schemaRevisionId,
+          page,
+          pageSize,
+        );
 
       return {
         items: metadata.items,
@@ -228,9 +207,26 @@ export class SchemasService {
       if (isEthersError(error)) {
         this.logger.error(error, error.stack);
       }
-      throw new NotFoundError("Schema revision metadata not found", {
-        detail: `Metadata for revision ${schemaRevisionId} not found`,
-      });
+
+      const contractError = getContractError(error);
+
+      switch (contractError) {
+        case "Schema not found": {
+          throw new NotFoundError("Schema Not Found", {
+            detail: `Schema ${schemaId} not found`,
+          });
+        }
+        case "No revision": {
+          throw new NotFoundError("Revision Not Found", {
+            detail: `Revision ${schemaRevisionId} not found`,
+          });
+        }
+        default: {
+          throw new NotFoundError("Not Found", {
+            detail: contractError,
+          });
+        }
+      }
     }
   }
 
@@ -242,21 +238,6 @@ export class SchemasService {
     const provider = this.ledgerService.getProvider();
 
     const hexSchemaId = schemaIdToHex(schemaId);
-
-    // Make sure the schema exists
-    try {
-      await this.contract
-        // @ts-expect-error Error due to CommonJS vs ESM modules imports
-        .connect(provider)
-        .getLatestSchemaRevision(hexSchemaId);
-    } catch (error) {
-      if (isEthersError(error)) {
-        this.logger.error(error, error.stack);
-      }
-      throw new NotFoundError("Schema Not Found", {
-        detail: `Schema ${schemaId} not found`,
-      });
-    }
 
     try {
       // Get the revisions
@@ -273,8 +254,14 @@ export class SchemasService {
       if (isEthersError(error)) {
         this.logger.error(error, error.stack);
       }
-      throw new NotFoundError("Revisions Not Found", {
-        detail: "Revisions not found",
+
+      const contractError = getContractError(error);
+
+      throw new NotFoundError("Schema Not Found", {
+        detail:
+          contractError === "Schema not found"
+            ? `Schema ${schemaId} not found`
+            : contractError,
       });
     }
   }
