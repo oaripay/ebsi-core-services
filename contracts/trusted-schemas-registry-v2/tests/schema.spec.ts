@@ -136,6 +136,7 @@ describe("Schema", () => {
         ethers.hexlify(metadata),
       );
     const insertedSchema = await ts.getSchemaRevision(
+      schemaId,
       ethers.sha256(schemaRevision),
     );
     expect(insertedSchema).to.equal(ethers.hexlify(schemaRevision));
@@ -216,7 +217,7 @@ describe("Schema", () => {
   it("getLatestSchemaRevision fails for missing revision", async () => {
     await expect(
       ts.getLatestSchemaRevision(ethers.toBeHex(1, 32)),
-    ).to.be.revertedWith("No revision");
+    ).to.be.revertedWith("Schema not found");
   });
 
   it("getLatestSchemaRevision fails for unknown revision", async () => {
@@ -226,7 +227,7 @@ describe("Schema", () => {
     await ts.insertSchema(schemaId, schemaRevision, metadata);
     const schemaId1 = ethers.toUtf8Bytes("schemaId1");
     await expect(ts.getLatestSchemaRevision(schemaId1)).to.be.revertedWith(
-      "No revision",
+      "Schema not found",
     );
   });
 
@@ -296,10 +297,20 @@ describe("Schema", () => {
     expect(r3.next).to.equal(1);
   });
 
+  it("getSchemaRevision fails for unknown schema ID", async () => {
+    await expect(
+      ts.getSchemaRevision(ethers.ZeroHash, ethers.ZeroHash),
+    ).to.be.revertedWith("Schema not found");
+  });
+
   it("getSchemaRevision fails for empty parameter", async () => {
-    await expect(ts.getSchemaRevision(ethers.ZeroHash)).to.be.revertedWith(
-      "SchemaRevisionId empty",
-    );
+    const metadata = ethers.toUtf8Bytes("metadata");
+    const schemaId = ethers.toUtf8Bytes("schemaId");
+    const schemaRevision = ethers.toUtf8Bytes("schema");
+    await ts.insertSchema(schemaId, schemaRevision, metadata);
+    await expect(
+      ts.getSchemaRevision(schemaId, ethers.ZeroHash),
+    ).to.be.revertedWith("SchemaRevisionId empty");
   });
 
   it("getSchemaRevision fails for missing revision", async () => {
@@ -309,7 +320,7 @@ describe("Schema", () => {
     await ts.insertSchema(schemaId, schemaRevision, metadata);
     const schemaRevision2 = ethers.toUtf8Bytes("schema2");
     await expect(
-      ts.getSchemaRevision(ethers.sha256(schemaRevision2)),
+      ts.getSchemaRevision(schemaId, ethers.sha256(schemaRevision2)),
     ).to.be.revertedWith("No revision");
   });
 
@@ -319,7 +330,10 @@ describe("Schema", () => {
     const schemaRevision = ethers.toUtf8Bytes("schema");
     await ts.insertSchema(schemaId, schemaRevision, metadata);
 
-    const result = await ts.getSchemaRevision(ethers.sha256(schemaRevision));
+    const result = await ts.getSchemaRevision(
+      schemaId,
+      ethers.sha256(schemaRevision),
+    );
     expect(result).to.be.equal(ethers.hexlify(schemaRevision));
   });
 
@@ -450,32 +464,49 @@ describe("Schema", () => {
       ts.updateSchema(schemaId, schemaRevision3, metadata2),
     ).to.be.revertedWith("Metadata exists");
     const updatedSchema = await ts.getSchemaRevision(
+      schemaId,
       ethers.sha256(schemaRevision2),
     );
     expect(updatedSchema).to.equal(ethers.hexlify(schemaRevision2));
   });
 
-  it("getSchemaRevisionMetadataIds fails for empty schemaRevisionId", async () => {
+  it("getSchemaRevisionMetadataIds fails for unknown schema ID", async () => {
+    const schemaRevision1 = ethers.toUtf8Bytes("schema1");
+    const schemaRevisionId = ethers.sha256(schemaRevision1);
     await expect(
-      ts.getSchemaRevisionMetadataIds(ethers.ZeroHash, 1, 1),
+      ts.getSchemaRevisionMetadataIds(ethers.ZeroHash, schemaRevisionId, 1, 1),
+    ).to.be.revertedWith("Schema not found");
+  });
+
+  it("getSchemaRevisionMetadataIds fails for empty schemaRevisionId", async () => {
+    const schemaId = ethers.toUtf8Bytes("schemaId");
+    const schemaRevision1 = ethers.toUtf8Bytes("schema1");
+    const metadata1 = ethers.toUtf8Bytes("metadata1");
+    await ts.insertSchema(schemaId, schemaRevision1, metadata1);
+    await expect(
+      ts.getSchemaRevisionMetadataIds(schemaId, ethers.ZeroHash, 1, 1),
     ).to.be.revertedWith("SchemaRevisionId empty");
   });
 
   it("getSchemaRevisionMetadataIds fails for wrong page and pageSize values", async () => {
-    const schemaRevisionId = ethers.sha256(ethers.toUtf8Bytes("schema"));
+    const schemaId = ethers.toUtf8Bytes("schemaId");
+    const schemaRevision1 = ethers.toUtf8Bytes("schema1");
+    const metadata1 = ethers.toUtf8Bytes("metadata1");
+    await ts.insertSchema(schemaId, schemaRevision1, metadata1);
+    const schemaRevisionId = ethers.sha256(schemaRevision1);
     // page = 0 should revert
     await expect(
-      ts.getSchemaRevisionMetadataIds(schemaRevisionId, 0, 1),
+      ts.getSchemaRevisionMetadataIds(schemaId, schemaRevisionId, 0, 1),
     ).to.be.revertedWith("Page must be > 0");
 
     // pagesize = 0 should revert
     await expect(
-      ts.getSchemaRevisionMetadataIds(schemaRevisionId, 1, 0),
+      ts.getSchemaRevisionMetadataIds(schemaId, schemaRevisionId, 1, 0),
     ).to.be.revertedWith("PageSize must be > 0");
 
     // pagesize > 50 should revert
     await expect(
-      ts.getSchemaRevisionMetadataIds(schemaRevisionId, 1, 51),
+      ts.getSchemaRevisionMetadataIds(schemaId, schemaRevisionId, 1, 51),
     ).to.be.revertedWith("PageSize must be <= 50");
   });
 
@@ -497,38 +528,82 @@ describe("Schema", () => {
       metadataIds.push(ethers.sha256(m));
     }
 
-    const r = await ts.getSchemaRevisionMetadataIds(schemaRevisionId, 1, 1);
+    const r = await ts.getSchemaRevisionMetadataIds(
+      schemaId,
+      schemaRevisionId,
+      1,
+      1,
+    );
     expect(r.items).to.deep.equal(metadataIds.slice(0, 1));
     expect(r.total).to.equal(11);
     expect(r.howMany).to.equal(1);
     expect(r.prev).to.equal(1);
     expect(r.next).to.equal(2);
 
-    const r1 = await ts.getSchemaRevisionMetadataIds(schemaRevisionId, 3, 4);
+    const r1 = await ts.getSchemaRevisionMetadataIds(
+      schemaId,
+      schemaRevisionId,
+      3,
+      4,
+    );
     expect(r1.items).to.deep.equal(metadataIds.slice(8, 11));
     expect(r1.howMany).to.equal(3);
     expect(r1.total).to.equal(11);
     expect(r1.prev).to.equal(2);
     expect(r1.next).to.equal(3);
 
-    const r3 = await ts.getSchemaRevisionMetadataIds(schemaRevisionId, 3, 10);
+    const r3 = await ts.getSchemaRevisionMetadataIds(
+      schemaId,
+      schemaRevisionId,
+      3,
+      10,
+    );
     expect(r3.items).to.have.length(0);
     expect(r3.howMany).to.equal(0);
     expect(r3.total).to.equal(11);
     expect(r3.prev).to.equal(2);
     expect(r3.next).to.equal(2);
+  });
 
-    const schemaRevision1 = ethers.toUtf8Bytes("schema1");
-    const schemaRevisionId1 = ethers.sha256(schemaRevision1);
-    const r4 = await ts.getSchemaRevisionMetadataIds(schemaRevisionId1, 1, 1);
-    expect(r4.items).to.have.length(0);
-    expect(r4.howMany).to.equal(0);
-    expect(r4.total).to.equal(0);
+  it("getSchemaRevisionMetadataByMetadataId fails for unknown schema ID", async () => {
+    const schemaId = ethers.toUtf8Bytes("schemaId");
+    const schemaRevision = ethers.toUtf8Bytes("schema");
+    const metadata1 = ethers.toUtf8Bytes("metadata1");
+    await ts.insertSchema(schemaId, schemaRevision, metadata1);
+    await expect(
+      ts.getSchemaRevisionMetadataByMetadataId(
+        ethers.ZeroHash,
+        ethers.ZeroHash,
+        ethers.ZeroHash,
+      ),
+    ).to.be.revertedWith("Schema not found");
+  });
+
+  it("getSchemaRevisionMetadataByMetadataId fails for unknown schema revision ID", async () => {
+    const schemaId = ethers.toUtf8Bytes("schemaId");
+    const schemaRevision = ethers.toUtf8Bytes("schema");
+    const metadata1 = ethers.toUtf8Bytes("metadata1");
+    await ts.insertSchema(schemaId, schemaRevision, metadata1);
+    await expect(
+      ts.getSchemaRevisionMetadataByMetadataId(
+        schemaId,
+        ethers.ZeroHash,
+        ethers.ZeroHash,
+      ),
+    ).to.be.revertedWith("No revision");
   });
 
   it("getSchemaRevisionMetadataByMetadataId fails for empty metadataId", async () => {
+    const schemaId = ethers.toUtf8Bytes("schemaId");
+    const schemaRevision = ethers.toUtf8Bytes("schema");
+    const metadata1 = ethers.toUtf8Bytes("metadata1");
+    await ts.insertSchema(schemaId, schemaRevision, metadata1);
     await expect(
-      ts.getSchemaRevisionMetadataByMetadataId(ethers.ZeroHash),
+      ts.getSchemaRevisionMetadataByMetadataId(
+        schemaId,
+        ethers.sha256(schemaRevision),
+        ethers.ZeroHash,
+      ),
     ).to.be.revertedWith("MetadataId empty");
   });
 
@@ -539,7 +614,11 @@ describe("Schema", () => {
     const metadata2 = ethers.toUtf8Bytes("metadata2");
     await ts.insertSchema(schemaId, schemaRevision, metadata1);
     await expect(
-      ts.getSchemaRevisionMetadataByMetadataId(ethers.sha256(metadata2)),
+      ts.getSchemaRevisionMetadataByMetadataId(
+        schemaId,
+        ethers.sha256(schemaRevision),
+        ethers.sha256(metadata2),
+      ),
     ).to.be.revertedWith("No metadata");
   });
 
@@ -549,6 +628,8 @@ describe("Schema", () => {
     const metadata = ethers.toUtf8Bytes("metadata");
     await ts.insertSchema(schemaId, schemaRevision, metadata);
     const r = await ts.getSchemaRevisionMetadataByMetadataId(
+      schemaId,
+      ethers.sha256(schemaRevision),
       ethers.sha256(metadata),
     );
     expect(r).to.equal(ethers.hexlify(metadata));

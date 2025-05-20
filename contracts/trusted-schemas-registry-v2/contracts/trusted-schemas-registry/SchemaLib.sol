@@ -67,7 +67,10 @@ library SchemaLib {
         bytes calldata schemaId
     ) external view returns (bytes memory schemaRevision) {
         require(schemaId.length > 0, "schemaId empty");
-        require(ss.schemaIdToRevisionIds[schemaId].length > 0, "No revision");
+        require(
+            ss.schemaIdToRevisionIds[schemaId].length > 0,
+            "Schema not found"
+        );
         bytes32 latestSchemaRevisionId = ss.schemaIdToRevisionIds[schemaId][
             ss.schemaIdToRevisionIds[schemaId].length - 1
         ];
@@ -178,8 +181,13 @@ library SchemaLib {
      */
     function getSchemaRevision(
         SchemaStorage.Schemas storage ss,
+        bytes calldata schemaId,
         bytes32 schemaRevisionId
     ) external view returns (bytes memory schema) {
+        require(
+            ss.schemaIdToRevisionIds[schemaId].length > 0,
+            "Schema not found"
+        );
         require(schemaRevisionId != bytes32(0), "SchemaRevisionId empty");
         require(
             ss.schemaRevisionStore[schemaRevisionId].length > 0,
@@ -195,8 +203,18 @@ library SchemaLib {
      */
     function getSchemaRevisionMetadataByMetadataId(
         SchemaStorage.Schemas storage ss,
+        bytes calldata schemaId,
+        bytes32 schemaRevisionId,
         bytes32 metadataId
     ) external view returns (bytes memory metadata) {
+        require(
+            ss.schemaIdToRevisionIds[schemaId].length > 0,
+            "Schema not found"
+        );
+        require(
+            ss.schemaRevisionStore[schemaRevisionId].length > 0,
+            "No revision"
+        );
         require(metadataId != bytes32(0), "MetadataId empty");
         require(ss.revisionMetadataStore[metadataId].length > 0, "No metadata");
         metadata = ss.revisionMetadataStore[metadataId];

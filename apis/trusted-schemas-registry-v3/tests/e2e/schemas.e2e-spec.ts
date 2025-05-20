@@ -476,25 +476,6 @@ describe("TSR API v3 - Schemas (e2e)", () => {
       ).toStrictEqual(expect.stringContaining("application/problem+json"));
     });
 
-    it("should throw an error if valid-at query parameter is not valid", async () => {
-      expect.assertions(3);
-
-      const response = await request(server).get(
-        `/schemas/${schemaId}/revisions?valid-at=yesterday`,
-      );
-
-      expect(response.body).toStrictEqual({
-        detail: '["valid-at must be a valid ISO 8601 date string"]',
-        status: 400,
-        title: "Bad Request",
-        type: "about:blank",
-      });
-      expect(response.status).toBe(400);
-      expect(
-        (response.headers as { "content-type": string })["content-type"],
-      ).toStrictEqual(expect.stringContaining("application/problem+json"));
-    });
-
     it("should throw a Bad Request for bad pagination", async () => {
       expect.assertions(12);
 
@@ -562,56 +543,6 @@ describe("TSR API v3 - Schemas (e2e)", () => {
 
         const response = await request(server).get(
           `/schemas/${schemaId}/revisions`,
-        );
-
-        const revisionId2 = ethers.sha256(Buffer.from(serializedUpdatedSchema));
-
-        expect(response.body).toStrictEqual({
-          items: expect.arrayContaining([
-            {
-              href: expect.stringContaining(
-                `/schemas/${schemaId}/revisions/${schemaRevisionId}`,
-              ),
-              schemaRevisionId,
-            },
-            {
-              href: expect.stringContaining(
-                `/schemas/${schemaId}/revisions/${revisionId2}`,
-              ),
-              schemaRevisionId: revisionId2,
-            },
-          ]),
-          links: {
-            first: expect.stringContaining(
-              `/schemas/${schemaId}/revisions?page[after]=1&page[size]=10`,
-            ),
-            last: expect.stringContaining(
-              `/schemas/${schemaId}/revisions?page[after]=1&page[size]=10`,
-            ),
-            next: expect.stringContaining(
-              `/schemas/${schemaId}/revisions?page[after]=1&page[size]=10`,
-            ),
-            prev: expect.stringContaining(
-              `/schemas/${schemaId}/revisions?page[after]=1&page[size]=10`,
-            ),
-          },
-          pageSize: 10,
-          self: expect.stringContaining(
-            `/schemas/${schemaId}/revisions?page[after]=1&page[size]=10`,
-          ),
-          total: expect.any(Number),
-        });
-        expect(response.status).toBe(200);
-        expect(
-          (response.headers as { "content-type": string })["content-type"],
-        ).toStrictEqual(expect.stringContaining("application/json"));
-      });
-
-      it("should return the revisions valid at a specific time of the specified schema", async () => {
-        expect.assertions(3);
-
-        const response = await request(server).get(
-          `/schemas/${schemaId}/revisions?valid-at=${new Date().toISOString()}`,
         );
 
         const revisionId2 = ethers.sha256(Buffer.from(serializedUpdatedSchema));

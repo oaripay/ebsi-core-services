@@ -1289,7 +1289,7 @@ describe("Schemas Module", () => {
       ).toStrictEqual(expect.stringContaining("application/problem+json"));
     });
 
-    it("should throw an error if the schema revision metadata is not found", async () => {
+    it("should throw an error if the schema revision is not found", async () => {
       expect.assertions(3);
 
       const schema = testEnv.schemas[0]!;
@@ -1305,6 +1305,30 @@ describe("Schemas Module", () => {
         detail: `Revision ${schemaRevisionId} not found`,
         status: 404,
         title: "Revision Not Found",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+      expect(
+        (response.headers as { "content-type": string })["content-type"],
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+    });
+
+    it("should throw an error if the schema revision metadata is not found", async () => {
+      expect.assertions(3);
+
+      const schema = testEnv.schemas[0]!;
+      const { schemaId } = schema;
+      const schemaRevisionId = ethers.sha256(schema.serializedSchema);
+      const metadataId = `0x${crypto.randomBytes(32).toString("hex")}`;
+
+      const response = await request(server).get(
+        `/schemas/${schemaId}/revisions/${schemaRevisionId}/metadata/${metadataId}`,
+      );
+
+      expect(response.body).toStrictEqual({
+        detail: `Metadata ${metadataId} not found`,
+        status: 404,
+        title: "Metadata Not Found",
         type: "about:blank",
       });
       expect(response.status).toBe(404);
