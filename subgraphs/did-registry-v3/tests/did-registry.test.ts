@@ -10,34 +10,34 @@ import {
 } from "matchstick-as/assembly/index";
 
 import {
-  handleAddControllerCall,
-  handleAddVerificationMethodCall,
-  handleAddVerificationRelationshipCall,
-  handleExpireVerificationMethodCall,
-  handleInsertDidDocumentCall,
-  handleRevokeControllerCall,
-  handleRevokeVerificationMethodCall,
-  handleRollVerificationMethodCall,
-  handleUpdateBaseDocumentCall,
+  handleBaseDocumentUpdatedEvent,
+  handleControllerAddedEvent,
+  handleControllerRevokedEvent,
+  handleDidDocumentInsertedEvent,
+  handleVerificationMethodAddedEvent,
+  handleVerificationMethodExpiredEvent,
+  handleVerificationMethodRevokedEvent,
+  handleVerificationMethodRolledEvent,
+  handleVerificationRelationshipAddedEvent,
 } from "../src/mappings";
 import { computeEventId } from "../src/utils";
 import {
-  createAddControllerCall,
-  createAddVerificationMethodCall,
-  createAddVerificationRelationshipCall,
-  createExpireVerificationMethodCall,
-  createInsertDidDocumentCall,
-  createRevokeControllerCall,
-  createRevokeVerificationMethodCall,
-  createRollVerificationMethodCall,
-  createUpdateBaseDocumentCall,
+  createBaseDocumentUpdatedEvent,
+  createControllerAddedEvent,
+  createControllerRevokedEvent,
+  createDidDocumentInsertedEvent,
+  createVerificationMethodAddedEvent,
+  createVerificationMethodExpiredEvent,
+  createVerificationMethodRevokedEvent,
+  createVerificationMethodRolledEvent,
+  createVerificationRelationshipAddedEvent,
 } from "./did-registry-utils";
 
 describe("DID Registry - entity assertions", () => {
   const did = "did:ebsi:zZeKyEJfUTGwajhNyNX928z";
 
   beforeAll(() => {
-    const call = createInsertDidDocumentCall(
+    const event = createDidDocumentInsertedEvent(
       did,
       "{}",
       "keys-1",
@@ -47,7 +47,7 @@ describe("DID Registry - entity assertions", () => {
       BigInt.fromI32(2000),
     );
 
-    handleInsertDidDocumentCall(call);
+    handleDidDocumentInsertedEvent(event);
   });
 
   afterAll(() => {
@@ -58,7 +58,7 @@ describe("DID Registry - entity assertions", () => {
     const newDid = "did:ebsi:z224tCapjMEJEdLU6n1iG2yH";
     const keyId = "new-key";
 
-    const insertDidDocumentCall = createInsertDidDocumentCall(
+    const insertDidDocumentEvent = createDidDocumentInsertedEvent(
       newDid,
       '{"@context":"https://www.w3.org/ns/did/v1"}',
       keyId,
@@ -75,11 +75,11 @@ describe("DID Registry - entity assertions", () => {
       "VerificationRelationship",
     );
 
-    handleInsertDidDocumentCall(insertDidDocumentCall);
+    handleDidDocumentInsertedEvent(insertDidDocumentEvent);
 
     // Check if the event has been stored
     const eventId = computeEventId(
-      insertDidDocumentCall,
+      insertDidDocumentEvent.transaction,
       "InsertDidDocument",
       did,
     );
@@ -148,14 +148,18 @@ describe("DID Registry - entity assertions", () => {
   test("Update base document", () => {
     const newBaseDocument = '{"@context":"https://www.w3.org/ns/did/v1"}';
 
-    const call = createUpdateBaseDocumentCall(did, newBaseDocument);
+    const event = createBaseDocumentUpdatedEvent(did, newBaseDocument);
 
     const didDocumentCount = countEntities("DidDocument");
 
-    handleUpdateBaseDocumentCall(call);
+    handleBaseDocumentUpdatedEvent(event);
 
     // Check if the event has been stored
-    const eventId = computeEventId(call, "UpdateBaseDocument", did);
+    const eventId = computeEventId(
+      event.transaction,
+      "UpdateBaseDocument",
+      did,
+    );
     assert.fieldEquals("Event", eventId.toHexString(), "did", did);
 
     // The number of entities has not changed
@@ -169,7 +173,7 @@ describe("DID Registry - entity assertions", () => {
     // Create another DID document
     const did2 = "did:ebsi:zsG1AGXCuZ46tSAE2UT6kdE";
 
-    const insertDidDocumentCall = createInsertDidDocumentCall(
+    const didDocumentInsertedEvent = createDidDocumentInsertedEvent(
       did2,
       "{}",
       "keys-1",
@@ -181,25 +185,25 @@ describe("DID Registry - entity assertions", () => {
 
     const controllerRelationshipCount = countEntities("ControllerRelationship");
 
-    handleInsertDidDocumentCall(insertDidDocumentCall);
+    handleDidDocumentInsertedEvent(didDocumentInsertedEvent);
 
     // Add DID as controller
-    const addControllerCall = createAddControllerCall(did, did2);
+    const controllerAddedEvent = createControllerAddedEvent(did, did2);
 
-    handleAddControllerCall(addControllerCall);
+    handleControllerAddedEvent(controllerAddedEvent);
 
     // Check if the event has been stored
-    const addControllerEventId = computeEventId(
-      addControllerCall,
+    const controllerAddedEventId = computeEventId(
+      controllerAddedEvent.transaction,
       "AddController",
       did,
     ).toHexString();
-    assert.fieldEquals("Event", addControllerEventId, "did", did);
+    assert.fieldEquals("Event", controllerAddedEventId, "did", did);
 
     // Check if the new controller relationships have been stored
     assert.entityCount(
       "ControllerRelationship",
-      controllerRelationshipCount + 2, // 1 was added by handleInsertDidDocumentCall, the other by handleAddControllerCall
+      controllerRelationshipCount + 2, // 1 was added by handleDidDocumentInsertedEvent, the other by handleControllerAddedEvent
     );
 
     // Check controller relationships
@@ -223,13 +227,13 @@ describe("DID Registry - entity assertions", () => {
     assert.fieldEquals("ControllerRelationship", crId2, "status", "Active");
 
     // Revoke controller
-    const revokeControllerCall = createRevokeControllerCall(did, did2);
+    const controllerRevokedEvent = createControllerRevokedEvent(did, did2);
 
-    handleRevokeControllerCall(revokeControllerCall);
+    handleControllerRevokedEvent(controllerRevokedEvent);
 
     // Check if the event has been stored
     const revokeControllerEventId = computeEventId(
-      revokeControllerCall,
+      controllerRevokedEvent.transaction,
       "RevokeController",
       did,
     ).toHexString();
@@ -261,7 +265,7 @@ describe("DID Registry - entity assertions", () => {
   });
 
   test("Add verification method", () => {
-    const addVerificationMethodCall = createAddVerificationMethodCall(
+    const verificationMethodAddedEvent = createVerificationMethodAddedEvent(
       did,
       "keys-2",
       Bytes.fromHexString("7b226b7479223a"),
@@ -270,11 +274,11 @@ describe("DID Registry - entity assertions", () => {
 
     const verificationMethodCount = countEntities("VerificationMethod");
 
-    handleAddVerificationMethodCall(addVerificationMethodCall);
+    handleVerificationMethodAddedEvent(verificationMethodAddedEvent);
 
     // Check if the event has been stored
     const eventId = computeEventId(
-      addVerificationMethodCall,
+      verificationMethodAddedEvent.transaction,
       "AddVerificationMethod",
       did,
     ).toHexString();
@@ -297,8 +301,8 @@ describe("DID Registry - entity assertions", () => {
   });
 
   test("Add verification relationship", () => {
-    const addVerificationRelationshipCall =
-      createAddVerificationRelationshipCall(
+    const verificationRelationshipAddedEvent =
+      createVerificationRelationshipAddedEvent(
         did,
         "assertionMethod",
         "keys-1",
@@ -310,11 +314,13 @@ describe("DID Registry - entity assertions", () => {
       "VerificationRelationship",
     );
 
-    handleAddVerificationRelationshipCall(addVerificationRelationshipCall);
+    handleVerificationRelationshipAddedEvent(
+      verificationRelationshipAddedEvent,
+    );
 
     // Check if the event has been stored
     const eventId = computeEventId(
-      addVerificationRelationshipCall,
+      verificationRelationshipAddedEvent.transaction,
       "AddVerificationRelationship",
       did,
     ).toHexString();
@@ -341,7 +347,7 @@ describe("DID Registry - entity assertions", () => {
   });
 
   test("Revoke verification method", () => {
-    const revokeVerificationMethodCall = createRevokeVerificationMethodCall(
+    const verificationMethodRevokedEvent = createVerificationMethodRevokedEvent(
       did,
       "keys-1",
       BigInt.fromI32(1500),
@@ -349,11 +355,11 @@ describe("DID Registry - entity assertions", () => {
 
     const verificationMethodCount = countEntities("VerificationMethod");
 
-    handleRevokeVerificationMethodCall(revokeVerificationMethodCall);
+    handleVerificationMethodRevokedEvent(verificationMethodRevokedEvent);
 
     // Check if the event has been stored
     const eventId = computeEventId(
-      revokeVerificationMethodCall,
+      verificationMethodRevokedEvent.transaction,
       "RevokeVerificationMethod",
       did,
     ).toHexString();
@@ -371,7 +377,7 @@ describe("DID Registry - entity assertions", () => {
     const keyId = "key-to-be-revoked";
 
     // Add new verification method
-    const addVerificationMethodCall = createAddVerificationMethodCall(
+    const verificationMethodAddedEvent = createVerificationMethodAddedEvent(
       did,
       keyId,
       Bytes.fromHexString("7b226b7479223a"),
@@ -380,7 +386,7 @@ describe("DID Registry - entity assertions", () => {
 
     const verificationMethodCount = countEntities("VerificationMethod");
 
-    handleAddVerificationMethodCall(addVerificationMethodCall);
+    handleVerificationMethodAddedEvent(verificationMethodAddedEvent);
 
     // Check if the verification method has been stored
     const verificationMethodId = `${did}#${keyId}`;
@@ -406,8 +412,8 @@ describe("DID Registry - entity assertions", () => {
     );
 
     // Add verification relationship
-    const addVerificationRelationshipCall =
-      createAddVerificationRelationshipCall(
+    const verificationRelationshipAddedEvent =
+      createVerificationRelationshipAddedEvent(
         did,
         "assertionMethod",
         keyId,
@@ -419,7 +425,9 @@ describe("DID Registry - entity assertions", () => {
       "VerificationRelationship",
     );
 
-    handleAddVerificationRelationshipCall(addVerificationRelationshipCall);
+    handleVerificationRelationshipAddedEvent(
+      verificationRelationshipAddedEvent,
+    );
 
     // Check if the verification relationship has been stored
     assert.entityCount(
@@ -439,17 +447,17 @@ describe("DID Registry - entity assertions", () => {
     assert.fieldEquals("VerificationRelationship", vrId, "notAfter", "2000");
 
     // Expire verification method
-    const expireVerificationMethodCall = createExpireVerificationMethodCall(
+    const verificationMethodExpiredEvent = createVerificationMethodExpiredEvent(
       did,
       keyId,
       BigInt.fromI32(1500),
     );
 
-    handleExpireVerificationMethodCall(expireVerificationMethodCall);
+    handleVerificationMethodExpiredEvent(verificationMethodExpiredEvent);
 
     // Check if the event has been stored
     const eventId = computeEventId(
-      expireVerificationMethodCall,
+      verificationMethodExpiredEvent.transaction,
       "ExpireVerificationMethod",
       did,
     ).toHexString();
@@ -473,7 +481,7 @@ describe("DID Registry - entity assertions", () => {
     const initialKeyId = "key-to-be-rolled";
 
     // Add new verification method
-    const addVerificationMethodCall = createAddVerificationMethodCall(
+    const verificationMethodAddedEvent = createVerificationMethodAddedEvent(
       did,
       initialKeyId,
       Bytes.fromHexString("7b226b7479223a"),
@@ -482,7 +490,7 @@ describe("DID Registry - entity assertions", () => {
 
     const verificationMethodCount = countEntities("VerificationMethod");
 
-    handleAddVerificationMethodCall(addVerificationMethodCall);
+    handleVerificationMethodAddedEvent(verificationMethodAddedEvent);
 
     // Check if the verification method has been stored
     const initialVerificationMethodId = `${did}#${initialKeyId}`;
@@ -513,8 +521,8 @@ describe("DID Registry - entity assertions", () => {
     );
 
     // Add verification relationship
-    const addVerificationRelationshipCall =
-      createAddVerificationRelationshipCall(
+    const verificationRelationshipAddedEvent =
+      createVerificationRelationshipAddedEvent(
         did,
         "assertionMethod",
         initialKeyId,
@@ -526,7 +534,9 @@ describe("DID Registry - entity assertions", () => {
       "VerificationRelationship",
     );
 
-    handleAddVerificationRelationshipCall(addVerificationRelationshipCall);
+    handleVerificationRelationshipAddedEvent(
+      verificationRelationshipAddedEvent,
+    );
 
     // Check if the verification relationship has been stored
     assert.entityCount(
@@ -552,7 +562,7 @@ describe("DID Registry - entity assertions", () => {
 
     // Roll verification method
     const newKeyId = "new-key";
-    const rollVerificationMethodCall = createRollVerificationMethodCall(
+    const verificationMethodRolledEvent = createVerificationMethodRolledEvent(
       did,
       newKeyId,
       Bytes.fromHexString("7b226b7479223b"),
@@ -563,11 +573,11 @@ describe("DID Registry - entity assertions", () => {
       BigInt.fromI32(1000),
     );
 
-    handleRollVerificationMethodCall(rollVerificationMethodCall);
+    handleVerificationMethodRolledEvent(verificationMethodRolledEvent);
 
     // Check if the event has been stored
     const eventId = computeEventId(
-      rollVerificationMethodCall,
+      verificationMethodRolledEvent.transaction,
       "RollVerificationMethod",
       did,
     ).toHexString();
