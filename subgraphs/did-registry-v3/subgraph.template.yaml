@@ -24,23 +24,23 @@ dataSources:
         - name: DidRegistry
           # prettier-ignore
           file: {{ &abi }}
-      callHandlers:
-        - function: insertDidDocument(string,string,string,bytes,bool,uint256,uint256)
-          handler: handleInsertDidDocumentCall
-        - function: updateBaseDocument(string,string)
-          handler: handleUpdateBaseDocumentCall
-        - function: addController(string,string)
-          handler: handleAddControllerCall
-        - function: revokeController(string,string)
-          handler: handleRevokeControllerCall
-        - function: addVerificationMethod(string,string,bytes,bool)
-          handler: handleAddVerificationMethodCall
-        - function: addVerificationRelationship(string,string,string,uint256,uint256)
-          handler: handleAddVerificationRelationshipCall
-        - function: revokeVerificationMethod(string,string,uint256)
-          handler: handleRevokeVerificationMethodCall
-        - function: expireVerificationMethod(string,string,uint256)
-          handler: handleExpireVerificationMethodCall
-        - function: rollVerificationMethod((string,string,bytes,bool,uint256,uint256,string,uint256))
-          handler: handleRollVerificationMethodCall
+      eventHandlers:
+        - event: DidDocumentInserted(string,string,string,bytes,bool,uint256,uint256)
+          handler: handleDidDocumentInsertedEvent
+        - event: BaseDocumentUpdated(string,string)
+          handler: handleBaseDocumentUpdatedEvent
+        - event: ControllerAdded(string,string)
+          handler: handleControllerAddedEvent
+        - event: ControllerRevoked(string,string)
+          handler: handleControllerRevokedEvent
+        - event: VerificationMethodAdded(string,string,bytes,bool)
+          handler: handleVerificationMethodAddedEvent
+        - event: VerificationRelationshipAdded(string,string,string,uint256,uint256)
+          handler: handleVerificationRelationshipAddedEvent
+        - event: VerificationMethodRevoked(string,string,uint256)
+          handler: handleVerificationMethodRevokedEvent
+        - event: VerificationMethodExpired(string,string,uint256)
+          handler: handleVerificationMethodExpiredEvent
+        - event: VerificationMethodRolled(string,string,bytes,bool,uint256,uint256,string,uint256)
+          handler: handleVerificationMethodRolledEvent
       file: ./src/mappings.ts

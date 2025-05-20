@@ -8,28 +8,30 @@ import {
 } from "../generated/schema";
 
 export const computeEventId = (
-  call: ethereum.Call,
+  transaction: ethereum.Transaction,
   eventName: string,
   did: string,
 ): Bytes => {
   return Bytes.fromUTF8(
-    `${call.transaction.hash.toHexString()}-${eventName}-${did}`,
+    `${transaction.hash.toHexString()}-${eventName}-${did}`,
   );
 };
 
 export const storeEvent = (
-  call: ethereum.Call,
+  ethereumEvent: ethereum.Event,
   eventName: string,
   did: string,
 ): void => {
-  const event = new Event(computeEventId(call, eventName, did));
+  const event = new Event(
+    computeEventId(ethereumEvent.transaction, eventName, did),
+  );
 
   event.did = did;
-  event.signer = call.transaction.from;
-  event.blockNumber = call.block.number;
-  event.timestamp = call.block.timestamp;
+  event.signer = ethereumEvent.transaction.from;
+  event.blockNumber = ethereumEvent.block.number;
+  event.timestamp = ethereumEvent.block.timestamp;
   event.event = eventName;
-  event.txId = call.transaction.hash;
+  event.txId = ethereumEvent.transaction.hash;
 
   event.save();
 };

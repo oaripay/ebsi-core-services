@@ -1,15 +1,15 @@
 import { log } from "@graphprotocol/graph-ts";
 
 import {
-  AddControllerCall,
-  AddVerificationMethodCall,
-  AddVerificationRelationshipCall,
-  ExpireVerificationMethodCall,
-  InsertDidDocumentCall,
-  RevokeControllerCall,
-  RevokeVerificationMethodCall,
-  RollVerificationMethodCall,
-  UpdateBaseDocumentCall,
+  BaseDocumentUpdated,
+  ControllerAdded,
+  ControllerRevoked,
+  DidDocumentInserted,
+  VerificationMethodAdded,
+  VerificationMethodExpired,
+  VerificationMethodRevoked,
+  VerificationMethodRolled,
+  VerificationRelationshipAdded,
 } from "../generated/DidRegistry/DidRegistry";
 import { DidDocument } from "../generated/schema";
 import {
@@ -22,23 +22,109 @@ import {
   storeEvent,
 } from "./utils";
 
-export function handleAddControllerCall(call: AddControllerCall): void {
-  const did = call.inputs.did;
-  const controllerId = call.inputs.controller;
+export function handleBaseDocumentUpdatedEvent(
+  event: BaseDocumentUpdated,
+): void {
+  const did = event.params.did;
+
+  log.info("Updating base document of DID document {}", [did]);
+
+  const didDocument = DidDocument.load(did);
+
+  if (didDocument === null) {
+    log.error("DID document {} not found", [did]);
+    return;
+  }
+
+  didDocument.baseDocument = event.params.baseDocument;
+  didDocument.save();
+
+  storeEvent(event, "UpdateBaseDocument", did);
+}
+
+export function handleControllerAddedEvent(event: ControllerAdded): void {
+  const did = event.params.did;
+  const controllerId = event.params.controller;
 
   log.info("Adding controller {} to DID document {}", [controllerId, did]);
 
   const controller = createControllerRelationship(did, controllerId);
   controller.save();
 
-  storeEvent(call, "AddController", did);
+  storeEvent(event, "AddController", did);
 }
 
-export function handleAddVerificationMethodCall(
-  call: AddVerificationMethodCall,
+export function handleControllerRevokedEvent(event: ControllerRevoked): void {
+  const did = event.params.did;
+  const controller = event.params.controller;
+
+  log.info("Revoking controller {} of DID document {}", [controller, did]);
+
+  const controllerRelationship = loadControllerRelationship(did, controller);
+
+  if (controllerRelationship === null) return;
+
+  controllerRelationship.status = "Revoked";
+  controllerRelationship.save();
+
+  storeEvent(event, "RevokeController", did);
+}
+
+export function handleDidDocumentInsertedEvent(
+  event: DidDocumentInserted,
 ): void {
-  const did = call.inputs.did;
-  const vMethodId = call.inputs.vMethodId;
+  const did = event.params.did;
+  const vMethodId = event.params.vMethodId;
+
+  log.info("Inserting DID document {}", [did]);
+
+  const didDocument = new DidDocument(did);
+
+  didDocument.baseDocument = event.params.baseDocument;
+
+  const controllerRelationship = createControllerRelationship(did, did);
+
+  controllerRelationship.save();
+
+  const verificationMethod = createVerificationMethod(
+    did,
+    vMethodId,
+    event.params.publicKey,
+    event.params.isSecp256k1,
+  );
+
+  verificationMethod.save();
+
+  const verificationRelationship1 = createVerificationRelationship(
+    did,
+    "capabilityInvocation",
+    vMethodId,
+    event.params.notBefore,
+    event.params.notAfter,
+  );
+
+  verificationRelationship1.save();
+
+  const verificationRelationship2 = createVerificationRelationship(
+    did,
+    "authentication",
+    vMethodId,
+    event.params.notBefore,
+    event.params.notAfter,
+  );
+
+  verificationRelationship2.save();
+
+  didDocument.save();
+
+  storeEvent(event, "InsertDidDocument", did);
+}
+
+export function handleVerificationMethodAddedEvent(
+  event: VerificationMethodAdded,
+): void {
+  const did = event.params.did;
+  const vMethodId = event.params.vMethodId;
 
   log.info("Adding verification method {} to DID document {}", [
     vMethodId,
@@ -48,45 +134,20 @@ export function handleAddVerificationMethodCall(
   const verificationMethod = createVerificationMethod(
     did,
     vMethodId,
-    call.inputs.publicKey,
-    call.inputs.isSecp256k1,
+    event.params.publicKey,
+    event.params.isSecp256k1,
   );
 
   verificationMethod.save();
 
-  storeEvent(call, "AddVerificationMethod", did);
+  storeEvent(event, "AddVerificationMethod", did);
 }
 
-export function handleAddVerificationRelationshipCall(
-  call: AddVerificationRelationshipCall,
+export function handleVerificationMethodExpiredEvent(
+  event: VerificationMethodExpired,
 ): void {
-  const did = call.inputs.did;
-  const vMethodName = call.inputs.name;
-  const vMethodId = call.inputs.vMethodId;
-
-  log.info(
-    "Adding verification relationship {} for method {} to DID document {}",
-    [vMethodName, vMethodId, did],
-  );
-
-  const verificationRelationship = createVerificationRelationship(
-    did,
-    vMethodName,
-    vMethodId,
-    call.inputs.notBefore,
-    call.inputs.notAfter,
-  );
-
-  verificationRelationship.save();
-
-  storeEvent(call, "AddVerificationRelationship", did);
-}
-
-export function handleExpireVerificationMethodCall(
-  call: ExpireVerificationMethodCall,
-): void {
-  const did = call.inputs.did;
-  const vMethodId = call.inputs.vMethodId;
+  const did = event.params.did;
+  const vMethodId = event.params.vMethodId;
 
   log.info("Expiring verification method {} of DID document {}", [
     vMethodId,
@@ -113,83 +174,19 @@ export function handleExpireVerificationMethodCall(
     );
 
     if (verificationRelationship) {
-      verificationRelationship.notAfter = call.inputs.notAfter;
+      verificationRelationship.notAfter = event.params.notAfter;
       verificationRelationship.save();
     }
   }
 
-  storeEvent(call, "ExpireVerificationMethod", did);
+  storeEvent(event, "ExpireVerificationMethod", did);
 }
 
-export function handleInsertDidDocumentCall(call: InsertDidDocumentCall): void {
-  const did = call.inputs.did;
-  const vMethodId = call.inputs.vMethodId;
-
-  log.info("Inserting DID document {}", [did]);
-
-  const didDocument = new DidDocument(did);
-
-  didDocument.baseDocument = call.inputs.baseDocument;
-
-  const controllerRelationship = createControllerRelationship(did, did);
-
-  controllerRelationship.save();
-
-  const verificationMethod = createVerificationMethod(
-    did,
-    vMethodId,
-    call.inputs.publicKey,
-    call.inputs.isSecp256k1,
-  );
-
-  verificationMethod.save();
-
-  const verificationRelationship1 = createVerificationRelationship(
-    did,
-    "capabilityInvocation",
-    vMethodId,
-    call.inputs.notBefore,
-    call.inputs.notAfter,
-  );
-
-  verificationRelationship1.save();
-
-  const verificationRelationship2 = createVerificationRelationship(
-    did,
-    "authentication",
-    vMethodId,
-    call.inputs.notBefore,
-    call.inputs.notAfter,
-  );
-
-  verificationRelationship2.save();
-
-  didDocument.save();
-
-  storeEvent(call, "InsertDidDocument", did);
-}
-
-export function handleRevokeControllerCall(call: RevokeControllerCall): void {
-  const did = call.inputs.did;
-  const controller = call.inputs.controller;
-
-  log.info("Revoking controller {} of DID document {}", [controller, did]);
-
-  const controllerRelationship = loadControllerRelationship(did, controller);
-
-  if (controllerRelationship === null) return;
-
-  controllerRelationship.status = "Revoked";
-  controllerRelationship.save();
-
-  storeEvent(call, "RevokeController", did);
-}
-
-export function handleRevokeVerificationMethodCall(
-  call: RevokeVerificationMethodCall,
+export function handleVerificationMethodRevokedEvent(
+  event: VerificationMethodRevoked,
 ): void {
-  const did = call.inputs.did;
-  const vMethodId = call.inputs.vMethodId;
+  const did = event.params.did;
+  const vMethodId = event.params.vMethodId;
 
   log.info("Revoking verification method {} of DID document {}", [
     vMethodId,
@@ -219,20 +216,20 @@ export function handleRevokeVerificationMethodCall(
     );
 
     if (verificationRelationship) {
-      verificationRelationship.notAfter = call.inputs.notAfter;
+      verificationRelationship.notAfter = event.params.notAfter;
       verificationRelationship.save();
     }
   }
 
-  storeEvent(call, "RevokeVerificationMethod", did);
+  storeEvent(event, "RevokeVerificationMethod", did);
 }
 
-export function handleRollVerificationMethodCall(
-  call: RollVerificationMethodCall,
+export function handleVerificationMethodRolledEvent(
+  event: VerificationMethodRolled,
 ): void {
-  const did = call.inputs.args.did;
-  const oldVMethodId = call.inputs.args.oldVMethodId;
-  const newVMethodId = call.inputs.args.vMethodId;
+  const did = event.params.did;
+  const oldVMethodId = event.params.oldVMethodId;
+  const newVMethodId = event.params.vMethodId;
 
   log.info("Rolling verification method from {} to {} of DID document {}", [
     oldVMethodId,
@@ -244,8 +241,8 @@ export function handleRollVerificationMethodCall(
   const verificationMethod = createVerificationMethod(
     did,
     newVMethodId,
-    call.inputs.args.publicKey,
-    call.inputs.args.isSecp256k1,
+    event.params.publicKey,
+    event.params.isSecp256k1,
   );
 
   verificationMethod.save();
@@ -271,8 +268,8 @@ export function handleRollVerificationMethodCall(
     );
 
     if (oldVerificationRelationship) {
-      oldVerificationRelationship.notAfter = call.inputs.args.notBefore.plus(
-        call.inputs.args.duration,
+      oldVerificationRelationship.notAfter = event.params.notBefore.plus(
+        event.params.duration,
       );
       oldVerificationRelationship.save();
 
@@ -280,30 +277,38 @@ export function handleRollVerificationMethodCall(
         did,
         relationships[i],
         newVMethodId,
-        call.inputs.args.notBefore,
-        call.inputs.args.notAfter,
+        event.params.notBefore,
+        event.params.notAfter,
       );
 
       newVerificationRelationship.save();
     }
   }
 
-  storeEvent(call, "RollVerificationMethod", did);
+  storeEvent(event, "RollVerificationMethod", did);
 }
 
-export function handleUpdateBaseDocumentCall(
-  call: UpdateBaseDocumentCall,
+export function handleVerificationRelationshipAddedEvent(
+  event: VerificationRelationshipAdded,
 ): void {
-  const did = call.inputs.did;
+  const did = event.params.did;
+  const vMethodName = event.params.name;
+  const vMethodId = event.params.vMethodId;
 
-  log.info("Updating base document of DID document {}", [did]);
+  log.info(
+    "Adding verification relationship {} for method {} to DID document {}",
+    [vMethodName, vMethodId, did],
+  );
 
-  const didDocument = DidDocument.load(did);
+  const verificationRelationship = createVerificationRelationship(
+    did,
+    vMethodName,
+    vMethodId,
+    event.params.notBefore,
+    event.params.notAfter,
+  );
 
-  if (didDocument === null) return;
+  verificationRelationship.save();
 
-  didDocument.baseDocument = call.inputs.baseDocument;
-  didDocument.save();
-
-  storeEvent(call, "UpdateBaseDocument", did);
+  storeEvent(event, "AddVerificationRelationship", did);
 }
