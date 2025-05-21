@@ -201,7 +201,14 @@ abstract contract SchemaDetailed is SchemaStorage {
         require(pageSize > 0, "PageSize must be > 0");
         require(page > 0, "Page must be > 0");
         Schemas storage ss = schemaStorage();
-        ss.getSchemaRevision(schemaId, schemaRevisionId);
+        require(
+            ss.schemaIdToRevisionIds[schemaId].length > 0,
+            "Schema not found"
+        );
+        require(
+            ss.schemaRevisionStore[schemaRevisionId].length > 0,
+            "No revision"
+        );
         uint256[] memory ids;
         (ids, total, howMany, prev, next) = ss
             .revisionIdToMetadataIds[schemaRevisionId]
