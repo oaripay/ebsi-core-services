@@ -13,6 +13,7 @@ contract IssuerStorage {
         TI,
         Revoked
     }
+
     struct AttributeMetadata {
         // For each Attribute version hash, this is an object that stores
         // the DID of his owner and the hash of the first version.
@@ -21,6 +22,15 @@ contract IssuerStorage {
         IssuerType issuerType;
         string taoDid;
         string rootTaoDid;
+    }
+
+    struct Attribute {
+        string did;
+        bytes32 attributeId;
+        bytes attribData;
+        string tao;
+        string rootTao;
+        IssuerType issuerType;
     }
 
     struct Entity {
