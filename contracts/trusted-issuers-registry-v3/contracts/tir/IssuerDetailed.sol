@@ -328,6 +328,7 @@ abstract contract IssuerDetailed is IssuerStorage {
     }
 
     function getIssuerAttributeRevisions(
+        string memory did,
         bytes32 anyAttrVersHash,
         uint256 page,
         uint256 pageSize
@@ -335,7 +336,7 @@ abstract contract IssuerDetailed is IssuerStorage {
         external
         view
         returns (
-            bytes32[] memory items,
+            Attribute[] memory items,
             uint256 total,
             uint256 howMany,
             uint256 prev,
@@ -351,7 +352,11 @@ abstract contract IssuerDetailed is IssuerStorage {
             anyAttrVersHash
         ];
         require(
-            keccak256(bytes(am.did)) != keccak256(bytes("")),
+            ds.issuerStore[did].attributes.length > 0,
+            "issuer does not exist"
+        );
+        require(
+            keccak256(bytes(am.did)) == keccak256(bytes(did)),
             "attribute has not been found"
         );
 
@@ -362,11 +367,18 @@ abstract contract IssuerDetailed is IssuerStorage {
             .revisionHashes[am.attributeId]
             .length
             .paginate(page, pageSize);
-        items = new bytes32[](howMany);
+        items = new Attribute[](howMany);
         for (uint256 i = 0; i < howMany; i++) {
-            items[i] = ds.issuerStore[am.did].revisionHashes[am.attributeId][
-                ids[i]
-            ];
+            bytes32 hashId = ds.issuerStore[am.did].revisionHashes[
+                am.attributeId
+            ][ids[i]];
+            AttributeMetadata memory a = ds.attributeMetadataStore[hashId];
+            items[i].did = a.did;
+            items[i].tao = a.taoDid;
+            items[i].rootTao = a.rootTaoDid;
+            items[i].issuerType = a.issuerType;
+            items[i].attributeId = a.attributeId;
+            items[i].attribData = ds.issuerStore[a.did].revisions[hashId];
         }
     }
 

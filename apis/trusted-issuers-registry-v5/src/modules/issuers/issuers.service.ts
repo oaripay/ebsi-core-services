@@ -8,6 +8,7 @@ import {
   InternalServerError,
   isEthersError,
   NotFoundError,
+  parseRevertReason,
   prefixWith0x,
   remove0xPrefix,
 } from "@ebsiint-api/shared";
@@ -24,6 +25,19 @@ import type {
 
 import { LedgerService } from "../ledger/ledger.service.ts";
 import { IssuerTypeNames } from "./issuers.constants.ts";
+
+function getContractError(err: unknown) {
+  if (
+    !err ||
+    typeof err !== "object" ||
+    !("data" in err) ||
+    typeof err.data !== "string"
+  ) {
+    return "";
+  }
+
+  return parseRevertReason(err.data);
+}
 
 @Injectable()
 export class IssuersService {
@@ -187,25 +201,50 @@ export class IssuersService {
       const revisionHashes = await this.contract
         // @ts-expect-error Error due to CommonJS vs ESM modules imports
         .connect(provider)
-        .getIssuerAttributeRevisions(hash, page, pageSize);
+        .getIssuerAttributeRevisions(did, hash, page, pageSize);
 
-      const revisions = await Promise.all(
-        revisionHashes.items.map(async (revisionHash) => {
-          return this.getAttributeRevision(revisionHash, did);
-        }),
-      );
+      const revisions = revisionHashes.items.map((attr) => {
+        const { attribData, attributeId, issuerType, rootTao, tao } = attr;
+        const attributeData = Buffer.from(
+          remove0xPrefix(attribData),
+          "hex",
+        ).toString();
+        return {
+          body: attributeData,
+          hash: attributeId.slice(2),
+          issuerType: IssuerTypeNames[Number(issuerType)]!,
+          rootTao,
+          tao,
+        };
+      });
 
       const total = Number(revisionHashes.total);
-      if (total === 0) throw new Error("not found");
 
       return { revisions, total };
     } catch (error) {
       if (isEthersError(error)) {
         this.logger.error(error, error.stack);
       }
-      throw new NotFoundError("Attribute Not Found", {
-        detail: `Attribute ${remove0xPrefix(hash)} not found`,
-      });
+
+      const contractError = getContractError(error);
+
+      switch (contractError) {
+        case "issuer does not exist": {
+          throw new NotFoundError("Issuer Not Found", {
+            detail: `Issuer ${did} not found`,
+          });
+        }
+        case "attribute has not been found": {
+          throw new NotFoundError("Attribute Not Found", {
+            detail: `Attribute ${remove0xPrefix(hash)} not found`,
+          });
+        }
+        default: {
+          throw new NotFoundError("Not Found", {
+            detail: contractError,
+          });
+        }
+      }
     }
   }
 

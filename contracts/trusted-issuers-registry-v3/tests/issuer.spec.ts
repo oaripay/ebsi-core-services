@@ -196,7 +196,14 @@ describe("Issuers", () => {
 
     expect(
       Number(
-        (await tir.getIssuerAttributeRevisions(issuerHashes[0], 1, 2)).total,
+        (
+          await tir.getIssuerAttributeRevisions(
+            rootTAO1.did,
+            issuerHashes[0],
+            1,
+            2,
+          )
+        ).total,
       ),
     ).to.eq(1);
 
@@ -533,13 +540,13 @@ describe("Issuers", () => {
       await expect(tir.getIssuers(0, 1)).to.be.revertedWith("Page must be > 0");
 
       await expect(
-        tir.getIssuerAttributeRevisions(randomHash(), 1, 51),
+        tir.getIssuerAttributeRevisions("", randomHash(), 1, 51),
       ).to.be.revertedWith("PageSize must be <= 50");
       await expect(
-        tir.getIssuerAttributeRevisions(randomHash(), 1, 0),
+        tir.getIssuerAttributeRevisions("", randomHash(), 1, 0),
       ).to.be.revertedWith("PageSize must be > 0");
       await expect(
-        tir.getIssuerAttributeRevisions(randomHash(), 0, 1),
+        tir.getIssuerAttributeRevisions("", randomHash(), 0, 1),
       ).to.be.revertedWith("Page must be > 0");
     });
 
@@ -641,6 +648,80 @@ describe("Issuers", () => {
       });
     });
 
+    it("should get the list of revisions", async () => {
+      await registerRootTAO1();
+
+      await policyContractMock.setPolicyResult(true);
+
+      // revoke that attribute
+      await tir.setAttributeMetadata(
+        rootTAO1.did,
+        rootTAO1.attributeId,
+        IssuerType.Revoked,
+        rootTAO1.did,
+        rootTAO1.attributeId,
+      );
+
+      // fill the data
+      const attrRevoked = `0x${crypto.randomBytes(10).toString("hex")}`;
+      await tir.setAttributeData(
+        rootTAO1.did,
+        rootTAO1.attributeId,
+        attrRevoked,
+      );
+
+      const revisions = await tir.getIssuerAttributeRevisions(
+        rootTAO1.did,
+        rootTAO1.attributeId,
+        1,
+        10,
+      );
+      expect(decodeResult(revisions)).to.deep.equal({
+        howMany: BigInt(4),
+        items: [
+          {
+            // Preregistration - no content (setAttributeMetadata)
+            attribData: "0x",
+            attributeId: rootTAO1.attributeId,
+            did: rootTAO1.did,
+            issuerType: IssuerType.RootTAO.toString(),
+            rootTao: rootTAO1.did,
+            tao: rootTAO1.did,
+          },
+          {
+            // Registration of the credential (setAttributeData)
+            attribData: rootTAO1.attribute,
+            attributeId: revisions.items[1].attributeId,
+            did: rootTAO1.did,
+            issuerType: IssuerType.RootTAO.toString(),
+            rootTao: rootTAO1.did,
+            tao: rootTAO1.did,
+          },
+          {
+            // Credential Revoked without content (setAttributeMetadata)
+            attribData: "0x",
+            attributeId: rootTAO1.attributeId,
+            did: rootTAO1.did,
+            issuerType: IssuerType.Revoked.toString(),
+            rootTao: rootTAO1.did,
+            tao: rootTAO1.did,
+          },
+          {
+            // Credential Revoked with content (setAttributeData)
+            attribData: attrRevoked,
+            attributeId: revisions.items[3].attributeId,
+            did: rootTAO1.did,
+            issuerType: IssuerType.Revoked.toString(),
+            rootTao: rootTAO1.did,
+            tao: rootTAO1.did,
+          },
+        ],
+        next: 1n,
+        prev: 1n,
+        total: BigInt(4),
+      });
+    });
+
     it("should be able to revoke a RootTAO by an admin from TPR", async () => {
       await registerRootTAO1();
 
@@ -718,12 +799,16 @@ describe("Issuers", () => {
     });
 
     it("should reject the get of an unknown attribute", async () => {
+      await registerRootTAO1();
       await expect(
         tir.getIssuerAttributeByHash(randomHash()),
       ).to.be.revertedWith("attribute has not been found");
       await expect(
-        tir.getIssuerAttributeRevisions(randomHash(), 1, 10),
+        tir.getIssuerAttributeRevisions(rootTAO1.did, randomHash(), 1, 10),
       ).to.be.revertedWith("attribute has not been found");
+      await expect(
+        tir.getIssuerAttributeRevisions("other-did", randomHash(), 1, 10),
+      ).to.be.revertedWith("issuer does not exist");
     });
 
     it("should reject revision already stored", async () => {
