@@ -13,7 +13,7 @@ enum ControllerStatus {
 type DidDocument @entity(immutable: false) {
   id: String!
   baseDocument: String!
-  controllers: [ControllerRelationship!]!
+  controllerRelationships: [ControllerRelationship!]!
     @derivedFrom(field: "controlledDocument")
   verificationRelationships: [VerificationRelationship!]!
     @derivedFrom(field: "did")
