@@ -26,7 +26,8 @@ type TimestampedHash @entity(immutable: false) {
   records: [Record!]! # Only useful in the context of timestampVersionHashes
 }
 
-type RecordVersion @entity(immutable: true) {
+# Entity RecordVersion is not immutable because infos can be modified
+type RecordVersion @entity(immutable: false) {
   id: Bytes! # Set to `record.id.concat(versionNumber)`
   record: Record!
   versionNumber: BigInt!
@@ -43,7 +44,7 @@ type RecordOwner @entity(immutable: false) {
 }
 
 type Record @entity(immutable: true) {
-  id: Bytes! # Set to `from.concat(blockNumber).concat(hashValue)`
+  id: Bytes!
   owners: [RecordOwner!]! @derivedFrom(field: "record")
   versions: [RecordVersion!]! @derivedFrom(field: "record")
 }

@@ -29,23 +29,18 @@ dataSources:
           handler: handleAddNewHashAlgoEvent
         - event: UpdateHashAlgo(indexed uint256,indexed string,string,uint256,string,uint8,string)
           handler: handleUpdateHashAlgoEvent
-      callHandlers:
-        - function: timestampHashes(uint256[],bytes[],bytes[])
-          handler: handleTimestampHashesCall
-        - function: timestampVersionHashes(bytes,uint256[],bytes[],bytes[],bytes)
-          handler: handleTimestampVersionHashesCall
-        - function: timestampRecordHashes(uint256[],bytes[],bytes[],bytes)
-          handler: handleTimestampRecordHashesCall
-        - function: timestampRecordVersionHashes(bytes32,uint256[],bytes[],bytes[],bytes)
-          handler: handleTimestampRecordVersionHashesCall
-        - function: appendRecordVersionHashes(bytes32,uint256,uint256[],bytes[],bytes[],bytes)
-          handler: handleAppendRecordVersionHashesCall
-        - function: insertRecordVersionInfo(bytes32,uint256,bytes)
-          handler: handleInsertRecordVersionInfoCall
-        - function: detachRecordVersionHash(bytes32,uint256,bytes)
-          handler: handleDetachRecordVersionHashCall
-        - function: insertRecordOwner(bytes32,string,uint256,uint256)
-          handler: handleInsertRecordOwnerCall
-        - function: revokeRecordOwner(bytes32,string)
-          handler: handleRevokeRecordOwnerCall
+        - event: TimestampedHashes(bytes32[],uint256[],bytes[],bytes[])
+          handler: handleTimestampedHashesEvent
+        - event: TimestampVersionHashes(bytes,bytes32[],bytes)
+          handler: handleTimestampVersionHashesEvent
+        - event: RecordedHashes(indexed bytes32,bytes32[],bytes32)
+          handler: handleRecordedHashesEvent
+        - event: RecordVersionInfo(bytes32,bytes32,uint256)
+          handler: handleRecordVersionInfoEvent
+        - event: TimestampIdDetached(bytes32)
+          handler: handleTimestampIdDetachedEvent
+        - event: RecordOwnerAdded(string)
+          handler: handleRecordOwnerAddedEvent
+        - event: OwnerIdRevoked(string)
+          handler: handleOwnerIdRevokedEvent
       file: ./src/mappings.ts

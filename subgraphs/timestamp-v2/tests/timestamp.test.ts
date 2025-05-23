@@ -15,30 +15,20 @@ import {
   RecordVersion,
   TimestampedHash,
 } from "../generated/schema";
+import { getVersionId } from "../src/utils";
 import {
-  getRecordId,
-  getVersionId,
-  handleAppendRecordVersionHashesCall,
-  handleDetachRecordVersionHashCall,
-  handleInsertRecordOwnerCall,
-  handleInsertRecordVersionInfoCall,
-  handleRevokeRecordOwnerCall,
-  handleTimestampRecordHashesCall,
-  handleTimestampRecordVersionHashesCall,
-  handleTimestampVersionHashesCall,
-} from "../src/mappings";
-import {
+  appendRecordVersionHashes,
   assertArrayContainsAllValues,
-  createAppendRecordVersionHashesCall,
-  createDetachRecordVersionHashCall,
-  createInsertRecordOwnerCall,
-  createInsertRecordVersionInfoCall,
-  createRevokeRecordOwnerCall,
-  createTimestampRecordHashesCall,
-  createTimestampRecordVersionHashes,
-  createTimestampVersionHashesCall,
+  detachRecordVersionHash,
+  getRecordId,
   insertHashAlgorithm,
+  insertRecordOwner,
+  insertRecordVersionInfo,
+  revokeRecordOwner,
   timestampHashes,
+  timestampRecordHashes,
+  timestampRecordVersionHashes,
+  timestampVersionHashes,
   updateHashAlgorithm,
 } from "./utils";
 
@@ -109,10 +99,17 @@ describe("Timestamps and Records", () => {
 
   test("Timestamp hashes", () => {
     timestampHashes(
+      [
+        // timestampIds[x] = sha256(hashValues[x])
+        Bytes.fromHexString(
+          "0xbf5e8ffa51a9e748985800c1d3d7f1a2a6ae7435136593ca8d9637e3f87c699c",
+        ),
+      ],
       [1],
       [Bytes.fromHexString("0x00010000")],
       [Bytes.fromHexString("0x00010001")],
     );
+
     assert.entityCount("TimestampedHash", 1);
     assert.fieldEquals("TimestampedHash", "0x00010000", "hashAlgorithm", "1");
     assert.fieldEquals("TimestampedHash", "0x00010000", "data", "0x00010001");
@@ -150,15 +147,32 @@ describe("Timestamps and Records", () => {
 
     // Timestamp the same hash again: there should be no new record
     timestampHashes(
+      [
+        // timestampIds[x] = sha256(hashValues[x])
+        Bytes.fromHexString(
+          "bf5e8ffa51a9e748985800c1d3d7f1a2a6ae7435136593ca8d9637e3f87c699c",
+        ),
+      ],
       [1],
       [Bytes.fromHexString("0x00010000")],
       [Bytes.fromHexString("0x00010001")],
     );
+
     assert.entityCount("TimestampedHash", 1);
   });
 
   test("Timestamp hashes with different data length", () => {
-    timestampHashes([1], [Bytes.fromHexString("0x00020000")], []);
+    timestampHashes(
+      [
+        // timestampIds[x] = sha256(hashValues[x])
+        Bytes.fromHexString(
+          "bc3817c13bc4e6f192a840895fa937d252db153efb89bb14a6c2ddf1f9c55409",
+        ),
+      ],
+      [1],
+      [Bytes.fromHexString("0x00020000")],
+      [],
+    );
 
     assert.entityCount("TimestampedHash", 2);
     assert.fieldEquals("TimestampedHash", "0x00020000", "hashAlgorithm", "1");
@@ -203,14 +217,12 @@ describe("Timestamps and Records", () => {
     const timestampedHashCount = countEntities("TimestampedHash");
 
     // Create a new record
-    const call = createTimestampRecordHashesCall(
+    const event = timestampRecordHashes(
       [1],
       [Bytes.fromHexString("0x00030000")],
       [Bytes.fromHexString("0x00ef")],
       Bytes.fromHexString("0xc23e"),
     );
-
-    handleTimestampRecordHashesCall(call);
 
     // Check entities count
     assert.entityCount("Record", recordCount + 1);
@@ -220,9 +232,9 @@ describe("Timestamps and Records", () => {
 
     // Load newly created record
     const recordId = getRecordId(
-      call.from,
-      call.block.number,
-      call.inputs.hashValues[0],
+      event.transaction.from,
+      event.block.number,
+      Bytes.fromHexString("0x00030000"),
     );
 
     const record = Record.load(recordId);
@@ -235,7 +247,7 @@ describe("Timestamps and Records", () => {
     const recordOwners = record.owners.load();
     assert.i32Equals(1, recordOwners.length);
     const recordOwnerId = recordId.concat(
-      Bytes.fromUTF8(call.from.toHexString().toLowerCase()),
+      Bytes.fromUTF8(event.transaction.from.toHexString().toLowerCase()),
     );
     assert.bytesEquals(recordOwnerId, recordOwners[0].id);
 
@@ -247,8 +259,11 @@ describe("Timestamps and Records", () => {
     }
 
     // Check record owner
-    assert.stringEquals(call.from.toHexString(), recordOwner.ownerId);
-    assert.bigIntEquals(call.block.timestamp, recordOwner.notBefore);
+    assert.stringEquals(
+      event.transaction.from.toHexString(),
+      recordOwner.ownerId,
+    );
+    assert.bigIntEquals(event.block.timestamp, recordOwner.notBefore);
     assert.bigIntEquals(
       BigInt.fromString("18446744073709551615"), // max u64
       recordOwner.notAfter,
@@ -300,12 +315,12 @@ describe("Timestamps and Records", () => {
     );
     assert.bytesEquals(Bytes.fromHexString("0x00ef"), timestampedHash.data);
     assert.addressEquals(
-      call.transaction.from,
+      event.transaction.from,
       Address.fromBytes(timestampedHash.timestampedBy),
     );
-    assert.bigIntEquals(call.block.timestamp, timestampedHash.blockTimestamp);
-    assert.bigIntEquals(call.block.number, timestampedHash.blockNumber);
-    assert.bytesEquals(call.transaction.hash, timestampedHash.transactionHash);
+    assert.bigIntEquals(event.block.timestamp, timestampedHash.blockTimestamp);
+    assert.bigIntEquals(event.block.number, timestampedHash.blockNumber);
+    assert.bytesEquals(event.transaction.hash, timestampedHash.transactionHash);
   });
 
   test("Create a new version on a record by using timestampVersionHashes", () => {
@@ -315,14 +330,13 @@ describe("Timestamps and Records", () => {
     let timestampedHashCount = countEntities("TimestampedHash");
 
     // Create a new record
-    const timestampRecordHashesCall = createTimestampRecordHashesCall(
+    const firstHashValue = Bytes.fromHexString("0x00040000");
+    const timestampRecordHashesEvent = timestampRecordHashes(
       [1],
-      [Bytes.fromHexString("0x00040000")],
+      [firstHashValue],
       [Bytes.fromHexString("0x00ef")],
       Bytes.fromHexString("0xc23e"),
     );
-
-    handleTimestampRecordHashesCall(timestampRecordHashesCall);
 
     // Check entities count
     assert.entityCount("Record", recordCount + 1);
@@ -337,8 +351,8 @@ describe("Timestamps and Records", () => {
     timestampedHashCount = timestampedHashCount + 1;
 
     // Create a new version with 1 new timestamped hash, 1 existing timestamped hash tied to a record, and 1 existing timestamped hash not tied to any record
-    const timestampVersionHashesCall = createTimestampVersionHashesCall(
-      timestampRecordHashesCall.inputs.hashValues[0],
+    timestampVersionHashes(
+      firstHashValue,
       [1, 1, 1],
       [
         Bytes.fromHexString("0x00040001"),
@@ -349,8 +363,6 @@ describe("Timestamps and Records", () => {
       Bytes.fromHexString("0xc23e"),
     );
 
-    handleTimestampVersionHashesCall(timestampVersionHashesCall);
-
     // Check entities count
     assert.entityCount("Record", recordCount);
     assert.entityCount("RecordOwner", recordOwnerCount);
@@ -359,9 +371,9 @@ describe("Timestamps and Records", () => {
 
     // Load newly created record
     const recordId = getRecordId(
-      timestampRecordHashesCall.from,
-      timestampRecordHashesCall.block.number,
-      timestampRecordHashesCall.inputs.hashValues[0],
+      timestampRecordHashesEvent.transaction.from,
+      timestampRecordHashesEvent.block.number,
+      firstHashValue,
     );
 
     const record = Record.load(recordId);
@@ -431,19 +443,19 @@ describe("Timestamps and Records", () => {
     assert.stringEquals("1", timestampedHash.hashAlgorithm);
     assert.bytesEquals(Bytes.fromHexString("0x00ef"), timestampedHash.data);
     assert.addressEquals(
-      timestampRecordHashesCall.transaction.from,
+      timestampRecordHashesEvent.transaction.from,
       Address.fromBytes(timestampedHash.timestampedBy),
     );
     assert.bigIntEquals(
-      timestampRecordHashesCall.block.timestamp,
+      timestampRecordHashesEvent.block.timestamp,
       timestampedHash.blockTimestamp,
     );
     assert.bigIntEquals(
-      timestampRecordHashesCall.block.number,
+      timestampRecordHashesEvent.block.number,
       timestampedHash.blockNumber,
     );
     assert.bytesEquals(
-      timestampRecordHashesCall.transaction.hash,
+      timestampRecordHashesEvent.transaction.hash,
       timestampedHash.transactionHash,
     );
 
@@ -491,19 +503,19 @@ describe("Timestamps and Records", () => {
     assert.stringEquals("1", timestampedHash.hashAlgorithm);
     assert.bytesEquals(Bytes.fromHexString("0x00ef"), timestampedHash.data);
     assert.addressEquals(
-      timestampRecordHashesCall.transaction.from,
+      timestampRecordHashesEvent.transaction.from,
       Address.fromBytes(timestampedHash.timestampedBy),
     );
     assert.bigIntEquals(
-      timestampRecordHashesCall.block.timestamp,
+      timestampRecordHashesEvent.block.timestamp,
       timestampedHash.blockTimestamp,
     );
     assert.bigIntEquals(
-      timestampRecordHashesCall.block.number,
+      timestampRecordHashesEvent.block.number,
       timestampedHash.blockNumber,
     );
     assert.bytesEquals(
-      timestampRecordHashesCall.transaction.hash,
+      timestampRecordHashesEvent.transaction.hash,
       timestampedHash.transactionHash,
     );
 
@@ -527,8 +539,8 @@ describe("Timestamps and Records", () => {
       "TimestampedHash 0x00030000 should have 2 records",
     );
     const previousRecordId = getRecordId(
-      timestampRecordHashesCall.from,
-      timestampRecordHashesCall.block.number,
+      timestampRecordHashesEvent.transaction.from,
+      timestampRecordHashesEvent.block.number,
       Bytes.fromHexString("0x00030000"),
     );
     assertArrayContainsAllValues(
@@ -570,14 +582,13 @@ describe("Timestamps and Records", () => {
     let timestampedHashCount = countEntities("TimestampedHash");
 
     // Create a new record
-    const timestampRecordHashesCall = createTimestampRecordHashesCall(
+    const firstHashValue = Bytes.fromHexString("0x00050000");
+    const timestampRecordHashesEvent = timestampRecordHashes(
       [1],
-      [Bytes.fromHexString("0x00050000")],
+      [firstHashValue],
       [Bytes.fromHexString("0x00ef")],
       Bytes.fromHexString("0xc23e"),
     );
-
-    handleTimestampRecordHashesCall(timestampRecordHashesCall);
 
     // Check entities count
     assert.entityCount("Record", recordCount + 1);
@@ -593,21 +604,19 @@ describe("Timestamps and Records", () => {
 
     // Compute record ID
     const recordId = getRecordId(
-      timestampRecordHashesCall.from,
-      timestampRecordHashesCall.block.number,
-      timestampRecordHashesCall.inputs.hashValues[0],
+      timestampRecordHashesEvent.transaction.from,
+      timestampRecordHashesEvent.block.number,
+      firstHashValue,
     );
 
     // Create a new version with 2 new timestamped hashes
-    const timestampRecordVersionHashes = createTimestampRecordVersionHashes(
+    timestampRecordVersionHashes(
       recordId,
       [1, 1],
       [Bytes.fromHexString("0x00050001"), Bytes.fromHexString("0x00050002")],
       [Bytes.fromHexString("0x00ef")],
       Bytes.fromHexString("0xc23e"),
     );
-
-    handleTimestampRecordVersionHashesCall(timestampRecordVersionHashes);
 
     // Check entities count
     assert.entityCount("Record", recordCount);
@@ -682,19 +691,19 @@ describe("Timestamps and Records", () => {
     assert.stringEquals("1", timestampedHash.hashAlgorithm);
     assert.bytesEquals(Bytes.fromHexString("0x00ef"), timestampedHash.data);
     assert.addressEquals(
-      timestampRecordHashesCall.transaction.from,
+      timestampRecordHashesEvent.transaction.from,
       Address.fromBytes(timestampedHash.timestampedBy),
     );
     assert.bigIntEquals(
-      timestampRecordHashesCall.block.timestamp,
+      timestampRecordHashesEvent.block.timestamp,
       timestampedHash.blockTimestamp,
     );
     assert.bigIntEquals(
-      timestampRecordHashesCall.block.number,
+      timestampRecordHashesEvent.block.number,
       timestampedHash.blockNumber,
     );
     assert.bytesEquals(
-      timestampRecordHashesCall.transaction.hash,
+      timestampRecordHashesEvent.transaction.hash,
       timestampedHash.transactionHash,
     );
 
@@ -741,19 +750,19 @@ describe("Timestamps and Records", () => {
     assert.stringEquals("1", timestampedHash.hashAlgorithm);
     assert.bytesEquals(Bytes.fromHexString("0x00ef"), timestampedHash.data);
     assert.addressEquals(
-      timestampRecordHashesCall.transaction.from,
+      timestampRecordHashesEvent.transaction.from,
       Address.fromBytes(timestampedHash.timestampedBy),
     );
     assert.bigIntEquals(
-      timestampRecordHashesCall.block.timestamp,
+      timestampRecordHashesEvent.block.timestamp,
       timestampedHash.blockTimestamp,
     );
     assert.bigIntEquals(
-      timestampRecordHashesCall.block.number,
+      timestampRecordHashesEvent.block.number,
       timestampedHash.blockNumber,
     );
     assert.bytesEquals(
-      timestampRecordHashesCall.transaction.hash,
+      timestampRecordHashesEvent.transaction.hash,
       timestampedHash.transactionHash,
     );
 
@@ -776,19 +785,19 @@ describe("Timestamps and Records", () => {
     assert.stringEquals("1", timestampedHash.hashAlgorithm);
     assert.bytesEquals(Bytes.fromHexString("0x"), timestampedHash.data); // Empty value
     assert.addressEquals(
-      timestampRecordHashesCall.transaction.from,
+      timestampRecordHashesEvent.transaction.from,
       Address.fromBytes(timestampedHash.timestampedBy),
     );
     assert.bigIntEquals(
-      timestampRecordHashesCall.block.timestamp,
+      timestampRecordHashesEvent.block.timestamp,
       timestampedHash.blockTimestamp,
     );
     assert.bigIntEquals(
-      timestampRecordHashesCall.block.number,
+      timestampRecordHashesEvent.block.number,
       timestampedHash.blockNumber,
     );
     assert.bytesEquals(
-      timestampRecordHashesCall.transaction.hash,
+      timestampRecordHashesEvent.transaction.hash,
       timestampedHash.transactionHash,
     );
   });
@@ -800,14 +809,13 @@ describe("Timestamps and Records", () => {
     let timestampedHashCount = countEntities("TimestampedHash");
 
     // Create a new record
-    const timestampRecordHashesCall = createTimestampRecordHashesCall(
+    const firstHashValue = Bytes.fromHexString("0x00060000");
+    const timestampRecordHashesEvent = timestampRecordHashes(
       [1],
-      [Bytes.fromHexString("0x00060000")],
+      [firstHashValue],
       [Bytes.fromHexString("0x00ef")],
       Bytes.fromHexString("0xc23e"),
     );
-
-    handleTimestampRecordHashesCall(timestampRecordHashesCall);
 
     // Check entities count
     assert.entityCount("Record", recordCount + 1);
@@ -823,22 +831,20 @@ describe("Timestamps and Records", () => {
 
     // Compute record ID
     const recordId = getRecordId(
-      timestampRecordHashesCall.from,
-      timestampRecordHashesCall.block.number,
-      timestampRecordHashesCall.inputs.hashValues[0],
+      timestampRecordHashesEvent.transaction.from,
+      timestampRecordHashesEvent.block.number,
+      firstHashValue,
     );
 
     // Append 2 new timestamped hashes to the existing version 0
-    const appendRecordVersionHashesCall = createAppendRecordVersionHashesCall(
+    appendRecordVersionHashes(
       recordId,
-      BigInt.fromI32(0),
+      0,
       [1, 1],
       [Bytes.fromHexString("0x00060001"), Bytes.fromHexString("0x00060002")],
       [Bytes.fromHexString("0x00ef")],
       Bytes.fromHexString("0xc234"),
     );
-
-    handleAppendRecordVersionHashesCall(appendRecordVersionHashesCall);
 
     // Check entities count
     assert.entityCount("Record", recordCount);
@@ -892,19 +898,19 @@ describe("Timestamps and Records", () => {
     assert.stringEquals("1", timestampedHash.hashAlgorithm);
     assert.bytesEquals(Bytes.fromHexString("0x00ef"), timestampedHash.data);
     assert.addressEquals(
-      timestampRecordHashesCall.transaction.from,
+      timestampRecordHashesEvent.transaction.from,
       Address.fromBytes(timestampedHash.timestampedBy),
     );
     assert.bigIntEquals(
-      timestampRecordHashesCall.block.timestamp,
+      timestampRecordHashesEvent.block.timestamp,
       timestampedHash.blockTimestamp,
     );
     assert.bigIntEquals(
-      timestampRecordHashesCall.block.number,
+      timestampRecordHashesEvent.block.number,
       timestampedHash.blockNumber,
     );
     assert.bytesEquals(
-      timestampRecordHashesCall.transaction.hash,
+      timestampRecordHashesEvent.transaction.hash,
       timestampedHash.transactionHash,
     );
 
@@ -927,19 +933,19 @@ describe("Timestamps and Records", () => {
     assert.stringEquals("1", timestampedHash.hashAlgorithm);
     assert.bytesEquals(Bytes.fromHexString("0x00ef"), timestampedHash.data);
     assert.addressEquals(
-      timestampRecordHashesCall.transaction.from,
+      timestampRecordHashesEvent.transaction.from,
       Address.fromBytes(timestampedHash.timestampedBy),
     );
     assert.bigIntEquals(
-      timestampRecordHashesCall.block.timestamp,
+      timestampRecordHashesEvent.block.timestamp,
       timestampedHash.blockTimestamp,
     );
     assert.bigIntEquals(
-      timestampRecordHashesCall.block.number,
+      timestampRecordHashesEvent.block.number,
       timestampedHash.blockNumber,
     );
     assert.bytesEquals(
-      timestampRecordHashesCall.transaction.hash,
+      timestampRecordHashesEvent.transaction.hash,
       timestampedHash.transactionHash,
     );
 
@@ -962,19 +968,19 @@ describe("Timestamps and Records", () => {
     assert.stringEquals("1", timestampedHash.hashAlgorithm);
     assert.bytesEquals(Bytes.fromHexString("0x"), timestampedHash.data); // Empty data
     assert.addressEquals(
-      timestampRecordHashesCall.transaction.from,
+      timestampRecordHashesEvent.transaction.from,
       Address.fromBytes(timestampedHash.timestampedBy),
     );
     assert.bigIntEquals(
-      timestampRecordHashesCall.block.timestamp,
+      timestampRecordHashesEvent.block.timestamp,
       timestampedHash.blockTimestamp,
     );
     assert.bigIntEquals(
-      timestampRecordHashesCall.block.number,
+      timestampRecordHashesEvent.block.number,
       timestampedHash.blockNumber,
     );
     assert.bytesEquals(
-      timestampRecordHashesCall.transaction.hash,
+      timestampRecordHashesEvent.transaction.hash,
       timestampedHash.transactionHash,
     );
   });
@@ -986,14 +992,13 @@ describe("Timestamps and Records", () => {
     let timestampedHashCount = countEntities("TimestampedHash");
 
     // Create a new record
-    const timestampRecordHashesCall = createTimestampRecordHashesCall(
+    const firstHashValue = Bytes.fromHexString("0x00070000");
+    const timestampRecordHashesEvent = timestampRecordHashes(
       [1],
-      [Bytes.fromHexString("0x00070000")],
+      [firstHashValue],
       [Bytes.fromHexString("0x00ef")],
       Bytes.fromHexString("0xc23e"),
     );
-
-    handleTimestampRecordHashesCall(timestampRecordHashesCall);
 
     // Check entities count
     assert.entityCount("Record", recordCount + 1);
@@ -1009,19 +1014,13 @@ describe("Timestamps and Records", () => {
 
     // Compute record ID
     const recordId = getRecordId(
-      timestampRecordHashesCall.from,
-      timestampRecordHashesCall.block.number,
-      timestampRecordHashesCall.inputs.hashValues[0],
+      timestampRecordHashesEvent.transaction.from,
+      timestampRecordHashesEvent.block.number,
+      firstHashValue,
     );
 
     // Add new version info
-    const insertRecordVersionInfoCall = createInsertRecordVersionInfoCall(
-      recordId,
-      BigInt.fromI32(0),
-      Bytes.fromHexString("0xc234"),
-    );
-
-    handleInsertRecordVersionInfoCall(insertRecordVersionInfoCall);
+    insertRecordVersionInfo(recordId, 0, Bytes.fromHexString("0xc234"));
 
     // Check entities count
     assert.entityCount("Record", recordCount);
@@ -1057,14 +1056,13 @@ describe("Timestamps and Records", () => {
     let timestampedHashCount = countEntities("TimestampedHash");
 
     // Create a new record with 2 timestamped hashes
-    const timestampRecordHashesCall = createTimestampRecordHashesCall(
+    const firstHashValue = Bytes.fromHexString("0x00080000");
+    const timestampRecordHashesEvent = timestampRecordHashes(
       [1, 1],
-      [Bytes.fromHexString("0x00080000"), Bytes.fromHexString("0x00080001")],
+      [firstHashValue, Bytes.fromHexString("0x00080001")],
       [Bytes.fromHexString("0x00ef"), Bytes.fromHexString("0x00ef")],
       Bytes.fromHexString("0xc23e"),
     );
-
-    handleTimestampRecordHashesCall(timestampRecordHashesCall);
 
     // Check entities count
     assert.entityCount("Record", recordCount + 1);
@@ -1080,19 +1078,13 @@ describe("Timestamps and Records", () => {
 
     // Compute record ID
     const recordId = getRecordId(
-      timestampRecordHashesCall.from,
-      timestampRecordHashesCall.block.number,
-      timestampRecordHashesCall.inputs.hashValues[0],
+      timestampRecordHashesEvent.transaction.from,
+      timestampRecordHashesEvent.block.number,
+      firstHashValue,
     );
 
     // Remove first timestamped hash
-    const detachRecordVersionHashCall = createDetachRecordVersionHashCall(
-      recordId,
-      BigInt.fromI32(0),
-      Bytes.fromHexString("0x00080000"),
-    );
-
-    handleDetachRecordVersionHashCall(detachRecordVersionHashCall);
+    detachRecordVersionHash(recordId, 0, firstHashValue);
 
     // Check entities count
     assert.entityCount("Record", recordCount);
@@ -1123,7 +1115,7 @@ describe("Timestamps and Records", () => {
     assert.i32Equals(
       1,
       versions[0].timestamps.length,
-      "Version should have 1 timestamped hash",
+      `Version should have 1 timestamped hash. Found ${versions[0].timestamps.length} instead`,
     );
 
     // Load timestamped hash #1
@@ -1145,19 +1137,19 @@ describe("Timestamps and Records", () => {
     assert.stringEquals("1", timestampedHash.hashAlgorithm);
     assert.bytesEquals(Bytes.fromHexString("0x00ef"), timestampedHash.data);
     assert.addressEquals(
-      timestampRecordHashesCall.transaction.from,
+      timestampRecordHashesEvent.transaction.from,
       Address.fromBytes(timestampedHash.timestampedBy),
     );
     assert.bigIntEquals(
-      timestampRecordHashesCall.block.timestamp,
+      timestampRecordHashesEvent.block.timestamp,
       timestampedHash.blockTimestamp,
     );
     assert.bigIntEquals(
-      timestampRecordHashesCall.block.number,
+      timestampRecordHashesEvent.block.number,
       timestampedHash.blockNumber,
     );
     assert.bytesEquals(
-      timestampRecordHashesCall.transaction.hash,
+      timestampRecordHashesEvent.transaction.hash,
       timestampedHash.transactionHash,
     );
   });
@@ -1167,14 +1159,13 @@ describe("Timestamps and Records", () => {
     const recordOwnerCount = countEntities("RecordOwner");
 
     // Create a new record
-    const timestampRecordHashesCall = createTimestampRecordHashesCall(
+    const firstHashValue = Bytes.fromHexString("0x00090000");
+    const timestampRecordHashesEvent = timestampRecordHashes(
       [1],
-      [Bytes.fromHexString("0x00090000")],
+      [firstHashValue],
       [Bytes.fromHexString("0x00ef")],
       Bytes.fromHexString("0xc23e"),
     );
-
-    handleTimestampRecordHashesCall(timestampRecordHashesCall);
 
     // Check entities count
     assert.entityCount("Record", recordCount + 1);
@@ -1182,21 +1173,19 @@ describe("Timestamps and Records", () => {
 
     // Compute record ID
     const recordId = getRecordId(
-      timestampRecordHashesCall.from,
-      timestampRecordHashesCall.block.number,
-      timestampRecordHashesCall.inputs.hashValues[0],
+      timestampRecordHashesEvent.transaction.from,
+      timestampRecordHashesEvent.block.number,
+      firstHashValue,
     );
 
     // Insert new record owner
     const newRecordOwner = "0xa16081f360e3847006db660bae1c6d1b2e17ec2b";
-    const insertRecordOwnerCall = createInsertRecordOwnerCall(
+    insertRecordOwner(
       recordId,
       newRecordOwner,
       BigInt.fromI32(1000),
       BigInt.fromI32(2000),
     );
-
-    handleInsertRecordOwnerCall(insertRecordOwnerCall);
 
     // Check entities count
     assert.entityCount("RecordOwner", recordOwnerCount + 2);
@@ -1215,7 +1204,7 @@ describe("Timestamps and Records", () => {
     // We can't trust the order of the owners, hence we can simply check that they're all included
     const recordOwner1Id = recordId.concat(
       Bytes.fromUTF8(
-        timestampRecordHashesCall.from.toHexString().toLowerCase(),
+        timestampRecordHashesEvent.transaction.from.toHexString().toLowerCase(),
       ),
     );
     const recordOwner2Id = recordId.concat(Bytes.fromUTF8(newRecordOwner));
@@ -1237,11 +1226,11 @@ describe("Timestamps and Records", () => {
 
     // Check record owner #1
     assert.stringEquals(
-      timestampRecordHashesCall.from.toHexString(),
+      timestampRecordHashesEvent.transaction.from.toHexString(),
       recordOwner1.ownerId,
     );
     assert.bigIntEquals(
-      timestampRecordHashesCall.block.timestamp,
+      timestampRecordHashesEvent.block.timestamp,
       recordOwner1.notBefore,
     );
     assert.bigIntEquals(
@@ -1262,12 +1251,7 @@ describe("Timestamps and Records", () => {
     assert.bigIntEquals(BigInt.fromI32(2000), recordOwner2.notAfter);
 
     // Revoke record owner #2
-    const revokeRecordOwnerCall = createRevokeRecordOwnerCall(
-      recordId,
-      newRecordOwner,
-    );
-
-    handleRevokeRecordOwnerCall(revokeRecordOwnerCall);
+    revokeRecordOwner(recordId, newRecordOwner);
 
     // Check entities count
     assert.entityCount("RecordOwner", recordOwnerCount + 1);
