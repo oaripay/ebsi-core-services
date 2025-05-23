@@ -17,6 +17,14 @@ abstract contract RecordDetailed is RecordStorage {
         bytes32[] timestampIds,
         bytes32 versionInfoHash
     );
+    event RecordVersionInfo(
+        bytes32 recordId,
+        bytes32 versionInfoHash,
+        uint versionId
+    );
+    event TimestampIdDetached(bytes32 timestampId);
+    event RecordOwnerAdded(string ownerId);
+    event OwnerIdRevoked(string ownerId);
     event TimestampVersionHashes(
         bytes versionHash,
         bytes32[] timestampIds,
