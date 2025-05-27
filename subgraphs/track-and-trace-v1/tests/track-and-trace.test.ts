@@ -12,8 +12,8 @@ import {
   handleAccessRevokedEvent,
   handleDidEbsiAuthorisedEvent,
   handleDocumentCreatedEvent,
+  handleDocumentRemovedEvent,
   handleEventWrittenEvent,
-  handleRemoveDocumentCall,
 } from "../src/mappings";
 import { getInvitationId } from "../src/utils";
 import {
@@ -22,8 +22,8 @@ import {
   createAccessRevokedEvent,
   createDidEbsiAuthorisedEvent,
   createDocumentCreatedEvent,
+  createDocumentRemovedEvent,
   createEventWrittenEvent,
-  createRemoveDocumentCall,
 } from "./utils";
 
 const creator = "did:ebsi:zgUB1p2zNmGtymUwzHrxh24";
@@ -986,9 +986,9 @@ describe("Track and Trace - entity assertions", () => {
     );
 
     // The document is then removed
-    const call = createRemoveDocumentCall(docId);
+    const event = createDocumentRemovedEvent(docId);
 
-    handleRemoveDocumentCall(call);
+    handleDocumentRemovedEvent(event);
 
     assert.entityCount("Document", 0);
 

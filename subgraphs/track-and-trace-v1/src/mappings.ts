@@ -12,8 +12,8 @@ import {
   AccessRevoked,
   DidEbsiAuthorised,
   DocumentCreated,
+  DocumentRemoved,
   EventWritten,
-  RemoveDocumentCall,
 } from "../generated/TrackAndTrace/TrackAndTrace";
 import { CREATOR_PERMISSION, DELEGATE_PERMISSION } from "./constants";
 import { getInvitationId } from "./utils";
@@ -148,6 +148,30 @@ export function handleDocumentCreatedEvent(event: DocumentCreated): void {
   invitation.save();
 }
 
+export function handleDocumentRemovedEvent(event: DocumentRemoved): void {
+  const document = Document.load(event.params.docHash);
+
+  if (!document) {
+    log.error("Document {} not found", [event.params.docHash.toHexString()]);
+    return;
+  }
+
+  // Remove invitations
+  const invitations = document.invitations.load();
+  for (let i = 0, k = invitations.length; i < k; i += 1) {
+    recursivelyDeleteInvitation(invitations[i].id);
+  }
+
+  // Remove events
+  const events = document.events.load();
+  for (let i = 0, k = events.length; i < k; i += 1) {
+    store.remove("Event", events[i].id.toHexString());
+  }
+
+  // Remove document
+  store.remove("Document", document.id.toHexString());
+}
+
 export function handleEventWrittenEvent(event: EventWritten): void {
   const txArgs = getTransactionArguments(event);
   const externalHash = txArgs.args[0].toTuple()[1].toString();
@@ -179,32 +203,6 @@ export function handleEventWrittenEvent(event: EventWritten): void {
   writeEvent.origin = event.params.origin;
   writeEvent.metadata = event.params.metadata;
   writeEvent.save();
-}
-
-export function handleRemoveDocumentCall(call: RemoveDocumentCall): void {
-  const document = Document.load(call.inputs.documentHash);
-
-  if (!document) {
-    log.error("Document {} not found", [
-      call.inputs.documentHash.toHexString(),
-    ]);
-    return;
-  }
-
-  // Remove invitations
-  const invitations = document.invitations.load();
-  for (let i = 0, k = invitations.length; i < k; i += 1) {
-    recursivelyDeleteInvitation(invitations[i].id);
-  }
-
-  // Remove events
-  const events = document.events.load();
-  for (let i = 0, k = events.length; i < k; i += 1) {
-    store.remove("Event", events[i].id.toHexString());
-  }
-
-  // Remove document
-  store.remove("Document", document.id.toHexString());
 }
 
 function getPermission(i: i32): string {

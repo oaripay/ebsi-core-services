@@ -1,13 +1,13 @@
 import { BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts";
-import { assert, newMockCall, newMockEvent } from "matchstick-as";
+import { assert, newMockEvent } from "matchstick-as";
 
 import {
   AccessGranted,
   AccessRevoked,
   DidEbsiAuthorised,
   DocumentCreated,
+  DocumentRemoved,
   EventWritten,
-  RemoveDocumentCall,
 } from "../generated/TrackAndTrace/TrackAndTrace";
 
 export function assertArrayContainsAllValues<T>(
@@ -79,6 +79,12 @@ export function createDocumentCreatedEvent(
   return event;
 }
 
+export function createDocumentRemovedEvent(docHash: string): DocumentRemoved {
+  const event = changetype<DocumentRemoved>(newMockEvent());
+  event.parameters = [paramBytes("docHash", Bytes.fromHexString(docHash))];
+  return event;
+}
+
 export function createEventWrittenEvent(
   docHash: string,
   eventHash: string,
@@ -101,16 +107,6 @@ export function createEventWrittenEvent(
     paramBytes("proof", Bytes.fromHexString(proof)),
   ];
   return event;
-}
-
-export function createRemoveDocumentCall(
-  documentHash: string,
-): RemoveDocumentCall {
-  const call = changetype<RemoveDocumentCall>(newMockCall());
-  call.inputValues = [
-    paramBytes("documentHash", Bytes.fromHexString(documentHash)),
-  ];
-  return call;
 }
 
 function paramBigInt(name: string, value: BigInt): ethereum.EventParam {
