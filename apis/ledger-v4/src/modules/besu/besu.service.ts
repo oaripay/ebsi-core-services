@@ -68,7 +68,6 @@ const PUBLIC_BESU_METHODS = new Set([
   "eth_getUncleCountByBlockHash",
   "eth_getUncleCountByBlockNumber",
   "net_version",
-  "trace_filter",
   // Not allowed:
   // "eth_sendRawTransaction",
   // "eth_estimateGas",

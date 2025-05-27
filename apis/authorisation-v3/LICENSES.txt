@@ -299,7 +299,7 @@ https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
 This product makes use of software developed by third parties.
 
 ========================================================================================
-- @cef-ebsi/ebsi-uri@^1.0.1-alpha.0
+- @cef-ebsi/ebsi-uri@^1.0.1
 ------------------------------
 This project is licensed under EUPL-1.2.
 
@@ -598,7 +598,7 @@ EUPL version.
 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
 
 ========================================================================================
-- @cef-ebsi/verifiable-credential@^7.0.1-alpha.2
+- @cef-ebsi/verifiable-credential@^7.1.0
 ------------------------------
 This project is licensed under EUPL-1.2.
 
@@ -897,7 +897,7 @@ EUPL version.
 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
 
 ========================================================================================
-- @cef-ebsi/verifiable-presentation@^8.0.1-alpha.1
+- @cef-ebsi/verifiable-presentation@^8.0.1
 ------------------------------
 This project is licensed under EUPL-1.2.
 
@@ -1196,7 +1196,7 @@ EUPL version.
 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
 
 ========================================================================================
-- @cef-ebsi/wallet-lib@^6.0.1-alpha.1
+- @cef-ebsi/wallet-lib@^6.0.1
 ------------------------------
 This project is licensed under EUPL-1.2.
 
@@ -1974,7 +1974,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ========================================================================================
-- @nestjs/common@^11.1.0
+- @nestjs/common@^11.1.2
 ------------------------------
 This project is licensed under MIT.
 
@@ -2037,7 +2037,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ========================================================================================
-- @nestjs/core@^11.1.0
+- @nestjs/core@^11.1.2
 ------------------------------
 This project is licensed under MIT.
 
@@ -2069,7 +2069,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ========================================================================================
-- @nestjs/platform-fastify@^11.1.0
+- @nestjs/platform-fastify@^11.1.2
 ------------------------------
 This project is licensed under MIT.
 
@@ -2452,7 +2452,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 ========================================================================================
-- did-jwt@^8.0.14
+- did-jwt@^8.0.15
 ------------------------------
 This project is licensed under Apache-2.0.
 
@@ -2966,7 +2966,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 ========================================================================================
-- yaml@^2.7.1
+- yaml@^2.8.0
 ------------------------------
 This project is licensed under ISC.
 
@@ -2989,7 +2989,7 @@ TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 
 ========================================================================================
-- zod@^3.24.4
+- zod@^3.25.30
 ------------------------------
 This project is licensed under MIT.
 
@@ -2999,7 +2999,7 @@ MIT License: https://opensource.org/license/mit/
 
 MIT License
 
-Copyright (c) 2020 Colin McDonnell
+Copyright (c) 2025 Colin McDonnell
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
