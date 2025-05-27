@@ -1,5 +1,38 @@
 # @ebsiint-sc/trusted-issuers-registry-v3
 
+## 3.0.0-rc.8
+
+### Minor Changes
+
+- [3bd5f1f5d7d1336d838a78294ca9da6512f7941a](https://code.europa.eu/ebsi/public/core-services/-/commit/3bd5f1f5d7d1336d838a78294ca9da6512f7941a): Add pagination to issuer proxies
+- [929b977be37acf8399320cc3beb98d496401ae7d](https://code.europa.eu/ebsi/public/core-services/-/commit/929b977be37acf8399320cc3beb98d496401ae7d): update issuer endpoint and paginate issuer attributes
+- [27846206e0201d345947a38c860507aba2a5b4c1](https://code.europa.eu/ebsi/public/core-services/-/commit/27846206e0201d345947a38c860507aba2a5b4c1): Removed memory definition of a storage array in tir
+- [b1f23c77382d0956feefbe803ad6c14083fe014a](https://code.europa.eu/ebsi/public/core-services/-/commit/b1f23c77382d0956feefbe803ad6c14083fe014a): Add `removeIssuerProxy` method.
+- [253c5cf552d99c6a7fb5ad23dc35e0cb74e3b528](https://code.europa.eu/ebsi/public/core-services/-/commit/253c5cf552d99c6a7fb5ad23dc35e0cb74e3b528): Require existence of the issuer in `addIssuerProxy` method.
+
+### Patch Changes
+
+- [d134d4c3bf0b63ee3405b3176fbc685340eb9b4d](https://code.europa.eu/ebsi/public/core-services/-/commit/d134d4c3bf0b63ee3405b3176fbc685340eb9b4d): Improve performance of pagination
+- [6bfb72eedcf4aeeac28a36725a533134df9a9b19](https://code.europa.eu/ebsi/public/core-services/-/commit/6bfb72eedcf4aeeac28a36725a533134df9a9b19): Bump dependencies.
+- [289b8fb6b8febea153f6dbd7272d003d3c9e46ce](https://code.europa.eu/ebsi/public/core-services/-/commit/289b8fb6b8febea153f6dbd7272d003d3c9e46ce): Bump dependencies.
+- [1fd0357ea251c7fb11805e4123a13d2e244a8136](https://code.europa.eu/ebsi/public/core-services/-/commit/1fd0357ea251c7fb11805e4123a13d2e244a8136): Get revisions at sc level to reduce number of calls
+- [2acaaf92d521df16cb556c2b127685a03babaff5](https://code.europa.eu/ebsi/public/core-services/-/commit/2acaaf92d521df16cb556c2b127685a03babaff5): Bump dependencies.
+- [4b5b820aae2ed764d2711c3b7a67ea4bc982a9e9](https://code.europa.eu/ebsi/public/core-services/-/commit/4b5b820aae2ed764d2711c3b7a67ea4bc982a9e9): Bump dependencies.
+- [ffe073c6f1cbe8a6ff268c3fa18b2cefdafece32](https://code.europa.eu/ebsi/public/core-services/-/commit/ffe073c6f1cbe8a6ff268c3fa18b2cefdafece32): Bump dependencies.
+- [f5b616da4980de7920326f400cebdcbb93a906c9](https://code.europa.eu/ebsi/public/core-services/-/commit/f5b616da4980de7920326f400cebdcbb93a906c9): Bump dependencies.
+- Updated dependencies [d134d4c3bf0b63ee3405b3176fbc685340eb9b4d](https://code.europa.eu/ebsi/public/core-services/-/commit/d134d4c3bf0b63ee3405b3176fbc685340eb9b4d)
+- Updated dependencies [7e251112640e8414f7abfbca5170b1113a403c0e](https://code.europa.eu/ebsi/public/core-services/-/commit/7e251112640e8414f7abfbca5170b1113a403c0e)
+- Updated dependencies [6bfb72eedcf4aeeac28a36725a533134df9a9b19](https://code.europa.eu/ebsi/public/core-services/-/commit/6bfb72eedcf4aeeac28a36725a533134df9a9b19)
+- Updated dependencies [289b8fb6b8febea153f6dbd7272d003d3c9e46ce](https://code.europa.eu/ebsi/public/core-services/-/commit/289b8fb6b8febea153f6dbd7272d003d3c9e46ce)
+- Updated dependencies [7c0d3dcff2e15cb6b8855602e6f9b2b32aae5020](https://code.europa.eu/ebsi/public/core-services/-/commit/7c0d3dcff2e15cb6b8855602e6f9b2b32aae5020)
+- Updated dependencies [2acaaf92d521df16cb556c2b127685a03babaff5](https://code.europa.eu/ebsi/public/core-services/-/commit/2acaaf92d521df16cb556c2b127685a03babaff5)
+- Updated dependencies [4b5b820aae2ed764d2711c3b7a67ea4bc982a9e9](https://code.europa.eu/ebsi/public/core-services/-/commit/4b5b820aae2ed764d2711c3b7a67ea4bc982a9e9)
+- Updated dependencies [ffe073c6f1cbe8a6ff268c3fa18b2cefdafece32](https://code.europa.eu/ebsi/public/core-services/-/commit/ffe073c6f1cbe8a6ff268c3fa18b2cefdafece32)
+- Updated dependencies [f5b616da4980de7920326f400cebdcbb93a906c9](https://code.europa.eu/ebsi/public/core-services/-/commit/f5b616da4980de7920326f400cebdcbb93a906c9)
+  - @ebsiint-sc/trusted-policies-registry-v2@2.0.0-rc.7
+  - @ebsiint-sc/did-registry-v3@3.0.0-rc.7
+  - @ebsiint-sc/bootstrap-v2@2.0.0-rc.7
+
 ## 3.0.0-rc.7
 
 ### Patch Changes

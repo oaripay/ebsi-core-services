@@ -330,7 +330,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 ========================================================================================
-- @ebsiint-api/shared@^1.1.0-rc.12
+- @ebsiint-api/shared@^1.1.0-rc.13
 ------------------------------
 This project is licensed under EUPL-1.2.
 
@@ -629,7 +629,7 @@ EUPL version.
 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
 
 ========================================================================================
-- @ebsiint-sc/trusted-schemas-registry-v2@^2.0.0-rc.6
+- @ebsiint-sc/trusted-schemas-registry-v2@^2.0.0-rc.7
 ------------------------------
 This project is licensed under EUPL-1.2.
 

@@ -1,5 +1,50 @@
 # Changelog
 
+## 5.0.0-rc.9
+
+### Minor Changes
+
+- [3bd5f1f5d7d1336d838a78294ca9da6512f7941a](https://code.europa.eu/ebsi/public/core-services/-/commit/3bd5f1f5d7d1336d838a78294ca9da6512f7941a): Add pagination to issuer proxies
+- [929b977be37acf8399320cc3beb98d496401ae7d](https://code.europa.eu/ebsi/public/core-services/-/commit/929b977be37acf8399320cc3beb98d496401ae7d): update issuer endpoint and paginate issuer attributes
+- [b1f23c77382d0956feefbe803ad6c14083fe014a](https://code.europa.eu/ebsi/public/core-services/-/commit/b1f23c77382d0956feefbe803ad6c14083fe014a): Add `removeIssuerProxy` method.
+
+### Patch Changes
+
+- [9994a75f152733fcccc78254a8d717f94a9d4442](https://code.europa.eu/ebsi/public/core-services/-/commit/9994a75f152733fcccc78254a8d717f94a9d4442): remove multiple calls in /issuers/attributes/:attrId and /issuers/attributes/:attrId/revisions
+- [6bfb72eedcf4aeeac28a36725a533134df9a9b19](https://code.europa.eu/ebsi/public/core-services/-/commit/6bfb72eedcf4aeeac28a36725a533134df9a9b19): Bump dependencies.
+- [27cdf71be479c2e2d2a751c5bdb007f1eea3e4d1](https://code.europa.eu/ebsi/public/core-services/-/commit/27cdf71be479c2e2d2a751c5bdb007f1eea3e4d1): Add missing `keyv` dependency.
+- [72222b705e92e9d1ce6a7c2667d07f5964a4019a](https://code.europa.eu/ebsi/public/core-services/-/commit/72222b705e92e9d1ce6a7c2667d07f5964a4019a): Update Nest to v11 and Fastify to v5.
+- [7b1eadfe5a50e28cd0c174f498dd1a5bbeb3aa5a](https://code.europa.eu/ebsi/public/core-services/-/commit/7b1eadfe5a50e28cd0c174f498dd1a5bbeb3aa5a): Update `jose` to v5.10.0.
+- [ae51c4a3c6be13389959d76a9560b3c1f281ddc3](https://code.europa.eu/ebsi/public/core-services/-/commit/ae51c4a3c6be13389959d76a9560b3c1f281ddc3): Bump VC and VP libraries.
+- [289b8fb6b8febea153f6dbd7272d003d3c9e46ce](https://code.europa.eu/ebsi/public/core-services/-/commit/289b8fb6b8febea153f6dbd7272d003d3c9e46ce): Bump dependencies.
+- [1fd0357ea251c7fb11805e4123a13d2e244a8136](https://code.europa.eu/ebsi/public/core-services/-/commit/1fd0357ea251c7fb11805e4123a13d2e244a8136): Get revisions at sc level to reduce number of calls
+- [2acaaf92d521df16cb556c2b127685a03babaff5](https://code.europa.eu/ebsi/public/core-services/-/commit/2acaaf92d521df16cb556c2b127685a03babaff5): Bump dependencies.
+- [185357e201f8a9fbdd08b04bcccebab84963842e](https://code.europa.eu/ebsi/public/core-services/-/commit/185357e201f8a9fbdd08b04bcccebab84963842e): Bump dependencies.
+- [4b5b820aae2ed764d2711c3b7a67ea4bc982a9e9](https://code.europa.eu/ebsi/public/core-services/-/commit/4b5b820aae2ed764d2711c3b7a67ea4bc982a9e9): Bump dependencies.
+- [ffe073c6f1cbe8a6ff268c3fa18b2cefdafece32](https://code.europa.eu/ebsi/public/core-services/-/commit/ffe073c6f1cbe8a6ff268c3fa18b2cefdafece32): Bump dependencies.
+- [f5b616da4980de7920326f400cebdcbb93a906c9](https://code.europa.eu/ebsi/public/core-services/-/commit/f5b616da4980de7920326f400cebdcbb93a906c9): Bump dependencies.
+- Updated dependencies [d134d4c3bf0b63ee3405b3176fbc685340eb9b4d](https://code.europa.eu/ebsi/public/core-services/-/commit/d134d4c3bf0b63ee3405b3176fbc685340eb9b4d)
+- Updated dependencies [3bd5f1f5d7d1336d838a78294ca9da6512f7941a](https://code.europa.eu/ebsi/public/core-services/-/commit/3bd5f1f5d7d1336d838a78294ca9da6512f7941a)
+- Updated dependencies [929b977be37acf8399320cc3beb98d496401ae7d](https://code.europa.eu/ebsi/public/core-services/-/commit/929b977be37acf8399320cc3beb98d496401ae7d)
+- Updated dependencies [6bfb72eedcf4aeeac28a36725a533134df9a9b19](https://code.europa.eu/ebsi/public/core-services/-/commit/6bfb72eedcf4aeeac28a36725a533134df9a9b19)
+- Updated dependencies [72222b705e92e9d1ce6a7c2667d07f5964a4019a](https://code.europa.eu/ebsi/public/core-services/-/commit/72222b705e92e9d1ce6a7c2667d07f5964a4019a)
+- Updated dependencies [7b1eadfe5a50e28cd0c174f498dd1a5bbeb3aa5a](https://code.europa.eu/ebsi/public/core-services/-/commit/7b1eadfe5a50e28cd0c174f498dd1a5bbeb3aa5a)
+- Updated dependencies [ae51c4a3c6be13389959d76a9560b3c1f281ddc3](https://code.europa.eu/ebsi/public/core-services/-/commit/ae51c4a3c6be13389959d76a9560b3c1f281ddc3)
+- Updated dependencies [27846206e0201d345947a38c860507aba2a5b4c1](https://code.europa.eu/ebsi/public/core-services/-/commit/27846206e0201d345947a38c860507aba2a5b4c1)
+- Updated dependencies [36f6a8fbf33bf56b3764a6c87b4518582a552472](https://code.europa.eu/ebsi/public/core-services/-/commit/36f6a8fbf33bf56b3764a6c87b4518582a552472)
+- Updated dependencies [49afd5879af3aad6dce580fa5ab587351d8c1e60](https://code.europa.eu/ebsi/public/core-services/-/commit/49afd5879af3aad6dce580fa5ab587351d8c1e60)
+- Updated dependencies [289b8fb6b8febea153f6dbd7272d003d3c9e46ce](https://code.europa.eu/ebsi/public/core-services/-/commit/289b8fb6b8febea153f6dbd7272d003d3c9e46ce)
+- Updated dependencies [1fd0357ea251c7fb11805e4123a13d2e244a8136](https://code.europa.eu/ebsi/public/core-services/-/commit/1fd0357ea251c7fb11805e4123a13d2e244a8136)
+- Updated dependencies [2acaaf92d521df16cb556c2b127685a03babaff5](https://code.europa.eu/ebsi/public/core-services/-/commit/2acaaf92d521df16cb556c2b127685a03babaff5)
+- Updated dependencies [185357e201f8a9fbdd08b04bcccebab84963842e](https://code.europa.eu/ebsi/public/core-services/-/commit/185357e201f8a9fbdd08b04bcccebab84963842e)
+- Updated dependencies [4b5b820aae2ed764d2711c3b7a67ea4bc982a9e9](https://code.europa.eu/ebsi/public/core-services/-/commit/4b5b820aae2ed764d2711c3b7a67ea4bc982a9e9)
+- Updated dependencies [b1f23c77382d0956feefbe803ad6c14083fe014a](https://code.europa.eu/ebsi/public/core-services/-/commit/b1f23c77382d0956feefbe803ad6c14083fe014a)
+- Updated dependencies [253c5cf552d99c6a7fb5ad23dc35e0cb74e3b528](https://code.europa.eu/ebsi/public/core-services/-/commit/253c5cf552d99c6a7fb5ad23dc35e0cb74e3b528)
+- Updated dependencies [ffe073c6f1cbe8a6ff268c3fa18b2cefdafece32](https://code.europa.eu/ebsi/public/core-services/-/commit/ffe073c6f1cbe8a6ff268c3fa18b2cefdafece32)
+- Updated dependencies [f5b616da4980de7920326f400cebdcbb93a906c9](https://code.europa.eu/ebsi/public/core-services/-/commit/f5b616da4980de7920326f400cebdcbb93a906c9)
+  - @ebsiint-sc/trusted-issuers-registry-v3@3.0.0-rc.8
+  - @ebsiint-api/shared@1.1.0-rc.13
+
 ## 5.0.0-rc.8
 
 ### Minor Changes
