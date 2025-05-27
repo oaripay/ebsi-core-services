@@ -142,7 +142,32 @@ contract TrackAndTrace is
         }
 
         documentsMapped.remove(documentHash);
+        bytes memory creatorBytes = bytes(documents[documentHash].creator);
+        uint256 index = accessBySubjectIndex[creatorBytes][documentHash];
+        delete accessBySubjectIndex[creatorBytes][documentHash];
+        accessBySubject[creatorBytes][index] = accessBySubject[creatorBytes][
+            accessBySubject[creatorBytes].length - 1
+        ];
+        accessBySubject[creatorBytes].pop();
         delete documents[documentHash];
+
+        emit DocumentRemoved(documentHash);
+    }
+
+    function migrationRemoveDocument(bytes32 documentHash) external {
+        // the document must be already removed
+        if (bytes(documents[documentHash].creator).length > 0) {
+            revert DocumentExists();
+        }
+        if (
+            trustedPoliciesRegistry.checkPolicy(
+                "TNT:migrationRemoveDocument",
+                msg.sender
+            ) == false
+        ) {
+            revert NotAuthorised();
+        }
+        emit DocumentRemoved(documentHash);
     }
 
     function grantAccess(
