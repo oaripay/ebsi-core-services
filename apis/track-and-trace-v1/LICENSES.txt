@@ -1196,7 +1196,7 @@ EUPL version.
 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
 
 ========================================================================================
-- @ebsiint-api/shared@^1.1.0-rc.12
+- @ebsiint-api/shared@^1.1.0-rc.13
 ------------------------------
 This project is licensed under EUPL-1.2.
 
@@ -1495,7 +1495,7 @@ EUPL version.
 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
 
 ========================================================================================
-- @ebsiint-sc/track-and-trace@1.0.0-rc.5
+- @ebsiint-sc/track-and-trace@1.0.0-rc.6
 ------------------------------
 This project is licensed under EUPL-1.2.
 

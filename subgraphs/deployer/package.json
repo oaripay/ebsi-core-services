@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "@ebsiint-subgraph/subgraphs-deployer",
-  "version": "0.0.0-rc.1",
+  "version": "0.0.0-rc.2",
   "type": "module",
   "license": "EUPL-1.2",
   "scripts": {
@@ -9,11 +9,11 @@
     "prepare": "exit 0"
   },
   "dependencies": {
-    "@ebsiint-subgraph/did-registry-v3": "^0.0.0-rc.0",
-    "@ebsiint-subgraph/timestamp-v2": "^0.0.0-rc.0",
-    "@ebsiint-subgraph/track-and-trace-v1": "^0.0.0-rc.0",
-    "@ebsiint-subgraph/trusted-issuers-registry-v3": "^0.0.0-rc.0",
-    "@ebsiint-subgraph/trusted-policies-registry-v2": "^0.0.0-rc.0",
-    "@ebsiint-subgraph/trusted-schemas-registry-v2": "^0.0.0-rc.0"
+    "@ebsiint-subgraph/did-registry-v3": "^0.0.0-rc.1",
+    "@ebsiint-subgraph/timestamp-v2": "^0.0.0-rc.1",
+    "@ebsiint-subgraph/track-and-trace-v1": "^0.0.0-rc.1",
+    "@ebsiint-subgraph/trusted-issuers-registry-v3": "^0.0.0-rc.1",
+    "@ebsiint-subgraph/trusted-policies-registry-v2": "^0.0.0-rc.1",
+    "@ebsiint-subgraph/trusted-schemas-registry-v2": "^0.0.0-rc.1"
   }
 }
