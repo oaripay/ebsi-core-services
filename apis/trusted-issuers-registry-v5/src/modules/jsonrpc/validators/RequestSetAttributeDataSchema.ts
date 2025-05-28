@@ -37,14 +37,7 @@ export const setAttributeDataSchema = (tir: Tir) =>
     )
     .superRefine(async ({ attributeId, did }, ctx) => {
       try {
-        const attr = await tir.getIssuerAttributeByHash(attributeId);
-
-        if (attr.did !== did) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: `Attribute ${attributeId} does not relate to ${did}`,
-          });
-        }
+        await tir.getLatestRevisionAttribute(did, attributeId);
       } catch {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,

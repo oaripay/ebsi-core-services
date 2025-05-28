@@ -17,7 +17,6 @@ import { ConfigService } from "@nestjs/config";
 import type { ApiConfig } from "../../config/configuration.ts";
 import type {
   AttributeDetailsObject,
-  AttributeObject,
   DidLink,
   IdLink,
   IssuerProxyResponseObject,
@@ -27,6 +26,7 @@ import type {
 
 import {
   GetIssuerAttributeParamsDto,
+  GetIssuerAttributeRevisionParamsDto,
   GetIssuerParamsDto,
   GetIssuerProxyParamsDto,
 } from "./dto/index.ts";
@@ -34,7 +34,6 @@ import {
   formatAttributes,
   formatIssuers,
   formatProxies,
-  formatRevisions,
 } from "./issuers.formatter.ts";
 import { IssuersService } from "./issuers.service.ts";
 
@@ -141,7 +140,6 @@ export class IssuersController {
   ): Promise<AttributeDetailsObject> {
     const { attributeId, did } = params;
 
-    await this.issuersService.assertIssuerExists(did);
     const attribute = await this.issuersService.getAttribute(did, attributeId);
 
     return {
@@ -156,18 +154,15 @@ export class IssuersController {
   async issuerAttributeIdRevisions(
     @Param() params: GetIssuerAttributeParamsDto,
     @Query() query: PaginationQuery,
-  ): Promise<PaginatedList<AttributeObject>> {
+  ): Promise<PaginatedList<IdLink>> {
     const { attributeId, did } = params;
 
-    await this.issuersService.assertIssuerExists(did);
-
-    const { revisions, total } =
-      await this.issuersService.getIssuerAttributeIdRevisions(
-        attributeId,
-        did,
-        query["page[after]"],
-        query["page[size]"],
-      );
+    const revisions = await this.issuersService.getIssuerAttributeIdRevisions(
+      attributeId,
+      did,
+      query["page[after]"],
+      query["page[size]"],
+    );
 
     const apiUrlPrefix = this.configService.get("apiUrlPrefix", {
       infer: true,
@@ -175,13 +170,32 @@ export class IssuersController {
     const domain = this.configService.get("domain", { infer: true });
     const baseUrl = `${domain}${apiUrlPrefix}/issuers/${did}/attributes/${attributeId}/revisions`;
 
-    return formatRevisions(
+    return formatAttributes(
       revisions,
-      total,
       query["page[after]"],
       query["page[size]"],
       baseUrl,
     );
+  }
+
+  @Accepts("application/json")
+  @Get("/:did/attributes/:attributeId/revisions/:revisionId")
+  @UsePipes(validationPipe)
+  async issuerAttributeIdRevision(
+    @Param() params: GetIssuerAttributeRevisionParamsDto,
+  ): Promise<AttributeDetailsObject> {
+    const { attributeId, did, revisionId } = params;
+
+    const attribute = await this.issuersService.getIssuerAttributeIdRevision(
+      did,
+      attributeId,
+      revisionId,
+    );
+
+    return {
+      attribute,
+      did,
+    };
   }
 
   @Accepts("application/json")
