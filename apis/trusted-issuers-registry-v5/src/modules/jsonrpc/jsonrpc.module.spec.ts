@@ -988,7 +988,6 @@ describe("JSON-RPC Module", () => {
         }[] = [];
 
         const issuer1 = issuers[0]!;
-        const issuer2 = issuers[1]!;
 
         switch (method) {
           case "addIssuerProxy": {
@@ -1275,28 +1274,16 @@ describe("JSON-RPC Module", () => {
             );
 
             const randomAttributeId = `0x${crypto.randomBytes(32).toString("hex")}`;
-            testSetup.push(
-              {
-                accessToken: tao1TirWriteAccessToken,
-                expectedErrorMessage: `Invalid 'params.0.attributeId': Attribute ${randomAttributeId} does not exist`,
-                params: {
-                  attributeData: `0x${crypto.randomBytes(12).toString("hex")}`,
-                  attributeId: randomAttributeId,
-                  did: issuer1.did,
-                  from: signer.address,
-                } as SetAttributeDataSchema,
-              },
-              {
-                accessToken: tao1TirWriteAccessToken,
-                expectedErrorMessage: `Invalid 'params.0': Attribute ${issuer1.attribute.id} does not relate to ${issuer2.did}`,
-                params: {
-                  attributeData: `0x${crypto.randomBytes(12).toString("hex")}`,
-                  attributeId: issuer1.attribute.id,
-                  did: issuer2.did,
-                  from: signer.address,
-                } as SetAttributeDataSchema,
-              },
-            );
+            testSetup.push({
+              accessToken: tao1TirWriteAccessToken,
+              expectedErrorMessage: `Invalid 'params.0.attributeId': Attribute ${randomAttributeId} does not exist`,
+              params: {
+                attributeData: `0x${crypto.randomBytes(12).toString("hex")}`,
+                attributeId: randomAttributeId,
+                did: issuer1.did,
+                from: signer.address,
+              } as SetAttributeDataSchema,
+            });
 
             break;
           }

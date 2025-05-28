@@ -696,6 +696,152 @@ describe("Issuers Module", () => {
     });
   });
 
+  describe("GET /issuers/{did}/attributes/{attributeId}/revisions/{revisionId}", () => {
+    it("should return the revision of a specific attribute", async () => {
+      expect.assertions(4);
+
+      const attributeId = remove0xPrefix(issuer.attribute.id);
+      const revisionId = remove0xPrefix(issuer.attribute.revisionId);
+
+      let url = `/issuers/${issuer.did}/attributes/${attributeId}/revisions/${attributeId}`;
+
+      let response = await request(server).get(url);
+
+      expect(response.body).toStrictEqual({
+        attribute: {
+          body: "", // empty body for the first revision
+          hash: attributeId,
+          issuerType: IssuerTypeNames[issuer.issuerType],
+          rootTao: rootTao.did,
+          tao: issuer.tao,
+        },
+        did: issuer.did,
+      });
+      expect(response.status).toBe(200);
+
+      url = `/issuers/${issuer.did}/attributes/${attributeId}/revisions/${revisionId}`;
+
+      response = await request(server).get(url);
+
+      expect(response.body).toStrictEqual({
+        attribute: {
+          body: issuer.attribute.utf8,
+          hash: revisionId,
+          issuerType: IssuerTypeNames[issuer.issuerType],
+          rootTao: rootTao.did,
+          tao: issuer.tao,
+        },
+        did: issuer.did,
+      });
+      expect(response.status).toBe(200);
+    });
+
+    it("should throw an error if the issuer DID is not correctly formatted", async () => {
+      expect.assertions(2);
+
+      const response = await request(server).get(
+        `/issuers/not-a-did/attributes/${issuer.attribute.id}/revisions/${issuer.attribute.revisionId}`,
+      );
+
+      expect(response.body).toStrictEqual({
+        detail: '["did must be a valid DID v1"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+    });
+
+    it("should throw an error if the issuer DID is not a valid EBSI DID", async () => {
+      expect.assertions(2);
+
+      const response = await request(server).get(
+        `/issuers/did:ebsi:z1234/attributes/${issuer.attribute.id}/revisions/${issuer.attribute.revisionId}`,
+      );
+
+      expect(response.body).toStrictEqual({
+        detail: '["did must be a valid DID v1"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+    });
+
+    it("should throw an error if the issuer is not found", async () => {
+      expect.assertions(2);
+
+      const response = await request(server).get(
+        `/issuers/${randomDid}/attributes/${issuer.attribute.id}/revisions/${issuer.attribute.revisionId}`,
+      );
+
+      expect(response.body).toStrictEqual({
+        detail: `Issuer ${randomDid} not found`,
+        status: 404,
+        title: "Issuer Not Found",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+    });
+
+    it("should throw an error when the attribute is not found", async () => {
+      expect.assertions(4);
+
+      // Consult a random attribute
+      const wrongAttributeId = `0x${randomBytes(32).toString("hex")}`;
+
+      const url = `/issuers/${issuer.did}/attributes/${wrongAttributeId}/revisions/${issuer.attribute.revisionId}`;
+
+      const response1 = await request(server).get(url);
+
+      expect(response1.body).toStrictEqual({
+        detail: expect.stringContaining(
+          `Attribute ${wrongAttributeId} not found`,
+        ),
+        status: 404,
+        title: "Attribute Not Found",
+        type: "about:blank",
+      });
+      expect(response1.status).toBe(404);
+
+      // Consult an attribute from a different did
+      const dataHash2 = testEnv.issuers[1]!.attribute.id;
+
+      const response2 = await request(server).get(
+        `/issuers/${issuer.did}/attributes/${dataHash2}`,
+      );
+
+      expect(response2.body).toStrictEqual({
+        detail: `Attribute ${dataHash2} not found`,
+        status: 404,
+        title: "Attribute Not Found",
+        type: "about:blank",
+      });
+      expect(response2.status).toBe(404);
+    });
+
+    it("should throw an error when the revision is not found", async () => {
+      expect.assertions(2);
+
+      // Consult a random revision
+      const wrongRevisionId = `0x${randomBytes(32).toString("hex")}`;
+
+      const url = `/issuers/${issuer.did}/attributes/${issuer.attribute.id}/revisions/${wrongRevisionId}`;
+
+      const response1 = await request(server).get(url);
+
+      expect(response1.body).toStrictEqual({
+        detail: expect.stringContaining(
+          `Revision ${wrongRevisionId} not found`,
+        ),
+        status: 404,
+        title: "Revision Not Found",
+        type: "about:blank",
+      });
+      expect(response1.status).toBe(404);
+    });
+  });
+
   describe("GET /issuers/{did}/proxies", () => {
     it("should return the proxies of a specific issuer", async () => {
       expect.assertions(2);

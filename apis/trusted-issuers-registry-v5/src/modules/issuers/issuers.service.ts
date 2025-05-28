@@ -65,67 +65,44 @@ export class IssuersService {
     this.contract = Tir__factory.connect(contractAddress);
   }
 
-  async assertIssuerExists(did: string): Promise<void> {
-    await this.getAttributes(did, 1, 1);
-  }
-
-  async getAttribute(
-    did: string,
-    attributeId: string,
-  ): Promise<AttributeObject> {
+  async getAttribute(did: string, attrId: string): Promise<AttributeObject> {
     const provider = this.ledgerService.getProvider();
 
-    const hash = prefixWith0x(attributeId);
-    let lastRevision: string;
+    const hash = prefixWith0x(attrId);
+    let attribute: Awaited<ReturnType<Tir["getLatestRevisionAttribute"]>>;
+
     try {
-      lastRevision = await this.contract
+      attribute = await this.contract
         // @ts-expect-error Error due to CommonJS vs ESM modules imports
         .connect(provider)
-        .getLatestRevisionAttributeId(did, hash);
+        .getLatestRevisionAttribute(did, hash);
     } catch (error) {
       if (isEthersError(error)) {
         this.logger.error(error, error.stack);
       }
-      throw new NotFoundError("Attribute Not Found", {
-        detail: `Attribute ${hash} not found`,
-      });
-    }
 
-    return this.getAttributeRevision(lastRevision);
-  }
+      const contractError = getContractError(error);
 
-  async getAttributeRevision(
-    revisionId: string,
-    expectedDid?: string,
-  ): Promise<AttributeObject> {
-    const provider = this.ledgerService.getProvider();
-
-    // This function assumes that the revisionId exists
-    const hash = prefixWith0x(revisionId);
-
-    let attributeByHash: Awaited<ReturnType<Tir["getIssuerAttributeByHash"]>>;
-
-    try {
-      attributeByHash = await this.contract
-        // @ts-expect-error Error due to CommonJS vs ESM modules imports
-        .connect(provider)
-        .getIssuerAttributeByHash(hash);
-    } catch (error) {
-      if (isEthersError(error)) {
-        this.logger.error(error, error.stack);
+      switch (contractError) {
+        case "issuer does not exist": {
+          throw new NotFoundError("Issuer Not Found", {
+            detail: `Issuer ${did} not found`,
+          });
+        }
+        case "attribute has not been found": {
+          throw new NotFoundError("Attribute Not Found", {
+            detail: `Attribute ${hash} not found`,
+          });
+        }
+        default: {
+          throw new NotFoundError("Not Found", {
+            detail: contractError,
+          });
+        }
       }
-      throw new NotFoundError("Revision Not Found", {
-        detail: `Revision ${hash} not found`,
-      });
     }
 
-    if (expectedDid && expectedDid !== attributeByHash.did) {
-      throw new NotFoundError("Attribute Not Found", {
-        detail: `Attribute ${hash} not found`,
-      });
-    }
-
-    const { attribData, issuerType, rootTao, tao } = attributeByHash;
+    const { attribData, attributeId, issuerType, rootTao, tao } = attribute;
     const attributeData = Buffer.from(
       remove0xPrefix(attribData),
       "hex",
@@ -133,7 +110,7 @@ export class IssuersService {
 
     return {
       body: attributeData,
-      hash: hash.slice(2),
+      hash: remove0xPrefix(attributeId),
       issuerType: IssuerTypeNames[Number(issuerType)]!,
       rootTao,
       tao,
@@ -186,41 +163,84 @@ export class IssuersService {
     }
   }
 
+  async getIssuerAttributeIdRevision(
+    did: string,
+    attrId: string,
+    revisionId: string,
+  ): Promise<AttributeObject> {
+    const provider = this.ledgerService.getProvider();
+
+    const attrId0x = prefixWith0x(attrId);
+    const revisionId0x = prefixWith0x(revisionId);
+    let attribute: Awaited<ReturnType<Tir["getRevisionAttribute"]>>;
+
+    try {
+      attribute = await this.contract
+        // @ts-expect-error Error due to CommonJS vs ESM modules imports
+        .connect(provider)
+        .getRevisionAttribute(did, attrId0x, revisionId0x);
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error, error.stack);
+      }
+
+      const contractError = getContractError(error);
+
+      switch (contractError) {
+        case "issuer does not exist": {
+          throw new NotFoundError("Issuer Not Found", {
+            detail: `Issuer ${did} not found`,
+          });
+        }
+        case "attribute has not been found": {
+          throw new NotFoundError("Attribute Not Found", {
+            detail: `Attribute ${attrId0x} not found`,
+          });
+        }
+        case "revision has not been found": {
+          throw new NotFoundError("Revision Not Found", {
+            detail: `Revision ${revisionId0x} not found`,
+          });
+        }
+        default: {
+          throw new NotFoundError("Not Found", {
+            detail: contractError,
+          });
+        }
+      }
+    }
+
+    const { attribData, attributeId, issuerType, rootTao, tao } = attribute;
+    const attributeData = Buffer.from(
+      remove0xPrefix(attribData),
+      "hex",
+    ).toString();
+
+    return {
+      body: attributeData,
+      hash: remove0xPrefix(attributeId),
+      issuerType: IssuerTypeNames[Number(issuerType)]!,
+      rootTao,
+      tao,
+    };
+  }
+
   async getIssuerAttributeIdRevisions(
     attributeId: string,
     did: string,
     page: number,
     pageSize: number,
-  ): Promise<{ revisions: AttributeObject[]; total: number }> {
+  ): ReturnType<Tir["getIssuerAttributeRevisions"]> {
     const provider = this.ledgerService.getProvider();
 
     // This function assumes that the attributeId exists
     const hash = prefixWith0x(attributeId);
 
     try {
-      const revisionHashes = await this.contract
+      return await this.contract
         // @ts-expect-error Error due to CommonJS vs ESM modules imports
         .connect(provider)
         .getIssuerAttributeRevisions(did, hash, page, pageSize);
-
-      const revisions = revisionHashes.items.map((attr) => {
-        const { attribData, attributeId, issuerType, rootTao, tao } = attr;
-        const attributeData = Buffer.from(
-          remove0xPrefix(attribData),
-          "hex",
-        ).toString();
-        return {
-          body: attributeData,
-          hash: attributeId.slice(2),
-          issuerType: IssuerTypeNames[Number(issuerType)]!,
-          rootTao,
-          tao,
-        };
-      });
-
-      const total = Number(revisionHashes.total);
-
-      return { revisions, total };
     } catch (error) {
       if (isEthersError(error)) {
         this.logger.error(error, error.stack);
@@ -251,9 +271,6 @@ export class IssuersService {
   async getIssuerProxies(did: string, page: number, pageSize: number) {
     const provider = this.ledgerService.getProvider();
 
-    // Make sure the issuer exists
-    await this.assertIssuerExists(did);
-
     let proxies: Awaited<ReturnType<Tir["getIssuerProxies"]>>;
 
     try {
@@ -276,30 +293,36 @@ export class IssuersService {
   async getIssuerProxy(did: string, proxyId: string) {
     const provider = this.ledgerService.getProvider();
 
-    // Make sure the issuer exists
-    await this.assertIssuerExists(did);
-
-    let proxy: string;
+    let proxy: Awaited<ReturnType<Tir["getIssuerProxyById"]>>;
     try {
       proxy = await this.contract
         // @ts-expect-error Error due to CommonJS vs ESM modules imports
         .connect(provider)
         .getIssuerProxyById(did, proxyId);
     } catch (error) {
-      if (error instanceof Error) {
+      if (isEthersError(error)) {
         this.logger.error(error, error.stack);
-      } else {
-        this.logger.error(error);
       }
 
-      throw new InternalServerError();
-    }
+      const contractError = getContractError(error);
 
-    // Throw an error if the proxy is empty (i.e. not found)
-    if (!proxy) {
-      throw new NotFoundError("Proxy Not Found", {
-        detail: `Proxy ${proxyId} of issuer ${did} can't be found`,
-      });
+      switch (contractError) {
+        case "issuer does not exist": {
+          throw new NotFoundError("Issuer Not Found", {
+            detail: `Issuer ${did} not found`,
+          });
+        }
+        case "proxy not found": {
+          throw new NotFoundError("Proxy Not Found", {
+            detail: `Proxy ${proxyId} of issuer ${did} can't be found`,
+          });
+        }
+        default: {
+          throw new NotFoundError("Not Found", {
+            detail: contractError,
+          });
+        }
+      }
     }
 
     // Parse proxy string -> JSON Object
@@ -334,9 +357,6 @@ export class IssuersService {
   }
 
   async proxyRequest(did: string, proxyId: string, url: string) {
-    // Make sure the issuer exists
-    await this.assertIssuerExists(did);
-
     const proxy = await this.getIssuerProxy(did, proxyId);
 
     // Extract subpath from request URL

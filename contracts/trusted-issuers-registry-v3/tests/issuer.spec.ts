@@ -185,9 +185,13 @@ describe("Issuers", () => {
     let issuerHashes = (await tir.getIssuerAttributes(rootTAO1.did, 1, 50))
       .items;
     expect(issuerHashes).to.eql([rootTAO1.attributeId]);
-    let issuerAttr = await tir.getIssuerAttributeByHash(issuerHashes[0]);
+    let issuerAttr = await tir.getLatestRevisionAttribute(
+      rootTAO1.did,
+      issuerHashes[0],
+    );
     expect(decodeResult(issuerAttr)).to.deep.equal({
       attribData: "0x",
+      attributeId: rootTAO1.attributeId,
       did: rootTAO1.did,
       issuerType: IssuerType.RootTAO.toString(),
       rootTao: rootTAO1.did,
@@ -229,13 +233,42 @@ describe("Issuers", () => {
     // get RootTAO attribute
     issuerHashes = (await tir.getIssuerAttributes(rootTAO1.did, 1, 50)).items;
     expect(issuerHashes).to.eql([rootTAO1.attributeId]);
-    const lastRevision = await tir.getLatestRevisionAttributeId(
+    issuerAttr = await tir.getLatestRevisionAttribute(
       rootTAO1.did,
       rootTAO1.attributeId,
     );
-    issuerAttr = await tir.getIssuerAttributeByHash(lastRevision);
     expect(decodeResult(issuerAttr)).to.deep.equal({
       attribData: rootTAO1.attribute,
+      attributeId: rootTAO1.revisionId,
+      did: rootTAO1.did,
+      issuerType: IssuerType.RootTAO.toString(),
+      rootTao: rootTAO1.did,
+      tao: rootTAO1.did,
+    });
+
+    // get RootTAO attribute using revision ID
+    issuerAttr = await tir.getRevisionAttribute(
+      rootTAO1.did,
+      rootTAO1.attributeId,
+      rootTAO1.attributeId,
+    );
+    expect(decodeResult(issuerAttr)).to.deep.equal({
+      attribData: "0x",
+      attributeId: rootTAO1.attributeId,
+      did: rootTAO1.did,
+      issuerType: IssuerType.RootTAO.toString(),
+      rootTao: rootTAO1.did,
+      tao: rootTAO1.did,
+    });
+
+    issuerAttr = await tir.getRevisionAttribute(
+      rootTAO1.did,
+      rootTAO1.attributeId,
+      rootTAO1.revisionId,
+    );
+    expect(decodeResult(issuerAttr)).to.deep.equal({
+      attribData: rootTAO1.attribute,
+      attributeId: rootTAO1.revisionId,
       did: rootTAO1.did,
       issuerType: IssuerType.RootTAO.toString(),
       rootTao: rootTAO1.did,
@@ -280,13 +313,13 @@ describe("Issuers", () => {
     // get TAO attribute
     const issuerHashes = (await tir.getIssuerAttributes(tao1.did, 1, 50)).items;
     expect(issuerHashes).to.eql([tao1.attributeId]);
-    const lastRevision = await tir.getLatestRevisionAttributeId(
+    const issuerAttr = await tir.getLatestRevisionAttribute(
       tao1.did,
       tao1.attributeId,
     );
-    const issuerAttr = await tir.getIssuerAttributeByHash(lastRevision);
     expect(decodeResult(issuerAttr)).to.deep.equal({
       attribData: tao1.attribute,
+      attributeId: tao1.revisionId,
       did: tao1.did,
       issuerType: IssuerType.TAO.toString(),
       rootTao: rootTAO1.did,
@@ -331,13 +364,13 @@ describe("Issuers", () => {
     // get TAO attribute
     const issuerHashes = (await tir.getIssuerAttributes(tao2.did, 1, 50)).items;
     expect(issuerHashes).to.eql([tao2.attributeId]);
-    const lastRevision = await tir.getLatestRevisionAttributeId(
+    const issuerAttr = await tir.getLatestRevisionAttribute(
       tao2.did,
       tao2.attributeId,
     );
-    const issuerAttr = await tir.getIssuerAttributeByHash(lastRevision);
     expect(decodeResult(issuerAttr)).to.deep.equal({
       attribData: tao2.attribute,
+      attributeId: tao2.revisionId,
       did: tao2.did,
       issuerType: IssuerType.TAO.toString(),
       rootTao: rootTAO1.did,
@@ -382,13 +415,13 @@ describe("Issuers", () => {
     // get TI attribute
     const issuerHashes = (await tir.getIssuerAttributes(ti1.did, 1, 50)).items;
     expect(issuerHashes).to.eql([ti1.attributeId1]);
-    const lastRevision = await tir.getLatestRevisionAttributeId(
+    const issuerAttr = await tir.getLatestRevisionAttribute(
       ti1.did,
       ti1.attributeId1,
     );
-    const issuerAttr = await tir.getIssuerAttributeByHash(lastRevision);
     expect(decodeResult(issuerAttr)).to.deep.equal({
       attribData: ti1.attribute1,
+      attributeId: ti1.revisionId1,
       did: ti1.did,
       issuerType: IssuerType.TI.toString(),
       rootTao: rootTAO1.did,
@@ -427,6 +460,39 @@ describe("Issuers", () => {
       await registerTI();
     });
 
+    it("should reject an invalid attributeId or revisionId", async () => {
+      await registerRootTAO1();
+      await registerTAO1();
+
+      await expect(
+        tir.getRevisionAttribute(rootTAO1.did, randomHash(), randomHash()),
+      ).to.be.revertedWith("attribute has not been found");
+
+      await expect(
+        tir.getRevisionAttribute(
+          rootTAO1.did,
+          rootTAO1.attributeId,
+          randomHash(),
+        ),
+      ).to.be.revertedWith("revision has not been found");
+
+      await expect(
+        tir.getRevisionAttribute(
+          rootTAO1.did,
+          randomHash(),
+          rootTAO1.revisionId,
+        ),
+      ).to.be.revertedWith("attribute has not been found");
+
+      await expect(
+        tir.getRevisionAttribute(
+          rootTAO1.did,
+          tao1.attributeId,
+          rootTAO1.revisionId,
+        ),
+      ).to.be.revertedWith("attribute has not been found");
+    });
+
     it("should revoke an issuer", async () => {
       await registerRootTAO1();
       await registerTAO1();
@@ -445,13 +511,13 @@ describe("Issuers", () => {
       // get TAO attribute
       const issuerHashes = (await tir.getIssuerAttributes(tao1.did, 1, 50))
         .items;
-      const lastRevision = await tir.getLatestRevisionAttributeId(
+      const issuerAttr = await tir.getLatestRevisionAttribute(
         tao1.did,
         issuerHashes[0],
       );
-      const issuerAttr = await tir.getIssuerAttributeByHash(lastRevision);
       expect(decodeResult(issuerAttr)).to.deep.equal({
         attribData: "0x",
+        attributeId: issuerAttr.attributeId,
         did: tao1.did,
         issuerType: IssuerType.Revoked.toString(),
         rootTao: rootTAO1.did,
@@ -634,13 +700,13 @@ describe("Issuers", () => {
       expect(issuerHashes).to.have.length(1);
 
       // get the second attribute
-      const lastRevision = await tir.getLatestRevisionAttributeId(
+      const issuerAttr = await tir.getLatestRevisionAttribute(
         rootTAO1.did,
         issuerHashes[0],
       );
-      const issuerAttr = await tir.getIssuerAttributeByHash(lastRevision);
       expect(decodeResult(issuerAttr)).to.deep.equal({
         attribData: attr,
+        attributeId: ethers.sha256(attr),
         did: rootTAO1.did,
         issuerType: IssuerType.Revoked.toString(),
         rootTao: rootTAO1.did,
@@ -679,42 +745,14 @@ describe("Issuers", () => {
       expect(decodeResult(revisions)).to.deep.equal({
         howMany: BigInt(4),
         items: [
-          {
-            // Preregistration - no content (setAttributeMetadata)
-            attribData: "0x",
-            attributeId: rootTAO1.attributeId,
-            did: rootTAO1.did,
-            issuerType: IssuerType.RootTAO.toString(),
-            rootTao: rootTAO1.did,
-            tao: rootTAO1.did,
-          },
-          {
-            // Registration of the credential (setAttributeData)
-            attribData: rootTAO1.attribute,
-            attributeId: revisions.items[1].attributeId,
-            did: rootTAO1.did,
-            issuerType: IssuerType.RootTAO.toString(),
-            rootTao: rootTAO1.did,
-            tao: rootTAO1.did,
-          },
-          {
-            // Credential Revoked without content (setAttributeMetadata)
-            attribData: "0x",
-            attributeId: rootTAO1.attributeId,
-            did: rootTAO1.did,
-            issuerType: IssuerType.Revoked.toString(),
-            rootTao: rootTAO1.did,
-            tao: rootTAO1.did,
-          },
-          {
-            // Credential Revoked with content (setAttributeData)
-            attribData: attrRevoked,
-            attributeId: revisions.items[3].attributeId,
-            did: rootTAO1.did,
-            issuerType: IssuerType.Revoked.toString(),
-            rootTao: rootTAO1.did,
-            tao: rootTAO1.did,
-          },
+          // Preregistration - no content (setAttributeMetadata)
+          rootTAO1.attributeId,
+          // Registration of the credential (setAttributeData)
+          rootTAO1.revisionId,
+          // Credential Revoked without content (setAttributeMetadata)
+          revisions.items[2],
+          // Credential Revoked with content (setAttributeData)
+          ethers.sha256(attrRevoked),
         ],
         next: 1n,
         prev: 1n,
@@ -743,13 +781,13 @@ describe("Issuers", () => {
       expect(issuerHashes).to.have.length(1);
 
       // get the second attribute
-      const lastRevision = await tir.getLatestRevisionAttributeId(
+      const issuerAttr = await tir.getLatestRevisionAttribute(
         rootTAO1.did,
         issuerHashes[0],
       );
-      const issuerAttr = await tir.getIssuerAttributeByHash(lastRevision);
       expect(decodeResult(issuerAttr)).to.deep.equal({
         attribData: "0x",
+        attributeId: issuerAttr.attributeId,
         did: rootTAO1.did,
         issuerType: IssuerType.Revoked.toString(),
         rootTao: rootTAO1.did,
@@ -780,7 +818,7 @@ describe("Issuers", () => {
       // create rootTAO
       await expect(
         tir.setAttributeData(rootTAO1.did, tao1.attributeId, tao1.attribute),
-      ).to.be.revertedWith("attributeId is not link to DID");
+      ).to.be.revertedWith("attribute has not been found");
     });
 
     it("should reject invalid inputs for setAttributeMetadata", async () => {
@@ -801,8 +839,11 @@ describe("Issuers", () => {
     it("should reject the get of an unknown attribute", async () => {
       await registerRootTAO1();
       await expect(
-        tir.getIssuerAttributeByHash(randomHash()),
+        tir.getLatestRevisionAttribute(rootTAO1.did, randomHash()),
       ).to.be.revertedWith("attribute has not been found");
+      await expect(
+        tir.getLatestRevisionAttribute("other-did", randomHash()),
+      ).to.be.revertedWith("issuer does not exist");
       await expect(
         tir.getIssuerAttributeRevisions(rootTAO1.did, randomHash(), 1, 10),
       ).to.be.revertedWith("attribute has not been found");

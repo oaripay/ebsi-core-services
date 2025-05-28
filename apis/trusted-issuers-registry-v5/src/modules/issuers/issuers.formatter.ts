@@ -3,12 +3,7 @@ import type { Tir } from "@ebsiint-sc/trusted-issuers-registry-v3";
 
 import { paginate, remove0xPrefix } from "@ebsiint-api/shared";
 
-import type {
-  AttributeObject,
-  DidLink,
-  IdLink,
-  ProxyLink,
-} from "./issuers.interface.ts";
+import type { DidLink, IdLink, ProxyLink } from "./issuers.interface.ts";
 
 export function formatAttributes(
   attributes: Awaited<ReturnType<Tir["getIssuerAttributes"]>>,
@@ -61,14 +56,4 @@ export function formatProxies(
   }));
 
   return paginate<ProxyLink>(items, baseUrl, total, page, pageSize);
-}
-
-export function formatRevisions(
-  revisions: AttributeObject[],
-  total: number,
-  page: number,
-  pageSize: number,
-  baseUrl: string,
-): PaginatedList<AttributeObject> {
-  return paginate<AttributeObject>(revisions, baseUrl, total, page, pageSize);
 }
