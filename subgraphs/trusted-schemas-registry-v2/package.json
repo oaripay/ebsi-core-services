@@ -7,7 +7,7 @@
   "scripts": {
     "deploy": "node ./scripts/prepare.mjs && node ./scripts/deploy.mjs",
     "lint": "eslint .",
-    "prepare": "cross-env NODE_ENV=test TSR_SC_V2_ADDRESS=0x3B3B6Faa80f88aD7Da4ff1451aE716Bf6f741700 TSR_SC_V2_START_BLOCK=8290972 node ./scripts/prepare.mjs && yarn graph codegen",
+    "prepare": "cross-env NODE_ENV=test TSR_SC_V2_ADDRESS=0xbbD0CAC0DCbFeeD6162690E428A8968F77513c09 TSR_SC_V2_START_BLOCK=14933400 node ./scripts/prepare.mjs && yarn graph codegen",
     "test": "yarn graph test -d",
     "test:unit": "yarn graph test -d"
   },

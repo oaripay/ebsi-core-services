@@ -5,11 +5,27 @@ pragma solidity 0.8.12;
 import "./SchemaStorage.sol";
 
 library SchemaLib {
-    event SchemaInserted(bytes indexed schemaId, bytes schema, bytes metadata);
+    event SchemaInserted(
+        bytes indexed schemaId,
+        bytes schema,
+        bytes32 schemaRevisionId,
+        bytes metadata,
+        bytes32 metadataId
+    );
 
-    event SchemaUpdated(bytes indexed schemaId, bytes schema, bytes metadata);
+    event SchemaUpdated(
+        bytes indexed schemaId,
+        bytes schema,
+        bytes32 schemaRevisionId,
+        bytes metadata,
+        bytes32 metadataId
+    );
 
-    event MetadataUpdated(bytes32 indexed schemaRevisionId, bytes metadata);
+    event MetadataUpdated(
+        bytes32 indexed schemaRevisionId,
+        bytes metadata,
+        bytes32 metadataId
+    );
 
     /**
      * @dev insertSchema enables to register new schema.
@@ -43,8 +59,8 @@ library SchemaLib {
         ss.schemaIds.push(schemaId);
         // add revision id to the list of schema
         ss.schemaIdToRevisionIds[schemaId].push(schemaRevisionId);
+        bytes32 metadataId = sha256(metadata);
         {
-            bytes32 metadataId = sha256(metadata);
             // add metadataId to the current revisionId
             ss.revisionIdToMetadataIds[schemaRevisionId].push(metadataId);
             // save metadata of revision
@@ -56,7 +72,13 @@ library SchemaLib {
         // save schema revision (bytes)
         ss.schemaRevisionStore[schemaRevisionId] = schema;
 
-        emit SchemaInserted(schemaId, schema, metadata);
+        emit SchemaInserted(
+            schemaId,
+            schema,
+            schemaRevisionId,
+            metadata,
+            metadataId
+        );
     }
 
     /**
@@ -86,7 +108,7 @@ library SchemaLib {
         bytes32 schemaRevisionId
     ) external view returns (bytes memory metadata) {
         require(schemaRevisionId != bytes32(0), "SchemaRevisionId empty");
-        bytes32[] memory metadataIds = ss.revisionIdToMetadataIds[
+        bytes32[] storage metadataIds = ss.revisionIdToMetadataIds[
             schemaRevisionId
         ];
         require(metadataIds.length > 0, "No metadata");
@@ -140,7 +162,13 @@ library SchemaLib {
         // Append a new entry in the Schema Revision ID to Metadata IDs store.
         ss.revisionIdToMetadataIds[schemaRevisionId].push(metadataId);
 
-        emit SchemaUpdated(schemaId, schema, metadata);
+        emit SchemaUpdated(
+            schemaId,
+            schema,
+            schemaRevisionId,
+            metadata,
+            metadataId
+        );
     }
 
     /**
@@ -173,7 +201,7 @@ library SchemaLib {
         // Append a new entry in the Schema Revision ID to Metadata IDs store.
         ss.revisionIdToMetadataIds[schemaRevisionId].push(metadataId);
 
-        emit MetadataUpdated(schemaRevisionId, metadata);
+        emit MetadataUpdated(schemaRevisionId, metadata, metadataId);
     }
 
     /**

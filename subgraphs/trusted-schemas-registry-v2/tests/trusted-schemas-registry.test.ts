@@ -5,59 +5,52 @@ import {
   beforeAll,
   clearStore,
   describe,
-  newMockCall,
+  newMockEvent,
   test,
 } from "matchstick-as/assembly/index";
 
 import { Revision, Schema } from "../generated/schema";
 import {
-  InsertSchemaCall,
-  UpdateMetadataCall,
-  UpdateSchemaCall,
+  MetadataUpdated,
+  SchemaInserted,
+  SchemaUpdated,
 } from "../generated/TrustedSchemasRegistry/TrustedSchemasRegistry";
 import {
-  handleInsertSchemaCall,
-  handleUpdateMetadataCall,
-  handleUpdateSchemaCall,
+  handleMetadataUpdatedEvent,
+  handleSchemaInsertedEvent,
+  handleSchemaUpdatedEvent,
 } from "../src/mappings";
 import { assertArrayContainsAllValues } from "./utils";
+
+function paramBytes(name: string, value: Bytes): ethereum.EventParam {
+  return new ethereum.EventParam(name, ethereum.Value.fromBytes(value));
+}
 
 describe("Trusted Schemas Registry - entity assertions", () => {
   const schemaId = "0xfa01";
   const revision1Id = "0xba32";
   const schema1 = `{"$schema":"https://json-schema.org/d...`;
   const metadata1 = "{}";
+  const metadata1Id = "0x12ef";
   const revision2Id = "0xefa0";
   const schema2 = `{"$schema":"https://json-schema.org/draft...`;
   const metadata2 = "{...}";
+  const metadata2Id = "0x5ca1";
   const metadata3 = "{......}";
+  const metadata3Id = "0x3d08";
 
   beforeAll(() => {
-    const call = changetype<InsertSchemaCall>(newMockCall());
+    const event = changetype<SchemaInserted>(newMockEvent());
 
-    call.inputValues = [
-      new ethereum.EventParam(
-        "schemaId",
-        ethereum.Value.fromBytes(Bytes.fromHexString(schemaId)),
-      ),
-      new ethereum.EventParam(
-        "schema",
-        ethereum.Value.fromBytes(Bytes.fromUTF8(schema1)),
-      ),
-      new ethereum.EventParam(
-        "metadata",
-        ethereum.Value.fromBytes(Bytes.fromUTF8(metadata1)),
-      ),
+    event.parameters = [
+      paramBytes("schemaId", Bytes.fromHexString(schemaId)),
+      paramBytes("schema", Bytes.fromUTF8(schema1)),
+      paramBytes("schemaRevisionId", Bytes.fromHexString(revision1Id)),
+      paramBytes("metadata", Bytes.fromUTF8(metadata1)),
+      paramBytes("metadataId", Bytes.fromHexString(metadata1Id)),
     ];
 
-    call.outputValues = [
-      new ethereum.EventParam(
-        "schemaRevisionId",
-        ethereum.Value.fromBytes(Bytes.fromHexString(revision1Id)),
-      ),
-    ];
-
-    handleInsertSchemaCall(call);
+    handleSchemaInsertedEvent(event);
   });
 
   afterAll(() => {
@@ -88,31 +81,17 @@ describe("Trusted Schemas Registry - entity assertions", () => {
   });
 
   test("Update schema", () => {
-    const call = changetype<UpdateSchemaCall>(newMockCall());
+    const event = changetype<SchemaUpdated>(newMockEvent());
 
-    call.inputValues = [
-      new ethereum.EventParam(
-        "schemaId",
-        ethereum.Value.fromBytes(Bytes.fromHexString(schemaId)),
-      ),
-      new ethereum.EventParam(
-        "schema",
-        ethereum.Value.fromBytes(Bytes.fromUTF8(schema2)),
-      ),
-      new ethereum.EventParam(
-        "metadata",
-        ethereum.Value.fromBytes(Bytes.fromUTF8(metadata2)),
-      ),
+    event.parameters = [
+      paramBytes("schemaId", Bytes.fromHexString(schemaId)),
+      paramBytes("schema", Bytes.fromUTF8(schema2)),
+      paramBytes("schemaRevisionId", Bytes.fromHexString(revision2Id)),
+      paramBytes("metadata", Bytes.fromUTF8(metadata2)),
+      paramBytes("metadataId", Bytes.fromHexString(metadata2Id)),
     ];
 
-    call.outputValues = [
-      new ethereum.EventParam(
-        "schemaRevisionId",
-        ethereum.Value.fromBytes(Bytes.fromHexString(revision2Id)),
-      ),
-    ];
-
-    handleUpdateSchemaCall(call);
+    handleSchemaUpdatedEvent(event);
 
     assert.entityCount("Schema", 1);
     assert.entityCount("Revision", 2);
@@ -164,20 +143,15 @@ describe("Trusted Schemas Registry - entity assertions", () => {
   });
 
   test("Update metadata", () => {
-    const call = changetype<UpdateMetadataCall>(newMockCall());
+    const event = changetype<MetadataUpdated>(newMockEvent());
 
-    call.inputValues = [
-      new ethereum.EventParam(
-        "schemaRevisionId",
-        ethereum.Value.fromBytes(Bytes.fromHexString(revision2Id)),
-      ),
-      new ethereum.EventParam(
-        "metadata",
-        ethereum.Value.fromBytes(Bytes.fromUTF8(metadata3)),
-      ),
+    event.parameters = [
+      paramBytes("schemaRevisionId", Bytes.fromHexString(revision2Id)),
+      paramBytes("metadata", Bytes.fromUTF8(metadata3)),
+      paramBytes("metadataId", Bytes.fromHexString(metadata3Id)),
     ];
 
-    handleUpdateMetadataCall(call);
+    handleMetadataUpdatedEvent(event);
 
     const schema = Schema.load(Bytes.fromHexString(schemaId));
 
