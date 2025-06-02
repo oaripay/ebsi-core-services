@@ -12,11 +12,27 @@ abstract contract SchemaDetailed is SchemaStorage {
     using SchemaLib for Schemas;
     using Pagination for uint256;
 
-    event SchemaInserted(bytes indexed schemaId, bytes schema, bytes metadata);
+    event SchemaInserted(
+        bytes indexed schemaId,
+        bytes schema,
+        bytes32 schemaRevisionId,
+        bytes metadata,
+        bytes32 metadataId
+    );
 
-    event SchemaUpdated(bytes indexed schemaId, bytes schema, bytes metadata);
+    event SchemaUpdated(
+        bytes indexed schemaId,
+        bytes schema,
+        bytes32 schemaRevisionId,
+        bytes metadata,
+        bytes32 metadataId
+    );
 
-    event MetadataUpdated(bytes32 indexed schemaRevisionId, bytes metadata);
+    event MetadataUpdated(
+        bytes32 indexed schemaRevisionId,
+        bytes metadata,
+        bytes32 metadataId
+    );
 
     /**
      * @dev insertSchema enables to register new schema.

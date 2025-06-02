@@ -133,7 +133,9 @@ describe("Schema", () => {
       .withArgs(
         ethers.hexlify(schemaId),
         ethers.hexlify(schemaRevision),
+        ethers.sha256(schemaRevision),
         ethers.hexlify(metadata),
+        ethers.sha256(metadata),
       );
     const insertedSchema = await ts.getSchemaRevision(
       schemaId,
@@ -397,8 +399,15 @@ describe("Schema", () => {
     const metadata2 = ethers.toUtf8Bytes("metadata2");
     const schemaId = ethers.toUtf8Bytes("schemaId");
     const schemaRevision = ethers.toUtf8Bytes("schema");
+    const schemaRevisionId = ethers.sha256(schemaRevision);
     await ts.insertSchema(schemaId, schemaRevision, metadata1);
-    await ts.updateMetadata(ethers.sha256(schemaRevision), metadata2);
+    await expect(ts.updateMetadata(schemaRevisionId, metadata2))
+      .to.emit(ts, "MetadataUpdated")
+      .withArgs(
+        schemaRevisionId,
+        ethers.hexlify(metadata2),
+        ethers.sha256(metadata2),
+      );
     await expect(
       ts.updateMetadata(ethers.sha256(schemaRevision), metadata2),
     ).to.be.revertedWith("Metadata exists");
@@ -458,7 +467,9 @@ describe("Schema", () => {
       .withArgs(
         ethers.hexlify(schemaId),
         ethers.hexlify(schemaRevision2),
+        ethers.sha256(schemaRevision2),
         ethers.hexlify(metadata2),
+        ethers.sha256(metadata2),
       );
     await expect(
       ts.updateSchema(schemaId, schemaRevision3, metadata2),
