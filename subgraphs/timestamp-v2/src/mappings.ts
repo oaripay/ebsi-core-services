@@ -21,7 +21,7 @@ import {
 import { decodeTransactionInput, getStatus, getVersionId } from "./utils";
 
 // List of function signature hashes (see https://web3tools.chainstacklabs.com/generate-solidity-functions-signature)
-// 0x04bb4722 <-> timestampHashes(uint256[],bytes[],bytes[])
+// 0x36144701 <-> insertHashAlgorithm(uint256,string,string,uint8,string)
 // 0xac909e7c <-> timestampVersionHashes(bytes,uint256[],bytes[],bytes[],bytes)
 // 0x4e94e93c <-> timestampRecordHashes(uint256[],bytes[],bytes[],bytes)
 // 0x4b9e4322 <-> timestampRecordVersionHashes(bytes32,uint256[],bytes[],bytes[],bytes)
@@ -34,9 +34,34 @@ import { decodeTransactionInput, getStatus, getVersionId } from "./utils";
 export function handleAddNewHashAlgoEvent(event: AddNewHashAlgo): void {
   log.info("Handling AddNewHashAlgo event", []);
 
+  // Parse transaction input
+  /*
+    insertHashAlgorithm(
+      uint256 outputLength,
+      string memory ianaName,
+      string memory oid,
+      Status status,
+      string memory multiHash
+    )
+  */
+  const decoded = decodeTransactionInput(
+    "insertHashAlgorithm(uint256,string,string,uint8,string)",
+    event.transaction,
+  );
+
+  if (!decoded) {
+    log.error("Failed to decode insertHashAlgorithm input - {}", [
+      event.transaction.input.toHexString(),
+    ]);
+    return;
+  }
+
+  const txInputs = decoded.toTuple();
+  const ianaName = txInputs[1].toString();
+
   const hashAlgorithm = new HashAlgorithm(event.params.hashId.toString());
 
-  hashAlgorithm.ianaName = event.params.ianaNameHash.toString();
+  hashAlgorithm.ianaName = ianaName;
   hashAlgorithm.multiHash = event.params.multiHash;
   hashAlgorithm.oid = event.params.oid;
   hashAlgorithm.outputLength = event.params.outputLength;

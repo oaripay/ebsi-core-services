@@ -229,13 +229,32 @@ export function insertHashAlgorithm(
   status: i32,
   multiHash: string,
 ): AddNewHashAlgo {
+  /*
+    insertHashAlgorithm(
+      uint256 outputLength,
+      string memory ianaName,
+      string memory oid,
+      Status status,
+      string memory multiHash
+    )
+  */
+  const tuple: ethereum.Value[] = [
+    ethereum.Value.fromI32(outputLength),
+    ethereum.Value.fromString(ianaName),
+    ethereum.Value.fromString(oid),
+    ethereum.Value.fromI32(status),
+    ethereum.Value.fromString(multiHash),
+  ];
+
   const event = changetype<AddNewHashAlgo>(newMockEvent());
 
   event.parameters = [
     new ethereum.EventParam("hashId", ethereum.Value.fromI32(hashAlgorithmId)),
     new ethereum.EventParam(
       "ianaNameHash",
-      ethereum.Value.fromBytes(Bytes.fromUTF8(ianaName)),
+      ethereum.Value.fromFixedBytes(
+        Bytes.fromByteArray(crypto.keccak256(Bytes.fromUTF8(ianaName))),
+      ),
     ),
     new ethereum.EventParam(
       "outputLength",
@@ -245,6 +264,12 @@ export function insertHashAlgorithm(
     new ethereum.EventParam("status", ethereum.Value.fromI32(status)),
     new ethereum.EventParam("multiHash", ethereum.Value.fromString(multiHash)),
   ];
+
+  // Set transaction input
+  event.transaction.input = encodeTransactionInput(
+    "insertHashAlgorithm(uint256,string,string,uint8,string)",
+    ethereum.Value.fromTuple(changetype<ethereum.Tuple>(tuple)),
+  );
 
   handleAddNewHashAlgoEvent(event);
 
