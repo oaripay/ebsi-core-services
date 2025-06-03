@@ -10,6 +10,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
 import type { ApiConfig } from "../../config/configuration.ts";
+import type { SubjectPolicies } from "./subjects.interface.ts";
 
 import { LedgerService } from "../ledger/ledger.service.ts";
 
@@ -39,24 +40,36 @@ export class SubjectsService {
     user: string,
     page: number,
     pageSize: number,
-  ): ReturnType<PolicyRegistry["getUserAttributes"]> {
+  ): Promise<SubjectPolicies> {
     const provider = this.ledgerService.getProvider();
 
     try {
-      return await this.contract
+      const res = await this.contract
         // @ts-expect-error Error due to CommonJS vs ESM modules imports
         .connect(provider)
         .getUserAttributes(user, page, pageSize);
+
+      return {
+        items: res.items,
+        total: Number(res.total),
+      };
     } catch (error) {
       this.logger.error(error);
 
       // @ts-expect-error Argument of type 'PolicyRegistryInterface' is not assignable to parameter of type 'Interface'
       const decodedError = decodeContractError(this.contract.interface, error);
 
-      if (decodedError === "Policy: invalid user") {
+      if (decodedError === "Policy: user does not exist") {
         throw new NotFoundError("Subject Not Found", {
           detail: `Subject ${user} not found`,
         });
+      }
+
+      if (decodedError === "Policy: user has no attribute") {
+        return {
+          items: [],
+          total: 0,
+        };
       }
 
       throw new InternalServerError(InternalServerError.defaultTitle, {
@@ -102,10 +115,14 @@ export class SubjectsService {
       // @ts-expect-error Argument of type 'PolicyRegistryInterface' is not assignable to parameter of type 'Interface'
       const decodedError = decodeContractError(this.contract.interface, error);
 
-      if (decodedError === "Policy: invalid user") {
+      if (decodedError === "Policy: user does not exist") {
         throw new NotFoundError("Subject Not Found", {
           detail: `Subject ${user} not found`,
         });
+      }
+
+      if (decodedError === "Policy: user has no attribute") {
+        return false;
       }
 
       throw new InternalServerError(InternalServerError.defaultTitle, {

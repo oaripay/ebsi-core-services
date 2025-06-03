@@ -3,6 +3,11 @@ export interface SubjectLink {
   subject: string;
 }
 
+export interface SubjectPolicies {
+  items: string[];
+  total: number;
+}
+
 export interface SubjectPolicy {
   policyName: string;
   subject: string;

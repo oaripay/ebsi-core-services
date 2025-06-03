@@ -146,9 +146,10 @@ abstract contract UserAttributesManagement is
         require(page > 0, "Page not >0");
         require(user != address(0), "Policy: invalid user address");
         PolicyContractStorage storage ps = policyStorage();
+        require(ps.userAddressExists[user], "Policy: user does not exist");
         require(
             ps.listOfUserAttributes[user].length > 0,
-            "Policy: invalid user"
+            "Policy: user has no attribute"
         );
         uint256[] memory ids;
         (ids, total, howMany, prev, next) = ps
@@ -166,9 +167,10 @@ abstract contract UserAttributesManagement is
         string calldata attribute
     ) external view returns (bool) {
         PolicyContractStorage storage ps = policyStorage();
+        require(ps.userAddressExists[user], "Policy: user does not exist");
         require(
             ps.listOfUserAttributes[user].length > 0,
-            "Policy: invalid user"
+            "Policy: user has no attribute"
         );
         return ps.userAttributes[user][attribute].defined;
     }

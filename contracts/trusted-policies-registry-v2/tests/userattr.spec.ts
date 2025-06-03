@@ -11,6 +11,7 @@ describe("UserAttributesManagement", () => {
   let policyContract: PolicyRegistry;
   let user: SignerWithAddress;
   let user2: SignerWithAddress;
+  let user3: SignerWithAddress;
 
   const userAttr = ["attr1", "attr2", "attr3", "attr4", "attr5"];
 
@@ -27,9 +28,13 @@ describe("UserAttributesManagement", () => {
     expect(await policyContract.getAddress()).to.properAddress;
 
     await policyContract.insertPolicy("test policy 2", "registry 2");
-    [user, user2] = await ethers.getSigners();
+    [user, user2, user3] = await ethers.getSigners();
 
     await policyContract.insertUserAttributes(user.address, userAttr);
+
+    // Create a new user and remove its attribute
+    await policyContract.insertUserAttributes(user3.address, ["attr1"]);
+    await policyContract.deleteUserAttribute(user3.address, "attr1");
   });
 
   beforeEach(async () => {
@@ -51,31 +56,31 @@ describe("UserAttributesManagement", () => {
       );
     });
 
-    it("Should fail for empty user", async () => {
+    it("should fail for empty user", async () => {
       await expect(
         policyContract.insertUserAttributes(ethers.ZeroAddress, ["attr"]),
       ).to.be.revertedWith("Policy: invalid user address");
     });
 
-    it("Should fail for empty attributes list", async () => {
+    it("should fail for empty attributes list", async () => {
       await expect(
         policyContract.insertUserAttributes(user.address, []),
       ).to.be.revertedWith("Policy: invalid attr list");
     });
 
-    it("Should fail for attribute empty string", async () => {
+    it("should fail for attribute empty string", async () => {
       await expect(
         policyContract.insertUserAttributes(user.address, ["", "test"]),
       ).to.be.revertedWith("Attribute empty");
     });
 
-    it("Should fail for attribute already added", async () => {
+    it("should fail for attribute already added", async () => {
       await expect(
         policyContract.insertUserAttributes(user.address, ["attr1"]),
       ).to.be.revertedWith("Attribute already defined");
     });
 
-    it("Should insert attribute", async () => {
+    it("should insert attribute", async () => {
       await expect(policyContract.insertUserAttributes(user.address, ["attrX"]))
         .to.emit(policyContract, "UserAttributeInserted")
         .withArgs(user.address, "attrX");
@@ -99,13 +104,13 @@ describe("UserAttributesManagement", () => {
       );
     });
 
-    it("Should fail for invalid user address", async () => {
+    it("should fail for invalid user address", async () => {
       await expect(
         policyContract.deleteUserAttribute(ethers.ZeroAddress, "attr1"),
       ).to.be.revertedWith("Policy: invalid user address");
     });
 
-    it("Should fail for empty/missing attribute", async () => {
+    it("should fail for empty/missing attribute", async () => {
       await expect(
         policyContract.deleteUserAttribute(user.address, "attr1111"),
       ).to.be.revertedWith("Policy: attr invalid");
@@ -115,7 +120,7 @@ describe("UserAttributesManagement", () => {
       ).to.be.revertedWith("Policy: attr invalid");
     });
 
-    it("Should delete user attribute", async () => {
+    it("should delete user attribute", async () => {
       await expect(policyContract.deleteUserAttribute(user.address, "attr3"))
         .to.emit(policyContract, "UserAttributeDeleted")
         .withArgs(user.address, "attr3");
@@ -135,7 +140,7 @@ describe("UserAttributesManagement", () => {
   });
 
   describe("getUsers", () => {
-    it("Should fail for invalid page size", async () => {
+    it("should fail for invalid page size", async () => {
       await expect(policyContract.getUsers(1, 0)).to.be.revertedWith(
         "PSize not >0",
       );
@@ -145,31 +150,36 @@ describe("UserAttributesManagement", () => {
       );
     });
 
-    it("Should fail for invalid page", async () => {
+    it("should fail for invalid page", async () => {
       await expect(policyContract.getUsers(0, 1)).to.be.revertedWith(
         "Page not >0",
       );
     });
 
-    it("Should return user addresses", async () => {
+    it("should return user addresses", async () => {
       await policyContract.insertUserAttributes(user2.address, ["attr1"]);
 
       let result = await policyContract.getUsers(1, 1);
       expect(result.items).to.deep.equal([user.address]);
       expect(result.prev).to.equal(1);
       expect(result.next).to.equal(2);
-      expect(result.total).to.equal(2);
+      expect(result.total).to.equal(3);
       expect(result.howMany).to.equal(1);
 
       result = await policyContract.getUsers(2, 1);
-      expect(result.items).to.deep.equal([user2.address]);
+      expect(result.items).to.deep.equal([user3.address]);
       expect(result.prev).to.equal(1);
-      expect(result.next).to.equal(2);
+      expect(result.next).to.equal(3);
+
+      result = await policyContract.getUsers(3, 1);
+      expect(result.items).to.deep.equal([user2.address]);
+      expect(result.prev).to.equal(2);
+      expect(result.next).to.equal(3);
     });
   });
 
   describe("getUserAttributes", () => {
-    it("Should fail for invalid page size", async () => {
+    it("should fail for invalid page size", async () => {
       await expect(
         policyContract.getUserAttributes(user.address, 1, 0),
       ).to.be.revertedWith("PSize not >0");
@@ -179,23 +189,27 @@ describe("UserAttributesManagement", () => {
       ).to.be.revertedWith("PSize not <=50");
     });
 
-    it("Should fail for invalid page", async () => {
+    it("should fail for invalid page", async () => {
       await expect(
         policyContract.getUserAttributes(user.address, 0, 1),
       ).to.be.revertedWith("Page not >0");
     });
 
-    it("Should fail for missing user", async () => {
+    it("should fail for missing user", async () => {
       await expect(
         policyContract.getUserAttributes(user2.address, 1, 1),
-      ).to.be.revertedWith("Policy: invalid user");
+      ).to.be.revertedWith("Policy: user does not exist");
 
       await expect(
         policyContract.getUserAttributes(ethers.ZeroAddress, 1, 1),
       ).to.be.revertedWith("Policy: invalid user address");
+
+      await expect(
+        policyContract.getUserAttributes(user3.address, 1, 1),
+      ).to.be.revertedWith("Policy: user has no attribute");
     });
 
-    it("Should return user attributes", async () => {
+    it("should return user attributes", async () => {
       let result = await policyContract.getUserAttributes(user.address, 1, 3);
       expect(result.items).to.deep.equal(["attr1", "attr2", "attr3"]);
       expect(result.next).to.equal(2);
@@ -210,6 +224,16 @@ describe("UserAttributesManagement", () => {
   });
 
   describe("isUserAttribute", () => {
+    it("should fail for missing user", async () => {
+      await expect(
+        policyContract.isUserAttribute(user2.address, "attr1"),
+      ).to.be.revertedWith("Policy: user does not exist");
+
+      await expect(
+        policyContract.isUserAttribute(user3.address, "attr1"),
+      ).to.be.revertedWith("Policy: user has no attribute");
+    });
+
     it("should check if user has attribute", async () => {
       let result = await policyContract.isUserAttribute(user.address, "attr1");
       // eslint-disable-next-line @typescript-eslint/no-unused-expressions

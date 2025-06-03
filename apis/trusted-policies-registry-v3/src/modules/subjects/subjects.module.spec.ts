@@ -252,6 +252,24 @@ describe("Subjects Module", () => {
       expect(response.status).toBe(200);
     });
 
+    it("should return a specific subject (without attributes)", async () => {
+      expect.assertions(2);
+
+      // Create new user
+      const user = ethers.Wallet.createRandom().address;
+
+      // Insert 1 attribute and then remove it
+      await testEnv.policiesRegistryContract.insertUserAttributes(user, [
+        "attr1",
+      ]);
+      await testEnv.policiesRegistryContract.deleteUserAttribute(user, "attr1");
+
+      const response = await request(server).get(`/subjects/${user}`);
+
+      expect(response.body).toStrictEqual({ subject: user });
+      expect(response.status).toBe(200);
+    });
+
     it("should throw an error for bad requests", async () => {
       expect.assertions(2);
 
@@ -328,6 +346,45 @@ describe("Subjects Module", () => {
         total: 3,
       });
       expect((response.body as { items: string }).items).toHaveLength(3);
+      expect(response.status).toBe(200);
+    });
+
+    it("should return an empty collection of policies (subject without attributes)", async () => {
+      expect.assertions(2);
+
+      // Create new user
+      const user = ethers.Wallet.createRandom().address;
+
+      // Insert 1 attribute and then remove it
+      await testEnv.policiesRegistryContract.insertUserAttributes(user, [
+        "attr1",
+      ]);
+      await testEnv.policiesRegistryContract.deleteUserAttribute(user, "attr1");
+
+      const response = await request(server).get(`/subjects/${user}/policies`);
+
+      expect(response.body).toStrictEqual({
+        items: [],
+        links: {
+          first: expect.stringContaining(
+            `/subjects/${user}/policies?page[after]=1&page[size]=10`,
+          ),
+          last: expect.stringContaining(
+            `/subjects/${user}/policies?page[after]=1&page[size]=10`,
+          ),
+          next: expect.stringContaining(
+            `/subjects/${user}/policies?page[after]=1&page[size]=10`,
+          ),
+          prev: expect.stringContaining(
+            `/subjects/${user}/policies?page[after]=1&page[size]=10`,
+          ),
+        },
+        pageSize: 10,
+        self: expect.stringContaining(
+          `/subjects/${user}/policies?page[after]=1&page[size]=10`,
+        ),
+        total: 0,
+      });
       expect(response.status).toBe(200);
     });
 

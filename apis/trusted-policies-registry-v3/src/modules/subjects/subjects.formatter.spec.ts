@@ -2,6 +2,8 @@ import type { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry-v2";
 
 import { describe, expect, it } from "vitest";
 
+import type { SubjectPolicies } from "./subjects.interface.ts";
+
 import { formatPolicies, formatSubjects } from "./subjects.formatter.ts";
 
 describe("formatSubjects", () => {
@@ -49,12 +51,9 @@ describe("formatSubjects", () => {
 
 describe("formatPolicies", () => {
   const subjects = {
-    howMany: 3n,
     items: ["attr1", "attr2", "attr3"],
-    next: 3n,
-    prev: 1n,
-    total: 42n,
-  } as Awaited<ReturnType<PolicyRegistry["getPolicyNames"]>>;
+    total: 42,
+  } satisfies SubjectPolicies;
 
   it("should use the values returned by the smart contract (except pageSize)", () => {
     expect.assertions(1);
