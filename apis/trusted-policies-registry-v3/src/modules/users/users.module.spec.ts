@@ -233,6 +233,27 @@ describe("Users Module", () => {
       expect(response.status).toBe(200);
     });
 
+    it("should return a specific user (without attributes)", async () => {
+      expect.assertions(2);
+
+      // Create new user
+      const user = ethers.Wallet.createRandom().address;
+
+      // Insert 1 attribute and then remove it
+      await testEnv.policiesRegistryContract.insertUserAttributes(user, [
+        "attr1",
+      ]);
+      await testEnv.policiesRegistryContract.deleteUserAttribute(user, "attr1");
+
+      const response = await request(server).get(`/users/${user}`);
+
+      expect(response.body).toStrictEqual({
+        attributes: [],
+        user,
+      });
+      expect(response.status).toBe(200);
+    });
+
     it("should throw an error for bad requests", async () => {
       expect.assertions(2);
 

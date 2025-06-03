@@ -1,6 +1,6 @@
 import type { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry-v2";
 
-import { isEthersError, NotFoundError } from "@ebsiint-api/shared";
+import { decodeContractError, NotFoundError } from "@ebsiint-api/shared";
 import { PolicyRegistry__factory } from "@ebsiint-sc/trusted-policies-registry-v2";
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
@@ -44,9 +44,16 @@ export class UsersService {
       }
       return userAttributes.items;
     } catch (error) {
-      if (isEthersError(error)) {
-        this.logger.error(error, error.stack);
+      this.logger.error(error);
+
+      // @ts-expect-error Argument of type 'PolicyRegistryInterface' is not assignable to parameter of type 'Interface'
+      const decodedError = decodeContractError(this.contract.interface, error);
+
+      // Return empty attributes list
+      if (decodedError === "Policy: user has no attribute") {
+        return [];
       }
+
       throw new NotFoundError("User Attributes Not Found", {
         detail: "User Attributes Not Found",
       });
@@ -60,9 +67,8 @@ export class UsersService {
         user,
       };
     } catch (error) {
-      if (isEthersError(error)) {
-        this.logger.error(error, error.stack);
-      }
+      this.logger.error(error);
+
       throw new NotFoundError("User Not Found", {
         detail: `User ${user} not found`,
       });
@@ -81,9 +87,8 @@ export class UsersService {
         .connect(provider)
         .getUsers(page, pageSize);
     } catch (error) {
-      if (isEthersError(error)) {
-        this.logger.error(error, error.stack);
-      }
+      this.logger.error(error);
+
       throw new NotFoundError("Users Not Found", {
         detail: "Users Not Found",
       });

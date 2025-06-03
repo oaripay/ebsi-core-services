@@ -3,15 +3,19 @@ import type { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry-v2";
 
 import { paginate } from "@ebsiint-api/shared";
 
-import type { SubjectLink, SubjectPolicyLink } from "./subjects.interface.ts";
+import type {
+  SubjectLink,
+  SubjectPolicies,
+  SubjectPolicyLink,
+} from "./subjects.interface.ts";
 
 export function formatPolicies(
-  policies: Awaited<ReturnType<PolicyRegistry["getUserAttributes"]>>,
+  policies: SubjectPolicies,
   page: number,
   pageSize: number,
   baseUrl: string,
 ): PaginatedList<SubjectPolicyLink> {
-  const total = Number(policies.total);
+  const total = policies.total;
 
   // Reshape items
   const items = policies.items.map((policyName) => {
