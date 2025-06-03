@@ -1,0 +1,3 @@
+include:
+  - project: "ebsi/technical-office/devops/gitlab-pipelines"
+    file: "/templates/renovate-generate-changesets.yml"
