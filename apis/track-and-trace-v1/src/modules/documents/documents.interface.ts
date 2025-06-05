@@ -27,6 +27,10 @@ export interface Document {
   timestamp: Timestamp;
 }
 
+export interface Document__deprecated extends Document {
+  events: string[];
+}
+
 export type DocumentAccesses = Access[];
 
 export interface DocumentEventsLink {

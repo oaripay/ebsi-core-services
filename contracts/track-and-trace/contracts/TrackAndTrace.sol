@@ -357,6 +357,19 @@ contract TrackAndTrace is
         return doc;
     }
 
+    function getDocument__deprecated(
+        bytes32 documentHash
+    ) external view returns (DocumentGetter__deprecated memory) {
+        Document storage iDoc = documents[documentHash];
+        require(bytes(iDoc.creator).length > 0, "Document does not exist");
+        DocumentGetter__deprecated memory doc;
+        doc.creator = iDoc.creator;
+        doc.documentMetadata = iDoc.documentMetadata;
+        doc.documentTimestamp = iDoc.documentTimestamp;
+        doc.eventHashes = iDoc.eventHashes;
+        return doc;
+    }
+
     function getEvents(
         bytes32 documentHash,
         uint256 page,

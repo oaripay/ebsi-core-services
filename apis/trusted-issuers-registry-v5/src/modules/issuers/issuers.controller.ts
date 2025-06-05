@@ -21,6 +21,7 @@ import type {
   IdLink,
   IssuerProxyResponseObject,
   IssuerResponseObject,
+  IssuerResponseObject__deprecated,
   ProxyLink,
 } from "./issuers.interface.ts";
 
@@ -29,6 +30,7 @@ import {
   GetIssuerAttributeRevisionParamsDto,
   GetIssuerParamsDto,
   GetIssuerProxyParamsDto,
+  GetIssuerQueryDto,
 } from "./dto/index.ts";
 import {
   formatAttributes,
@@ -85,8 +87,14 @@ export class IssuersController {
   @UsePipes(validationPipe)
   async getIssuer(
     @Param() params: GetIssuerParamsDto,
-  ): Promise<IssuerResponseObject> {
+    @Query() query: GetIssuerQueryDto,
+  ): Promise<IssuerResponseObject | IssuerResponseObject__deprecated> {
     const { did } = params;
+
+    if (query.version === "deprecated") {
+      return this.issuersService.getIssuer__deprecated(did);
+    }
+
     const issuer = await this.issuersService.getIssuer(did);
     const { noAttributesAccepted } = issuer;
 

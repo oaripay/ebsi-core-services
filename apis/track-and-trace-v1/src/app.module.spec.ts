@@ -43,6 +43,7 @@ import type { ApiConfig } from "./config/configuration.ts";
 import type {
   Access,
   Document,
+  Document__deprecated,
   DocumentAccesses,
   Event,
 } from "./modules/documents/documents.interface.ts";
@@ -1114,6 +1115,21 @@ describe("App Module", () => {
       },
     } satisfies Document);
 
+    response = await request(server).get(
+      `/documents/${document1.hash}?version=deprecated`,
+    );
+
+    expect(response.body).toStrictEqual({
+      creator: document1.creator,
+      events: [],
+      metadata: document1.metadata,
+      timestamp: {
+        datetime: document1.timestamp.datetime,
+        proof: document1.timestamp.proof,
+        source: "block",
+      },
+    } satisfies Document__deprecated);
+
     // "documentCreator" adds a new event to the document
     const documentCreatorWriteAccessToken = await createAccessToken(
       documentCreator.did,
@@ -1195,6 +1211,21 @@ describe("App Module", () => {
         source: "block",
       },
     } satisfies Document);
+
+    response = await request(server).get(
+      `/documents/${document1.hash}?version=deprecated`,
+    );
+
+    expect(response.body).toStrictEqual({
+      creator: document1.creator,
+      events: [document1Event1.hash],
+      metadata: document1.metadata,
+      timestamp: {
+        datetime: document1.timestamp.datetime,
+        proof: document1.timestamp.proof,
+        source: "block",
+      },
+    } satisfies Document__deprecated);
 
     // Check event
     response = await request(server).get(
@@ -1346,6 +1377,21 @@ describe("App Module", () => {
         source: "block",
       },
     } satisfies Document);
+
+    response = await request(server).get(
+      `/documents/${document1.hash}?version=deprecated`,
+    );
+
+    expect(response.body).toStrictEqual({
+      creator: document1.creator,
+      events: [document1Event1.hash, document1Event2.hash],
+      metadata: document1.metadata,
+      timestamp: {
+        datetime: document1.timestamp.datetime,
+        proof: document1.timestamp.proof,
+        source: "block",
+      },
+    } satisfies Document__deprecated);
 
     // Check event
     response = await request(server).get(
@@ -1583,6 +1629,25 @@ describe("App Module", () => {
         source: "block",
       },
     } satisfies Document);
+
+    response = await request(server).get(
+      `/documents/${document1.hash}?version=deprecated`,
+    );
+
+    expect(response.body).toStrictEqual({
+      creator: document1.creator,
+      events: [
+        document1Event1.hash,
+        document1Event2.hash,
+        document1Event3.hash,
+      ],
+      metadata: document1.metadata,
+      timestamp: {
+        datetime: document1.timestamp.datetime,
+        proof: document1.timestamp.proof,
+        source: "block",
+      },
+    } satisfies Document__deprecated);
 
     // Check event
     response = await request(server).get(

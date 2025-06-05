@@ -247,6 +247,40 @@ abstract contract IssuerDetailed is IssuerStorage {
         emit RemoveIssuerProxy(did, proxyId);
     }
 
+    /**
+     * @dev DEPRECATED. Get an issuer by its DID.
+     * @param did string
+     * @return bytes32[] attributeLastHash
+     */
+    function getIssuer__deprecated(
+        string memory did
+    ) external view returns (bytes32[] memory) {
+        Issuers storage ds = issuerStorage();
+        bytes32[] memory attributesFirstHash = ds.issuerStore[did].attributes;
+        require(attributesFirstHash.length > 0, "issuer does not exist");
+        bytes32[] memory attributesLastHash = new bytes32[](
+            attributesFirstHash.length
+        );
+
+        // list all the attributes
+        for (uint256 index = 0; index < attributesFirstHash.length; index++) {
+            // get all the versions for the current attribute
+            bytes32[] memory versions = ds.issuerStore[did].revisionHashes[
+                attributesFirstHash[index]
+            ];
+
+            // get the last version hash for this attribute
+            attributesLastHash[index] = versions[versions.length - 1];
+        }
+        return attributesLastHash;
+    }
+
+    /**
+     * @dev Get an issuer by its DID.
+     * @param did The DID of the issuer
+     * @return noAttributesAccepted Whether the issuer has accepted any attribute or not
+     * @return totalAttributes The number of attributes the issuer has (accepted or not)
+     */
     function getIssuer(
         string memory did
     )
@@ -375,6 +409,35 @@ abstract contract IssuerDetailed is IssuerStorage {
         for (uint256 i = 0; i < howMany; i++) {
             items[i] = revisionHashes[ids[i]];
         }
+    }
+
+    function getIssuerAttributeByHash__deprecated(
+        bytes32 anyAttrVersHash
+    )
+        external
+        view
+        returns (
+            string memory did,
+            bytes memory attribData,
+            string memory tao,
+            string memory rootTao,
+            IssuerType issuerType
+        )
+    {
+        Issuers storage ds = issuerStorage();
+        // retrieve first the did and attrId (firstHash of attribute)
+        AttributeMetadata memory i = ds.attributeMetadataStore[anyAttrVersHash];
+        require(
+            keccak256(bytes(i.did)) != keccak256(bytes("")),
+            "attribute has not been found"
+        );
+        did = i.did;
+        // retrieve the issuer and the attribute detail
+        Entity storage iss = ds.issuerStore[i.did];
+        attribData = iss.revisions[anyAttrVersHash];
+        tao = i.taoDid;
+        rootTao = i.rootTaoDid;
+        issuerType = i.issuerType;
     }
 
     function getLatestRevisionAttributeId(

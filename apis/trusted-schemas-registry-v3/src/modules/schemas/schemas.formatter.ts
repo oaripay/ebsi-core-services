@@ -38,6 +38,8 @@ export function formatSchemaRevisions(
   page: number,
   pageSize: number,
   baseUrl: string,
+  validAt: string | undefined,
+  version: string | undefined,
 ): PaginatedList<GetSchemaRevisionsResponse> {
   // Reshape items
   const { total } = schemas;
@@ -46,12 +48,16 @@ export function formatSchemaRevisions(
     schemaRevisionId,
   }));
 
+  const extraQuery =
+    validAt && version ? `&valid-at=${validAt}&version=${version}` : "";
+
   return paginate<GetSchemaRevisionsResponse>(
     items,
     baseUrl,
     total,
     page,
     pageSize,
+    extraQuery,
   );
 }
 

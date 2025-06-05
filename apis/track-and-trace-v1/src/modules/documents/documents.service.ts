@@ -8,6 +8,7 @@ import { ConfigService } from "@nestjs/config";
 import type { ApiConfig } from "../../config/configuration.ts";
 import type {
   Document,
+  Document__deprecated,
   DocumentAccesses,
   Event,
 } from "./documents.interface.ts";
@@ -63,6 +64,39 @@ export class DocumentsService {
         source: document.documentTimestamp.source === 0n ? "block" : "external",
       },
     } satisfies Document;
+  }
+
+  async getDocument__deprecated(
+    documentId: string,
+  ): Promise<Document__deprecated> {
+    const provider = this.ledgerService.getProvider();
+
+    let document: Awaited<ReturnType<TrackAndTrace["getDocument__deprecated"]>>;
+
+    try {
+      document = await this.contract
+        // @ts-expect-error Error due to CommonJS vs ESM modules imports
+        .connect(provider)
+        .getDocument__deprecated(documentId);
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error, error.stack);
+      }
+      throw new NotFoundError("Document Not Found", {
+        detail: `Document ${documentId} not found`,
+      });
+    }
+
+    return {
+      creator: document.creator,
+      events: document.eventHashes,
+      metadata: document.documentMetadata,
+      timestamp: {
+        datetime: `0x${document.documentTimestamp.timestamp.toString(16)}`,
+        proof: document.documentTimestamp.proof,
+        source: document.documentTimestamp.source === 0n ? "block" : "external",
+      },
+    } satisfies Document__deprecated;
   }
 
   async getDocumentAccesses(documentId: string): Promise<DocumentAccesses> {

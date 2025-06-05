@@ -281,7 +281,10 @@ describe("TrackAndTrace - tests", () => {
         2n,
       ]);
       const docHash = ethers.encodeBytes32String("e68905e6");
-      const doc = await trackAndTrace.getDocument(docHash);
+      let doc: Awaited<
+        | ReturnType<TrackAndTrace["getDocument"]>
+        | ReturnType<TrackAndTrace["getDocument__deprecated"]>
+      > = await trackAndTrace.getDocument(docHash);
       expect(decodeResult(doc)).to.eql({
         creator: "didEbsi",
         documentMetadata: "metadata",
@@ -290,6 +293,17 @@ describe("TrackAndTrace - tests", () => {
           source: 0n,
           timestamp: doc.documentTimestamp.timestamp,
         },
+      });
+      doc = await trackAndTrace.getDocument__deprecated(docHash);
+      expect(decodeResult(doc)).to.eql({
+        creator: "didEbsi",
+        documentMetadata: "metadata",
+        documentTimestamp: {
+          proof: doc.documentTimestamp.proof,
+          source: 0n,
+          timestamp: doc.documentTimestamp.timestamp,
+        },
+        eventHashes: [],
       });
     });
 

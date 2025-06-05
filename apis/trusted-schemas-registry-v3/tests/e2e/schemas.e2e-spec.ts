@@ -537,6 +537,47 @@ describe("TSR API v3 - Schemas (e2e)", () => {
       ).toStrictEqual(expect.stringContaining("application/problem+json"));
     });
 
+    it("should throw an error if valid-at query parameter is not valid", async () => {
+      expect.assertions(3);
+
+      const response = await request(server).get(
+        `/schemas/${schemaId}/revisions?valid-at=abc`,
+      );
+
+      expect(response.body).toStrictEqual({
+        detail: '["valid-at must be a valid ISO 8601 date string"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+      expect(
+        (response.headers as { "content-type": string })["content-type"],
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+    });
+
+    it("should throw an error if valid-at query parameter is used without version=deprecated", async () => {
+      expect.assertions(3);
+
+      const validAt = new Date().toISOString();
+
+      const response = await request(server).get(
+        `/schemas/${schemaId}/revisions?valid-at=${validAt}`,
+      );
+
+      expect(response.body).toStrictEqual({
+        detail:
+          "Query parameter 'version' must be set to 'deprecated' in order to use 'valid-at'",
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+      expect(
+        (response.headers as { "content-type": string })["content-type"],
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+    });
+
     describeWriteOps()("Test requiring actual data", () => {
       it("should return the revisions of the specified schema", async () => {
         expect.assertions(3);

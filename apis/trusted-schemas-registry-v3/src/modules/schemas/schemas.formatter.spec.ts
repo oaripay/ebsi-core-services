@@ -51,13 +51,13 @@ describe("formatSchemaRevisions", () => {
   };
 
   it("should use the values returned by the smart contract (except pageSize)", () => {
-    expect.assertions(1);
+    expect.assertions(2);
 
     const page = 3;
     const pageSize = 2;
 
     expect(
-      formatSchemaRevisions(schemaRevisions, page, pageSize, ""),
+      formatSchemaRevisions(schemaRevisions, page, pageSize, "", "", ""),
     ).toStrictEqual({
       items: [
         {
@@ -77,6 +77,44 @@ describe("formatSchemaRevisions", () => {
       },
       pageSize,
       self: `?page[after]=${page}&page[size]=${pageSize}`,
+      total: 42,
+    });
+
+    // With "valid-at" in the query
+    const validAt = new Date().toISOString();
+
+    expect(
+      formatSchemaRevisions(
+        schemaRevisions,
+        page,
+        pageSize,
+        "",
+        validAt,
+        "deprecated",
+      ),
+    ).toStrictEqual({
+      items: [
+        {
+          href: "/rev-id",
+          schemaRevisionId: "rev-id",
+        },
+        {
+          href: "/rev-id-2",
+          schemaRevisionId: "rev-id-2",
+        },
+      ],
+      links: {
+        first: `?page[after]=1&page[size]=${pageSize}&valid-at=${validAt}&version=deprecated`,
+        last: `?page[after]=21&page[size]=${pageSize}&valid-at=${validAt}&version=deprecated`,
+        next: `?page[after]=${
+          page + 1
+        }&page[size]=${pageSize}&valid-at=${validAt}&version=deprecated`,
+        prev: `?page[after]=${
+          page - 1
+        }&page[size]=${pageSize}&valid-at=${validAt}&version=deprecated`,
+      },
+      pageSize,
+      self: `?page[after]=${page}&page[size]=${pageSize}&valid-at=${validAt}&version=deprecated`,
       total: 42,
     });
   });

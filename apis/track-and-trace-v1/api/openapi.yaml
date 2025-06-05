@@ -133,20 +133,44 @@ paths:
           schema:
             type: string
           example: "0xbfc90433cfe7cf69119899a96837032bee6c84ba7f6ac9aa008ef2de5eeacfb8"
+        - in: query
+          name: version
+          description: |
+            Version of the endpoint to use. Defaults to the latest version.
+          required: false
+          schema:
+            type: string
+            enum:
+              - deprecated
+              - latest
+          example: "deprecated"
       responses:
         "200":
           description: Success
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Document"
-              example:
-                metadata: metadata
-                timestamp:
-                  datetime: "0x65b24e0d"
-                  source: block
-                  proof: "0x0000000000000000000000000000000000000000000000000000000000000006"
-                creator: did:ebsi:ztqWJAmfyuUEf9Jvh97p167
+                anyOf:
+                  - $ref: "#/components/schemas/Document"
+                  - $ref: "#/components/schemas/Document__deprecated"
+              examples:
+                Document:
+                  value:
+                    metadata: metadata
+                    timestamp:
+                      datetime: "0x65b24e0d"
+                      source: block
+                      proof: "0x0000000000000000000000000000000000000000000000000000000000000006"
+                    creator: did:ebsi:ztqWJAmfyuUEf9Jvh97p167
+                Document (deprecated):
+                  value:
+                    metadata: metadata
+                    timestamp:
+                      datetime: "0x65b24e0d"
+                      source: block
+                      proof: "0x0000000000000000000000000000000000000000000000000000000000000006"
+                      events: []
+                    creator: did:ebsi:ztqWJAmfyuUEf9Jvh97p167
         "400":
           description: Bad Request
           content:
@@ -979,6 +1003,39 @@ components:
         creator:
           type: string
           description: The `did:key` or `did:ebsi` that created the document
+    Document__deprecated:
+      title: Document (deprecated)
+      description: Track and Trace Document
+      type: object
+      properties:
+        metadata:
+          description: Document's metadata
+          type: string
+        timestamp:
+          description: Timestamp object
+          type: object
+          properties:
+            datetime:
+              type: string
+              description: |
+                The date and time, optionally from transaction input
+            source:
+              type: string
+              description: |
+                Defines how the datetime was resolved, enumerated options are "block" and "external"
+            proof:
+              type: string
+              description: |
+                Proof of the source. Either a block number or a hash of timestamp certificate
+        events:
+          type: array
+          description: List of event hashes. Only available when the "version" parameter is "deprecated".
+          items:
+            type: string
+            description: Event hash
+        creator:
+          type: string
+          description: The `did:key` or `did:ebsi` that created the document
     Event:
       title: Event
       description: Track and Trace Event
@@ -1039,11 +1096,6 @@ components:
         title: Bad request
         status: 400
         detail: Bad request
-    InvalidToken:
-      value:
-        title: Invalid token
-        status: 400
-        detail: Invalid token
     NotFound:
       value:
         title: Not found

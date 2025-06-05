@@ -35,6 +35,11 @@ export interface IssuerResponseObject {
   hasAttributes: boolean;
 }
 
+export interface IssuerResponseObject__deprecated {
+  attributes: AttributeObject[];
+  did: string;
+}
+
 export type IssuerTypeName = (typeof IssuerTypeNames)[number];
 
 export interface ProxyLink {

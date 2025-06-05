@@ -8,12 +8,16 @@ import {
 import { SchemaSCRegistry__factory } from "@ebsiint-sc/trusted-schemas-registry-v2";
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import pLimit from "p-limit";
 
 import type { ApiConfig } from "../../config/configuration.ts";
 import type { ItemsList } from "./schemas.interface.ts";
 
 import { LedgerService } from "../ledger/ledger.service.ts";
-import { getContractError, schemaIdToHex } from "./schemas.utils.ts";
+import { getContractError, range, schemaIdToHex } from "./schemas.utils.ts";
+
+const MAX_RESULTS_PER_PAGE = 50;
+const MAX_CONCURRENT_PROMISES = 10;
 
 @Injectable()
 export class SchemasService {
@@ -262,6 +266,144 @@ export class SchemasService {
           contractError === "Schema not found"
             ? `Schema ${schemaId} not found`
             : contractError,
+      });
+    }
+  }
+
+  async getSchemaRevisions__deprecated(
+    schemaId: string,
+    page: number,
+    pageSize: number,
+    validAt?: string,
+  ): Promise<ItemsList> {
+    const provider = this.ledgerService.getProvider();
+
+    const hexSchemaId = schemaIdToHex(schemaId);
+
+    // Make sure the schema exists
+    try {
+      await this.contract
+        // @ts-expect-error Error due to CommonJS vs ESM modules imports
+        .connect(provider)
+        .getLatestSchemaRevision(hexSchemaId);
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error, error.stack);
+      }
+      throw new NotFoundError("Schema Not Found", {
+        detail: `Schema ${schemaId} not found`,
+      });
+    }
+
+    try {
+      // Return only revisions valid at the given time (this is excessively inefficient!)
+      if (validAt) {
+        // Get all revisions IDs
+        const allRevisionsIds: string[] = [];
+
+        // Get the first MAX_RESULTS_PER_PAGE revisions IDs
+        const revisions = await this.contract
+          // @ts-expect-error Error due to CommonJS vs ESM modules imports
+          .connect(provider)
+          .getSchemaRevisionIds(hexSchemaId, 1, MAX_RESULTS_PER_PAGE);
+        allRevisionsIds.push(...revisions.items);
+        const total = Number(revisions.total);
+
+        const limit = pLimit(MAX_CONCURRENT_PROMISES); // Limit concurrent promises
+
+        if (total > MAX_RESULTS_PER_PAGE) {
+          const contract = this.contract
+            // @ts-expect-error Error due to CommonJS vs ESM modules imports
+            .connect(provider);
+          const otherSchemaRevisionIds = await Promise.all(
+            // From page 2 to page "Math.ceil(total / MAX_RESULTS_PER_PAGE)"
+            range(2, Math.ceil(total / MAX_RESULTS_PER_PAGE)).map((pageIndex) =>
+              limit(() =>
+                contract.getSchemaRevisionIds(
+                  hexSchemaId,
+                  pageIndex,
+                  MAX_RESULTS_PER_PAGE,
+                ),
+              ),
+            ),
+          );
+          // We need to fetch the next pages
+          allRevisionsIds.push(
+            ...otherSchemaRevisionIds.reduce(
+              (arr, row) => [...arr, ...row.items],
+              [] as string[],
+            ),
+          );
+        }
+
+        // For each revision ID, get latest metadata
+        const contract = this.contract
+          // @ts-expect-error Error due to CommonJS vs ESM modules imports
+          .connect(provider);
+        const allMetadata = await Promise.all(
+          allRevisionsIds.map((id) =>
+            limit(() =>
+              contract.getLatestSchemaRevisionMetadataByRevisionId(id),
+            ),
+          ),
+        );
+
+        const validRevisionsIds: string[] = [];
+        for (const [index, metadata] of allMetadata.entries()) {
+          try {
+            const decodedMetadata = JSON.parse(
+              Buffer.from(remove0xPrefix(metadata), "hex").toString("utf8"),
+            ) as Record<string, unknown>;
+
+            const validAtDate = new Date(validAt);
+
+            // If validFrom > validAt, ignore
+            if (
+              decodedMetadata["validFrom"] &&
+              new Date(decodedMetadata["validFrom"] as string) > validAtDate
+            ) {
+              continue;
+            }
+
+            // If validTo < validAt, ignore
+            if (
+              decodedMetadata["validTo"] &&
+              new Date(decodedMetadata["validTo"] as string) < validAtDate
+            ) {
+              continue;
+            }
+
+            validRevisionsIds.push(allRevisionsIds[index]!);
+          } catch {
+            // Ignore
+          }
+        }
+
+        return {
+          items: validRevisionsIds.slice(
+            (page - 1) * pageSize,
+            page * pageSize,
+          ),
+          total: validRevisionsIds.length,
+        };
+      }
+
+      // Get the revisions
+      const revisions = await this.contract
+        // @ts-expect-error Error due to CommonJS vs ESM modules imports
+        .connect(provider)
+        .getSchemaRevisionIds(hexSchemaId, page, pageSize);
+
+      return {
+        items: revisions.items,
+        total: Number(revisions.total),
+      };
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error, error.stack);
+      }
+      throw new NotFoundError("Revisions Not Found", {
+        detail: "Revisions not found",
       });
     }
   }
