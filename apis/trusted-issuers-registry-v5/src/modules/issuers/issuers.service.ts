@@ -21,6 +21,7 @@ import type { ApiConfig } from "../../config/configuration.ts";
 import type {
   AttributeObject,
   IssuerProxyResponseObject,
+  IssuerResponseObject__deprecated,
 } from "./issuers.interface.ts";
 
 import { LedgerService } from "../ledger/ledger.service.ts";
@@ -117,6 +118,46 @@ export class IssuersService {
     };
   }
 
+  async getAttributeRevision__deprecated(
+    revisionId: string,
+  ): Promise<AttributeObject> {
+    const provider = this.ledgerService.getProvider();
+
+    // This function assumes that the revisionId exists
+    const hash = prefixWith0x(revisionId);
+
+    let attributeByHash: Awaited<
+      ReturnType<Tir["getIssuerAttributeByHash__deprecated"]>
+    >;
+    try {
+      attributeByHash = await this.contract
+        // @ts-expect-error Error due to CommonJS vs ESM modules imports
+        .connect(provider)
+        .getIssuerAttributeByHash__deprecated(hash);
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error, error.stack);
+      }
+      throw new NotFoundError("Revision Not Found", {
+        detail: `Revision ${hash} not found`,
+      });
+    }
+
+    const { attribData, issuerType, rootTao, tao } = attributeByHash;
+    const attributeData = Buffer.from(
+      remove0xPrefix(attribData),
+      "hex",
+    ).toString();
+
+    return {
+      body: attributeData,
+      hash: remove0xPrefix(hash),
+      issuerType: IssuerTypeNames[Number(issuerType)]!,
+      rootTao,
+      tao,
+    };
+  }
+
   async getAttributes(
     issuerDid: string,
     page: number,
@@ -142,6 +183,43 @@ export class IssuersService {
     }
   }
 
+  async getAttributes__deprecated(
+    issuerDid: string,
+  ): Promise<AttributeObject[]> {
+    const provider = this.ledgerService.getProvider();
+
+    let attributesLastHash: string[];
+
+    try {
+      attributesLastHash = await this.contract
+        // @ts-expect-error Error due to CommonJS vs ESM modules imports
+        .connect(provider)
+        .getIssuer__deprecated(issuerDid);
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error, error.stack);
+      } else {
+        this.logger.error(error);
+      }
+
+      throw new NotFoundError("Issuer Not Found", {
+        detail: `Issuer ${issuerDid} not found`,
+      });
+    }
+
+    if (attributesLastHash.length === 0) {
+      throw new NotFoundError("Issuer Not Found", {
+        detail: `Issuer ${issuerDid} not found`,
+      });
+    }
+
+    return Promise.all(
+      attributesLastHash.map(async (hash) => {
+        return this.getAttributeRevision__deprecated(hash);
+      }),
+    );
+  }
+
   async getIssuer(issuerDid: string): ReturnType<Tir["getIssuer"]> {
     const provider = this.ledgerService.getProvider();
 
@@ -161,6 +239,13 @@ export class IssuersService {
         detail: `Issuer ${issuerDid} not found`,
       });
     }
+  }
+
+  async getIssuer__deprecated(
+    did: string,
+  ): Promise<IssuerResponseObject__deprecated> {
+    const attributes = await this.getAttributes__deprecated(did);
+    return { attributes, did };
   }
 
   async getIssuerAttributeIdRevision(

@@ -14,6 +14,7 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import type { TestDocument } from "../../../tests/utils/data.ts";
 import type {
   Document,
+  Document__deprecated,
   DocumentAccesses,
   Event,
 } from "./documents.interface.ts";
@@ -317,141 +318,156 @@ describe("Documents Module", () => {
     });
   });
 
-  describe("GET /documents/{documentId}", () => {
-    it("should throw an error 400 if the document ID is not valid", async () => {
-      expect.assertions(12);
+  describe.each(["latest", "deprecated"] as const)(
+    "GET /documents/{documentId} (version: %s)",
+    (version) => {
+      it("should throw an error 400 if the document ID is not valid", async () => {
+        expect.assertions(12);
 
-      let response = await request(server).get("/documents/no-document");
+        let response = await request(server).get(
+          `/documents/no-document?version=${version}`,
+        );
 
-      expect(response.body).toStrictEqual({
-        detail: JSON.stringify([
-          "documentId must be 32 bytes encoded in hexadecimal and start with 0x",
-        ]),
-        status: 400,
-        title: "Bad Request",
-        type: "about:blank",
+        expect(response.body).toStrictEqual({
+          detail: JSON.stringify([
+            "documentId must be 32 bytes encoded in hexadecimal and start with 0x",
+          ]),
+          status: 400,
+          title: "Bad Request",
+          type: "about:blank",
+        });
+        expect(response.status).toBe(400);
+        expect(
+          (response.headers as { "content-type": string })["content-type"],
+        ).toStrictEqual(expect.stringContaining("application/problem+json"));
+
+        response = await request(server).get(
+          `/documents/0xnothexadecimal?version=${version}`,
+        );
+
+        expect(response.body).toStrictEqual({
+          detail: JSON.stringify([
+            "documentId must be 32 bytes encoded in hexadecimal and start with 0x",
+          ]),
+          status: 400,
+          title: "Bad Request",
+          type: "about:blank",
+        });
+        expect(response.status).toBe(400);
+        expect(
+          (response.headers as { "content-type": string })["content-type"],
+        ).toStrictEqual(expect.stringContaining("application/problem+json"));
+
+        response = await request(server).get(
+          `/documents/${randomBytes(32).toString("hex")}?version=${version}`,
+        );
+
+        expect(response.body).toStrictEqual({
+          detail: JSON.stringify([
+            "documentId must be 32 bytes encoded in hexadecimal and start with 0x",
+          ]),
+          status: 400,
+          title: "Bad Request",
+          type: "about:blank",
+        });
+        expect(response.status).toBe(400);
+        expect(
+          (response.headers as { "content-type": string })["content-type"],
+        ).toStrictEqual(expect.stringContaining("application/problem+json"));
+
+        response = await request(server).get(
+          `/documents/0x${randomBytes(24).toString("hex")}?version=${version}`,
+        );
+
+        expect(response.body).toStrictEqual({
+          detail: JSON.stringify([
+            "documentId must be 32 bytes encoded in hexadecimal and start with 0x",
+          ]),
+          status: 400,
+          title: "Bad Request",
+          type: "about:blank",
+        });
+        expect(response.status).toBe(400);
+        expect(
+          (response.headers as { "content-type": string })["content-type"],
+        ).toStrictEqual(expect.stringContaining("application/problem+json"));
       });
-      expect(response.status).toBe(400);
-      expect(
-        (response.headers as { "content-type": string })["content-type"],
-      ).toStrictEqual(expect.stringContaining("application/problem+json"));
 
-      response = await request(server).get("/documents/0xnothexadecimal");
+      it("should throw an error if the document is not found", async () => {
+        expect.assertions(3);
 
-      expect(response.body).toStrictEqual({
-        detail: JSON.stringify([
-          "documentId must be 32 bytes encoded in hexadecimal and start with 0x",
-        ]),
-        status: 400,
-        title: "Bad Request",
-        type: "about:blank",
+        const documentId = `0x${randomBytes(32).toString("hex")}`;
+        const response = await request(server).get(
+          `/documents/${documentId}?version=${version}`,
+        );
+
+        expect(response.body).toStrictEqual({
+          detail: `Document ${documentId} not found`,
+          status: 404,
+          title: "Document Not Found",
+          type: "about:blank",
+        });
+        expect(response.status).toBe(404);
+        expect(
+          (response.headers as { "content-type": string })["content-type"],
+        ).toStrictEqual(expect.stringContaining("application/problem+json"));
       });
-      expect(response.status).toBe(400);
-      expect(
-        (response.headers as { "content-type": string })["content-type"],
-      ).toStrictEqual(expect.stringContaining("application/problem+json"));
 
-      response = await request(server).get(
-        `/documents/${randomBytes(32).toString("hex")}`,
-      );
+      it("should return a specific document with block source identified by its document ID", async () => {
+        expect.assertions(3);
 
-      expect(response.body).toStrictEqual({
-        detail: JSON.stringify([
-          "documentId must be 32 bytes encoded in hexadecimal and start with 0x",
-        ]),
-        status: 400,
-        title: "Bad Request",
-        type: "about:blank",
+        const document = testEnv.documentsWithBlockSource[0]!;
+
+        const response = await request(server).get(
+          `/documents/${document.documentHash}?version=${version}`,
+        );
+
+        expect(response.body).toStrictEqual({
+          creator: document.didEbsiCreator,
+          ...(version === "deprecated"
+            ? { events: document.events.map((event) => event.eventHash) }
+            : {}),
+          metadata: document.documentMetadata,
+          timestamp: {
+            datetime: document.timestamp.datetime,
+            proof: document.timestamp.proof,
+            source: "block",
+          },
+        } satisfies Document | Document__deprecated);
+        expect(response.status).toBe(200);
+        expect(
+          (response.headers as { "content-type": string })["content-type"],
+        ).toStrictEqual(expect.stringContaining("application/json"));
       });
-      expect(response.status).toBe(400);
-      expect(
-        (response.headers as { "content-type": string })["content-type"],
-      ).toStrictEqual(expect.stringContaining("application/problem+json"));
 
-      response = await request(server).get(
-        `/documents/0x${randomBytes(24).toString("hex")}`,
-      );
+      it("should return a specific document with external source identified by its document ID", async () => {
+        expect.assertions(3);
 
-      expect(response.body).toStrictEqual({
-        detail: JSON.stringify([
-          "documentId must be 32 bytes encoded in hexadecimal and start with 0x",
-        ]),
-        status: 400,
-        title: "Bad Request",
-        type: "about:blank",
+        const document = testEnv.documentsWithExternalSource[0]!;
+
+        const response = await request(server).get(
+          `/documents/${document.documentHash}?version=${version}`,
+        );
+
+        expect(response.body).toStrictEqual({
+          creator: document.didEbsiCreator,
+          ...(version === "deprecated"
+            ? { events: document.events.map((event) => event.eventHash) }
+            : {}),
+          metadata: document.documentMetadata,
+          timestamp: {
+            datetime: expect.stringMatching(/^0x/),
+            proof: document.timestamp?.proof,
+            source: "external",
+          },
+        } satisfies Document);
+        expect(response.status).toBe(200);
+        expect(
+          (response.headers as { "content-type": string })["content-type"],
+        ).toStrictEqual(expect.stringContaining("application/json"));
       });
-      expect(response.status).toBe(400);
-      expect(
-        (response.headers as { "content-type": string })["content-type"],
-      ).toStrictEqual(expect.stringContaining("application/problem+json"));
-    });
-
-    it("should throw an error if the document is not found", async () => {
-      expect.assertions(3);
-
-      const documentId = `0x${randomBytes(32).toString("hex")}`;
-      const response = await request(server).get(`/documents/${documentId}`);
-
-      expect(response.body).toStrictEqual({
-        detail: `Document ${documentId} not found`,
-        status: 404,
-        title: "Document Not Found",
-        type: "about:blank",
-      });
-      expect(response.status).toBe(404);
-      expect(
-        (response.headers as { "content-type": string })["content-type"],
-      ).toStrictEqual(expect.stringContaining("application/problem+json"));
-    });
-
-    it("should return a specific document with block source identified by its document ID", async () => {
-      expect.assertions(3);
-
-      const document = testEnv.documentsWithBlockSource[0]!;
-
-      const response = await request(server).get(
-        `/documents/${document.documentHash}`,
-      );
-
-      expect(response.body).toStrictEqual({
-        creator: document.didEbsiCreator,
-        metadata: document.documentMetadata,
-        timestamp: {
-          datetime: document.timestamp.datetime,
-          proof: document.timestamp.proof,
-          source: "block",
-        },
-      } satisfies Document);
-      expect(response.status).toBe(200);
-      expect(
-        (response.headers as { "content-type": string })["content-type"],
-      ).toStrictEqual(expect.stringContaining("application/json"));
-    });
-
-    it("should return a specific document with external source identified by its document ID", async () => {
-      expect.assertions(3);
-
-      const document = testEnv.documentsWithExternalSource[0]!;
-
-      const response = await request(server).get(
-        `/documents/${document.documentHash}`,
-      );
-
-      expect(response.body).toStrictEqual({
-        creator: document.didEbsiCreator,
-        metadata: document.documentMetadata,
-        timestamp: {
-          datetime: expect.stringMatching(/^0x/),
-          proof: document.timestamp?.proof,
-          source: "external",
-        },
-      } satisfies Document);
-      expect(response.status).toBe(200);
-      expect(
-        (response.headers as { "content-type": string })["content-type"],
-      ).toStrictEqual(expect.stringContaining("application/json"));
-    });
-  });
+    },
+  );
 
   describe("GET /documents/{documentId}/events", () => {
     it("should throw an error 400 if the document ID is not valid", async () => {

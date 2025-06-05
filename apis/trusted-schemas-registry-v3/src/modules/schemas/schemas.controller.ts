@@ -1,6 +1,6 @@
 import type { PaginatedList } from "@ebsiint-api/shared";
 
-import { Accepts } from "@ebsiint-api/shared";
+import { Accepts, BadRequestError } from "@ebsiint-api/shared";
 import { Controller, Get, Header, Param, Query } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
@@ -78,11 +78,26 @@ export class SchemasController {
   ): Promise<PaginatedList<GetSchemaRevisionsResponse>> {
     const { schemaId } = params;
 
-    const revisions = await this.schemasService.getSchemaRevisions(
-      schemaId,
-      query["page[after]"],
-      query["page[size]"],
-    );
+    if (query["valid-at"] && query.version !== "deprecated") {
+      throw new BadRequestError(BadRequestError.defaultTitle, {
+        detail:
+          "Query parameter 'version' must be set to 'deprecated' in order to use 'valid-at'",
+      });
+    }
+
+    const revisions =
+      query.version === "deprecated"
+        ? await this.schemasService.getSchemaRevisions__deprecated(
+            schemaId,
+            query["page[after]"],
+            query["page[size]"],
+            query["valid-at"],
+          )
+        : await this.schemasService.getSchemaRevisions(
+            schemaId,
+            query["page[after]"],
+            query["page[size]"],
+          );
 
     const apiUrlPrefix = this.configService.get("apiUrlPrefix", {
       infer: true,
@@ -95,6 +110,8 @@ export class SchemasController {
       query["page[after]"],
       query["page[size]"],
       baseUrl,
+      query["valid-at"],
+      query.version,
     );
   }
 

@@ -182,10 +182,26 @@ describe("Issuers", () => {
     ).to.emit(tir, "AddAttributeRevision");
 
     // get RootTAO attribute
-    let issuerHashes = (await tir.getIssuerAttributes(rootTAO1.did, 1, 50))
-      .items;
+
+    // Deprecated way
+    let issuerHashes = await tir.getIssuer__deprecated(rootTAO1.did);
     expect(issuerHashes).to.eql([rootTAO1.attributeId]);
-    let issuerAttr = await tir.getLatestRevisionAttribute(
+    let issuerAttr: Awaited<
+      | ReturnType<typeof tir.getIssuerAttributeByHash__deprecated>
+      | ReturnType<typeof tir.getLatestRevisionAttribute>
+    > = await tir.getIssuerAttributeByHash__deprecated(issuerHashes[0]);
+    expect(decodeResult(issuerAttr)).to.deep.equal({
+      attribData: "0x",
+      did: rootTAO1.did,
+      issuerType: IssuerType.RootTAO.toString(),
+      rootTao: rootTAO1.did,
+      tao: rootTAO1.did,
+    });
+
+    // New way
+    issuerHashes = (await tir.getIssuerAttributes(rootTAO1.did, 1, 50)).items;
+    expect(issuerHashes).to.eql([rootTAO1.attributeId]);
+    issuerAttr = await tir.getLatestRevisionAttribute(
       rootTAO1.did,
       issuerHashes[0],
     );
@@ -231,6 +247,22 @@ describe("Issuers", () => {
     ).to.emit(tir, "AddAttributeRevision");
 
     // get RootTAO attribute
+
+    // Deprecated way
+    issuerHashes = await tir.getIssuer__deprecated(rootTAO1.did);
+    expect(issuerHashes).to.eql([rootTAO1.revisionId]);
+    issuerAttr = await tir.getIssuerAttributeByHash__deprecated(
+      issuerHashes[0],
+    );
+    expect(decodeResult(issuerAttr)).to.deep.equal({
+      attribData: rootTAO1.attribute,
+      did: rootTAO1.did,
+      issuerType: IssuerType.RootTAO.toString(),
+      rootTao: rootTAO1.did,
+      tao: rootTAO1.did,
+    });
+
+    // New way
     issuerHashes = (await tir.getIssuerAttributes(rootTAO1.did, 1, 50)).items;
     expect(issuerHashes).to.eql([rootTAO1.attributeId]);
     issuerAttr = await tir.getLatestRevisionAttribute(
@@ -311,9 +343,26 @@ describe("Issuers", () => {
     ).to.emit(tir, "AddAttributeRevision");
 
     // get TAO attribute
-    const issuerHashes = (await tir.getIssuerAttributes(tao1.did, 1, 50)).items;
+
+    // Deprecated way
+    let issuerHashes = await tir.getIssuer__deprecated(tao1.did);
+    expect(issuerHashes).to.eql([tao1.revisionId]);
+    let issuerAttr: Awaited<
+      | ReturnType<typeof tir.getIssuerAttributeByHash__deprecated>
+      | ReturnType<typeof tir.getLatestRevisionAttribute>
+    > = await tir.getIssuerAttributeByHash__deprecated(issuerHashes[0]);
+    expect(decodeResult(issuerAttr)).to.deep.equal({
+      attribData: tao1.attribute,
+      did: tao1.did,
+      issuerType: IssuerType.TAO.toString(),
+      rootTao: rootTAO1.did,
+      tao: rootTAO1.did,
+    });
+
+    // New way
+    issuerHashes = (await tir.getIssuerAttributes(tao1.did, 1, 50)).items;
     expect(issuerHashes).to.eql([tao1.attributeId]);
-    const issuerAttr = await tir.getLatestRevisionAttribute(
+    issuerAttr = await tir.getLatestRevisionAttribute(
       tao1.did,
       tao1.attributeId,
     );
@@ -362,9 +411,26 @@ describe("Issuers", () => {
     ).to.emit(tir, "AddAttributeRevision");
 
     // get TAO attribute
-    const issuerHashes = (await tir.getIssuerAttributes(tao2.did, 1, 50)).items;
+
+    // Deprecated way
+    let issuerHashes = await tir.getIssuer__deprecated(tao2.did);
+    expect(issuerHashes).to.eql([tao2.revisionId]);
+    let issuerAttr: Awaited<
+      | ReturnType<typeof tir.getIssuerAttributeByHash__deprecated>
+      | ReturnType<typeof tir.getLatestRevisionAttribute>
+    > = await tir.getIssuerAttributeByHash__deprecated(issuerHashes[0]);
+    expect(decodeResult(issuerAttr)).to.deep.equal({
+      attribData: tao2.attribute,
+      did: tao2.did,
+      issuerType: IssuerType.TAO.toString(),
+      rootTao: rootTAO1.did,
+      tao: rootTAO1.did,
+    });
+
+    // New way
+    issuerHashes = (await tir.getIssuerAttributes(tao2.did, 1, 50)).items;
     expect(issuerHashes).to.eql([tao2.attributeId]);
-    const issuerAttr = await tir.getLatestRevisionAttribute(
+    issuerAttr = await tir.getLatestRevisionAttribute(
       tao2.did,
       tao2.attributeId,
     );
@@ -413,9 +479,26 @@ describe("Issuers", () => {
     ).to.emit(tir, "AddAttributeRevision");
 
     // get TI attribute
-    const issuerHashes = (await tir.getIssuerAttributes(ti1.did, 1, 50)).items;
+
+    // Deprecated way
+    let issuerHashes = await tir.getIssuer__deprecated(ti1.did);
+    expect(issuerHashes).to.eql([ti1.revisionId1]);
+    let issuerAttr: Awaited<
+      | ReturnType<typeof tir.getIssuerAttributeByHash__deprecated>
+      | ReturnType<typeof tir.getLatestRevisionAttribute>
+    > = await tir.getIssuerAttributeByHash__deprecated(issuerHashes[0]);
+    expect(decodeResult(issuerAttr)).to.deep.equal({
+      attribData: ti1.attribute1,
+      did: ti1.did,
+      issuerType: IssuerType.TI.toString(),
+      rootTao: rootTAO1.did,
+      tao: tao1.did,
+    });
+
+    // New way
+    issuerHashes = (await tir.getIssuerAttributes(ti1.did, 1, 50)).items;
     expect(issuerHashes).to.eql([ti1.attributeId1]);
-    const issuerAttr = await tir.getLatestRevisionAttribute(
+    issuerAttr = await tir.getLatestRevisionAttribute(
       ti1.did,
       ti1.attributeId1,
     );
@@ -509,9 +592,24 @@ describe("Issuers", () => {
       ).to.emit(tir, "AddAttributeRevision");
 
       // get TAO attribute
-      const issuerHashes = (await tir.getIssuerAttributes(tao1.did, 1, 50))
-        .items;
-      const issuerAttr = await tir.getLatestRevisionAttribute(
+
+      // Deprecated way
+      let issuerHashes = await tir.getIssuer__deprecated(tao1.did);
+      let issuerAttr: Awaited<
+        | ReturnType<typeof tir.getIssuerAttributeByHash__deprecated>
+        | ReturnType<typeof tir.getLatestRevisionAttribute>
+      > = await tir.getIssuerAttributeByHash__deprecated(issuerHashes[0]);
+      expect(decodeResult(issuerAttr)).to.deep.equal({
+        attribData: "0x",
+        did: tao1.did,
+        issuerType: IssuerType.Revoked.toString(),
+        rootTao: rootTAO1.did,
+        tao: rootTAO1.did,
+      });
+
+      // New way
+      issuerHashes = (await tir.getIssuerAttributes(tao1.did, 1, 50)).items;
+      issuerAttr = await tir.getLatestRevisionAttribute(
         tao1.did,
         issuerHashes[0],
       );
@@ -566,6 +664,9 @@ describe("Issuers", () => {
     });
 
     it("should fail to get issuer if it doesn't exist", async () => {
+      await expect(tir.getIssuer__deprecated(randomDid())).to.be.revertedWith(
+        "issuer does not exist",
+      );
       await expect(
         tir.getIssuerAttributes(randomDid(), 1, 50),
       ).to.be.revertedWith("issuer does not exist");
@@ -693,14 +794,35 @@ describe("Issuers", () => {
       const attr = `0x${crypto.randomBytes(10).toString("hex")}`;
       await tir.setAttributeData(rootTAO1.did, rootTAO1.attributeId, attr);
 
+      // Deprecated way
+
       // expect the attribute to be revoked
-      const issuerHashes = (await tir.getIssuerAttributes(rootTAO1.did, 1, 50))
-        .items;
+      let issuerHashes = await tir.getIssuer__deprecated(rootTAO1.did);
       expect(issuerHashes).to.be.an("array");
       expect(issuerHashes).to.have.length(1);
 
       // get the second attribute
-      const issuerAttr = await tir.getLatestRevisionAttribute(
+      let issuerAttr: Awaited<
+        | ReturnType<typeof tir.getIssuerAttributeByHash__deprecated>
+        | ReturnType<typeof tir.getLatestRevisionAttribute>
+      > = await tir.getIssuerAttributeByHash__deprecated(issuerHashes[0]);
+      expect(decodeResult(issuerAttr)).to.deep.equal({
+        attribData: attr,
+        did: rootTAO1.did,
+        issuerType: IssuerType.Revoked.toString(),
+        rootTao: rootTAO1.did,
+        tao: rootTAO1.did,
+      });
+
+      // New way
+
+      // expect the attribute to be revoked
+      issuerHashes = (await tir.getIssuerAttributes(rootTAO1.did, 1, 50)).items;
+      expect(issuerHashes).to.be.an("array");
+      expect(issuerHashes).to.have.length(1);
+
+      // get the second attribute
+      issuerAttr = await tir.getLatestRevisionAttribute(
         rootTAO1.did,
         issuerHashes[0],
       );
@@ -774,14 +896,35 @@ describe("Issuers", () => {
         rootTAO1.attributeId,
       );
 
+      // Deprecated way
+
       // expect the attribute to be revoked
-      const issuerHashes = (await tir.getIssuerAttributes(rootTAO1.did, 1, 50))
-        .items;
+      let issuerHashes = await tir.getIssuer__deprecated(rootTAO1.did);
       expect(issuerHashes).to.be.an("array");
       expect(issuerHashes).to.have.length(1);
 
       // get the second attribute
-      const issuerAttr = await tir.getLatestRevisionAttribute(
+      let issuerAttr: Awaited<
+        | ReturnType<typeof tir.getIssuerAttributeByHash__deprecated>
+        | ReturnType<typeof tir.getLatestRevisionAttribute>
+      > = await tir.getIssuerAttributeByHash__deprecated(issuerHashes[0]);
+      expect(decodeResult(issuerAttr)).to.deep.equal({
+        attribData: "0x",
+        did: rootTAO1.did,
+        issuerType: IssuerType.Revoked.toString(),
+        rootTao: rootTAO1.did,
+        tao: rootTAO1.did,
+      });
+
+      // New way
+
+      // expect the attribute to be revoked
+      issuerHashes = (await tir.getIssuerAttributes(rootTAO1.did, 1, 50)).items;
+      expect(issuerHashes).to.be.an("array");
+      expect(issuerHashes).to.have.length(1);
+
+      // get the second attribute
+      issuerAttr = await tir.getLatestRevisionAttribute(
         rootTAO1.did,
         issuerHashes[0],
       );

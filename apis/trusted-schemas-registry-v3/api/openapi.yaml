@@ -199,6 +199,22 @@ paths:
           in: query
           name: page[size]
           description: Defines the maximum number of objects that may be returned.
+        - in: query
+          name: valid-at
+          schema:
+            type: string
+          description: ISO-8601 date. Only revisions valid at this date will be returned. Requires "version" to be "deprecated".
+        - in: query
+          name: version
+          description: |
+            Version of the endpoint to use. Defaults to the latest version.
+          required: false
+          schema:
+            type: string
+            enum:
+              - deprecated
+              - latest
+          example: "deprecated"
       responses:
         "200":
           description: Success

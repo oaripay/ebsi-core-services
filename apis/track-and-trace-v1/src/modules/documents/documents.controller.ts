@@ -8,6 +8,7 @@ import type { ApiConfig } from "../../config/configuration.ts";
 import type {
   Access,
   Document,
+  Document__deprecated,
   DocumentEventsLink,
   DocumentsLink,
   Event,
@@ -26,6 +27,7 @@ import {
   GetDocumentEventsDto,
   GetDocumentEventsParamsDto,
   GetDocumentParamsDto,
+  GetDocumentQueryDto,
   GetDocumentsDto,
 } from "./dto/index.ts";
 
@@ -68,12 +70,18 @@ export class DocumentsController {
 
   @Accepts("application/json")
   @Get("/:documentId")
-  async getDocument(@Param() params: GetDocumentParamsDto): Promise<Document> {
+  async getDocument(
+    @Param() params: GetDocumentParamsDto,
+    @Query() query: GetDocumentQueryDto,
+  ): Promise<Document | Document__deprecated> {
     const { documentId } = params;
+    const { version } = query;
 
-    const document = await this.documentsService.getDocument(documentId);
+    if (version === "deprecated") {
+      return await this.documentsService.getDocument__deprecated(documentId);
+    }
 
-    return document;
+    return await this.documentsService.getDocument(documentId);
   }
 
   @Accepts("application/json")

@@ -61,6 +61,18 @@ interface ITrackAndTraceInterface {
         string creator;
     }
 
+    struct DocumentGetter__deprecated {
+        string documentMetadata;
+        Timestamp documentTimestamp; // creation of the document
+        /**
+         * list of hashes so we can iterate through them, will see
+         * on implementation if we need aditional mappings to reduce
+         * complexity for querying an event
+         */
+        bytes32[] eventHashes;
+        string creator;
+    }
+
     struct Document {
         string documentMetadata;
         Timestamp documentTimestamp; // creation of the document

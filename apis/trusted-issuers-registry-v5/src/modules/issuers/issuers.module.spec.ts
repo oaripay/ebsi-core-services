@@ -11,6 +11,7 @@ import { Logger, ValidationPipe } from "@nestjs/common";
 import { FastifyAdapter } from "@nestjs/platform-fastify";
 import { Test } from "@nestjs/testing";
 import axios, { AxiosError } from "axios";
+import { ethers } from "ethers";
 import { randomBytes } from "node:crypto";
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
@@ -253,64 +254,92 @@ describe("Issuers Module", () => {
     });
   });
 
-  describe("GET /issuers/{did}", () => {
-    it("should return a specific issuer", async () => {
-      expect.assertions(2);
+  describe.each(["latest", "deprecated"] as const)(
+    "GET /issuers/{did} (version: %s)",
+    (version) => {
+      it("should return a specific issuer", async () => {
+        expect.assertions(2);
 
-      const response = await request(server).get(`/issuers/${issuer.did}`);
+        const response = await request(server).get(
+          `/issuers/${issuer.did}?version=${version}`,
+        );
 
-      expect(response.body).toStrictEqual({
-        attributes: expect.stringContaining(
-          `/issuers/${issuer.did}/attributes`,
-        ),
-        did: issuer.did,
-        hasAttributes: true,
+        expect(response.body).toStrictEqual(
+          version === "latest"
+            ? {
+                attributes: expect.stringContaining(
+                  `/issuers/${issuer.did}/attributes`,
+                ),
+                did: issuer.did,
+                hasAttributes: true,
+              }
+            : {
+                attributes: [
+                  {
+                    body: issuer.attribute.utf8,
+                    hash: remove0xPrefix(
+                      ethers.sha256(issuer.attribute.buffer),
+                    ),
+                    issuerType: IssuerTypeNames[issuer.issuerType],
+                    rootTao: rootTao.did,
+                    tao: issuer.tao,
+                  },
+                ],
+                did: issuer.did,
+              },
+        );
+        expect(response.status).toBe(200);
       });
-      expect(response.status).toBe(200);
-    });
 
-    it("should throw an error if the issuer DID is not correctly formatted", async () => {
-      expect.assertions(2);
+      it("should throw an error if the issuer DID is not correctly formatted", async () => {
+        expect.assertions(2);
 
-      const response = await request(server).get("/issuers/not-a-did");
+        const response = await request(server).get(
+          `/issuers/not-a-did?version=${version}`,
+        );
 
-      expect(response.body).toStrictEqual({
-        detail: '["did must be a valid DID v1"]',
-        status: 400,
-        title: "Bad Request",
-        type: "about:blank",
+        expect(response.body).toStrictEqual({
+          detail: '["did must be a valid DID v1"]',
+          status: 400,
+          title: "Bad Request",
+          type: "about:blank",
+        });
+        expect(response.status).toBe(400);
       });
-      expect(response.status).toBe(400);
-    });
 
-    it("should throw an error if the issuer DID is not a valid EBSI DID", async () => {
-      expect.assertions(2);
+      it("should throw an error if the issuer DID is not a valid EBSI DID", async () => {
+        expect.assertions(2);
 
-      const response = await request(server).get("/issuers/did:ebsi:z1234");
+        const response = await request(server).get(
+          `/issuers/did:ebsi:z1234?version=${version}`,
+        );
 
-      expect(response.body).toStrictEqual({
-        detail: '["did must be a valid DID v1"]',
-        status: 400,
-        title: "Bad Request",
-        type: "about:blank",
+        expect(response.body).toStrictEqual({
+          detail: '["did must be a valid DID v1"]',
+          status: 400,
+          title: "Bad Request",
+          type: "about:blank",
+        });
+        expect(response.status).toBe(400);
       });
-      expect(response.status).toBe(400);
-    });
 
-    it("should throw an error if the issuer is not found", async () => {
-      expect.assertions(2);
+      it("should throw an error if the issuer is not found", async () => {
+        expect.assertions(2);
 
-      const response = await request(server).get(`/issuers/${randomDid}`);
+        const response = await request(server).get(
+          `/issuers/${randomDid}?version=${version}`,
+        );
 
-      expect(response.body).toStrictEqual({
-        detail: `Issuer ${randomDid} not found`,
-        status: 404,
-        title: "Issuer Not Found",
-        type: "about:blank",
+        expect(response.body).toStrictEqual({
+          detail: `Issuer ${randomDid} not found`,
+          status: 404,
+          title: "Issuer Not Found",
+          type: "about:blank",
+        });
+        expect(response.status).toBe(404);
       });
-      expect(response.status).toBe(404);
-    });
-  });
+    },
+  );
 
   describe("GET /issuers/{did}/attributes", () => {
     it("should return the attributes from a specific issuer", async () => {

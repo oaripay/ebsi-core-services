@@ -127,7 +127,7 @@ export default tseslint.config(
 
   // DTOs
   {
-    files: ["apis/**/*.dto.ts"],
+    files: ["apis/**/dto/*.ts"],
     rules: {
       // Don't change the order of class members and decorators in DTOs
       "perfectionist/sort-classes": ["off"],
