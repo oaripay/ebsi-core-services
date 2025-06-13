@@ -110,6 +110,9 @@ describe("HealthController", () => {
       // Expect httpService.request to have been called for every runtime dependency
       for (const dependency of dependencies) {
         expect(spy).toHaveBeenCalledWith({
+          headers: {
+            "EBSI-Healthcheck": "1",
+          },
           url: `${localOrigin}/${dependency}/${DEPENDENCIES[dependency]}`,
         });
       }
@@ -153,6 +156,9 @@ describe("HealthController", () => {
       // Expect httpService.request to have been called for every runtime dependency
       for (const dependency of dependencies) {
         expect(spy).toHaveBeenCalledWith({
+          headers: {
+            "EBSI-Healthcheck": "1",
+          },
           url: `${localOrigin}/${dependency}/${DEPENDENCIES[dependency]}`,
         });
       }
