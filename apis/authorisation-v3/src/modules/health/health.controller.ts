@@ -43,6 +43,9 @@ export class HealthController {
               this.configService.get("localOrigin", { infer: true }) ??
               this.configService.get("domain", { infer: true })
             }/${service}/${version}`,
+            {
+              headers: { "EBSI-Healthcheck": "1" },
+            },
           );
         },
       ),

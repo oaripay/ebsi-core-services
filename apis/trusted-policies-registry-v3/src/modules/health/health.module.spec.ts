@@ -114,6 +114,9 @@ describe("Health Module", () => {
       // Expect httpService.request to have been called for every runtime dependency
       for (const dependency of dependencies) {
         expect(spy).toHaveBeenCalledWith({
+          headers: {
+            "EBSI-Healthcheck": "1",
+          },
           url: `${localOrigin}/${dependency}/${RUNTIME_DEPENDENCIES[dependency]}`,
         });
       }
@@ -170,6 +173,9 @@ describe("Health Module", () => {
       // Expect httpService.request to have been called for every runtime dependency
       for (const dependency of dependencies) {
         expect(spy).toHaveBeenCalledWith({
+          headers: {
+            "EBSI-Healthcheck": "1",
+          },
           url: `${localOrigin}/${dependency}/${RUNTIME_DEPENDENCIES[dependency]}`,
         });
       }
@@ -237,6 +243,9 @@ describe("Health Module", () => {
       // Expect httpService.request to have been called for every runtime dependency
       for (const dependency of dependencies) {
         expect(spy).toHaveBeenCalledWith({
+          headers: {
+            "EBSI-Healthcheck": "1",
+          },
           url: `${localOrigin}/${dependency}/${RUNTIME_DEPENDENCIES[dependency]}`,
         });
       }
