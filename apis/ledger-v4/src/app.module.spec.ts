@@ -9,6 +9,7 @@ import { FastifyAdapter } from "@nestjs/platform-fastify";
 import { Test } from "@nestjs/testing";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
+import { PinoLogger } from "nestjs-pino";
 import request from "supertest";
 import {
   afterAll,
@@ -25,9 +26,9 @@ import type { ApiConfig } from "./config/configuration.ts";
 import { AppModule } from "./app.module.ts";
 import { RUNTIME_DEPENDENCIES } from "./config/configuration.ts";
 import { AllExceptionsFilter } from "./filters/http-exception.filter.ts";
-import { createLogger } from "./logger/logger.ts";
 
 const mockedLogger = {
+  debug: vi.fn(),
   error: vi.fn(),
   log: vi.fn(),
   warn: vi.fn(),
@@ -38,9 +39,8 @@ async function startApp() {
     imports: [AppModule],
   }).compile();
 
-  const logger = createLogger({ silent: true });
   const adapter = new FastifyAdapter({
-    frameworkErrors: frameworkErrors(logger),
+    frameworkErrors,
   });
   const app =
     moduleFixture.createNestApplication<NestFastifyApplication>(adapter);
@@ -102,9 +102,7 @@ describe("App Module", () => {
 
   describe("GET /", () => {
     it("should return 'ok' without logging the request nor the response", async () => {
-      expect.assertions(5);
-
-      vi.stubEnv("LOG_LEVEL", "debug");
+      expect.assertions(6);
 
       const app = await startApp();
       const server = app.getHttpServer();
@@ -120,24 +118,44 @@ describe("App Module", () => {
       );
       expect(response.headers["x-frame-options"]).toStrictEqual("DENY");
 
-      // The last logs show that the application was started
+      // The last logs show that the request was received and completed
       const calls = mockedLogger.log.mock.calls.length;
       expect(mockedLogger.log).toHaveBeenNthCalledWith(
+        calls - 1,
+        {
+          request: {
+            method: "GET",
+            remoteAddress: expect.any(String),
+            url: "/",
+          },
+        },
+        "Request received",
+        "LoggerMiddleware",
+      );
+      expect(mockedLogger.log).toHaveBeenNthCalledWith(
         calls,
-        "Nest application successfully started",
-        "NestApplication",
+        {
+          response: { statusCode: 200 },
+          responseTime: expect.any(Number),
+        },
+        "Request completed",
+        "LoggerMiddleware",
       );
 
       await app.close();
     });
 
     it("should not display the framework in the error message", async () => {
-      expect.assertions(2);
-
-      vi.stubEnv("LOG_LEVEL", "debug");
+      expect.assertions(3);
 
       const app = await startApp();
       const server = app.getHttpServer();
+
+      const pinoLoggerSpy = vi
+        .spyOn(PinoLogger.root, "info")
+        .mockImplementation(() => {
+          // Do nothing
+        });
 
       const response = await request(server).get("/%91").send();
 
@@ -148,6 +166,24 @@ describe("App Module", () => {
         type: "about:blank",
       });
       expect(response.status).toBe(400);
+
+      expect(pinoLoggerSpy).toHaveBeenCalledWith(
+        {
+          context: "frameworkErrors",
+          error: expect.any(Error),
+          request: {
+            headers: {
+              "accept-encoding": "gzip, deflate",
+              connection: "close",
+              host: expect.any(String),
+            },
+            method: "GET",
+            remoteAddress: expect.any(String),
+            url: "/%91",
+          },
+        },
+        "Invalid request received",
+      );
 
       await app.close();
     });
@@ -272,8 +308,6 @@ describe("App Module", () => {
     it("should return an error and log it", async () => {
       expect.assertions(3);
 
-      vi.stubEnv("LOG_LEVEL", "debug");
-
       const app = await startApp();
       const server = app.getHttpServer();
 
@@ -303,8 +337,6 @@ describe("App Module", () => {
   describe("GET /health", () => {
     it('should NOT log the request and response if the header "EBSI-Healthcheck" is present', async () => {
       expect.assertions(1);
-
-      vi.stubEnv("LOG_LEVEL", "debug");
 
       const app = await startApp();
       const configService =
@@ -346,10 +378,8 @@ describe("App Module", () => {
       await app.close();
     });
 
-    it('should log the request and response without response body when the log level is not "debug"', async () => {
+    it('should log the request and response with level "debug"', async () => {
       expect.assertions(2);
-
-      vi.stubEnv("LOG_LEVEL", "info");
 
       const app = await startApp();
       const configService =
@@ -379,85 +409,17 @@ describe("App Module", () => {
 
       await request(app.getHttpServer()).get("/health");
 
-      const calls = mockedLogger.log.mock.calls.length;
+      const calls = mockedLogger.debug.mock.calls.length;
 
       // It should have logged the request
-      expect(mockedLogger.log).toHaveBeenNthCalledWith(
+      expect(mockedLogger.debug).toHaveBeenNthCalledWith(
         calls - 1,
         {
-          headers: {
-            "accept-encoding": "gzip, deflate",
-            connection: "close",
-            host: expect.stringContaining("127.0.0.1:"),
+          request: {
+            body: "<empty>",
           },
-          message: "Incoming request - GET - /health",
-          method: "GET",
         },
-        "LoggingInterceptor - GET - /health",
-        "LoggingInterceptor",
-      );
-
-      // It should have logged the response (without body)
-      expect(mockedLogger.log).toHaveBeenNthCalledWith(
-        calls,
-        {
-          message: "Outgoing response - 200 - GET - /health",
-        },
-        "LoggingInterceptor - 200 - GET - /health",
-        "LoggingInterceptor",
-      );
-
-      await app.close();
-    });
-
-    it('should log the request and response with response body when the log level is "debug"', async () => {
-      expect.assertions(2);
-
-      vi.stubEnv("LOG_LEVEL", "debug");
-
-      const app = await startApp();
-      const configService =
-        app.get<ConfigService<ApiConfig, true>>(ConfigService);
-
-      const dependencies = Object.keys(
-        RUNTIME_DEPENDENCIES,
-      ) as (keyof typeof RUNTIME_DEPENDENCIES)[];
-
-      const localOrigin =
-        configService.get("localOrigin", { infer: true }) ??
-        configService.get("domain", { infer: true });
-
-      // All the dependencies return a 200
-      mockServer.use(
-        ...dependencies.map((dependency) =>
-          http.get(
-            `${localOrigin}${RUNTIME_DEPENDENCIES[dependency] as string}`,
-            () => HttpResponse.json({}),
-          ),
-        ),
-        http.get(
-          configService.get("besuReadinessEndpoint", { infer: true }),
-          () => HttpResponse.json({}),
-        ),
-      );
-
-      await request(app.getHttpServer()).get("/health");
-
-      const calls = mockedLogger.log.mock.calls.length;
-
-      // It should have logged the request
-      expect(mockedLogger.log).toHaveBeenNthCalledWith(
-        calls - 1,
-        {
-          headers: {
-            "accept-encoding": "gzip, deflate",
-            connection: "close",
-            host: expect.stringContaining("127.0.0.1:"),
-          },
-          message: "Incoming request - GET - /health",
-          method: "GET",
-        },
-        "LoggingInterceptor - GET - /health",
+        "Incoming request",
         "LoggingInterceptor",
       );
 
@@ -475,18 +437,19 @@ describe("App Module", () => {
       };
 
       // It should have logged the response (with body)
-      expect(mockedLogger.log).toHaveBeenNthCalledWith(
+      expect(mockedLogger.debug).toHaveBeenNthCalledWith(
         calls,
         {
-          body: {
-            details: expectedStatuses,
-            error: {},
-            info: expectedStatuses,
-            status: "ok",
+          response: {
+            body: {
+              details: expectedStatuses,
+              error: {},
+              info: expectedStatuses,
+              status: "ok",
+            },
           },
-          message: "Outgoing response - 200 - GET - /health",
         },
-        "LoggingInterceptor - 200 - GET - /health",
+        "Outgoing response",
         "LoggingInterceptor",
       );
 

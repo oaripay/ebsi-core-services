@@ -1,7 +1,10 @@
-import { LoggingInterceptor } from "@ebsiint-api/shared";
-import { Module } from "@nestjs/common";
+import type { MiddlewareConsumer, NestModule } from "@nestjs/common";
+
+import { LoggerMiddleware, LoggingInterceptor } from "@ebsiint-api/shared";
+import { Module, RequestMethod } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { APP_INTERCEPTOR } from "@nestjs/core";
+import { LoggerModule } from "nestjs-pino";
 
 import type { ApiConfig } from "./config/configuration.ts";
 
@@ -20,6 +23,26 @@ import { TimestampsModule } from "./modules/timestamps/timestamps.module.ts";
   controllers: [AppController],
   imports: [
     ApiConfigModule,
+    LoggerModule.forRootAsync({
+      imports: [ApiConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService<ApiConfig, true>) => {
+        return {
+          forRoutes: ["*path"],
+          pinoHttp: {
+            // Disable request / response auto-logging (handled by LoggerMiddleware)
+            autoLogging: false,
+            // Set log level
+            level: config.get("logLevel"),
+            // Use quiet logger (only add "reqId" to logs)
+            quietReqLogger: true,
+            quietResLogger: true,
+            // Redact sensitive data
+            redact: ["request.headers.authorization"],
+          },
+        };
+      },
+    }),
     AuthModule,
     JsonRpcModule,
     HashAlgorithmsModule,
@@ -31,12 +54,18 @@ import { TimestampsModule } from "./modules/timestamps/timestamps.module.ts";
   providers: [
     ConfigService,
     {
-      inject: [ConfigService],
       provide: APP_INTERCEPTOR,
-      useFactory: (configService: ConfigService<ApiConfig, true>) =>
-        new LoggingInterceptor(configService.get("logLevel", { infer: true })),
+      useClass: LoggingInterceptor,
     },
     AppService,
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(LoggerMiddleware)
+      // Exclude certain routes from logging "Request received" and "Request completed" messages
+      // .exclude({ method: RequestMethod.ALL, path: "/token" })
+      .forRoutes({ method: RequestMethod.ALL, path: "*path" });
+  }
+}

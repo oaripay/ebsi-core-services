@@ -42,11 +42,12 @@
     "ethers": "^6.14.3",
     "joi": "^17.13.3",
     "multiformats": "^9.6.2",
-    "nest-winston": "^1.10.2",
+    "nestjs-pino": "^4.4.0",
+    "pino": "^9.7.0",
+    "pino-http": "^10.5.0",
     "p-limit": "^5.0.0",
     "reflect-metadata": "^0.2.2",
     "safe-stable-stringify": "^2.5.0",
-    "winston": "^3.17.0",
     "yaml": "^2.8.0"
   },
   "devDependencies": {

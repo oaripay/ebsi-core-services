@@ -10,16 +10,14 @@ import { TestingModule } from "@nestjs/testing";
 import qs from "qs";
 
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.ts";
-import { createLogger } from "../../src/logger/logger.ts";
 
 /**
  * Configure Nest Fastify app with all the parsers, filters, and validation pipes.
  * /!\ Must be aligned with src/main.ts.
  */
 export async function configureApp(moduleFixture: TestingModule) {
-  const logger = createLogger({ silent: true });
   const fastifyAdapter = new FastifyAdapter({
-    frameworkErrors: frameworkErrors(logger),
+    frameworkErrors,
   });
   fastifyAdapter.enableCors({ methods: "*" });
 

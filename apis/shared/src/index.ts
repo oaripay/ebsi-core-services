@@ -6,6 +6,7 @@ export * from "./guards/index.ts";
 export * from "./hooks/index.ts";
 export * from "./interceptors/index.ts";
 export * from "./interfaces/index.ts";
+export * from "./middlewares/index.ts";
 export * from "./services/index.ts";
 export * from "./utils/index.ts";
 export * from "./validators/index.ts";
