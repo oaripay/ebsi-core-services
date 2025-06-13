@@ -1,33 +1,54 @@
-import type { LoggerService } from "@nestjs/common";
-import type { FastifyError, FastifyReply, FastifyRequest } from "fastify";
+import type { FastifyReply, FastifyRequest } from "fastify";
 
-export const frameworkErrors =
-  (logger: LoggerService) =>
-  (error: unknown, req: FastifyRequest, res: FastifyReply) => {
-    if (error instanceof Error) {
-      logger.error(error.message, error.stack);
-    } else {
-      logger.error(error);
-    }
+import { errorCodes } from "fastify";
+import { PinoLogger } from "nestjs-pino";
+import pino from "pino";
 
-    if (error && (error as FastifyError).code === "FST_ERR_BAD_URL") {
-      res.code(400);
+export const frameworkErrors = (
+  error: unknown,
+  req: FastifyRequest,
+  res: FastifyReply,
+) => {
+  const logger = PinoLogger.root; // TODO: create child?
+  if (logger) {
+    const { headers, method, remoteAddress, url } = pino.stdSerializers.req(
+      req.raw,
+    );
+    logger.info(
+      {
+        context: "frameworkErrors",
+        error,
+        request: {
+          /* eslint-disable perfectionist/sort-objects */
+          method,
+          url,
+          remoteAddress,
+          headers,
+          /* eslint-enable perfectionist/sort-objects */
+        },
+      },
+      "Invalid request received",
+    );
+  }
 
-      res.send({
-        detail: `${req.url} is not a valid url component`,
-        status: 400,
-        title: "Bad Request",
-        type: "about:blank",
-      });
-    } else {
-      res.code(500);
+  if (error instanceof errorCodes.FST_ERR_BAD_URL) {
+    res.code(400);
 
-      res.send({
-        detail:
-          "The server encountered an internal error and was unable to complete your request",
-        status: 500,
-        title: "Internal Server Error",
-        type: "about:blank",
-      });
-    }
-  };
+    res.send({
+      detail: `${req.url} is not a valid url component`,
+      status: 400,
+      title: "Bad Request",
+      type: "about:blank",
+    });
+  } else {
+    res.code(500);
+
+    res.send({
+      detail:
+        "The server encountered an internal error and was unable to complete your request",
+      status: 500,
+      title: "Internal Server Error",
+      type: "about:blank",
+    });
+  }
+};

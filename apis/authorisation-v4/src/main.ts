@@ -12,18 +12,20 @@ import { ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { NestFactory } from "@nestjs/core";
 import { FastifyAdapter } from "@nestjs/platform-fastify";
+import { Logger } from "nestjs-pino";
+import { randomUUID } from "node:crypto";
 import qs from "qs";
 
 import type { ApiConfig } from "./config/configuration.ts";
 
 import { AppModule } from "./app.module.ts";
 import { AllExceptionsFilter } from "./filters/http-exception.filter.ts";
-import { consoleTransport, createLogger } from "./logger/logger.ts";
 
 async function bootstrap(): Promise<void> {
-  const logger = createLogger();
   const fastifyAdapter = new FastifyAdapter({
-    frameworkErrors: frameworkErrors(logger),
+    frameworkErrors,
+    genReqId: () => randomUUID(),
+    requestIdHeader: "x-request-id",
   });
   fastifyAdapter.enableCors({ methods: "*" });
 
@@ -43,8 +45,11 @@ async function bootstrap(): Promise<void> {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
     fastifyAdapter,
-    { bodyParser: false, logger },
+    { bodyParser: false, bufferLogs: true },
   );
+
+  const logger = app.get(Logger);
+  app.useLogger(logger);
 
   const configService = app.get<ConfigService<ApiConfig, true>>(ConfigService);
   const apiUrlPrefix = configService.get("apiUrlPrefix", { infer: true });
@@ -56,24 +61,15 @@ async function bootstrap(): Promise<void> {
     infer: true,
   });
 
-  // Set logger level
-  if (logLevel === "silent") {
-    consoleTransport.silent = true;
-  } else {
-    consoleTransport.level = logLevel;
-  }
-
-  if (logger.debug) {
-    logger.debug(
-      `Starting API with:
+  logger.debug(
+    `Starting API with:
 - NODE_ENV: ${process.env.NODE_ENV}
 - API_PORT:${port}
 - LOG_LEVEL: ${logLevel}
 - Docker container tag: ${dockerContainerTag}
 `,
-      "main",
-    );
-  }
+    "main",
+  );
 
   // Starts listening for shutdown hooks
   app.enableShutdownHooks();

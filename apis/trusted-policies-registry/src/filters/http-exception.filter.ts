@@ -100,23 +100,40 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     // Return ServiceUnavailableException (thrown by HealthCheck module) as it is
     if (err instanceof ServiceUnavailableException) {
+      const responsePayload = err.getResponse();
+      this.logger.debug(
+        { response: { body: responsePayload } },
+        "Outgoing response",
+      );
+
       return response
         .code(err.getStatus())
         .type("application/json")
         .send(err.getResponse());
     }
 
+    // Service-specific type of error
     if (err instanceof InvalidRequestJsonRpcError) {
-      const JsonRpcError = err;
-      this.logger.debug(JsonRpcError.toString());
+      const responsePayload = err.toJSON();
+      this.logger.debug(
+        { response: { body: responsePayload } },
+        "Outgoing response",
+      );
+
       return response
-        .code(JsonRpcError.status)
+        .code(err.status)
         .type("application/problem+json")
-        .send(JsonRpcError.toJSON());
+        .send(responsePayload);
     }
 
     // Generic error
     const problemError = getProblemDetailsError(err, this.logger);
+
+    const responsePayload = problemError.toJSON();
+    this.logger.debug(
+      { response: { body: responsePayload } },
+      "Outgoing response",
+    );
 
     return response
       .code(problemError.status)

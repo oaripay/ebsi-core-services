@@ -101,6 +101,12 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     // Return ServiceUnavailableException (thrown by HealthCheck module) as it is
     if (err instanceof ServiceUnavailableException) {
+      const responsePayload = err.getResponse();
+      this.logger.debug(
+        { response: { body: responsePayload } },
+        "Outgoing response",
+      );
+
       return response
         .code(err.getStatus())
         .type("application/json")
@@ -109,6 +115,12 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     // Service-specific error
     if (err instanceof OAuth2Error) {
+      const responsePayload = err.toJSON();
+      this.logger.debug(
+        { response: { body: responsePayload } },
+        "Outgoing response",
+      );
+
       return response
         .code(err.statusCode)
         .type("application/json")
@@ -117,6 +129,12 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     // Generic error
     const problemError = getProblemDetailsError(err, this.logger);
+
+    const responsePayload = problemError.toJSON();
+    this.logger.debug(
+      { response: { body: responsePayload } },
+      "Outgoing response",
+    );
 
     return response
       .code(problemError.status)

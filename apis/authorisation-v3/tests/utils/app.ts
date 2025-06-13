@@ -7,19 +7,20 @@ import { fastifyHelmet } from "@fastify/helmet";
 import { ValidationPipe } from "@nestjs/common";
 import { FastifyAdapter } from "@nestjs/platform-fastify";
 import { TestingModule } from "@nestjs/testing";
+import { randomUUID } from "node:crypto";
 import qs from "qs";
 
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.ts";
-import { createLogger } from "../../src/logger/logger.ts";
 
 /**
  * Configure Nest Fastify app with all the parsers, filters, and validation pipes.
  * /!\ Must be aligned with src/main.ts.
  */
 export async function configureApp(moduleFixture: TestingModule) {
-  const logger = createLogger({ silent: true });
   const fastifyAdapter = new FastifyAdapter({
-    frameworkErrors: frameworkErrors(logger),
+    frameworkErrors,
+    genReqId: () => randomUUID(),
+    requestIdHeader: "x-request-id",
   });
   fastifyAdapter.enableCors({ methods: "*" });
 
@@ -38,7 +39,7 @@ export async function configureApp(moduleFixture: TestingModule) {
 
   const app = moduleFixture.createNestApplication<NestFastifyApplication>(
     fastifyAdapter,
-    { bodyParser: false },
+    { bodyParser: false, bufferLogs: true },
   );
 
   app.enableShutdownHooks();
