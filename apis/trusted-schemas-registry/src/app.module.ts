@@ -28,6 +28,9 @@ import { SchemasModule } from "./modules/schemas/schemas.module.ts";
           pinoHttp: {
             // Disable request / response auto-logging (handled by LoggerMiddleware)
             autoLogging: false,
+            // Set to null to avoid adding pid and hostname properties to each log
+            // eslint-disable-next-line unicorn/no-null
+            base: null,
             // Set log level
             level: config.get("logLevel"),
             // Use quiet logger (only add "reqId" to logs)
