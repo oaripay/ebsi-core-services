@@ -335,7 +335,6 @@ describe("App Module", () => {
           {
             request: {
               method: "GET",
-              remoteAddress: expect.any(String),
               url: "/",
             },
           },
@@ -521,7 +520,6 @@ describe("App Module", () => {
           {
             request: {
               method: "GET",
-              remoteAddress: expect.any(String),
               url: "/abi",
             },
           },

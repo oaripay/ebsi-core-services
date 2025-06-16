@@ -26,19 +26,8 @@ export class LoggerMiddleware implements NestMiddleware {
     const startTime = Date.now();
 
     // Only log method, remote address and url
-    const { method, remoteAddress, url } = pino.stdSerializers.req(req);
-    this.logger.log(
-      {
-        /* eslint-disable perfectionist/sort-objects */
-        request: {
-          method,
-          url,
-          remoteAddress,
-        },
-        /* eslint-enable perfectionist/sort-objects */
-      },
-      "Request received",
-    );
+    const { method, url } = pino.stdSerializers.req(req);
+    this.logger.log({ request: { method, url } }, "Request received");
 
     const onResponseComplete = () => {
       res.removeListener("close", onResponseComplete);
@@ -49,10 +38,7 @@ export class LoggerMiddleware implements NestMiddleware {
       const { statusCode } = pino.stdSerializers.res(res);
       const responseTime = Date.now() - startTime;
       this.logger.log(
-        {
-          response: { statusCode },
-          responseTime,
-        },
+        { response: { statusCode }, responseTime },
         "Request completed",
       );
     };

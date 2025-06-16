@@ -11,9 +11,7 @@ export const frameworkErrors = (
 ) => {
   const logger = PinoLogger.root; // TODO: create child?
   if (logger) {
-    const { headers, method, remoteAddress, url } = pino.stdSerializers.req(
-      req.raw,
-    );
+    const { headers, method, url } = pino.stdSerializers.req(req.raw);
     logger.info(
       {
         context: "frameworkErrors",
@@ -22,7 +20,6 @@ export const frameworkErrors = (
           /* eslint-disable perfectionist/sort-objects */
           method,
           url,
-          remoteAddress,
           headers,
           /* eslint-enable perfectionist/sort-objects */
         },
