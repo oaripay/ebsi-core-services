@@ -84,7 +84,10 @@ export class AuthorisationService {
     );
   }
 
-  async createAccessToken(body: unknown): Promise<TokenResponse> {
+  async createAccessToken(
+    body: unknown,
+    reqId: string,
+  ): Promise<TokenResponse> {
     // Validate query params (full DTO)
     let parsedDto: CreateAccessTokenDto;
     try {
@@ -197,7 +200,7 @@ export class AuthorisationService {
     // Verify that the DID is not registered yet.
     if (
       customScope === DIDR_INVITE_SCOPE &&
-      (await this.isDidRegistered(vp.holder))
+      (await this.isDidRegistered(vp.holder, reqId))
     ) {
       throw new OAuth2TokenError("invalid_request", {
         errorDescription: `Invalid Verifiable Presentation: DID ${vp.holder} is already registered in the DID Registry`,
@@ -210,12 +213,12 @@ export class AuthorisationService {
     // `tir_invite`: the client must present a VP containing a valid VerifiableAuthorisationForTrustChain, VerifiableAccreditationToAttest, or VerifiableAccreditationToAccredit.
     // This is already done by the PEX library, based on the presentation definition.
     if (customScope === TIR_INVITE_SCOPE) {
-      await this.validateTrustedIssuer(vp.holder, true);
+      await this.validateTrustedIssuer(vp.holder, true, reqId);
     }
 
     // `tir_write`: the client needs to be registered as a Trusted Issuer with accreditations.
     if (customScope === TIR_WRITE_SCOPE) {
-      await this.validateTrustedIssuer(vp.holder, false);
+      await this.validateTrustedIssuer(vp.holder, false, reqId);
     }
 
     // Generate access token
@@ -407,11 +410,17 @@ export class AuthorisationService {
    * Checks if the given DID is registered in the DIDR.
    *
    * @param did - The issuer DID to verify.
+   * @param reqId - The current request ID.
    * @returns True if the DID is registered, false otherwise.
    */
-  async isDidRegistered(did: string): Promise<boolean> {
+  async isDidRegistered(did: string, reqId: string): Promise<boolean> {
     try {
-      await axios.get(`${this.didRegistry}/${did}`);
+      await axios.get(`${this.didRegistry}/${did}`, {
+        headers: {
+          accept: "application/did+ld+json",
+          "x-request-id": reqId,
+        },
+      });
     } catch (error) {
       if (isAxiosError(error)) {
         logAxiosError(error, this.logger, 500);
@@ -609,6 +618,7 @@ export class AuthorisationService {
   async validateTrustedIssuer(
     did: string,
     requireNewUser: boolean,
+    reqId: string,
   ): Promise<void> {
     // Check if the issuer has accreditations
     let issuerRequest: AxiosResponse<unknown>;
@@ -617,6 +627,11 @@ export class AuthorisationService {
     try {
       issuerRequest = await axios.get<unknown>(
         `${this.trustedIssuersRegistry}/${did}`,
+        {
+          headers: {
+            "x-request-id": reqId,
+          },
+        },
       );
     } catch (error) {
       if (isAxiosError(error)) {

@@ -1,9 +1,18 @@
+import type { FastifyRequest } from "fastify";
+
 import {
   Accepts,
   getErrorMessage,
   InvalidRequestJsonRpcError,
 } from "@ebsiint-api/shared";
-import { Body, Controller, HttpCode, Post, UseGuards } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  HttpCode,
+  Post,
+  Req,
+  UseGuards,
+} from "@nestjs/common";
 
 import type { SubjectInfo } from "../auth/decorators/index.ts";
 import type { JsonRpcResponseObject } from "./jsonrpc.interface.ts";
@@ -40,6 +49,7 @@ export class JsonRpcController {
   async jsonRpc(
     @Body() unsafeBody: unknown,
     @Subject() subject: SubjectInfo,
+    @Req() req: FastifyRequest,
   ): Promise<JsonRpcResponseObject> {
     if (!unsafeBody || typeof unsafeBody !== "object") {
       throw new InvalidRequestJsonRpcError(
@@ -92,6 +102,7 @@ export class JsonRpcController {
           body,
           id,
           scope,
+          req.id,
         );
         return formatJsonRpcResponse(result, id);
       }

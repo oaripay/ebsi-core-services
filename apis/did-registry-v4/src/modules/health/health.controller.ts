@@ -1,8 +1,9 @@
 // For more info, read https://docs.nestjs.com/recipes/terminus
 import type { HealthCheckResult } from "@nestjs/terminus";
+import type { FastifyRequest } from "fastify";
 
 import { Accepts } from "@ebsiint-api/shared";
-import { Controller, Get } from "@nestjs/common";
+import { Controller, Get, Req } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import {
   HealthCheck,
@@ -33,7 +34,7 @@ export class HealthController {
   @Accepts("application/json")
   @Get()
   @HealthCheck()
-  check(): Promise<HealthCheckResult> {
+  check(@Req() req: FastifyRequest): Promise<HealthCheckResult> {
     return this.health.check([
       ...(
         Object.keys(
@@ -48,7 +49,7 @@ export class HealthController {
             this.configService.get("domain", { infer: true })
           }/${dependency}/${version}`,
           {
-            headers: { "EBSI-Healthcheck": "1" },
+            headers: { "EBSI-Healthcheck": "1", "x-request-id": req.id },
           },
         );
       }),

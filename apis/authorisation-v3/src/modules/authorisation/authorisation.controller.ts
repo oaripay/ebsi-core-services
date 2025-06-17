@@ -1,3 +1,4 @@
+import type { FastifyRequest } from "fastify";
 import type { ReadonlyDeep } from "type-fest";
 
 import { Accepts } from "@ebsiint-api/shared";
@@ -10,6 +11,7 @@ import {
   HttpCode,
   Post,
   Query,
+  Req,
 } from "@nestjs/common";
 
 import type { PresentationDefinition } from "../../shared/interfaces/pex.ts";
@@ -65,6 +67,7 @@ export class AuthorisationController {
   createAccessToken(
     @Headers("content-type") contentType: string | undefined,
     @Body() body: unknown, // Validate DTO within the service method so we can properly handle the error response
+    @Req() req: FastifyRequest,
   ): Promise<TokenResponse> {
     // Only accept application/x-www-form-urlencoded
     // https://openid.net/specs/openid-connect-core-1_0.html#TokenRequest
@@ -77,6 +80,6 @@ export class AuthorisationController {
       });
     }
 
-    return this.authorisationService.createAccessToken(body);
+    return this.authorisationService.createAccessToken(body, req.id);
   }
 }

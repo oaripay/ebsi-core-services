@@ -118,6 +118,7 @@ describe("Health Module", () => {
         expect(spy).toHaveBeenCalledWith({
           headers: {
             "EBSI-Healthcheck": "1",
+            "x-request-id": expect.any(String),
           },
           // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
           url: `${localOrigin}/${dependency}/${RUNTIME_DEPENDENCIES[dependency]}`,
@@ -177,6 +178,7 @@ describe("Health Module", () => {
         expect(spy).toHaveBeenCalledWith({
           headers: {
             "EBSI-Healthcheck": "1",
+            "x-request-id": expect.any(String),
           },
           // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
           url: `${localOrigin}/${dependency}/${RUNTIME_DEPENDENCIES[dependency]}`,

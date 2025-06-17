@@ -48,7 +48,10 @@ export class AuthService {
     });
   }
 
-  async validateToken(bearerToken: string): Promise<SubjectInfo> {
+  async validateToken(
+    bearerToken: string,
+    reqId: string,
+  ): Promise<SubjectInfo> {
     let jwtHeader: ProtectedHeaderParameters;
     let payload: JWTPayload;
     try {
@@ -68,7 +71,7 @@ export class AuthService {
       });
     }
 
-    const authApiPublicKeyJwk = await this.getAuthorisationApiJwk(kid);
+    const authApiPublicKeyJwk = await this.getAuthorisationApiJwk(kid, reqId);
     if (!authApiPublicKeyJwk) {
       throw new UnauthorizedError(UnauthorizedError.defaultTitle, {
         detail:
@@ -111,7 +114,7 @@ export class AuthService {
     return { scp, sub };
   }
 
-  private async getAuthorisationApiJwk(kid: string) {
+  private async getAuthorisationApiJwk(kid: string, reqId: string) {
     let jwks = await this.cacheManager.get<JSONWebKeySet>(CACHE_KEY);
 
     if (!jwks) {
@@ -120,6 +123,7 @@ export class AuthService {
         rawAuthApiOpenIdConfig = await axios.get<unknown>(
           `${this.authorisationApiUrl}/.well-known/openid-configuration`,
           {
+            headers: { "x-request-id": reqId },
             timeout: this.timeout,
           },
         );
@@ -154,6 +158,7 @@ export class AuthService {
 
       try {
         rawAuthApiJwks = await axios.get<unknown>(jwksUri, {
+          headers: { "x-request-id": reqId },
           timeout: this.timeout,
         });
       } catch (error) {
