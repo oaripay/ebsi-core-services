@@ -1,3 +1,5 @@
+import type { FastifyRequest } from "fastify";
+
 import { Injectable } from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";
 import { Strategy } from "passport-http-bearer";
@@ -14,11 +16,14 @@ export class BearerJwtStrategy extends PassportStrategy(
   private readonly authService: AuthService;
 
   constructor(authService: AuthService) {
-    super();
+    super({ passReqToCallback: true });
     this.authService = authService;
   }
 
-  async validate(bearerToken: string): Promise<SubjectInfo> {
-    return this.authService.validateToken(bearerToken);
+  async validate(
+    req: FastifyRequest,
+    bearerToken: string,
+  ): Promise<SubjectInfo> {
+    return this.authService.validateToken(bearerToken, req.id);
   }
 }

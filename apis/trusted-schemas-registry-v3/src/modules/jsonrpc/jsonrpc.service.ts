@@ -173,9 +173,13 @@ export class JsonRpcService {
     }
   }
 
-  async checkWritePermission(address: string, clientId: string): Promise<void> {
+  async checkWritePermission(
+    address: string,
+    clientId: string,
+    reqId: string,
+  ): Promise<void> {
     // Check DID Registry
-    if (!(await this.isDidControlledByAddress(clientId, address))) {
+    if (!(await this.isDidControlledByAddress(clientId, address, reqId))) {
       throw new Error(
         `The DID ${clientId} is not controlled by the address ${address}`,
       );
@@ -236,6 +240,7 @@ export class JsonRpcService {
   async isDidControlledByAddress(
     did: string,
     controllerAddress: string,
+    reqId: string,
   ): Promise<boolean> {
     const { data } = await axios.post<{
       error?: { message: string };
@@ -247,7 +252,11 @@ export class JsonRpcService {
         method: "checkController",
         params: [controllerAddress],
       },
-      { timeout: this.timeout, validateStatus: (s) => s >= 200 && s <= 400 },
+      {
+        headers: { "x-request-id": reqId },
+        timeout: this.timeout,
+        validateStatus: (s) => s >= 200 && s <= 400,
+      },
     );
 
     if (data.error) {
@@ -261,6 +270,7 @@ export class JsonRpcService {
     clientId: string,
     body: JsonRpcSchema,
     id: null | number | string | undefined,
+    reqId: string,
   ): Promise<string> {
     try {
       const chainId = await this.getChainId();
@@ -272,7 +282,7 @@ export class JsonRpcService {
 
       const { signer } = await this.verifyTransaction(request);
 
-      await this.checkWritePermission(signer, clientId);
+      await this.checkWritePermission(signer, clientId, reqId);
 
       const tx = await this.ledgerService
         .getProvider()

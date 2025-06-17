@@ -385,6 +385,7 @@ export class JsonRpcService {
   async isDidControlledByAddress(
     did: string,
     controllerAddress: string,
+    reqId: string,
   ): Promise<boolean> {
     const { data } = await axios.post<{
       error?: { message: string };
@@ -396,7 +397,11 @@ export class JsonRpcService {
         method: "checkController",
         params: [controllerAddress],
       },
-      { timeout: this.timeout, validateStatus: (s) => s >= 200 && s <= 400 },
+      {
+        headers: { "x-request-id": reqId },
+        timeout: this.timeout,
+        validateStatus: (s) => s >= 200 && s <= 400,
+      },
     );
 
     if (data.error) {
@@ -411,6 +416,7 @@ export class JsonRpcService {
     body: JsonRpcSchema,
     id: null | number | string | undefined,
     scope: string,
+    reqId: string,
   ): Promise<string> {
     try {
       const chainId = await this.getChainId();
@@ -422,7 +428,7 @@ export class JsonRpcService {
 
       const { signer } = await this.verifyTransaction(request, sub, scope);
 
-      if (!(await this.isDidControlledByAddress(sub, signer))) {
+      if (!(await this.isDidControlledByAddress(sub, signer, reqId))) {
         throw new Error(
           `The DID ${sub} is not controlled by the address ${signer}`,
         );

@@ -115,6 +115,7 @@ describe("Health Module", () => {
         expect(spy).toHaveBeenCalledWith({
           headers: {
             "EBSI-Healthcheck": "1",
+            "x-request-id": expect.any(String),
           },
           url: `${localOrigin}/${dependency}/${RUNTIME_DEPENDENCIES[dependency]}`,
         });
@@ -173,6 +174,7 @@ describe("Health Module", () => {
         expect(spy).toHaveBeenCalledWith({
           headers: {
             "EBSI-Healthcheck": "1",
+            "x-request-id": expect.any(String),
           },
           url: `${localOrigin}/${dependency}/${RUNTIME_DEPENDENCIES[dependency]}`,
         });
@@ -242,6 +244,7 @@ describe("Health Module", () => {
         expect(spy).toHaveBeenCalledWith({
           headers: {
             "EBSI-Healthcheck": "1",
+            "x-request-id": expect.any(String),
           },
           url: `${localOrigin}/${dependency}/${RUNTIME_DEPENDENCIES[dependency]}`,
         });

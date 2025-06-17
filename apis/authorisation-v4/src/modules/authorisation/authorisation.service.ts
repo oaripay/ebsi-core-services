@@ -109,7 +109,10 @@ export class AuthorisationService {
     this.requestTimeout = configService.get("requestTimeout", { infer: true });
   }
 
-  async createAccessToken(body: unknown): Promise<TokenResponse> {
+  async createAccessToken(
+    body: unknown,
+    reqId: string,
+  ): Promise<TokenResponse> {
     // Validate query params (full DTO)
     let parsedDto: CreateAccessTokenDto;
     try {
@@ -244,7 +247,7 @@ export class AuthorisationService {
     // Verify that the DID is not registered yet.
     if (
       customScope === DIDR_INVITE_SCOPE &&
-      (await this.isDidRegistered(vp.holder))
+      (await this.isDidRegistered(vp.holder, reqId))
     ) {
       throw new OAuth2TokenError("invalid_request", {
         errorDescription: `Invalid Verifiable Presentation: DID ${vp.holder} is already registered in the DID Registry`,
@@ -257,12 +260,12 @@ export class AuthorisationService {
     // `tir_invite`: the client must present a VP containing a valid VerifiableAuthorisationForTrustChain, VerifiableAccreditationToAttest, or VerifiableAccreditationToAccredit.
     // This is already done by the PEX library, based on the presentation definition.
     if (customScope === TIR_INVITE_SCOPE) {
-      await this.validateTrustedIssuer(vp.holder, true);
+      await this.validateTrustedIssuer(vp.holder, true, reqId);
     }
 
     // `tir_write`: the client needs to be registered as a Trusted Issuer with accreditations.
     if (customScope === TIR_WRITE_SCOPE) {
-      await this.validateTrustedIssuer(vp.holder, false);
+      await this.validateTrustedIssuer(vp.holder, false, reqId);
     }
 
     // `timestamp_write`: the client needs to have entry in DIDR / can prove her signature.
@@ -270,17 +273,17 @@ export class AuthorisationService {
 
     // `tnt_authorise`: the client must be have the TNT:authoriseDid attribute in Trusted Policies Registry.
     if (customScope === TNT_AUTHORISE_SCOPE) {
-      await this.validateTntAdmin(vp.holder);
+      await this.validateTntAdmin(vp.holder, reqId);
     }
 
     // `tnt_create`: the client must be an allowlisted TnT Document creator
     if (customScope === TNT_CREATE_SCOPE) {
-      await this.validateTntCreator(vp.holder);
+      await this.validateTntCreator(vp.holder, reqId);
     }
 
     // `tnt_write`: the client must have granted access for write
     if (customScope === TNT_WRITE_SCOPE) {
-      await this.validateTntWriter(vp.holder);
+      await this.validateTntWriter(vp.holder, reqId);
     }
 
     // Generate access token
@@ -399,7 +402,10 @@ export class AuthorisationService {
     };
   }
 
-  async getControllerAddresses(did: string): Promise<{
+  async getControllerAddresses(
+    did: string,
+    reqId: string,
+  ): Promise<{
     addresses: string[];
     didDocument: DIDDocument;
   }> {
@@ -407,6 +413,12 @@ export class AuthorisationService {
     try {
       const response = await axios.get<DIDDocument>(
         `${this.didRegistry}/${did}`,
+        {
+          headers: {
+            accept: "application/did+ld+json",
+            "x-request-id": reqId,
+          },
+        },
       );
       didDocument = response.data;
     } catch (error) {
@@ -545,11 +557,17 @@ export class AuthorisationService {
    * Checks if the given DID is registered in the DIDR.
    *
    * @param did - The issuer DID to verify.
+   * @param reqId - The current request ID.
    * @returns True if the DID is registered, false otherwise.
    */
-  async isDidRegistered(did: string): Promise<boolean> {
+  async isDidRegistered(did: string, reqId: string): Promise<boolean> {
     try {
-      await axios.get(`${this.didRegistry}/${did}`);
+      await axios.get(`${this.didRegistry}/${did}`, {
+        headers: {
+          accept: "application/did+ld+json",
+          "x-request-id": reqId,
+        },
+      });
     } catch (error) {
       if (isAxiosError(error)) {
         logAxiosError(error, this.logger, 500);
@@ -875,15 +893,18 @@ export class AuthorisationService {
     }
   }
 
-  async validateTntAdmin(did: string): Promise<void> {
-    const { addresses, didDocument } = await this.getControllerAddresses(did);
+  async validateTntAdmin(did: string, reqId: string): Promise<void> {
+    const { addresses, didDocument } = await this.getControllerAddresses(
+      did,
+      reqId,
+    );
     if (didDocument.controller && Array.isArray(didDocument.controller)) {
       await Promise.all(
         didDocument.controller
           .filter((controller) => controller !== did)
           .map(async (controller) => {
             const { addresses: controllerAddresses } =
-              await this.getControllerAddresses(controller);
+              await this.getControllerAddresses(controller, reqId);
             addresses.push(...controllerAddresses);
           }),
       );
@@ -901,7 +922,11 @@ export class AuthorisationService {
             const response = await axios.get<{
               attributes: string[];
               user: string;
-            }>(`${this.trustedPoliciesRegistry}/${address}`);
+            }>(`${this.trustedPoliciesRegistry}/${address}`, {
+              headers: {
+                "x-request-id": reqId,
+              },
+            });
             if (!response.data.attributes.includes("TNT:authoriseDid")) {
               return {
                 error: `address ${address} doesn't have the attribute TNT:authoriseDid in Trusted Policies Registry`,
@@ -955,12 +980,17 @@ export class AuthorisationService {
     }
   }
 
-  async validateTntCreator(did: string): Promise<void> {
+  async validateTntCreator(did: string, reqId: string): Promise<void> {
     try {
       await axios.head<unknown>(
         `${this.trackAndTraceAccessesEndpoint}?${new URLSearchParams({
           creator: did,
         }).toString()}`,
+        {
+          headers: {
+            "x-request-id": reqId,
+          },
+        },
       );
     } catch (error) {
       /* v8 ignore start */
@@ -998,13 +1028,18 @@ export class AuthorisationService {
     }
   }
 
-  async validateTntWriter(did: string): Promise<void> {
+  async validateTntWriter(did: string, reqId: string): Promise<void> {
     let accesses: Access[];
     try {
       const { data } = await axios.get<PaginatedList<Access>>(
         `${this.trackAndTraceAccessesEndpoint}?${new URLSearchParams({
           subject: did,
         }).toString()}`,
+        {
+          headers: {
+            "x-request-id": reqId,
+          },
+        },
       );
       accesses = data.items;
     } catch (error) {
@@ -1046,6 +1081,7 @@ export class AuthorisationService {
   async validateTrustedIssuer(
     did: string,
     requireNewUser: boolean,
+    reqId: string,
   ): Promise<void> {
     // Check if the issuer has accreditations
     let issuerRequest: AxiosResponse<unknown>;
@@ -1054,6 +1090,11 @@ export class AuthorisationService {
     try {
       issuerRequest = await axios.get<unknown>(
         `${this.trustedIssuersRegistry}/${did}`,
+        {
+          headers: {
+            "x-request-id": reqId,
+          },
+        },
       );
     } catch (error) {
       /* v8 ignore start */

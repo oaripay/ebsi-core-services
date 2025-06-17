@@ -1,5 +1,14 @@
+import type { FastifyRequest } from "fastify";
+
 import { Accepts, InvalidRequestJsonRpcError } from "@ebsiint-api/shared";
-import { Body, Controller, HttpCode, Post, UseGuards } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  HttpCode,
+  Post,
+  Req,
+  UseGuards,
+} from "@nestjs/common";
 
 import type { SubjectInfo } from "../auth/decorators/index.ts";
 import type { JsonRpcResponseObject } from "./jsonrpc.interface.ts";
@@ -45,6 +54,7 @@ export class JsonRpcController {
   async jsonRpc(
     @Body() body: JsonRpcDto,
     @Subject() subject: SubjectInfo,
+    @Req() req: FastifyRequest,
   ): Promise<JsonRpcResponseObject> {
     const { id: requestId, method } = body;
     // "id": An identifier established by the Client that MUST contain a String, Number, or NULL value if included. If it is not included it is assumed to be a notification.
@@ -78,6 +88,7 @@ export class JsonRpcController {
           body as RequestSendSignedTransactionDto,
           id,
           scope,
+          req.id,
         );
         return formatJsonRpcResponse(result, id);
       }

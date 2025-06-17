@@ -23,7 +23,7 @@ dataSources:
           # prettier-ignore
           file: {{ &abi }}
       eventHandlers:
-        - event:  SchemaInserted(indexed bytes,bytes,bytes32,bytes,bytes32)
+        - event: SchemaInserted(indexed bytes,bytes,bytes32,bytes,bytes32)
           handler: handleSchemaInsertedEvent
         - event: SchemaUpdated(indexed bytes,bytes,bytes32,bytes,bytes32)
           handler: handleSchemaUpdatedEvent

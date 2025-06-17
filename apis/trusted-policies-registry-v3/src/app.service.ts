@@ -27,7 +27,7 @@ export class AppService implements OnApplicationBootstrap {
     const axiosRetryDelay = configService.get("axiosRetryDelay", {
       infer: true,
     });
-    this.axiosClient = axios.create();
+    this.axiosClient = axios.create({ headers: { "EBSI-Healthcheck": "1" } });
 
     axiosRetry(this.axiosClient, {
       onRetry: (_, error, requestConfig) => {

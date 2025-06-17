@@ -599,6 +599,7 @@ export class JsonRpcService {
   async isDidControlledByAddress(
     did: string,
     controllerAddress: string,
+    reqId: string,
   ): Promise<boolean> {
     const { data } = await axios.post<{
       error?: { message: string };
@@ -610,7 +611,11 @@ export class JsonRpcService {
         method: "checkController",
         params: [controllerAddress],
       },
-      { timeout: this.timeout, validateStatus: (s) => s >= 200 && s <= 400 },
+      {
+        headers: { "x-request-id": reqId },
+        timeout: this.timeout,
+        validateStatus: (s) => s >= 200 && s <= 400,
+      },
     );
 
     if (data.error) {
@@ -623,7 +628,8 @@ export class JsonRpcService {
   async sendTransaction(
     body: JsonRpcSchema,
     user: UserInfo,
-    id?: number | string,
+    id: null | number | string | undefined,
+    reqId: string,
   ): Promise<string> {
     try {
       const chainId = await this.getChainId();
@@ -634,7 +640,7 @@ export class JsonRpcService {
       const request = parsedBody.params[0]!;
       const { signer } = await this.verifyTransaction(request);
 
-      await this.verifyEthereumAddress(signer, user);
+      await this.verifyEthereumAddress(signer, user, reqId);
 
       const provider = this.ledgerService.getProvider();
 
@@ -681,8 +687,12 @@ export class JsonRpcService {
     }
   }
 
-  async verifyEthereumAddress(address: string, user: UserInfo): Promise<void> {
-    if (!(await this.isDidControlledByAddress(user.sub, address))) {
+  async verifyEthereumAddress(
+    address: string,
+    user: UserInfo,
+    reqId: string,
+  ): Promise<void> {
+    if (!(await this.isDidControlledByAddress(user.sub, address, reqId))) {
       throw new Error(
         `The DID ${user.sub} is not controlled by the address ${address}`,
       );
