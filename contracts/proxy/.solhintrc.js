@@ -4,7 +4,7 @@ module.exports = {
     // needed for proxy delegatecall
     "avoid-low-level-calls": "off",
     // we are using solc ^0.8.12
-    "compiler-version": ["error", "^0.8.12"],
+    "compiler-version": ["error", "0.8.12"],
     "func-visibility": ["warn", { ignoreConstructors: true }],
     // needed for virtual functions
     "no-empty-blocks": "off",

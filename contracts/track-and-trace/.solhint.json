@@ -1,10 +1,6 @@
 {
-  "extends": "solhint:default",
+  "extends": "solhint:recommended",
   "rules": {
-    "compiler-version": ["error", "0.8.12"],
-    "explicit-types": ["warn", "explicit"],
-    "max-line-length": ["error", 120],
-    "ordering": "error",
-    "visibility-modifier-order": "error"
+    "compiler-version": ["error", "0.8.12"]
   }
 }
