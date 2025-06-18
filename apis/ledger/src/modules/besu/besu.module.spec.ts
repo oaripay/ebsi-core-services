@@ -7,11 +7,6 @@ import type { JsonRpcError, JsonRpcResult } from "ethers";
 import type { RawServerDefault } from "fastify";
 
 import "@nomicfoundation/hardhat-ethers";
-import { methodNotAllowed } from "@ebsiint-api/shared";
-import { fastifyAccepts } from "@fastify/accepts";
-import { Logger, ValidationPipe } from "@nestjs/common";
-import { FastifyAdapter } from "@nestjs/platform-fastify";
-import { Test } from "@nestjs/testing";
 import { ethers } from "ethers";
 import request from "supertest";
 import {
@@ -26,7 +21,7 @@ import {
 
 import type { BesuJsonRpcError, BesuJsonRpcResult } from "./besu.interface.ts";
 
-import { AllExceptionsFilter } from "../../filters/http-exception.filter.ts";
+import { getNestFastifyApplication } from "../../../tests/utils/app.ts";
 import { BesuModule } from "./besu.module.ts";
 
 describe("Besu Module", () => {
@@ -50,28 +45,12 @@ describe("Besu Module", () => {
         vi.stubEnv("BESU_RPC_NODE", hreUrl);
 
         // Start server
-        const moduleFixture = await Test.createTestingModule({
+        app = await getNestFastifyApplication({
           imports: [BesuModule],
-        }).compile();
-
-        app = moduleFixture.createNestApplication<NestFastifyApplication>(
-          new FastifyAdapter(),
-          { rawBody: true },
-        );
-
-        // Turn off logger
-        Logger.overrideLogger(false);
-
-        app.useGlobalFilters(new AllExceptionsFilter());
-        app.useGlobalPipes(new ValidationPipe({ transform: true }));
-
-        // Parse "Accept" request header
-        await app.register(fastifyAccepts);
-
-        const fastifyInstance = app.getHttpAdapter().getInstance();
-        fastifyInstance.addHook("onRequest", methodNotAllowed);
+        });
 
         await app.init();
+        const fastifyInstance = app.getHttpAdapter().getInstance();
         await fastifyInstance.ready();
         server = app.getHttpServer();
       });

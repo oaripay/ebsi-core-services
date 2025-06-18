@@ -1,13 +1,7 @@
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 
-import { methodNotAllowed } from "@ebsiint-api/shared";
-import { fastifyAccepts } from "@fastify/accepts";
-import { fastifyHelmet } from "@fastify/helmet";
-import { Logger, ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { FastifyAdapter } from "@nestjs/platform-fastify";
-import { Test } from "@nestjs/testing";
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
@@ -15,7 +9,7 @@ import type { ApiConfig } from "../../src/config/configuration.ts";
 
 import { AppModule } from "../../src/app.module.ts";
 import { RUNTIME_DEPENDENCIES } from "../../src/config/configuration.ts";
-import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.ts";
+import { getNestFastifyApplication } from "../utils/app.ts";
 import { getServer } from "../utils/getServer.ts";
 
 describe("Timestamp API v3 - Generic tests (e2e)", () => {
@@ -24,41 +18,18 @@ describe("Timestamp API v3 - Generic tests (e2e)", () => {
   let apiUrlPrefix = "";
 
   beforeAll(async () => {
-    const moduleFixture = await Test.createTestingModule({
+    app = await getNestFastifyApplication({
       imports: [AppModule],
-    }).compile();
-
-    app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter(),
-    );
-    const configService =
-      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
-
-    // https://cheatsheetseries.owasp.org/cheatsheets/REST_Security_Cheat_Sheet.html#security-headers
-    await app.register(fastifyHelmet, {
-      contentSecurityPolicy: {
-        directives: {
-          "frame-ancestors": ["'none'"],
-        },
-      },
-      xFrameOptions: {
-        action: "deny",
-      },
     });
 
-    // Parse "Accept" request header
-    await app.register(fastifyAccepts);
+    if (process.env.TEST_ENV !== "remote") {
+      await app.init();
+      const fastifyInstance = app.getHttpAdapter().getInstance();
+      await fastifyInstance.ready();
+    }
 
-    app.useGlobalFilters(new AllExceptionsFilter());
-    app.useGlobalPipes(new ValidationPipe());
-
-    const fastifyInstance = app.getHttpAdapter().getInstance();
-    fastifyInstance.addHook("onRequest", methodNotAllowed);
-
-    Logger.overrideLogger(false);
-
-    await app.init();
-    await fastifyInstance.ready();
+    const configService =
+      app.get<ConfigService<ApiConfig, true>>(ConfigService);
 
     server = getServer(app, configService);
 

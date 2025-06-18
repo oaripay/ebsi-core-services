@@ -1,12 +1,4 @@
-import type { NestFastifyApplication } from "@nestjs/platform-fastify";
-
-import { frameworkErrors, methodNotAllowed } from "@ebsiint-api/shared";
-import { fastifyAccepts } from "@fastify/accepts";
-import { fastifyHelmet } from "@fastify/helmet";
-import { Logger, ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { FastifyAdapter } from "@nestjs/platform-fastify";
-import { Test } from "@nestjs/testing";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 import { PinoLogger } from "nestjs-pino";
@@ -23,8 +15,8 @@ import {
 
 import type { ApiConfig } from "./config/configuration.ts";
 
+import { getNestFastifyApplication } from "../tests/utils/app.ts";
 import { AppModule } from "./app.module.ts";
-import { AllExceptionsFilter } from "./filters/http-exception.filter.ts";
 
 const mockedLogger = {
   debug: vi.fn(),
@@ -34,41 +26,13 @@ const mockedLogger = {
 };
 
 async function startApp() {
-  const moduleFixture = await Test.createTestingModule({
-    imports: [AppModule],
-  }).compile();
-
-  const adapter = new FastifyAdapter({
-    frameworkErrors,
-  });
-  const app =
-    moduleFixture.createNestApplication<NestFastifyApplication>(adapter);
-
-  // Turn off logger
-  Logger.overrideLogger(mockedLogger);
-
-  // Parse "Accept" request header
-  await app.register(fastifyAccepts);
-
-  app.useGlobalFilters(new AllExceptionsFilter());
-  app.useGlobalPipes(new ValidationPipe({ transform: true }));
-
-  // https://cheatsheetseries.owasp.org/cheatsheets/REST_Security_Cheat_Sheet.html#security-headers
-  await app.register(fastifyHelmet, {
-    contentSecurityPolicy: {
-      directives: {
-        "frame-ancestors": ["'none'"],
-      },
-    },
-    xFrameOptions: {
-      action: "deny",
-    },
-  });
-
-  const fastifyInstance = app.getHttpAdapter().getInstance();
-  fastifyInstance.addHook("onRequest", methodNotAllowed);
+  const app = await getNestFastifyApplication(
+    { imports: [AppModule] },
+    { logger: mockedLogger },
+  );
 
   await app.init();
+  const fastifyInstance = app.getHttpAdapter().getInstance();
   await fastifyInstance.ready();
 
   return app;

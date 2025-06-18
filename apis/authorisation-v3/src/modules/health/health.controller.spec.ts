@@ -2,12 +2,8 @@ import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { HealthIndicatorResult } from "@nestjs/terminus";
 import type { RawServerDefault } from "fastify";
 
-import { fastifyAccepts } from "@fastify/accepts";
 import { HttpService } from "@nestjs/axios";
-import { Logger, ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { FastifyAdapter } from "@nestjs/platform-fastify";
-import { Test } from "@nestjs/testing";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 import request from "supertest";
@@ -23,8 +19,8 @@ import {
 
 import type { ApiConfig } from "../../config/configuration.ts";
 
+import { getNestFastifyApplication } from "../../../tests/utils/app.ts";
 import { DEPENDENCIES } from "../../config/configuration.ts";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter.ts";
 import { HealthModule } from "./health.module.ts";
 
 describe("HealthController", () => {
@@ -49,22 +45,11 @@ describe("HealthController", () => {
       },
     });
 
-    const moduleFixture = await Test.createTestingModule({
+    app = await getNestFastifyApplication({
       imports: [HealthModule],
-    }).compile();
+    });
 
-    Logger.overrideLogger(false);
-
-    app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter(),
-    );
-    configService =
-      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
-    app.useGlobalFilters(new AllExceptionsFilter());
-    app.useGlobalPipes(new ValidationPipe());
-
-    // Parse "Accept" request header
-    await app.register(fastifyAccepts);
+    configService = app.get<ConfigService<ApiConfig, true>>(ConfigService);
 
     await app.init();
     const fastifyInstance = app.getHttpAdapter().getInstance();
@@ -72,7 +57,7 @@ describe("HealthController", () => {
 
     server = app.getHttpServer();
 
-    httpService = await moduleFixture.resolve<HttpService>(HttpService);
+    httpService = await app.resolve<HttpService>(HttpService);
 
     localOrigin =
       configService.get("localOrigin", { infer: true }) ??

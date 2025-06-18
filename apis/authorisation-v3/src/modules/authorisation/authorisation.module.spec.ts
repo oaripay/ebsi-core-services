@@ -13,9 +13,7 @@ import { metadata as attestationMetadata } from "@cef-ebsi/vcdm1.1-attestation-s
 import { createVerifiableCredentialJwt } from "@cef-ebsi/verifiable-credential";
 import { createVerifiablePresentationJwt } from "@cef-ebsi/verifiable-presentation";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
-import { Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { Test } from "@nestjs/testing";
 import { createJWT, decodeJWT, ES256KSigner } from "did-jwt";
 import { calculateJwkThumbprint, importJWK, jwtVerify } from "jose";
 import { http, HttpResponse } from "msw";
@@ -42,7 +40,7 @@ import type {
   TokenResponse,
 } from "./authorisation.interfaces.ts";
 
-import { configureApp } from "../../../tests/utils/app.ts";
+import { getNestFastifyApplication } from "../../../tests/utils/app.ts";
 import {
   createLegalEntity,
   createPresentationSubmission,
@@ -94,14 +92,9 @@ describe.each(["EBSI URI", "URL"] as const)(
         },
       });
 
-      const moduleFixture = await Test.createTestingModule({
+      app = await getNestFastifyApplication({
         imports: [AuthorisationModule],
-      }).compile();
-
-      // Turn off logger
-      Logger.overrideLogger(false);
-
-      app = await configureApp(moduleFixture);
+      });
 
       await app.init();
       const fastifyInstance = app.getHttpAdapter().getInstance();
@@ -110,7 +103,7 @@ describe.each(["EBSI URI", "URL"] as const)(
       server = app.getHttpServer();
 
       const configService =
-        moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
+        app.get<ConfigService<ApiConfig, true>>(ConfigService);
 
       ebsiEnvConfig = configService.get("ebsiEnvConfig", { infer: true });
 

@@ -2,18 +2,8 @@ import type { JSONSchema } from "@apidevtools/json-schema-ref-parser";
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 
-import {
-  computeId,
-  methodNotAllowed,
-  prefixWith0x,
-  waitToBeMined,
-} from "@ebsiint-api/shared";
-import { fastifyAccepts } from "@fastify/accepts";
-import { fastifyHelmet } from "@fastify/helmet";
-import { Logger, ValidationPipe } from "@nestjs/common";
+import { computeId, prefixWith0x, waitToBeMined } from "@ebsiint-api/shared";
 import { ConfigService } from "@nestjs/config";
-import { FastifyAdapter } from "@nestjs/platform-fastify";
-import { Test } from "@nestjs/testing";
 import { ethers } from "ethers";
 import crypto from "node:crypto";
 import request from "supertest";
@@ -27,9 +17,9 @@ import type { UpdateMetadataSchema } from "../../src/modules/jsonrpc/validators/
 import type { UpdateSchemaSchema } from "../../src/modules/jsonrpc/validators/RequestUpdateSchemaSchema.ts";
 
 import { AppModule } from "../../src/app.module.ts";
-import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.ts";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils.ts";
 import { hexToMultibaseBase58Btc } from "../../src/modules/schemas/schemas.utils.ts";
+import { getNestFastifyApplication } from "../utils/app.ts";
 import { createVerifiableAuthorisationSchema } from "../utils/data.ts";
 import { getTsrWriteAccessToken } from "../utils/getAccessToken.ts";
 import { getEbsiIssuer } from "../utils/getEbsiIssuer.ts";
@@ -85,43 +75,18 @@ describe("TSR API v3 - Schemas (e2e)", () => {
   };
 
   beforeAll(async () => {
-    const moduleFixture = await Test.createTestingModule({
+    app = await getNestFastifyApplication({
       imports: [AppModule],
-    }).compile();
-
-    app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter(),
-    );
-
-    // Turn off logger
-    Logger.overrideLogger(false);
-
-    const configService =
-      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
-
-    // https://cheatsheetseries.owasp.org/cheatsheets/REST_Security_Cheat_Sheet.html#security-headers
-    await app.register(fastifyHelmet, {
-      contentSecurityPolicy: {
-        directives: {
-          "frame-ancestors": ["'none'"],
-        },
-      },
-      xFrameOptions: {
-        action: "deny",
-      },
     });
 
-    // Parse "Accept" request header
-    await app.register(fastifyAccepts);
+    if (process.env.TEST_ENV !== "remote") {
+      await app.init();
+      const fastifyInstance = app.getHttpAdapter().getInstance();
+      await fastifyInstance.ready();
+    }
 
-    app.useGlobalFilters(new AllExceptionsFilter());
-    app.useGlobalPipes(new ValidationPipe({ transform: true }));
-
-    const fastifyInstance = app.getHttpAdapter().getInstance();
-    fastifyInstance.addHook("onRequest", methodNotAllowed);
-
-    await app.init();
-    await fastifyInstance.ready();
+    const configService =
+      app.get<ConfigService<ApiConfig, true>>(ConfigService);
 
     server = getServer(app, configService);
 

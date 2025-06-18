@@ -3,14 +3,7 @@ import type { DIDDocument } from "did-resolver";
 import type { RawServerDefault } from "fastify";
 
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
-import { methodNotAllowed } from "@ebsiint-api/shared";
-import { fastifyAccepts } from "@fastify/accepts";
-import { fastifyHelmet } from "@fastify/helmet";
-import { Logger, ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { FastifyAdapter } from "@nestjs/platform-fastify";
-import { Test } from "@nestjs/testing";
-import { useContainer } from "class-validator";
 import { ethers } from "ethers";
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -18,7 +11,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { ApiConfig } from "../../src/config/configuration.ts";
 
 import { AppModule } from "../../src/app.module.ts";
-import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.ts";
+import { getNestFastifyApplication } from "../utils/app.ts";
 import { getServer } from "../utils/getServer.ts";
 
 describe("DID Registry API v4 (e2e)", () => {
@@ -32,45 +25,17 @@ describe("DID Registry API v4 (e2e)", () => {
   }[];
 
   beforeAll(async () => {
-    const moduleFixture = await Test.createTestingModule({
+    app = await getNestFastifyApplication({
       imports: [AppModule],
-    }).compile();
-
-    app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter(),
-    );
-
-    useContainer(app.select(AppModule), { fallbackOnErrors: true });
-
-    // Turn off logger
-    Logger.overrideLogger(false);
-
-    configService =
-      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
-
-    // https://cheatsheetseries.owasp.org/cheatsheets/REST_Security_Cheat_Sheet.html#security-headers
-    await app.register(fastifyHelmet, {
-      contentSecurityPolicy: {
-        directives: {
-          "frame-ancestors": ["'none'"],
-        },
-      },
-      xFrameOptions: {
-        action: "deny",
-      },
     });
 
-    // Parse "Accept" request header
-    await app.register(fastifyAccepts);
+    configService = app.get<ConfigService<ApiConfig, true>>(ConfigService);
 
-    app.useGlobalFilters(new AllExceptionsFilter());
-    app.useGlobalPipes(new ValidationPipe({ transform: true }));
-
-    const fastifyInstance = app.getHttpAdapter().getInstance();
-    fastifyInstance.addHook("onRequest", methodNotAllowed);
-
-    await app.init();
-    await fastifyInstance.ready();
+    if (process.env.TEST_ENV !== "remote") {
+      await app.init();
+      const fastifyInstance = app.getHttpAdapter().getInstance();
+      await fastifyInstance.ready();
+    }
 
     server = getServer(app, configService);
 

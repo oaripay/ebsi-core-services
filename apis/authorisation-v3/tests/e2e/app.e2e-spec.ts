@@ -1,9 +1,7 @@
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 
-import { Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { Test } from "@nestjs/testing";
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
@@ -11,7 +9,7 @@ import type { ApiConfig } from "../../src/config/configuration.ts";
 
 import { AppModule } from "../../src/app.module.ts";
 import { DEPENDENCIES } from "../../src/config/configuration.ts";
-import { configureApp } from "../utils/app.ts";
+import { getNestFastifyApplication } from "../utils/app.ts";
 import { getServer } from "../utils/getServer.ts";
 
 describe("Authorisation API v3 - Generic tests (e2e)", () => {
@@ -20,25 +18,22 @@ describe("Authorisation API v3 - Generic tests (e2e)", () => {
   let apiUrlPrefix = "";
 
   beforeAll(async () => {
-    const moduleFixture = await Test.createTestingModule({
+    app = await getNestFastifyApplication({
       imports: [AppModule],
-    }).compile();
+    });
 
     const configService =
-      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
-
-    app = await configureApp(moduleFixture);
-
-    // Turn off logger
-    Logger.overrideLogger(false);
-
-    await app.init();
-    const fastifyInstance = app.getHttpAdapter().getInstance();
-    await fastifyInstance.ready();
-
-    server = getServer(app, configService);
+      app.get<ConfigService<ApiConfig, true>>(ConfigService);
 
     const testEnv = configService.get("testEnv", { infer: true });
+
+    if (testEnv !== "remote") {
+      await app.init();
+      const fastifyInstance = app.getHttpAdapter().getInstance();
+      await fastifyInstance.ready();
+    }
+
+    server = getServer(app, configService);
 
     if (testEnv === "remote") {
       apiUrlPrefix = configService.get("apiUrlPrefix", { infer: true });

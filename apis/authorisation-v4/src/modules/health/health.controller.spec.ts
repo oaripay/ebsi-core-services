@@ -3,9 +3,7 @@ import type { HealthIndicatorResult } from "@nestjs/terminus";
 import type { RawServerDefault } from "fastify";
 
 import { HttpService } from "@nestjs/axios";
-import { Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { Test } from "@nestjs/testing";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 import request from "supertest";
@@ -21,7 +19,7 @@ import {
 
 import type { ApiConfig } from "../../config/configuration.ts";
 
-import { configureApp } from "../../../tests/utils/app.ts";
+import { getNestFastifyApplication } from "../../../tests/utils/app.ts";
 import { DEPENDENCIES } from "../../config/configuration.ts";
 import { HealthModule } from "./health.module.ts";
 
@@ -47,23 +45,18 @@ describe("HealthController", () => {
       },
     });
 
-    const moduleFixture = await Test.createTestingModule({
+    app = await getNestFastifyApplication({
       imports: [HealthModule],
-    }).compile();
+    });
 
-    Logger.overrideLogger(false);
-
-    configService =
-      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
-
-    app = await configureApp(moduleFixture);
+    configService = app.get<ConfigService<ApiConfig, true>>(ConfigService);
 
     await app.init();
     const fastifyInstance = app.getHttpAdapter().getInstance();
     await fastifyInstance.ready();
     server = app.getHttpServer();
 
-    httpService = await moduleFixture.resolve<HttpService>(HttpService);
+    httpService = await app.resolve<HttpService>(HttpService);
 
     localOrigin =
       configService.get("localOrigin", { infer: true }) ??

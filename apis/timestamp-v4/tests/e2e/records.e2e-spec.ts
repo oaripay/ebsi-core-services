@@ -3,18 +3,9 @@ import type { PaginatedList } from "@ebsiint-api/shared";
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 
-import {
-  methodNotAllowed,
-  multibase,
-  prefixWith0x,
-  waitToBeMined,
-} from "@ebsiint-api/shared";
-import { fastifyAccepts } from "@fastify/accepts";
-import { fastifyHelmet } from "@fastify/helmet";
-import { HttpStatus, Logger, ValidationPipe } from "@nestjs/common";
+import { multibase, prefixWith0x, waitToBeMined } from "@ebsiint-api/shared";
+import { HttpStatus } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { FastifyAdapter } from "@nestjs/platform-fastify";
-import { Test } from "@nestjs/testing";
 import { ethers } from "ethers";
 import crypto from "node:crypto";
 import request from "supertest";
@@ -37,8 +28,8 @@ import type {
 } from "../../src/modules/records/records.interface.ts";
 
 import { AppModule } from "../../src/app.module.ts";
-import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.ts";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils.ts";
+import { getNestFastifyApplication } from "../utils/app.ts";
 import { getTimestampWriteAccessToken } from "../utils/getAccessToken.ts";
 import { getEbsiIssuer } from "../utils/getEbsiIssuer.ts";
 import { getServer } from "../utils/getServer.ts";
@@ -111,43 +102,17 @@ describe("Timestamp API v4 - Records (e2e)", () => {
 
   beforeAll(async () => {
     // Start server
-    const moduleFixture = await Test.createTestingModule({
+    app = await getNestFastifyApplication({
       imports: [AppModule],
-    }).compile();
-
-    app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter(),
-    );
-
-    // Turn off logger
-    Logger.overrideLogger(false);
-
-    configService =
-      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
-
-    // https://cheatsheetseries.owasp.org/cheatsheets/REST_Security_Cheat_Sheet.html#security-headers
-    await app.register(fastifyHelmet, {
-      contentSecurityPolicy: {
-        directives: {
-          "frame-ancestors": ["'none'"],
-        },
-      },
-      xFrameOptions: {
-        action: "deny",
-      },
     });
 
-    // Parse "Accept" request header
-    await app.register(fastifyAccepts);
+    if (process.env.TEST_ENV !== "remote") {
+      await app.init();
+      const fastifyInstance = app.getHttpAdapter().getInstance();
+      await fastifyInstance.ready();
+    }
 
-    app.useGlobalFilters(new AllExceptionsFilter());
-    app.useGlobalPipes(new ValidationPipe({ transform: true }));
-
-    const fastifyInstance = app.getHttpAdapter().getInstance();
-    fastifyInstance.addHook("onRequest", methodNotAllowed);
-
-    await app.init();
-    await fastifyInstance.ready();
+    configService = app.get<ConfigService<ApiConfig, true>>(ConfigService);
 
     server = getServer(app, configService);
 

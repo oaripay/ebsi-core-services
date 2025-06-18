@@ -2,23 +2,15 @@ import type { ArgumentsHost } from "@nestjs/common";
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 
 import {
-  methodNotAllowed,
   MethodNotAllowedError,
   ProblemDetailsError,
 } from "@ebsiint-api/shared";
-import { fastifyAccepts } from "@fastify/accepts";
-import {
-  BadRequestException,
-  Logger,
-  NotFoundException,
-  ValidationPipe,
-} from "@nestjs/common";
+import { BadRequestException, NotFoundException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { FastifyAdapter } from "@nestjs/platform-fastify";
-import { Test } from "@nestjs/testing";
 import { AxiosError } from "axios";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
+import { getNestFastifyApplication } from "../../tests/utils/app.ts";
 import { AllExceptionsFilter } from "./http-exception.filter.ts";
 
 const mockGetResponse = vi.fn().mockImplementation(() => ({
@@ -56,31 +48,16 @@ describe("All exception filter tests", () => {
   let service: AllExceptionsFilter;
 
   beforeAll(async () => {
-    const moduleFixture = await Test.createTestingModule({
+    app = await getNestFastifyApplication({
       imports: [],
       providers: [AllExceptionsFilter, ConfigService],
-    }).compile();
-
-    app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter(),
-    );
-
-    // Turn off logger
-    Logger.overrideLogger(false);
-
-    // Parse "Accept" request header
-    await app.register(fastifyAccepts);
-
-    app.useGlobalFilters(new AllExceptionsFilter());
-    app.useGlobalPipes(new ValidationPipe({ transform: true }));
-
-    const fastifyInstance = app.getHttpAdapter().getInstance();
-    fastifyInstance.addHook("onRequest", methodNotAllowed);
+    });
 
     await app.init();
+    const fastifyInstance = app.getHttpAdapter().getInstance();
     await fastifyInstance.ready();
 
-    service = moduleFixture.get<AllExceptionsFilter>(AllExceptionsFilter);
+    service = app.get<AllExceptionsFilter>(AllExceptionsFilter);
   });
 
   afterAll(async () => {

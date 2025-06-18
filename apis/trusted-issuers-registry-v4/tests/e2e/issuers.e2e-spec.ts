@@ -12,14 +12,8 @@ import type { RawServerDefault } from "fastify";
 import { fromUrl } from "@cef-ebsi/ebsi-uri";
 import { createVerifiableCredentialJwt } from "@cef-ebsi/verifiable-credential";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
-import { getSigner, methodNotAllowed } from "@ebsiint-api/shared";
-import { fastifyAccepts } from "@fastify/accepts";
-import { fastifyHelmet } from "@fastify/helmet";
-import { Logger, ValidationPipe } from "@nestjs/common";
+import { getSigner } from "@ebsiint-api/shared";
 import { ConfigService } from "@nestjs/config";
-import { FastifyAdapter } from "@nestjs/platform-fastify";
-import { Test } from "@nestjs/testing";
-import { useContainer } from "class-validator";
 import { hexToBytes } from "did-jwt";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
@@ -38,7 +32,7 @@ import type {
 } from "../../src/modules/issuers/issuers.interface.ts";
 
 import { AppModule } from "../../src/app.module.ts";
-import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.ts";
+import { getNestFastifyApplication } from "../utils/app.ts";
 import { describeLocalTestEnvOnly } from "../utils/describeLocalTestEnvOnly.ts";
 import { getServer } from "../utils/getServer.ts";
 
@@ -170,44 +164,17 @@ describe("TIR API v4 - Issuers (e2e)", () => {
   let beforeLastExistingIssuerDid: string;
 
   beforeAll(async () => {
-    const moduleFixture = await Test.createTestingModule({
+    app = await getNestFastifyApplication({
       imports: [AppModule],
-    }).compile();
-
-    app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter(),
-    );
-
-    // Turn off logger
-    Logger.overrideLogger(false);
-
-    configService =
-      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
-
-    // https://cheatsheetseries.owasp.org/cheatsheets/REST_Security_Cheat_Sheet.html#security-headers
-    await app.register(fastifyHelmet, {
-      contentSecurityPolicy: {
-        directives: {
-          "frame-ancestors": ["'none'"],
-        },
-      },
-      xFrameOptions: {
-        action: "deny",
-      },
     });
 
-    // Parse "Accept" request header
-    await app.register(fastifyAccepts);
+    if (process.env.TEST_ENV !== "remote") {
+      await app.init();
+      const fastifyInstance = app.getHttpAdapter().getInstance();
+      await fastifyInstance.ready();
+    }
 
-    app.useGlobalFilters(new AllExceptionsFilter());
-    app.useGlobalPipes(new ValidationPipe({ transform: true }));
-    useContainer(app.select(AppModule), { fallbackOnErrors: true });
-
-    const fastifyInstance = app.getHttpAdapter().getInstance();
-    fastifyInstance.addHook("onRequest", methodNotAllowed);
-
-    await app.init();
-    await fastifyInstance.ready();
+    configService = app.get<ConfigService<ApiConfig, true>>(ConfigService);
 
     server = getServer(app, configService);
 

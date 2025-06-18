@@ -4,12 +4,8 @@ import type { RawServerDefault } from "fastify";
 
 import * as vcLib from "@cef-ebsi/verifiable-credential";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
-import { methodNotAllowed, remove0xPrefix } from "@ebsiint-api/shared";
+import { remove0xPrefix } from "@ebsiint-api/shared";
 import { Tir__factory } from "@ebsiint-sc/trusted-issuers-registry-v3";
-import { fastifyAccepts } from "@fastify/accepts";
-import { Logger, ValidationPipe } from "@nestjs/common";
-import { FastifyAdapter } from "@nestjs/platform-fastify";
-import { Test } from "@nestjs/testing";
 import axios, { AxiosError } from "axios";
 import { ethers } from "ethers";
 import { randomBytes } from "node:crypto";
@@ -18,8 +14,8 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import type { IssuerObject } from "../../../tests/utils/tir.ts";
 
+import { getNestFastifyApplication } from "../../../tests/utils/app.ts";
 import { setupTestEnv } from "../../../tests/utils/tir.ts";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter.ts";
 import { LedgerService } from "../ledger/ledger.service.ts";
 import { IssuerTypeNames } from "./issuers.constants.ts";
 import { IssuersModule } from "./issuers.module.ts";
@@ -68,27 +64,10 @@ describe("Issuers Module", () => {
     issuer = testEnv.issuers.at(-1)!;
     issuer2 = testEnv.issuers.at(-2)!;
 
-    const moduleFixture = await Test.createTestingModule({
-      imports: [IssuersModule],
-    }).compile();
-
-    app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter(),
-    );
-
-    // Turn off logger
-    Logger.overrideLogger(false);
-
-    // Parse "Accept" request header
-    await app.register(fastifyAccepts);
-
-    app.useGlobalFilters(new AllExceptionsFilter());
-    app.useGlobalPipes(new ValidationPipe({ transform: true }));
-
-    const fastifyInstance = app.getHttpAdapter().getInstance();
-    fastifyInstance.addHook("onRequest", methodNotAllowed);
+    app = await getNestFastifyApplication({ imports: [IssuersModule] });
 
     await app.init();
+    const fastifyInstance = app.getHttpAdapter().getInstance();
     await fastifyInstance.ready();
 
     server = app.getHttpServer();
