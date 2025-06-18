@@ -1,19 +1,8 @@
 import type { EbsiIssuer } from "@cef-ebsi/verifiable-credential";
-import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 
 import { util } from "@cef-ebsi/key-did-resolver";
-import {
-  encode,
-  getSigner,
-  methodNotAllowed,
-  waitToBeMined,
-} from "@ebsiint-api/shared";
-import { fastifyAccepts } from "@fastify/accepts";
-import { fastifyHelmet } from "@fastify/helmet";
-import { Logger, ValidationPipe } from "@nestjs/common";
+import { encode, getSigner, waitToBeMined } from "@ebsiint-api/shared";
 import { ConfigService } from "@nestjs/config";
-import { FastifyAdapter } from "@nestjs/platform-fastify";
-import { Test } from "@nestjs/testing";
 import { hexToBytes } from "did-jwt";
 import { ethers } from "ethers";
 import { randomBytes } from "node:crypto";
@@ -38,10 +27,10 @@ import type {
 } from "../../src/modules/jsonrpc/validators/index.ts";
 
 import { AppModule } from "../../src/app.module.ts";
-import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.ts";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils.ts";
 import { AccountType, Permission } from "../../src/shared/constants.ts";
 import { didToHex } from "../../src/shared/utils.ts";
+import { getNestFastifyApplication } from "../utils/app.ts";
 import { describeWriteOps } from "../utils/describeWriteOps.ts";
 import { getAccessToken } from "../utils/getAccessToken.ts";
 import { getServer } from "../utils/getServer.ts";
@@ -58,43 +47,18 @@ interface SupertestJsonRpcResponse {
 
 describeWriteOps()("Track and Trace - User Journey (e2e)", () => {
   it("should support a complete user journey", async () => {
-    const moduleFixture = await Test.createTestingModule({
+    const app = await getNestFastifyApplication({
       imports: [AppModule],
-    }).compile();
-
-    const app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter(),
-    );
-
-    // Turn off logger
-    Logger.overrideLogger(false);
-
-    const configService =
-      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
-
-    // https://cheatsheetseries.owasp.org/cheatsheets/REST_Security_Cheat_Sheet.html#security-headers
-    await app.register(fastifyHelmet, {
-      contentSecurityPolicy: {
-        directives: {
-          "frame-ancestors": ["'none'"],
-        },
-      },
-      xFrameOptions: {
-        action: "deny",
-      },
     });
 
-    // Parse "Accept" request header
-    await app.register(fastifyAccepts);
+    const configService =
+      app.get<ConfigService<ApiConfig, true>>(ConfigService);
 
-    app.useGlobalFilters(new AllExceptionsFilter());
-    app.useGlobalPipes(new ValidationPipe({ transform: true }));
-
-    const fastifyInstance = app.getHttpAdapter().getInstance();
-    fastifyInstance.addHook("onRequest", methodNotAllowed);
-
-    await app.init();
-    await fastifyInstance.ready();
+    if (process.env.TEST_ENV !== "remote") {
+      await app.init();
+      const fastifyInstance = app.getHttpAdapter().getInstance();
+      await fastifyInstance.ready();
+    }
 
     const server = getServer(app, configService);
 

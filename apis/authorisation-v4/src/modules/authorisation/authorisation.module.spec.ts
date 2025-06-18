@@ -14,9 +14,7 @@ import { fromUrl } from "@cef-ebsi/ebsi-uri";
 import { createVerifiableCredentialJwt } from "@cef-ebsi/verifiable-credential";
 import { createVerifiablePresentationJwt } from "@cef-ebsi/verifiable-presentation";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
-import { Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { Test } from "@nestjs/testing";
 import { createJWT, decodeJWT, ES256KSigner } from "did-jwt";
 import { calculateJwkThumbprint, importJWK, jwtVerify } from "jose";
 import { http, HttpResponse } from "msw";
@@ -45,7 +43,7 @@ import type {
   TokenResponse,
 } from "./authorisation.interfaces.ts";
 
-import { configureApp } from "../../../tests/utils/app.ts";
+import { getNestFastifyApplication } from "../../../tests/utils/app.ts";
 import {
   createDidDocument,
   createLegalEntity,
@@ -118,17 +116,11 @@ describe.each(["EBSI URI", "URL"] as const)(
         },
       });
 
-      const moduleFixture = await Test.createTestingModule({
+      app = await getNestFastifyApplication({
         imports: [AuthorisationModule],
-      }).compile();
+      });
 
-      // Turn off logger
-      Logger.overrideLogger(false);
-
-      configService =
-        moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
-
-      app = await configureApp(moduleFixture);
+      configService = app.get<ConfigService<ApiConfig, true>>(ConfigService);
 
       await app.init();
       const fastifyInstance = app.getHttpAdapter().getInstance();

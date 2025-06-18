@@ -2,21 +2,17 @@ import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
-import { encode, methodNotAllowed } from "@ebsiint-api/shared";
+import { encode } from "@ebsiint-api/shared";
 import { DidRegistry__factory } from "@ebsiint-sc/did-registry-v3";
-import { fastifyAccepts } from "@fastify/accepts";
-import { Logger, ValidationPipe } from "@nestjs/common";
-import { FastifyAdapter } from "@nestjs/platform-fastify";
-import { Test } from "@nestjs/testing";
 import { ethers } from "ethers";
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import type { UserDetails } from "../../../tests/utils/data.ts";
 
+import { getNestFastifyApplication } from "../../../tests/utils/app.ts";
 import { createUser } from "../../../tests/utils/data.ts";
 import { setupTestEnv } from "../../../tests/utils/didRegistry.ts";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter.ts";
 import { LedgerService } from "../ledger/ledger.service.ts";
 import { IdentifiersModule } from "./identifiers.module.ts";
 
@@ -53,33 +49,12 @@ describe("Identifiers Module", () => {
       () => provider,
     );
 
-    const moduleFixture = await Test.createTestingModule({
+    app = await getNestFastifyApplication({
       imports: [IdentifiersModule],
-    }).compile();
-
-    app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter(),
-    );
-
-    // Turn off logger
-    Logger.overrideLogger(false);
-
-    // Parse "Accept" request header
-    await app.register(fastifyAccepts);
-
-    app.useGlobalFilters(new AllExceptionsFilter());
-    app.useGlobalPipes(
-      new ValidationPipe({
-        forbidNonWhitelisted: true,
-        transform: true,
-        whitelist: true,
-      }),
-    );
-
-    const fastifyInstance = app.getHttpAdapter().getInstance();
-    fastifyInstance.addHook("onRequest", methodNotAllowed);
+    });
 
     await app.init();
+    const fastifyInstance = app.getHttpAdapter().getInstance();
     await fastifyInstance.ready();
     server = app.getHttpServer();
   });

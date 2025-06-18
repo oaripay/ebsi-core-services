@@ -4,13 +4,8 @@ import type { HardhatEthersProvider } from "@nomicfoundation/hardhat-ethers/inte
 import type { RawServerDefault } from "fastify";
 import type { GenerateKeyPairResult } from "jose";
 
-import { methodNotAllowed } from "@ebsiint-api/shared";
 import { Timestamp__factory } from "@ebsiint-sc/timestamp-v2";
-import { fastifyAccepts } from "@fastify/accepts";
-import { Logger, ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { FastifyAdapter } from "@nestjs/platform-fastify";
-import { Test } from "@nestjs/testing";
 import { ethers } from "ethers";
 import {
   calculateJwkThumbprint,
@@ -48,12 +43,12 @@ import type { TimestampVersionHashesSchema } from "./validators/RequestTimestamp
 import type { UpdateHashAlgorithmSchema } from "./validators/RequestUpdateHashAlgorithm.ts";
 import type { UnsignedTransactionSchema } from "./validators/UnsignedTransaction.ts";
 
+import { getNestFastifyApplication } from "../../../tests/utils/app.ts";
 import { createUser } from "../../../tests/utils/data.ts";
 import {
   multihashToNodeHashAlg,
   setupTestEnv,
 } from "../../../tests/utils/timestamp.ts";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter.ts";
 import { LedgerService } from "../ledger/ledger.service.ts";
 import { JsonRpcModule } from "./jsonrpc.module.ts";
 import { formatEthersUnsignedTransaction } from "./jsonrpc.utils.ts";
@@ -211,30 +206,14 @@ describe("JSON-RPC Module", () => {
       .toString("hex")}`;
 
     // Start server
-    const moduleFixture = await Test.createTestingModule({
+    app = await getNestFastifyApplication({
       imports: [JsonRpcModule],
-    }).compile();
+    });
 
-    app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter(),
-    );
-
-    // Turn off logger
-    Logger.overrideLogger(false);
-
-    configService =
-      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
-
-    // Parse "Accept" request header
-    await app.register(fastifyAccepts);
-
-    app.useGlobalFilters(new AllExceptionsFilter());
-    app.useGlobalPipes(new ValidationPipe({ transform: true }));
-
-    const fastifyInstance = app.getHttpAdapter().getInstance();
-    fastifyInstance.addHook("onRequest", methodNotAllowed);
+    configService = app.get<ConfigService<ApiConfig, true>>(ConfigService);
 
     await app.init();
+    const fastifyInstance = app.getHttpAdapter().getInstance();
     await fastifyInstance.ready();
     server = app.getHttpServer();
 

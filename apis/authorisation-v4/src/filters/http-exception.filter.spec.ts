@@ -6,12 +6,11 @@ import {
   MethodNotAllowedError,
   ProblemDetailsError,
 } from "@ebsiint-api/shared";
-import { BadRequestException, Logger, NotFoundException } from "@nestjs/common";
+import { BadRequestException, NotFoundException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { Test } from "@nestjs/testing";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
-import { configureApp } from "../../tests/utils/app.ts";
+import { getNestFastifyApplication } from "../../tests/utils/app.ts";
 import { AllExceptionsFilter } from "./http-exception.filter.ts";
 
 const mockGetResponse = vi.fn().mockImplementation(() => ({
@@ -49,20 +48,15 @@ describe("All exception filter tests", () => {
   let service: AllExceptionsFilter;
 
   beforeAll(async () => {
-    const moduleFixture = await Test.createTestingModule({
+    app = await getNestFastifyApplication({
       imports: [],
       providers: [AllExceptionsFilter, ConfigService],
-    }).compile();
-
-    // Turn off logger
-    Logger.overrideLogger(false);
-
-    app = await configureApp(moduleFixture);
+    });
 
     await app.init();
     const fastifyInstance = app.getHttpAdapter().getInstance();
     await fastifyInstance.ready();
-    service = moduleFixture.get<AllExceptionsFilter>(AllExceptionsFilter);
+    service = app.get<AllExceptionsFilter>(AllExceptionsFilter);
   });
 
   afterAll(async () => {

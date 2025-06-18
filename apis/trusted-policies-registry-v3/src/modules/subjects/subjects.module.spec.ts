@@ -1,20 +1,15 @@
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 
-import { methodNotAllowed } from "@ebsiint-api/shared";
 import { PolicyRegistry__factory } from "@ebsiint-sc/trusted-policies-registry-v2";
-import { fastifyAccepts } from "@fastify/accepts";
-import { Logger, ValidationPipe } from "@nestjs/common";
-import { FastifyAdapter } from "@nestjs/platform-fastify";
-import { Test } from "@nestjs/testing";
 import { ethers } from "ethers";
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import type { UserObject } from "../../../tests/utils/trustedPoliciesRegistry.ts";
 
+import { getNestFastifyApplication } from "../../../tests/utils/app.ts";
 import { setupTestEnv } from "../../../tests/utils/trustedPoliciesRegistry.ts";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter.ts";
 import { LedgerService } from "../ledger/ledger.service.ts";
 import { SubjectsModule } from "./subjects.module.ts";
 
@@ -47,27 +42,10 @@ describe("Subjects Module", () => {
       () => testEnv.provider,
     );
 
-    const moduleFixture = await Test.createTestingModule({
-      imports: [SubjectsModule],
-    }).compile();
-
-    app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter(),
-    );
-
-    // Turn off logger
-    Logger.overrideLogger(false);
-
-    // Parse "Accept" request header
-    await app.register(fastifyAccepts);
-
-    app.useGlobalFilters(new AllExceptionsFilter());
-    app.useGlobalPipes(new ValidationPipe({ transform: true }));
-
-    const fastifyInstance = app.getHttpAdapter().getInstance();
-    fastifyInstance.addHook("onRequest", methodNotAllowed);
+    app = await getNestFastifyApplication({ imports: [SubjectsModule] });
 
     await app.init();
+    const fastifyInstance = app.getHttpAdapter().getInstance();
     await fastifyInstance.ready();
 
     server = app.getHttpServer();

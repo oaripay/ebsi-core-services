@@ -10,16 +10,11 @@ import {
   generatePrivateKey,
   getPublicKeyJwk,
   getSigner,
-  methodNotAllowed,
 } from "@ebsiint-api/shared";
 // eslint-disable-next-line import/namespace
 import * as StatusList2021CredentialHelpers from "@ebsiint-api/shared";
 import { Tir__factory } from "@ebsiint-sc/trusted-issuers-registry-v3";
-import { fastifyAccepts } from "@fastify/accepts";
-import { Logger, ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { FastifyAdapter } from "@nestjs/platform-fastify";
-import { Test } from "@nestjs/testing";
 import { useContainer } from "class-validator";
 import { ethers } from "ethers";
 import {
@@ -53,9 +48,9 @@ import type { SetAttributeDataSchema } from "./validators/RequestSetAttributeDat
 import type { SetAttributeMetadataSchema } from "./validators/RequestSetAttributeMetadataSchema.ts";
 import type { UpdateIssuerProxySchema } from "./validators/RequestUpdateIssuerProxySchema.ts";
 
+import { getNestFastifyApplication } from "../../../tests/utils/app.ts";
 import { createDidDocument } from "../../../tests/utils/data.ts";
 import { createIssuer, setupTestEnv } from "../../../tests/utils/tir.ts";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter.ts";
 import { IssuerType } from "../issuers/issuers.constants.ts";
 import { LedgerService } from "../ledger/ledger.service.ts";
 import { JsonRpcModule } from "./jsonrpc.module.ts";
@@ -213,35 +208,18 @@ describe("JSON-RPC Module", () => {
     );
 
     // Start server
-    const moduleFixture = await Test.createTestingModule({
-      imports: [JsonRpcModule],
-    }).compile();
+    app = await getNestFastifyApplication({ imports: [JsonRpcModule] });
 
-    app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter(),
-    );
+    configService = app.get<ConfigService<ApiConfig, true>>(ConfigService);
 
-    // Turn off logger
-    Logger.overrideLogger(false);
-
-    configService =
-      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
-
-    // Parse "Accept" request header
-    await app.register(fastifyAccepts);
-
-    app.useGlobalFilters(new AllExceptionsFilter());
-    app.useGlobalPipes(new ValidationPipe({ transform: true }));
     useContainer(app.select(JsonRpcModule), { fallbackOnErrors: true });
 
-    const fastifyInstance = app.getHttpAdapter().getInstance();
-    fastifyInstance.addHook("onRequest", methodNotAllowed);
-
     await app.init();
+    const fastifyInstance = app.getHttpAdapter().getInstance();
     await fastifyInstance.ready();
     server = app.getHttpServer();
 
-    jsonRpcService = moduleFixture.get<JsonRpcService>(JsonRpcService);
+    jsonRpcService = app.get<JsonRpcService>(JsonRpcService);
 
     // Generate key pair for Authorisation API v3 and create access token
     authApiKeyPair = await generateKeyPair("ES256");

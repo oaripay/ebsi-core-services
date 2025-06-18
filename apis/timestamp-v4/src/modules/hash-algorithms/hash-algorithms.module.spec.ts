@@ -2,17 +2,12 @@ import type { Timestamp } from "@ebsiint-sc/timestamp-v2";
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 
-import { methodNotAllowed } from "@ebsiint-api/shared";
 import { Timestamp__factory } from "@ebsiint-sc/timestamp-v2";
-import { fastifyAccepts } from "@fastify/accepts";
-import { Logger, ValidationPipe } from "@nestjs/common";
-import { FastifyAdapter } from "@nestjs/platform-fastify";
-import { Test } from "@nestjs/testing";
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
+import { getNestFastifyApplication } from "../../../tests/utils/app.ts";
 import { setupTestEnv } from "../../../tests/utils/timestamp.ts";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter.ts";
 import { LedgerService } from "../ledger/ledger.service.ts";
 import { HashAlgorithmsModule } from "./hash-algorithms.module.ts";
 
@@ -43,27 +38,12 @@ describe("HashAlgorithms Module", () => {
       () => testEnv.provider,
     );
 
-    const moduleFixture = await Test.createTestingModule({
+    app = await getNestFastifyApplication({
       imports: [HashAlgorithmsModule],
-    }).compile();
-
-    app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter(),
-    );
-
-    // Turn off logger
-    Logger.overrideLogger(false);
-
-    // Parse "Accept" request header
-    await app.register(fastifyAccepts);
-
-    app.useGlobalFilters(new AllExceptionsFilter());
-    app.useGlobalPipes(new ValidationPipe({ transform: true }));
-
-    const fastifyInstance = app.getHttpAdapter().getInstance();
-    fastifyInstance.addHook("onRequest", methodNotAllowed);
+    });
 
     await app.init();
+    const fastifyInstance = app.getHttpAdapter().getInstance();
     await fastifyInstance.ready();
     server = app.getHttpServer();
   });

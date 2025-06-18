@@ -14,9 +14,7 @@ import { createVerifiableCredentialJwt } from "@cef-ebsi/verifiable-credential";
 import { createVerifiablePresentationJwt } from "@cef-ebsi/verifiable-presentation";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { getSigner } from "@ebsiint-api/shared";
-import { Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { Test } from "@nestjs/testing";
 import { createJWT, decodeJWT, ES256KSigner, hexToBytes } from "did-jwt";
 import { calculateJwkThumbprint, importJWK, jwtVerify } from "jose";
 import { randomBytes, randomUUID } from "node:crypto";
@@ -45,7 +43,7 @@ import {
   TIR_WRITE_SCOPE,
 } from "../../src/modules/authorisation/authorisation.constants.ts";
 import { CreateAccessTokenDto } from "../../src/modules/authorisation/dto/index.ts";
-import { configureApp } from "../utils/app.ts";
+import { getNestFastifyApplication } from "../utils/app.ts";
 import {
   createLegalEntity,
   createPresentationSubmission,
@@ -60,21 +58,19 @@ describe("Authorisation API v3 (e2e)", () => {
   let ebsiEnvConfig: EbsiEnvConfiguration;
 
   beforeAll(async () => {
-    const moduleFixture = await Test.createTestingModule({
+    app = await getNestFastifyApplication({
       imports: [AppModule],
-    }).compile();
+    });
 
-    configService =
-      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
+    configService = app.get<ConfigService<ApiConfig, true>>(ConfigService);
 
-    app = await configureApp(moduleFixture);
+    const testEnv = configService.get("testEnv", { infer: true });
 
-    // Turn off logger
-    Logger.overrideLogger(false);
-
-    await app.init();
-    const fastifyInstance = app.getHttpAdapter().getInstance();
-    await fastifyInstance.ready();
+    if (testEnv !== "remote") {
+      await app.init();
+      const fastifyInstance = app.getHttpAdapter().getInstance();
+      await fastifyInstance.ready();
+    }
 
     server = getServer(app, configService);
 

@@ -1,12 +1,7 @@
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 
-import { methodNotAllowed } from "@ebsiint-api/shared";
 import { TrackAndTrace__factory } from "@ebsiint-sc/track-and-trace";
-import { fastifyAccepts } from "@fastify/accepts";
-import { Logger, ValidationPipe } from "@nestjs/common";
-import { FastifyAdapter } from "@nestjs/platform-fastify";
-import { Test } from "@nestjs/testing";
 import { randomBytes } from "node:crypto";
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
@@ -19,8 +14,8 @@ import type {
   Event,
 } from "./documents.interface.ts";
 
+import { getNestFastifyApplication } from "../../../tests/utils/app.ts";
 import { setupTestEnv } from "../../../tests/utils/trackAndTrace.ts";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter.ts";
 import { LedgerService } from "../ledger/ledger.service.ts";
 import { DocumentsModule } from "./documents.module.ts";
 
@@ -58,33 +53,12 @@ describe("Documents Module", () => {
       () => provider,
     );
 
-    const moduleFixture = await Test.createTestingModule({
+    app = await getNestFastifyApplication({
       imports: [DocumentsModule],
-    }).compile();
-
-    app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter(),
-    );
-
-    // Parse "Accept" request header
-    await app.register(fastifyAccepts);
-
-    // Turn off logger
-    Logger.overrideLogger(false);
-
-    app.useGlobalFilters(new AllExceptionsFilter());
-    app.useGlobalPipes(
-      new ValidationPipe({
-        forbidNonWhitelisted: true,
-        transform: true,
-        whitelist: true,
-      }),
-    );
-
-    const fastifyInstance = app.getHttpAdapter().getInstance();
-    fastifyInstance.addHook("onRequest", methodNotAllowed);
+    });
 
     await app.init();
+    const fastifyInstance = app.getHttpAdapter().getInstance();
     await fastifyInstance.ready();
     server = app.getHttpServer();
   });

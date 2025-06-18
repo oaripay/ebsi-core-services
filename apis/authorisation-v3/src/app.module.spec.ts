@@ -1,6 +1,4 @@
-import { Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { Test } from "@nestjs/testing";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 import { PinoLogger } from "nestjs-pino";
@@ -17,7 +15,7 @@ import {
 
 import type { ApiConfig } from "./config/configuration.ts";
 
-import { configureApp } from "../tests/utils/app.ts";
+import { getNestFastifyApplication } from "../tests/utils/app.ts";
 import { AppModule } from "./app.module.ts";
 import { DEPENDENCIES } from "./config/configuration.ts";
 
@@ -29,13 +27,10 @@ const mockedLogger = {
 };
 
 async function startApp() {
-  const moduleFixture = await Test.createTestingModule({
-    imports: [AppModule],
-  }).compile();
-
-  const app = await configureApp(moduleFixture);
-
-  Logger.overrideLogger(mockedLogger);
+  const app = await getNestFastifyApplication(
+    { imports: [AppModule] },
+    { logger: mockedLogger },
+  );
 
   await app.init();
   const fastifyInstance = app.getHttpAdapter().getInstance();

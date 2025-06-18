@@ -1,15 +1,8 @@
-import type { NestFastifyApplication } from "@nestjs/platform-fastify";
-
-import { frameworkErrors, methodNotAllowed } from "@ebsiint-api/shared";
 import { DidRegistry__factory } from "@ebsiint-sc/did-registry-v3";
-import { fastifyAccepts } from "@fastify/accepts";
-import { fastifyHelmet } from "@fastify/helmet";
-import { Logger, ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { FastifyAdapter } from "@nestjs/platform-fastify";
-import { Test } from "@nestjs/testing";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
+import { PinoLogger } from "nestjs-pino";
 import request from "supertest";
 import {
   afterAll,
@@ -23,12 +16,12 @@ import {
 
 import type { ApiConfig } from "./config/configuration.ts";
 
+import { getNestFastifyApplication } from "../tests/utils/app.ts";
 import { AppModule } from "./app.module.ts";
 import {
   BOOTSTRAP_DEPENDENCIES,
   RUNTIME_DEPENDENCIES,
 } from "./config/configuration.ts";
-import { AllExceptionsFilter } from "./filters/http-exception.filter.ts";
 
 describe("App Module", () => {
   const mockServer = setupServer();
@@ -69,28 +62,12 @@ describe("App Module", () => {
     it("should prevent the app from starting if a bootstrap dependency triggers a network error", async () => {
       expect.assertions(1);
 
-      const moduleFixture = await Test.createTestingModule({
+      const app = await getNestFastifyApplication({
         imports: [AppModule],
-      }).compile();
-
-      const app = moduleFixture.createNestApplication<NestFastifyApplication>(
-        new FastifyAdapter(),
-      );
-
-      // Turn off logger
-      Logger.overrideLogger(false);
+      });
 
       const configService =
         app.get<ConfigService<ApiConfig, true>>(ConfigService);
-
-      // Parse "Accept" request header
-      await app.register(fastifyAccepts);
-
-      app.useGlobalFilters(new AllExceptionsFilter());
-      app.useGlobalPipes(new ValidationPipe({ transform: true }));
-
-      const fastifyInstance = app.getHttpAdapter().getInstance();
-      fastifyInstance.addHook("onRequest", methodNotAllowed);
 
       const domain = configService.get("domain", { infer: true });
       const localOrigin =
@@ -119,33 +96,20 @@ describe("App Module", () => {
     it("should prevent the app from starting if one of the bootstrap dependencies still responds with a 404 after all the attempts", async () => {
       expect.assertions(2);
 
-      const moduleFixture = await Test.createTestingModule({
-        imports: [AppModule],
-      }).compile();
-
-      const app = moduleFixture.createNestApplication<NestFastifyApplication>(
-        new FastifyAdapter(),
-      );
-
       const mockedLogger = {
         debug: vi.fn(),
         error: vi.fn(),
         log: vi.fn(),
         warn: vi.fn(),
       };
-      Logger.overrideLogger(mockedLogger);
+
+      const app = await getNestFastifyApplication(
+        { imports: [AppModule] },
+        { logger: mockedLogger },
+      );
 
       const configService =
         app.get<ConfigService<ApiConfig, true>>(ConfigService);
-
-      // Parse "Accept" request header
-      await app.register(fastifyAccepts);
-
-      app.useGlobalFilters(new AllExceptionsFilter());
-      app.useGlobalPipes(new ValidationPipe({ transform: true }));
-
-      const fastifyInstance = app.getHttpAdapter().getInstance();
-      fastifyInstance.addHook("onRequest", methodNotAllowed);
 
       const domain = configService.get("domain", { infer: true });
       const localOrigin =
@@ -176,33 +140,20 @@ describe("App Module", () => {
     it("should start if all the bootstrap dependencies are up and running", async () => {
       expect.assertions(2);
 
-      const moduleFixture = await Test.createTestingModule({
-        imports: [AppModule],
-      }).compile();
-
-      const app = moduleFixture.createNestApplication<NestFastifyApplication>(
-        new FastifyAdapter(),
-      );
-
       const mockedLogger = {
         debug: vi.fn(),
         error: vi.fn(),
         log: vi.fn(),
         warn: vi.fn(),
       };
-      Logger.overrideLogger(mockedLogger);
+
+      const app = await getNestFastifyApplication(
+        { imports: [AppModule] },
+        { logger: mockedLogger },
+      );
 
       const configService =
         app.get<ConfigService<ApiConfig, true>>(ConfigService);
-
-      // Parse "Accept" request header
-      await app.register(fastifyAccepts);
-
-      app.useGlobalFilters(new AllExceptionsFilter());
-      app.useGlobalPipes(new ValidationPipe({ transform: true }));
-
-      const fastifyInstance = app.getHttpAdapter().getInstance();
-      fastifyInstance.addHook("onRequest", methodNotAllowed);
 
       const domain = configService.get("domain", { infer: true });
       const localOrigin =
@@ -253,42 +204,13 @@ describe("App Module", () => {
 
     async function startApp() {
       // Start server
-      const moduleFixture = await Test.createTestingModule({
-        imports: [AppModule],
-      }).compile();
-
-      const adapter = new FastifyAdapter({
-        frameworkErrors,
-      });
-      const app =
-        moduleFixture.createNestApplication<NestFastifyApplication>(adapter);
-
-      // Turn off logger
-      Logger.overrideLogger(mockedLogger);
+      const app = await getNestFastifyApplication(
+        { imports: [AppModule] },
+        { logger: mockedLogger },
+      );
 
       const configService =
         app.get<ConfigService<ApiConfig, true>>(ConfigService);
-
-      // https://cheatsheetseries.owasp.org/cheatsheets/REST_Security_Cheat_Sheet.html#security-headers
-      await app.register(fastifyHelmet, {
-        contentSecurityPolicy: {
-          directives: {
-            "frame-ancestors": ["'none'"],
-          },
-        },
-        xFrameOptions: {
-          action: "deny",
-        },
-      });
-
-      // Parse "Accept" request header
-      await app.register(fastifyAccepts);
-
-      app.useGlobalFilters(new AllExceptionsFilter());
-      app.useGlobalPipes(new ValidationPipe({ transform: true }));
-
-      const fastifyInstance = app.getHttpAdapter().getInstance();
-      fastifyInstance.addHook("onRequest", methodNotAllowed);
 
       const domain = configService.get("domain", { infer: true });
       const localOrigin =
@@ -306,7 +228,8 @@ describe("App Module", () => {
       );
 
       await app.init();
-      await fastifyInstance.ready();
+      await app.getHttpAdapter().getInstance().ready();
+
       return app;
     }
 
@@ -355,10 +278,16 @@ describe("App Module", () => {
       });
 
       it("should not display the framework in the error message", async () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const app = await startApp();
         const server = app.getHttpServer();
+
+        const pinoLoggerSpy = vi
+          .spyOn(PinoLogger.root, "info")
+          .mockImplementation(() => {
+            // Do nothing
+          });
 
         const response = await request(server).get("/%91").send();
 
@@ -369,6 +298,23 @@ describe("App Module", () => {
           type: "about:blank",
         });
         expect(response.status).toBe(400);
+
+        expect(pinoLoggerSpy).toHaveBeenCalledWith(
+          {
+            context: "frameworkErrors",
+            error: expect.any(Error),
+            request: {
+              headers: {
+                "accept-encoding": "gzip, deflate",
+                connection: "close",
+                host: expect.any(String),
+              },
+              method: "GET",
+              url: "/%91",
+            },
+          },
+          "Invalid request received",
+        );
 
         await app.close();
       });

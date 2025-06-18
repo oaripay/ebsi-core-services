@@ -1,13 +1,8 @@
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 
-import { methodNotAllowed } from "@ebsiint-api/shared";
-import { fastifyAccepts } from "@fastify/accepts";
 import { HttpService } from "@nestjs/axios";
-import { Logger, ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { FastifyAdapter } from "@nestjs/platform-fastify";
-import { Test } from "@nestjs/testing";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 import request from "supertest";
@@ -23,7 +18,7 @@ import {
 
 import type { ApiConfig } from "../../config/configuration.ts";
 
-import { AllExceptionsFilter } from "../../filters/http-exception.filter.ts";
+import { getNestFastifyApplication } from "../../../tests/utils/app.ts";
 import { HealthModule } from "./health.module.ts";
 
 describe("Health Module", () => {
@@ -44,29 +39,16 @@ describe("Health Module", () => {
       },
     });
 
-    const moduleFixture = await Test.createTestingModule({
-      imports: [HealthModule],
-    }).compile();
-    Logger.overrideLogger(false);
-    app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter(),
-    );
-    configService =
-      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
-    app.useGlobalFilters(new AllExceptionsFilter());
-    app.useGlobalPipes(new ValidationPipe());
+    app = await getNestFastifyApplication({ imports: [HealthModule] });
 
-    // Parse "Accept" request header
-    await app.register(fastifyAccepts);
-
-    const fastifyInstance = app.getHttpAdapter().getInstance();
-    fastifyInstance.addHook("onRequest", methodNotAllowed);
+    configService = app.get<ConfigService<ApiConfig, true>>(ConfigService);
 
     await app.init();
+    const fastifyInstance = app.getHttpAdapter().getInstance();
     await fastifyInstance.ready();
     server = app.getHttpServer();
 
-    httpService = await moduleFixture.resolve<HttpService>(HttpService);
+    httpService = await app.resolve<HttpService>(HttpService);
   });
 
   afterEach(() => {
