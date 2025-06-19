@@ -671,7 +671,9 @@ paths:
 
           #### authoriseDid
 
-          Call to build an unsigned transaction to authorise a DID to create documents. Requires an access token with "tnt_authorise" scope.
+          Requires an access token with `tnt_authorise` scope.
+
+          Call to build an unsigned transaction to authorise a DID to create documents.
 
           Parameters:
           - **from**: Ethereum address of the signer
@@ -681,7 +683,11 @@ paths:
 
           #### createDocument
 
-          Call to build an unsigned transaction to create a new Document. Requires an access token with "tnt_create" scope. By default it records the timestamp of the blockchain, but it's possible to define a different timestamp with its respective proof.
+          Requires an access token with `tnt_create` scope.
+
+          Call to build an unsigned transaction to create a new Document.
+
+          By default, it records the timestamp of the blockchain, but it's possible to define a different timestamp with its respective proof.
 
           Parameters:
           - **from**: Ethereum address of the signer
@@ -693,7 +699,9 @@ paths:
 
           #### removeDocument
 
-          Call to build an unsigned transaction to remove a document and all related resources. Requires an access token with "tnt_write" scope.
+          Requires an access token with `tnt_write` scope.
+
+          Call to build an unsigned transaction to remove a document and all related resources.
 
           Parameters:
           - **from**: Ethereum address of the signer
@@ -701,7 +709,11 @@ paths:
 
           #### grantAccess
 
-          Call to build an unsigned transaction to grant a permission for a DID in a specific document. Requires an access token with "tnt_write" scope. "write" grant requires the transaction signer to be creator of the Document, or signer must have "delegate" permission in the Document. "delegate" grant requires the transaction signer to be creator of the Document.
+          Requires an access token with `tnt_write` scope.
+
+          Call to build an unsigned transaction to grant a permission for a DID in a specific document.
+
+          "write" grant requires the transaction signer to be creator of the Document, or signer must have "delegate" permission in the Document. "delegate" grant requires the transaction signer to be creator of the Document.
 
           Parameters:
           - **from**: Ethereum address of the signer
@@ -714,7 +726,11 @@ paths:
 
           #### revokeAccess
 
-          Call to build an unsigned transaction to revoke a permission from a DID in a specific Document. Requires an access token with "tnt_write" scope. Keep in mind that whenever the document's creator private key is lost, then there is no possibility to revoke access for this creator's documents anymore.
+          Requires an access token with `tnt_write` scope.
+
+          Call to build an unsigned transaction to revoke a permission from a DID in a specific Document.
+
+          Keep in mind that whenever the document's creator private key is lost, then there is no possibility to revoke access for this creator's documents anymore.
 
           Parameters:
           - **from**: Ethereum address of the signer
@@ -725,7 +741,11 @@ paths:
 
           #### writeEvent
 
-          Call to build an unsigned transaction to write an event into a specific document. Requires an access token with "tnt_write" scope. By default, it records the timestamp of the blockchain, but it's possible to define a different timestamp with its respective proof.
+          Requires an access token with `tnt_write` scope.
+
+          Call to build an unsigned transaction to write an event into a specific document.
+
+          By default, it records the timestamp of the blockchain, but it's possible to define a different timestamp with its respective proof.
 
           Parameters:
           - **from**: Ethereum address of the signer
@@ -740,8 +760,17 @@ paths:
 
           #### sendSignedTransaction
 
-          Call to send a signed transaction to the blockchain.
-          Requires an access token with "tnt_authorise", "tnt_create" or "tnt_write" scope.
+          Requires an access token with `tnt_authorise`, `tnt_create` or `tnt_write` scope.
+
+          Sends a signed transaction to the blockchain and returns the hash of the transaction.
+
+          **Warning: the transaction is not immediately processed. Make sure to check that the transaction has been successfully included in a block before moving on.**
+
+          You can get the [receipt of the transaction](https://besu.hyperledger.org/public-networks/reference/api/objects#transaction-receipt-object) by calling the [`eth_getTransactionReceipt`](https://besu.hyperledger.org/public-networks/reference/api#eth_gettransactionreceipt) method of [Ledger API's Besu endpoint](/apis/pilot/ledger/v4/post-blockchains-besu).
+
+          Receipts for pending transactions are not available, therefore you will have to wait until the transaction has been processed — usually a few seconds. We recommend you to poll the `eth_getTransactionReceipt` method until the receipt is available.
+
+          Once the receipt is available, you can check the `status` field to know if the transaction succeeded (`0x1`) or failed (`0x0`). If the transaction failed, the `revertReason` field will give you insights about the reason for the failure. You can learn more about the format of the revert reason in [Besu's documentation](https://besu.hyperledger.org/private-networks/how-to/send-transactions/revert-reason#revert-reason-format).
         content:
           application/json:
             schema:
@@ -902,6 +931,7 @@ paths:
                       gasLimit: "0x1000000"
                       gasPrice: "0x0"
                 Send a transaction:
+                  description: Sends a signed transaction to the blockchain.
                   value:
                     jsonrpc: "2.0"
                     id: 1

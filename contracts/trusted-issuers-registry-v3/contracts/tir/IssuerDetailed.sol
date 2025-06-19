@@ -411,6 +411,61 @@ abstract contract IssuerDetailed is IssuerStorage {
         }
     }
 
+    function getIssuerAttributeRevisions__deprecated(
+        string memory did,
+        bytes32 anyAttrVersHash,
+        uint256 page,
+        uint256 pageSize
+    )
+        external
+        view
+        returns (
+            Attribute[] memory items,
+            uint256 total,
+            uint256 howMany,
+            uint256 prev,
+            uint256 next
+        )
+    {
+        require(pageSize <= 50, "PageSize must be <= 50");
+        require(pageSize > 0, "PageSize must be > 0");
+        require(page > 0, "Page must be > 0");
+        Issuers storage ds = issuerStorage();
+        // retrieve first the did and attrId (firstHash of attribute)
+        AttributeMetadata storage am = ds.attributeMetadataStore[
+            anyAttrVersHash
+        ];
+        require(
+            ds.issuerStore[did].attributes.length > 0,
+            "issuer does not exist"
+        );
+        require(
+            keccak256(bytes(am.did)) == keccak256(bytes(did)),
+            "attribute has not been found"
+        );
+
+        // retrieve the issuer and the attribute detail
+        uint256[] memory ids;
+        (ids, total, howMany, prev, next) = ds
+            .issuerStore[am.did]
+            .revisionHashes[am.attributeId]
+            .length
+            .paginate(page, pageSize);
+        items = new Attribute[](howMany);
+        for (uint256 i = 0; i < howMany; i++) {
+            bytes32 hashId = ds.issuerStore[am.did].revisionHashes[
+                am.attributeId
+            ][ids[i]];
+            AttributeMetadata memory a = ds.attributeMetadataStore[hashId];
+            items[i].did = a.did;
+            items[i].tao = a.taoDid;
+            items[i].rootTao = a.rootTaoDid;
+            items[i].issuerType = a.issuerType;
+            items[i].attributeId = a.attributeId;
+            items[i].attribData = ds.issuerStore[a.did].revisions[hashId];
+        }
+    }
+
     function getIssuerAttributeByHash__deprecated(
         bytes32 anyAttrVersHash
     )

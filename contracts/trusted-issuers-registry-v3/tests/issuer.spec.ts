@@ -227,6 +227,19 @@ describe("Issuers", () => {
       ),
     ).to.eq(1);
 
+    expect(
+      Number(
+        (
+          await tir.getIssuerAttributeRevisions__deprecated(
+            rootTAO1.did,
+            issuerHashes[0],
+            1,
+            2,
+          )
+        ).total,
+      ),
+    ).to.eq(1);
+
     // get the status of the user
     let issuer = await tir.getIssuer(rootTAO1.did);
     expect(decodeResult(issuer)).to.deep.equal({
@@ -715,6 +728,16 @@ describe("Issuers", () => {
       await expect(
         tir.getIssuerAttributeRevisions("", randomHash(), 0, 1),
       ).to.be.revertedWith("Page must be > 0");
+
+      await expect(
+        tir.getIssuerAttributeRevisions__deprecated("", randomHash(), 1, 51),
+      ).to.be.revertedWith("PageSize must be <= 50");
+      await expect(
+        tir.getIssuerAttributeRevisions__deprecated("", randomHash(), 1, 0),
+      ).to.be.revertedWith("PageSize must be > 0");
+      await expect(
+        tir.getIssuerAttributeRevisions__deprecated("", randomHash(), 0, 1),
+      ).to.be.revertedWith("Page must be > 0");
     });
 
     it("should get issuers", async () => {
@@ -880,6 +903,58 @@ describe("Issuers", () => {
         prev: 1n,
         total: BigInt(4),
       });
+
+      const revisions__deprecated =
+        await tir.getIssuerAttributeRevisions__deprecated(
+          rootTAO1.did,
+          rootTAO1.attributeId,
+          1,
+          10,
+        );
+      expect(decodeResult(revisions__deprecated)).to.deep.equal({
+        howMany: BigInt(4),
+        items: [
+          {
+            // Preregistration - no content (setAttributeMetadata)
+            attribData: "0x",
+            attributeId: rootTAO1.attributeId,
+            did: rootTAO1.did,
+            issuerType: IssuerType.RootTAO.toString(),
+            rootTao: rootTAO1.did,
+            tao: rootTAO1.did,
+          },
+          {
+            // Registration of the credential (setAttributeData)
+            attribData: rootTAO1.attribute,
+            attributeId: revisions__deprecated.items[1].attributeId,
+            did: rootTAO1.did,
+            issuerType: IssuerType.RootTAO.toString(),
+            rootTao: rootTAO1.did,
+            tao: rootTAO1.did,
+          },
+          {
+            // Credential Revoked without content (setAttributeMetadata)
+            attribData: "0x",
+            attributeId: rootTAO1.attributeId,
+            did: rootTAO1.did,
+            issuerType: IssuerType.Revoked.toString(),
+            rootTao: rootTAO1.did,
+            tao: rootTAO1.did,
+          },
+          {
+            // Credential Revoked with content (setAttributeData)
+            attribData: attrRevoked,
+            attributeId: revisions__deprecated.items[3].attributeId,
+            did: rootTAO1.did,
+            issuerType: IssuerType.Revoked.toString(),
+            rootTao: rootTAO1.did,
+            tao: rootTAO1.did,
+          },
+        ],
+        next: 1n,
+        prev: 1n,
+        total: BigInt(4),
+      });
     });
 
     it("should be able to revoke a RootTAO by an admin from TPR", async () => {
@@ -992,6 +1067,22 @@ describe("Issuers", () => {
       ).to.be.revertedWith("attribute has not been found");
       await expect(
         tir.getIssuerAttributeRevisions("other-did", randomHash(), 1, 10),
+      ).to.be.revertedWith("issuer does not exist");
+      await expect(
+        tir.getIssuerAttributeRevisions__deprecated(
+          rootTAO1.did,
+          randomHash(),
+          1,
+          10,
+        ),
+      ).to.be.revertedWith("attribute has not been found");
+      await expect(
+        tir.getIssuerAttributeRevisions__deprecated(
+          "other-did",
+          randomHash(),
+          1,
+          10,
+        ),
       ).to.be.revertedWith("issuer does not exist");
     });
 

@@ -17,6 +17,7 @@ import { ConfigService } from "@nestjs/config";
 import type { ApiConfig } from "../../config/configuration.ts";
 import type {
   AttributeDetailsObject,
+  AttributeObject,
   DidLink,
   IdLink,
   IssuerProxyResponseObject,
@@ -28,6 +29,7 @@ import type {
 import {
   GetIssuerAttributeParamsDto,
   GetIssuerAttributeRevisionParamsDto,
+  GetIssuerAttributeRevisionsQueryDto,
   GetIssuerParamsDto,
   GetIssuerProxyParamsDto,
   GetIssuerQueryDto,
@@ -36,6 +38,8 @@ import {
   formatAttributes,
   formatIssuers,
   formatProxies,
+  formatRevisions,
+  formatRevisions__deprecated,
 } from "./issuers.formatter.ts";
 import { IssuersService } from "./issuers.service.ts";
 
@@ -161,9 +165,37 @@ export class IssuersController {
   @UsePipes(validationPipe)
   async issuerAttributeIdRevisions(
     @Param() params: GetIssuerAttributeParamsDto,
-    @Query() query: PaginationQuery,
-  ): Promise<PaginatedList<IdLink>> {
+    @Query() query: GetIssuerAttributeRevisionsQueryDto,
+  ): Promise<PaginatedList<AttributeObject> | PaginatedList<IdLink>> {
     const { attributeId, did } = params;
+    const version = query.version ?? "latest";
+
+    if (version === "deprecated") {
+      await this.issuersService.assertIssuerExists__deprecated(did);
+
+      const { revisions, total } =
+        await this.issuersService.getIssuerAttributeIdRevisions__deprecated(
+          attributeId,
+          did,
+          query["page[after]"],
+          query["page[size]"],
+        );
+
+      const apiUrlPrefix = this.configService.get("apiUrlPrefix", {
+        infer: true,
+      });
+      const domain = this.configService.get("domain", { infer: true });
+      const baseUrl = `${domain}${apiUrlPrefix}/issuers/${did}/attributes/${attributeId}/revisions`;
+
+      return formatRevisions__deprecated(
+        revisions,
+        total,
+        query["page[after]"],
+        query["page[size]"],
+        baseUrl,
+        version,
+      );
+    }
 
     const revisions = await this.issuersService.getIssuerAttributeIdRevisions(
       attributeId,
@@ -178,11 +210,12 @@ export class IssuersController {
     const domain = this.configService.get("domain", { infer: true });
     const baseUrl = `${domain}${apiUrlPrefix}/issuers/${did}/attributes/${attributeId}/revisions`;
 
-    return formatAttributes(
+    return formatRevisions(
       revisions,
       query["page[after]"],
       query["page[size]"],
       baseUrl,
+      version,
     );
   }
 
