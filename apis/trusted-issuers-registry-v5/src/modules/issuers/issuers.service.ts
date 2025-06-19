@@ -66,6 +66,10 @@ export class IssuersService {
     this.contract = Tir__factory.connect(contractAddress);
   }
 
+  async assertIssuerExists__deprecated(did: string): Promise<void> {
+    await this.getAttributes(did, 1, 1);
+  }
+
   async getAttribute(did: string, attrId: string): Promise<AttributeObject> {
     const provider = this.ledgerService.getProvider();
 
@@ -326,6 +330,68 @@ export class IssuersService {
         // @ts-expect-error Error due to CommonJS vs ESM modules imports
         .connect(provider)
         .getIssuerAttributeRevisions(did, hash, page, pageSize);
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error, error.stack);
+      }
+
+      const contractError = getContractError(error);
+
+      switch (contractError) {
+        case "issuer does not exist": {
+          throw new NotFoundError("Issuer Not Found", {
+            detail: `Issuer ${did} not found`,
+          });
+        }
+        case "attribute has not been found": {
+          throw new NotFoundError("Attribute Not Found", {
+            detail: `Attribute ${remove0xPrefix(hash)} not found`,
+          });
+        }
+        default: {
+          throw new NotFoundError("Not Found", {
+            detail: contractError,
+          });
+        }
+      }
+    }
+  }
+
+  async getIssuerAttributeIdRevisions__deprecated(
+    attributeId: string,
+    did: string,
+    page: number,
+    pageSize: number,
+  ): Promise<{ revisions: AttributeObject[]; total: number }> {
+    const provider = this.ledgerService.getProvider();
+
+    // This function assumes that the attributeId exists
+    const hash = prefixWith0x(attributeId);
+
+    try {
+      const revisionHashes = await this.contract
+        // @ts-expect-error Error due to CommonJS vs ESM modules imports
+        .connect(provider)
+        .getIssuerAttributeRevisions__deprecated(did, hash, page, pageSize);
+
+      const revisions = revisionHashes.items.map((attr) => {
+        const { attribData, attributeId, issuerType, rootTao, tao } = attr;
+        const attributeData = Buffer.from(
+          remove0xPrefix(attribData),
+          "hex",
+        ).toString();
+        return {
+          body: attributeData,
+          hash: attributeId.slice(2),
+          issuerType: IssuerTypeNames[Number(issuerType)]!,
+          rootTao,
+          tao,
+        };
+      });
+
+      const total = Number(revisionHashes.total);
+
+      return { revisions, total };
     } catch (error) {
       if (isEthersError(error)) {
         this.logger.error(error, error.stack);

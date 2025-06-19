@@ -544,129 +544,155 @@ describe("TIR API v5 - Issuers (e2e)", () => {
     });
   });
 
-  describe("/issuers/{did}/attributes/{attributeId}/revisions", () => {
-    let attributeId: string;
+  describe.each(["latest", "deprecated"] as const)(
+    "/issuers/{did}/attributes/{attributeId}/revisions (version: %s)",
+    (version) => {
+      let attributeId: string;
 
-    beforeAll(async () => {
-      const responseAttributes: SupertestAttributesResponse = await request(
-        server,
-      ).get(`/issuers/${lastExistingIssuerDid}/attributes`);
+      beforeAll(async () => {
+        const responseAttributes: SupertestAttributesResponse = await request(
+          server,
+        ).get(`/issuers/${lastExistingIssuerDid}/attributes`);
 
-      attributeId = responseAttributes.body.items[0]!.id;
-    });
-
-    it("should return revisions", async () => {
-      expect.assertions(2);
-
-      const urlPath = `/trusted-issuers-registry/v5/issuers/${lastExistingIssuerDid}/attributes/${attributeId}/revisions`;
-
-      const response = await request(server).get(
-        `/issuers/${lastExistingIssuerDid}/attributes/${attributeId}/revisions`,
-      );
-      expect(response.body).toStrictEqual({
-        items: expect.arrayContaining([]),
-        links: {
-          first: expect.stringContaining(urlPath),
-          last: expect.stringContaining(urlPath),
-          next: expect.stringContaining(urlPath),
-          prev: expect.stringContaining(urlPath),
-        },
-        pageSize: expect.any(Number),
-        self: expect.stringContaining(urlPath),
-        total: expect.any(Number),
+        attributeId = responseAttributes.body.items[0]!.id;
       });
-      expect(response.status).toBe(200);
-    });
 
-    it("should throw an error if the issuer DID is not correctly formatted", async () => {
-      expect.assertions(2);
+      it("should return revisions", async () => {
+        expect.assertions(3);
 
-      const response = await request(server).get(
-        `/issuers/not-a-did/attributes/${attributeId}`,
-      );
+        const urlPath = `/trusted-issuers-registry/v5/issuers/${lastExistingIssuerDid}/attributes/${attributeId}/revisions`;
 
-      expect(response.body).toStrictEqual({
-        detail: '["did must be a valid DID v1"]',
-        status: 400,
-        title: "Bad Request",
-        type: "about:blank",
+        const response = await request(server).get(
+          `/issuers/${lastExistingIssuerDid}/attributes/${attributeId}/revisions?version=${version}`,
+        );
+        expect(response.body).toStrictEqual({
+          items: expect.arrayContaining([]),
+          links: {
+            first: expect.stringContaining(urlPath),
+            last: expect.stringContaining(urlPath),
+            next: expect.stringContaining(urlPath),
+            prev: expect.stringContaining(urlPath),
+          },
+          pageSize: expect.any(Number),
+          self: expect.stringContaining(urlPath),
+          total: expect.any(Number),
+        });
+        expect(response.status).toBe(200);
+
+        if (version === "latest") {
+          expect((response.body as { items: unknown }).items).toStrictEqual(
+            expect.arrayContaining([
+              expect.objectContaining({
+                href: expect.any(String),
+                id: expect.any(String),
+              }),
+            ]),
+          );
+        } else {
+          expect((response.body as { items: unknown }).items).toStrictEqual(
+            expect.arrayContaining([
+              expect.objectContaining({
+                body: expect.any(String),
+                hash: expect.any(String),
+                issuerType: expect.any(String),
+                rootTao: expect.any(String),
+                tao: expect.any(String),
+              }),
+            ]),
+          );
+        }
       });
-      expect(response.status).toBe(400);
-    });
 
-    it("should throw an error if the issuer DID is not a valid EBSI DID", async () => {
-      expect.assertions(2);
+      it("should throw an error if the issuer DID is not correctly formatted", async () => {
+        expect.assertions(2);
 
-      const response = await request(server).get(
-        `/issuers/did:ebsi:z1234/attributes/${attributeId}`,
-      );
+        const response = await request(server).get(
+          `/issuers/not-a-did/attributes/${attributeId}/revisions?version=${version}`,
+        );
 
-      expect(response.body).toStrictEqual({
-        detail: '["did must be a valid DID v1"]',
-        status: 400,
-        title: "Bad Request",
-        type: "about:blank",
+        expect(response.body).toStrictEqual({
+          detail: '["did must be a valid DID v1"]',
+          status: 400,
+          title: "Bad Request",
+          type: "about:blank",
+        });
+        expect(response.status).toBe(400);
       });
-      expect(response.status).toBe(400);
-    });
 
-    it("should throw an error if the issuer is not found", async () => {
-      expect.assertions(2);
+      it("should throw an error if the issuer DID is not a valid EBSI DID", async () => {
+        expect.assertions(2);
 
-      const response = await request(server).get(
-        `/issuers/${randomDid}/attributes/${attributeId}`,
-      );
+        const response = await request(server).get(
+          `/issuers/did:ebsi:z1234/attributes/${attributeId}/revisions?version=${version}`,
+        );
 
-      expect(response.body).toStrictEqual({
-        detail: `Issuer ${randomDid} not found`,
-        status: 404,
-        title: "Issuer Not Found",
-        type: "about:blank",
+        expect(response.body).toStrictEqual({
+          detail: '["did must be a valid DID v1"]',
+          status: 400,
+          title: "Bad Request",
+          type: "about:blank",
+        });
+        expect(response.status).toBe(400);
       });
-      expect(response.status).toBe(404);
-    });
 
-    it("should throw an error when attribute is not found", async () => {
-      expect.assertions(5);
+      it("should throw an error if the issuer is not found", async () => {
+        expect.assertions(2);
 
-      // consult a random attribute
-      const wrongAttributeId =
-        "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d2";
-      const response: SupertestAttributeResponse = await request(server).get(
-        `/issuers/${lastExistingIssuerDid}/attributes/${wrongAttributeId}`,
-      );
-      expect(response.body).toStrictEqual({
-        detail: expect.stringContaining(
-          `Attribute ${wrongAttributeId} not found`,
-        ),
-        status: 404,
-        title: "Attribute Not Found",
-        type: "about:blank",
+        const response = await request(server).get(
+          `/issuers/${randomDid}/attributes/${attributeId}/revisions?version=${version}`,
+        );
+
+        expect(response.body).toStrictEqual({
+          detail: `Issuer ${randomDid} not found`,
+          status: 404,
+          title: "Issuer Not Found",
+          type: "about:blank",
+        });
+        expect(response.status).toBe(404);
       });
-      expect(response.status).toBe(404);
 
-      // consult an attribute from a different did
-      const responseAttributes: SupertestAttributesResponse = await request(
-        server,
-      ).get(`/issuers/${beforeLastExistingIssuerDid}/attributes`);
-      expect(responseAttributes.status).toBe(200);
+      it("should throw an error when attribute is not found", async () => {
+        expect.assertions(5);
 
-      const attributeId2 = responseAttributes.body.items[0]!.id;
+        // consult a random attribute
+        const wrongAttributeId =
+          "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d2";
+        const response: SupertestAttributeResponse = await request(server).get(
+          `/issuers/${lastExistingIssuerDid}/attributes/${wrongAttributeId}/revisions?version=${version}`,
+        );
+        expect(response.body).toStrictEqual({
+          detail: expect.stringContaining(
+            `Attribute ${wrongAttributeId} not found`,
+          ),
+          status: 404,
+          title: "Attribute Not Found",
+          type: "about:blank",
+        });
+        expect(response.status).toBe(404);
 
-      const response2: SupertestAttributeResponse = await request(server).get(
-        `/issuers/${lastExistingIssuerDid}/attributes/${attributeId2}`,
-      );
-      expect(response2.body).toStrictEqual({
-        detail: expect.stringContaining(
-          `Attribute 0x${attributeId2} not found`,
-        ),
-        status: 404,
-        title: "Attribute Not Found",
-        type: "about:blank",
+        // consult an attribute from a different did
+        const responseAttributes: SupertestAttributesResponse = await request(
+          server,
+        ).get(`/issuers/${beforeLastExistingIssuerDid}/attributes`);
+        expect(responseAttributes.status).toBe(200);
+
+        const attributeId2 = responseAttributes.body.items[0]!.id;
+
+        const response2: SupertestAttributeResponse = await request(server).get(
+          `/issuers/${lastExistingIssuerDid}/attributes/${attributeId2}/revisions?version=${version}`,
+        );
+        expect(response2.body).toStrictEqual({
+          detail: expect.stringContaining(
+            `Attribute 0x${attributeId2} not found`,
+          ),
+          status: 404,
+          title: "Attribute Not Found",
+          type: "about:blank",
+        });
+        expect(response2.status).toBe(404);
       });
-      expect(response2.status).toBe(404);
-    });
-  });
+    },
+  );
 
   describe("/issuers/{did}/attributes/{attributeId}/revisions/{revisionId}", () => {
     let attributeId: string;

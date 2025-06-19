@@ -294,7 +294,7 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  /trusted-issuers-registry/v5/issuers/{did}/attributes/{revisionId}:
+  /trusted-issuers-registry/v5/issuers/{did}/attributes/{attributeId}:
     get:
       operationId: get-issuer-attribute
       summary: Get an attribute
@@ -311,13 +311,13 @@ paths:
               description: Valid Pilot DID
               value: did:ebsi:zZeKyEJfUTGwajhNyNX928z
           required: true
-        - name: revisionId
+        - name: attributeId
           in: path
           schema:
             type: string
           examples:
-            revisionId:
-              description: Valid Pilot revisionId
+            attributeId:
+              description: Valid Pilot attributeId
               value: 447867bafab4c4ad26d4f4650e2390f92a831b6343b7c36ecb7c51fee336fa14
           required: true
       responses:
@@ -367,7 +367,7 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  /trusted-issuers-registry/v5/issuers/{did}/attributes/{revisionId}/revisions:
+  /trusted-issuers-registry/v5/issuers/{did}/attributes/{attributeId}/revisions:
     get:
       operationId: get-issuer-attribute-revisions
       summary: List revisions
@@ -384,15 +384,26 @@ paths:
               description: Valid Pilot DID
               value: did:ebsi:zZeKyEJfUTGwajhNyNX928z
           required: true
-        - name: revisionId
+        - name: attributeId
           in: path
           schema:
             type: string
           examples:
-            revisionId:
-              description: Valid Pilot revisionId
+            attributeId:
+              description: Valid Pilot attributeId
               value: 447867bafab4c4ad26d4f4650e2390f92a831b6343b7c36ecb7c51fee336fa14
           required: true
+        - in: query
+          name: version
+          description: |
+            Version of the endpoint to use. Defaults to the latest version.
+          required: false
+          schema:
+            type: string
+            enum:
+              - deprecated
+              - latest
+          example: "deprecated"
         - in: query
           name: page[after]
           schema:
@@ -416,9 +427,18 @@ paths:
                     description: URI to attributes
                   items:
                     type: array
-                    description: list of attributes
+                    description: list of attribute revisions
                     items:
-                      $ref: "#/components/schemas/attribute"
+                      anyOf:
+                        - $ref: "#/components/schemas/attribute" # deprecated
+                        - type: object
+                          properties:
+                            id:
+                              type: string
+                              description: Revision ID
+                            href:
+                              type: string
+                              description: Link to the revision
                   total:
                     type: integer
                     description: Total number of items in a collection
@@ -428,7 +448,22 @@ paths:
                   links:
                     $ref: "#/components/schemas/links"
               examples:
-                Success:
+                List of revisions:
+                  value:
+                    self: https://api-pilot.ebsi.eu/trusted-issuers-registry/v5/issuers/did:ebsi:zZeKyEJfUTGwajhNyNX928z/attributes/447867bafab4c4ad26d4f4650e2390f92a831b6343b7c36ecb7c51fee336fa14/revisions?page[after]=1&page[size]=10
+                    items:
+                      - id: 4ec707f1d31f0e98996ec662d7d9820874b4dd23cdc03f78a2ab1483c3969f3a
+                        href: https://api-pilot.ebsi.eu/trusted-issuers-registry/v5/issuers/did:ebsi:zZeKyEJfUTGwajhNyNX928z/attributes/447867bafab4c4ad26d4f4650e2390f92a831b6343b7c36ecb7c51fee336fa14/revisions/4ec707f1d31f0e98996ec662d7d9820874b4dd23cdc03f78a2ab1483c3969f3a
+                      - id: 447867bafab4c4ad26d4f4650e2390f92a831b6343b7c36ecb7c51fee336fa14
+                        href: https://api-pilot.ebsi.eu/trusted-issuers-registry/v5/issuers/did:ebsi:zZeKyEJfUTGwajhNyNX928z/attributes/447867bafab4c4ad26d4f4650e2390f92a831b6343b7c36ecb7c51fee336fa14/revisions/447867bafab4c4ad26d4f4650e2390f92a831b6343b7c36ecb7c51fee336fa14
+                    total: 2
+                    pageSize: 10
+                    links:
+                      first: https://api-pilot.ebsi.eu/trusted-issuers-registry/v5/issuers/did:ebsi:zZeKyEJfUTGwajhNyNX928z/attributes/447867bafab4c4ad26d4f4650e2390f92a831b6343b7c36ecb7c51fee336fa14/revisions?page[after]=1&page[size]=10
+                      prev: https://api-pilot.ebsi.eu/trusted-issuers-registry/v5/issuers/did:ebsi:zZeKyEJfUTGwajhNyNX928z/attributes/447867bafab4c4ad26d4f4650e2390f92a831b6343b7c36ecb7c51fee336fa14/revisions?page[after]=1&page[size]=10
+                      next: https://api-pilot.ebsi.eu/trusted-issuers-registry/v5/issuers/did:ebsi:zZeKyEJfUTGwajhNyNX928z/attributes/447867bafab4c4ad26d4f4650e2390f92a831b6343b7c36ecb7c51fee336fa14/revisions?page[after]=1&page[size]=10
+                      last: https://api-pilot.ebsi.eu/trusted-issuers-registry/v5/issuers/did:ebsi:zZeKyEJfUTGwajhNyNX928z/attributes/447867bafab4c4ad26d4f4650e2390f92a831b6343b7c36ecb7c51fee336fa14/revisions?page[after]=1&page[size]=10
+                List of revisions (deprecated):
                   value:
                     self: https://api-pilot.ebsi.eu/trusted-issuers-registry/v5/issuers/did:ebsi:zZeKyEJfUTGwajhNyNX928z/attributes/447867bafab4c4ad26d4f4650e2390f92a831b6343b7c36ecb7c51fee336fa14/revisions?page[after]=1&page[size]=10
                     items:
@@ -471,7 +506,6 @@ paths:
                     title: Bad Paging Request
                     status: 400
                     detail: PageSize should not be greater than 50
-
         "404":
           description: Not found
           content:
@@ -513,7 +547,7 @@ paths:
             type: string
           examples:
             attributeId:
-              description: Valid Pilot revisionId
+              description: Valid Pilot attributeId
               value: 447867bafab4c4ad26d4f4650e2390f92a831b6343b7c36ecb7c51fee336fa14
           required: true
         - name: revisionId
@@ -587,7 +621,7 @@ paths:
           examples:
             did:
               description: Valid Pilot DID
-              value: did:ebsi:zsqBYQuKunNdr3XfGfPUvU7
+              value: did:ebsi:zZeKyEJfUTGwajhNyNX928z
           required: true
         - in: query
           name: page[after]
@@ -634,8 +668,8 @@ paths:
                 Success:
                   value:
                     items:
-                      - proxyId: "0x22523141178108904061a339205ca512d19a59bdc101b220dba5a378a18ffb5f"
-                        href: https://api-pilot.ebsi.eu/trusted-issuers-registry/v5/issuers/did:ebsi:zr2rWDHHrUCdZAW7wsSb5nQ/proxies/0x22523141178108904061a339205ca512d19a59bdc101b220dba5a378a18ffb5f
+                      - proxyId: "0x408db59ec66f14efe30eed366ad57a7f6863fbbb18edd3d3bf15837dc3a494a6"
+                        href: https://api-pilot.ebsi.eu/trusted-issuers-registry/v5/issuers/did:ebsi:zZeKyEJfUTGwajhNyNX928z/proxies/0x408db59ec66f14efe30eed366ad57a7f6863fbbb18edd3d3bf15837dc3a494a6
                     total: 1
         "400":
           description: Bad Request Error
@@ -854,8 +888,9 @@ paths:
 
           #### setAttributeMetadata
 
+          Requires an access token with `tir_write` scope.
+
           Call to build an unsigned transaction to set the metadata of an attribute.
-          Requires an access token with "tir_write" scope.
 
           Parameters:
           - **from**: Ethereum address of the signer
@@ -867,8 +902,9 @@ paths:
 
           #### setAttributeData
 
+          Requires an access token with `tir_invite` or `tir_write` scope.
+
           Call to build an unsigned transaction to set an attribute.
-          Requires an access token with "tir_invite" or "tir_write" scope.
 
           Parameters:
           - **from**: Ethereum address of the signer
@@ -878,10 +914,11 @@ paths:
 
           #### addIssuerProxy
 
+          Requires an access token with `tir_write` scope.
+
           Call to build an unsigned transaction to insert a new proxy to an issuer. It can be
           added by the issuer itself or an admin registered in the Trusted Policies Registry
           to update issuers.
-          Requires an access token with "tir_write" scope.
 
           Parameters:
           - **from**: Ethereum address of the signer
@@ -895,10 +932,11 @@ paths:
 
           #### updateIssuerProxy
 
+          Requires an access token with `tir_write` scope.
+
           Call to build an unsigned transaction to update an existing proxy of an issuer. It can be
           updated by the issuer itself or an admin registered in the Trusted Policies Registry
           to update issuers.
-          Requires an access token with "tir_write" scope.
 
           Parameters:
           - **from**: Ethereum address of the signer
@@ -913,10 +951,11 @@ paths:
 
           #### removeIssuerProxy
 
+          Requires an access token with `tir_write` scope.
+
           Call to build an unsigned transaction to remove an existing proxy of an issuer. It can be
           removed by the issuer itself or an admin registered in the Trusted Policies Registry
           to update issuers.
-          Requires an access token with "tir_write" scope.
 
           Parameters:
           - **from**: Ethereum address of the signer
@@ -925,7 +964,17 @@ paths:
 
           #### sendSignedTransaction
 
-          Call to send a signed transaction to the blockchain.
+          Requires an access token with `tir_invite` or `tir_write` scope.
+
+          Sends a signed transaction to the blockchain and returns the hash of the transaction.
+
+          **Warning: the transaction is not immediately processed. Make sure to check that the transaction has been successfully included in a block before moving on.**
+
+          You can get the [receipt of the transaction](https://besu.hyperledger.org/public-networks/reference/api/objects#transaction-receipt-object) by calling the [`eth_getTransactionReceipt`](https://besu.hyperledger.org/public-networks/reference/api#eth_gettransactionreceipt) method of [Ledger API's Besu endpoint](/apis/pilot/ledger/v4/post-blockchains-besu).
+
+          Receipts for pending transactions are not available, therefore you will have to wait until the transaction has been processed — usually a few seconds. We recommend you to poll the `eth_getTransactionReceipt` method until the receipt is available.
+
+          Once the receipt is available, you can check the `status` field to know if the transaction succeeded (`0x1`) or failed (`0x0`). If the transaction failed, the `revertReason` field will give you insights about the reason for the failure. You can learn more about the format of the revert reason in [Besu's documentation](https://besu.hyperledger.org/private-networks/how-to/send-transactions/revert-reason#revert-reason-format).
         content:
           application/json:
             schema:
@@ -1003,7 +1052,7 @@ paths:
                       proxyId: "0xfb33cccb447605de75846617385f6d2aac28010f53a89ecb5ce151751c53c8d4"
                   id: 667
               Send Transaction:
-                description: Call to send a signed transaction to the blockchain.
+                description: Sends a signed transaction to the blockchain.
                 value:
                   jsonrpc: "2.0"
                   method: sendSignedTransaction

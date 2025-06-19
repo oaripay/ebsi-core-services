@@ -507,202 +507,274 @@ describe("Issuers Module", () => {
   });
 
   // TODO: for better tests, add more attributes revisions (currently: 1)
-  describe("GET /issuers/{did}/attributes/{attributeId}/revisions", () => {
-    it("should return the revisions of a specific attribute", async () => {
-      expect.assertions(3);
+  describe.each(["latest", "deprecated"] as const)(
+    "GET /issuers/{did}/attributes/{attributeId}/revisions (version: %s)",
+    (version) => {
+      it("should return the revisions of a specific attribute", async () => {
+        expect.assertions(4);
 
-      const attributeId = issuer.attribute.id;
-      const url = `/issuers/${issuer.did}/attributes/${attributeId}/revisions`;
+        const attributeId = issuer.attribute.id;
+        const url = `/issuers/${issuer.did}/attributes/${attributeId}/revisions`;
 
-      const response = await request(server).get(url);
+        const response = await request(server).get(`${url}?version=${version}`);
 
-      expect(response.body).toStrictEqual({
-        items: expect.arrayContaining([]),
-        links: {
-          first: expect.stringContaining(`${url}?page[after]=1&page[size]=10`),
-          last: expect.stringContaining(`${url}?page[after]=1&page[size]=10`),
-          next: expect.stringContaining(`${url}?page[after]=1&page[size]=10`),
-          prev: expect.stringContaining(`${url}?page[after]=1&page[size]=10`),
-        },
-        pageSize: 10,
-        self: expect.stringContaining(`${url}?page[after]=1&page[size]=10`),
-        total: 2,
+        expect(response.body).toStrictEqual({
+          items: expect.arrayContaining([]),
+          links: {
+            first: expect.stringContaining(
+              `${url}?page[after]=1&page[size]=10&version=${version}`,
+            ),
+            last: expect.stringContaining(
+              `${url}?page[after]=1&page[size]=10&version=${version}`,
+            ),
+            next: expect.stringContaining(
+              `${url}?page[after]=1&page[size]=10&version=${version}`,
+            ),
+            prev: expect.stringContaining(
+              `${url}?page[after]=1&page[size]=10&version=${version}`,
+            ),
+          },
+          pageSize: 10,
+          self: expect.stringContaining(
+            `${url}?page[after]=1&page[size]=10&version=${version}`,
+          ),
+          total: 2,
+        });
+
+        expect((response.body as { items: unknown }).items).toHaveLength(2);
+        expect(response.status).toBe(200);
+
+        if (version === "latest") {
+          expect((response.body as { items: unknown }).items).toStrictEqual(
+            expect.arrayContaining([
+              expect.objectContaining({
+                href: expect.any(String),
+                id: expect.any(String),
+              }),
+            ]),
+          );
+        } else {
+          expect((response.body as { items: unknown }).items).toStrictEqual(
+            expect.arrayContaining([
+              expect.objectContaining({
+                body: expect.any(String),
+                hash: expect.any(String),
+                issuerType: expect.any(String),
+                rootTao: expect.any(String),
+                tao: expect.any(String),
+              }),
+            ]),
+          );
+        }
       });
 
-      expect((response.body as { items: string }).items).toHaveLength(2);
-      expect(response.status).toBe(200);
-    });
+      it("should handle the pagination properly", async () => {
+        expect.assertions(9);
 
-    it("should handle the pagination properly", async () => {
-      expect.assertions(9);
+        const attributeId = issuer.attribute.id;
+        const url = `/issuers/${issuer.did}/attributes/${attributeId}/revisions`;
 
-      const attributeId = issuer.attribute.id;
-      const url = `/issuers/${issuer.did}/attributes/${attributeId}/revisions`;
+        const response1 = await request(server).get(
+          `${url}?page[size]=3&version=${version}`,
+        );
 
-      const response1 = await request(server).get(`${url}?page[size]=3`);
+        expect(response1.body).toStrictEqual({
+          items: expect.arrayContaining([]),
+          links: {
+            first: expect.stringContaining(
+              `${url}?page[after]=1&page[size]=3&version=${version}`,
+            ),
+            last: expect.stringContaining(
+              `${url}?page[after]=1&page[size]=3&version=${version}`,
+            ),
+            next: expect.stringContaining(
+              `${url}?page[after]=1&page[size]=3&version=${version}`,
+            ),
+            prev: expect.stringContaining(
+              `${url}?page[after]=1&page[size]=3&version=${version}`,
+            ),
+          },
+          pageSize: 3,
+          self: expect.stringContaining(
+            `${url}?page[after]=1&page[size]=3&version=${version}`,
+          ),
+          total: 2,
+        });
+        expect((response1.body as { items: string }).items).toHaveLength(2);
+        expect(response1.status).toBe(200);
 
-      expect(response1.body).toStrictEqual({
-        items: expect.arrayContaining([]),
-        links: {
-          first: expect.stringContaining(`${url}?page[after]=1&page[size]=3`),
-          last: expect.stringContaining(`${url}?page[after]=1&page[size]=3`),
-          next: expect.stringContaining(`${url}?page[after]=1&page[size]=3`),
-          prev: expect.stringContaining(`${url}?page[after]=1&page[size]=3`),
-        },
-        pageSize: 3,
-        self: expect.stringContaining(`${url}?page[after]=1&page[size]=3`),
-        total: 2,
+        // next page
+        const response2 = await request(server).get(
+          `${url}?page[after]=2&page[size]=3&version=${version}`,
+        );
+        expect(response2.body).toStrictEqual({
+          items: expect.arrayContaining([]),
+          links: {
+            first: expect.stringContaining(
+              `${url}?page[after]=1&page[size]=3&version=${version}`,
+            ),
+            last: expect.stringContaining(
+              `${url}?page[after]=1&page[size]=3&version=${version}`,
+            ),
+            next: expect.stringContaining(
+              `${url}?page[after]=1&page[size]=3&version=${version}`,
+            ),
+            prev: expect.stringContaining(
+              `${url}?page[after]=1&page[size]=3&version=${version}`,
+            ),
+          },
+          pageSize: 3,
+          self: expect.stringContaining(
+            `${url}?page[after]=2&page[size]=3&version=${version}`,
+          ),
+          total: 2,
+        });
+        expect((response2.body as { items: string }).items).toHaveLength(0);
+        expect(response2.status).toBe(200);
+
+        // page after defined but page size undefined
+        const response4 = await request(server).get(
+          `${url}?page[after]=1&version=${version}`,
+        );
+        expect(response4.body).toStrictEqual({
+          items: expect.arrayContaining([]),
+          links: {
+            first: expect.stringContaining(
+              `${url}?page[after]=1&page[size]=10&version=${version}`,
+            ),
+            last: expect.stringContaining(
+              `${url}?page[after]=1&page[size]=10&version=${version}`,
+            ),
+            next: expect.stringContaining(
+              `${url}?page[after]=1&page[size]=10&version=${version}`,
+            ),
+            prev: expect.stringContaining(
+              `${url}?page[after]=1&page[size]=10&version=${version}`,
+            ),
+          },
+          pageSize: 10,
+          self: expect.stringContaining(
+            `${url}?page[after]=1&page[size]=10&version=${version}`,
+          ),
+          total: 2,
+        });
+        expect((response4.body as { items: string }).items).toHaveLength(2);
+        expect(response4.status).toBe(200);
       });
-      expect((response1.body as { items: string }).items).toHaveLength(2);
-      expect(response1.status).toBe(200);
 
-      // next page
-      const response2 = await request(server).get(
-        `${url}?page[after]=2&page[size]=3`,
-      );
-      expect(response2.body).toStrictEqual({
-        items: expect.arrayContaining([]),
-        links: {
-          first: expect.stringContaining(`${url}?page[after]=1&page[size]=3`),
-          last: expect.stringContaining(`${url}?page[after]=1&page[size]=3`),
-          next: expect.stringContaining(`${url}?page[after]=1&page[size]=3`),
-          prev: expect.stringContaining(`${url}?page[after]=1&page[size]=3`),
-        },
-        pageSize: 3,
-        self: expect.stringContaining(`${url}?page[after]=2&page[size]=3`),
-        total: 2,
+      it("should throw an error if the issuer DID is not correctly formatted", async () => {
+        expect.assertions(2);
+
+        const attributeId = issuer.attribute.id;
+        const response = await request(server).get(
+          `/issuers/not-a-did/attributes/${attributeId}/revisions?version=${version}`,
+        );
+
+        expect(response.body).toStrictEqual({
+          detail: '["did must be a valid DID v1"]',
+          status: 400,
+          title: "Bad Request",
+          type: "about:blank",
+        });
+        expect(response.status).toBe(400);
       });
-      expect((response2.body as { items: string }).items).toHaveLength(0);
-      expect(response2.status).toBe(200);
 
-      // page after defined but page size undefined
-      const response4 = await request(server).get(`${url}?page[after]=1`);
-      expect(response4.body).toStrictEqual({
-        items: expect.arrayContaining([]),
-        links: {
-          first: expect.stringContaining(`${url}?page[after]=1&page[size]=10`),
-          last: expect.stringContaining(`${url}?page[after]=1&page[size]=10`),
-          next: expect.stringContaining(`${url}?page[after]=1&page[size]=10`),
-          prev: expect.stringContaining(`${url}?page[after]=1&page[size]=10`),
-        },
-        pageSize: 10,
-        self: expect.stringContaining(`${url}?page[after]=1&page[size]=10`),
-        total: 2,
+      it("should throw an error if the issuer DID is not a valid EBSI DID", async () => {
+        expect.assertions(2);
+
+        const attributeId = issuer.attribute.id;
+        const response = await request(server).get(
+          `/issuers/did:ebsi:z1234/attributes/${attributeId}/revisions?version=${version}`,
+        );
+
+        expect(response.body).toStrictEqual({
+          detail: '["did must be a valid DID v1"]',
+          status: 400,
+          title: "Bad Request",
+          type: "about:blank",
+        });
+        expect(response.status).toBe(400);
       });
-      expect((response4.body as { items: string }).items).toHaveLength(2);
-      expect(response4.status).toBe(200);
-    });
 
-    it("should throw an error if the issuer DID is not correctly formatted", async () => {
-      expect.assertions(2);
+      it("should throw an error if the issuer is not found", async () => {
+        expect.assertions(2);
 
-      const attributeId = issuer.attribute.id;
-      const response = await request(server).get(
-        `/issuers/not-a-did/attributes/${attributeId}`,
-      );
+        const attributeId = issuer.attribute.id;
+        const response = await request(server).get(
+          `/issuers/${randomDid}/attributes/${attributeId}/revisions?version=${version}`,
+        );
 
-      expect(response.body).toStrictEqual({
-        detail: '["did must be a valid DID v1"]',
-        status: 400,
-        title: "Bad Request",
-        type: "about:blank",
+        expect(response.body).toStrictEqual({
+          detail: `Issuer ${randomDid} not found`,
+          status: 404,
+          title: "Issuer Not Found",
+          type: "about:blank",
+        });
+        expect(response.status).toBe(404);
       });
-      expect(response.status).toBe(400);
-    });
 
-    it("should throw an error if the issuer DID is not a valid EBSI DID", async () => {
-      expect.assertions(2);
+      it("should throw an error if the attribute is not found", async () => {
+        expect.assertions(2);
 
-      const attributeId = issuer.attribute.id;
-      const response = await request(server).get(
-        `/issuers/did:ebsi:z1234/attributes/${attributeId}`,
-      );
+        const wrongDataHash = randomBytes(32).toString("hex");
+        const url = `/issuers/${issuer.did}/attributes/${wrongDataHash}/revisions?version=${version}`;
 
-      expect(response.body).toStrictEqual({
-        detail: '["did must be a valid DID v1"]',
-        status: 400,
-        title: "Bad Request",
-        type: "about:blank",
+        const response = await request(server).get(url);
+
+        expect(response.body).toStrictEqual({
+          detail: `Attribute ${wrongDataHash} not found`,
+          status: 404,
+          title: "Attribute Not Found",
+          type: "about:blank",
+        });
+        expect(response.status).toBe(404);
       });
-      expect(response.status).toBe(400);
-    });
 
-    it("should throw an error if the issuer is not found", async () => {
-      expect.assertions(2);
+      it("should throw an error if the attribute belongs to other issuer", async () => {
+        expect.assertions(2);
 
-      const attributeId = issuer.attribute.id;
-      const response = await request(server).get(
-        `/issuers/${randomDid}/attributes/${attributeId}`,
-      );
+        const url = `/issuers/${issuer.did}/attributes/${issuer2.attribute.id}/revisions?version=${version}`;
 
-      expect(response.body).toStrictEqual({
-        detail: `Issuer ${randomDid} not found`,
-        status: 404,
-        title: "Issuer Not Found",
-        type: "about:blank",
+        const response = await request(server).get(url);
+
+        expect(response.body).toStrictEqual({
+          detail: `Attribute ${issuer2.attribute.id.slice(2)} not found`,
+          status: 404,
+          title: "Attribute Not Found",
+          type: "about:blank",
+        });
+        expect(response.status).toBe(404);
       });
-      expect(response.status).toBe(404);
-    });
 
-    it("should throw an error if the attribute is not found", async () => {
-      expect.assertions(2);
+      it("should throw Bad Request for bad pagination parameters", async () => {
+        expect.assertions(4);
 
-      const wrongDataHash = randomBytes(32).toString("hex");
-      const url = `/issuers/${issuer.did}/attributes/${wrongDataHash}/revisions`;
+        const attributeId = issuer.attribute.id;
+        const url = `/issuers/${issuer.did}/attributes/${attributeId}/revisions`;
 
-      const response = await request(server).get(url);
+        const response1 = await request(server).get(
+          `${url}?page[size]=100&version=${version}`,
+        );
 
-      expect(response.body).toStrictEqual({
-        detail: `Attribute ${wrongDataHash} not found`,
-        status: 404,
-        title: "Attribute Not Found",
-        type: "about:blank",
+        expect(response1.body).toStrictEqual({
+          detail: '["page[size] must not be greater than 50"]',
+          status: 400,
+          title: "Bad Request",
+          type: "about:blank",
+        });
+        expect(response1.status).toBe(400);
+
+        const response2 = await request(server).get(`${url}?page[size]=0`);
+        expect(response2.body).toStrictEqual({
+          detail: '["page[size] must not be less than 1"]',
+          status: 400,
+          title: "Bad Request",
+          type: "about:blank",
+        });
+        expect(response2.status).toBe(400);
       });
-      expect(response.status).toBe(404);
-    });
-
-    it("should throw an error if the attribute belongs to other issuer", async () => {
-      expect.assertions(2);
-
-      const url = `/issuers/${issuer.did}/attributes/${issuer2.attribute.id}/revisions`;
-
-      const response = await request(server).get(url);
-
-      expect(response.body).toStrictEqual({
-        detail: `Attribute ${issuer2.attribute.id.slice(2)} not found`,
-        status: 404,
-        title: "Attribute Not Found",
-        type: "about:blank",
-      });
-      expect(response.status).toBe(404);
-    });
-
-    it("should throw Bad Request for bad pagination parameters", async () => {
-      expect.assertions(4);
-
-      const attributeId = issuer.attribute.id;
-      const url = `/issuers/${issuer.did}/attributes/${attributeId}/revisions`;
-
-      const response1 = await request(server).get(`${url}?page[size]=100`);
-
-      expect(response1.body).toStrictEqual({
-        detail: '["page[size] must not be greater than 50"]',
-        status: 400,
-        title: "Bad Request",
-        type: "about:blank",
-      });
-      expect(response1.status).toBe(400);
-
-      const response2 = await request(server).get(`${url}?page[size]=0`);
-      expect(response2.body).toStrictEqual({
-        detail: '["page[size] must not be less than 1"]',
-        status: 400,
-        title: "Bad Request",
-        type: "about:blank",
-      });
-      expect(response2.status).toBe(400);
-    });
-  });
+    },
+  );
 
   describe("GET /issuers/{did}/attributes/{attributeId}/revisions/{revisionId}", () => {
     it("should return the revision of a specific attribute", async () => {

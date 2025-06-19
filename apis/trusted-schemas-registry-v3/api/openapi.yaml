@@ -594,9 +594,10 @@ paths:
 
           #### insertSchema
 
-          Call to build an unsigned transaction to insert a new schema.
-          This method requires an access token with "tsr_write" scope and having the required
+          Requires an access token with `tsr_write` scope and having the required
           attributes assigned in Trusted Policies Registry.
+
+          Call to build an unsigned transaction to insert a new schema.
 
           Parameters:
           - **from**: Ethereum address of the signer
@@ -606,9 +607,10 @@ paths:
 
           #### updateSchema
 
-          Call to build an unsigned transaction to update an schema.
-          This method requires an access token with "tsr_write" scope and having the required
+          Requires an access token with `tsr_write` scope and having the required
           attributes assigned in Trusted Policies Registry.
+
+          Call to build an unsigned transaction to update an schema.
 
           Parameters:
           - **from**: Ethereum address of the signer
@@ -618,9 +620,10 @@ paths:
 
           #### updateMetadata
 
-          Call to build an unsigned transaction to update the metadata of a schema revision.
-          This method requires an access token with "tsr_write" scope and having the required
+          Requires an access token with `tsr_write` scope and having the required
           attributes assigned in Trusted Policies Registry.
+
+          Call to build an unsigned transaction to update the metadata of a schema revision.
 
           Parameters:
           - **from**: Ethereum address of the signer
@@ -629,7 +632,17 @@ paths:
 
           #### sendSignedTransaction
 
-          Call to send a signed transaction to the blockchain.
+          Requires an access token with `tsr_write` scope.
+
+          Sends a signed transaction to the blockchain and returns the hash of the transaction.
+
+          **Warning: the transaction is not immediately processed. Make sure to check that the transaction has been successfully included in a block before moving on.**
+
+          You can get the [receipt of the transaction](https://besu.hyperledger.org/public-networks/reference/api/objects#transaction-receipt-object) by calling the [`eth_getTransactionReceipt`](https://besu.hyperledger.org/public-networks/reference/api#eth_gettransactionreceipt) method of [Ledger API's Besu endpoint](/apis/pilot/ledger/v4/post-blockchains-besu).
+
+          Receipts for pending transactions are not available, therefore you will have to wait until the transaction has been processed — usually a few seconds. We recommend you to poll the `eth_getTransactionReceipt` method until the receipt is available.
+
+          Once the receipt is available, you can check the `status` field to know if the transaction succeeded (`0x1`) or failed (`0x0`). If the transaction failed, the `revertReason` field will give you insights about the reason for the failure. You can learn more about the format of the revert reason in [Besu's documentation](https://besu.hyperledger.org/private-networks/how-to/send-transactions/revert-reason#revert-reason-format).
         content:
           application/json:
             schema:
@@ -686,7 +699,7 @@ paths:
                       schemaRevisionId: "0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909"
                       metadata: "0x227b226d657461223a2276616c7565227d22"
               Send Transaction:
-                description: Call to send a signed transaction to the blockchain.
+                description: Sends a signed transaction to the blockchain.
                 value:
                   jsonrpc: "2.0"
                   method: sendSignedTransaction
