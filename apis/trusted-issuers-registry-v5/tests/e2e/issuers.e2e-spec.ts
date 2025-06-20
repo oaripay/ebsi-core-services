@@ -533,9 +533,7 @@ describe("TIR API v5 - Issuers (e2e)", () => {
         `/issuers/${lastExistingIssuerDid}/attributes/${attributeId2}`,
       );
       expect(response2.body).toStrictEqual({
-        detail: expect.stringContaining(
-          `Attribute 0x${attributeId2} not found`,
-        ),
+        detail: expect.stringContaining(`Attribute ${attributeId2} not found`),
         status: 404,
         title: "Attribute Not Found",
         type: "about:blank",
@@ -683,7 +681,7 @@ describe("TIR API v5 - Issuers (e2e)", () => {
         );
         expect(response2.body).toStrictEqual({
           detail: expect.stringContaining(
-            `Attribute 0x${attributeId2} not found`,
+            `Attribute ${attributeId2} not found`,
           ),
           status: 404,
           title: "Attribute Not Found",
@@ -812,9 +810,7 @@ describe("TIR API v5 - Issuers (e2e)", () => {
         `/issuers/${lastExistingIssuerDid}/attributes/${attributeId2}/revisions/${revisionId}`,
       );
       expect(response2.body).toStrictEqual({
-        detail: expect.stringContaining(
-          `Attribute 0x${attributeId2} not found`,
-        ),
+        detail: expect.stringContaining(`Attribute ${attributeId2} not found`),
         status: 404,
         title: "Attribute Not Found",
         type: "about:blank",
