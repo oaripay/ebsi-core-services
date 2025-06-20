@@ -738,7 +738,7 @@ describe("Issuers Module", () => {
         const response = await request(server).get(url);
 
         expect(response.body).toStrictEqual({
-          detail: `Attribute ${issuer2.attribute.id.slice(2)} not found`,
+          detail: `Attribute ${issuer2.attribute.id} not found`,
           status: 404,
           title: "Attribute Not Found",
           type: "about:blank",

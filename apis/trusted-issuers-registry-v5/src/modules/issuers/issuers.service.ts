@@ -96,7 +96,7 @@ export class IssuersService {
         }
         case "attribute has not been found": {
           throw new NotFoundError("Attribute Not Found", {
-            detail: `Attribute ${hash} not found`,
+            detail: `Attribute ${attrId} not found`,
           });
         }
         default: {
@@ -283,7 +283,7 @@ export class IssuersService {
         }
         case "attribute has not been found": {
           throw new NotFoundError("Attribute Not Found", {
-            detail: `Attribute ${attrId0x} not found`,
+            detail: `Attribute ${attrId} not found`,
           });
         }
         case "revision has not been found": {
@@ -345,7 +345,7 @@ export class IssuersService {
         }
         case "attribute has not been found": {
           throw new NotFoundError("Attribute Not Found", {
-            detail: `Attribute ${remove0xPrefix(hash)} not found`,
+            detail: `Attribute ${attributeId} not found`,
           });
         }
         default: {
@@ -407,7 +407,7 @@ export class IssuersService {
         }
         case "attribute has not been found": {
           throw new NotFoundError("Attribute Not Found", {
-            detail: `Attribute ${remove0xPrefix(hash)} not found`,
+            detail: `Attribute ${attributeId} not found`,
           });
         }
         default: {
