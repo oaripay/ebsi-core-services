@@ -35,6 +35,7 @@ const allowedRequestHeaders = new Set(
 export async function isIssuerProxy(
   value: unknown,
   ebsiEnvConfig: EbsiEnvConfiguration,
+  reqId: string,
   timeout: number,
 ): Promise<boolean> {
   if (typeof value !== "string") return false;
@@ -94,7 +95,13 @@ export async function isIssuerProxy(
       return false;
     }
 
-    if (!(await isStatusList2021Credential(testResponse.data, ebsiEnvConfig))) {
+    if (
+      !(await isStatusList2021Credential(
+        testResponse.data,
+        ebsiEnvConfig,
+        reqId,
+      ))
+    ) {
       return false;
     }
   } catch {
@@ -151,6 +158,11 @@ export class IsIssuerProxy implements ValidatorConstraintInterface {
   }
 
   async validate(value: unknown) {
-    return isIssuerProxy(value, this.ebsiEnvConfig, this.timeout);
+    return isIssuerProxy(
+      value,
+      this.ebsiEnvConfig,
+      "", // Known issue: we can't pass the request ID to isIssuerProxy because it's not available in this context
+      this.timeout,
+    );
   }
 }

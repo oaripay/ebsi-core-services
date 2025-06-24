@@ -92,6 +92,7 @@ describe("isStatusList2021Credential", () => {
             "trusted-schemas-registry": "v3",
           },
         },
+        "reqId",
       ),
     ).resolves.toBe(false);
   });
@@ -104,17 +105,21 @@ describe("isStatusList2021Credential", () => {
     });
 
     await expect(
-      isStatusList2021Credential("jwt", {
-        hosts: ["example.net"],
-        network: { name: "test" },
-        scheme: "ebsi",
-        services: {
-          "did-registry": "v5",
-          "trusted-issuers-registry": "v5",
-          "trusted-policies-registry": "v3",
-          "trusted-schemas-registry": "v3",
+      isStatusList2021Credential(
+        "jwt",
+        {
+          hosts: ["example.net"],
+          network: { name: "test" },
+          scheme: "ebsi",
+          services: {
+            "did-registry": "v5",
+            "trusted-issuers-registry": "v5",
+            "trusted-policies-registry": "v3",
+            "trusted-schemas-registry": "v3",
+          },
         },
-      }),
+        "reqId",
+      ),
     ).resolves.toBe(false);
   });
 
@@ -130,17 +135,21 @@ describe("isStatusList2021Credential", () => {
     );
 
     await expect(
-      isStatusList2021Credential("jwt", {
-        hosts: ["example.net"],
-        network: { name: "test" },
-        scheme: "ebsi",
-        services: {
-          "did-registry": "v5",
-          "trusted-issuers-registry": "v5",
-          "trusted-policies-registry": "v3",
-          "trusted-schemas-registry": "v3",
+      isStatusList2021Credential(
+        "jwt",
+        {
+          hosts: ["example.net"],
+          network: { name: "test" },
+          scheme: "ebsi",
+          services: {
+            "did-registry": "v5",
+            "trusted-issuers-registry": "v5",
+            "trusted-policies-registry": "v3",
+            "trusted-schemas-registry": "v3",
+          },
         },
-      }),
+        "reqId",
+      ),
     ).resolves.toBe(false);
   });
 
@@ -152,17 +161,21 @@ describe("isStatusList2021Credential", () => {
     );
 
     await expect(
-      isStatusList2021Credential("jwt", {
-        hosts: ["example.net"],
-        network: { name: "test" },
-        scheme: "ebsi",
-        services: {
-          "did-registry": "v5",
-          "trusted-issuers-registry": "v5",
-          "trusted-policies-registry": "v3",
-          "trusted-schemas-registry": "v3",
+      isStatusList2021Credential(
+        "jwt",
+        {
+          hosts: ["example.net"],
+          network: { name: "test" },
+          scheme: "ebsi",
+          services: {
+            "did-registry": "v5",
+            "trusted-issuers-registry": "v5",
+            "trusted-policies-registry": "v3",
+            "trusted-schemas-registry": "v3",
+          },
         },
-      }),
+        "reqId",
+      ),
     ).resolves.toBe(true);
   });
 
@@ -174,17 +187,21 @@ describe("isStatusList2021Credential", () => {
     );
 
     await expect(
-      isStatusList2021Credential("jwt", {
-        hosts: ["example.net"],
-        network: { name: "test" },
-        scheme: "ebsi",
-        services: {
-          "did-registry": "v5",
-          "trusted-issuers-registry": "v5",
-          "trusted-policies-registry": "v3",
-          "trusted-schemas-registry": "v3",
+      isStatusList2021Credential(
+        "jwt",
+        {
+          hosts: ["example.net"],
+          network: { name: "test" },
+          scheme: "ebsi",
+          services: {
+            "did-registry": "v5",
+            "trusted-issuers-registry": "v5",
+            "trusted-policies-registry": "v3",
+            "trusted-schemas-registry": "v3",
+          },
         },
-      }),
+        "reqId",
+      ),
     ).resolves.toBe(true);
   });
 });

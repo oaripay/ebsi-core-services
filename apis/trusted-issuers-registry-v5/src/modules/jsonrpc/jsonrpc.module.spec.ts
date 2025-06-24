@@ -233,15 +233,34 @@ describe("JSON-RPC Module", () => {
 
     mockServer.use(
       // Mock Auth API /.well-known/openid-configuration endpoint
-      http.get(`${authorisationApiUrl}/.well-known/openid-configuration`, () =>
-        HttpResponse.json({ jwks_uri: `${authorisationApiUrl}/jwks` }),
+      http.get(
+        `${authorisationApiUrl}/.well-known/openid-configuration`,
+        ({ request }) => {
+          // Make sure the request has the x-request-id header
+          if (!request.headers.has("x-request-id")) {
+            return HttpResponse.json(
+              "Invalid request (missing x-request-id header)",
+              { status: 400 },
+            );
+          }
+
+          return HttpResponse.json({ jwks_uri: `${authorisationApiUrl}/jwks` });
+        },
       ),
       // Mock Auth API /jwks endpoint
-      http.get(`${authorisationApiUrl}/jwks`, () =>
-        HttpResponse.json({
+      http.get(`${authorisationApiUrl}/jwks`, ({ request }) => {
+        // Make sure the request has the x-request-id header
+        if (!request.headers.has("x-request-id")) {
+          return HttpResponse.json(
+            "Invalid request (missing x-request-id header)",
+            { status: 400 },
+          );
+        }
+
+        return HttpResponse.json({
           keys: [{ ...authApiPublicKeyJwk, kid: authApiKid }],
-        }),
-      ),
+        });
+      }),
     );
 
     // Generate access tokens
@@ -307,20 +326,47 @@ describe("JSON-RPC Module", () => {
       // Mock DIDR API /identifiers/${issuer.did}
       http.get(
         escapeDid(`${didRegistryApiUrl}/identifiers/${issuer.did}`),
-        () => HttpResponse.json(issuer1DidDocument),
+        ({ request }) => {
+          // Make sure the request has the x-request-id header
+          if (!request.headers.has("x-request-id")) {
+            return HttpResponse.json(
+              "Invalid request (missing x-request-id header)",
+              { status: 400 },
+            );
+          }
+
+          return HttpResponse.json(issuer1DidDocument);
+        },
       ),
       // Make test status list JWT available
       http.get(
         escapeDid(
           `${issuers[0]!.proxies[0]!.obj.prefix}${issuers[0]!.proxies[0]!.obj.testSuffix}`,
         ),
-        () => HttpResponse.json(issuerV1StatusList2021CredentialJwt),
+        ({ request }) => {
+          // Make sure the request DOES NOT contain the x-request-id header
+          if (request.headers.has("x-request-id")) {
+            return HttpResponse.json(
+              "Invalid request (x-request-id header is present)",
+              { status: 400 },
+            );
+          }
+
+          return HttpResponse.json(issuerV1StatusList2021CredentialJwt);
+        },
       ),
       // Create "not found" status list URL
-      http.get(
-        "https://not-found.net/cred/1",
-        () => new HttpResponse(undefined, { status: 404 }),
-      ),
+      http.get("https://not-found.net/cred/1", ({ request }) => {
+        // Make sure the request has the x-request-id header
+        if (!request.headers.has("x-request-id")) {
+          return HttpResponse.json(
+            "Invalid request (missing x-request-id header)",
+            { status: 400 },
+          );
+        }
+
+        return new HttpResponse(undefined, { status: 404 });
+      }),
     );
   });
 

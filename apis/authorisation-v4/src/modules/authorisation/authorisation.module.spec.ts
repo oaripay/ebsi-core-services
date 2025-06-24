@@ -146,13 +146,33 @@ describe.each(["EBSI URI", "URL"] as const)(
           escapeDid(
             `${domain}/did-registry/v5/identifiers/${credentialIssuer.did}`,
           ),
-          () => HttpResponse.json(credentialIssuer.didDocument),
+          ({ request }) => {
+            // Make sure the request has the x-request-id header
+            if (!request.headers.has("x-request-id")) {
+              return HttpResponse.json(
+                "Invalid request (missing x-request-id header)",
+                { status: 400 },
+              );
+            }
+
+            return HttpResponse.json(credentialIssuer.didDocument);
+          },
         ),
         http.get(
           escapeDid(
             `${domain}/trusted-issuers-registry/v5/issuers/${credentialIssuer.did}`,
           ),
-          () => HttpResponse.json({}),
+          ({ request }) => {
+            // Make sure the request has the x-request-id header
+            if (!request.headers.has("x-request-id")) {
+              return HttpResponse.json(
+                "Invalid request (missing x-request-id header)",
+                { status: 400 },
+              );
+            }
+
+            return HttpResponse.json({});
+          },
         ),
       );
 
@@ -231,9 +251,17 @@ describe.each(["EBSI URI", "URL"] as const)(
       );
 
       mockServer.use(
-        http.get(escapeDid(credentialIssuerAccreditationUrl), () =>
-          HttpResponse.json({ attribute: { body: accreditationVcJwt } }),
-        ),
+        http.get(escapeDid(credentialIssuerAccreditationUrl), ({ request }) => {
+          // Make sure the request has the x-request-id header
+          if (!request.headers.has("x-request-id")) {
+            return HttpResponse.json(
+              "Invalid request (missing x-request-id header)",
+              { status: 400 },
+            );
+          }
+
+          return HttpResponse.json({ attribute: { body: accreditationVcJwt } });
+        }),
       );
     }
 
@@ -746,7 +774,17 @@ describe.each(["EBSI URI", "URL"] as const)(
                     escapeDid(
                       `${domain}/did-registry/v5/identifiers/${credentialSubject.did}`,
                     ),
-                    () => HttpResponse.text("Not found", { status: 404 }),
+                    ({ request }) => {
+                      // Make sure the request has the x-request-id header
+                      if (!request.headers.has("x-request-id")) {
+                        return HttpResponse.json(
+                          "Invalid request (missing x-request-id header)",
+                          { status: 400 },
+                        );
+                      }
+
+                      return HttpResponse.text("Not found", { status: 404 });
+                    },
                   ),
                 );
               } else {
@@ -755,7 +793,17 @@ describe.each(["EBSI URI", "URL"] as const)(
                     escapeDid(
                       `${domain}/did-registry/v5/identifiers/${credentialSubject.did}`,
                     ),
-                    () => HttpResponse.json(credentialSubject.didDocument),
+                    ({ request }) => {
+                      // Make sure the request has the x-request-id header
+                      if (!request.headers.has("x-request-id")) {
+                        return HttpResponse.json(
+                          "Invalid request (missing x-request-id header)",
+                          { status: 400 },
+                        );
+                      }
+
+                      return HttpResponse.json(credentialSubject.didDocument);
+                    },
                   ),
                 );
               }
@@ -766,12 +814,21 @@ describe.each(["EBSI URI", "URL"] as const)(
                     escapeDid(
                       `${domain}/trusted-issuers-registry/v5/issuers/${credentialSubject.did}`,
                     ),
-                    () =>
-                      HttpResponse.json({
+                    ({ request }) => {
+                      // Make sure the request has the x-request-id header
+                      if (!request.headers.has("x-request-id")) {
+                        return HttpResponse.json(
+                          "Invalid request (missing x-request-id header)",
+                          { status: 400 },
+                        );
+                      }
+
+                      return HttpResponse.json({
                         attributes: `${domain}/trusted-issuers-registry/v5/issuers/${credentialSubject.did}/attributes`,
                         did: credentialSubject.did,
                         hasAttributes: false,
-                      }),
+                      });
+                    },
                   ),
                 );
               }
@@ -782,12 +839,21 @@ describe.each(["EBSI URI", "URL"] as const)(
                     escapeDid(
                       `${domain}/trusted-issuers-registry/v5/issuers/${credentialSubject.did}`,
                     ),
-                    () =>
-                      HttpResponse.json({
+                    ({ request }) => {
+                      // Make sure the request has the x-request-id header
+                      if (!request.headers.has("x-request-id")) {
+                        return HttpResponse.json(
+                          "Invalid request (missing x-request-id header)",
+                          { status: 400 },
+                        );
+                      }
+
+                      return HttpResponse.json({
                         attributes: `${domain}/trusted-issuers-registry/v5/issuers/${credentialSubject.did}/attributes`,
                         did: credentialSubject.did,
                         hasAttributes: true,
-                      }),
+                      });
+                    },
                   ),
                 );
               }
@@ -796,11 +862,20 @@ describe.each(["EBSI URI", "URL"] as const)(
                 mockServer.use(
                   http.get(
                     `${domain}/trusted-policies-registry/v3/users/${credentialSubject.address}`,
-                    () =>
-                      HttpResponse.json({
+                    ({ request }) => {
+                      // Make sure the request has the x-request-id header
+                      if (!request.headers.has("x-request-id")) {
+                        return HttpResponse.json(
+                          "Invalid request (missing x-request-id header)",
+                          { status: 400 },
+                        );
+                      }
+
+                      return HttpResponse.json({
                         attributes: ["TNT:authoriseDid"],
                         user: credentialSubject.address,
-                      }),
+                      });
+                    },
                   ),
                 );
               }
@@ -1769,8 +1844,19 @@ describe.each(["EBSI URI", "URL"] as const)(
                             escapeDid(
                               `${domain}/did-registry/v5/identifiers/${vpSigner.did}`,
                             ),
-                            () =>
-                              HttpResponse.text("Not found", { status: 404 }),
+                            ({ request }) => {
+                              // Make sure the request has the x-request-id header
+                              if (!request.headers.has("x-request-id")) {
+                                return HttpResponse.json(
+                                  "Invalid request (missing x-request-id header)",
+                                  { status: 400 },
+                                );
+                              }
+
+                              return HttpResponse.text("Not found", {
+                                status: 404,
+                              });
+                            },
                           ),
                         );
 
@@ -1792,10 +1878,22 @@ describe.each(["EBSI URI", "URL"] as const)(
                             escapeDid(
                               `${domain}/did-registry/v5/identifiers/${vpSigner.did}`,
                             ),
-                            () =>
-                              HttpResponse.text("Internal Server Error", {
-                                status: 500,
-                              }),
+                            ({ request }) => {
+                              // Make sure the request has the x-request-id header
+                              if (!request.headers.has("x-request-id")) {
+                                return HttpResponse.json(
+                                  "Invalid request (missing x-request-id header)",
+                                  { status: 400 },
+                                );
+                              }
+
+                              return HttpResponse.text(
+                                "Internal Server Error",
+                                {
+                                  status: 500,
+                                },
+                              );
+                            },
                           ),
                         );
 
@@ -1824,8 +1922,19 @@ describe.each(["EBSI URI", "URL"] as const)(
                             escapeDid(
                               `${domain}/did-registry/v5/identifiers/${vpSigner.did}`,
                             ),
-                            () =>
-                              HttpResponse.text("Not found", { status: 404 }),
+                            ({ request }) => {
+                              // Make sure the request has the x-request-id header
+                              if (!request.headers.has("x-request-id")) {
+                                return HttpResponse.json(
+                                  "Invalid request (missing x-request-id header)",
+                                  { status: 400 },
+                                );
+                              }
+
+                              return HttpResponse.text("Not found", {
+                                status: 404,
+                              });
+                            },
                           ),
                         );
 
@@ -1847,10 +1956,22 @@ describe.each(["EBSI URI", "URL"] as const)(
                             escapeDid(
                               `${domain}/did-registry/v5/identifiers/${vpSigner.did}`,
                             ),
-                            () =>
-                              HttpResponse.text("Internal Server Error", {
-                                status: 500,
-                              }),
+                            ({ request }) => {
+                              // Make sure the request has the x-request-id header
+                              if (!request.headers.has("x-request-id")) {
+                                return HttpResponse.json(
+                                  "Invalid request (missing x-request-id header)",
+                                  { status: 400 },
+                                );
+                              }
+
+                              return HttpResponse.text(
+                                "Internal Server Error",
+                                {
+                                  status: 500,
+                                },
+                              );
+                            },
                           ),
                         );
 
@@ -1888,10 +2009,19 @@ describe.each(["EBSI URI", "URL"] as const)(
                             escapeDid(
                               `${domain}/trusted-issuers-registry/v5/issuers/${vpSigner.did}`,
                             ),
-                            () =>
-                              HttpResponse.json({
+                            ({ request }) => {
+                              // Make sure the request has the x-request-id header
+                              if (!request.headers.has("x-request-id")) {
+                                return HttpResponse.json(
+                                  "Invalid request (missing x-request-id header)",
+                                  { status: 400 },
+                                );
+                              }
+
+                              return HttpResponse.json({
                                 // Invalid body
-                              }),
+                              });
+                            },
                           ),
                         );
 
@@ -1910,12 +2040,21 @@ describe.each(["EBSI URI", "URL"] as const)(
                             escapeDid(
                               `${domain}/trusted-issuers-registry/v5/issuers/${vpSigner.did}`,
                             ),
-                            () =>
-                              HttpResponse.json({
+                            ({ request }) => {
+                              // Make sure the request has the x-request-id header
+                              if (!request.headers.has("x-request-id")) {
+                                return HttpResponse.json(
+                                  "Invalid request (missing x-request-id header)",
+                                  { status: 400 },
+                                );
+                              }
+
+                              return HttpResponse.json({
                                 attributes: `${domain}/trusted-issuers-registry/v5/issuers/${vpSigner.did}/attributes`,
                                 did: credentialSubject.did,
                                 hasAttributes: true,
-                              }),
+                              });
+                            },
                           ),
                         );
 
@@ -1943,14 +2082,35 @@ describe.each(["EBSI URI", "URL"] as const)(
                             escapeDid(
                               `${domain}/did-registry/v5/identifiers/${vpSigner.did}`,
                             ),
-                            () => HttpResponse.json(legalEntity.didDocument),
+                            ({ request }) => {
+                              // Make sure the request has the x-request-id header
+                              if (!request.headers.has("x-request-id")) {
+                                return HttpResponse.json(
+                                  "Invalid request (missing x-request-id header)",
+                                  { status: 400 },
+                                );
+                              }
+
+                              return HttpResponse.json(legalEntity.didDocument);
+                            },
                           ),
                           http.get(
                             escapeDid(
                               `${domain}/trusted-issuers-registry/v5/issuers/${vpSigner.did}`,
                             ),
-                            () =>
-                              HttpResponse.text("Not found", { status: 404 }),
+                            ({ request }) => {
+                              // Make sure the request has the x-request-id header
+                              if (!request.headers.has("x-request-id")) {
+                                return HttpResponse.json(
+                                  "Invalid request (missing x-request-id header)",
+                                  { status: 400 },
+                                );
+                              }
+
+                              return HttpResponse.text("Not found", {
+                                status: 404,
+                              });
+                            },
                           ),
                         );
 
@@ -1972,16 +2132,38 @@ describe.each(["EBSI URI", "URL"] as const)(
                             escapeDid(
                               `${domain}/did-registry/v5/identifiers/${vpSigner.did}`,
                             ),
-                            () => HttpResponse.json(legalEntity.didDocument),
+                            ({ request }) => {
+                              // Make sure the request has the x-request-id header
+                              if (!request.headers.has("x-request-id")) {
+                                return HttpResponse.json(
+                                  "Invalid request (missing x-request-id header)",
+                                  { status: 400 },
+                                );
+                              }
+
+                              return HttpResponse.json(legalEntity.didDocument);
+                            },
                           ),
                           http.get(
                             escapeDid(
                               `${domain}/trusted-issuers-registry/v5/issuers/${vpSigner.did}`,
                             ),
-                            () =>
-                              HttpResponse.text("Internal Server Error", {
-                                status: 500,
-                              }),
+                            ({ request }) => {
+                              // Make sure the request has the x-request-id header
+                              if (!request.headers.has("x-request-id")) {
+                                return HttpResponse.json(
+                                  "Invalid request (missing x-request-id header)",
+                                  { status: 400 },
+                                );
+                              }
+
+                              return HttpResponse.text(
+                                "Internal Server Error",
+                                {
+                                  status: 500,
+                                },
+                              );
+                            },
                           ),
                         );
 
@@ -2004,18 +2186,37 @@ describe.each(["EBSI URI", "URL"] as const)(
                             escapeDid(
                               `${domain}/did-registry/v5/identifiers/${vpSigner.did}`,
                             ),
-                            () => HttpResponse.json(legalEntity.didDocument),
+                            ({ request }) => {
+                              // Make sure the request has the x-request-id header
+                              if (!request.headers.has("x-request-id")) {
+                                return HttpResponse.json(
+                                  "Invalid request (missing x-request-id header)",
+                                  { status: 400 },
+                                );
+                              }
+
+                              return HttpResponse.json(legalEntity.didDocument);
+                            },
                           ),
                           http.get(
                             escapeDid(
                               `${domain}/trusted-issuers-registry/v5/issuers/${vpSigner.did}`,
                             ),
-                            () =>
-                              HttpResponse.json({
+                            ({ request }) => {
+                              // Make sure the request has the x-request-id header
+                              if (!request.headers.has("x-request-id")) {
+                                return HttpResponse.json(
+                                  "Invalid request (missing x-request-id header)",
+                                  { status: 400 },
+                                );
+                              }
+
+                              return HttpResponse.json({
                                 attributes: `${domain}/trusted-issuers-registry/v5/issuers/${vpSigner.did}/attributes`,
                                 did: credentialSubject.did,
                                 hasAttributes: false,
-                              }),
+                              });
+                            },
                           ),
                         );
 
@@ -2053,10 +2254,22 @@ describe.each(["EBSI URI", "URL"] as const)(
                         mockServer.use(
                           http.get(
                             `${domain}/trusted-policies-registry/v3/users/${credentialSubject.address}`,
-                            () =>
-                              HttpResponse.text("Internal Server Error", {
-                                status: 500,
-                              }),
+                            ({ request }) => {
+                              // Make sure the request has the x-request-id header
+                              if (!request.headers.has("x-request-id")) {
+                                return HttpResponse.json(
+                                  "Invalid request (missing x-request-id header)",
+                                  { status: 400 },
+                                );
+                              }
+
+                              return HttpResponse.text(
+                                "Internal Server Error",
+                                {
+                                  status: 500,
+                                },
+                              );
+                            },
                           ),
                         );
 
@@ -2143,6 +2356,14 @@ describe.each(["EBSI URI", "URL"] as const)(
                           http.get(
                             `${domain}/track-and-trace/v1/accesses`,
                             ({ request: req }) => {
+                              // Make sure the request has the x-request-id header
+                              if (!req.headers.has("x-request-id")) {
+                                return HttpResponse.json(
+                                  "Invalid request (missing x-request-id header)",
+                                  { status: 400 },
+                                );
+                              }
+
                               const subject = new URL(req.url).searchParams.get(
                                 "subject",
                               );
@@ -2183,10 +2404,22 @@ describe.each(["EBSI URI", "URL"] as const)(
                         mockServer.use(
                           http.get(
                             `${domain}/track-and-trace/v1/accesses`,
-                            () =>
-                              HttpResponse.text("Internal Server Error", {
-                                status: 500,
-                              }),
+                            ({ request }) => {
+                              // Make sure the request has the x-request-id header
+                              if (!request.headers.has("x-request-id")) {
+                                return HttpResponse.json(
+                                  "Invalid request (missing x-request-id header)",
+                                  { status: 400 },
+                                );
+                              }
+
+                              return HttpResponse.text(
+                                "Internal Server Error",
+                                {
+                                  status: 500,
+                                },
+                              );
+                            },
                           ),
                         );
 
@@ -2323,6 +2556,14 @@ describe.each(["EBSI URI", "URL"] as const)(
                   http.get(
                     `${domain}/track-and-trace/v1/accesses`,
                     ({ request: req }) => {
+                      // Make sure the request has the x-request-id header
+                      if (!req.headers.has("x-request-id")) {
+                        return HttpResponse.json(
+                          "Invalid request (missing x-request-id header)",
+                          { status: 400 },
+                        );
+                      }
+
                       const subject = new URL(req.url).searchParams.get(
                         "subject",
                       );
@@ -2882,6 +3123,14 @@ describe.each(["EBSI URI", "URL"] as const)(
                   http.get(
                     `${domain}/track-and-trace/v1/accesses`,
                     ({ request: req }) => {
+                      // Make sure the request has the x-request-id header
+                      if (!req.headers.has("x-request-id")) {
+                        return HttpResponse.json(
+                          "Invalid request (missing x-request-id header)",
+                          { status: 400 },
+                        );
+                      }
+
                       const subject = new URL(req.url).searchParams.get(
                         "subject",
                       );
@@ -3101,7 +3350,17 @@ describe.each(["EBSI URI", "URL"] as const)(
               escapeDid(
                 `${domain}/did-registry/v5/identifiers/${credentialSubject.did}`,
               ),
-              () => HttpResponse.json(didDocument),
+              ({ request }) => {
+                // Make sure the request has the x-request-id header
+                if (!request.headers.has("x-request-id")) {
+                  return HttpResponse.json(
+                    "Invalid request (missing x-request-id header)",
+                    { status: 400 },
+                  );
+                }
+
+                return HttpResponse.json(didDocument);
+              },
             ),
           );
 
@@ -3222,12 +3481,32 @@ describe.each(["EBSI URI", "URL"] as const)(
               escapeDid(
                 `${domain}/did-registry/v5/identifiers/${credentialSubject.did}`,
               ),
-              () => HttpResponse.json(didDocument),
+              ({ request }) => {
+                // Make sure the request has the x-request-id header
+                if (!request.headers.has("x-request-id")) {
+                  return HttpResponse.json(
+                    "Invalid request (missing x-request-id header)",
+                    { status: 400 },
+                  );
+                }
+
+                return HttpResponse.json(didDocument);
+              },
             ),
             // Network error with TPR
             http.get(
               `${domain}/trusted-policies-registry/v3/users/${credentialSubject.address}`,
-              () => HttpResponse.error(),
+              ({ request }) => {
+                // Make sure the request has the x-request-id header
+                if (!request.headers.has("x-request-id")) {
+                  return HttpResponse.json(
+                    "Invalid request (missing x-request-id header)",
+                    { status: 400 },
+                  );
+                }
+
+                return HttpResponse.error();
+              },
             ),
           );
 
@@ -3286,7 +3565,17 @@ describe.each(["EBSI URI", "URL"] as const)(
           mockServer.use(
             http.get(
               `${domain}/trusted-policies-registry/v3/users/${credentialSubject.address}`,
-              () => HttpResponse.text("Not found", { status: 404 }),
+              ({ request }) => {
+                // Make sure the request has the x-request-id header
+                if (!request.headers.has("x-request-id")) {
+                  return HttpResponse.json(
+                    "Invalid request (missing x-request-id header)",
+                    { status: 400 },
+                  );
+                }
+
+                return HttpResponse.text("Not found", { status: 404 });
+              },
             ),
           );
 
@@ -3328,11 +3617,20 @@ describe.each(["EBSI URI", "URL"] as const)(
           mockServer.use(
             http.get(
               `${domain}/trusted-policies-registry/v3/users/${credentialSubject.address}`,
-              () =>
-                HttpResponse.json({
+              ({ request }) => {
+                // Make sure the request has the x-request-id header
+                if (!request.headers.has("x-request-id")) {
+                  return HttpResponse.json(
+                    "Invalid request (missing x-request-id header)",
+                    { status: 400 },
+                  );
+                }
+
+                return HttpResponse.json({
                   attributes: ["not TNT attribute"],
                   user: credentialSubject.address,
-                }),
+                });
+              },
             ),
           );
 
@@ -3464,13 +3762,33 @@ describe.each(["EBSI URI", "URL"] as const)(
         mockServer.use(
           http.get(
             escapeDid(`${domain}/did-registry/v5/identifiers/${vpSigner.did}`),
-            () => HttpResponse.json(vpSigner.didDocument),
+            ({ request }) => {
+              // Make sure the request has the x-request-id header
+              if (!request.headers.has("x-request-id")) {
+                return HttpResponse.json(
+                  "Invalid request (missing x-request-id header)",
+                  { status: 400 },
+                );
+              }
+
+              return HttpResponse.json(vpSigner.didDocument);
+            },
           ),
           http.get(
             escapeDid(
               `${domain}/trusted-issuers-registry/v5/issuers/${vpSigner.did}`,
             ),
-            () => HttpResponse.text("Not found", { status: 404 }),
+            ({ request }) => {
+              // Make sure the request has the x-request-id header
+              if (!request.headers.has("x-request-id")) {
+                return HttpResponse.json(
+                  "Invalid request (missing x-request-id header)",
+                  { status: 400 },
+                );
+              }
+
+              return HttpResponse.text("Not found", { status: 404 });
+            },
           ),
         );
 

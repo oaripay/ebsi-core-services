@@ -26,9 +26,9 @@
   },
   "dependencies": {
     "@cef-ebsi/ebsi-uri": "^1.0.1",
-    "@cef-ebsi/verifiable-credential": "^7.1.0",
-    "@cef-ebsi/verifiable-presentation": "^8.0.1",
-    "@cef-ebsi/wallet-lib": "^6.0.1",
+    "@cef-ebsi/verifiable-credential": "^7.2.0-alpha.0",
+    "@cef-ebsi/verifiable-presentation": "^8.1.0-alpha.0",
+    "@cef-ebsi/wallet-lib": "^6.0.2-alpha.0",
     "@ebsiint-api/shared": "^1.1.0-rc.13",
     "@fastify/accepts": "^5.0.2",
     "@fastify/formbody": "^8.0.2",

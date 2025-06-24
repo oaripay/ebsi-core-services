@@ -58,6 +58,7 @@ export const statusList2021CredentialSchema = Joi.object({
 export async function checkStatusList2021Credential(
   credentialJwt: unknown,
   ebsiEnvConfig: EbsiEnvConfiguration,
+  reqId: string,
   options?: VerifyCredentialOptions,
 ): Promise<{ error: string; success: false } | { success: true }> {
   // Note: we only support VC JWT for now -> the StatusList2021Credential must be a JWT
@@ -72,6 +73,7 @@ export async function checkStatusList2021Credential(
     // Verify credential and its signature
     const credential = await verifyCredentialJwt(credentialJwt, ebsiEnvConfig, {
       ...options,
+      axiosHeaders: { "x-request-id": reqId },
       skipAccreditationsValidation: true, // No need to check the accreditation
     });
 
@@ -94,11 +96,13 @@ export async function checkStatusList2021Credential(
 export async function isStatusList2021Credential(
   credentialJwt: unknown,
   ebsiEnvConfig: EbsiEnvConfiguration,
+  reqId: string,
   options?: Omit<VerifyCredentialOptions, "hosts" | "network">,
 ): Promise<boolean> {
   const { success } = await checkStatusList2021Credential(
     credentialJwt,
     ebsiEnvConfig,
+    reqId,
     options,
   );
 

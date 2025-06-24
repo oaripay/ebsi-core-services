@@ -75,23 +75,17 @@ function assertScopeContains(
 
 @Injectable()
 export class JsonRpcService {
-  private readonly authoriseDidSchema: ReturnType<
-    typeof authoriseDidSchemaBuilder
-  >;
-
   private chainId: string | undefined;
 
   private readonly contract: TrackAndTrace;
 
   private readonly contractAddress: string;
 
+  private readonly didResolver: Resolver;
+
   private readonly ledgerService: LedgerService;
 
   private readonly logger = new Logger(JsonRpcService.name);
-
-  private readonly requestAuthoriseDidDtoSchema: ReturnType<
-    typeof requestAuthoriseDidDtoSchemaBuilder
-  >;
 
   constructor(
     ledgerService: LedgerService,
@@ -107,10 +101,7 @@ export class JsonRpcService {
       registry: `${configService.get("didRegistryApiUrl", { infer: true })}/identifiers`,
     };
     const ebsiResolver = getResolver(resolverConfig);
-    const didResolver = new Resolver(ebsiResolver);
-    this.authoriseDidSchema = authoriseDidSchemaBuilder(didResolver);
-    this.requestAuthoriseDidDtoSchema =
-      requestAuthoriseDidDtoSchemaBuilder(didResolver);
+    this.didResolver = new Resolver(ebsiResolver);
   }
 
   async buildTransaction(
@@ -159,12 +150,17 @@ export class JsonRpcService {
     id: null | number | string | undefined,
     sub: string,
     scope: string,
+    reqId: string,
   ): Promise<UnsignedTransaction> {
     try {
       assertScopeContains(scope, [TNT_AUTHORISE_SCOPE], "authoriseDid");
 
-      const parsedBody =
-        await this.requestAuthoriseDidDtoSchema.parseAsync(body);
+      const requestAuthoriseDidDtoSchema = requestAuthoriseDidDtoSchemaBuilder(
+        this.didResolver,
+        reqId,
+      );
+
+      const parsedBody = await requestAuthoriseDidDtoSchema.parseAsync(body);
 
       const { authorisedDid, from, senderDid, whiteList } =
         parsedBody.params[0]!;
@@ -429,6 +425,7 @@ export class JsonRpcService {
     id: null | number | string | undefined,
     sub: string,
     scope: string,
+    reqId: string,
   ): Promise<string> {
     try {
       const chainId = await this.getChainId();
@@ -438,7 +435,7 @@ export class JsonRpcService {
 
       const request = parsedBody.params[0]!;
 
-      await this.verifyTransaction(sub, request, scope);
+      await this.verifyTransaction(sub, request, scope, reqId);
 
       const tx = await this.ledgerService
         .getProvider()
@@ -488,6 +485,7 @@ export class JsonRpcService {
     clientId: string,
     param: SendSignedTransactionParamsSchema,
     scope: string,
+    reqId: string,
   ): Promise<{ functionName: string; signer: string }> {
     const { r, s, signedRawTransaction, unsignedTransaction, v } = param;
 
@@ -551,7 +549,11 @@ export class JsonRpcService {
     switch (fragment.name) {
       case "authoriseDid": {
         assertScopeContains(scope, [TNT_AUTHORISE_SCOPE], fragment.name);
-        const castArgs = await this.authoriseDidSchema.parseAsync(argsObject);
+        const authoriseDidSchema = authoriseDidSchemaBuilder(
+          this.didResolver,
+          reqId,
+        );
+        const castArgs = await authoriseDidSchema.parseAsync(argsObject);
         assertDidMatchesSub(castArgs.senderDid, clientId);
         break;
       }

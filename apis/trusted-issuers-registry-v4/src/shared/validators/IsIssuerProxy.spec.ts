@@ -56,7 +56,7 @@ describe("isIssuerProxy", () => {
 
   it("should return false if the proxy is not a stringified object", async () => {
     const proxy = "not a valid proxy";
-    const result = await isIssuerProxy(proxy, ebsiEnvConfig, 10);
+    const result = await isIssuerProxy(proxy, ebsiEnvConfig, "", 10);
     expect(result).toBe(false);
   });
 
@@ -65,6 +65,7 @@ describe("isIssuerProxy", () => {
     const result = await isIssuerProxy(
       JSON.stringify(proxy),
       ebsiEnvConfig,
+      "",
       10,
     );
     expect(result).toBe(false);
@@ -80,6 +81,7 @@ describe("isIssuerProxy", () => {
     const result = await isIssuerProxy(
       JSON.stringify(proxy),
       ebsiEnvConfig,
+      "",
       10,
     );
 
@@ -96,6 +98,7 @@ describe("isIssuerProxy", () => {
     const result = await isIssuerProxy(
       JSON.stringify(proxy),
       ebsiEnvConfig,
+      "",
       10,
     );
 
@@ -112,6 +115,7 @@ describe("isIssuerProxy", () => {
     const result = await isIssuerProxy(
       JSON.stringify(proxy),
       ebsiEnvConfig,
+      "",
       10,
     );
 
@@ -130,6 +134,7 @@ describe("isIssuerProxy", () => {
     const result = await isIssuerProxy(
       JSON.stringify(proxy),
       ebsiEnvConfig,
+      "",
       10,
     );
 
@@ -150,6 +155,7 @@ describe("isIssuerProxy", () => {
     const result = await isIssuerProxy(
       JSON.stringify(proxy),
       ebsiEnvConfig,
+      "",
       10,
     );
 
@@ -166,6 +172,7 @@ describe("isIssuerProxy", () => {
     const result = await isIssuerProxy(
       JSON.stringify(proxy),
       ebsiEnvConfig,
+      "",
       10,
     );
 
@@ -182,6 +189,7 @@ describe("isIssuerProxy", () => {
     const result = await isIssuerProxy(
       JSON.stringify(proxy),
       ebsiEnvConfig,
+      "",
       10,
     );
 
@@ -211,6 +219,7 @@ describe("isIssuerProxy", () => {
     const result = await isIssuerProxy(
       JSON.stringify(proxy),
       ebsiEnvConfig,
+      "",
       10,
     );
 
@@ -238,6 +247,7 @@ describe("isIssuerProxy", () => {
     const result = await isIssuerProxy(
       JSON.stringify(proxy),
       ebsiEnvConfig,
+      "",
       10,
     );
 
@@ -265,6 +275,7 @@ describe("isIssuerProxy", () => {
     const result = await isIssuerProxy(
       JSON.stringify(proxy),
       ebsiEnvConfig,
+      "",
       10,
     );
 

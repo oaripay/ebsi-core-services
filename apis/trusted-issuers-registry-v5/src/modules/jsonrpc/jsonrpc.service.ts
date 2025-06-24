@@ -1,3 +1,4 @@
+import type { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
 import type { Tir } from "@ebsiint-sc/trusted-issuers-registry-v3";
 
 import {
@@ -74,9 +75,6 @@ function assertScopeContains(
 
 @Injectable()
 export class JsonRpcService {
-  // Dynamic validators which require some context
-  private addIssuerProxySchema: ReturnType<typeof createAddIssuerProxySchema>;
-
   private chainId: string | undefined;
 
   private readonly contract: Tir;
@@ -85,23 +83,13 @@ export class JsonRpcService {
 
   private readonly didRegistryApiUrl: string;
 
+  private readonly ebsiEnvConfig: EbsiEnvConfiguration;
+
   private readonly ledgerService: LedgerService;
 
   private readonly logger = new Logger(JsonRpcService.name);
 
-  private requestAddIssuerProxySchema: ReturnType<
-    typeof createRequestAddIssuerProxySchema
-  >;
-
-  private requestUpdateIssuerProxySchema: ReturnType<
-    typeof createRequestUpdateIssuerProxySchema
-  >;
-
   private readonly timeout: number;
-
-  private updateIssuerProxySchema: ReturnType<
-    typeof createUpdateIssuerProxySchema
-  >;
 
   constructor(
     configService: ConfigService<ApiConfig, true>,
@@ -117,25 +105,7 @@ export class JsonRpcService {
     );
     this.contract = Tir__factory.connect(this.contractAddress);
     this.timeout = configService.get("requestTimeout", { infer: true });
-
-    const ebsiEnvConfig = configService.get("ebsiEnvConfig", { infer: true });
-
-    this.addIssuerProxySchema = createAddIssuerProxySchema(
-      ebsiEnvConfig,
-      this.timeout,
-    );
-    this.updateIssuerProxySchema = createUpdateIssuerProxySchema(
-      ebsiEnvConfig,
-      this.timeout,
-    );
-    this.requestAddIssuerProxySchema = createRequestAddIssuerProxySchema(
-      ebsiEnvConfig,
-      this.timeout,
-    );
-    this.requestUpdateIssuerProxySchema = createRequestUpdateIssuerProxySchema(
-      ebsiEnvConfig,
-      this.timeout,
-    );
+    this.ebsiEnvConfig = configService.get("ebsiEnvConfig", { infer: true });
   }
 
   async buildTransaction(
@@ -182,14 +152,20 @@ export class JsonRpcService {
     body: JsonRpcSchema,
     id: null | number | string | undefined,
     scope: string,
+    reqId: string,
   ): Promise<UnsignedTransaction> {
     const method = "addIssuerProxy";
 
     try {
       assertScopeContains(scope, "tir_write", method);
 
-      const parsedBody =
-        await this.requestAddIssuerProxySchema.parseAsync(body);
+      const requestAddIssuerProxySchema = createRequestAddIssuerProxySchema(
+        this.ebsiEnvConfig,
+        reqId,
+        this.timeout,
+      );
+
+      const parsedBody = await requestAddIssuerProxySchema.parseAsync(body);
 
       const { did, from, proxyData } = parsedBody.params[0]!;
 
@@ -317,14 +293,21 @@ export class JsonRpcService {
     body: JsonRpcSchema,
     id: null | number | string | undefined,
     scope: string,
+    reqId: string,
   ): Promise<UnsignedTransaction> {
     const method = "updateIssuerProxy";
 
     try {
       assertScopeContains(scope, "tir_write", method);
 
-      const parsedBody =
-        await this.requestUpdateIssuerProxySchema.parseAsync(body);
+      const requestUpdateIssuerProxySchema =
+        createRequestUpdateIssuerProxySchema(
+          this.ebsiEnvConfig,
+          reqId,
+          this.timeout,
+        );
+
+      const parsedBody = await requestUpdateIssuerProxySchema.parseAsync(body);
 
       const { did, from, proxyData, proxyId } = parsedBody.params[0]!;
 
@@ -426,7 +409,12 @@ export class JsonRpcService {
 
       const request = parsedBody.params[0]!;
 
-      const { signer } = await this.verifyTransaction(request, sub, scope);
+      const { signer } = await this.verifyTransaction(
+        request,
+        sub,
+        scope,
+        reqId,
+      );
 
       if (!(await this.isDidControlledByAddress(sub, signer, reqId))) {
         throw new Error(
@@ -481,6 +469,7 @@ export class JsonRpcService {
     param: SendSignedTransactionParamsSchema,
     sub: string,
     scope: string,
+    reqId: string,
   ): Promise<{ args: unknown; functionName: string; signer: string }> {
     const { r, s, signedRawTransaction, unsignedTransaction, v } = param;
 
@@ -542,7 +531,12 @@ export class JsonRpcService {
     switch (fragment.name) {
       case "addIssuerProxy": {
         assertScopeContains(scope, "tir_write", fragment.name);
-        await this.addIssuerProxySchema.parseAsync(argsObject);
+        const addIssuerProxySchema = createAddIssuerProxySchema(
+          this.ebsiEnvConfig,
+          reqId,
+          this.timeout,
+        );
+        await addIssuerProxySchema.parseAsync(argsObject);
         break;
       }
       case "removeIssuerProxy": {
@@ -574,7 +568,12 @@ export class JsonRpcService {
       }
       case "updateIssuerProxy": {
         assertScopeContains(scope, "tir_write", fragment.name);
-        await this.updateIssuerProxySchema.parseAsync(argsObject);
+        const updateIssuerProxySchema = createUpdateIssuerProxySchema(
+          this.ebsiEnvConfig,
+          reqId,
+          this.timeout,
+        );
+        await updateIssuerProxySchema.parseAsync(argsObject);
         break;
       }
       default: {

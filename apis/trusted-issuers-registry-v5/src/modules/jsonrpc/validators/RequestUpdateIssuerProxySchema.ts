@@ -14,6 +14,7 @@ const { isHexadecimal } = validator.default;
 // Therefore, we create the schemas dynamically.
 export const createUpdateIssuerProxySchema = (
   ebsiEnvConfig: EbsiEnvConfiguration,
+  reqId: string,
   timeout: number,
 ) =>
   baseParamSchema.merge(
@@ -32,6 +33,7 @@ export const createUpdateIssuerProxySchema = (
         const proxyValidation = await isIssuerProxy(
           val,
           ebsiEnvConfig,
+          reqId,
           timeout,
         );
 
@@ -57,13 +59,14 @@ export type UpdateIssuerProxySchema = z.infer<
 
 export const createRequestUpdateIssuerProxySchema = (
   ebsiEnvConfig: EbsiEnvConfiguration,
+  reqId: string,
   timeout: number,
 ) =>
   jsonRpcSchema.merge(
     z.object({
       method: z.literal("updateIssuerProxy"),
       params: z
-        .array(createUpdateIssuerProxySchema(ebsiEnvConfig, timeout))
+        .array(createUpdateIssuerProxySchema(ebsiEnvConfig, reqId, timeout))
         .min(1)
         .max(1),
     }),

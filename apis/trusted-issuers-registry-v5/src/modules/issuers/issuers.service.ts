@@ -507,7 +507,7 @@ export class IssuersService {
     }
   }
 
-  async proxyRequest(did: string, proxyId: string, url: string) {
+  async proxyRequest(did: string, proxyId: string, url: string, reqId: string) {
     const proxy = await this.getIssuerProxy(did, proxyId);
 
     // Extract subpath from request URL
@@ -550,6 +550,7 @@ export class IssuersService {
     const statusListValidation = await checkStatusList2021Credential(
       res.data,
       this.ebsiEnvConfig,
+      reqId,
     );
 
     if (!statusListValidation.success) {
