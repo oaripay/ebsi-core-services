@@ -191,7 +191,7 @@ export class AuthorisationService {
     );
 
     // Verify VP JWT
-    await this.validateVpJwt(vpToken, customScope === DIDR_INVITE_SCOPE);
+    await this.validateVpJwt(vpToken, customScope === DIDR_INVITE_SCOPE, reqId);
 
     // Additional verifications based on the requested scope
 
@@ -692,13 +692,19 @@ export class AuthorisationService {
    *
    * @param vpToken - The VP Token to validate.
    * @param isDidUnresolvable - If the holder DID is unresolvable, the signature validation is skipped.
+   * @param reqId - The request ID
    */
-  async validateVpJwt(vpToken: string, isDidUnresolvable: boolean) {
+  async validateVpJwt(
+    vpToken: string,
+    isDidUnresolvable: boolean,
+    reqId: string,
+  ) {
     try {
       const audience = this.issuer;
       const now = Math.floor(Date.now() / 1000);
 
       await verifyPresentationJwt(vpToken, audience, this.ebsiEnvConfig, {
+        axiosHeaders: { "x-request-id": reqId },
         skipHolderDidResolutionValidation: isDidUnresolvable,
         skipSignatureValidation: isDidUnresolvable,
         validAt: now, // The JWT VC(s) must be valid now

@@ -348,7 +348,7 @@ export class IssuersService {
     }
   }
 
-  async proxyRequest(did: string, proxyId: string, url: string) {
+  async proxyRequest(did: string, proxyId: string, url: string, reqId: string) {
     // Make sure the issuer exists
     await this.assertIssuerExists(did);
 
@@ -394,6 +394,7 @@ export class IssuersService {
     const statusListValidation = await checkStatusList2021Credential(
       res.data,
       this.ebsiEnvConfig,
+      reqId,
     );
 
     if (!statusListValidation.success) {

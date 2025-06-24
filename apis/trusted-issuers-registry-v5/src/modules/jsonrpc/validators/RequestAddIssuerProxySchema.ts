@@ -9,6 +9,7 @@ import { jsonRpcSchema } from "./JsonRpcSchema.ts";
 
 export const createAddIssuerProxySchema = (
   ebsiEnvConfig: EbsiEnvConfiguration,
+  reqId: string,
   timeout: number,
 ) =>
   baseParamSchema.merge(
@@ -27,6 +28,7 @@ export const createAddIssuerProxySchema = (
         const proxyValidation = await isIssuerProxy(
           val,
           ebsiEnvConfig,
+          reqId,
           timeout,
         );
 
@@ -46,13 +48,14 @@ export type AddIssuerProxySchema = z.infer<
 
 export const createRequestAddIssuerProxySchema = (
   ebsiEnvConfig: EbsiEnvConfiguration,
+  reqId: string,
   timeout: number,
 ) =>
   jsonRpcSchema.merge(
     z.object({
       method: z.literal("addIssuerProxy"),
       params: z
-        .array(createAddIssuerProxySchema(ebsiEnvConfig, timeout))
+        .array(createAddIssuerProxySchema(ebsiEnvConfig, reqId, timeout))
         .min(1)
         .max(1),
     }),

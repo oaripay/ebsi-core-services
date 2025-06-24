@@ -5,7 +5,10 @@ import { z } from "zod";
 import { baseParamSchema } from "./BaseParamSchema.ts";
 import { jsonRpcSchema } from "./JsonRpcSchema.ts";
 
-export const authoriseDidSchemaBuilder = (didResolver: Resolver) =>
+export const authoriseDidSchemaBuilder = (
+  didResolver: Resolver,
+  reqId: string,
+) =>
   baseParamSchema.merge(
     z.object({
       authorisedDid: z.string().superRefine(async (val, ctx) => {
@@ -19,7 +22,9 @@ export const authoriseDidSchemaBuilder = (didResolver: Resolver) =>
           return;
         }
 
-        const doc = await didResolver.resolve(val);
+        const doc = await didResolver.resolve(val, {
+          axiosHeaders: { "x-request-id": reqId },
+        });
 
         if (!doc.didDocument) {
           ctx.addIssue({
@@ -49,10 +54,16 @@ export type AuthoriseDidSchema = z.infer<
   ReturnType<typeof authoriseDidSchemaBuilder>
 >;
 
-export const requestAuthoriseDidDtoSchemaBuilder = (didResolver: Resolver) =>
+export const requestAuthoriseDidDtoSchemaBuilder = (
+  didResolver: Resolver,
+  reqId: string,
+) =>
   jsonRpcSchema.merge(
     z.object({
       method: z.literal("authoriseDid"),
-      params: z.array(authoriseDidSchemaBuilder(didResolver)).min(1).max(1),
+      params: z
+        .array(authoriseDidSchemaBuilder(didResolver, reqId))
+        .min(1)
+        .max(1),
     }),
   );

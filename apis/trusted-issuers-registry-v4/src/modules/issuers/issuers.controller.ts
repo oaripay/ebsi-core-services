@@ -214,9 +214,9 @@ export class IssuersController {
     @Req() req: FastifyRequest,
   ): Promise<string> {
     const { did, proxyId } = params;
-    const { url } = req;
+    const { id: reqId, url } = req;
 
     // Forward request to issuer's proxy
-    return this.issuersService.proxyRequest(did, proxyId, url);
+    return this.issuersService.proxyRequest(did, proxyId, url, reqId);
   }
 }

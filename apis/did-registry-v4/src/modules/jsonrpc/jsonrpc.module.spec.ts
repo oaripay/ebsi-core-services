@@ -222,12 +222,34 @@ describe(
         // Mock Auth API v3 /.well-known/openid-configuration endpoint
         http.get(
           `${authorisationApiUrl}/.well-known/openid-configuration`,
-          () => HttpResponse.json({ jwks_uri: `${authorisationApiUrl}/jwks` }),
+          ({ request }) => {
+            // Make sure the request has the x-request-id header
+            if (!request.headers.has("x-request-id")) {
+              return HttpResponse.json(
+                "Invalid request (missing x-request-id header)",
+                { status: 400 },
+              );
+            }
+
+            return HttpResponse.json({
+              jwks_uri: `${authorisationApiUrl}/jwks`,
+            });
+          },
         ),
         // Mock Auth API v3 /jwks endpoint
-        http.get(`${authorisationApiUrl}/jwks`, () =>
-          HttpResponse.json({ keys: [{ ...publicKeyJwk, kid: authApiKid }] }),
-        ),
+        http.get(`${authorisationApiUrl}/jwks`, ({ request }) => {
+          // Make sure the request has the x-request-id header
+          if (!request.headers.has("x-request-id")) {
+            return HttpResponse.json(
+              "Invalid request (missing x-request-id header)",
+              { status: 400 },
+            );
+          }
+
+          return HttpResponse.json({
+            keys: [{ ...publicKeyJwk, kid: authApiKid }],
+          });
+        }),
       );
     });
 

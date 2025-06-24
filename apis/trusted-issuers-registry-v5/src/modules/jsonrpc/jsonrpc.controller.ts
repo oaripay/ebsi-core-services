@@ -84,6 +84,7 @@ export class JsonRpcController {
             body,
             id,
             scope,
+            req.id,
           );
         return formatJsonRpcResponse(transaction, id);
       }
@@ -131,6 +132,7 @@ export class JsonRpcController {
             body,
             id,
             scope,
+            req.id,
           );
         return formatJsonRpcResponse(transaction, id);
       }

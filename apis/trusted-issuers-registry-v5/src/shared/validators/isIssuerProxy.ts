@@ -25,6 +25,7 @@ const allowedRequestHeaders = new Set(
 export async function isIssuerProxy(
   value: string,
   ebsiEnvConfig: EbsiEnvConfiguration,
+  reqId: string,
   timeout: number,
 ): Promise<{ error: string; success: false } | { success: true }> {
   let proxyAsObject: unknown;
@@ -140,7 +141,12 @@ export async function isIssuerProxy(
     };
   }
 
-  return checkStatusList2021Credential(testResponse.data, ebsiEnvConfig, {
-    timeout,
-  });
+  return checkStatusList2021Credential(
+    testResponse.data,
+    ebsiEnvConfig,
+    reqId,
+    {
+      timeout,
+    },
+  );
 }

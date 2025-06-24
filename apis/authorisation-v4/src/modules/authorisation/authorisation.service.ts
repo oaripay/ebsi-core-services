@@ -228,6 +228,7 @@ export class AuthorisationService {
       vpToken,
       // skip DID resolution:
       customScope === DIDR_INVITE_SCOPE,
+      reqId,
       // proofPurpose to be used:
       customScope === TNT_AUTHORISE_SCOPE ? "capabilityInvocation" : undefined,
     );
@@ -1161,10 +1162,12 @@ export class AuthorisationService {
    *
    * @param vpToken - The VP Token to validate.
    * @param isDidUnresolvable - If the holder DID is unresolvable, the signature validation is skipped.
+   * @param reqId - The request ID
    */
   async validateVpJwt(
     vpToken: string,
     isDidUnresolvable: boolean,
+    reqId: string,
     proofPurpose?: ProofPurposeTypes,
   ) {
     try {
@@ -1176,6 +1179,7 @@ export class AuthorisationService {
         audience,
         this.ebsiEnvConfig,
         {
+          axiosHeaders: { "x-request-id": reqId },
           skipHolderDidResolutionValidation: isDidUnresolvable,
           skipSignatureValidation: isDidUnresolvable,
           timeout: this.requestTimeout,

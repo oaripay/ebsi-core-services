@@ -51,7 +51,7 @@
     "yaml": "^2.8.0"
   },
   "devDependencies": {
-    "@cef-ebsi/wallet-lib": "^6.0.1",
+    "@cef-ebsi/wallet-lib": "^6.0.2-alpha.0",
     "@nestjs/cli": "^11.0.7",
     "@nestjs/schematics": "^11.0.5",
     "@nestjs/testing": "^11.1.3",

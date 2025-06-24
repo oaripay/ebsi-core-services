@@ -202,15 +202,34 @@ describe("JSON-RPC Module", () => {
 
     mockServer.use(
       // Mock Auth API /.well-known/openid-configuration endpoint
-      http.get(`${authorisationApiUrl}/.well-known/openid-configuration`, () =>
-        HttpResponse.json({ jwks_uri: `${authorisationApiUrl}/jwks` }),
+      http.get(
+        `${authorisationApiUrl}/.well-known/openid-configuration`,
+        ({ request }) => {
+          // Make sure the request has the x-request-id header
+          if (!request.headers.has("x-request-id")) {
+            return HttpResponse.json(
+              "Invalid request (missing x-request-id header)",
+              { status: 400 },
+            );
+          }
+
+          return HttpResponse.json({ jwks_uri: `${authorisationApiUrl}/jwks` });
+        },
       ),
       // Mock Auth API /jwks endpoint
-      http.get(`${authorisationApiUrl}/jwks`, () =>
-        HttpResponse.json({
+      http.get(`${authorisationApiUrl}/jwks`, ({ request }) => {
+        // Make sure the request has the x-request-id header
+        if (!request.headers.has("x-request-id")) {
+          return HttpResponse.json(
+            "Invalid request (missing x-request-id header)",
+            { status: 400 },
+          );
+        }
+
+        return HttpResponse.json({
           keys: [{ ...publicKeyJwk, kid: authApiKid }],
-        }),
-      ),
+        });
+      }),
     );
   });
 
@@ -712,9 +731,17 @@ describe("JSON-RPC Module", () => {
     // Mock $ref response - 404
     mockServer.resetHandlers();
     mockServer.use(
-      http.get(referencedSchemaUrl, () =>
-        HttpResponse.text("Not Found", { status: 404 }),
-      ),
+      http.get(referencedSchemaUrl, ({ request }) => {
+        // Make sure the request has the x-request-id header
+        if (!request.headers.has("x-request-id")) {
+          return HttpResponse.json(
+            "Invalid request (missing x-request-id header)",
+            { status: 400 },
+          );
+        }
+
+        return HttpResponse.text("Not Found", { status: 404 });
+      }),
     );
 
     const signer = ethers.Wallet.createRandom();
