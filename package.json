@@ -90,6 +90,7 @@
   "resolutions": {
     "**/@ethersproject/providers/ws": "^7.5.10",
     "**/@ethersproject/signing-key/elliptic": "^6.6.0",
+    "**/@graphprotocol/graph-cli/undici": "7.5.0",
     "**/@graphprotocol/graph-ts/assemblyscript": "0.19.23",
     "**/gluegun/cross-spawn": "^7.0.6",
     "**/gluegun/semver": "^7.7.1",
