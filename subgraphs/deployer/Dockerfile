@@ -2,7 +2,7 @@
 ARG DOCKER_TAG=latest
 FROM ebsi/core-services:$DOCKER_TAG AS builder
 
-FROM node:22.16.0-alpine3.21@sha256:9f3ae04faa4d2188825803bf890792f33cc39033c9241fc6bb201149470436ca
+FROM node:22.17.0-alpine3.22@sha256:5340cbfc2df14331ab021555fdd9f83f072ce811488e705b0e736b11adeec4bb
 
 # Install build dependencies
 RUN apk update && \
