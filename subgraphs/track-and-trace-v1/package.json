@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "@ebsiint-subgraph/track-and-trace-v1",
-  "version": "0.0.0-rc.1",
+  "version": "0.0.0-rc.2",
   "type": "module",
   "license": "EUPL-1.2",
   "scripts": {
@@ -12,7 +12,7 @@
     "test:unit": "yarn graph test -d"
   },
   "dependencies": {
-    "@ebsiint-sc/track-and-trace": "1.0.0-rc.6",
+    "@ebsiint-sc/track-and-trace": "1.0.0-rc.7",
     "@graphprotocol/graph-ts": "0.38.0"
   },
   "devDependencies": {

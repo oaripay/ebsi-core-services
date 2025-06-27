@@ -1,5 +1,19 @@
 # @ebsiint-sc/track-and-trace
 
+## 1.0.0-rc.7
+
+### Patch Changes
+
+- [87118a0bb2a87c1795a57d5ea166d1bfc8ddf58a](https://code.europa.eu/ebsi/public/core-services/-/commit/87118a0bb2a87c1795a57d5ea166d1bfc8ddf58a): Restore the original logic of `getDocument` into `getDocument__deprecated`.
+- [771f733abd8f02ad3ddd967eb1ad57857b3651b9](https://code.europa.eu/ebsi/public/core-services/-/commit/771f733abd8f02ad3ddd967eb1ad57857b3651b9): Bump dependencies.
+- [9c945eca37a726555d22b9d9bbe9aab6ecd607a9](https://code.europa.eu/ebsi/public/core-services/-/commit/9c945eca37a726555d22b9d9bbe9aab6ecd607a9): Bump dependencies.
+- Updated dependencies [9f1cfb8cd96c9486f8fbaefcc7b154cf18c6181b](https://code.europa.eu/ebsi/public/core-services/-/commit/9f1cfb8cd96c9486f8fbaefcc7b154cf18c6181b)
+- Updated dependencies [771f733abd8f02ad3ddd967eb1ad57857b3651b9](https://code.europa.eu/ebsi/public/core-services/-/commit/771f733abd8f02ad3ddd967eb1ad57857b3651b9)
+- Updated dependencies [9c945eca37a726555d22b9d9bbe9aab6ecd607a9](https://code.europa.eu/ebsi/public/core-services/-/commit/9c945eca37a726555d22b9d9bbe9aab6ecd607a9)
+  - @ebsiint-sc/trusted-policies-registry-v2@2.0.0-rc.8
+  - @ebsiint-sc/did-registry-v3@3.0.0-rc.8
+  - @ebsiint-sc/bootstrap-v2@2.0.0-rc.8
+
 ## 1.0.0-rc.6
 
 ### Minor Changes

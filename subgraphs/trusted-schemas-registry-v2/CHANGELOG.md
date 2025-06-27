@@ -1,5 +1,15 @@
 # @ebsiint-subgraph/trusted-schemas-registry-v2
 
+## 0.0.0-rc.2
+
+### Patch Changes
+
+- [21f4a039c133fe336844095f457ed54cafc1e076](https://code.europa.eu/ebsi/public/core-services/-/commit/21f4a039c133fe336844095f457ed54cafc1e076): Use events instead of call handlers
+- Updated dependencies [21f4a039c133fe336844095f457ed54cafc1e076](https://code.europa.eu/ebsi/public/core-services/-/commit/21f4a039c133fe336844095f457ed54cafc1e076)
+- Updated dependencies [771f733abd8f02ad3ddd967eb1ad57857b3651b9](https://code.europa.eu/ebsi/public/core-services/-/commit/771f733abd8f02ad3ddd967eb1ad57857b3651b9)
+- Updated dependencies [9c945eca37a726555d22b9d9bbe9aab6ecd607a9](https://code.europa.eu/ebsi/public/core-services/-/commit/9c945eca37a726555d22b9d9bbe9aab6ecd607a9)
+  - @ebsiint-sc/trusted-schemas-registry-v2@2.0.0-rc.8
+
 ## 0.0.0-rc.1
 
 ### Major Changes

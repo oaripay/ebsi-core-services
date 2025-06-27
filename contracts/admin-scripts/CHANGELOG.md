@@ -1,5 +1,33 @@
 # @ebsiint-sc/admin-scripts
 
+## 2.0.0-rc.12
+
+### Patch Changes
+
+- [771f733abd8f02ad3ddd967eb1ad57857b3651b9](https://code.europa.eu/ebsi/public/core-services/-/commit/771f733abd8f02ad3ddd967eb1ad57857b3651b9): Bump dependencies.
+- [9c945eca37a726555d22b9d9bbe9aab6ecd607a9](https://code.europa.eu/ebsi/public/core-services/-/commit/9c945eca37a726555d22b9d9bbe9aab6ecd607a9): Bump dependencies.
+- Updated dependencies [10d2e8ce93935ff86a5a1908ddcca937653dbdf7](https://code.europa.eu/ebsi/public/core-services/-/commit/10d2e8ce93935ff86a5a1908ddcca937653dbdf7)
+- Updated dependencies [21f4a039c133fe336844095f457ed54cafc1e076](https://code.europa.eu/ebsi/public/core-services/-/commit/21f4a039c133fe336844095f457ed54cafc1e076)
+- Updated dependencies [9f1cfb8cd96c9486f8fbaefcc7b154cf18c6181b](https://code.europa.eu/ebsi/public/core-services/-/commit/9f1cfb8cd96c9486f8fbaefcc7b154cf18c6181b)
+- Updated dependencies [87118a0bb2a87c1795a57d5ea166d1bfc8ddf58a](https://code.europa.eu/ebsi/public/core-services/-/commit/87118a0bb2a87c1795a57d5ea166d1bfc8ddf58a)
+- Updated dependencies [771f733abd8f02ad3ddd967eb1ad57857b3651b9](https://code.europa.eu/ebsi/public/core-services/-/commit/771f733abd8f02ad3ddd967eb1ad57857b3651b9)
+- Updated dependencies [9c945eca37a726555d22b9d9bbe9aab6ecd607a9](https://code.europa.eu/ebsi/public/core-services/-/commit/9c945eca37a726555d22b9d9bbe9aab6ecd607a9)
+- Updated dependencies [1c2a30d4b20d1ccad0cd398c64bcc2ac698f9ab8](https://code.europa.eu/ebsi/public/core-services/-/commit/1c2a30d4b20d1ccad0cd398c64bcc2ac698f9ab8)
+  - @ebsiint-sc/trusted-issuers-registry-v3@3.0.0-rc.9
+  - @ebsiint-sc/trusted-schemas-registry-v2@2.0.0-rc.8
+  - @ebsiint-sc/trusted-policies-registry-v2@2.0.0-rc.8
+  - @ebsiint-sc/trusted-policies-registry@1.0.1-rc.12
+  - @ebsiint-sc/trusted-issuers-registry@2.0.0-rc.12
+  - @ebsiint-sc/trusted-schemas-registry@1.0.1-rc.12
+  - @ebsiint-sc/did-registry-v2@2.0.0-rc.11
+  - @ebsiint-sc/did-registry-v3@3.0.0-rc.8
+  - @ebsiint-sc/bootstrap-v2@2.0.0-rc.8
+  - @ebsiint-sc/did-registry@1.1.0-rc.12
+  - @ebsiint-sc/timestamp-v2@2.0.0-rc.8
+  - @ebsiint-sc/bootstrap@1.0.1-rc.12
+  - @ebsiint-sc/timestamp@1.0.1-rc.12
+  - @ebsiint-sc/proxy@2.0.0-rc.12
+
 ## 2.0.0-rc.11
 
 ### Minor Changes
