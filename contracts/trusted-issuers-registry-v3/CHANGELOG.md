@@ -1,5 +1,21 @@
 # @ebsiint-sc/trusted-issuers-registry-v3
 
+## 3.0.0-rc.9
+
+### Patch Changes
+
+- [10d2e8ce93935ff86a5a1908ddcca937653dbdf7](https://code.europa.eu/ebsi/public/core-services/-/commit/10d2e8ce93935ff86a5a1908ddcca937653dbdf7): Remove multiple calls to improve performance, update the `/issuers/:did/attributes/:attributeId/revisions` endpoint and add the `/issuers/:did/attributes/:attributeId/revisions/:revisionId` endpoint.
+- [87118a0bb2a87c1795a57d5ea166d1bfc8ddf58a](https://code.europa.eu/ebsi/public/core-services/-/commit/87118a0bb2a87c1795a57d5ea166d1bfc8ddf58a): Restore the original logic of `getIssuer` and `getIssuerAttributeByHash` into `getIssuer__deprecated` and `getIssuerAttributeByHash__deprecated` respectively.
+- [771f733abd8f02ad3ddd967eb1ad57857b3651b9](https://code.europa.eu/ebsi/public/core-services/-/commit/771f733abd8f02ad3ddd967eb1ad57857b3651b9): Bump dependencies.
+- [9c945eca37a726555d22b9d9bbe9aab6ecd607a9](https://code.europa.eu/ebsi/public/core-services/-/commit/9c945eca37a726555d22b9d9bbe9aab6ecd607a9): Bump dependencies.
+- [1c2a30d4b20d1ccad0cd398c64bcc2ac698f9ab8](https://code.europa.eu/ebsi/public/core-services/-/commit/1c2a30d4b20d1ccad0cd398c64bcc2ac698f9ab8): Restore the original logic of `getIssuerAttributeRevisions` into `getIssuerAttributeRevisions__deprecated`.
+- Updated dependencies [9f1cfb8cd96c9486f8fbaefcc7b154cf18c6181b](https://code.europa.eu/ebsi/public/core-services/-/commit/9f1cfb8cd96c9486f8fbaefcc7b154cf18c6181b)
+- Updated dependencies [771f733abd8f02ad3ddd967eb1ad57857b3651b9](https://code.europa.eu/ebsi/public/core-services/-/commit/771f733abd8f02ad3ddd967eb1ad57857b3651b9)
+- Updated dependencies [9c945eca37a726555d22b9d9bbe9aab6ecd607a9](https://code.europa.eu/ebsi/public/core-services/-/commit/9c945eca37a726555d22b9d9bbe9aab6ecd607a9)
+  - @ebsiint-sc/trusted-policies-registry-v2@2.0.0-rc.8
+  - @ebsiint-sc/did-registry-v3@3.0.0-rc.8
+  - @ebsiint-sc/bootstrap-v2@2.0.0-rc.8
+
 ## 3.0.0-rc.8
 
 ### Minor Changes

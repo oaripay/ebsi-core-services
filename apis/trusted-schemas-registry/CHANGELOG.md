@@ -1,5 +1,22 @@
 # Changelog
 
+## 2.0.0-rc.15
+
+### Patch Changes
+
+- [d08c0fade74a721abb962a20145d2e92a52e27a2](https://code.europa.eu/ebsi/public/core-services/-/commit/d08c0fade74a721abb962a20145d2e92a52e27a2): Refactor logging, replace winston with pino.
+- [5df2c952b150700c3532171a45937afa8828049e](https://code.europa.eu/ebsi/public/core-services/-/commit/5df2c952b150700c3532171a45937afa8828049e): Pass request ID to the other EBSI Core Services.
+- [e28b249ad8f9c5660e9bb1fed273d67deafe2011](https://code.europa.eu/ebsi/public/core-services/-/commit/e28b249ad8f9c5660e9bb1fed273d67deafe2011): Simplify the logs by removing `pid`, `hostname` and `remoteAddress`.
+- [771f733abd8f02ad3ddd967eb1ad57857b3651b9](https://code.europa.eu/ebsi/public/core-services/-/commit/771f733abd8f02ad3ddd967eb1ad57857b3651b9): Update Node.js and bump dependencies.
+- [9c945eca37a726555d22b9d9bbe9aab6ecd607a9](https://code.europa.eu/ebsi/public/core-services/-/commit/9c945eca37a726555d22b9d9bbe9aab6ecd607a9): Bump dependencies.
+- Updated dependencies [d08c0fade74a721abb962a20145d2e92a52e27a2](https://code.europa.eu/ebsi/public/core-services/-/commit/d08c0fade74a721abb962a20145d2e92a52e27a2)
+- Updated dependencies [5df2c952b150700c3532171a45937afa8828049e](https://code.europa.eu/ebsi/public/core-services/-/commit/5df2c952b150700c3532171a45937afa8828049e)
+- Updated dependencies [e28b249ad8f9c5660e9bb1fed273d67deafe2011](https://code.europa.eu/ebsi/public/core-services/-/commit/e28b249ad8f9c5660e9bb1fed273d67deafe2011)
+- Updated dependencies [771f733abd8f02ad3ddd967eb1ad57857b3651b9](https://code.europa.eu/ebsi/public/core-services/-/commit/771f733abd8f02ad3ddd967eb1ad57857b3651b9)
+- Updated dependencies [9c945eca37a726555d22b9d9bbe9aab6ecd607a9](https://code.europa.eu/ebsi/public/core-services/-/commit/9c945eca37a726555d22b9d9bbe9aab6ecd607a9)
+  - @ebsiint-api/shared@1.1.0-rc.14
+  - @ebsiint-sc/trusted-schemas-registry@1.0.1-rc.12
+
 ## 2.0.0-rc.14
 
 ### Patch Changes

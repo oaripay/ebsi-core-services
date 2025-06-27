@@ -1,5 +1,31 @@
 # Changelog
 
+## 5.0.0-rc.10
+
+### Patch Changes
+
+- [10d2e8ce93935ff86a5a1908ddcca937653dbdf7](https://code.europa.eu/ebsi/public/core-services/-/commit/10d2e8ce93935ff86a5a1908ddcca937653dbdf7): Remove multiple calls to improve performance, update the `/issuers/:did/attributes/:attributeId/revisions` endpoint and add the `/issuers/:did/attributes/:attributeId/revisions/:revisionId` endpoint.
+- [d08c0fade74a721abb962a20145d2e92a52e27a2](https://code.europa.eu/ebsi/public/core-services/-/commit/d08c0fade74a721abb962a20145d2e92a52e27a2): Refactor logging, replace winston with pino.
+- [87118a0bb2a87c1795a57d5ea166d1bfc8ddf58a](https://code.europa.eu/ebsi/public/core-services/-/commit/87118a0bb2a87c1795a57d5ea166d1bfc8ddf58a): Use the original logic of the `/issuers/:did` endpoint when the `version` query parameter is set to `deprecated`.
+- [8a1efb72fa4192b16fce3bd17e9e7b8ee7f9e3f9](https://code.europa.eu/ebsi/public/core-services/-/commit/8a1efb72fa4192b16fce3bd17e9e7b8ee7f9e3f9): Add "x-request-id" header to all the Axios requests sent to other Core Services.
+- [316436a1f4e690fe7ebd49050c43a55bace5636d](https://code.europa.eu/ebsi/public/core-services/-/commit/316436a1f4e690fe7ebd49050c43a55bace5636d): Add "EBSI-Healthcheck" header to healthcheck requests.
+- [5df2c952b150700c3532171a45937afa8828049e](https://code.europa.eu/ebsi/public/core-services/-/commit/5df2c952b150700c3532171a45937afa8828049e): Pass request ID to the other EBSI Core Services.
+- [e28b249ad8f9c5660e9bb1fed273d67deafe2011](https://code.europa.eu/ebsi/public/core-services/-/commit/e28b249ad8f9c5660e9bb1fed273d67deafe2011): Simplify the logs by removing `pid`, `hostname` and `remoteAddress`.
+- [771f733abd8f02ad3ddd967eb1ad57857b3651b9](https://code.europa.eu/ebsi/public/core-services/-/commit/771f733abd8f02ad3ddd967eb1ad57857b3651b9): Update Node.js and bump dependencies.
+- [9c945eca37a726555d22b9d9bbe9aab6ecd607a9](https://code.europa.eu/ebsi/public/core-services/-/commit/9c945eca37a726555d22b9d9bbe9aab6ecd607a9): Bump dependencies.
+- [0402d9f295d589d0ca4301a7dbf6f00dd0f458bb](https://code.europa.eu/ebsi/public/core-services/-/commit/0402d9f295d589d0ca4301a7dbf6f00dd0f458bb): Align error messages.
+- [1c2a30d4b20d1ccad0cd398c64bcc2ac698f9ab8](https://code.europa.eu/ebsi/public/core-services/-/commit/1c2a30d4b20d1ccad0cd398c64bcc2ac698f9ab8): Use the original logic of the `/issuers/:did/attributes/:attributeId/revisions` endpoint when the `version` query parameter is set to `deprecated`.
+- Updated dependencies [10d2e8ce93935ff86a5a1908ddcca937653dbdf7](https://code.europa.eu/ebsi/public/core-services/-/commit/10d2e8ce93935ff86a5a1908ddcca937653dbdf7)
+- Updated dependencies [d08c0fade74a721abb962a20145d2e92a52e27a2](https://code.europa.eu/ebsi/public/core-services/-/commit/d08c0fade74a721abb962a20145d2e92a52e27a2)
+- Updated dependencies [87118a0bb2a87c1795a57d5ea166d1bfc8ddf58a](https://code.europa.eu/ebsi/public/core-services/-/commit/87118a0bb2a87c1795a57d5ea166d1bfc8ddf58a)
+- Updated dependencies [5df2c952b150700c3532171a45937afa8828049e](https://code.europa.eu/ebsi/public/core-services/-/commit/5df2c952b150700c3532171a45937afa8828049e)
+- Updated dependencies [e28b249ad8f9c5660e9bb1fed273d67deafe2011](https://code.europa.eu/ebsi/public/core-services/-/commit/e28b249ad8f9c5660e9bb1fed273d67deafe2011)
+- Updated dependencies [771f733abd8f02ad3ddd967eb1ad57857b3651b9](https://code.europa.eu/ebsi/public/core-services/-/commit/771f733abd8f02ad3ddd967eb1ad57857b3651b9)
+- Updated dependencies [9c945eca37a726555d22b9d9bbe9aab6ecd607a9](https://code.europa.eu/ebsi/public/core-services/-/commit/9c945eca37a726555d22b9d9bbe9aab6ecd607a9)
+- Updated dependencies [1c2a30d4b20d1ccad0cd398c64bcc2ac698f9ab8](https://code.europa.eu/ebsi/public/core-services/-/commit/1c2a30d4b20d1ccad0cd398c64bcc2ac698f9ab8)
+  - @ebsiint-sc/trusted-issuers-registry-v3@3.0.0-rc.9
+  - @ebsiint-api/shared@1.1.0-rc.14
+
 ## 5.0.0-rc.9
 
 ### Minor Changes

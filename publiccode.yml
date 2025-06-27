@@ -112,7 +112,7 @@ name: EBSI
 platforms:
   - linux
   - web
-releaseDate: "2025-02-06"
+releaseDate: "2025-06-30"
 roadmap: "https://hub.ebsi.eu/conformance/standards-versions"
 softwareType: standalone/backend
 url: "https://code.europa.eu/ebsi/public"

@@ -1,5 +1,14 @@
 # @ebsiint-subgraph/timestamp-v2
 
+## 0.0.0-rc.2
+
+### Patch Changes
+
+- [39457add0a1a67fa214e449e2cbc26dcf6c08250](https://code.europa.eu/ebsi/public/core-services/-/commit/39457add0a1a67fa214e449e2cbc26dcf6c08250): Fix ianaName decoding during AddNewHashAlgo event.
+- Updated dependencies [771f733abd8f02ad3ddd967eb1ad57857b3651b9](https://code.europa.eu/ebsi/public/core-services/-/commit/771f733abd8f02ad3ddd967eb1ad57857b3651b9)
+- Updated dependencies [9c945eca37a726555d22b9d9bbe9aab6ecd607a9](https://code.europa.eu/ebsi/public/core-services/-/commit/9c945eca37a726555d22b9d9bbe9aab6ecd607a9)
+  - @ebsiint-sc/timestamp-v2@2.0.0-rc.8
+
 ## 0.0.0-rc.1
 
 ### Major Changes

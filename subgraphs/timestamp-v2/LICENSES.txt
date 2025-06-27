@@ -299,7 +299,7 @@ https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
 This product makes use of software developed by third parties.
 
 ========================================================================================
-- @ebsiint-sc/timestamp-v2@^2.0.0-rc.7
+- @ebsiint-sc/timestamp-v2@^2.0.0-rc.8
 ------------------------------
 This project is licensed under EUPL-1.2.
 

@@ -1,5 +1,14 @@
 # @ebsiint-subgraph/track-and-trace-v1
 
+## 0.0.0-rc.2
+
+### Patch Changes
+
+- Updated dependencies [87118a0bb2a87c1795a57d5ea166d1bfc8ddf58a](https://code.europa.eu/ebsi/public/core-services/-/commit/87118a0bb2a87c1795a57d5ea166d1bfc8ddf58a)
+- Updated dependencies [771f733abd8f02ad3ddd967eb1ad57857b3651b9](https://code.europa.eu/ebsi/public/core-services/-/commit/771f733abd8f02ad3ddd967eb1ad57857b3651b9)
+- Updated dependencies [9c945eca37a726555d22b9d9bbe9aab6ecd607a9](https://code.europa.eu/ebsi/public/core-services/-/commit/9c945eca37a726555d22b9d9bbe9aab6ecd607a9)
+  - @ebsiint-sc/track-and-trace@1.0.0-rc.7
+
 ## 0.0.0-rc.1
 
 ### Major Changes
