@@ -1,1 +1,1 @@
-# TNT SC v2 Subgraph
+# TnT SC v1 Subgraph
