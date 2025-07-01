@@ -8,7 +8,9 @@
       "{projectRoot}/tests/**/*",
       "{projectRoot}/vitest.config.ts",
       "{projectRoot}/tsconfig.json",
-      "{projectRoot}/.env*"
+      "{projectRoot}/.env*",
+      "{projectRoot}/schema.graphql",
+      "{projectRoot}/subgraph.template.yaml"
     ],
     "production": [
       "{projectRoot}/src/**/*",

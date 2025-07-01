@@ -1,0 +1,260 @@
+###############################################################################
+#                              DID Registry SC v3                             #
+###############################################################################
+
+enum VerificationMethodStatus {
+  ACTIVE
+  REVOKED
+  EXPIRED
+}
+
+enum ControllerStatus {
+  ACTIVE
+  REVOKED
+  EXPIRED
+}
+
+type DidDocument @entity(immutable: false) {
+  id: String!
+  baseDocument: String!
+  controllerRelationships: [ControllerRelationship!]!
+    @derivedFrom(field: "controlledDocument")
+  verificationRelationships: [VerificationRelationship!]!
+    @derivedFrom(field: "did")
+  verificationMethods: [VerificationMethod!]! @derivedFrom(field: "did")
+  events: [DidDocumentEvent!]! @derivedFrom(field: "did")
+}
+
+type ControllerRelationship @entity(immutable: false) {
+  id: String!
+  controller: DidDocument!
+  controlledDocument: DidDocument!
+  status: ControllerStatus!
+}
+
+type VerificationRelationship @entity(immutable: false) {
+  id: String!
+  name: String!
+  notBefore: BigInt!
+  notAfter: BigInt!
+  did: DidDocument!
+  vMethodId: String!
+}
+
+type VerificationMethod @entity(immutable: false) {
+  id: String!
+  publicKey: Bytes!
+  isSecp256k1: Boolean!
+  status: VerificationMethodStatus!
+  did: DidDocument!
+}
+
+type DidDocumentEvent @entity(immutable: true) {
+  id: Bytes!
+  signer: Bytes!
+  blockNumber: BigInt!
+  timestamp: BigInt!
+  event: String!
+  txId: Bytes!
+  did: DidDocument!
+}
+
+###############################################################################
+#                               Timestamp SC v2                               #
+###############################################################################
+
+enum HashAlgorithmStatus {
+  UNDEFINED
+  ACTIVE
+  REVOKED
+}
+
+type HashAlgorithm @entity(immutable: false) {
+  id: String! # Auto-incremented ID emitted by the smart contract
+  ianaName: String!
+  multiHash: String!
+  oid: String!
+  outputLength: BigInt!
+  status: HashAlgorithmStatus!
+}
+
+# `TimestampedHash` is not immutable because `records` can be mutated
+type TimestampedHash @entity(immutable: false) {
+  id: Bytes! # Set to `hashValue`
+  hashValue: Bytes!
+  hashAlgorithm: HashAlgorithm!
+  data: Bytes!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  timestampedBy: Bytes! # Address
+  transactionHash: Bytes!
+  records: [Record!]! # Only useful in the context of timestampVersionHashes
+}
+
+# Entity RecordVersion is not immutable because infos can be modified
+type RecordVersion @entity(immutable: false) {
+  id: Bytes! # Set to `record.id.concat(versionNumber)`
+  record: Record!
+  versionNumber: BigInt!
+  timestamps: [TimestampedHash!]!
+  infos: [Bytes!]!
+}
+
+type RecordOwner @entity(immutable: false) {
+  id: Bytes! # Set to `record.id.concat(ownerId)`
+  ownerId: String!
+  notBefore: BigInt!
+  notAfter: BigInt!
+  record: Record!
+}
+
+type Record @entity(immutable: true) {
+  id: Bytes!
+  owners: [RecordOwner!]! @derivedFrom(field: "record")
+  versions: [RecordVersion!]! @derivedFrom(field: "record")
+}
+
+###############################################################################
+#                            Track and Trace SC v1                            #
+###############################################################################
+
+enum Source {
+  BLOCK
+  EXTERNAL
+}
+
+enum Permission {
+  DELEGATE
+  WRITE
+  CREATOR
+}
+
+type Creator @entity(immutable: false) {
+  id: String!
+  active: Boolean!
+  documents: [Document!]! @derivedFrom(field: "creator")
+}
+
+type Operator @entity(immutable: true) {
+  id: Bytes!
+  invitations: [Invitation!]! @derivedFrom(field: "subject")
+}
+
+type Document @entity(immutable: false) {
+  id: Bytes!
+  creator: Creator!
+  timestamp: BigInt!
+  source: Source!
+  proof: Bytes!
+  metadata: String!
+  events: [DocumentEvent!]! @derivedFrom(field: "document")
+  invitations: [Invitation!]! @derivedFrom(field: "document")
+}
+
+type Invitation @entity(immutable: false) {
+  id: Bytes! # Set to document.id.concat(subject.id).concatI32(permission)
+  document: Document!
+  type: Permission!
+  grantedBy: Bytes!
+  subject: Operator!
+  parent: Invitation
+  children: [Invitation!]! @derivedFrom(field: "parent")
+}
+
+# `DocumentEvent` is not immutable because it can be removed
+type DocumentEvent @entity(immutable: false) {
+  id: Bytes! # Set to document.id.concat(event.eventHash)
+  document: Document!
+  externalHash: String!
+  hash: Bytes!
+  timestamp: BigInt!
+  source: Source!
+  proof: Bytes!
+  sender: Bytes!
+  origin: String!
+  metadata: String!
+}
+
+###############################################################################
+#                        Trusted Issuers Registry SC v3                       #
+###############################################################################
+
+enum IssuerType {
+  ROOT_TAO
+  TAO
+  TI
+  REVOKED
+}
+
+type Issuer @entity(immutable: true) {
+  id: String!
+  attributes: [IssuerAttribute!]! @derivedFrom(field: "issuer")
+  proxies: [IssuerProxy!]! @derivedFrom(field: "issuer")
+}
+
+type IssuerAttribute @entity(immutable: false) {
+  id: Bytes!
+  issuer: Issuer!
+  revisions: [IssuerAttributeRevision!]! @derivedFrom(field: "attribute")
+  latestRevision: IssuerAttributeRevision!
+}
+
+type IssuerAttributeRevision @entity(immutable: true) {
+  id: Bytes!
+  attribute: IssuerAttribute!
+  body: String!
+  issuerType: IssuerType!
+  tao: String! # TODO: reference Issuer
+  rootTao: String! # TODO: reference Issuer
+  timestamp: BigInt!
+}
+
+type IssuerProxy @entity(immutable: false) {
+  id: Bytes!
+  issuer: Issuer!
+  data: String!
+}
+
+###############################################################################
+#                       Trusted Policies Registry SC v2                       #
+###############################################################################
+
+type Policy @entity(immutable: false) {
+  id: String! # Policy name
+  policyId: String!
+  description: String!
+  status: Boolean!
+}
+
+# Special entity that creates an easy way to retrieve a policy by its ID
+type PolicyById @entity(immutable: true) {
+  id: String! # Policy ID
+  policy: Policy! # Policy
+}
+
+type PolicySubject @entity(immutable: false) {
+  id: Bytes! # Address
+  attributes: [String!]!
+}
+
+###############################################################################
+#                        Trusted Schemas Registry SC v2                       #
+###############################################################################
+
+type Schema @entity(immutable: true) {
+  id: Bytes!
+  revisions: [SchemaRevision!]! @derivedFrom(field: "schema")
+}
+
+type SchemaRevision @entity(immutable: true) {
+  id: Bytes! # Set to `schema.id.concat(keccak(content))`
+  content: String!
+  schema: Schema!
+  metadata: [SchemaMetadata!]! @derivedFrom(field: "revision")
+}
+
+type SchemaMetadata @entity(immutable: false) {
+  id: Bytes! # Set to `revision.id.concat(keccak(content))`
+  content: String!
+  revision: SchemaRevision!
+}

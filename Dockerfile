@@ -42,6 +42,7 @@ COPY ./contracts/trusted-policies-registry/package.json ./contracts/trusted-poli
 COPY ./contracts/trusted-policies-registry-v2/package.json ./contracts/trusted-policies-registry-v2/
 COPY ./contracts/trusted-schemas-registry/package.json ./contracts/trusted-schemas-registry/
 COPY ./contracts/trusted-schemas-registry-v2/package.json ./contracts/trusted-schemas-registry-v2/
+COPY ./subgraphs/core-services/package.json ./subgraphs/core-services/
 COPY ./subgraphs/deployer/package.json ./subgraphs/deployer/
 COPY ./subgraphs/did-registry-v3/package.json ./subgraphs/did-registry-v3/
 COPY ./subgraphs/timestamp-v2/package.json ./subgraphs/timestamp-v2/
