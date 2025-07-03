@@ -23,6 +23,7 @@ type DidDocument @entity(immutable: false) {
     @derivedFrom(field: "did")
   verificationMethods: [VerificationMethod!]! @derivedFrom(field: "did")
   events: [DidDocumentEvent!]! @derivedFrom(field: "did")
+  trustedIssuer: Issuer
 }
 
 type ControllerRelationship @entity(immutable: false) {
@@ -188,6 +189,7 @@ enum IssuerType {
 
 type Issuer @entity(immutable: true) {
   id: String!
+  didDocument: DidDocument
   attributes: [IssuerAttribute!]! @derivedFrom(field: "issuer")
   proxies: [IssuerProxy!]! @derivedFrom(field: "issuer")
 }

@@ -9,6 +9,7 @@ import {
 } from "matchstick-as";
 
 import {
+  DidDocument,
   Issuer,
   IssuerAttribute,
   IssuerAttributeRevision,
@@ -95,6 +96,11 @@ describe("Trusted Issuers Registry - entity assertions", () => {
       throw new Error("Issuer not found");
     }
 
+    // Check DID document
+    if (issuer.didDocument) {
+      throw new Error("DID document should not be present");
+    }
+
     const attributes = issuer.attributes.load();
 
     assert.i32Equals(
@@ -165,6 +171,11 @@ describe("Trusted Issuers Registry - entity assertions", () => {
   });
 
   test("Add a new issuer (TAO)", () => {
+    // Create DID document for the  TAO (optional)
+    const didDocument = new DidDocument(tao);
+    didDocument.baseDocument = "{}";
+    didDocument.save();
+
     // The Root TAO calls `setAttributeMetadata` with the following parameters:
     // - did: did:ebsi:tao
     // - revisionId: 0x4c7d968e36f8a3885911dd433d5aa58f1c104856d642a3c2ec0fa6c3ae04a9b5
@@ -204,6 +215,33 @@ describe("Trusted Issuers Registry - entity assertions", () => {
     if (!issuer) {
       throw new Error("Issuer not found");
     }
+
+    // Check DID document
+    if (!issuer.didDocument) {
+      throw new Error("DID document not found");
+    }
+    const documentId = changetype<string>(issuer.didDocument); // Cast to string
+    assert.stringEquals(
+      documentId,
+      issuer.id,
+      "The DID document should be correct",
+    );
+
+    const issuerDidDocument = DidDocument.load(documentId);
+
+    if (!issuerDidDocument) {
+      throw new Error("DID document not found");
+    }
+
+    if (!issuerDidDocument.trustedIssuer) {
+      throw new Error("DID document's trustedIssuer property is null");
+    }
+
+    assert.stringEquals(
+      changetype<string>(issuerDidDocument.trustedIssuer),
+      issuer.id,
+      "The DID document should have the correct trusted issuer",
+    );
 
     const attributes = issuer.attributes.load();
 

@@ -1,6 +1,7 @@
 import { Bytes, log, store } from "@graphprotocol/graph-ts";
 
 import {
+  DidDocument,
   Issuer,
   IssuerAttribute,
   IssuerAttributeRevision,
@@ -210,6 +211,19 @@ function handleSetAttributeMetadata(event: AddAttributeRevision): void {
     // Create a new issuer
     issuer = new Issuer(event.params.did);
     issuer.save();
+  }
+
+  // Check if DID document exists and attach it to the issuer
+  const didDocument = DidDocument.load(issuer.id);
+
+  if (didDocument) {
+    log.info("Attaching DID document to issuer {}", [event.params.did]);
+    issuer.didDocument = didDocument.id;
+    issuer.save();
+    didDocument.trustedIssuer = issuer.id;
+    didDocument.save();
+  } else {
+    log.info("DID document {} doesn't exist", [event.params.did]);
   }
 
   // Load attribute
