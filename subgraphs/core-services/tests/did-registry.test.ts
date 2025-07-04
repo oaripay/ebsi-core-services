@@ -83,7 +83,12 @@ describe("DID Registry - entity assertions", () => {
       "InsertDidDocument",
       did,
     );
-    assert.fieldEquals("DidDocumentEvent", eventId.toHexString(), "did", did);
+    assert.fieldEquals(
+      "DidDocumentEvent",
+      eventId.toHexString(),
+      "didDocument",
+      did,
+    );
 
     // Check if the new DID document has been stored
     assert.entityCount("DidDocument", didDocumentCount + 1);
@@ -114,7 +119,7 @@ describe("DID Registry - entity assertions", () => {
     assert.entityCount("VerificationMethod", verificationMethodCount + 1);
 
     const vmId = `${newDid}#${keyId}`;
-    assert.fieldEquals("VerificationMethod", vmId, "did", newDid);
+    assert.fieldEquals("VerificationMethod", vmId, "didDocument", newDid);
     assert.fieldEquals("VerificationMethod", vmId, "isSecp256k1", "true");
     assert.fieldEquals(
       "VerificationMethod",
@@ -130,15 +135,20 @@ describe("DID Registry - entity assertions", () => {
       verificationRelationshipCount + 2,
     );
 
-    const vrId1 = `${newDid} capabilityInvocation ${keyId}`;
-    const vrId2 = `${newDid} authentication ${keyId}`;
-    assert.fieldEquals("VerificationRelationship", vrId1, "vMethodId", keyId);
+    const vrId1 = `${newDid}#${keyId}__0`;
+    const vrId2 = `${newDid}#${keyId}__1`;
+    assert.fieldEquals(
+      "VerificationRelationship",
+      vrId1,
+      "verificationMethod",
+      `${newDid}#${keyId}`,
+    );
     assert.fieldEquals("VerificationRelationship", vrId1, "notBefore", "1000");
     assert.fieldEquals("VerificationRelationship", vrId1, "notAfter", "2000");
     assert.fieldEquals(
       "VerificationRelationship",
       vrId2,
-      "name",
+      "purpose",
       "authentication",
     );
     assert.fieldEquals("VerificationRelationship", vrId2, "notBefore", "1000");
@@ -160,7 +170,12 @@ describe("DID Registry - entity assertions", () => {
       "UpdateBaseDocument",
       did,
     );
-    assert.fieldEquals("DidDocumentEvent", eventId.toHexString(), "did", did);
+    assert.fieldEquals(
+      "DidDocumentEvent",
+      eventId.toHexString(),
+      "didDocument",
+      did,
+    );
 
     // The number of entities has not changed
     assert.entityCount("DidDocument", didDocumentCount);
@@ -198,7 +213,12 @@ describe("DID Registry - entity assertions", () => {
       "AddController",
       did,
     ).toHexString();
-    assert.fieldEquals("DidDocumentEvent", controllerAddedEventId, "did", did);
+    assert.fieldEquals(
+      "DidDocumentEvent",
+      controllerAddedEventId,
+      "didDocument",
+      did,
+    );
 
     // Check if the new controller relationships have been stored
     assert.entityCount(
@@ -237,7 +257,12 @@ describe("DID Registry - entity assertions", () => {
       "RevokeController",
       did,
     ).toHexString();
-    assert.fieldEquals("DidDocumentEvent", revokeControllerEventId, "did", did);
+    assert.fieldEquals(
+      "DidDocumentEvent",
+      revokeControllerEventId,
+      "didDocument",
+      did,
+    );
 
     // Check if the new controller relationships are still present
     assert.entityCount(
@@ -282,14 +307,14 @@ describe("DID Registry - entity assertions", () => {
       "AddVerificationMethod",
       did,
     ).toHexString();
-    assert.fieldEquals("DidDocumentEvent", eventId, "did", did);
+    assert.fieldEquals("DidDocumentEvent", eventId, "didDocument", did);
 
     // Check if the new verification method has been stored
     assert.entityCount("VerificationMethod", verificationMethodCount + 1);
 
     // Check verification method
     const id = `${did}#keys-2`;
-    assert.fieldEquals("VerificationMethod", id, "did", did);
+    assert.fieldEquals("VerificationMethod", id, "didDocument", did);
     assert.fieldEquals(
       "VerificationMethod",
       id,
@@ -324,7 +349,7 @@ describe("DID Registry - entity assertions", () => {
       "AddVerificationRelationship",
       did,
     ).toHexString();
-    assert.fieldEquals("DidDocumentEvent", eventId, "did", did);
+    assert.fieldEquals("DidDocumentEvent", eventId, "didDocument", did);
 
     // Check if the new verification relationship has been stored
     assert.entityCount(
@@ -333,13 +358,18 @@ describe("DID Registry - entity assertions", () => {
     );
 
     // Check verification relationship
-    const vrId = `${did} assertionMethod keys-1`;
-    assert.fieldEquals("VerificationRelationship", vrId, "did", did);
-    assert.fieldEquals("VerificationRelationship", vrId, "vMethodId", "keys-1");
+    const vrId = `${did}#keys-1__2`;
+    assert.fieldEquals("VerificationRelationship", vrId, "didDocument", did);
     assert.fieldEquals(
       "VerificationRelationship",
       vrId,
-      "name",
+      "verificationMethod",
+      `${did}#keys-1`,
+    );
+    assert.fieldEquals(
+      "VerificationRelationship",
+      vrId,
+      "purpose",
       "assertionMethod",
     );
     assert.fieldEquals("VerificationRelationship", vrId, "notBefore", "1000");
@@ -363,7 +393,7 @@ describe("DID Registry - entity assertions", () => {
       "RevokeVerificationMethod",
       did,
     ).toHexString();
-    assert.fieldEquals("DidDocumentEvent", eventId, "did", did);
+    assert.fieldEquals("DidDocumentEvent", eventId, "didDocument", did);
 
     // The number of entities has not changed
     assert.entityCount("VerificationMethod", verificationMethodCount);
@@ -391,7 +421,12 @@ describe("DID Registry - entity assertions", () => {
     // Check if the verification method has been stored
     const verificationMethodId = `${did}#${keyId}`;
     assert.entityCount("VerificationMethod", verificationMethodCount + 1);
-    assert.fieldEquals("VerificationMethod", verificationMethodId, "did", did);
+    assert.fieldEquals(
+      "VerificationMethod",
+      verificationMethodId,
+      "didDocument",
+      did,
+    );
     assert.fieldEquals(
       "VerificationMethod",
       verificationMethodId,
@@ -434,13 +469,18 @@ describe("DID Registry - entity assertions", () => {
       "VerificationRelationship",
       verificationRelationshipCount + 1,
     );
-    const vrId = `${did} assertionMethod ${keyId}`;
-    assert.fieldEquals("VerificationRelationship", vrId, "did", did);
-    assert.fieldEquals("VerificationRelationship", vrId, "vMethodId", keyId);
+    const vrId = `${did}#${keyId}__0`;
+    assert.fieldEquals("VerificationRelationship", vrId, "didDocument", did);
     assert.fieldEquals(
       "VerificationRelationship",
       vrId,
-      "name",
+      "verificationMethod",
+      `${did}#${keyId}`,
+    );
+    assert.fieldEquals(
+      "VerificationRelationship",
+      vrId,
+      "purpose",
       "assertionMethod",
     );
     assert.fieldEquals("VerificationRelationship", vrId, "notBefore", "1000");
@@ -461,7 +501,7 @@ describe("DID Registry - entity assertions", () => {
       "ExpireVerificationMethod",
       did,
     ).toHexString();
-    assert.fieldEquals("DidDocumentEvent", eventId, "did", did);
+    assert.fieldEquals("DidDocumentEvent", eventId, "didDocument", did);
 
     // Check if the verification method is still active
     assert.entityCount("VerificationMethod", verificationMethodCount + 1);
@@ -473,7 +513,12 @@ describe("DID Registry - entity assertions", () => {
     );
 
     // The verification relationship has an expiration date corresponding to the "notAfter" parameter
-    assert.fieldEquals("VerificationRelationship", vrId, "vMethodId", keyId);
+    assert.fieldEquals(
+      "VerificationRelationship",
+      vrId,
+      "verificationMethod",
+      `${did}#${keyId}`,
+    );
     assert.fieldEquals("VerificationRelationship", vrId, "notAfter", "1500");
   });
 
@@ -498,7 +543,7 @@ describe("DID Registry - entity assertions", () => {
     assert.fieldEquals(
       "VerificationMethod",
       initialVerificationMethodId,
-      "did",
+      "didDocument",
       did,
     );
     assert.fieldEquals(
@@ -543,18 +588,18 @@ describe("DID Registry - entity assertions", () => {
       "VerificationRelationship",
       verificationRelationshipCount + 1,
     );
-    const vrId = `${did} assertionMethod ${initialKeyId}`;
-    assert.fieldEquals("VerificationRelationship", vrId, "did", did);
+    const vrId = `${did}#${initialKeyId}__0`;
+    assert.fieldEquals("VerificationRelationship", vrId, "didDocument", did);
     assert.fieldEquals(
       "VerificationRelationship",
       vrId,
-      "vMethodId",
-      initialKeyId,
+      "verificationMethod",
+      `${did}#${initialKeyId}`,
     );
     assert.fieldEquals(
       "VerificationRelationship",
       vrId,
-      "name",
+      "purpose",
       "assertionMethod",
     );
     assert.fieldEquals("VerificationRelationship", vrId, "notBefore", "1000");
@@ -581,7 +626,7 @@ describe("DID Registry - entity assertions", () => {
       "RollVerificationMethod",
       did,
     ).toHexString();
-    assert.fieldEquals("DidDocumentEvent", eventId, "did", did);
+    assert.fieldEquals("DidDocumentEvent", eventId, "didDocument", did);
 
     // Check if the verification method has been stored
     assert.entityCount("VerificationMethod", verificationMethodCount + 2);
@@ -600,7 +645,7 @@ describe("DID Registry - entity assertions", () => {
     assert.fieldEquals(
       "VerificationMethod",
       newVerificationMethodId,
-      "did",
+      "didDocument",
       did,
     );
     assert.fieldEquals(
@@ -626,8 +671,8 @@ describe("DID Registry - entity assertions", () => {
     assert.fieldEquals(
       "VerificationRelationship",
       vrId,
-      "vMethodId",
-      initialKeyId,
+      "verificationMethod",
+      `${did}#${initialKeyId}`,
     );
     assert.fieldEquals("VerificationRelationship", vrId, "notAfter", "2500"); // 1500 (initial "notAfter" value) + 1000 (value of "duration")
 
@@ -636,23 +681,23 @@ describe("DID Registry - entity assertions", () => {
       "VerificationRelationship",
       verificationRelationshipCount + 2,
     );
-    const newVerificationRelationshipId = `${did} assertionMethod ${newKeyId}`;
+    const newVerificationRelationshipId = `${did}#${newKeyId}__1`;
     assert.fieldEquals(
       "VerificationRelationship",
       newVerificationRelationshipId,
-      "did",
+      "didDocument",
       did,
     );
     assert.fieldEquals(
       "VerificationRelationship",
       newVerificationRelationshipId,
-      "vMethodId",
-      newKeyId,
+      "verificationMethod",
+      `${did}#${newKeyId}`,
     );
     assert.fieldEquals(
       "VerificationRelationship",
       newVerificationRelationshipId,
-      "name",
+      "purpose",
       "assertionMethod",
     );
     assert.fieldEquals(

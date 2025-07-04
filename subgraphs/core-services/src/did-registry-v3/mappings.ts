@@ -1,4 +1,4 @@
-import { log } from "@graphprotocol/graph-ts";
+import { BigInt, log } from "@graphprotocol/graph-ts";
 
 import {
   BaseDocumentUpdated,
@@ -18,7 +18,6 @@ import {
   createVerificationRelationship,
   loadControllerRelationship,
   loadVerificationMethod,
-  loadVerificationRelationship,
   storeEvent,
 } from "./utils";
 
@@ -74,7 +73,7 @@ export function handleDidDocumentInsertedEvent(
   event: DidDocumentInserted,
 ): void {
   const did = event.params.did;
-  const vMethodId = event.params.vMethodId;
+  const didFragment = event.params.vMethodId;
 
   log.info("Inserting DID document {}", [did]);
 
@@ -88,7 +87,7 @@ export function handleDidDocumentInsertedEvent(
 
   const verificationMethod = createVerificationMethod(
     did,
-    vMethodId,
+    didFragment,
     event.params.publicKey,
     event.params.isSecp256k1,
   );
@@ -96,21 +95,23 @@ export function handleDidDocumentInsertedEvent(
   verificationMethod.save();
 
   const verificationRelationship1 = createVerificationRelationship(
+    verificationMethod,
     did,
     "capabilityInvocation",
-    vMethodId,
     event.params.notBefore,
     event.params.notAfter,
+    BigInt.fromU32(0),
   );
 
   verificationRelationship1.save();
 
   const verificationRelationship2 = createVerificationRelationship(
+    verificationMethod,
     did,
     "authentication",
-    vMethodId,
     event.params.notBefore,
     event.params.notAfter,
+    BigInt.fromU32(1),
   );
 
   verificationRelationship2.save();
@@ -124,16 +125,16 @@ export function handleVerificationMethodAddedEvent(
   event: VerificationMethodAdded,
 ): void {
   const did = event.params.did;
-  const vMethodId = event.params.vMethodId;
+  const didFragment = event.params.vMethodId;
 
   log.info("Adding verification method {} to DID document {}", [
-    vMethodId,
+    didFragment,
     did,
   ]);
 
   const verificationMethod = createVerificationMethod(
     did,
-    vMethodId,
+    didFragment,
     event.params.publicKey,
     event.params.isSecp256k1,
   );
@@ -147,36 +148,24 @@ export function handleVerificationMethodExpiredEvent(
   event: VerificationMethodExpired,
 ): void {
   const did = event.params.did;
-  const vMethodId = event.params.vMethodId;
+  const didFragment = event.params.vMethodId;
 
   log.info("Expiring verification method {} of DID document {}", [
-    vMethodId,
+    didFragment,
     did,
   ]);
 
-  const verificationMethod = loadVerificationMethod(did, vMethodId);
+  const verificationMethod = loadVerificationMethod(did, didFragment);
 
   if (verificationMethod === null) return;
 
-  const relationships = [
-    "authentication",
-    "assertionMethod",
-    "keyAgreement",
-    "capabilityInvocation",
-    "capabilityDelegation",
-  ];
+  const verificationRelationships =
+    verificationMethod.verificationRelationships.load();
 
-  for (let i = 0; i < relationships.length; i += 1) {
-    const verificationRelationship = loadVerificationRelationship(
-      did,
-      relationships[i],
-      vMethodId,
-    );
-
-    if (verificationRelationship) {
-      verificationRelationship.notAfter = event.params.notAfter;
-      verificationRelationship.save();
-    }
+  for (let i = 0; i < verificationRelationships.length; i += 1) {
+    const verificationRelationship = verificationRelationships[i];
+    verificationRelationship.notAfter = event.params.notAfter;
+    verificationRelationship.save();
   }
 
   storeEvent(event, "ExpireVerificationMethod", did);
@@ -186,39 +175,27 @@ export function handleVerificationMethodRevokedEvent(
   event: VerificationMethodRevoked,
 ): void {
   const did = event.params.did;
-  const vMethodId = event.params.vMethodId;
+  const didFragment = event.params.vMethodId;
 
   log.info("Revoking verification method {} of DID document {}", [
-    vMethodId,
+    didFragment,
     did,
   ]);
 
-  const verificationMethod = loadVerificationMethod(did, vMethodId);
+  const verificationMethod = loadVerificationMethod(did, didFragment);
 
   if (verificationMethod === null) return;
 
   verificationMethod.status = "REVOKED";
   verificationMethod.save();
 
-  const relationships = [
-    "authentication",
-    "assertionMethod",
-    "keyAgreement",
-    "capabilityInvocation",
-    "capabilityDelegation",
-  ];
+  const verificationRelationships =
+    verificationMethod.verificationRelationships.load();
 
-  for (let i = 0; i < relationships.length; i += 1) {
-    const verificationRelationship = loadVerificationRelationship(
-      did,
-      relationships[i],
-      vMethodId,
-    );
-
-    if (verificationRelationship) {
-      verificationRelationship.notAfter = event.params.notAfter;
-      verificationRelationship.save();
-    }
+  for (let i = 0; i < verificationRelationships.length; i += 1) {
+    const verificationRelationship = verificationRelationships[i];
+    verificationRelationship.notAfter = event.params.notAfter;
+    verificationRelationship.save();
   }
 
   storeEvent(event, "RevokeVerificationMethod", did);
@@ -228,19 +205,19 @@ export function handleVerificationMethodRolledEvent(
   event: VerificationMethodRolled,
 ): void {
   const did = event.params.did;
-  const oldVMethodId = event.params.oldVMethodId;
-  const newVMethodId = event.params.vMethodId;
+  const oldVMethodFragment = event.params.oldVMethodId;
+  const newVMethodFragment = event.params.vMethodId;
 
   log.info("Rolling verification method from {} to {} of DID document {}", [
-    oldVMethodId,
-    newVMethodId,
+    oldVMethodFragment,
+    newVMethodFragment,
     did,
   ]);
 
   // Add new verification method
   const verificationMethod = createVerificationMethod(
     did,
-    newVMethodId,
+    newVMethodFragment,
     event.params.publicKey,
     event.params.isSecp256k1,
   );
@@ -248,41 +225,29 @@ export function handleVerificationMethodRolledEvent(
   verificationMethod.save();
 
   // Update verification relationships
-  const oldVerificationMethod = loadVerificationMethod(did, oldVMethodId);
+  const oldVerificationMethod = loadVerificationMethod(did, oldVMethodFragment);
 
   if (oldVerificationMethod === null) return;
 
-  const relationships = [
-    "authentication",
-    "assertionMethod",
-    "keyAgreement",
-    "capabilityInvocation",
-    "capabilityDelegation",
-  ];
+  const verificationRelationships =
+    oldVerificationMethod.verificationRelationships.load();
 
-  for (let i = 0; i < relationships.length; i += 1) {
-    const oldVerificationRelationship = loadVerificationRelationship(
-      did,
-      relationships[i],
-      oldVMethodId,
+  for (let i = 0; i < verificationRelationships.length; i += 1) {
+    const oldVerificationRelationship = verificationRelationships[i];
+    oldVerificationRelationship.notAfter = event.params.notBefore.plus(
+      event.params.duration,
     );
+    oldVerificationRelationship.save();
 
-    if (oldVerificationRelationship) {
-      oldVerificationRelationship.notAfter = event.params.notBefore.plus(
-        event.params.duration,
-      );
-      oldVerificationRelationship.save();
-
-      const newVerificationRelationship = createVerificationRelationship(
-        did,
-        relationships[i],
-        newVMethodId,
-        event.params.notBefore,
-        event.params.notAfter,
-      );
-
-      newVerificationRelationship.save();
-    }
+    const newVerificationRelationship = createVerificationRelationship(
+      verificationMethod,
+      did,
+      oldVerificationRelationship.purpose,
+      event.params.notBefore,
+      event.params.notAfter,
+      BigInt.fromI32(verificationRelationships.length + i),
+    );
+    newVerificationRelationship.save();
   }
 
   storeEvent(event, "RollVerificationMethod", did);
@@ -292,20 +257,28 @@ export function handleVerificationRelationshipAddedEvent(
   event: VerificationRelationshipAdded,
 ): void {
   const did = event.params.did;
-  const vMethodName = event.params.name;
-  const vMethodId = event.params.vMethodId;
+  const didFragment = event.params.vMethodId;
+  const purpose = event.params.name;
 
   log.info(
     "Adding verification relationship {} for method {} to DID document {}",
-    [vMethodName, vMethodId, did],
+    [purpose, didFragment, did],
   );
 
+  const verificationMethod = loadVerificationMethod(did, didFragment);
+
+  if (verificationMethod === null) return;
+
+  const verificationRelationships =
+    verificationMethod.verificationRelationships.load();
+
   const verificationRelationship = createVerificationRelationship(
+    verificationMethod,
     did,
-    vMethodName,
-    vMethodId,
+    purpose,
     event.params.notBefore,
     event.params.notAfter,
+    BigInt.fromI32(verificationRelationships.length),
   );
 
   verificationRelationship.save();
