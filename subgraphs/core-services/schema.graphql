@@ -2,62 +2,99 @@
 #                              DID Registry SC v3                             #
 ###############################################################################
 
-enum VerificationMethodStatus {
-  ACTIVE
-  REVOKED
-  EXPIRED
-}
-
 enum ControllerStatus {
   ACTIVE
   REVOKED
   EXPIRED
 }
 
+enum VerificationMethodStatus {
+  ACTIVE
+  REVOKED
+  EXPIRED
+}
+
+# Note: the following enum is case-sensitive
+enum VerificationRelationshipPurpose {
+  authentication
+  assertionMethod
+  keyAgreement
+  capabilityInvocation
+  capabilityDelegation
+}
+
 type DidDocument @entity(immutable: false) {
+  # ID - Set to $did
   id: String!
+
+  # Properties
   baseDocument: String!
+
+  # Relationships
   controllerRelationships: [ControllerRelationship!]!
     @derivedFrom(field: "controlledDocument")
   verificationRelationships: [VerificationRelationship!]!
-    @derivedFrom(field: "did")
-  verificationMethods: [VerificationMethod!]! @derivedFrom(field: "did")
-  events: [DidDocumentEvent!]! @derivedFrom(field: "did")
+    @derivedFrom(field: "didDocument")
+  verificationMethods: [VerificationMethod!]! @derivedFrom(field: "didDocument")
+  events: [DidDocumentEvent!]! @derivedFrom(field: "didDocument")
   trustedIssuer: Issuer
 }
 
 type ControllerRelationship @entity(immutable: false) {
+  # ID - Set to `${did}#${controller}`
   id: String!
+
+  # Properties
+  status: ControllerStatus!
+
+  # Relationships
   controller: DidDocument!
   controlledDocument: DidDocument!
-  status: ControllerStatus!
 }
 
 type VerificationRelationship @entity(immutable: false) {
+  # ID - Set to `${verificationMethod.id}__${auto-incremented ID}`
   id: String!
-  name: String!
+
+  # Properties
+  purpose: VerificationRelationshipPurpose!
   notBefore: BigInt!
   notAfter: BigInt!
-  did: DidDocument!
-  vMethodId: String!
+
+  # Relationships
+  didDocument: DidDocument!
+  verificationMethod: VerificationMethod!
 }
 
 type VerificationMethod @entity(immutable: false) {
+  # ID - Set to `${did}#${didFragment}`
   id: String!
+
+  # Properties
   publicKey: Bytes!
   isSecp256k1: Boolean!
   status: VerificationMethodStatus!
-  did: DidDocument!
+
+  # Relationships
+  didDocument: DidDocument!
+  verificationRelationships: [VerificationRelationship!]!
+    @derivedFrom(field: "verificationMethod")
 }
 
 type DidDocumentEvent @entity(immutable: true) {
+  # ID - Set to `${transaction.hash.toHexString()}-${eventName}-${did}` (bytes)
   id: Bytes!
+
+  # Properties
   signer: Bytes!
   blockNumber: BigInt!
   timestamp: BigInt!
   event: String!
+  context: String # TODO: add more context + Make required
   txId: Bytes!
-  did: DidDocument!
+
+  # Relationships
+  didDocument: DidDocument!
 }
 
 ###############################################################################
@@ -71,7 +108,10 @@ enum HashAlgorithmStatus {
 }
 
 type HashAlgorithm @entity(immutable: false) {
-  id: String! # Auto-incremented ID emitted by the smart contract
+  # ID - Auto-incremented ID emitted by the smart contract
+  id: String!
+
+  # Properties
   ianaName: String!
   multiHash: String!
   oid: String!
@@ -81,36 +121,54 @@ type HashAlgorithm @entity(immutable: false) {
 
 # `TimestampedHash` is not immutable because `records` can be mutated
 type TimestampedHash @entity(immutable: false) {
-  id: Bytes! # Set to `hashValue`
+  # ID - # Set to `hashValue`
+  id: Bytes!
+
+  # Properties
   hashValue: Bytes!
-  hashAlgorithm: HashAlgorithm!
   data: Bytes!
   blockNumber: BigInt!
   blockTimestamp: BigInt!
   timestampedBy: Bytes! # Address
   transactionHash: Bytes!
+
+  # Relationships
+  hashAlgorithm: HashAlgorithm!
   records: [Record!]! # Only useful in the context of timestampVersionHashes
 }
 
 # Entity RecordVersion is not immutable because infos can be modified
 type RecordVersion @entity(immutable: false) {
-  id: Bytes! # Set to `record.id.concat(versionNumber)`
-  record: Record!
+  # ID - Set to `record.id.concat(versionNumber)`
+  id: Bytes!
+
+  # Properties
   versionNumber: BigInt!
-  timestamps: [TimestampedHash!]!
   infos: [Bytes!]!
+
+  # Relationships
+  record: Record!
+  timestamps: [TimestampedHash!]!
 }
 
 type RecordOwner @entity(immutable: false) {
-  id: Bytes! # Set to `record.id.concat(ownerId)`
+  # ID - Set to `record.id.concat(ownerId)`
+  id: Bytes!
+
+  # Properties
   ownerId: String!
   notBefore: BigInt!
   notAfter: BigInt!
+
+  # Relationships
   record: Record!
 }
 
 type Record @entity(immutable: true) {
+  # ID - Set to $recordId
   id: Bytes!
+
+  # Relationships
   owners: [RecordOwner!]! @derivedFrom(field: "record")
   versions: [RecordVersion!]! @derivedFrom(field: "record")
 }
@@ -131,32 +189,51 @@ enum Permission {
 }
 
 type Creator @entity(immutable: false) {
+  # ID
   id: String!
+
+  # Properties
   active: Boolean!
+
+  # Relationships
   documents: [Document!]! @derivedFrom(field: "creator")
 }
 
 type Operator @entity(immutable: true) {
+  # ID
   id: Bytes!
+
+  # Relationships
   invitations: [Invitation!]! @derivedFrom(field: "subject")
 }
 
 type Document @entity(immutable: false) {
+  # ID
   id: Bytes!
-  creator: Creator!
+
+  # Properties
   timestamp: BigInt!
   source: Source!
   proof: Bytes!
   metadata: String!
+
+  # Relationships
+  creator: Creator!
   events: [DocumentEvent!]! @derivedFrom(field: "document")
   invitations: [Invitation!]! @derivedFrom(field: "document")
 }
 
 type Invitation @entity(immutable: false) {
-  id: Bytes! # Set to document.id.concat(subject.id).concatI32(permission)
-  document: Document!
+  # ID - Set to document.id.concat(subject.id).concatI32(permission)
+  id: Bytes!
+
+  # Properties
   type: Permission!
+  # TODO: would be good to link it to an entity if possible (not sure)
   grantedBy: Bytes!
+
+  # Relationships
+  document: Document!
   subject: Operator!
   parent: Invitation
   children: [Invitation!]! @derivedFrom(field: "parent")
@@ -164,8 +241,10 @@ type Invitation @entity(immutable: false) {
 
 # `DocumentEvent` is not immutable because it can be removed
 type DocumentEvent @entity(immutable: false) {
-  id: Bytes! # Set to document.id.concat(event.eventHash)
-  document: Document!
+  # ID - Set to document.id.concat(event.eventHash)
+  id: Bytes!
+
+  # Properties
   externalHash: String!
   hash: Bytes!
   timestamp: BigInt!
@@ -174,6 +253,9 @@ type DocumentEvent @entity(immutable: false) {
   sender: Bytes!
   origin: String!
   metadata: String!
+
+  # Relationships
+  document: Document!
 }
 
 ###############################################################################
@@ -188,33 +270,49 @@ enum IssuerType {
 }
 
 type Issuer @entity(immutable: true) {
+  # ID - Set to $did
   id: String!
+
+  # Relationships
   didDocument: DidDocument
   attributes: [IssuerAttribute!]! @derivedFrom(field: "issuer")
   proxies: [IssuerProxy!]! @derivedFrom(field: "issuer")
 }
 
 type IssuerAttribute @entity(immutable: false) {
+  # ID - Set to $attributeId (as returned by the SC)
   id: Bytes!
+
+  # Relationships
   issuer: Issuer!
   revisions: [IssuerAttributeRevision!]! @derivedFrom(field: "attribute")
   latestRevision: IssuerAttributeRevision!
 }
 
 type IssuerAttributeRevision @entity(immutable: true) {
+  # ID - Set to $revisionId (as returned by the SC)
   id: Bytes!
-  attribute: IssuerAttribute!
+
+  # Properties
   body: String!
   issuerType: IssuerType!
   tao: String! # TODO: reference Issuer
   rootTao: String! # TODO: reference Issuer
   timestamp: BigInt!
+
+  # Relationships
+  attribute: IssuerAttribute!
 }
 
 type IssuerProxy @entity(immutable: false) {
+  # ID - Set to $proxyId (as returned by the SC)
   id: Bytes!
-  issuer: Issuer!
+
+  # Properties
   data: String!
+
+  # Relationships
+  issuer: Issuer!
 }
 
 ###############################################################################
@@ -222,7 +320,10 @@ type IssuerProxy @entity(immutable: false) {
 ###############################################################################
 
 type Policy @entity(immutable: false) {
-  id: String! # Policy name
+  # ID - Set to policy name
+  id: String!
+
+  # Properties
   policyId: String!
   description: String!
   status: Boolean!
@@ -230,13 +331,19 @@ type Policy @entity(immutable: false) {
 
 # Special entity that creates an easy way to retrieve a policy by its ID
 type PolicyById @entity(immutable: true) {
-  id: String! # Policy ID
+  # ID - Set to policy ID
+  id: String!
+
+  # Relationships
   policy: Policy! # Policy
 }
 
 type PolicySubject @entity(immutable: false) {
-  id: Bytes! # Address
-  attributes: [String!]!
+  # ID - Set to subject Ethereum address
+  id: Bytes!
+
+  # Properties
+  attributes: [String!]! # Unfortunately, we can't link it to a policy because there's no validation at the SC-level
 }
 
 ###############################################################################
@@ -244,19 +351,32 @@ type PolicySubject @entity(immutable: false) {
 ###############################################################################
 
 type Schema @entity(immutable: true) {
+  # ID - Set to schema ID
   id: Bytes!
+
+  # Relationships
   revisions: [SchemaRevision!]! @derivedFrom(field: "schema")
 }
 
 type SchemaRevision @entity(immutable: true) {
-  id: Bytes! # Set to `schema.id.concat(keccak(content))`
+  # ID - Set to `schema.id.concat(keccak(content))`
+  id: Bytes!
+
+  # Properties
   content: String!
+
+  # Relationships
   schema: Schema!
   metadata: [SchemaMetadata!]! @derivedFrom(field: "revision")
 }
 
 type SchemaMetadata @entity(immutable: false) {
-  id: Bytes! # Set to `revision.id.concat(keccak(content))`
+  # ID - Set to `revision.id.concat(keccak(content))`
+  id: Bytes!
+
+  # Properties
   content: String!
+
+  # Relationships
   revision: SchemaRevision!
 }

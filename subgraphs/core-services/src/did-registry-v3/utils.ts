@@ -26,7 +26,7 @@ export const storeEvent = (
     computeEventId(ethereumEvent.transaction, eventName, did),
   );
 
-  event.did = did;
+  event.didDocument = did;
   event.signer = ethereumEvent.transaction.from;
   event.blockNumber = ethereumEvent.block.number;
   event.timestamp = ethereumEvent.block.timestamp;
@@ -53,13 +53,13 @@ export function createControllerRelationship(
 
 export function createVerificationMethod(
   did: string,
-  vMethodId: string,
+  didFragment: string,
   publicKey: Bytes,
   isSecp256k1: boolean,
 ): VerificationMethod {
-  const verificationMethod = new VerificationMethod(`${did}#${vMethodId}`);
+  const verificationMethod = new VerificationMethod(`${did}#${didFragment}`);
 
-  verificationMethod.did = did;
+  verificationMethod.didDocument = did;
   verificationMethod.publicKey = publicKey;
   verificationMethod.isSecp256k1 = isSecp256k1;
   verificationMethod.status = "ACTIVE";
@@ -68,19 +68,20 @@ export function createVerificationMethod(
 }
 
 export function createVerificationRelationship(
+  verificationMethod: VerificationMethod,
   did: string,
-  vMethodName: string,
-  vMethodId: string,
+  purpose: string,
   notBefore: BigInt,
   notAfter: BigInt,
+  index: BigInt,
 ): VerificationRelationship {
   const verificationRelationship = new VerificationRelationship(
-    `${did} ${vMethodName} ${vMethodId}`,
+    `${verificationMethod.id}__${index.toString()}`,
   );
 
-  verificationRelationship.did = did;
-  verificationRelationship.name = vMethodName;
-  verificationRelationship.vMethodId = vMethodId;
+  verificationRelationship.didDocument = did;
+  verificationRelationship.purpose = purpose;
+  verificationRelationship.verificationMethod = verificationMethod.id;
   verificationRelationship.notBefore = notBefore;
   verificationRelationship.notAfter = notAfter;
 
@@ -96,19 +97,9 @@ export function loadControllerRelationship(
 
 export function loadVerificationMethod(
   did: string,
-  vMethodId: string,
+  didFragment: string,
   // If we put "null" first, Matchstick won't be able to compile
   // eslint-disable-next-line perfectionist/sort-union-types
 ): VerificationMethod | null {
-  return VerificationMethod.load(`${did}#${vMethodId}`);
-}
-
-export function loadVerificationRelationship(
-  did: string,
-  vMethodName: string,
-  vMethodId: string,
-  // If we put "null" first, Matchstick won't be able to compile
-  // eslint-disable-next-line perfectionist/sort-union-types
-): VerificationRelationship | null {
-  return VerificationRelationship.load(`${did} ${vMethodName} ${vMethodId}`);
+  return VerificationMethod.load(`${did}#${didFragment}`);
 }
