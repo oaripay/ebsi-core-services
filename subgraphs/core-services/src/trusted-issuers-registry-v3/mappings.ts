@@ -133,7 +133,7 @@ export function handleUpdateIssuerProxyEvent(event: UpdateIssuerProxy): void {
 }
 
 function handleSetAttributeData(event: AddAttributeRevision): void {
-  log.info("Handling setAttributeData call", []);
+  log.info("Handling setAttributeData call for DID {}", [event.params.did]);
 
   // Load issuer
   const issuer = Issuer.load(event.params.did);
@@ -198,7 +198,7 @@ function handleSetAttributeData(event: AddAttributeRevision): void {
 }
 
 function handleSetAttributeMetadata(event: AddAttributeRevision): void {
-  log.info("Handling setAttributeMetadata call", []);
+  log.info("Handling setAttributeMetadata call for DID {}", [event.params.did]);
 
   // Load issuer
   let issuer = Issuer.load(event.params.did);

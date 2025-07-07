@@ -5,7 +5,8 @@ enum IssuerType {
   Revoked
 }
 
-type Issuer @entity(immutable: true) {
+# Entity Issuer is not immutable because didDocument can be assigned after the initialization
+type Issuer @entity(immutable: false) {
   id: String!
   attributes: [Attribute!]! @derivedFrom(field: "issuer")
   proxies: [Proxy!]! @derivedFrom(field: "issuer")
