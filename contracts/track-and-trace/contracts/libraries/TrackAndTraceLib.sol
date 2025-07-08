@@ -65,14 +65,14 @@ library TrackAndTraceLib {
                 } {
                     // if any of these checks fails then arrays are not equal
                     if iszero(eq(mload(mc), mload(cc))) {
-                        // unsuccess:
+                        // unsuccessful:
                         returnBool := 0
                         cb := 0
                     }
                 }
             }
             default {
-                // unsuccess:
+                // unsuccessful:
                 returnBool := 0
             }
         }

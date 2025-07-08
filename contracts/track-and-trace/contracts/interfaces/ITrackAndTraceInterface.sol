@@ -66,7 +66,7 @@ interface ITrackAndTraceInterface {
         Timestamp documentTimestamp; // creation of the document
         /**
          * list of hashes so we can iterate through them, will see
-         * on implementation if we need aditional mappings to reduce
+         * on implementation if we need additional mappings to reduce
          * complexity for querying an event
          */
         bytes32[] eventHashes;
@@ -83,7 +83,7 @@ interface ITrackAndTraceInterface {
         mapping(bytes32 => Event) events;
         /**
          * list of hashes so we can iterate through them, will see
-         * on implementation if we need aditional mappings to reduce
+         * on implementation if we need additional mappings to reduce
          * complexity for querying an event
          */
         bytes32[] eventHashes;

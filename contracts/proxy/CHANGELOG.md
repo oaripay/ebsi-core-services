@@ -120,7 +120,7 @@
 ### Patch Changes
 
 - [1fb98741](https://code.europa.eu/ebsi/public/core-services/-/commit/1fb98741): Bump dependencies.
-- [8a6f31d2](https://code.europa.eu/ebsi/public/core-services/-/commit/8a6f31d2): Update depedencies
+- [8a6f31d2](https://code.europa.eu/ebsi/public/core-services/-/commit/8a6f31d2): Update dependencies
 - Updated dependencies [1fb98741](https://code.europa.eu/ebsi/public/core-services/-/commit/1fb98741)
   - @ebsiint-sc/bootstrap@1.0.1-rc.2
 

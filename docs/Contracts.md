@@ -93,13 +93,13 @@ To verify the chainId that will be used by hardhat
 yarn workspace {contract-project} hardhat --network local chainId
 ```
 
-To get the lastest block number on the specified network
+To get the latest block number on the specified network
 
 ```sh
 yarn workspace {contract-project} hardhat --network local blockNumber
 ```
 
-To get some inforamtion about a transaction
+To get some information about a transaction
 
 ```sh
 yarn workspace {contract-project} hardhat --network local tx --hash 0xd0f11a38650c987063b689b5384ae17e6506fbd179e50e47a84111695331302ds

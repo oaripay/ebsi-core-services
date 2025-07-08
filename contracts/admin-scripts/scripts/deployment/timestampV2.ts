@@ -30,7 +30,7 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   let tprAddress = deps.tprV2Address;
 
   if (tprAddress) {
-    console.log(`re-using tpr address ${tprAddress}`);
+    console.log(`reusing tpr address ${tprAddress}`);
   } else {
     await deployments.run("PolicyRegistryV2");
     tprAddress = (await deployments.get("PolicyRegistryV2")).address;

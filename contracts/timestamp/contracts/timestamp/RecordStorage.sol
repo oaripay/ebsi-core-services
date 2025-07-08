@@ -9,8 +9,8 @@ abstract contract RecordStorage is TimestampStorage {
         keccak256("diamond.standard.record.storage");
 
     struct OwnerInfo {
-        uint256 notBefore; // time before which the owner should be considred inactive
-        uint256 notAfter; // time after which the owner should be considred inactive
+        uint256 notBefore; // time before which the owner should be considered inactive
+        uint256 notAfter; // time after which the owner should be considered inactive
         bool revoked; // set to true when revoked
     }
 
@@ -38,7 +38,7 @@ abstract contract RecordStorage is TimestampStorage {
         mapping(bytes32 => Record) recordsStore;
         // version timestamp information key is info hash
         mapping(bytes32 => bytes) versionInfoStore;
-        // a list of all record ids. recordId is comuted as SHA2-256(tx.signer.Address|blocknumber|hashvalue)
+        // a list of all record ids. recordId is computed as SHA2-256(tx.signer.Address|blocknumber|hashvalue)
         bytes32[] recordIdsList;
         //  timestampId to list a recordIds
         mapping(bytes32 => bytes32[]) timestampIdToRecordId;

@@ -487,7 +487,7 @@ library DidDocumentLib {
             }
         }
 
-        // copy auxiliar arrays to the result
+        // copy auxiliary arrays to the result
         vMethodIds = new string[](sizeVMethods);
         vMethods = new DidDocumentStorage.VMethod[](sizeVMethods);
         vRelationships = new DidDocumentStorage.VRelationship[](

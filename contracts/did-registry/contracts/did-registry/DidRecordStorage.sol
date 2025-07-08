@@ -8,8 +8,8 @@ contract DidRecordStorage is DidTimestampStorage {
         keccak256("diamond.standard.record.storage");
 
     struct ControllerInfo {
-        uint256 notBefore; // time before which the owner should be considred inactive
-        uint256 notAfter; // time after which the owner should be considred inactive
+        uint256 notBefore; // time before which the owner should be considered inactive
+        uint256 notAfter; // time after which the owner should be considered inactive
         bool revoked; // set to true when revoked
     }
 
@@ -25,7 +25,7 @@ contract DidRecordStorage is DidTimestampStorage {
         //  The DID controller, ethereum address.
         address[] controllerIds;
         //  A list revoked controller ids.  map: controllerId(address) => blockNumber(uint)
-        // (from which the controler id is revoked)
+        // (from which the controller id is revoked)
         mapping(address => uint256) revokedControllerIds;
         // Additional information about DID controller.
         mapping(address => ControllerInfo) controllersStore;
@@ -44,7 +44,7 @@ contract DidRecordStorage is DidTimestampStorage {
         mapping(bytes32 => DidRecord) didRecordsStore;
         // version DID document Info collection. Sha256 of version information is the key
         mapping(bytes32 => bytes) didVersionInfoStore;
-        // a list of all record ids. recordId is comuted as SHA2-256(tx.signer.Address|blocknumber|hashvalue)
+        // a list of all record ids. recordId is computed as SHA2-256(tx.signer.Address|blocknumber|hashvalue)
         bytes[] didRecordIdentifiersList;
         // A collection of version DID document Metadata (JSON-LD serialized, base64URL).
         mapping(bytes32 => bytes) didVersionMetadataStore;
@@ -58,7 +58,7 @@ contract DidRecordStorage is DidTimestampStorage {
         mapping(address => bytes32[]) controllerIdToDidRecordId;
         //  Mapping of didTimestampId to didRecordId
         mapping(bytes32 => bytes32[]) didTimestampIdToDidRecordId;
-        //  controller to list a record Identifer
+        //  controller to list a record Identifier
         mapping(address => bytes[]) controllerIdToDidRecordIdentifiers;
     }
 

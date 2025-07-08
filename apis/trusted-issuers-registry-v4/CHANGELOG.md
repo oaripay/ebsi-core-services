@@ -300,7 +300,7 @@
 - [a6a1f685](https://code.europa.eu/ebsi/public/core-services/-/commit/a6a1f685): Implement /jsonrpc "updateIssuer" method
 - [f2257d7d](https://code.europa.eu/ebsi/public/core-services/-/commit/f2257d7d): connect APIs with DID Registry API v4
 - [c02634d2](https://code.europa.eu/ebsi/public/core-services/-/commit/c02634d2): Implement invite + acceptance flows
-- [3a130747](https://code.europa.eu/ebsi/public/core-services/-/commit/3a130747): Get lastest revision in /issuers/:did/attributes/:attributeId
+- [3a130747](https://code.europa.eu/ebsi/public/core-services/-/commit/3a130747): Get latest revision in /issuers/:did/attributes/:attributeId
 
 ### Patch Changes
 

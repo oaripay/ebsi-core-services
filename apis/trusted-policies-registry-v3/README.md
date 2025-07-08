@@ -2,7 +2,7 @@
 
 # Trusted Policies Registry API
 
-Trusted Policies Registry API is an iterface to manage policies residing at Policies smart contract.
+Trusted Policies Registry API is an interface to manage policies residing at Policies smart contract.
 
 ## Service configuration
 

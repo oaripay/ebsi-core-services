@@ -1006,7 +1006,7 @@ describe("Did Documents", () => {
     });
   });
 
-  it("should check access controll for rollVerificationMethod", async () => {
+  it("should check access control for rollVerificationMethod", async () => {
     await reg.insertDidDocument(
       did,
       baseDocument,

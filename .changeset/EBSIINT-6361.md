@@ -2,4 +2,4 @@
 "@ebsiint-sc/proxy": patch
 ---
 
-Update depedencies
+Update dependencies

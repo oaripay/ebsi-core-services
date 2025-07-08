@@ -74,7 +74,7 @@ abstract contract PolicyEngine is PolicyStorage {
                         toBytes32(policy.policyConditions[i].value, 0) !=
                         toBytes32(userAttrValue, 0)
                     ) {
-                        // attr didnt check
+                        // attr didn't check
                         return false;
                     }
                 } else if (
@@ -85,7 +85,7 @@ abstract contract PolicyEngine is PolicyStorage {
                         toUint256(policy.policyConditions[i].value, 0) !=
                         toUint256(userAttrValue, 0)
                     ) {
-                        // attr didnt check
+                        // attr didn't check
                         return false;
                     }
                 } else if (
@@ -96,7 +96,7 @@ abstract contract PolicyEngine is PolicyStorage {
                         toAddress(policy.policyConditions[i].value, 0) !=
                         toAddress(userAttrValue, 0)
                     ) {
-                        // attr didnt check
+                        // attr didn't check
                         return false;
                     }
                 } else if (
@@ -107,7 +107,7 @@ abstract contract PolicyEngine is PolicyStorage {
                         toBool(policy.policyConditions[i].value, 0) !=
                         toBool(userAttrValue, 0)
                     ) {
-                        // attr didnt check
+                        // attr didn't check
                         return false;
                     }
                 } else {
