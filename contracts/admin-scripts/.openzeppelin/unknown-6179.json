@@ -4,6 +4,11 @@
     {
       "address": "0x5a2413Aee431Fa836905EF682D851e1Ba6CedbC4",
       "kind": "uups"
+    },
+    {
+      "address": "0x6a2cb21030Dc2f98611305310088c334D4dA0B00",
+      "txHash": "0x274ca9dc6c1fcf3375b726b7c1d1e550ba5d69f6ca8986b4c5e2ad9c03af5bf8",
+      "kind": "uups"
     }
   ],
   "impls": {
@@ -1464,6 +1469,498 @@
         "0x07D69e100322DabD767Fd65e702C0b6D64Be4dd7",
         "0x638bda931F1a53AD97F3a46Bfef50E245d7DE193"
       ]
+    },
+    "9a2f3f681e22957947db16fe409e2c64d9ae7a8b02fc8749ef84656f5cb08cc9": {
+      "address": "0x757Bf289315C257322574d4Cc6C8A3dF1B44DC30",
+      "txHash": "0x0e0f3707c658a7878d1e1a3b5f93abe42b79995a8db11358ae46c37a298b8af2",
+      "layout": {
+        "solcVersion": "0.8.12",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:63",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:68"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:40"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC165Upgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol:41"
+          },
+          {
+            "label": "_roles",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_mapping(t_bytes32,t_struct(RoleData)1734_storage)",
+            "contract": "AccessControlUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:57"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "AccessControlUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:260"
+          },
+          {
+            "label": "documents",
+            "offset": 0,
+            "slot": "151",
+            "type": "t_mapping(t_bytes32,t_struct(Document)35308_storage)",
+            "contract": "TrackAndTrace",
+            "src": "contracts/track-and-trace/TrackAndTrace.sol:30"
+          },
+          {
+            "label": "documentsMapped",
+            "offset": 0,
+            "slot": "152",
+            "type": "t_struct(Bytes32ToBytes32Map)3943_storage",
+            "contract": "TrackAndTrace",
+            "src": "contracts/track-and-trace/TrackAndTrace.sol:31"
+          },
+          {
+            "label": "accessBySubject",
+            "offset": 0,
+            "slot": "155",
+            "type": "t_mapping(t_bytes_memory_ptr,t_array(t_bytes32)dyn_storage)",
+            "contract": "TrackAndTrace",
+            "src": "contracts/track-and-trace/TrackAndTrace.sol:32"
+          },
+          {
+            "label": "accessBySubjectIndex",
+            "offset": 0,
+            "slot": "156",
+            "type": "t_mapping(t_bytes_memory_ptr,t_mapping(t_bytes32,t_uint256))",
+            "contract": "TrackAndTrace",
+            "src": "contracts/track-and-trace/TrackAndTrace.sol:33"
+          },
+          {
+            "label": "invitedDidEbsiAccounts",
+            "offset": 0,
+            "slot": "157",
+            "type": "t_mapping(t_string_memory_ptr,t_bool)",
+            "contract": "TrackAndTrace",
+            "src": "contracts/track-and-trace/TrackAndTrace.sol:35"
+          },
+          {
+            "label": "didRegistry",
+            "offset": 0,
+            "slot": "158",
+            "type": "t_contract(IDidRegistry)1654",
+            "contract": "TrackAndTrace",
+            "src": "contracts/track-and-trace/TrackAndTrace.sol:36"
+          },
+          {
+            "label": "trustedPoliciesRegistry",
+            "offset": 0,
+            "slot": "159",
+            "type": "t_contract(IPolicyRegistry)1688",
+            "contract": "TrackAndTrace",
+            "src": "contracts/track-and-trace/TrackAndTrace.sol:37"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_bytes32)dyn_storage": {
+            "label": "bytes32[]",
+            "numberOfBytes": "32"
+          },
+          "t_array(t_bytes_storage)dyn_storage": {
+            "label": "bytes[]",
+            "numberOfBytes": "32"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_bytes_memory_ptr": {
+            "label": "bytes",
+            "numberOfBytes": "32"
+          },
+          "t_bytes_storage": {
+            "label": "bytes",
+            "numberOfBytes": "32"
+          },
+          "t_contract(IDidRegistry)1654": {
+            "label": "contract IDidRegistry",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IPolicyRegistry)1688": {
+            "label": "contract IPolicyRegistry",
+            "numberOfBytes": "20"
+          },
+          "t_enum(ACCESS_ENUM)35197": {
+            "label": "enum ITrackAndTraceInterface.ACCESS_ENUM",
+            "members": [
+              "DELEGATE",
+              "WRITE",
+              "CREATOR"
+            ],
+            "numberOfBytes": "1"
+          },
+          "t_enum(ACCOUNT_TYPE)35200": {
+            "label": "enum ITrackAndTraceInterface.ACCOUNT_TYPE",
+            "members": [
+              "DID_EBSI",
+              "DID_KEY"
+            ],
+            "numberOfBytes": "1"
+          },
+          "t_enum(Source)35193": {
+            "label": "enum ITrackAndTraceInterface.Source",
+            "members": [
+              "Block",
+              "External"
+            ],
+            "numberOfBytes": "1"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_bytes32)": {
+            "label": "mapping(bytes32 => bytes32)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_struct(Document)35308_storage)": {
+            "label": "mapping(bytes32 => struct ITrackAndTraceInterface.Document)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_struct(Event)35258_storage)": {
+            "label": "mapping(bytes32 => struct ITrackAndTraceInterface.Event)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_struct(RoleData)1734_storage)": {
+            "label": "mapping(bytes32 => struct AccessControlUpgradeable.RoleData)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_uint256)": {
+            "label": "mapping(bytes32 => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes_memory_ptr,t_array(t_bytes32)dyn_storage)": {
+            "label": "mapping(bytes => bytes32[])",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes_memory_ptr,t_mapping(t_bytes32,t_uint256))": {
+            "label": "mapping(bytes => mapping(bytes32 => uint256))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes_memory_ptr,t_struct(Access_Struct)35236_storage)": {
+            "label": "mapping(bytes => struct ITrackAndTraceInterface.Access_Struct)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes_memory_ptr,t_uint256)": {
+            "label": "mapping(bytes => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_enum(ACCESS_ENUM)35197,t_bool)": {
+            "label": "mapping(enum ITrackAndTraceInterface.ACCESS_ENUM => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_enum(ACCESS_ENUM)35197,t_bytes_storage)": {
+            "label": "mapping(enum ITrackAndTraceInterface.ACCESS_ENUM => bytes)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_enum(ACCESS_ENUM)35197,t_enum(ACCOUNT_TYPE)35200)": {
+            "label": "mapping(enum ITrackAndTraceInterface.ACCESS_ENUM => enum ITrackAndTraceInterface.ACCOUNT_TYPE)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_string_memory_ptr,t_bool)": {
+            "label": "mapping(string => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_string_memory_ptr": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_string_storage": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_struct(Access_Struct)35236_storage": {
+            "label": "struct ITrackAndTraceInterface.Access_Struct",
+            "members": [
+              {
+                "label": "acc",
+                "type": "t_mapping(t_enum(ACCESS_ENUM)35197,t_bool)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "grantedBy",
+                "type": "t_mapping(t_enum(ACCESS_ENUM)35197,t_bytes_storage)",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "grantedByAccountType",
+                "type": "t_mapping(t_enum(ACCESS_ENUM)35197,t_enum(ACCOUNT_TYPE)35200)",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "subject",
+                "type": "t_bytes_storage",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "subjectAccountType",
+                "type": "t_enum(ACCOUNT_TYPE)35200",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "children",
+                "type": "t_array(t_bytes_storage)dyn_storage",
+                "offset": 0,
+                "slot": "5"
+              },
+              {
+                "label": "childrenIndex",
+                "type": "t_mapping(t_bytes_memory_ptr,t_uint256)",
+                "offset": 0,
+                "slot": "6"
+              }
+            ],
+            "numberOfBytes": "224"
+          },
+          "t_struct(Bytes32Set)5390_storage": {
+            "label": "struct EnumerableSetUpgradeable.Bytes32Set",
+            "members": [
+              {
+                "label": "_inner",
+                "type": "t_struct(Set)5196_storage",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_struct(Bytes32ToBytes32Map)3943_storage": {
+            "label": "struct EnumerableMapUpgradeable.Bytes32ToBytes32Map",
+            "members": [
+              {
+                "label": "_keys",
+                "type": "t_struct(Bytes32Set)5390_storage",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "_values",
+                "type": "t_mapping(t_bytes32,t_bytes32)",
+                "offset": 0,
+                "slot": "2"
+              }
+            ],
+            "numberOfBytes": "96"
+          },
+          "t_struct(Document)35308_storage": {
+            "label": "struct ITrackAndTraceInterface.Document",
+            "members": [
+              {
+                "label": "documentMetadata",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "documentTimestamp",
+                "type": "t_struct(Timestamp)35244_storage",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "events",
+                "type": "t_mapping(t_bytes32,t_struct(Event)35258_storage)",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "eventHashes",
+                "type": "t_array(t_bytes32)dyn_storage",
+                "offset": 0,
+                "slot": "5"
+              },
+              {
+                "label": "creator",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "6"
+              },
+              {
+                "label": "invited",
+                "type": "t_mapping(t_bytes_memory_ptr,t_struct(Access_Struct)35236_storage)",
+                "offset": 0,
+                "slot": "7"
+              },
+              {
+                "label": "allInvited",
+                "type": "t_array(t_bytes_storage)dyn_storage",
+                "offset": 0,
+                "slot": "8"
+              },
+              {
+                "label": "allInvitedIndex",
+                "type": "t_mapping(t_bytes_memory_ptr,t_uint256)",
+                "offset": 0,
+                "slot": "9"
+              }
+            ],
+            "numberOfBytes": "320"
+          },
+          "t_struct(Event)35258_storage": {
+            "label": "struct ITrackAndTraceInterface.Event",
+            "members": [
+              {
+                "label": "externalHash",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "hash",
+                "type": "t_bytes32",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "eventTimestamp",
+                "type": "t_struct(Timestamp)35244_storage",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "sender",
+                "type": "t_bytes_storage",
+                "offset": 0,
+                "slot": "5"
+              },
+              {
+                "label": "origin",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "6"
+              },
+              {
+                "label": "eventMetadata",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "7"
+              }
+            ],
+            "numberOfBytes": "256"
+          },
+          "t_struct(RoleData)1734_storage": {
+            "label": "struct AccessControlUpgradeable.RoleData",
+            "members": [
+              {
+                "label": "members",
+                "type": "t_mapping(t_address,t_bool)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "adminRole",
+                "type": "t_bytes32",
+                "offset": 0,
+                "slot": "1"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_struct(Set)5196_storage": {
+            "label": "struct EnumerableSetUpgradeable.Set",
+            "members": [
+              {
+                "label": "_values",
+                "type": "t_array(t_bytes32)dyn_storage",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "_indexes",
+                "type": "t_mapping(t_bytes32,t_uint256)",
+                "offset": 0,
+                "slot": "1"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_struct(Timestamp)35244_storage": {
+            "label": "struct ITrackAndTraceInterface.Timestamp",
+            "members": [
+              {
+                "label": "timestamp",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "source",
+                "type": "t_enum(Source)35193",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "proof",
+                "type": "t_bytes32",
+                "offset": 0,
+                "slot": "2"
+              }
+            ],
+            "numberOfBytes": "96"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        },
+        "namespaces": {}
+      }
     }
   }
 }

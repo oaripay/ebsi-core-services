@@ -7,11 +7,17 @@ task("trackAndTrace", "Deploy contract Track And Trace")
   .addParam("upgrader", "The upgrader address")
   .addParam("tpr", "The TrustedPolicyRegistry Proxy address")
   .addParam("registry", "The address of didRegistry")
+  .addParam(
+    "suffix",
+    "the suffix name of the contract for the deployment",
+    "EBSI",
+  )
   .setAction(
     async (
       taskArgs: {
         admin: string;
         registry: string;
+        suffix: string;
         tpr: string;
         upgrader: string;
       },
@@ -20,8 +26,12 @@ task("trackAndTrace", "Deploy contract Track And Trace")
     ) => {
       // compile
       await run("compile", { quiet: true });
+      const fileName =
+        taskArgs.suffix == "EBSI"
+          ? "track-and-trace"
+          : `track-and-trace-${taskArgs.suffix}`;
 
-      const settings = new Settings("track-and-trace", network.name);
+      const settings = new Settings(fileName, network.name);
 
       // get contract
       const trackAndTraceLibFactory = await ethers.getContractFactory(
@@ -58,49 +68,64 @@ task("trackAndTrace", "Deploy contract Track And Trace")
     },
   );
 
-task("trackAndTraceUpgrade", "Deploy contract Track And Trace").setAction(
-  async (_, { ethers, network, run, upgrades }) => {
-    // compile
-    await run("compile", { force: true });
-
-    const settings = new Settings("track-and-trace", network.name);
-    const proxyAddress = settings.mustGet("trackAndTraceAddress");
-    console.log(proxyAddress);
-
-    // get contract
-    const trackAndTraceLibFactory = await ethers.getContractFactory(
-      "TrackAndTraceLib",
-      {},
-    );
-    const trackAndTraceLibContract = await trackAndTraceLibFactory.deploy();
-
-    // get contract
-    const trackAndTraceFactory = await ethers.getContractFactory(
-      "TrackAndTrace",
-      {
-        libraries: {
-          TrackAndTraceLib: await trackAndTraceLibContract.getAddress(),
-        },
+task("trackAndTraceUpgrade", "Deploy contract Track And Trace")
+  .addParam(
+    "suffix",
+    "the suffix name of the contract for the deployment",
+    "EBSI",
+  )
+  .setAction(
+    async (
+      taskArgs: {
+        suffix: string;
       },
-    );
+      { ethers, network, run, upgrades },
+    ) => {
+      // compile
+      await run("compile", { force: true });
 
-    // forceImport
-    await upgrades.forceImport(proxyAddress, trackAndTraceFactory);
+      const fileName =
+        taskArgs.suffix == "EBSI"
+          ? "track-and-trace"
+          : `track-and-trace-${taskArgs.suffix}`;
+      const settings = new Settings(fileName, network.name);
+      const proxyAddress = settings.mustGet("trackAndTraceAddress");
+      console.log(proxyAddress);
 
-    console.log(`factory loaded`);
+      // get contract
+      const trackAndTraceLibFactory = await ethers.getContractFactory(
+        "TrackAndTraceLib",
+        {},
+      );
+      const trackAndTraceLibContract = await trackAndTraceLibFactory.deploy();
 
-    // deploy
-    const trackAndTrace = await upgrades.upgradeProxy(
-      proxyAddress,
-      trackAndTraceFactory,
-      { redeployImplementation: "always", unsafeAllowLinkedLibraries: true },
-    );
+      // get contract
+      const trackAndTraceFactory = await ethers.getContractFactory(
+        "TrackAndTrace",
+        {
+          libraries: {
+            TrackAndTraceLib: await trackAndTraceLibContract.getAddress(),
+          },
+        },
+      );
 
-    console.log(
-      `TrackAndTrace contract upgraded to ${await trackAndTrace.getImplementation()}`,
-    );
-  },
-);
+      // forceImport
+      await upgrades.forceImport(proxyAddress, trackAndTraceFactory);
+
+      console.log(`factory loaded`);
+
+      // deploy
+      const trackAndTrace = await upgrades.upgradeProxy(
+        proxyAddress,
+        trackAndTraceFactory,
+        { redeployImplementation: "always", unsafeAllowLinkedLibraries: true },
+      );
+
+      console.log(
+        `TrackAndTrace contract upgraded to ${await trackAndTrace.getImplementation()}`,
+      );
+    },
+  );
 
 task(
   "trackAndTraceUpgradeReinitialize",
