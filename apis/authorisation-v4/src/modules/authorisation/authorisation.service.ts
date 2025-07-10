@@ -1065,6 +1065,15 @@ export class AuthorisationService {
           },
         );
         accesses = data.items;
+
+        if (
+          (!accesses || accesses.length === 0) &&
+          this.estatAccessesEndpoint
+        ) {
+          throw new Error(
+            "Accesses not found in Track And Trace API, trying with ESTAT API",
+          );
+        }
       } catch (error) {
         // Check ESTAT API (Test + Pilot only)
         if (!this.estatAccessesEndpoint) throw error;
