@@ -15,6 +15,7 @@ COPY ./apis/authorisation-v3/package.json ./apis/authorisation-v3/
 COPY ./apis/authorisation-v4/package.json ./apis/authorisation-v4/
 COPY ./apis/did-registry-v4/package.json ./apis/did-registry-v4/
 COPY ./apis/did-registry-v5/package.json ./apis/did-registry-v5/
+COPY ./apis/estat/package.json ./apis/estat/
 COPY ./apis/ledger/package.json ./apis/ledger/
 COPY ./apis/ledger-v4/package.json ./apis/ledger-v4/
 COPY ./apis/shared/package.json ./apis/shared/
@@ -45,6 +46,7 @@ COPY ./contracts/trusted-schemas-registry-v2/package.json ./contracts/trusted-sc
 COPY ./subgraphs/core-services/package.json ./subgraphs/core-services/
 COPY ./subgraphs/deployer/package.json ./subgraphs/deployer/
 COPY ./subgraphs/did-registry-v3/package.json ./subgraphs/did-registry-v3/
+COPY ./subgraphs/estat/package.json ./subgraphs/estat/
 COPY ./subgraphs/timestamp-v2/package.json ./subgraphs/timestamp-v2/
 COPY ./subgraphs/track-and-trace-v1/package.json ./subgraphs/track-and-trace-v1/
 COPY ./subgraphs/trusted-issuers-registry-v3/package.json ./subgraphs/trusted-issuers-registry-v3/

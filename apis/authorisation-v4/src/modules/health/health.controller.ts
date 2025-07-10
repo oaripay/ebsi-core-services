@@ -13,8 +13,6 @@ import {
 
 import type { ApiConfig } from "../../config/configuration.ts";
 
-import { DEPENDENCIES } from "../../config/configuration.ts";
-
 @Controller("/health")
 export class HealthController {
   private readonly health: HealthCheckService;
@@ -35,6 +33,10 @@ export class HealthController {
   @Get()
   @HealthCheck()
   check(@Req() req: FastifyRequest): Promise<HealthCheckResult> {
+    const DEPENDENCIES = this.configService.get("dependencies", {
+      infer: true,
+    });
+
     return this.health.check(
       (Object.keys(DEPENDENCIES) as (keyof typeof DEPENDENCIES)[]).map(
         (service) => async () => {
