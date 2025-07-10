@@ -8,7 +8,6 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { ApiConfig } from "../../src/config/configuration.ts";
 
 import { AppModule } from "../../src/app.module.ts";
-import { DEPENDENCIES } from "../../src/config/configuration.ts";
 import { getNestFastifyApplication } from "../utils/app.ts";
 import { getServer } from "../utils/getServer.ts";
 
@@ -16,14 +15,14 @@ describe("Authorisation API v4 - Generic tests (e2e)", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault | string;
   let apiUrlPrefix = "";
+  let configService: ConfigService<ApiConfig, true>;
 
   beforeAll(async () => {
     app = await getNestFastifyApplication({
       imports: [AppModule],
     });
 
-    const configService =
-      app.get<ConfigService<ApiConfig, true>>(ConfigService);
+    configService = app.get<ConfigService<ApiConfig, true>>(ConfigService);
 
     const testEnv = configService.get("testEnv", { infer: true });
 
@@ -142,6 +141,8 @@ describe("Authorisation API v4 - Generic tests (e2e)", () => {
     it("should return 200 with status up", async () => {
       expect.assertions(2);
       const response = await request(server).get("/health");
+
+      const DEPENDENCIES = configService.get("dependencies", { infer: true });
 
       // Expect all the dependencies to be up
       const dependencies = Object.keys(

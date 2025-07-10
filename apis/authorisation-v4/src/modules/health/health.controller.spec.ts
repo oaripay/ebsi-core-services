@@ -20,7 +20,6 @@ import {
 import type { ApiConfig } from "../../config/configuration.ts";
 
 import { getNestFastifyApplication } from "../../../tests/utils/app.ts";
-import { DEPENDENCIES } from "../../config/configuration.ts";
 import { HealthModule } from "./health.module.ts";
 
 describe("HealthController", () => {
@@ -29,9 +28,7 @@ describe("HealthController", () => {
   let httpService: HttpService;
   let configService: ConfigService<ApiConfig, true>;
   let localOrigin: string | undefined;
-  const dependencies = Object.keys(
-    DEPENDENCIES,
-  ) as (keyof typeof DEPENDENCIES)[];
+
   const mockServer = setupServer();
 
   beforeAll(async () => {
@@ -75,6 +72,11 @@ describe("HealthController", () => {
 
   describe("GET /health", () => {
     it("should return 'ok' if all the runtime dependencies return a 20x", async () => {
+      const DEPENDENCIES = configService.get("dependencies", { infer: true });
+      const dependencies = Object.keys(
+        DEPENDENCIES,
+      ) as (keyof typeof DEPENDENCIES)[];
+
       expect.assertions(2 + dependencies.length);
 
       // All the dependencies return a 200
@@ -119,6 +121,11 @@ describe("HealthController", () => {
     });
 
     it("should return 'error' if some runtime dependencies do not return a 20x", async () => {
+      const DEPENDENCIES = configService.get("dependencies", { infer: true });
+      const dependencies = Object.keys(
+        DEPENDENCIES,
+      ) as (keyof typeof DEPENDENCIES)[];
+
       expect.assertions(2 + dependencies.length);
 
       // All the dependencies return a 200 except DIDR API v5

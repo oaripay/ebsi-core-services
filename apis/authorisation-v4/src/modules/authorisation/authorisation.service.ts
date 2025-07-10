@@ -64,6 +64,8 @@ export class AuthorisationService {
 
   private readonly ebsiEnvConfig: EbsiVpEnvConfiguration;
 
+  private readonly estatAccessesEndpoint: string | undefined;
+
   private readonly issuer: string;
 
   private readonly logger = new Logger(AuthorisationService.name);
@@ -103,6 +105,9 @@ export class AuthorisationService {
         infer: true,
       },
     );
+    this.estatAccessesEndpoint = configService.get("estatAccessesEndpoint", {
+      infer: true,
+    });
     this.apiES256PrivateKey = hexToBytes(
       configService.get("apiES256PrivateKey", { infer: true }),
     );
@@ -983,16 +988,32 @@ export class AuthorisationService {
 
   async validateTntCreator(did: string, reqId: string): Promise<void> {
     try {
-      await axios.head<unknown>(
-        `${this.trackAndTraceAccessesEndpoint}?${new URLSearchParams({
-          creator: did,
-        }).toString()}`,
-        {
-          headers: {
-            "x-request-id": reqId,
+      try {
+        await axios.head<unknown>(
+          `${this.trackAndTraceAccessesEndpoint}?${new URLSearchParams({
+            creator: did,
+          }).toString()}`,
+          {
+            headers: {
+              "x-request-id": reqId,
+            },
           },
-        },
-      );
+        );
+      } catch (error) {
+        // Check ESTAT API (Test + Pilot only)
+        if (!this.estatAccessesEndpoint) throw error;
+
+        await axios.head<unknown>(
+          `${this.estatAccessesEndpoint}?${new URLSearchParams({
+            creator: did,
+          }).toString()}`,
+          {
+            headers: {
+              "x-request-id": reqId,
+            },
+          },
+        );
+      }
     } catch (error) {
       /* v8 ignore start */
       if (!isAxiosError(error)) {
@@ -1032,17 +1053,34 @@ export class AuthorisationService {
   async validateTntWriter(did: string, reqId: string): Promise<void> {
     let accesses: Access[];
     try {
-      const { data } = await axios.get<PaginatedList<Access>>(
-        `${this.trackAndTraceAccessesEndpoint}?${new URLSearchParams({
-          subject: did,
-        }).toString()}`,
-        {
-          headers: {
-            "x-request-id": reqId,
+      try {
+        const { data } = await axios.get<PaginatedList<Access>>(
+          `${this.trackAndTraceAccessesEndpoint}?${new URLSearchParams({
+            subject: did,
+          }).toString()}`,
+          {
+            headers: {
+              "x-request-id": reqId,
+            },
           },
-        },
-      );
-      accesses = data.items;
+        );
+        accesses = data.items;
+      } catch (error) {
+        // Check ESTAT API (Test + Pilot only)
+        if (!this.estatAccessesEndpoint) throw error;
+
+        const { data } = await axios.get<PaginatedList<Access>>(
+          `${this.estatAccessesEndpoint}?${new URLSearchParams({
+            subject: did,
+          }).toString()}`,
+          {
+            headers: {
+              "x-request-id": reqId,
+            },
+          },
+        );
+        accesses = data.items;
+      }
     } catch (error) {
       /* v8 ignore start */
       if (!isAxiosError(error)) {

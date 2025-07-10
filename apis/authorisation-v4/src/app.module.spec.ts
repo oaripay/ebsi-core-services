@@ -17,7 +17,6 @@ import type { ApiConfig } from "./config/configuration.ts";
 
 import { getNestFastifyApplication } from "../tests/utils/app.ts";
 import { AppModule } from "./app.module.ts";
-import { DEPENDENCIES } from "./config/configuration.ts";
 
 const mockedLogger = {
   debug: vi.fn(),
@@ -303,6 +302,7 @@ describe("App Module", () => {
       const app = await startApp();
       const configService =
         app.get<ConfigService<ApiConfig, true>>(ConfigService);
+      const DEPENDENCIES = configService.get("dependencies", { infer: true });
 
       const dependencies = Object.keys(
         DEPENDENCIES,
@@ -342,6 +342,7 @@ describe("App Module", () => {
       const app = await startApp();
       const configService =
         app.get<ConfigService<ApiConfig, true>>(ConfigService);
+      const DEPENDENCIES = configService.get("dependencies", { infer: true });
 
       const dependencies = Object.keys(
         DEPENDENCIES,

@@ -26,6 +26,7 @@ COPY --from=builder /app/contracts/trusted-schemas-registry-v2 ./contracts/trust
 
 # Copy subgraphs
 COPY --from=builder /app/subgraphs/core-services ./subgraphs/core-services
+COPY --from=builder /app/subgraphs/estat ./subgraphs/estat
 # COPY --from=builder /app/subgraphs/did-registry-v3 ./subgraphs/did-registry-v3
 # COPY --from=builder /app/subgraphs/timestamp-v2 ./subgraphs/timestamp-v2
 # COPY --from=builder /app/subgraphs/track-and-trace-v1 ./subgraphs/track-and-trace-v1

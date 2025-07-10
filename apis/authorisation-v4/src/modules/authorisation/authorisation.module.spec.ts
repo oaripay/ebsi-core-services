@@ -2287,23 +2287,25 @@ describe.each(["EBSI URI", "URL"] as const)(
                     {
                       setup() {
                         mockServer.use(
-                          http.head(
-                            `${domain}/track-and-trace/v1/accesses`,
-                            ({ request: req }) => {
-                              const creator = new URL(req.url).searchParams.get(
-                                "creator",
-                              );
+                          ...["track-and-trace", "estat"].map((service) =>
+                            http.head(
+                              `${domain}/${service}/v1/accesses`,
+                              ({ request: req }) => {
+                                const creator = new URL(
+                                  req.url,
+                                ).searchParams.get("creator");
 
-                              if (creator === vpSigner.did) {
-                                return new HttpResponse(undefined, {
-                                  status: 404,
-                                });
-                              }
+                                if (creator === vpSigner.did) {
+                                  return new HttpResponse(undefined, {
+                                    status: 404,
+                                  });
+                                }
 
-                              throw new Error(
-                                `Unexpected TnT Document creator: ${creator}`,
-                              );
-                            },
+                                throw new Error(
+                                  `Unexpected TnT Document creator: ${creator}`,
+                                );
+                              },
+                            ),
                           ),
                         );
 
@@ -2317,23 +2319,25 @@ describe.each(["EBSI URI", "URL"] as const)(
                     {
                       setup() {
                         mockServer.use(
-                          http.head(
-                            `${domain}/track-and-trace/v1/accesses`,
-                            ({ request: req }) => {
-                              const creator = new URL(req.url).searchParams.get(
-                                "creator",
-                              );
+                          ...["track-and-trace", "estat"].map((service) =>
+                            http.head(
+                              `${domain}/${service}/v1/accesses`,
+                              ({ request: req }) => {
+                                const creator = new URL(
+                                  req.url,
+                                ).searchParams.get("creator");
 
-                              if (creator === vpSigner.did) {
-                                return new HttpResponse(undefined, {
-                                  status: 500,
-                                });
-                              }
+                                if (creator === vpSigner.did) {
+                                  return new HttpResponse(undefined, {
+                                    status: 500,
+                                  });
+                                }
 
-                              throw new Error(
-                                `Unexpected TnT Document creator: ${creator}`,
-                              );
-                            },
+                                throw new Error(
+                                  `Unexpected TnT Document creator: ${creator}`,
+                                );
+                              },
+                            ),
                           ),
                         );
 
@@ -2353,42 +2357,44 @@ describe.each(["EBSI URI", "URL"] as const)(
                     {
                       setup() {
                         mockServer.use(
-                          http.get(
-                            `${domain}/track-and-trace/v1/accesses`,
-                            ({ request: req }) => {
-                              // Make sure the request has the x-request-id header
-                              if (!req.headers.has("x-request-id")) {
-                                return HttpResponse.json(
-                                  "Invalid request (missing x-request-id header)",
-                                  { status: 400 },
+                          ...["track-and-trace", "estat"].map((service) =>
+                            http.get(
+                              `${domain}/${service}/v1/accesses`,
+                              ({ request: req }) => {
+                                // Make sure the request has the x-request-id header
+                                if (!req.headers.has("x-request-id")) {
+                                  return HttpResponse.json(
+                                    "Invalid request (missing x-request-id header)",
+                                    { status: 400 },
+                                  );
+                                }
+
+                                const subject = new URL(
+                                  req.url,
+                                ).searchParams.get("subject");
+
+                                if (subject === vpSigner.did) {
+                                  return HttpResponse.json(
+                                    {
+                                      items: [],
+                                      links: {
+                                        first: "",
+                                        last: "",
+                                        next: "",
+                                        prev: "",
+                                      },
+                                      self: "",
+                                      total: 0,
+                                    } satisfies PaginatedList<Access>,
+                                    { status: 200 },
+                                  );
+                                }
+
+                                throw new Error(
+                                  `Unexpected TnT subject: ${subject}`,
                                 );
-                              }
-
-                              const subject = new URL(req.url).searchParams.get(
-                                "subject",
-                              );
-
-                              if (subject === vpSigner.did) {
-                                return HttpResponse.json(
-                                  {
-                                    items: [],
-                                    links: {
-                                      first: "",
-                                      last: "",
-                                      next: "",
-                                      prev: "",
-                                    },
-                                    self: "",
-                                    total: 0,
-                                  } satisfies PaginatedList<Access>,
-                                  { status: 200 },
-                                );
-                              }
-
-                              throw new Error(
-                                `Unexpected TnT subject: ${subject}`,
-                              );
-                            },
+                              },
+                            ),
                           ),
                         );
 
@@ -2402,24 +2408,26 @@ describe.each(["EBSI URI", "URL"] as const)(
                     {
                       setup() {
                         mockServer.use(
-                          http.get(
-                            `${domain}/track-and-trace/v1/accesses`,
-                            ({ request }) => {
-                              // Make sure the request has the x-request-id header
-                              if (!request.headers.has("x-request-id")) {
-                                return HttpResponse.json(
-                                  "Invalid request (missing x-request-id header)",
-                                  { status: 400 },
-                                );
-                              }
+                          ...["track-and-trace", "estat"].map((service) =>
+                            http.get(
+                              `${domain}/${service}/v1/accesses`,
+                              ({ request }) => {
+                                // Make sure the request has the x-request-id header
+                                if (!request.headers.has("x-request-id")) {
+                                  return HttpResponse.json(
+                                    "Invalid request (missing x-request-id header)",
+                                    { status: 400 },
+                                  );
+                                }
 
-                              return HttpResponse.text(
-                                "Internal Server Error",
-                                {
-                                  status: 500,
-                                },
-                              );
-                            },
+                                return HttpResponse.text(
+                                  "Internal Server Error",
+                                  {
+                                    status: 500,
+                                  },
+                                );
+                              },
+                            ),
                           ),
                         );
 
@@ -2532,63 +2540,72 @@ describe.each(["EBSI URI", "URL"] as const)(
 
               if (customScope === TNT_CREATE_SCOPE) {
                 mockServer.use(
-                  http.head(
-                    `${domain}/track-and-trace/v1/accesses`,
-                    ({ request: req }) => {
-                      const creator = new URL(req.url).searchParams.get(
-                        "creator",
-                      );
+                  ...["track-and-trace", "estat"].map((service) =>
+                    http.head(
+                      `${domain}/${service}/v1/accesses`,
+                      ({ request: req }) => {
+                        const creator = new URL(req.url).searchParams.get(
+                          "creator",
+                        );
 
-                      if (creator === vpPayload.holder) {
-                        return new HttpResponse(undefined, { status: 204 });
-                      }
+                        if (creator === vpPayload.holder) {
+                          return new HttpResponse(undefined, { status: 204 });
+                        }
 
-                      throw new Error(
-                        `Unexpected TnT Document creator: ${creator}`,
-                      );
-                    },
+                        throw new Error(
+                          `Unexpected TnT Document creator: ${creator}`,
+                        );
+                      },
+                    ),
                   ),
                 );
               }
 
               if (customScope === TNT_WRITE_SCOPE) {
                 mockServer.use(
-                  http.get(
-                    `${domain}/track-and-trace/v1/accesses`,
-                    ({ request: req }) => {
-                      // Make sure the request has the x-request-id header
-                      if (!req.headers.has("x-request-id")) {
-                        return HttpResponse.json(
-                          "Invalid request (missing x-request-id header)",
-                          { status: 400 },
+                  ...["track-and-trace", "estat"].map((service) =>
+                    http.get(
+                      `${domain}/${service}/v1/accesses`,
+                      ({ request: req }) => {
+                        // Make sure the request has the x-request-id header
+                        if (!req.headers.has("x-request-id")) {
+                          return HttpResponse.json(
+                            "Invalid request (missing x-request-id header)",
+                            { status: 400 },
+                          );
+                        }
+
+                        const subject = new URL(req.url).searchParams.get(
+                          "subject",
                         );
-                      }
 
-                      const subject = new URL(req.url).searchParams.get(
-                        "subject",
-                      );
-
-                      if (subject === vpPayload.holder) {
-                        return HttpResponse.json(
-                          {
-                            items: [
-                              {
-                                documentId: "0x00",
-                                grantedBy: "did:ebsi:1234",
-                                permission: "write",
-                                subject,
+                        if (subject === vpPayload.holder) {
+                          return HttpResponse.json(
+                            {
+                              items: [
+                                {
+                                  documentId: "0x00",
+                                  grantedBy: "did:ebsi:1234",
+                                  permission: "write",
+                                  subject,
+                                },
+                              ],
+                              links: {
+                                first: "",
+                                last: "",
+                                next: "",
+                                prev: "",
                               },
-                            ],
-                            links: { first: "", last: "", next: "", prev: "" },
-                            self: "",
-                            total: 1,
-                          } satisfies PaginatedList<Access>,
-                          { status: 200 },
-                        );
-                      }
+                              self: "",
+                              total: 1,
+                            } satisfies PaginatedList<Access>,
+                            { status: 200 },
+                          );
+                        }
 
-                      throw new Error(`Unexpected TnT subject: ${subject}`);
-                    },
+                        throw new Error(`Unexpected TnT subject: ${subject}`);
+                      },
+                    ),
                   ),
                 );
               }
@@ -3099,63 +3116,72 @@ describe.each(["EBSI URI", "URL"] as const)(
 
               if (customScope === TNT_CREATE_SCOPE) {
                 mockServer.use(
-                  http.head(
-                    `${domain}/track-and-trace/v1/accesses`,
-                    ({ request: req }) => {
-                      const creator = new URL(req.url).searchParams.get(
-                        "creator",
-                      );
+                  ...["track-and-trace", "estat"].map((service) =>
+                    http.head(
+                      `${domain}/${service}/v1/accesses`,
+                      ({ request: req }) => {
+                        const creator = new URL(req.url).searchParams.get(
+                          "creator",
+                        );
 
-                      if (creator === vpPayload.holder) {
-                        return new HttpResponse(undefined, { status: 204 });
-                      }
+                        if (creator === vpPayload.holder) {
+                          return new HttpResponse(undefined, { status: 204 });
+                        }
 
-                      throw new Error(
-                        `Unexpected TnT Document creator: ${creator}`,
-                      );
-                    },
+                        throw new Error(
+                          `Unexpected TnT Document creator: ${creator}`,
+                        );
+                      },
+                    ),
                   ),
                 );
               }
 
               if (customScope === TNT_WRITE_SCOPE) {
                 mockServer.use(
-                  http.get(
-                    `${domain}/track-and-trace/v1/accesses`,
-                    ({ request: req }) => {
-                      // Make sure the request has the x-request-id header
-                      if (!req.headers.has("x-request-id")) {
-                        return HttpResponse.json(
-                          "Invalid request (missing x-request-id header)",
-                          { status: 400 },
+                  ...["track-and-trace", "estat"].map((service) =>
+                    http.get(
+                      `${domain}/${service}/v1/accesses`,
+                      ({ request: req }) => {
+                        // Make sure the request has the x-request-id header
+                        if (!req.headers.has("x-request-id")) {
+                          return HttpResponse.json(
+                            "Invalid request (missing x-request-id header)",
+                            { status: 400 },
+                          );
+                        }
+
+                        const subject = new URL(req.url).searchParams.get(
+                          "subject",
                         );
-                      }
 
-                      const subject = new URL(req.url).searchParams.get(
-                        "subject",
-                      );
-
-                      if (subject === vpPayload.holder) {
-                        return HttpResponse.json(
-                          {
-                            items: [
-                              {
-                                documentId: "0x00",
-                                grantedBy: "did:ebsi:1234",
-                                permission: "write",
-                                subject,
+                        if (subject === vpPayload.holder) {
+                          return HttpResponse.json(
+                            {
+                              items: [
+                                {
+                                  documentId: "0x00",
+                                  grantedBy: "did:ebsi:1234",
+                                  permission: "write",
+                                  subject,
+                                },
+                              ],
+                              links: {
+                                first: "",
+                                last: "",
+                                next: "",
+                                prev: "",
                               },
-                            ],
-                            links: { first: "", last: "", next: "", prev: "" },
-                            self: "",
-                            total: 1,
-                          } satisfies PaginatedList<Access>,
-                          { status: 200 },
-                        );
-                      }
+                              self: "",
+                              total: 1,
+                            } satisfies PaginatedList<Access>,
+                            { status: 200 },
+                          );
+                        }
 
-                      throw new Error(`Unexpected TnT subject: ${subject}`);
-                    },
+                        throw new Error(`Unexpected TnT subject: ${subject}`);
+                      },
+                    ),
                   ),
                 );
               }

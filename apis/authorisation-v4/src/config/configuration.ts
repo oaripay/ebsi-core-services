@@ -9,10 +9,19 @@ export interface ApiConfig {
   apiPort: number;
   apiUrlPrefix: string;
   authorisationCredentialSchema: string;
+  dependencies: {
+    readonly "did-registry": "v5";
+    readonly estat?: "v1";
+    readonly "track-and-trace": "v1";
+    readonly "trusted-issuers-registry": "v5";
+    readonly "trusted-policies-registry": "v3";
+    readonly "trusted-schemas-registry": "v3";
+  };
   didRegistry: string;
   dockerContainerTag: string;
   domain: string;
   ebsiEnvConfig: EbsiVpEnvConfiguration;
+  estatAccessesEndpoint: string | undefined;
   localOrigin: string | undefined;
   logLevel: "debug" | "error" | "info" | "silent" | "verbose" | "warn";
   requestTimeout: number;
@@ -38,28 +47,29 @@ type Services = EbsiVpEnvConfiguration["services"] & {
 export const SERVICE_PREFIX = "authorisation";
 export const SERVICE_VERSION = "v4";
 
-// EBSI Services Authorisation API v4 depends on
-export const DEPENDENCIES = {
-  "did-registry": "v5",
-  "track-and-trace": "v1",
-  "trusted-issuers-registry": "v5",
-  "trusted-policies-registry": "v3",
-  "trusted-schemas-registry": "v3",
-} as const satisfies Services;
-
 // Config factory
 // Note that process.env — for which provide typings in src/environment.d.ts —
 // should have already been validated by Joi in src/app.module.ts
 export const loadConfig = () => {
-  const { DOMAIN, URI_SCHEME } = process.env;
+  const { DOMAIN, NETWORK, URI_SCHEME } = process.env;
+
+  // EBSI Services Authorisation API v4 depends on
+  const DEPENDENCIES = {
+    "did-registry": "v5",
+    ...(["pilot", "test"].includes(NETWORK) ? ({ estat: "v1" } as const) : {}),
+    "track-and-trace": "v1",
+    "trusted-issuers-registry": "v5",
+    "trusted-policies-registry": "v3",
+    "trusted-schemas-registry": "v3",
+  } as const satisfies Services;
 
   const ebsiEnvConfig = {
     hosts: [
       DOMAIN.replace(/^https?:\/\//, ""), // remove http protocol scheme
     ],
     network: {
-      isOptional: process.env.NETWORK === "production",
-      name: process.env.NETWORK,
+      isOptional: NETWORK === "production",
+      name: NETWORK,
     },
     scheme: URI_SCHEME ?? "ebsi",
     services: DEPENDENCIES,
@@ -70,10 +80,14 @@ export const loadConfig = () => {
     apiPort: Number.parseInt(process.env.API_PORT ?? "3000", 10),
     apiUrlPrefix: `/${SERVICE_PREFIX}/${SERVICE_VERSION}`,
     authorisationCredentialSchema: `${DOMAIN}/trusted-schemas-registry/${DEPENDENCIES["trusted-schemas-registry"]}/schemas/${process.env.AUTHORISATION_CREDENTIAL_SCHEMA}`,
+    dependencies: DEPENDENCIES,
     didRegistry: `${DOMAIN}/did-registry/${DEPENDENCIES["did-registry"]}/identifiers`,
     dockerContainerTag: process.env.DOCKER_TAG ?? "",
     domain: DOMAIN,
     ebsiEnvConfig,
+    estatAccessesEndpoint: ["pilot", "test"].includes(NETWORK)
+      ? `${DOMAIN}/estat/${DEPENDENCIES.estat}/accesses`
+      : undefined,
     localOrigin: process.env.LOCAL_ORIGIN,
     logLevel: process.env.LOG_LEVEL ?? "warn",
     requestTimeout: Number.parseInt(process.env.REQUEST_TIMEOUT ?? "15000", 10),
