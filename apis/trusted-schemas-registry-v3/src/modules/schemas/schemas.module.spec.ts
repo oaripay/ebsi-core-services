@@ -24,7 +24,7 @@ describe("Schemas Module", () => {
 
   beforeAll(async () => {
     // Spin up test blockchain
-    testEnv = await setupTestEnv({
+    testEnv = await setupTestEnv("fixed", {
       schemaMetadataTotal: SCHEMA_METADATA_TOTAL,
       schemaRevisionsTotal: SCHEMA_REVISIONS_TOTAL,
       schemasTotal: SCHEMAS_TOTAL,

@@ -9,7 +9,7 @@ import type {
 import type { HardhatEthersProvider } from "@nomicfoundation/hardhat-ethers/internal/hardhat-ethers-provider.js";
 
 import "@nomicfoundation/hardhat-ethers";
-import { computeId } from "@ebsiint-api/shared";
+import { computeId, computeId__deprecated } from "@ebsiint-api/shared";
 import { ethers } from "ethers";
 import crypto from "node:crypto";
 
@@ -78,9 +78,13 @@ export async function deploySchemasRegistryContract(): Promise<{
 
 export async function insertSchema(
   contract: SchemaSCRegistry,
+  schemaIdType: "deprecated" | "fixed",
 ): Promise<SchemaObject> {
   const schema = createSchema();
-  const schemaIdBuffer = await computeId(schema);
+  const schemaIdBuffer =
+    schemaIdType === "fixed"
+      ? await computeId(schema)
+      : await computeId__deprecated(schema);
   const schemaId = `0x${schemaIdBuffer.toString("hex")}`;
 
   const serializedSchema = Buffer.from(JSON.stringify(schema));
@@ -104,7 +108,10 @@ export async function insertSchema(
   };
 }
 
-export async function setupTestEnv(opts?: SetupOptions): Promise<{
+export async function setupTestEnv(
+  schemaIdType: "deprecated" | "fixed",
+  opts?: SetupOptions,
+): Promise<{
   policyContractMock: PolicyRegistryMock;
   provider: HardhatEthersProvider;
   schemaMetadata: SchemaMetadataObject[];
@@ -138,7 +145,7 @@ export async function setupTestEnv(opts?: SetupOptions): Promise<{
 
   const schemas: SchemaObject[] = [];
   for (let i = 0; i < schemasTotal; i++) {
-    schemas.push(await insertSchema(schemasRegistryContract));
+    schemas.push(await insertSchema(schemasRegistryContract, schemaIdType));
   }
 
   const schemaRevisions: SchemaObject[] = [];
