@@ -190,7 +190,7 @@ contract TrackAndTrace is
                 grantedByAccount,
                 SCOPE.TNT_CREATE
             ) ==
-            false
+                false
         ) {
             revert OnlyCreator();
         } else if (
@@ -200,13 +200,13 @@ contract TrackAndTrace is
                 grantedByAccount,
                 SCOPE.TNT_CREATE
             ) ==
-            false &&
+                false &&
             _getAccountAccess(
                 documentHash,
                 grantedByAccount,
                 SCOPE.TNT_DELEGATE
             ) ==
-            false
+                false
         ) {
             revert OnlyCreatorOrDelegated();
         }
@@ -573,8 +573,7 @@ contract TrackAndTrace is
         ) {
             accessBySubject[creatorBytes].push(documentHash);
             accessBySubjectIndex[creatorBytes][documentHash] =
-                accessBySubject[creatorBytes].length -
-                1;
+                accessBySubject[creatorBytes].length - 1;
         }
 
         emit DocumentCreated(
@@ -613,8 +612,7 @@ contract TrackAndTrace is
             }
             _document.invited[grantedByAccount].children.push(subjectAccount);
             _document.invited[grantedByAccount].childrenIndex[subjectAccount] =
-                _document.invited[grantedByAccount].children.length -
-                1;
+                _document.invited[grantedByAccount].children.length - 1;
         }
 
         _document.invited[subjectAccount].acc[permission] = true;
@@ -649,8 +647,7 @@ contract TrackAndTrace is
         ) {
             accessBySubject[subjectAccount].push(documentHash);
             accessBySubjectIndex[subjectAccount][documentHash] =
-                accessBySubject[subjectAccount].length -
-                1;
+                accessBySubject[subjectAccount].length - 1;
         }
 
         emit AccessGranted(

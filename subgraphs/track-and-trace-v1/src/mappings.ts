@@ -24,6 +24,7 @@ class TransactionArguments {
   fn: string;
 
   constructor() {
+    // eslint-disable-next-line unicorn/prefer-class-fields
     this.fn = "";
     this.args = new ethereum.Tuple();
   }
