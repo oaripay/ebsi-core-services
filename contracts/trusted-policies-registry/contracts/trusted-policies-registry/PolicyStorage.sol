@@ -16,13 +16,15 @@ contract PolicyStorage {
     }
 
     enum OPERATION {
-        EQUAL /* @TODO: to be implemented: , GREATER_THAN, SMALLER_THAN */
+        /* @TODO: to be implemented: , GREATER_THAN, SMALLER_THAN */
+        EQUAL
     }
 
     // solhint-disable-next-line contract-name-camelcase
     enum OPERATION_TYPE {
+        /* @TODO: to be implemented: XOR, NOR **/
         AND,
-        OR /* @TODO: to be implemented: XOR, NOR **/
+        OR
     }
 
     // solhint-disable-next-line contract-name-camelcase

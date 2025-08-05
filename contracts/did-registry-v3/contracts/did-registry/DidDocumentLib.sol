@@ -370,8 +370,7 @@ library DidDocumentLib {
                 args.notBefore + args.duration
             );
             d.capabilityInvocations[i].notAfter =
-                args.notBefore +
-                args.duration;
+                args.notBefore + args.duration;
 
             // add the new relationship
             uint256 indexDid = vs.addVerificationRelationship(
