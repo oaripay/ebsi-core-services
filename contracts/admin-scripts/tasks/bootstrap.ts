@@ -243,7 +243,7 @@ task(
     try {
       await (
         await tprContract.connect(tprSigner).insertPolicy(policy, policy)
-      ).wait(1);
+      ).wait(0);
     } catch {
       console.log(`policy ${policy} already exists`);
     }
@@ -252,9 +252,11 @@ task(
   // insert so user attributes
   try {
     console.log(`trying to insert user attributes...`);
-    await tprContract
-      .connect(tprSigner)
-      .insertUserAttributes(soOp.address, policies);
+    await (
+      await tprContract
+        .connect(tprSigner)
+        .insertUserAttributes(soOp.address, policies)
+    ).wait();
   } catch {
     console.log(`user attributes already exists for ${soOp.address}`);
   }
@@ -268,44 +270,50 @@ task(
 
   async function registerDidDocument(userData: UserData, signer: BaseWallet) {
     try {
-      await didrContract
-        .connect(signer)
-        .insertDidDocument(
-          userData.did,
-          userData.baseDocument,
-          userData.ES256K.vMethodId,
-          userData.ES256K.publicKeyHex,
-          true,
-          userData.notBefore,
-          userData.notAfter,
-        );
+      await (
+        await didrContract
+          .connect(signer)
+          .insertDidDocument(
+            userData.did,
+            userData.baseDocument,
+            userData.ES256K.vMethodId,
+            userData.ES256K.publicKeyHex,
+            true,
+            userData.notBefore,
+            userData.notAfter,
+          )
+      ).wait();
     } catch {
       console.log(`error registering ES256K key in DID document`);
     }
 
     try {
-      await didrContract
-        .connect(signer)
-        .addVerificationMethod(
-          userData.did,
-          userData.ES256.vMethodId,
-          userData.ES256.publicKeyHex,
-          false,
-        );
+      await (
+        await didrContract
+          .connect(signer)
+          .addVerificationMethod(
+            userData.did,
+            userData.ES256.vMethodId,
+            userData.ES256.publicKeyHex,
+            false,
+          )
+      ).wait();
     } catch {
       console.log(`error registering ES256 key in DID document`);
     }
 
     try {
-      await didrContract
-        .connect(signer)
-        .addVerificationRelationship(
-          userData.did,
-          "authentication",
-          userData.ES256.vMethodId,
-          userData.notBefore,
-          userData.notAfter,
-        );
+      await (
+        await didrContract
+          .connect(signer)
+          .addVerificationRelationship(
+            userData.did,
+            "authentication",
+            userData.ES256.vMethodId,
+            userData.notBefore,
+            userData.notAfter,
+          )
+      ).wait();
     } catch {
       console.log(
         `error registering authentication relationship in DID document`,
@@ -313,15 +321,17 @@ task(
     }
 
     try {
-      await didrContract
-        .connect(signer)
-        .addVerificationRelationship(
-          userData.did,
-          "assertionMethod",
-          userData.ES256.vMethodId,
-          userData.notBefore,
-          userData.notAfter,
-        );
+      await (
+        await didrContract
+          .connect(signer)
+          .addVerificationRelationship(
+            userData.did,
+            "assertionMethod",
+            userData.ES256.vMethodId,
+            userData.notBefore,
+            userData.notAfter,
+          )
+      ).wait();
     } catch {
       console.log(
         `error registering assertionMethod relationship in DID document`,
@@ -342,7 +352,7 @@ task(
   // insert hash algs in timestamp
   console.log(`inserting hash algs in timestamp...`);
   const timestampContract = await ethers.getContractAt(
-    "contracts/timestamp-v3/timestamp/Timestamp.sol:Timestamp",
+    "contracts/timestamp-v2/timestamp/Timestamp.sol:Timestamp",
     process.env.TIMESTAMP_SC_V2_ADDRESS,
     soSigner,
   );
@@ -358,19 +368,25 @@ task(
   ];
   for (const hashAlg of hashAlgs) {
     try {
-      await timestampContract.insertHashAlgorithm(
-        hashAlg[0],
-        hashAlg[1],
-        hashAlg[2],
-        hashAlg[3],
-        hashAlg[4],
-      );
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+      await (
+        await timestampContract.insertHashAlgorithm(
+          hashAlg[0],
+          hashAlg[1],
+          hashAlg[2],
+          hashAlg[3],
+          hashAlg[4],
+        )
+      )
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        .wait();
     } catch {
       console.log(`hash alg ${hashAlg[1]} already exists`);
     }
   }
 
   // register SO as root tao in tir
+
   const tirContract = (await ethers.getContractAt(
     "contracts/trusted-issuers-registry-v3/tir/Tir.sol:Tir",
     process.env.TIR_SC_V3_ADDRESS,
@@ -440,50 +456,60 @@ task(
       .sign(userData.ES256.privateKey);
 
     try {
-      await tirContract.connect(signer).setAttributeMetadata(
-        userData.did,
-        reservedAttributeId,
-        1, // roottao
-        userData.did,
-        reservedAttributeId,
-      );
-    } catch {
+      await (
+        await tirContract.connect(signer).setAttributeMetadata(
+          userData.did,
+          `0x${reservedAttributeId}`,
+          1, // roottao
+          userData.did,
+          `0x${reservedAttributeId}`,
+        )
+      ).wait();
+    } catch (error) {
       console.log("error registering the DID in the TIR");
+      console.error(error);
     }
 
     try {
-      await tirContract
-        .connect(signer)
-        .setAttributeData(
-          userData.did,
-          reservedAttributeId,
-          vcJwtSelfAttestation,
-        );
-    } catch {
+      await (
+        await tirContract
+          .connect(signer)
+          .setAttributeData(
+            userData.did,
+            `0x${reservedAttributeId}`,
+            ethers.toUtf8Bytes(vcJwtSelfAttestation),
+          )
+      ).wait();
+    } catch (error) {
       console.log("error registering the VC in the TIR");
+      console.error(error);
     }
   }
-
+  console.log(`registering SO as support office...`);
   await registerUserAsSupportOffice(soOpDidParams, soSigner);
 
   // register schemas
+  console.log(`registering schemas...`);
   const tsrContract = (await ethers.getContractAt(
-    "contracts/trusted-schemas-registry-v2/trusted-schemas-registry/TrustedSchemasRegistry.sol:TrustedSchemasRegistry",
+    "contracts/trusted-schemas-registry-v2/trusted-schemas-registry/SchemaSCRegistry.sol:SchemaSCRegistry",
     process.env.TSR_SC_V2_ADDRESS,
   )) as unknown as SchemaSCRegistry;
   for (const { metadata, schema } of schemas) {
     try {
-      await tsrContract
-        .connect(soSigner)
-        .insertSchema(
-          metadata.id.base16,
-          `0x${Buffer.from(JSON.stringify(schema)).toString("hex")}`,
-          `0x${Buffer.from(JSON.stringify({ created: new Date().toISOString() })).toString("hex")}`,
-        );
+      await (
+        await tsrContract
+          .connect(soSigner)
+          .insertSchema(
+            metadata.id.base16,
+            `0x${Buffer.from(JSON.stringify(schema)).toString("hex")}`,
+            `0x${Buffer.from(JSON.stringify({ created: new Date().toISOString() })).toString("hex")}`,
+          )
+      ).wait();
     } catch (error) {
       const schemaTitle = schema.title as string;
       console.log(`error registering schema ${schemaTitle}`);
       console.error(error);
     }
   }
+  console.log(`bootstrap completed`);
 });
