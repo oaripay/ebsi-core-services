@@ -9,5 +9,6 @@ module.exports = {
     "mark-callable-contracts": "off",
     // inline assembly is needed to store data at a specific location see *Storage.sol
     "no-inline-assembly": "off",
+    "no-unsafe-member-access": "off",
   },
 };

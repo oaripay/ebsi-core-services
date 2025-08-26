@@ -9,13 +9,11 @@ chainId=`curl -X POST --data '{"jsonrpc":"2.0","method":"eth_chainId","params":[
 # deploy proxy for TPR
 output=`yarn hardhat deploy --network box --tags OwnedUpgradeabilityProxy --reset`
 tprProxy=`echo $output | grep -o '\b0x[a-fA-F0-9]\{40\}\b'`
-yarn hardhat initProxy --network box --proxy $tprProxy --implementation PolicyRegistryV3
+yarn hardhat initProxy --network box --proxy $tprProxy --implementation PolicyRegistryV2
 
 # update dependencies
 jq --arg chainId "$chainId" --arg tprProxy "$tprProxy" '.[$chainId] += {
-  "tprV1Address": $tprProxy,
-  "tprV2Address": $tprProxy,
-  "tprV3Address": $tprProxy
+  "tprV2Address": $tprProxy
 }' $dependencies > $dependenciesUpdated
 
 mv $dependenciesUpdated $dependencies
@@ -24,31 +22,33 @@ mv $dependenciesUpdated $dependencies
 # deploy proxy for DIDRegistry
 output=`yarn hardhat deploy --network box --tags OwnedUpgradeabilityProxy --reset`
 DIDRegistryProxy=`echo $output | grep -o '\b0x[a-fA-F0-9]\{40\}\b'`
-yarn hardhat initProxy --network box --proxy $DIDRegistryProxy --implementation DidRegistryV4
+yarn hardhat initProxy --network box --proxy $DIDRegistryProxy --implementation DidRegistryV3
 
 # update dependencies with did registry service
 jq --arg chainId "$chainId" --arg DIDRegistryProxy "$DIDRegistryProxy" '.[$chainId] += {
-  "didV1Address": $DIDRegistryProxy,
-  "didV2Address": $DIDRegistryProxy,
-  "didV3Address": $DIDRegistryProxy,
-  "didV4Address": $DIDRegistryProxy
+  "didV3Address": $DIDRegistryProxy
 }' $dependencies > $dependenciesUpdated
 
 mv $dependenciesUpdated $dependencies
-# deploy timestamp
-output=`yarn hardhat --network box timestampV3 --upgrader $account --tpr $tprProxy`
-TimestampProxy=`echo $output | grep -o '\b0x[a-fA-F0-9]\{40\}\b' | tail -1`
+
+# deploy proxy for TimestampV2
+output=`yarn hardhat deploy --network box --tags OwnedUpgradeabilityProxy --reset`
+timestampProxy=`echo $output | grep -o '\b0x[a-fA-F0-9]\{40\}\b'`
+yarn hardhat initProxy --network box --proxy $timestampProxy --implementation TimestampV2
+
 # track and trace
-output=`yarn hardhat --network box trackAndTraceV2 --admin  $account --upgrader $account --registry $DIDRegistryProxy --tpr $tprProxy`
+output=`yarn hardhat --network box trackAndTrace --admin  $account --upgrader $account --registry $DIDRegistryProxy --tpr $tprProxy`
 TrackAndTraceProxy=`echo $output | grep -o '\b0x[a-fA-F0-9]\{40\}\b' | tail -1`
 
-# TrustedIssuersRegistry
-output=`yarn hardhat --network box trustedIssuersRegistryV4 --upgrader $account --tpr $tprProxy --did $DIDRegistryProxy `
-tirRegistry=`echo $output | grep -o '\b0x[a-fA-F0-9]\{40\}\b' | tail -1`
+# deploy proxy for TIR V3
+output=`yarn hardhat deploy --network box --tags OwnedUpgradeabilityProxy --reset`
+tirRegistry=`echo $output | grep -o '\b0x[a-fA-F0-9]\{40\}\b'`
+yarn hardhat initProxy --network box --proxy $tirRegistry --implementation TirV3
 
-# TrustedSchemasRegistry
-output=`yarn hardhat --network box trustedSchemaRegistryV3 --upgrader $account --tpr $tprProxy`
-tsrRegistry=`echo $output | grep -o '\b0x[a-fA-F0-9]\{40\}\b' | tail -1`
+# deploy proxy for TSR V2
+output=`yarn hardhat deploy --network box --tags OwnedUpgradeabilityProxy --reset`
+tsrRegistry=`echo $output | grep -o '\b0x[a-fA-F0-9]\{40\}\b'`
+yarn hardhat initProxy --network box --proxy $tsrRegistry --implementation SchemaSCRegistryV2
 
 
 # generate operator wallets
@@ -56,7 +56,7 @@ tsrRegistry=`echo $output | grep -o '\b0x[a-fA-F0-9]\{40\}\b' | tail -1`
 
 # output
 echo "DIDR_SC_V3_ADDRESS=$DIDRegistryProxy" >> deployments.env
-echo "TIMESTAMP_SC_V2_ADDRESS=$TimestampProxy" >> deployments.env
+echo "TIMESTAMP_SC_V2_ADDRESS=$timestampProxy" >> deployments.env
 echo "TNT_SC_V2_ADDRESS=$TrackAndTraceProxy" >> deployments.env
 echo "TIR_SC_V3_ADDRESS=$tirRegistry" >> deployments.env
 echo "TPR_SC_V2_ADDRESS=$tprProxy" >> deployments.env
