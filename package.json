@@ -4,7 +4,7 @@
   "private": true,
   "license": "EUPL-1.2",
   "scripts": {
-    "audit": "audit-ci --skip-dev --moderate",
+    "audit": "audit-ci --config audit-ci.jsonc",
     "clean": "nx run-many --target=clean --all",
     "build": "nx affected --target=build --parallel=1",
     "build:all": "nx run-many --target=build --all",
@@ -25,37 +25,37 @@
     "keyv": "^5.5.0"
   },
   "devDependencies": {
-    "@changesets/cli": "^2.29.5",
+    "@changesets/cli": "^2.29.7",
     "@changesets/types": "^6.1.0",
     "@commitlint/cli": "^19.8.1",
     "@commitlint/config-conventional": "^19.8.1",
     "@eslint/eslintrc": "^3.3.1",
-    "@eslint/js": "^9.32.0",
+    "@eslint/js": "^9.35.0",
     "@nx/workspace": "20.8.1",
     "@scaleway/changesets-renovate": "^2.2.1",
     "@stoplight/spectral-cli": "^6.15.0",
     "@tsconfig/node22": "^22.0.2",
     "@tsconfig/strictest": "^2.0.5",
     "@types/mustache": "^4.2.6",
-    "@typescript-eslint/eslint-plugin": "^8.38.0",
-    "@typescript-eslint/parser": "^8.38.0",
+    "@typescript-eslint/eslint-plugin": "^8.43.0",
+    "@typescript-eslint/parser": "^8.43.0",
     "audit-ci": "^7.1.0",
     "copyfiles": "^2.4.1",
     "cross-env": "^10.0.0",
-    "eslint": "^9.32.0",
+    "eslint": "^9.35.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-import-resolver-typescript": "^3.10.1",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-perfectionist": "^4.15.0",
-    "eslint-plugin-prettier": "^5.5.3",
-    "eslint-plugin-regexp": "^2.9.1",
-    "eslint-plugin-unicorn": "^60.0.0",
+    "eslint-plugin-prettier": "^5.5.4",
+    "eslint-plugin-regexp": "^2.10.0",
+    "eslint-plugin-unicorn": "^61.0.2",
     "eslint-plugin-vitest": "^0.5.4",
     "glob": "^11.0.3",
-    "globals": "^16.3.0",
+    "globals": "^16.4.0",
     "husky": "^9.1.7",
     "is-ci": "^4.1.0",
-    "lint-staged": "^16.1.4",
+    "lint-staged": "^16.1.6",
     "mustache": "^4.2.0",
     "nx": "20.8.1",
     "patch-package": "^8.0.0",
@@ -67,7 +67,7 @@
     "solhint": "~5.0.2",
     "spdx-license-list": "^6.10.0",
     "typescript": "5.8.3",
-    "typescript-eslint": "^8.38.0"
+    "typescript-eslint": "^8.43.0"
   },
   "workspaces": {
     "packages": [
@@ -96,5 +96,18 @@
     "**/gluegun/semver": "^7.7.1",
     "**/gluegun/ejs": "^3.1.10"
   },
-  "packageManager": "yarn@1.22.21+sha1.1959a18351b811cdeedbd484a8f86c3cc3bbaf72"
+  "packageManager": "yarn@1.22.21+sha1.1959a18351b811cdeedbd484a8f86c3cc3bbaf72",
+  "lockfile-lint": {
+    "path": "yarn.lock",
+    "allowedHosts": "registry.yarnpkg.com",
+    "validateHttps": true,
+    "emptyHostname": false,
+    "validatePackageNames": true,
+    "allowedPackageNameAliases": [
+      "string-width-cjs:string-width",
+      "strip-ansi-cjs:strip-ansi",
+      "wrap-ansi-cjs:wrap-ansi"
+    ],
+    "validateIntegrity": true
+  }
 }

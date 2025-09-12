@@ -1,15 +1,15 @@
 import js from "@eslint/js";
-// @ts-expect-error eslint-plugin-import doesn't ship types. See https://github.com/import-js/eslint-plugin-import/issues/3090
 import importPlugin from "eslint-plugin-import";
 import perfectionist from "eslint-plugin-perfectionist";
 import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
 import regexpPlugin from "eslint-plugin-regexp";
 import eslintPluginUnicorn from "eslint-plugin-unicorn";
 import vitest from "eslint-plugin-vitest";
+import { defineConfig } from "eslint/config";
 import globals from "globals";
 import tseslint from "typescript-eslint";
 
-export default tseslint.config(
+export default defineConfig(
   // Global ignores (replaces .eslintignore)
   {
     ignores: [
@@ -36,11 +36,9 @@ export default tseslint.config(
   tseslint.configs.recommendedTypeChecked,
   // eslint-disable-next-line import/no-named-as-default-member
   tseslint.configs.stylisticTypeChecked,
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
   importPlugin.flatConfigs.recommended,
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
   importPlugin.flatConfigs.typescript,
-  eslintPluginUnicorn.configs["flat/recommended"],
+  eslintPluginUnicorn.configs.recommended,
   regexpPlugin.configs["flat/recommended"],
   perfectionist.configs["recommended-natural"],
 

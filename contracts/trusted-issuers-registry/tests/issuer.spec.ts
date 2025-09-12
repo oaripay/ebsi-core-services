@@ -398,41 +398,41 @@ describe("Issuers", () => {
       // get issuers: page 1
       let issPagination = await tir.getIssuers(1, 5);
       expect(decodeResult(issPagination)).to.eql({
-        howMany: BigInt(5),
+        howMany: 5n,
         items: issuers.slice(0, 5),
         next: 2n,
         prev: 1n,
-        total: BigInt(18),
+        total: 18n,
       });
 
       // get issuers: page 2
       issPagination = await tir.getIssuers(2, 5);
       expect(decodeResult(issPagination)).to.eql({
-        howMany: BigInt(5),
+        howMany: 5n,
         items: issuers.slice(5, 10),
-        next: BigInt(3),
+        next: 3n,
         prev: 1n,
-        total: BigInt(18),
+        total: 18n,
       });
 
       // get issuers: page 3
       issPagination = await tir.getIssuers(3, 5);
       expect(decodeResult(issPagination)).to.eql({
-        howMany: BigInt(5),
+        howMany: 5n,
         items: issuers.slice(10, 15),
-        next: BigInt(4),
+        next: 4n,
         prev: 2n,
-        total: BigInt(18),
+        total: 18n,
       });
 
       // get issuers: page 4
       issPagination = await tir.getIssuers(4, 5);
       expect(decodeResult(issPagination)).to.eql({
-        howMany: BigInt(3),
+        howMany: 3n,
         items: issuers.slice(15, 20),
-        next: BigInt(4),
-        prev: BigInt(3),
-        total: BigInt(18),
+        next: 4n,
+        prev: 3n,
+        total: 18n,
       });
     });
 
@@ -606,10 +606,10 @@ describe("Issuers", () => {
       // expect 3 revisions: firstId, revisionId2, and third update
       delete revisions.items;
       expect(revisions).to.eql({
-        howMany: BigInt(3),
+        howMany: 3n,
         next: 1n,
         prev: 1n,
-        total: BigInt(3),
+        total: 3n,
       });
     });
 
