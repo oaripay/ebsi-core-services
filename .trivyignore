@@ -1,19 +1,24 @@
-# CVEs related to @ebsiint-subgraph/subgraphs-deployer
+# CVEs related to @ebsiint-subgraph/subgraphs-deployer specifically
 
-# axios@0.21.4, axios@0.26.1 (MEDIUM, found in /app/node_modules/apisauce/node_modules and /app/node_modules/binary-install/node_modules)
+## axios@0.21.4 (MEDIUM, found in /app/node_modules/apisauce/node_modules)
 CVE-2023-45857
 
-# axios@0.21.4, axios@0.26.1 (HIGH, found in /app/node_modules/apisauce/node_modules and /app/node_modules/binary-install/node_modules)
+## axios@0.21.4 (HIGH, found in /app/node_modules/apisauce/node_modules)
 CVE-2025-27152
 
-# cookie@0.4.2 (LOW, found in /app/node_modules)
+## cookie@0.4.2 (LOW, found in /app/node_modules)
 CVE-2024-47764
 
-# lodash.trim@4.5.1, lodash.trimend@4.5.1 (MEDIUM, found in /app/node_modules)
+## axios@0.21.4 (HIGH, found in /app/node_modules/apisauce/node_modules)
+CVE-2025-58754
+
+## lodash.trim@4.5.1, lodash.trimend@4.5.1 (MEDIUM, found in /app/node_modules)
 CVE-2020-28500
 
-# taffydb@2.6.2 (HIGH, found in /app/node_modules/protobufjs/cli/node_modules)
-CVE-2019-10790
+# Other CVEs
 
-# atty@0.2.14 (LOW, found in app/node_modules/@nomicfoundation/solidity-analyzer/Cargo.lock)
+## tmp@0.0.33 (LOW, found in /app/node_modules)
+CVE-2025-54798
+
+## atty@0.2.14 (LOW, found in app/node_modules/@nomicfoundation/solidity-analyzer/Cargo.lock)
 GHSA-g98v-hv3f-hcfr
