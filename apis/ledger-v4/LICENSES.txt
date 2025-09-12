@@ -685,7 +685,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ========================================================================================
-- @nestjs/axios@^4.0.0
+- @nestjs/axios@^4.0.1
 ------------------------------
 This project is licensed under MIT.
 
@@ -716,7 +716,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ========================================================================================
-- @nestjs/common@^11.1.3
+- @nestjs/common@^11.1.5
 ------------------------------
 This project is licensed under MIT.
 
@@ -779,7 +779,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ========================================================================================
-- @nestjs/core@^11.1.3
+- @nestjs/core@^11.1.5
 ------------------------------
 This project is licensed under MIT.
 
@@ -811,7 +811,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ========================================================================================
-- @nestjs/platform-fastify@^11.1.3
+- @nestjs/platform-fastify@^11.1.5
 ------------------------------
 This project is licensed under MIT.
 
@@ -875,7 +875,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ========================================================================================
-- axios@^1.10.0
+- axios@^1.12.0
 ------------------------------
 This project is licensed under MIT.
 
@@ -923,7 +923,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 ========================================================================================
-- ethers@^6.14.4
+- ethers@^6.15.0
 ------------------------------
 This project is licensed under MIT.
 

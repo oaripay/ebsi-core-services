@@ -275,7 +275,7 @@ describe("TrackAndTrace - tests", () => {
       const docs = await trackAndTrace.getDocuments(1, 1);
       expect(docs).to.be.deep.equal([
         [ethers.encodeBytes32String("e68905e6")],
-        BigInt(11),
+        11n,
         1n,
         1n,
         2n,

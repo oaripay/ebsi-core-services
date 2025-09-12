@@ -212,22 +212,22 @@ describe("SchemaPolicies", () => {
         // page = 0 and pagesize is less than total
         const r0 = await tsUser.getPolicyRevisions(did, 1, 10);
         expect(decodeResult(r0)).to.eql({
-          howMany: BigInt(10),
+          howMany: 10n,
           items: resAttributeHash.slice(0, 10),
           next: 2n,
           prev: 1n,
-          total: BigInt(11),
+          total: 11n,
         });
 
         // page = 0 and pagesize is more than total
         const r1 = await tsUser.getPolicyRevisions(did, 1, 15);
         expect(r1.items).to.have.length(11);
         expect(decodeResult(r1)).to.eql({
-          howMany: BigInt(11),
+          howMany: 11n,
           items: resAttributeHash,
           next: 1n,
           prev: 1n,
-          total: BigInt(11),
+          total: 11n,
         });
 
         // page = 0 and pagesize is way less than total
@@ -237,7 +237,7 @@ describe("SchemaPolicies", () => {
           items: [resAttributeHash[0], resAttributeHash[1]],
           next: 2n,
           prev: 1n,
-          total: BigInt(11),
+          total: 11n,
         });
       });
     });
@@ -395,19 +395,19 @@ describe("SchemaPolicies", () => {
         expect(decodeResult(r1)).to.eql({
           howMany: 2n,
           items: resAttributeHash.slice(4, 6),
-          next: BigInt(4),
+          next: 4n,
           prev: 2n,
-          total: BigInt(11),
+          total: 11n,
         });
         // page = 1 and pagesize 10
         const r2 = await ts.getPolicies(1, 10);
         expect(r2.items.length).to.equal(10);
         expect(decodeResult(r2)).to.eql({
-          howMany: BigInt(10),
+          howMany: 10n,
           items: resAttributeHash.slice(0, 10),
           next: 2n,
           prev: 1n,
-          total: BigInt(11),
+          total: 11n,
         });
 
         // page = 65456465 and pagesize 564646545645
@@ -418,7 +418,7 @@ describe("SchemaPolicies", () => {
           items: [],
           next: 1n,
           prev: 1n,
-          total: BigInt(11),
+          total: 11n,
         });
 
         // page = 3 and pagesize 3
@@ -427,9 +427,9 @@ describe("SchemaPolicies", () => {
         expect(decodeResult(r9)).to.eql({
           howMany: 2n,
           items: resAttributeHash.slice(9),
-          next: BigInt(4),
-          prev: BigInt(3),
-          total: BigInt(11),
+          next: 4n,
+          prev: 3n,
+          total: 11n,
         });
       });
 

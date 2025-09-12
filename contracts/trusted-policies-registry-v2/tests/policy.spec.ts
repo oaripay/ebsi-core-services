@@ -170,17 +170,17 @@ describe("Policy", () => {
         items: [1n, 2n],
         next: 2n,
         prev: 1n,
-        total: BigInt(4),
+        total: 4n,
       });
 
       // by Policy ID - page 2
       policiesById = await policyContract.getPolicies(2, 2);
       expect(decodeResult(policiesById)).to.eql({
         howMany: 2n,
-        items: [BigInt(3), BigInt(4)],
+        items: [3n, 4n],
         next: 2n,
         prev: 1n,
-        total: BigInt(4),
+        total: 4n,
       });
 
       // by Policy Name - page 1
@@ -190,7 +190,7 @@ describe("Policy", () => {
         items: ["policy-0", "policy-1"],
         next: 2n,
         prev: 1n,
-        total: BigInt(4),
+        total: 4n,
       });
 
       // by Policy Name - page 2
@@ -200,7 +200,7 @@ describe("Policy", () => {
         items: ["policy-2", "policy-3"],
         next: 2n,
         prev: 1n,
-        total: BigInt(4),
+        total: 4n,
       });
     });
   });
@@ -385,7 +385,7 @@ describe("Policy", () => {
       const policy = await policyContract["getPolicy(uint256)"](5);
       expect(decodeResult(policy)).to.eql({
         description: "description",
-        policyId: BigInt(5),
+        policyId: 5n,
         policyName: "name",
         status: true,
       });

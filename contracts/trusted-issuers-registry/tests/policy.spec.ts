@@ -93,41 +93,41 @@ describe("Policies", () => {
     // get policies: page 1
     let issPagination = await ts.getPolicies(1, 5);
     expect(decodeResult(issPagination)).to.eql({
-      howMany: BigInt(5),
+      howMany: 5n,
       items: policies.slice(0, 5),
       next: 2n,
       prev: 1n,
-      total: BigInt(18),
+      total: 18n,
     });
 
     // get policies: page 2
     issPagination = await ts.getPolicies(2, 5);
     expect(decodeResult(issPagination)).to.eql({
-      howMany: BigInt(5),
+      howMany: 5n,
       items: policies.slice(5, 10),
-      next: BigInt(3),
+      next: 3n,
       prev: 1n,
-      total: BigInt(18),
+      total: 18n,
     });
 
     // get policies: page 3
     issPagination = await ts.getPolicies(3, 5);
     expect(decodeResult(issPagination)).to.eql({
-      howMany: BigInt(5),
+      howMany: 5n,
       items: policies.slice(10, 15),
-      next: BigInt(4),
+      next: 4n,
       prev: 2n,
-      total: BigInt(18),
+      total: 18n,
     });
 
     // get policies: page 4
     issPagination = await ts.getPolicies(4, 5);
     expect(decodeResult(issPagination)).to.eql({
-      howMany: BigInt(3),
+      howMany: 3n,
       items: policies.slice(15, 20),
-      next: BigInt(4),
-      prev: BigInt(3),
-      total: BigInt(18),
+      next: 4n,
+      prev: 3n,
+      total: 18n,
     });
   });
 

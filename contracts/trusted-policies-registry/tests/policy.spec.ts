@@ -150,17 +150,17 @@ describe("Policy", () => {
         items: [0n, 1n],
         next: 2n,
         prev: 1n,
-        total: BigInt(4),
+        total: 4n,
       });
 
       // by Policy ID - page 2
       policiesById = await policyContract.getPolicies(2, 2);
       expect(decodeResult(policiesById)).to.eql({
         howMany: 2n,
-        items: [2n, BigInt(3)],
+        items: [2n, 3n],
         next: 2n,
         prev: 1n,
-        total: BigInt(4),
+        total: 4n,
       });
 
       // by Policy Name - page 1
@@ -170,7 +170,7 @@ describe("Policy", () => {
         items: ["policy-0", "policy-1"],
         next: 2n,
         prev: 1n,
-        total: BigInt(4),
+        total: 4n,
       });
 
       // by Policy Name - page 2
@@ -180,7 +180,7 @@ describe("Policy", () => {
         items: ["policy-2", "policy-3"],
         next: 2n,
         prev: 1n,
-        total: BigInt(4),
+        total: 4n,
       });
     });
   });
@@ -684,7 +684,7 @@ describe("Policy", () => {
         description: "description",
         opType: 0n,
         policyConditions: pcs,
-        policyId: BigInt(4),
+        policyId: 4n,
         policyName: "name",
         status: true,
       });
@@ -734,11 +734,11 @@ describe("Policy", () => {
       [byPolicyName, byPolicyDescription] =
         await policyContract.searchPolicy("description 4");
       expect(byPolicyName).to.have.length(0);
-      expect(byPolicyDescription).to.deep.equal([BigInt(4)]);
+      expect(byPolicyDescription).to.deep.equal([4n]);
       [byPolicyName, byPolicyDescription] =
         await policyContract.searchPolicy("test policy 4");
       expect(byPolicyDescription).to.have.length(0);
-      expect(byPolicyName).to.deep.equal([BigInt(4)]);
+      expect(byPolicyName).to.deep.equal([4n]);
     });
   });
 });
