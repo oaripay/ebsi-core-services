@@ -14,7 +14,7 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   await deployments.deploy("DidTimestampLib", {
     ...opts,
     contract:
-      "contracts/did-registry-v3/did-registry/DidTimestampLib.sol/DidTimestampLib",
+      "contracts/did-registry-v5/did-registry/DidTimestampLib.sol/DidTimestampLib",
   });
 };
 

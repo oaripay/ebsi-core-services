@@ -6,7 +6,7 @@ const path = require("node:path");
 require("@nomicfoundation/hardhat-ethers");
 
 const didrScPath = path.resolve(
-  require.resolve("@ebsiint-sc/did-registry-v3"),
+  require.resolve("@ebsiint-sc/did-registry-v5"),
   "../..", // relative to "dist/index.js"
 );
 

@@ -112,7 +112,7 @@ Follow a similar process like the previous contract to deploy the DID Registry (
 
 ```sh
 yarn hardhat --network test deploy --tags OwnedUpgradeabilityProxy --gasprice 0 --reset
-yarn hardhat --network test initProxy --proxy PROXY_ADDRESS_DIDR --implementation DidRegistryV3
+yarn hardhat --network test initProxy --proxy PROXY_ADDRESS_DIDR --implementation DidRegistryV5
 yarn hardhat --network test changeOwnership --proxy PROXY_ADDRESS_DIDR
 ```
 

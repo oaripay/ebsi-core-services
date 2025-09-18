@@ -1,5 +1,5 @@
 import { Accepts, Log } from "@ebsiint-api/shared";
-import { DidRegistry__factory } from "@ebsiint-sc/did-registry-v3";
+import { DidRegistry__factory } from "@ebsiint-sc/did-registry-v5";
 import { Controller, Get, HttpCode } from "@nestjs/common";
 
 @Controller()

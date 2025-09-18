@@ -1,4 +1,4 @@
-import type { DidRegistry } from "@ebsiint-sc/did-registry-v3";
+import type { DidRegistry } from "@ebsiint-sc/did-registry-v5";
 
 import { describe, expect, it } from "vitest";
 

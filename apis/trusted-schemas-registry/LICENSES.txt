@@ -1205,7 +1205,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ========================================================================================
-- axios@^1.12.0
+- axios@^1.12.2
 ------------------------------
 This project is licensed under MIT.
 

@@ -1,4 +1,4 @@
-import { DidRegistry__factory } from "@ebsiint-sc/did-registry-v3";
+import { DidRegistry__factory } from "@ebsiint-sc/did-registry-v5";
 import { ConfigService } from "@nestjs/config";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";

@@ -1,4 +1,4 @@
-import type { DidRegistry } from "@ebsiint-sc/did-registry-v3";
+import type { DidRegistry } from "@ebsiint-sc/did-registry-v5";
 import type { JWK } from "jose";
 
 import {
@@ -12,7 +12,7 @@ import {
   NotFoundError,
   remove0xPrefix,
 } from "@ebsiint-api/shared";
-import { DidRegistry__factory } from "@ebsiint-sc/did-registry-v3";
+import { DidRegistry__factory } from "@ebsiint-sc/did-registry-v5";
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { isAxiosError } from "axios";

@@ -2,7 +2,7 @@ import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 import type { GenerateKeyPairResult, JWK } from "jose";
 
-import { DidRegistry__factory } from "@ebsiint-sc/did-registry-v3";
+import { DidRegistry__factory } from "@ebsiint-sc/did-registry-v5";
 import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 import {

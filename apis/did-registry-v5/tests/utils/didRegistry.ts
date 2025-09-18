@@ -1,4 +1,4 @@
-import "@ebsiint-sc/did-registry-v3/dist/hardhat.d.ts";
+import "@ebsiint-sc/did-registry-v5/dist/hardhat.d.ts";
 
 import hre from "hardhat";
 import type { FactoryOptions } from "hardhat/types/index.js";
@@ -6,7 +6,7 @@ import type { FactoryOptions } from "hardhat/types/index.js";
 import type {
   DidRegistry,
   PolicyRegistryMock,
-} from "@ebsiint-sc/did-registry-v3";
+} from "@ebsiint-sc/did-registry-v5";
 import type { HardhatEthersProvider } from "@nomicfoundation/hardhat-ethers/internal/hardhat-ethers-provider.js";
 
 import "@nomicfoundation/hardhat-ethers";

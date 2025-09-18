@@ -2,7 +2,7 @@ specVersion: 1.2.0
 schema:
   file: ./schema.graphql
 dataSources:
-  # DID Registry SC v3
+  # DID Registry SC v5
   - kind: ethereum/contract
     name: DidRegistry
     network: besu
@@ -44,7 +44,7 @@ dataSources:
           handler: handleVerificationMethodExpiredEvent
         - event: VerificationMethodRolled(string,string,bytes,bool,uint256,uint256,string,uint256)
           handler: handleVerificationMethodRolledEvent
-      file: ./src/did-registry-v3/mappings.ts
+      file: ./src/did-registry-v5/mappings.ts
   - kind: ethereum
     name: Timestamp
     network: besu
