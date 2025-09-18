@@ -38,17 +38,17 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     tprAddress = (await deployments.get("PolicyRegistryV2")).address;
   }
 
-  if (!("didV3Address" in deps)) {
-    throw new Error("didV3Address does not exist");
+  if (!("didV5Address" in deps)) {
+    throw new Error("didV5Address does not exist");
   }
 
-  let didAddress = deps.didV3Address;
+  let didAddress = deps.didV5Address;
 
   if (!ethers.isAddress(didAddress)) {
     console.log(`Deploying DIDr for testnet`);
     // deploy for testnet
-    await deployments.run("DidRegistryV3");
-    didAddress = (await deployments.get("DidRegistryV3")).address;
+    await deployments.run("DidRegistryV5");
+    didAddress = (await deployments.get("DidRegistryV5")).address;
   }
 
   console.log(`Registry addresses did: ${didAddress}, tpr: ${tprAddress}`);

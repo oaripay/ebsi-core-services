@@ -19,8 +19,8 @@ import {
   handleVerificationMethodRevokedEvent,
   handleVerificationMethodRolledEvent,
   handleVerificationRelationshipAddedEvent,
-} from "../src/did-registry-v3/mappings";
-import { computeEventId } from "../src/did-registry-v3/utils";
+} from "../src/did-registry-v5/mappings";
+import { computeEventId } from "../src/did-registry-v5/utils";
 import {
   createBaseDocumentUpdatedEvent,
   createControllerAddedEvent,

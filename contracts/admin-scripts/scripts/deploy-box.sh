@@ -22,11 +22,11 @@ mv $dependenciesUpdated $dependencies
 # deploy proxy for DIDRegistry
 output=`yarn hardhat deploy --network box --tags OwnedUpgradeabilityProxy --reset`
 DIDRegistryProxy=`echo $output | grep -o '\b0x[a-fA-F0-9]\{40\}\b'`
-yarn hardhat initProxy --network box --proxy $DIDRegistryProxy --implementation DidRegistryV3
+yarn hardhat initProxy --network box --proxy $DIDRegistryProxy --implementation DidRegistryV5
 
 # update dependencies with did registry service
 jq --arg chainId "$chainId" --arg DIDRegistryProxy "$DIDRegistryProxy" '.[$chainId] += {
-  "didV3Address": $DIDRegistryProxy
+  "didV5Address": $DIDRegistryProxy
 }' $dependencies > $dependenciesUpdated
 
 mv $dependenciesUpdated $dependencies
@@ -55,7 +55,7 @@ yarn hardhat initProxy --network box --proxy $tsrRegistry --implementation Schem
 
 
 # output
-echo "DIDR_SC_V3_ADDRESS=$DIDRegistryProxy" >> deployments.env
+echo "DIDR_SC_V5_ADDRESS=$DIDRegistryProxy" >> deployments.env
 echo "TIMESTAMP_SC_V2_ADDRESS=$timestampProxy" >> deployments.env
 echo "TNT_SC_V2_ADDRESS=$TrackAndTraceProxy" >> deployments.env
 echo "TIR_SC_V3_ADDRESS=$tirRegistry" >> deployments.env

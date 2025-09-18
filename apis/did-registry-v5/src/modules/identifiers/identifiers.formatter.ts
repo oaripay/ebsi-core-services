@@ -1,5 +1,5 @@
 import type { PaginatedList } from "@ebsiint-api/shared";
-import type { DidRegistry } from "@ebsiint-sc/did-registry-v3";
+import type { DidRegistry } from "@ebsiint-sc/did-registry-v5";
 
 import { paginate } from "@ebsiint-api/shared";
 

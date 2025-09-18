@@ -4,13 +4,13 @@ import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-if (!process.env["DIDR_SC_V3_ADDRESS"]) {
-  console.error("DIDR_SC_V3_ADDRESS must be defined");
+if (!process.env["DIDR_SC_V5_ADDRESS"]) {
+  console.error("DIDR_SC_V5_ADDRESS must be defined");
   process.exit(1);
 }
 
-if (!process.env["DIDR_SC_V3_START_BLOCK"]) {
-  console.error("DIDR_SC_V3_START_BLOCK must be defined");
+if (!process.env["DIDR_SC_V5_START_BLOCK"]) {
+  console.error("DIDR_SC_V5_START_BLOCK must be defined");
   process.exit(1);
 }
 
@@ -122,13 +122,13 @@ writeFileSync(
 );
 
 const contents = Mustache.render(source, {
-  // DID Registry SC v3
+  // DID Registry SC v5
   didRegistryAbi: fileURLToPath(
-    import.meta.resolve("@ebsiint-sc/did-registry-v3/src/abi/DidRegistry.json"),
+    import.meta.resolve("@ebsiint-sc/did-registry-v5/src/abi/DidRegistry.json"),
   ),
-  didRegistryAddress: process.env["DIDR_SC_V3_ADDRESS"],
+  didRegistryAddress: process.env["DIDR_SC_V5_ADDRESS"],
   didRegistryStartBlock: Number.parseInt(
-    process.env["DIDR_SC_V3_START_BLOCK"],
+    process.env["DIDR_SC_V5_START_BLOCK"],
     10,
   ),
   // Timestamp SC v2

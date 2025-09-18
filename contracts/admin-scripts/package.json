@@ -24,7 +24,7 @@
     "@ebsiint-sc/bootstrap-v2": "^2.0.0-rc.8",
     "@ebsiint-sc/did-registry": "^1.1.0-rc.12",
     "@ebsiint-sc/did-registry-v2": "^2.0.0-rc.11",
-    "@ebsiint-sc/did-registry-v3": "^3.0.0-rc.8",
+    "@ebsiint-sc/did-registry-v5": "^5.0.0-rc.0",
     "@ebsiint-sc/proxy": "^2.0.0-rc.12",
     "@ebsiint-sc/timestamp": "^1.0.1-rc.12",
     "@ebsiint-sc/timestamp-v2": "^2.0.0-rc.8",

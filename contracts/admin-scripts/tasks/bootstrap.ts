@@ -1,6 +1,6 @@
 import { task } from "hardhat/config";
 
-import type { DidRegistry } from "@ebsiint-sc/did-registry-v3";
+import type { DidRegistry } from "@ebsiint-sc/did-registry-v5";
 import type { Tir } from "@ebsiint-sc/trusted-issuers-registry-v3";
 import type { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry-v2";
 import type { SchemaSCRegistry } from "@ebsiint-sc/trusted-schemas-registry-v2";
@@ -135,7 +135,7 @@ task(
 
   if (
     !process.env.TPR_SC_V2_ADDRESS ||
-    !process.env.DIDR_SC_V3_ADDRESS ||
+    !process.env.DIDR_SC_V5_ADDRESS ||
     !process.env.TIMESTAMP_SC_V2_ADDRESS ||
     !process.env.TIR_SC_V3_ADDRESS ||
     !process.env.TSR_SC_V2_ADDRESS
@@ -264,8 +264,8 @@ task(
   // Register DIDs for tprOp and SO in the did registry
 
   const didrContract = (await ethers.getContractAt(
-    "contracts/did-registry-v3/did-registry/DidRegistry.sol:DidRegistry",
-    process.env.DIDR_SC_V3_ADDRESS,
+    "contracts/did-registry-v5/did-registry/DidRegistry.sol:DidRegistry",
+    process.env.DIDR_SC_V5_ADDRESS,
   )) as unknown as DidRegistry;
 
   async function registerDidDocument(userData: UserData, signer: BaseWallet) {

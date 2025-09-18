@@ -24,8 +24,8 @@ cp -r ${SCRIPT_DIR}/../../did-registry/contracts ${SCRIPT_DIR}/../contracts/did-
 echo Copy the did-registry-v2 smart contract
 cp -r ${SCRIPT_DIR}/../../did-registry-v2/contracts ${SCRIPT_DIR}/../contracts/did-registry-v2
 
-echo Copy the did-registry-v3 smart contract
-cp -r ${SCRIPT_DIR}/../../did-registry-v3/contracts ${SCRIPT_DIR}/../contracts/did-registry-v3
+echo Copy the did-registry-v5 smart contract
+cp -r ${SCRIPT_DIR}/../../did-registry-v5/contracts ${SCRIPT_DIR}/../contracts/did-registry-v5
 
 echo Copy the proxy smart contract
 cp -r ${SCRIPT_DIR}/../../proxy/contracts ${SCRIPT_DIR}/../contracts/proxy

@@ -3,7 +3,7 @@ import type { RawServerDefault } from "fastify";
 
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { encode } from "@ebsiint-api/shared";
-import { DidRegistry__factory } from "@ebsiint-sc/did-registry-v3";
+import { DidRegistry__factory } from "@ebsiint-sc/did-registry-v5";
 import { ethers } from "ethers";
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";

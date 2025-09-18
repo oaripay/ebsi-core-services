@@ -351,7 +351,7 @@ paths:
     get:
       operationId: get-abi
       summary: Get ABI
-      description: Returns the ABI of DID Registry SC v3.
+      description: Returns the ABI of DID Registry SC v5.
       tags:
         - ABI
       responses:
@@ -361,7 +361,7 @@ paths:
             application/json:
               schema:
                 type: object
-                description: The ABI of DID Registry SC v3.
+                description: The ABI of DID Registry SC v5.
   /did-registry/v5/jsonrpc:
     post:
       operationId: post-jsonrpc
