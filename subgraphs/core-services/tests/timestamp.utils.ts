@@ -22,7 +22,7 @@ import {
   handleTimestampIdDetachedEvent,
   handleTimestampVersionHashesEvent,
   handleUpdateHashAlgoEvent,
-} from "../src/timestamp-v2/mappings";
+} from "../src/timestamp-v4/mappings";
 
 /**
  * Create a RecordedHashes event that would be emitted by the contract when calling the `appendRecordVersionHashes` function,

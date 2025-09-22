@@ -897,7 +897,7 @@ EUPL version.
 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
 
 ========================================================================================
-- @ebsiint-sc/timestamp-v2@^2.0.0-rc.8
+- @ebsiint-sc/timestamp-v4@^4.0.0-rc.0
 ------------------------------
 This project is licensed under EUPL-1.2.
 

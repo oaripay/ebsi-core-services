@@ -33,14 +33,14 @@ cp -r ${SCRIPT_DIR}/../../proxy/contracts ${SCRIPT_DIR}/../contracts/proxy
 echo Copy the timestamp smart contract
 cp -r ${SCRIPT_DIR}/../../timestamp/contracts ${SCRIPT_DIR}/../contracts/timestamp
 
-echo Copy the timestamp-v2 smart contract
-cp -r ${SCRIPT_DIR}/../../timestamp-v2/contracts ${SCRIPT_DIR}/../contracts/timestamp-v2
+echo Copy the timestamp-v4 smart contract
+cp -r ${SCRIPT_DIR}/../../timestamp-v4/contracts ${SCRIPT_DIR}/../contracts/timestamp-v4
 
 echo Copy the trusted-issuers-registry smart contract
 cp -r ${SCRIPT_DIR}/../../trusted-issuers-registry/contracts ${SCRIPT_DIR}/../contracts/trusted-issuers-registry
 
-echo Copy the trusted-issuers-registry-v3 smart contract
-cp -r ${SCRIPT_DIR}/../../trusted-issuers-registry-v3/contracts ${SCRIPT_DIR}/../contracts/trusted-issuers-registry-v3
+echo Copy the trusted-issuers-registry-v5 smart contract
+cp -r ${SCRIPT_DIR}/../../trusted-issuers-registry-v5/contracts ${SCRIPT_DIR}/../contracts/trusted-issuers-registry-v5
 
 echo Copy the trusted-policies-registry smart contract
 cp -r ${SCRIPT_DIR}/../../trusted-policies-registry/contracts ${SCRIPT_DIR}/../contracts/trusted-policies-registry

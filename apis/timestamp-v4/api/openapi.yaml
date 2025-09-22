@@ -683,7 +683,7 @@ paths:
     get:
       operationId: get-abi
       summary: Get ABI
-      description: Returns the ABI of Timestamp SC v2.
+      description: Returns the ABI of Timestamp SC v4.
       tags:
         - ABI
       responses:
@@ -693,7 +693,7 @@ paths:
             application/json:
               schema:
                 type: object
-                description: The ABI of Timestamp SC v2.
+                description: The ABI of Timestamp SC v4.
   /timestamp/v4/jsonrpc:
     post:
       operationId: post-jsonrpc

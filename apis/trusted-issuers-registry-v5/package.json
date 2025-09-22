@@ -28,7 +28,7 @@
     "@cef-ebsi/ebsi-uri": "^1.0.1",
     "@cef-ebsi/verifiable-credential": "^7.2.1-alpha.1",
     "@ebsiint-api/shared": "^1.1.0-rc.14",
-    "@ebsiint-sc/trusted-issuers-registry-v3": "^3.0.0-rc.9",
+    "@ebsiint-sc/trusted-issuers-registry-v5": "^5.0.0-rc.0",
     "@fastify/accepts": "^5.0.2",
     "@fastify/helmet": "^13.0.1",
     "@nestjs/axios": "^4.0.1",

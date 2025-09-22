@@ -1,5 +1,5 @@
 import { Accepts, Log } from "@ebsiint-api/shared";
-import { Timestamp__factory } from "@ebsiint-sc/timestamp-v2";
+import { Timestamp__factory } from "@ebsiint-sc/timestamp-v4";
 import { Controller, Get, HttpCode } from "@nestjs/common";
 
 @Controller()

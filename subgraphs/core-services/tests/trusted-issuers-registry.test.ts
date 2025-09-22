@@ -18,14 +18,14 @@ import {
   ROOT_TAO,
   TAO,
   TI,
-} from "../src/trusted-issuers-registry-v3/constants";
+} from "../src/trusted-issuers-registry-v5/constants";
 import {
   handleAddAttributeRevisionEvent,
   handleAddIssuerProxyEvent,
   handleRemoveIssuerProxyEvent,
   handleUpdateIssuerProxyEvent,
-} from "../src/trusted-issuers-registry-v3/mappings";
-import { getIssuerType } from "../src/trusted-issuers-registry-v3/utils";
+} from "../src/trusted-issuers-registry-v5/mappings";
+import { getIssuerType } from "../src/trusted-issuers-registry-v5/utils";
 import {
   assertArrayContainsAllValues,
   createAddAttributeRevisionEvent,

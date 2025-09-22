@@ -1,5 +1,5 @@
 import type { PaginatedList } from "@ebsiint-api/shared";
-import type { Tir } from "@ebsiint-sc/trusted-issuers-registry-v3";
+import type { Tir } from "@ebsiint-sc/trusted-issuers-registry-v5";
 
 import { paginate, remove0xPrefix } from "@ebsiint-api/shared";
 

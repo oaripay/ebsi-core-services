@@ -14,13 +14,13 @@ if (!process.env["DIDR_SC_V5_START_BLOCK"]) {
   process.exit(1);
 }
 
-if (!process.env["TIMESTAMP_SC_V2_ADDRESS"]) {
-  console.error("TIMESTAMP_SC_V2_ADDRESS must be defined");
+if (!process.env["TIMESTAMP_SC_V4_ADDRESS"]) {
+  console.error("TIMESTAMP_SC_V4_ADDRESS must be defined");
   process.exit(1);
 }
 
-if (!process.env["TIMESTAMP_SC_V2_START_BLOCK"]) {
-  console.error("TIMESTAMP_SC_V2_START_BLOCK must be defined");
+if (!process.env["TIMESTAMP_SC_V4_START_BLOCK"]) {
+  console.error("TIMESTAMP_SC_V4_START_BLOCK must be defined");
   process.exit(1);
 }
 
@@ -34,13 +34,13 @@ if (!process.env["TNT_SC_V1_START_BLOCK"]) {
   process.exit(1);
 }
 
-if (!process.env["TIR_SC_V3_ADDRESS"]) {
-  console.error("TIR_SC_V3_ADDRESS must be defined");
+if (!process.env["TIR_SC_V5_ADDRESS"]) {
+  console.error("TIR_SC_V5_ADDRESS must be defined");
   process.exit(1);
 }
 
-if (!process.env["TIR_SC_V3_START_BLOCK"]) {
-  console.error("TIR_SC_V3_START_BLOCK must be defined");
+if (!process.env["TIR_SC_V5_START_BLOCK"]) {
+  console.error("TIR_SC_V5_START_BLOCK must be defined");
   process.exit(1);
 }
 
@@ -76,7 +76,7 @@ const trustedIssuersRegistryAbi = JSON.parse(
   readFileSync(
     fileURLToPath(
       import.meta.resolve(
-        "@ebsiint-sc/trusted-issuers-registry-v3/src/abi/Tir.json",
+        "@ebsiint-sc/trusted-issuers-registry-v5/src/abi/Tir.json",
       ),
     ),
   ).toString(),
@@ -131,13 +131,13 @@ const contents = Mustache.render(source, {
     process.env["DIDR_SC_V5_START_BLOCK"],
     10,
   ),
-  // Timestamp SC v2
+  // Timestamp SC v4
   timestampAbi: fileURLToPath(
-    import.meta.resolve("@ebsiint-sc/timestamp-v2/src/abi/Timestamp.json"),
+    import.meta.resolve("@ebsiint-sc/timestamp-v4/src/abi/Timestamp.json"),
   ),
-  timestampAddress: process.env["TIMESTAMP_SC_V2_ADDRESS"],
+  timestampAddress: process.env["TIMESTAMP_SC_V4_ADDRESS"],
   timestampStartBlock: Number.parseInt(
-    process.env["TIMESTAMP_SC_V2_START_BLOCK"],
+    process.env["TIMESTAMP_SC_V4_START_BLOCK"],
     10,
   ),
   trackAndTraceAbi: fileURLToPath(
@@ -151,9 +151,9 @@ const contents = Mustache.render(source, {
     10,
   ),
   trustedIssuersRegistryAbi: path.resolve(dirname, "../node_modules/Tir.json"),
-  trustedIssuersRegistryAddress: process.env["TIR_SC_V3_ADDRESS"],
+  trustedIssuersRegistryAddress: process.env["TIR_SC_V5_ADDRESS"],
   trustedIssuersRegistryStartBlock: Number.parseInt(
-    process.env["TIR_SC_V3_START_BLOCK"],
+    process.env["TIR_SC_V5_START_BLOCK"],
     10,
   ),
   trustedPoliciesRegistryAbi: fileURLToPath(

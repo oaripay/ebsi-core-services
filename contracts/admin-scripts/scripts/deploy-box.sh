@@ -31,19 +31,19 @@ jq --arg chainId "$chainId" --arg DIDRegistryProxy "$DIDRegistryProxy" '.[$chain
 
 mv $dependenciesUpdated $dependencies
 
-# deploy proxy for TimestampV2
+# deploy proxy for TimestampV4
 output=`yarn hardhat deploy --network box --tags OwnedUpgradeabilityProxy --reset`
 timestampProxy=`echo $output | grep -o '\b0x[a-fA-F0-9]\{40\}\b'`
-yarn hardhat initProxy --network box --proxy $timestampProxy --implementation TimestampV2
+yarn hardhat initProxy --network box --proxy $timestampProxy --implementation TimestampV4
 
 # track and trace
 output=`yarn hardhat --network box trackAndTrace --admin  $account --upgrader $account --registry $DIDRegistryProxy --tpr $tprProxy`
 TrackAndTraceProxy=`echo $output | grep -o '\b0x[a-fA-F0-9]\{40\}\b' | tail -1`
 
-# deploy proxy for TIR V3
+# deploy proxy for TIR V5
 output=`yarn hardhat deploy --network box --tags OwnedUpgradeabilityProxy --reset`
 tirRegistry=`echo $output | grep -o '\b0x[a-fA-F0-9]\{40\}\b'`
-yarn hardhat initProxy --network box --proxy $tirRegistry --implementation TirV3
+yarn hardhat initProxy --network box --proxy $tirRegistry --implementation TirV5
 
 # deploy proxy for TSR V2
 output=`yarn hardhat deploy --network box --tags OwnedUpgradeabilityProxy --reset`
@@ -56,8 +56,8 @@ yarn hardhat initProxy --network box --proxy $tsrRegistry --implementation Schem
 
 # output
 echo "DIDR_SC_V5_ADDRESS=$DIDRegistryProxy" >> deployments.env
-echo "TIMESTAMP_SC_V2_ADDRESS=$timestampProxy" >> deployments.env
-echo "TNT_SC_V2_ADDRESS=$TrackAndTraceProxy" >> deployments.env
-echo "TIR_SC_V3_ADDRESS=$tirRegistry" >> deployments.env
+echo "TIMESTAMP_SC_V4_ADDRESS=$timestampProxy" >> deployments.env
+echo "TNT_SC_V1_ADDRESS=$TrackAndTraceProxy" >> deployments.env
+echo "TIR_SC_V5_ADDRESS=$tirRegistry" >> deployments.env
 echo "TPR_SC_V2_ADDRESS=$tprProxy" >> deployments.env
 echo "TSR_SC_V2_ADDRESS=$tsrRegistry" >> deployments.env

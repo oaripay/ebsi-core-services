@@ -6,7 +6,7 @@ const path = require("node:path");
 require("@nomicfoundation/hardhat-ethers");
 
 const timestampScPath = path.resolve(
-  require.resolve("@ebsiint-sc/timestamp-v2"),
+  require.resolve("@ebsiint-sc/timestamp-v4"),
   "../..", // relative to "dist/index.js"
 );
 

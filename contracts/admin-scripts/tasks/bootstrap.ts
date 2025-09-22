@@ -1,7 +1,7 @@
 import { task } from "hardhat/config";
 
 import type { DidRegistry } from "@ebsiint-sc/did-registry-v5";
-import type { Tir } from "@ebsiint-sc/trusted-issuers-registry-v3";
+import type { Tir } from "@ebsiint-sc/trusted-issuers-registry-v5";
 import type { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry-v2";
 import type { SchemaSCRegistry } from "@ebsiint-sc/trusted-schemas-registry-v2";
 
@@ -136,8 +136,8 @@ task(
   if (
     !process.env.TPR_SC_V2_ADDRESS ||
     !process.env.DIDR_SC_V5_ADDRESS ||
-    !process.env.TIMESTAMP_SC_V2_ADDRESS ||
-    !process.env.TIR_SC_V3_ADDRESS ||
+    !process.env.TIMESTAMP_SC_V4_ADDRESS ||
+    !process.env.TIR_SC_V5_ADDRESS ||
     !process.env.TSR_SC_V2_ADDRESS
   ) {
     console.log("deploy contracts first");
@@ -352,8 +352,8 @@ task(
   // insert hash algs in timestamp
   console.log(`inserting hash algs in timestamp...`);
   const timestampContract = await ethers.getContractAt(
-    "contracts/timestamp-v2/timestamp/Timestamp.sol:Timestamp",
-    process.env.TIMESTAMP_SC_V2_ADDRESS,
+    "contracts/timestamp-v4/timestamp/Timestamp.sol:Timestamp",
+    process.env.TIMESTAMP_SC_V4_ADDRESS,
     soSigner,
   );
 
@@ -388,8 +388,8 @@ task(
   // register SO as root tao in tir
 
   const tirContract = (await ethers.getContractAt(
-    "contracts/trusted-issuers-registry-v3/tir/Tir.sol:Tir",
-    process.env.TIR_SC_V3_ADDRESS,
+    "contracts/trusted-issuers-registry-v5/tir/Tir.sol:Tir",
+    process.env.TIR_SC_V5_ADDRESS,
     tprSigner,
   )) as unknown as Tir;
 

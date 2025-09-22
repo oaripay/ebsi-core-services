@@ -19,10 +19,10 @@ COPY --from=builder /app/apis/timestamp-v4/api ./apis/timestamp-v4/api
 COPY --from=builder /app/contracts/bootstrap-v2/package.json ./contracts/bootstrap-v2/package.json
 COPY --from=builder /app/contracts/bootstrap-v2/dist ./contracts/bootstrap-v2/dist
 COPY --from=builder /app/contracts/bootstrap-v2/artifacts ./contracts/bootstrap-v2/artifacts
-# Copy Timestamp SC v2
-COPY --from=builder /app/contracts/timestamp-v2/package.json ./contracts/timestamp-v2/package.json
-COPY --from=builder /app/contracts/timestamp-v2/dist ./contracts/timestamp-v2/dist
-COPY --from=builder /app/contracts/timestamp-v2/artifacts ./contracts/timestamp-v2/artifacts
+# Copy Timestamp SC v4
+COPY --from=builder /app/contracts/timestamp-v4/package.json ./contracts/timestamp-v4/package.json
+COPY --from=builder /app/contracts/timestamp-v4/dist ./contracts/timestamp-v4/dist
+COPY --from=builder /app/contracts/timestamp-v4/artifacts ./contracts/timestamp-v4/artifacts
 # Copy TPR SC v2
 COPY --from=builder /app/contracts/trusted-policies-registry-v2/package.json ./contracts/trusted-policies-registry-v2/package.json
 COPY --from=builder /app/contracts/trusted-policies-registry-v2/dist ./contracts/trusted-policies-registry-v2/dist

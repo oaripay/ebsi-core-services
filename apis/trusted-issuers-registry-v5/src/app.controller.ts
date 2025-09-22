@@ -1,5 +1,5 @@
 import { Accepts, Log } from "@ebsiint-api/shared";
-import { Tir__factory } from "@ebsiint-sc/trusted-issuers-registry-v3";
+import { Tir__factory } from "@ebsiint-sc/trusted-issuers-registry-v5";
 import { Controller, Get, HttpCode } from "@nestjs/common";
 
 @Controller()
