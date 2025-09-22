@@ -159,27 +159,17 @@
           },
           "t_enum(ACCESS_ENUM)34541": {
             "label": "enum ITrackAndTraceInterface.ACCESS_ENUM",
-            "members": [
-              "DELEGATE",
-              "WRITE",
-              "CREATOR"
-            ],
+            "members": ["DELEGATE", "WRITE", "CREATOR"],
             "numberOfBytes": "1"
           },
           "t_enum(ACCOUNT_TYPE)34544": {
             "label": "enum ITrackAndTraceInterface.ACCOUNT_TYPE",
-            "members": [
-              "DID_EBSI",
-              "DID_KEY"
-            ],
+            "members": ["DID_EBSI", "DID_KEY"],
             "numberOfBytes": "1"
           },
           "t_enum(Source)34537": {
             "label": "enum ITrackAndTraceInterface.Source",
-            "members": [
-              "Block",
-              "External"
-            ],
+            "members": ["Block", "External"],
             "numberOfBytes": "1"
           },
           "t_mapping(t_address,t_bool)": {
@@ -638,27 +628,17 @@
           },
           "t_enum(ACCESS_ENUM)42215": {
             "label": "enum ITrackAndTraceInterface.ACCESS_ENUM",
-            "members": [
-              "DELEGATE",
-              "WRITE",
-              "CREATOR"
-            ],
+            "members": ["DELEGATE", "WRITE", "CREATOR"],
             "numberOfBytes": "1"
           },
           "t_enum(ACCOUNT_TYPE)42218": {
             "label": "enum ITrackAndTraceInterface.ACCOUNT_TYPE",
-            "members": [
-              "DID_EBSI",
-              "DID_KEY"
-            ],
+            "members": ["DID_EBSI", "DID_KEY"],
             "numberOfBytes": "1"
           },
           "t_enum(Source)42211": {
             "label": "enum ITrackAndTraceInterface.Source",
-            "members": [
-              "Block",
-              "External"
-            ],
+            "members": ["Block", "External"],
             "numberOfBytes": "1"
           },
           "t_mapping(t_address,t_bool)": {
@@ -1133,27 +1113,17 @@
           },
           "t_enum(ACCESS_ENUM)35197": {
             "label": "enum ITrackAndTraceInterface.ACCESS_ENUM",
-            "members": [
-              "DELEGATE",
-              "WRITE",
-              "CREATOR"
-            ],
+            "members": ["DELEGATE", "WRITE", "CREATOR"],
             "numberOfBytes": "1"
           },
           "t_enum(ACCOUNT_TYPE)35200": {
             "label": "enum ITrackAndTraceInterface.ACCOUNT_TYPE",
-            "members": [
-              "DID_EBSI",
-              "DID_KEY"
-            ],
+            "members": ["DID_EBSI", "DID_KEY"],
             "numberOfBytes": "1"
           },
           "t_enum(Source)35193": {
             "label": "enum ITrackAndTraceInterface.Source",
-            "members": [
-              "Block",
-              "External"
-            ],
+            "members": ["Block", "External"],
             "numberOfBytes": "1"
           },
           "t_mapping(t_address,t_bool)": {
@@ -1629,27 +1599,17 @@
           },
           "t_enum(ACCESS_ENUM)35197": {
             "label": "enum ITrackAndTraceInterface.ACCESS_ENUM",
-            "members": [
-              "DELEGATE",
-              "WRITE",
-              "CREATOR"
-            ],
+            "members": ["DELEGATE", "WRITE", "CREATOR"],
             "numberOfBytes": "1"
           },
           "t_enum(ACCOUNT_TYPE)35200": {
             "label": "enum ITrackAndTraceInterface.ACCOUNT_TYPE",
-            "members": [
-              "DID_EBSI",
-              "DID_KEY"
-            ],
+            "members": ["DID_EBSI", "DID_KEY"],
             "numberOfBytes": "1"
           },
           "t_enum(Source)35193": {
             "label": "enum ITrackAndTraceInterface.Source",
-            "members": [
-              "Block",
-              "External"
-            ],
+            "members": ["Block", "External"],
             "numberOfBytes": "1"
           },
           "t_mapping(t_address,t_bool)": {

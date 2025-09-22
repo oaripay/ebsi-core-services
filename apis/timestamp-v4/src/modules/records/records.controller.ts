@@ -1,5 +1,5 @@
 import type { PaginatedList } from "@ebsiint-api/shared";
-import type { Timestamp } from "@ebsiint-sc/timestamp-v2";
+import type { Timestamp } from "@ebsiint-sc/timestamp-v4";
 
 import { Accepts } from "@ebsiint-api/shared";
 import { Controller, Get, Param, Query } from "@nestjs/common";

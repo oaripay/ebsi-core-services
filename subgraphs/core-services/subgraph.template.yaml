@@ -86,7 +86,7 @@ dataSources:
           handler: handleRecordOwnerAddedEvent
         - event: OwnerIdRevoked(string)
           handler: handleOwnerIdRevokedEvent
-      file: ./src/timestamp-v2/mappings.ts
+      file: ./src/timestamp-v4/mappings.ts
   - kind: ethereum
     name: TrackAndTrace
     network: besu
@@ -156,7 +156,7 @@ dataSources:
           handler: handleUpdateIssuerProxyEvent
         - event: RemoveIssuerProxy(string,indexed bytes32)
           handler: handleRemoveIssuerProxyEvent
-      file: ./src/trusted-issuers-registry-v3/mappings.ts
+      file: ./src/trusted-issuers-registry-v5/mappings.ts
   - kind: ethereum
     name: TrustedPoliciesRegistry
     network: besu

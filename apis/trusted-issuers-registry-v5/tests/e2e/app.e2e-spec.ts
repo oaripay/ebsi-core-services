@@ -1,7 +1,7 @@
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 
-import { Tir__factory } from "@ebsiint-sc/trusted-issuers-registry-v3";
+import { Tir__factory } from "@ebsiint-sc/trusted-issuers-registry-v5";
 import { ConfigService } from "@nestjs/config";
 import { useContainer } from "class-validator";
 import request from "supertest";

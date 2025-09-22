@@ -27,7 +27,7 @@
   "dependencies": {
     "@cef-ebsi/ebsi-uri": "^1.0.1",
     "@ebsiint-api/shared": "^1.1.0-rc.14",
-    "@ebsiint-sc/timestamp-v2": "^2.0.0-rc.8",
+    "@ebsiint-sc/timestamp-v4": "^4.0.0-rc.0",
     "@fastify/accepts": "^5.0.2",
     "@fastify/helmet": "^13.0.1",
     "@nestjs/axios": "^4.0.1",

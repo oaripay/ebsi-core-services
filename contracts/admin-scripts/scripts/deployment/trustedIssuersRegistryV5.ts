@@ -53,16 +53,16 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
 
   console.log(`Registry addresses did: ${didAddress}, tpr: ${tprAddress}`);
 
-  const ts = await deployments.deploy("TirV3", {
+  const ts = await deployments.deploy("TirV5", {
     args: [tprAddress, didAddress],
-    contract: "contracts/trusted-issuers-registry-v3/tir/Tir.sol:Tir",
+    contract: "contracts/trusted-issuers-registry-v5/tir/Tir.sol:Tir",
     from: deployer,
     log: true,
   });
 
-  deployments.log("Trusted Issuers Registry v3 deployed at:", ts.address);
+  deployments.log("Trusted Issuers Registry v5 deployed at:", ts.address);
 };
 
-func.tags = ["TirV3"];
+func.tags = ["TirV5"];
 
 export default func;

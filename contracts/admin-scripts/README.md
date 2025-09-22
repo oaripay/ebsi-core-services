@@ -124,7 +124,7 @@ Deploy proxy and implementation for Trusted Issuers Registry, and change the adm
 
 ```sh
 yarn hardhat --network test deploy --tags OwnedUpgradeabilityProxy --gasprice 0 --reset
-yarn hardhat --network test initProxy --proxy PROXY_ADDRESS_TIR --implementation TirV3
+yarn hardhat --network test initProxy --proxy PROXY_ADDRESS_TIR --implementation TirV5
 yarn hardhat --network test changeOwnership --proxy PROXY_ADDRESS_TIR
 ```
 
@@ -154,7 +154,7 @@ Deploy proxy and implementation for Timestamp, and change the admin to the multi
 
 ```sh
 yarn hardhat --network test deploy --tags OwnedUpgradeabilityProxy --gasprice 0 --reset
-yarn hardhat --network test initProxy --proxy PROXY_ADDRESS_TIMESTAMP --implementation TimestampV2
+yarn hardhat --network test initProxy --proxy PROXY_ADDRESS_TIMESTAMP --implementation TimestampV4
 yarn hardhat --network test changeOwnership --proxy PROXY_ADDRESS_TIMESTAMP
 ```
 

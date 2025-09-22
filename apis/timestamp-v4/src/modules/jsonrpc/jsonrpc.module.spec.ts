@@ -1,10 +1,10 @@
-import type { Timestamp } from "@ebsiint-sc/timestamp-v2";
+import type { Timestamp } from "@ebsiint-sc/timestamp-v4";
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { HardhatEthersProvider } from "@nomicfoundation/hardhat-ethers/internal/hardhat-ethers-provider.js";
 import type { RawServerDefault } from "fastify";
 import type { GenerateKeyPairResult } from "jose";
 
-import { Timestamp__factory } from "@ebsiint-sc/timestamp-v2";
+import { Timestamp__factory } from "@ebsiint-sc/timestamp-v4";
 import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 import {

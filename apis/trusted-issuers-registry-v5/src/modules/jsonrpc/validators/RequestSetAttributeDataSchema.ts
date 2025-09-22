@@ -1,4 +1,4 @@
-import type { Tir } from "@ebsiint-sc/trusted-issuers-registry-v3";
+import type { Tir } from "@ebsiint-sc/trusted-issuers-registry-v5";
 
 import { isDidV1 } from "@ebsiint-api/shared";
 import validator from "validator";

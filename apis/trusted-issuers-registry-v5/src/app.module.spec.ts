@@ -1,4 +1,4 @@
-import { Tir__factory } from "@ebsiint-sc/trusted-issuers-registry-v3";
+import { Tir__factory } from "@ebsiint-sc/trusted-issuers-registry-v5";
 import { ConfigService } from "@nestjs/config";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";

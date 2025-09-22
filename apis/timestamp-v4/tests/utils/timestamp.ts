@@ -1,8 +1,8 @@
-import "@ebsiint-sc/timestamp-v2/dist/hardhat.d.ts";
+import "@ebsiint-sc/timestamp-v4/dist/hardhat.d.ts";
 
 import hre from "hardhat";
 
-import type { PolicyRegistryMock, Timestamp } from "@ebsiint-sc/timestamp-v2";
+import type { PolicyRegistryMock, Timestamp } from "@ebsiint-sc/timestamp-v4";
 import type { ContractTransactionResponse } from "ethers";
 import type { HashName } from "multihashes";
 

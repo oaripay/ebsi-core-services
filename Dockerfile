@@ -36,9 +36,9 @@ COPY ./contracts/did-registry-v5/package.json ./contracts/did-registry-v5/
 COPY ./contracts/proxy/package.json ./contracts/proxy/
 COPY ./contracts/track-and-trace/package.json ./contracts/track-and-trace/
 COPY ./contracts/timestamp/package.json ./contracts/timestamp/
-COPY ./contracts/timestamp-v2/package.json ./contracts/timestamp-v2/
+COPY ./contracts/timestamp-v4/package.json ./contracts/timestamp-v4/
 COPY ./contracts/trusted-issuers-registry/package.json ./contracts/trusted-issuers-registry/
-COPY ./contracts/trusted-issuers-registry-v3/package.json ./contracts/trusted-issuers-registry-v3/
+COPY ./contracts/trusted-issuers-registry-v5/package.json ./contracts/trusted-issuers-registry-v5/
 COPY ./contracts/trusted-policies-registry/package.json ./contracts/trusted-policies-registry/
 COPY ./contracts/trusted-policies-registry-v2/package.json ./contracts/trusted-policies-registry-v2/
 COPY ./contracts/trusted-schemas-registry/package.json ./contracts/trusted-schemas-registry/

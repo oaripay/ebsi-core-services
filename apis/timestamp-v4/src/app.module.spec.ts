@@ -1,7 +1,7 @@
 import type { PaginatedList } from "@ebsiint-api/shared";
 
 import { multibase } from "@ebsiint-api/shared";
-import { Timestamp__factory } from "@ebsiint-sc/timestamp-v2";
+import { Timestamp__factory } from "@ebsiint-sc/timestamp-v4";
 import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 import {

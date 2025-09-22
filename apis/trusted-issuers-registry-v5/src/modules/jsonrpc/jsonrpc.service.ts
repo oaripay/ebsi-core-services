@@ -1,5 +1,5 @@
 import type { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
-import type { Tir } from "@ebsiint-sc/trusted-issuers-registry-v3";
+import type { Tir } from "@ebsiint-sc/trusted-issuers-registry-v5";
 
 import {
   decodeResult,
@@ -8,7 +8,7 @@ import {
   isEthersError,
   logAxiosError,
 } from "@ebsiint-api/shared";
-import { Tir__factory } from "@ebsiint-sc/trusted-issuers-registry-v3";
+import { Tir__factory } from "@ebsiint-sc/trusted-issuers-registry-v5";
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import axios, { isAxiosError } from "axios";

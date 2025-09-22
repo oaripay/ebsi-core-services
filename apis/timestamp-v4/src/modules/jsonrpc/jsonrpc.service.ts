@@ -1,4 +1,4 @@
-import type { Timestamp } from "@ebsiint-sc/timestamp-v2";
+import type { Timestamp } from "@ebsiint-sc/timestamp-v4";
 
 import {
   decodeResult,
@@ -7,7 +7,7 @@ import {
   isEthersError,
   logAxiosError,
 } from "@ebsiint-api/shared";
-import { Timestamp__factory } from "@ebsiint-sc/timestamp-v2";
+import { Timestamp__factory } from "@ebsiint-sc/timestamp-v4";
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import axios, { isAxiosError } from "axios";

@@ -1,4 +1,4 @@
-import "@ebsiint-sc/trusted-issuers-registry-v3/dist/hardhat.d.ts";
+import "@ebsiint-sc/trusted-issuers-registry-v5/dist/hardhat.d.ts";
 
 import hre from "hardhat";
 
@@ -7,7 +7,7 @@ import type {
   DidRegistryMock,
   PolicyRegistryMock,
   Tir,
-} from "@ebsiint-sc/trusted-issuers-registry-v3";
+} from "@ebsiint-sc/trusted-issuers-registry-v5";
 import type { HardhatEthersProvider } from "@nomicfoundation/hardhat-ethers/internal/hardhat-ethers-provider.js";
 
 import "@nomicfoundation/hardhat-ethers";

@@ -5,7 +5,7 @@ import type { RawServerDefault } from "fastify";
 import * as vcLib from "@cef-ebsi/verifiable-credential";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { remove0xPrefix } from "@ebsiint-api/shared";
-import { Tir__factory } from "@ebsiint-sc/trusted-issuers-registry-v3";
+import { Tir__factory } from "@ebsiint-sc/trusted-issuers-registry-v5";
 import axios, { AxiosError } from "axios";
 import { ethers } from "ethers";
 import { randomBytes } from "node:crypto";

@@ -1,4 +1,4 @@
-import type { Tir } from "@ebsiint-sc/trusted-issuers-registry-v3";
+import type { Tir } from "@ebsiint-sc/trusted-issuers-registry-v5";
 
 import { describe, expect, it } from "vitest";
 

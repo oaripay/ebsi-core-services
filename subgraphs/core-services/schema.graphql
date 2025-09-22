@@ -98,7 +98,7 @@ type DidDocumentEvent @entity(immutable: true) {
 }
 
 ###############################################################################
-#                               Timestamp SC v2                               #
+#                               Timestamp SC v4                               #
 ###############################################################################
 
 enum HashAlgorithmStatus {
@@ -259,7 +259,7 @@ type DocumentEvent @entity(immutable: false) {
 }
 
 ###############################################################################
-#                        Trusted Issuers Registry SC v3                       #
+#                        Trusted Issuers Registry SC v5                       #
 ###############################################################################
 
 enum IssuerType {

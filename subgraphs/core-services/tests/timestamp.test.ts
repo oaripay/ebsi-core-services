@@ -15,7 +15,7 @@ import {
   RecordVersion,
   TimestampedHash,
 } from "../generated/schema";
-import { getVersionId } from "../src/timestamp-v2/utils";
+import { getVersionId } from "../src/timestamp-v4/utils";
 import {
   appendRecordVersionHashes,
   assertArrayContainsAllValues,

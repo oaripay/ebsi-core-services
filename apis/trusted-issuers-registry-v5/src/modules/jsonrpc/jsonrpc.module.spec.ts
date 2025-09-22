@@ -1,5 +1,5 @@
 import type { EbsiIssuer } from "@cef-ebsi/verifiable-credential";
-import type { Tir } from "@ebsiint-sc/trusted-issuers-registry-v3";
+import type { Tir } from "@ebsiint-sc/trusted-issuers-registry-v5";
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 import type { GenerateKeyPairResult } from "jose";
@@ -13,7 +13,7 @@ import {
 } from "@ebsiint-api/shared";
 // eslint-disable-next-line import/namespace
 import * as StatusList2021CredentialHelpers from "@ebsiint-api/shared";
-import { Tir__factory } from "@ebsiint-sc/trusted-issuers-registry-v3";
+import { Tir__factory } from "@ebsiint-sc/trusted-issuers-registry-v5";
 import { ConfigService } from "@nestjs/config";
 import { useContainer } from "class-validator";
 import { ethers } from "ethers";

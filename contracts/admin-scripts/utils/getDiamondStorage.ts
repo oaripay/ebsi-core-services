@@ -18,11 +18,11 @@ export function getDiamondStorage(contractName: string) {
       return "diamond.standard.tar.storage";
     }
     case "Timestamp":
-    case "TimestampV2": {
+    case "TimestampV4": {
       return "diamond.standard.timestamp.storage";
     }
     case "Tir":
-    case "TirV3": {
+    case "TirV5": {
       return "diamond.standard.tir.storage";
     }
     default: {

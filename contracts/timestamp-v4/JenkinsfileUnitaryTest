@@ -29,7 +29,7 @@ pipeline {
         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
           dir('core-services') {
             nodejs(nodeJSInstallationName: '16.17.1') {
-              sh 'yarn nx lint @ebsiint-sc/trusted-issuers-registry-v3'
+              sh 'yarn nx lint @ebsiint-sc/timestamp-v4'
             }
           }
         }
@@ -40,7 +40,7 @@ pipeline {
         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
           dir('core-services') {
               nodejs(nodeJSInstallationName: '16.17.1') {
-                  sh 'yarn nx test:unit @ebsiint-sc/trusted-issuers-registry-v3'
+                  sh 'yarn nx test:unit @ebsiint-sc/timestamp-v4'
               }
           }
         }

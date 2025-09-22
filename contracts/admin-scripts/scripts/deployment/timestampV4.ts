@@ -38,12 +38,12 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
 
   const { deployer } = await getNamedAccounts();
   const hashAlgoLib = await deployments.deploy("HashAlgoLib", {
-    contract: "contracts/timestamp-v2/timestamp/HashAlgoLib.sol:HashAlgoLib",
+    contract: "contracts/timestamp-v4/timestamp/HashAlgoLib.sol:HashAlgoLib",
     from: deployer,
     log: true,
   });
   const timestampLib = await deployments.deploy("TimestampLib", {
-    contract: "contracts/timestamp-v2/timestamp/TimestampLib.sol:TimestampLib",
+    contract: "contracts/timestamp-v4/timestamp/TimestampLib.sol:TimestampLib",
     from: deployer,
     log: true,
   });
@@ -53,7 +53,7 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     log: true,
   });
   const recordLib = await deployments.deploy("RecordLib", {
-    contract: "contracts/timestamp-v2/timestamp/RecordLib.sol:RecordLib",
+    contract: "contracts/timestamp-v4/timestamp/RecordLib.sol:RecordLib",
     from: deployer,
     libraries: {
       StringManip: stringManip.address,
@@ -61,9 +61,9 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     log: true,
   });
 
-  const ts = await deployments.deploy("TimestampV2", {
+  const ts = await deployments.deploy("TimestampV4", {
     args: [tprAddress],
-    contract: "contracts/timestamp-v2/timestamp/Timestamp.sol:Timestamp",
+    contract: "contracts/timestamp-v4/timestamp/Timestamp.sol:Timestamp",
     from: deployer,
     libraries: {
       HashAlgoLib: hashAlgoLib.address,
@@ -76,9 +76,9 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   deployments.log("TimestampLib deployed at: ", timestampLib.address);
   deployments.log("RecordLib deployed at: ", recordLib.address);
 
-  deployments.log("Timestamp v2 deployed at:", ts.address);
+  deployments.log("Timestamp v4 deployed at:", ts.address);
 };
 
-func.tags = ["TimestampV2"];
+func.tags = ["TimestampV4"];
 
 export default func;
