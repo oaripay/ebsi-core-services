@@ -1,5 +1,5 @@
 import type { PaginatedList } from "@ebsiint-api/shared";
-import type { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry-v2";
+import type { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry-v3";
 
 import { paginate } from "@ebsiint-api/shared";
 

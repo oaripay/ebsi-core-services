@@ -5,7 +5,7 @@ pragma solidity 0.8.12;
 
 import "./SchemaStorage.sol";
 import "./SchemaLib.sol";
-import "@ebsiint-sc/trusted-policies-registry-v2/contracts/trusted-policies-registry/interfaces/IPolicyRegistry.sol";
+import "@ebsiint-sc/trusted-policies-registry-v3/contracts/trusted-policies-registry/interfaces/IPolicyRegistry.sol";
 import "@ebsiint-sc/bootstrap-v2/contracts/utils/Pagination.sol";
 
 abstract contract SchemaDetailed is SchemaStorage {

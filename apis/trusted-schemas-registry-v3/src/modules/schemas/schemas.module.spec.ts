@@ -1,7 +1,7 @@
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 
-import { SchemaSCRegistry__factory } from "@ebsiint-sc/trusted-schemas-registry-v2";
+import { SchemaSCRegistry__factory } from "@ebsiint-sc/trusted-schemas-registry-v3";
 import { ethers } from "ethers";
 import crypto from "node:crypto";
 import request from "supertest";

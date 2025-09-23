@@ -4,7 +4,7 @@ pragma solidity 0.8.12;
 import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import "./interfaces/ITrackAndTraceInterface.sol";
-import "@ebsiint-sc/trusted-policies-registry-v2/contracts/trusted-policies-registry/interfaces/IPolicyRegistry.sol";
+import "@ebsiint-sc/trusted-policies-registry-v3/contracts/trusted-policies-registry/interfaces/IPolicyRegistry.sol";
 import "@ebsiint-sc/did-registry-v5/contracts/did-registry/interfaces/IDidRegistry.sol";
 import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import {EnumerableMapUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/structs/EnumerableMapUpgradeable.sol";

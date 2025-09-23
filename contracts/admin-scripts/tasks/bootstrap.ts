@@ -2,8 +2,8 @@ import { task } from "hardhat/config";
 
 import type { DidRegistry } from "@ebsiint-sc/did-registry-v5";
 import type { Tir } from "@ebsiint-sc/trusted-issuers-registry-v5";
-import type { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry-v2";
-import type { SchemaSCRegistry } from "@ebsiint-sc/trusted-schemas-registry-v2";
+import type { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry-v3";
+import type { SchemaSCRegistry } from "@ebsiint-sc/trusted-schemas-registry-v3";
 
 /* eslint-disable perfectionist/sort-imports */
 import schema1 from "@cef-ebsi/vcdm1.1-accreditation-schema";
@@ -134,11 +134,11 @@ task(
   const domain = process.env.EBSI_DOMAIN;
 
   if (
-    !process.env.TPR_SC_V2_ADDRESS ||
+    !process.env.TPR_SC_V3_ADDRESS ||
     !process.env.DIDR_SC_V5_ADDRESS ||
     !process.env.TIMESTAMP_SC_V4_ADDRESS ||
     !process.env.TIR_SC_V5_ADDRESS ||
-    !process.env.TSR_SC_V2_ADDRESS
+    !process.env.TSR_SC_V3_ADDRESS
   ) {
     console.log("deploy contracts first");
     return;
@@ -187,14 +187,14 @@ task(
   const soSigner = soOp.connect(ethers.provider);
 
   const tprContract = (await ethers.getContractAt(
-    "contracts/trusted-policies-registry-v2/trusted-policies-registry/PolicyRegistry.sol:PolicyRegistry",
-    process.env.TPR_SC_V2_ADDRESS,
+    "contracts/trusted-policies-registry-v3/trusted-policies-registry/PolicyRegistry.sol:PolicyRegistry",
+    process.env.TPR_SC_V3_ADDRESS,
   )) as unknown as PolicyRegistry;
 
   // move admin to next signer
   const tprContractProxy = await ethers.getContractAt(
     "OwnedUpgradeabilityProxy",
-    process.env.TPR_SC_V2_ADDRESS,
+    process.env.TPR_SC_V3_ADDRESS,
   );
   if (
     (await tprContractProxy.admin()) === (await ethers.getSigners())[0].address
@@ -491,8 +491,8 @@ task(
   // register schemas
   console.log(`registering schemas...`);
   const tsrContract = (await ethers.getContractAt(
-    "contracts/trusted-schemas-registry-v2/trusted-schemas-registry/SchemaSCRegistry.sol:SchemaSCRegistry",
-    process.env.TSR_SC_V2_ADDRESS,
+    "contracts/trusted-schemas-registry-v3/trusted-schemas-registry/SchemaSCRegistry.sol:SchemaSCRegistry",
+    process.env.TSR_SC_V3_ADDRESS,
   )) as unknown as SchemaSCRegistry;
   for (const { metadata, schema } of schemas) {
     try {

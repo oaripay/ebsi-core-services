@@ -89,7 +89,7 @@ yarn hardhat --network test deploy --tags OwnedUpgradeabilityProxy --gasprice 0 
 Copy the address of the proxy and use it to deploy the implementation:
 
 ```sh
-yarn hardhat --network test initProxy --proxy PROXY_ADDRESS_TPR --implementation PolicyRegistryV2
+yarn hardhat --network test initProxy --proxy PROXY_ADDRESS_TPR --implementation PolicyRegistryV3
 ```
 
 Grant the role operator to some addresses. This operator will have the right to insert data (policies and users) in this registry (see the [CLI bootstrap script](https://code.europa.eu/ebsi/public/cli/-/tree/main/src/scripts/bootstrap)):
@@ -144,7 +144,7 @@ Deploy proxy and implementation for Trusted Schemas Registry, and change the adm
 
 ```sh
 yarn hardhat --network test deploy --tags OwnedUpgradeabilityProxy --gasprice 0 --reset
-yarn hardhat --network test initProxy --proxy PROXY_ADDRESS_TSR --implementation SchemaSCRegistryV2
+yarn hardhat --network test initProxy --proxy PROXY_ADDRESS_TSR --implementation SchemaSCRegistryV3
 yarn hardhat --network test changeOwnership --proxy PROXY_ADDRESS_TSR
 ```
 

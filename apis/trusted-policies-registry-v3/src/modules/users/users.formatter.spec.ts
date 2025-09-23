@@ -1,4 +1,4 @@
-import type { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry-v2";
+import type { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry-v3";
 
 import { describe, expect, it } from "vitest";
 

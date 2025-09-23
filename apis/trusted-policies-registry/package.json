@@ -54,6 +54,7 @@
     "@nomicfoundation/hardhat-ethers": "^3.1.0",
     "@stoplight/spectral-cli": "^6.15.0",
     "@swc/core": "^1.13.3",
+    "@total-typescript/ts-reset": "^0.6.1",
     "@tsconfig/node22": "^22.0.2",
     "@tsconfig/strictest": "^2.0.5",
     "@types/k6": "^1.1.1",

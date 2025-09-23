@@ -1,4 +1,4 @@
-import type { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry-v2";
+import type { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry-v3";
 
 import {
   decodeResult,
@@ -7,7 +7,7 @@ import {
   isEthersError,
   logAxiosError,
 } from "@ebsiint-api/shared";
-import { PolicyRegistry__factory } from "@ebsiint-sc/trusted-policies-registry-v2";
+import { PolicyRegistry__factory } from "@ebsiint-sc/trusted-policies-registry-v3";
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import axios, { isAxiosError } from "axios";

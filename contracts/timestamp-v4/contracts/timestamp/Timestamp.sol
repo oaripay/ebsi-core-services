@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import "./TimestampDetailed.sol";
 import "./RecordDetailed.sol";
 import "./HashAlgoDetailed.sol";
-import "@ebsiint-sc/trusted-policies-registry-v2/contracts/trusted-policies-registry/interfaces/IPolicyRegistry.sol";
+import "@ebsiint-sc/trusted-policies-registry-v3/contracts/trusted-policies-registry/interfaces/IPolicyRegistry.sol";
 
 /**
  * @title Timestamp Smart Contract

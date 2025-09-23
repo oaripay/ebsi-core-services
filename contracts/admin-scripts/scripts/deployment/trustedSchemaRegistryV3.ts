@@ -28,17 +28,17 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
 
   const deps = dependencies[chainId];
 
-  if (!("tprV2Address" in deps)) {
-    throw new Error("tprV2Address does not exist");
+  if (!("tprV3Address" in deps)) {
+    throw new Error("tprV3Address does not exist");
   }
 
-  let tprAddress = deps.tprV2Address;
+  let tprAddress = deps.tprV3Address;
 
   if (!ethers.isAddress(tprAddress)) {
     console.log(`Deploying TPR for testnet`);
     // deploy for testnet
-    await deployments.run("PolicyRegistryV2");
-    tprAddress = (await deployments.get("PolicyRegistryV2")).address;
+    await deployments.run("PolicyRegistryV3");
+    tprAddress = (await deployments.get("PolicyRegistryV3")).address;
   }
 
   console.log(`Trusted Policy Registry Address is ${tprAddress}`);
@@ -46,22 +46,22 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   const schemaLib = await deployments.deploy("SchemaLib", {
     ...opts,
     contract:
-      "contracts/trusted-schemas-registry-v2/trusted-schemas-registry/SchemaLib.sol:SchemaLib",
+      "contracts/trusted-schemas-registry-v3/trusted-schemas-registry/SchemaLib.sol:SchemaLib",
   });
 
-  const ts = await deployments.deploy("SchemaSCRegistryV2", {
+  const ts = await deployments.deploy("SchemaSCRegistryV3", {
     ...opts,
     args: [tprAddress],
     contract:
-      "contracts/trusted-schemas-registry-v2/trusted-schemas-registry/SchemaSCRegistry.sol:SchemaSCRegistry",
+      "contracts/trusted-schemas-registry-v3/trusted-schemas-registry/SchemaSCRegistry.sol:SchemaSCRegistry",
     libraries: {
       SchemaLib: schemaLib.address,
     },
   });
 
-  deployments.log("Trusted Schema Registry v2 deployed at:", ts.address);
+  deployments.log("Trusted Schema Registry v3 deployed at:", ts.address);
 };
 
-func.tags = ["SchemaSCRegistryV2"];
+func.tags = ["SchemaSCRegistryV3"];
 
 export default func;

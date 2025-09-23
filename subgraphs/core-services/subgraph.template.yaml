@@ -190,7 +190,7 @@ dataSources:
           handler: handleUserAttributeInserted
         - event: UserAttributeDeleted(address,string)
           handler: handleUserAttributeDeleted
-      file: ./src/trusted-policies-registry-v2/mappings.ts
+      file: ./src/trusted-policies-registry-v3/mappings.ts
   - kind: ethereum
     name: TrustedSchemasRegistry
     network: besu
@@ -218,4 +218,4 @@ dataSources:
           handler: handleSchemaUpdatedEvent
         - event: MetadataUpdated(indexed bytes32,bytes,bytes32)
           handler: handleMetadataUpdatedEvent
-      file: ./src/trusted-schemas-registry-v2/mappings.ts
+      file: ./src/trusted-schemas-registry-v3/mappings.ts

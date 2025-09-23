@@ -317,7 +317,7 @@ type IssuerProxy @entity(immutable: false) {
 }
 
 ###############################################################################
-#                       Trusted Policies Registry SC v2                       #
+#                       Trusted Policies Registry SC v3                       #
 ###############################################################################
 
 type Policy @entity(immutable: false) {
@@ -348,7 +348,7 @@ type PolicySubject @entity(immutable: false) {
 }
 
 ###############################################################################
-#                        Trusted Schemas Registry SC v2                       #
+#                        Trusted Schemas Registry SC v3                       #
 ###############################################################################
 
 type Schema @entity(immutable: true) {

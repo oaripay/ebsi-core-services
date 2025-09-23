@@ -15,7 +15,7 @@ import {
   handlePolicyUpdated,
   handleUserAttributeDeleted,
   handleUserAttributeInserted,
-} from "../src/trusted-policies-registry-v2/mappings";
+} from "../src/trusted-policies-registry-v3/mappings";
 import {
   createPolicyActivatedEvent,
   createPolicyDeactivatedEvent,
@@ -25,7 +25,7 @@ import {
   createUserAttributeInsertedEvent,
 } from "./trusted-policies-registry.utils";
 
-describe("Trusted Policies Registry v2 - entity assertions", () => {
+describe("Trusted Policies Registry - entity assertions", () => {
   const policyId = "1";
   const policyName = "TIR:setAttributeMetadata";
   const user = "0x6309baa4eed7daed1db2b32cadabe3fe558c5ff3";

@@ -1,4 +1,4 @@
-import { PolicyRegistry__factory } from "@ebsiint-sc/trusted-policies-registry-v2";
+import { PolicyRegistry__factory } from "@ebsiint-sc/trusted-policies-registry-v3";
 import { ConfigService } from "@nestjs/config";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";

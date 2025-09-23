@@ -3,7 +3,7 @@ pragma solidity 0.8.12;
 
 import "./HashAlgoStorage.sol";
 import "./HashAlgoLib.sol";
-import "@ebsiint-sc/trusted-policies-registry-v2/contracts/trusted-policies-registry/interfaces/IPolicyRegistry.sol";
+import "@ebsiint-sc/trusted-policies-registry-v3/contracts/trusted-policies-registry/interfaces/IPolicyRegistry.sol";
 
 abstract contract HashAlgoDetailed is HashAlgoStorage {
     using HashAlgoLib for HashAlgos;

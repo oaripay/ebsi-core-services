@@ -25,7 +25,7 @@
   },
   "dependencies": {
     "@ebsiint-sc/bootstrap-v2": "^2.0.0-rc.8",
-    "@ebsiint-sc/trusted-policies-registry-v2": "^2.0.0-rc.8"
+    "@ebsiint-sc/trusted-policies-registry-v3": "^3.0.0-rc.0"
   },
   "devDependencies": {
     "@gnosis-guild/typechain-ethers-v6": "^0.5.5",

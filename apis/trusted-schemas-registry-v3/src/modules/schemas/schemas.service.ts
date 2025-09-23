@@ -1,11 +1,11 @@
-import type { SchemaSCRegistry } from "@ebsiint-sc/trusted-schemas-registry-v2";
+import type { SchemaSCRegistry } from "@ebsiint-sc/trusted-schemas-registry-v3";
 
 import {
   isEthersError,
   NotFoundError,
   remove0xPrefix,
 } from "@ebsiint-api/shared";
-import { SchemaSCRegistry__factory } from "@ebsiint-sc/trusted-schemas-registry-v2";
+import { SchemaSCRegistry__factory } from "@ebsiint-sc/trusted-schemas-registry-v3";
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import pLimit from "p-limit";
@@ -68,7 +68,7 @@ export class SchemasService {
 
     const decodedSchemaInfo = JSON.parse(
       Buffer.from(remove0xPrefix(schema), "hex").toString("utf8"),
-    ) as unknown;
+    );
 
     return decodedSchemaInfo;
   }
@@ -116,7 +116,7 @@ export class SchemasService {
 
     const decodedSchemaRevisionInfo = JSON.parse(
       Buffer.from(remove0xPrefix(revision), "hex").toString("utf8"),
-    ) as unknown;
+    );
 
     return decodedSchemaRevisionInfo;
   }
@@ -176,7 +176,7 @@ export class SchemasService {
 
     const decodedMetadata = JSON.parse(
       Buffer.from(remove0xPrefix(metadata), "hex").toString("utf8"),
-    ) as unknown;
+    );
 
     return decodedMetadata;
   }

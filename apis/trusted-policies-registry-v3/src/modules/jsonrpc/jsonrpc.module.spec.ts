@@ -1,10 +1,10 @@
-import type { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry-v2";
+import type { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry-v3";
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 import type { GenerateKeyPairResult } from "jose";
 import type { MockInstance } from "vitest";
 
-import { PolicyRegistry__factory } from "@ebsiint-sc/trusted-policies-registry-v2";
+import { PolicyRegistry__factory } from "@ebsiint-sc/trusted-policies-registry-v3";
 import { ConfigService } from "@nestjs/config";
 import axios from "axios";
 import { ethers } from "ethers";

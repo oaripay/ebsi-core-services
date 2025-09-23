@@ -1,7 +1,7 @@
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 
-import { PolicyRegistry__factory } from "@ebsiint-sc/trusted-policies-registry-v2";
+import { PolicyRegistry__factory } from "@ebsiint-sc/trusted-policies-registry-v3";
 import { ethers } from "ethers";
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";

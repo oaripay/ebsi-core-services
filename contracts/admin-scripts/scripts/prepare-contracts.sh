@@ -45,14 +45,14 @@ cp -r ${SCRIPT_DIR}/../../trusted-issuers-registry-v5/contracts ${SCRIPT_DIR}/..
 echo Copy the trusted-policies-registry smart contract
 cp -r ${SCRIPT_DIR}/../../trusted-policies-registry/contracts ${SCRIPT_DIR}/../contracts/trusted-policies-registry
 
-echo Copy the trusted-policies-registry-v2 smart contract
-cp -r ${SCRIPT_DIR}/../../trusted-policies-registry-v2/contracts ${SCRIPT_DIR}/../contracts/trusted-policies-registry-v2
+echo Copy the trusted-policies-registry-v3 smart contract
+cp -r ${SCRIPT_DIR}/../../trusted-policies-registry-v3/contracts ${SCRIPT_DIR}/../contracts/trusted-policies-registry-v3
 
 echo Copy the trusted-schemas-registry smart contract
 cp -r ${SCRIPT_DIR}/../../trusted-schemas-registry/contracts ${SCRIPT_DIR}/../contracts/trusted-schemas-registry
 
-echo Copy the trusted-schemas-registry-v2 smart contract
-cp -r ${SCRIPT_DIR}/../../trusted-schemas-registry-v2/contracts ${SCRIPT_DIR}/../contracts/trusted-schemas-registry-v2
+echo Copy the trusted-schemas-registry-v3 smart contract
+cp -r ${SCRIPT_DIR}/../../trusted-schemas-registry-v3/contracts ${SCRIPT_DIR}/../contracts/trusted-schemas-registry-v3
 
 echo Copy the track-and-trace smart contract
 cp -r ${SCRIPT_DIR}/../../track-and-trace/contracts ${SCRIPT_DIR}/../contracts/track-and-trace

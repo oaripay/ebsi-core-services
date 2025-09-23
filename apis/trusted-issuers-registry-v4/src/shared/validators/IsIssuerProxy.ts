@@ -41,7 +41,7 @@ export async function isIssuerProxy(
   if (typeof value !== "string") return false;
 
   try {
-    const proxyAsObject = JSON.parse(value) as unknown;
+    const proxyAsObject = JSON.parse(value);
 
     if (!proxyAsObject || typeof proxyAsObject !== "object") return false;
 
