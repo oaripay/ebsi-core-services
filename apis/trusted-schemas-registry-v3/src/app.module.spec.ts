@@ -1,4 +1,4 @@
-import { SchemaSCRegistry__factory } from "@ebsiint-sc/trusted-schemas-registry-v2";
+import { SchemaSCRegistry__factory } from "@ebsiint-sc/trusted-schemas-registry-v3";
 import { ConfigService } from "@nestjs/config";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";

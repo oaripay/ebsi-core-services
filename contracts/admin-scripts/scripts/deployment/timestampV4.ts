@@ -23,17 +23,17 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
 
   const deps = dependencies[chainId];
 
-  if (!("tprV2Address" in deps)) {
-    throw new Error("tprV2Address does not exist");
+  if (!("tprV3Address" in deps)) {
+    throw new Error("tprV3Address does not exist");
   }
 
-  let tprAddress = deps.tprV2Address;
+  let tprAddress = deps.tprV3Address;
 
   if (tprAddress) {
     console.log(`reusing tpr address ${tprAddress}`);
   } else {
-    await deployments.run("PolicyRegistryV2");
-    tprAddress = (await deployments.get("PolicyRegistryV2")).address;
+    await deployments.run("PolicyRegistryV3");
+    tprAddress = (await deployments.get("PolicyRegistryV3")).address;
   }
 
   const { deployer } = await getNamedAccounts();

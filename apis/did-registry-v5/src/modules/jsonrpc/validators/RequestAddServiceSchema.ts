@@ -27,7 +27,7 @@ function isServiceDocument(
 ): { error: string | ZodError; success: false } | { success: true } {
   let documentService;
   try {
-    documentService = JSON.parse(value) as unknown;
+    documentService = JSON.parse(value);
   } catch {
     return { error: "Unable to parse JSON", success: false };
   }

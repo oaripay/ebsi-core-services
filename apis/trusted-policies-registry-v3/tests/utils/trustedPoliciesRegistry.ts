@@ -1,8 +1,8 @@
-import "@ebsiint-sc/trusted-policies-registry-v2/dist/hardhat.d.ts";
+import "@ebsiint-sc/trusted-policies-registry-v3/dist/hardhat.d.ts";
 
 import hre from "hardhat";
 
-import type { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry-v2";
+import type { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry-v3";
 import type { HardhatEthersProvider } from "@nomicfoundation/hardhat-ethers/internal/hardhat-ethers-provider.js";
 
 import "@nomicfoundation/hardhat-ethers";

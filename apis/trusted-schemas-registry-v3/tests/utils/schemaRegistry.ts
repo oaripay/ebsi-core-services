@@ -1,11 +1,11 @@
-import "@ebsiint-sc/trusted-schemas-registry-v2/dist/hardhat.d.ts";
+import "@ebsiint-sc/trusted-schemas-registry-v3/dist/hardhat.d.ts";
 
 import hre from "hardhat";
 
 import type {
   PolicyRegistryMock,
   SchemaSCRegistry,
-} from "@ebsiint-sc/trusted-schemas-registry-v2";
+} from "@ebsiint-sc/trusted-schemas-registry-v3";
 import type { HardhatEthersProvider } from "@nomicfoundation/hardhat-ethers/internal/hardhat-ethers-provider.js";
 
 import "@nomicfoundation/hardhat-ethers";

@@ -31,7 +31,7 @@ export async function isIssuerProxy(
   let proxyAsObject: unknown;
 
   try {
-    proxyAsObject = JSON.parse(value) as unknown;
+    proxyAsObject = JSON.parse(value);
   } catch {
     return { error: "Not a JSON object", success: false };
   }

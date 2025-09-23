@@ -1,5 +1,5 @@
 import { Accepts, Log } from "@ebsiint-api/shared";
-import { PolicyRegistry__factory } from "@ebsiint-sc/trusted-policies-registry-v2";
+import { PolicyRegistry__factory } from "@ebsiint-sc/trusted-policies-registry-v3";
 import { Controller, Get, HttpCode } from "@nestjs/common";
 
 @Controller()

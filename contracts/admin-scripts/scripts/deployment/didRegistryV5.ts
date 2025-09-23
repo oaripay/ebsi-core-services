@@ -25,17 +25,17 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
 
   const deps = dependencies[chainId];
 
-  if (!("tprV2Address" in deps)) {
-    throw new Error("tprV2Address does not exist");
+  if (!("tprV3Address" in deps)) {
+    throw new Error("tprV3Address does not exist");
   }
 
-  let tprAddress = deps.tprV2Address;
+  let tprAddress = deps.tprV3Address;
 
   if (!ethers.isAddress(tprAddress)) {
     console.log(`Deploying TPR for testnet`);
     // deploy for testnet
-    await deployments.run("PolicyRegistryV2");
-    tprAddress = (await deployments.get("PolicyRegistryV2")).address;
+    await deployments.run("PolicyRegistryV3");
+    tprAddress = (await deployments.get("PolicyRegistryV3")).address;
   }
   console.log(`Trusted Policy Registry Address is ${tprAddress}`);
 

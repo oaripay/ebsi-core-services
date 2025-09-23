@@ -26,7 +26,7 @@
   },
   "dependencies": {
     "@ebsiint-api/shared": "^1.1.0-rc.14",
-    "@ebsiint-sc/trusted-policies-registry-v2": "^2.0.0-rc.8",
+    "@ebsiint-sc/trusted-policies-registry-v3": "^3.0.0-rc.0",
     "@fastify/accepts": "^5.0.2",
     "@fastify/helmet": "^13.0.1",
     "@nestjs/axios": "^4.0.1",
@@ -67,6 +67,7 @@
     "@nomicfoundation/hardhat-ethers": "^3.1.0",
     "@stoplight/spectral-cli": "^6.15.0",
     "@swc/core": "^1.13.3",
+    "@total-typescript/ts-reset": "^0.6.1",
     "@tsconfig/node22": "^22.0.2",
     "@tsconfig/strictest": "^2.0.5",
     "@types/k6": "^1.1.1",

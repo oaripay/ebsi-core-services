@@ -9,11 +9,11 @@ chainId=`curl -X POST --data '{"jsonrpc":"2.0","method":"eth_chainId","params":[
 # deploy proxy for TPR
 output=`yarn hardhat deploy --network box --tags OwnedUpgradeabilityProxy --reset`
 tprProxy=`echo $output | grep -o '\b0x[a-fA-F0-9]\{40\}\b'`
-yarn hardhat initProxy --network box --proxy $tprProxy --implementation PolicyRegistryV2
+yarn hardhat initProxy --network box --proxy $tprProxy --implementation PolicyRegistryV3
 
 # update dependencies
 jq --arg chainId "$chainId" --arg tprProxy "$tprProxy" '.[$chainId] += {
-  "tprV2Address": $tprProxy
+  "tprV3Address": $tprProxy
 }' $dependencies > $dependenciesUpdated
 
 mv $dependenciesUpdated $dependencies
@@ -48,7 +48,7 @@ yarn hardhat initProxy --network box --proxy $tirRegistry --implementation TirV5
 # deploy proxy for TSR V2
 output=`yarn hardhat deploy --network box --tags OwnedUpgradeabilityProxy --reset`
 tsrRegistry=`echo $output | grep -o '\b0x[a-fA-F0-9]\{40\}\b'`
-yarn hardhat initProxy --network box --proxy $tsrRegistry --implementation SchemaSCRegistryV2
+yarn hardhat initProxy --network box --proxy $tsrRegistry --implementation SchemaSCRegistryV3
 
 
 # generate operator wallets
@@ -59,5 +59,5 @@ echo "DIDR_SC_V5_ADDRESS=$DIDRegistryProxy" >> deployments.env
 echo "TIMESTAMP_SC_V4_ADDRESS=$timestampProxy" >> deployments.env
 echo "TNT_SC_V1_ADDRESS=$TrackAndTraceProxy" >> deployments.env
 echo "TIR_SC_V5_ADDRESS=$tirRegistry" >> deployments.env
-echo "TPR_SC_V2_ADDRESS=$tprProxy" >> deployments.env
-echo "TSR_SC_V2_ADDRESS=$tsrRegistry" >> deployments.env
+echo "TPR_SC_V3_ADDRESS=$tprProxy" >> deployments.env
+echo "TSR_SC_V3_ADDRESS=$tsrRegistry" >> deployments.env

@@ -62,7 +62,7 @@ export class SchemasService {
 
     const decodedSchemaInfo = JSON.parse(
       Buffer.from(remove0xPrefix(schema), "hex").toString("utf8"),
-    ) as unknown;
+    );
 
     return decodedSchemaInfo;
   }
@@ -108,7 +108,7 @@ export class SchemasService {
 
     const decodedSchemaRevisionInfo = JSON.parse(
       Buffer.from(remove0xPrefix(revision), "hex").toString("utf8"),
-    ) as unknown;
+    );
 
     return decodedSchemaRevisionInfo;
   }
@@ -172,7 +172,7 @@ export class SchemasService {
 
     const decodedMetadata = JSON.parse(
       Buffer.from(remove0xPrefix(metadata), "hex").toString("utf8"),
-    ) as unknown;
+    );
 
     return decodedMetadata;
   }

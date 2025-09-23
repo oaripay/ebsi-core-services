@@ -1,5 +1,5 @@
 import { Accepts, Log } from "@ebsiint-api/shared";
-import { SchemaSCRegistry__factory } from "@ebsiint-sc/trusted-schemas-registry-v2";
+import { SchemaSCRegistry__factory } from "@ebsiint-sc/trusted-schemas-registry-v3";
 import { Controller, Get, HttpCode } from "@nestjs/common";
 
 @Controller()

@@ -44,23 +44,23 @@ if (!process.env["TIR_SC_V5_START_BLOCK"]) {
   process.exit(1);
 }
 
-if (!process.env["TPR_SC_V2_ADDRESS"]) {
-  console.error("TPR_SC_V2_ADDRESS must be defined");
+if (!process.env["TPR_SC_V3_ADDRESS"]) {
+  console.error("TPR_SC_V3_ADDRESS must be defined");
   process.exit(1);
 }
 
-if (!process.env["TPR_SC_V2_START_BLOCK"]) {
-  console.error("TPR_SC_V2_START_BLOCK must be defined");
+if (!process.env["TPR_SC_V3_START_BLOCK"]) {
+  console.error("TPR_SC_V3_START_BLOCK must be defined");
   process.exit(1);
 }
 
-if (!process.env["TSR_SC_V2_ADDRESS"]) {
-  console.error("TSR_SC_V2_ADDRESS must be defined");
+if (!process.env["TSR_SC_V3_ADDRESS"]) {
+  console.error("TSR_SC_V3_ADDRESS must be defined");
   process.exit(1);
 }
 
-if (!process.env["TSR_SC_V2_START_BLOCK"]) {
-  console.error("TSR_SC_V2_START_BLOCK must be defined");
+if (!process.env["TSR_SC_V3_START_BLOCK"]) {
+  console.error("TSR_SC_V3_START_BLOCK must be defined");
   process.exit(1);
 }
 
@@ -158,22 +158,22 @@ const contents = Mustache.render(source, {
   ),
   trustedPoliciesRegistryAbi: fileURLToPath(
     import.meta.resolve(
-      "@ebsiint-sc/trusted-policies-registry-v2/src/abi/PolicyRegistry.json",
+      "@ebsiint-sc/trusted-policies-registry-v3/src/abi/PolicyRegistry.json",
     ),
   ),
-  trustedPoliciesRegistryAddress: process.env["TPR_SC_V2_ADDRESS"],
+  trustedPoliciesRegistryAddress: process.env["TPR_SC_V3_ADDRESS"],
   trustedPoliciesRegistryStartBlock: Number.parseInt(
-    process.env["TPR_SC_V2_START_BLOCK"],
+    process.env["TPR_SC_V3_START_BLOCK"],
     10,
   ),
   trustedSchemasRegistryAbi: fileURLToPath(
     import.meta.resolve(
-      "@ebsiint-sc/trusted-schemas-registry-v2/src/abi/SchemaSCRegistry.json",
+      "@ebsiint-sc/trusted-schemas-registry-v3/src/abi/SchemaSCRegistry.json",
     ),
   ),
-  trustedSchemasRegistryAddress: process.env["TSR_SC_V2_ADDRESS"],
+  trustedSchemasRegistryAddress: process.env["TSR_SC_V3_ADDRESS"],
   trustedSchemasRegistryStartBlock: Number.parseInt(
-    process.env["TSR_SC_V2_START_BLOCK"],
+    process.env["TSR_SC_V3_START_BLOCK"],
     10,
   ),
 });

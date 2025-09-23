@@ -1,4 +1,4 @@
-import type { SchemaSCRegistry } from "@ebsiint-sc/trusted-schemas-registry-v2";
+import type { SchemaSCRegistry } from "@ebsiint-sc/trusted-schemas-registry-v3";
 
 import {
   decodeResult,
@@ -7,7 +7,7 @@ import {
   isEthersError,
   logAxiosError,
 } from "@ebsiint-api/shared";
-import { SchemaSCRegistry__factory } from "@ebsiint-sc/trusted-schemas-registry-v2";
+import { SchemaSCRegistry__factory } from "@ebsiint-sc/trusted-schemas-registry-v3";
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import axios, { isAxiosError } from "axios";

@@ -40,9 +40,9 @@ COPY ./contracts/timestamp-v4/package.json ./contracts/timestamp-v4/
 COPY ./contracts/trusted-issuers-registry/package.json ./contracts/trusted-issuers-registry/
 COPY ./contracts/trusted-issuers-registry-v5/package.json ./contracts/trusted-issuers-registry-v5/
 COPY ./contracts/trusted-policies-registry/package.json ./contracts/trusted-policies-registry/
-COPY ./contracts/trusted-policies-registry-v2/package.json ./contracts/trusted-policies-registry-v2/
+COPY ./contracts/trusted-policies-registry-v3/package.json ./contracts/trusted-policies-registry-v3/
 COPY ./contracts/trusted-schemas-registry/package.json ./contracts/trusted-schemas-registry/
-COPY ./contracts/trusted-schemas-registry-v2/package.json ./contracts/trusted-schemas-registry-v2/
+COPY ./contracts/trusted-schemas-registry-v3/package.json ./contracts/trusted-schemas-registry-v3/
 COPY ./subgraphs/core-services/package.json ./subgraphs/core-services/
 COPY ./subgraphs/deployer/package.json ./subgraphs/deployer/
 COPY ./subgraphs/estat/package.json ./subgraphs/estat/

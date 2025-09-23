@@ -6,12 +6,11 @@ export function getDiamondStorage(contractName: string) {
       return "diamond.standard.did.registry.storage";
     }
     case "PolicyRegistry":
-    case "PolicyRegistryV2":
     case "PolicyRegistryV3": {
       return "diamond.standard.policy.registry.storage";
     }
     case "SchemaSCRegistry":
-    case "SchemaSCRegistryV2": {
+    case "SchemaSCRegistryV3": {
       return "diamond.standard.tsr.storage";
     }
     case "Tar": {

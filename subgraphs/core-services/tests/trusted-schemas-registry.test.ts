@@ -19,7 +19,7 @@ import {
   handleMetadataUpdatedEvent,
   handleSchemaInsertedEvent,
   handleSchemaUpdatedEvent,
-} from "../src/trusted-schemas-registry-v2/mappings";
+} from "../src/trusted-schemas-registry-v3/mappings";
 import { assertArrayContainsAllValues } from "./trusted-schemas-registry.utils";
 
 function paramBytes(name: string, value: Bytes): ethereum.EventParam {

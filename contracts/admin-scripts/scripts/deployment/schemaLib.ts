@@ -14,7 +14,7 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   await deployments.deploy("SchemaLib", {
     ...opts,
     contract:
-      "contracts/trusted-schemas-registry-v2/trusted-schemas-registry/SchemaLib.sol:SchemaLib",
+      "contracts/trusted-schemas-registry-v3/trusted-schemas-registry/SchemaLib.sol:SchemaLib",
   });
 };
 

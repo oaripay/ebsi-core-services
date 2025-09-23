@@ -6,7 +6,7 @@ const path = require("node:path");
 require("@nomicfoundation/hardhat-ethers");
 
 const tsrScPath = path.resolve(
-  require.resolve("@ebsiint-sc/trusted-schemas-registry-v2"),
+  require.resolve("@ebsiint-sc/trusted-schemas-registry-v3"),
   "../..", // relative to "dist/index.js"
 );
 
