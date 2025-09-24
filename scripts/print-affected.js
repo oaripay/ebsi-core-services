@@ -12,12 +12,27 @@ const { EOL } = require("node:os");
 
 const deprecatedServices = new Set([
   "@ebsiint-api/authorisation-api-v2",
+  "@ebsiint-api/authorisation-api-v3",
   "@ebsiint-api/did-registry-api-v3",
+  "@ebsiint-api/did-registry-api-v4",
+  "@ebsiint-api/ledger-api-v3",
+  "@ebsiint-api/timestamp-api-v3",
   "@ebsiint-api/trusted-apps-registry-api-v3",
   "@ebsiint-api/trusted-apps-registry-api-v4",
   "@ebsiint-api/trusted-issuers-registry-api-v3",
+  "@ebsiint-api/trusted-issuers-registry-api-v4",
+  "@ebsiint-api/trusted-policies-registry-api-v2",
+  "@ebsiint-api/trusted-schemas-registry-api-v2",
+  "@ebsiint-sc/bootstrap",
+  "@ebsiint-sc/did-registry",
+  "@ebsiint-sc/did-registry-v2",
+  "@ebsiint-sc/timestamp",
   "@ebsiint-sc/trusted-apps-registry",
   "@ebsiint-sc/trusted-apps-registry-v3",
+  "@ebsiint-sc/trusted-issuers-registry",
+  "@ebsiint-sc/trusted-issuers-registry-v3",
+  "@ebsiint-sc/trusted-policies-registry",
+  "@ebsiint-sc/trusted-schemas-registry",
 ]);
 
 // for the jenkins pipeline, read GIT_PREVIOUS_SUCCESSFUL_COMMIT so that the diff is done between last successful build and HEAD

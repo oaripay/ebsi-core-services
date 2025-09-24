@@ -1,6 +1,3 @@
-import type { ValidationOptions } from "class-validator";
-
-import { ValidateBy } from "class-validator";
 import { importJWK } from "jose";
 import { KeyObject } from "node:crypto";
 import validator from "validator";
@@ -16,8 +13,6 @@ const validators = validator.default;
 function isBase64url(value: string): boolean {
   return validators.isBase64(value, { urlSafe: true });
 }
-
-export const IS_PUBLIC_KEY_HEX = "isPublicKeyHex";
 
 /**
  * Public key JWK schema
@@ -240,46 +235,6 @@ export async function isPublicKeyHex(
   }
 
   return { success: true };
-}
-
-export function IsPublicKeyHex(
-  validationOptions?: ValidationOptions,
-): PropertyDecorator {
-  return ValidateBy(
-    {
-      name: IS_PUBLIC_KEY_HEX,
-      validator: {
-        validate: async (value, args) => {
-          if (
-            !args ||
-            !("isSecp256k1" in args.object) ||
-            typeof args.object.isSecp256k1 !== "boolean"
-          ) {
-            return false;
-          }
-
-          const { success } = await isPublicKeyHex(
-            value,
-            args.object.isSecp256k1,
-          );
-
-          return success;
-        },
-      },
-    },
-    {
-      message: (args) => {
-        try {
-          const { isSecp256k1 } = args.object as { isSecp256k1: boolean };
-          getPublicKeyJwk(args.value, isSecp256k1);
-          return "Invalid public key";
-        } catch (error) {
-          return `Invalid public key. ${getErrorMessage(error)}`;
-        }
-      },
-      ...validationOptions,
-    },
-  );
 }
 
 function getPublicKeyJwk(value: unknown, isSecp256k1: boolean) {

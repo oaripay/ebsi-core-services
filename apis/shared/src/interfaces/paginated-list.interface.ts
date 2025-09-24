@@ -10,15 +10,3 @@ export interface PaginatedList<T> {
   self?: string;
   total: number;
 }
-
-export interface PaginatedListWithoutTotal<T> {
-  items: T[];
-  links?: {
-    first: string;
-    last?: string;
-    next: string;
-    prev: string;
-  };
-  pageSize?: number;
-  self?: string;
-}

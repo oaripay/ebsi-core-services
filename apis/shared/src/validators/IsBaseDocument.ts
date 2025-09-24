@@ -1,10 +1,4 @@
-import type { ValidationOptions } from "class-validator";
-
-import { buildMessage, ValidateBy } from "class-validator";
-
 import type { ValidationResult } from "./types.ts";
-
-export const IS_BASE_DOCUMENT = "isBaseDocument";
 
 export function isBaseDocument(value: unknown): ValidationResult {
   if (typeof value !== "string" || value === "") {
@@ -77,23 +71,4 @@ export function isBaseDocument(value: unknown): ValidationResult {
   }
 
   return { success: true };
-}
-
-export function IsBaseDocument(
-  validationOptions?: ValidationOptions,
-): PropertyDecorator {
-  return ValidateBy(
-    {
-      name: IS_BASE_DOCUMENT,
-      validator: {
-        defaultMessage: buildMessage(
-          (eachPrefix) =>
-            `${eachPrefix}$property must be a valid JSON string with at least the field @context and without verification methods, verification relationships, controllers or id`,
-          validationOptions,
-        ),
-        validate: (val) => isBaseDocument(val).success,
-      },
-    },
-    validationOptions,
-  );
 }

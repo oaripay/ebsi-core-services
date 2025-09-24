@@ -1,14 +1,6 @@
-apis/authorisation-v3/.env.test:generic-api-key:6
 apis/authorisation-v4/.env.test:generic-api-key:6
-apis/authorisation-v3/api/openapi.yaml:jwt:615
-apis/authorisation-v3/api/openapi.yaml:jwt:724
 apis/authorisation-v4/api/openapi.yaml:jwt:822
 apis/authorisation-v4/api/openapi.yaml:jwt:945
-apis/trusted-issuers-registry-v4/tests/e2e/app.e2e-spec.ts:jwt:210
-apis/trusted-issuers-registry-v4/api/openapi.yaml:jwt:143
-apis/trusted-issuers-registry-v4/api/openapi.yaml:jwt:319
-apis/trusted-issuers-registry-v4/api/openapi.yaml:jwt:419
-apis/trusted-issuers-registry-v4/api/openapi.yaml:jwt:652
 apis/trusted-issuers-registry-v5/tests/e2e/app.e2e-spec.ts:jwt:212
 apis/trusted-issuers-registry-v5/api/openapi.yaml:jwt:161
 apis/trusted-issuers-registry-v5/api/openapi.yaml:jwt:336

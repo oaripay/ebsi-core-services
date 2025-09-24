@@ -1,6 +1,4 @@
 export * from "./axiosErrorLogger.ts";
-export * from "./byteLength.utils.ts";
-export * from "./crypto.utils.ts";
 export * from "./decodeResult.ts";
 export * from "./encode.utils.ts";
 export * from "./fastifyFrameworkErrors.ts";
