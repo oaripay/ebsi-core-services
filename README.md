@@ -56,7 +56,7 @@ Whereas building only ["affected"](https://nx.dev/concepts/affected) packages is
 To execute a specific package npm task, use the following pattern `yarn nx [npm-task] [package-name]`
 
 ```sh
-yarn nx build @ebsiint-sc/trusted-policies-registry
+yarn nx build @ebsiint-sc/trusted-policies-registry-v3
 ```
 
 ### Developing smart contracts

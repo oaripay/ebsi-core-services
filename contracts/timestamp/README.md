@@ -1,7 +1,3 @@
-# Timestamp Smart Contract v1
+![EBSI Logo](https://ec.europa.eu/digital-building-blocks/wikis/images/logo/default-space-logo.svg)
 
-Smart contract to timestamp a hash in the blockchain.
-
-![Logo of the project](https://ec.europa.eu/digital-building-blocks/wiki/images/logo/default-space-logo.svg)
-
-> Smart Contract to store Records, versions and timestamps
+# DECOMMISSIONED - Timestamp Smart Contract v1

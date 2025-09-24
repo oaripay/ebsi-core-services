@@ -13,7 +13,7 @@ async function main() {
       path.join(
         __dirname,
         "../../",
-        "trusted-policies-registry/artifacts",
+        "trusted-policies-registry-v3/artifacts",
         "contracts/trusted-policies-registry/PolicyRegistry.sol",
         "PolicyRegistry.json",
       ),

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { isBaseDocument } from "./IsBaseDocument.ts";
 
-describe("IsBaseDocument", () => {
+describe("isBaseDocument", () => {
   it("should validate if it is a valid base document", () => {
     // bad context
     expect(isBaseDocument("")).toStrictEqual({

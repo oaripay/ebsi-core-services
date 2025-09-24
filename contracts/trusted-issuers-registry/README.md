@@ -1,5 +1,3 @@
-# Trusted Issuers Registry Smart Contract v2
+![EBSI Logo](https://ec.europa.eu/digital-building-blocks/wikis/images/logo/default-space-logo.svg)
 
-![Logo of the project](https://ec.europa.eu/digital-building-blocks/wikis/images/logo/default-space-logo.svg)
-
-> Smart Contract to store the trusted Issuers
+# DECOMMISSIONED - Trusted Issuers Registry Smart Contract v2
