@@ -147,6 +147,17 @@ describe.each(["EBSI URI", "URL"] as const)(
             `${domain}/did-registry/v5/identifiers/${credentialIssuer.did}`,
           ),
           ({ request }) => {
+            const url = new URL(request.url);
+            const validAt = url.searchParams.get("valid-at");
+
+            // Only return the document if the valid-at parameter is present
+            if (!validAt) {
+              return HttpResponse.json(
+                "Invalid request (missing valid-at parameter)",
+                { status: 404 },
+              );
+            }
+
             // Make sure the request has the x-request-id header
             if (!request.headers.has("x-request-id")) {
               return HttpResponse.json(
@@ -1845,6 +1856,17 @@ describe.each(["EBSI URI", "URL"] as const)(
                               `${domain}/did-registry/v5/identifiers/${vpSigner.did}`,
                             ),
                             ({ request }) => {
+                              const url = new URL(request.url);
+                              const validAt = url.searchParams.get("valid-at");
+
+                              // Only return the document if the valid-at parameter is present
+                              if (!validAt) {
+                                return HttpResponse.json(
+                                  "Invalid request (missing valid-at parameter)",
+                                  { status: 404 },
+                                );
+                              }
+
                               // Make sure the request has the x-request-id header
                               if (!request.headers.has("x-request-id")) {
                                 return HttpResponse.json(
@@ -1879,6 +1901,17 @@ describe.each(["EBSI URI", "URL"] as const)(
                               `${domain}/did-registry/v5/identifiers/${vpSigner.did}`,
                             ),
                             ({ request }) => {
+                              const url = new URL(request.url);
+                              const validAt = url.searchParams.get("valid-at");
+
+                              // Only return the document if the valid-at parameter is present
+                              if (!validAt) {
+                                return HttpResponse.json(
+                                  "Invalid request (missing valid-at parameter)",
+                                  { status: 404 },
+                                );
+                              }
+
                               // Make sure the request has the x-request-id header
                               if (!request.headers.has("x-request-id")) {
                                 return HttpResponse.json(
@@ -1923,6 +1956,17 @@ describe.each(["EBSI URI", "URL"] as const)(
                               `${domain}/did-registry/v5/identifiers/${vpSigner.did}`,
                             ),
                             ({ request }) => {
+                              const url = new URL(request.url);
+                              const validAt = url.searchParams.get("valid-at");
+
+                              // Only return the document if the valid-at parameter is present
+                              if (!validAt) {
+                                return HttpResponse.json(
+                                  "Invalid request (missing valid-at parameter)",
+                                  { status: 404 },
+                                );
+                              }
+
                               // Make sure the request has the x-request-id header
                               if (!request.headers.has("x-request-id")) {
                                 return HttpResponse.json(
@@ -1957,6 +2001,17 @@ describe.each(["EBSI URI", "URL"] as const)(
                               `${domain}/did-registry/v5/identifiers/${vpSigner.did}`,
                             ),
                             ({ request }) => {
+                              const url = new URL(request.url);
+                              const validAt = url.searchParams.get("valid-at");
+
+                              // Only return the document if the valid-at parameter is present
+                              if (!validAt) {
+                                return HttpResponse.json(
+                                  "Invalid request (missing valid-at parameter)",
+                                  { status: 404 },
+                                );
+                              }
+
                               // Make sure the request has the x-request-id header
                               if (!request.headers.has("x-request-id")) {
                                 return HttpResponse.json(
@@ -2083,6 +2138,17 @@ describe.each(["EBSI URI", "URL"] as const)(
                               `${domain}/did-registry/v5/identifiers/${vpSigner.did}`,
                             ),
                             ({ request }) => {
+                              const url = new URL(request.url);
+                              const validAt = url.searchParams.get("valid-at");
+
+                              // Only return the document if the valid-at parameter is present
+                              if (!validAt) {
+                                return HttpResponse.json(
+                                  "Invalid request (missing valid-at parameter)",
+                                  { status: 404 },
+                                );
+                              }
+
                               // Make sure the request has the x-request-id header
                               if (!request.headers.has("x-request-id")) {
                                 return HttpResponse.json(
@@ -2133,6 +2199,17 @@ describe.each(["EBSI URI", "URL"] as const)(
                               `${domain}/did-registry/v5/identifiers/${vpSigner.did}`,
                             ),
                             ({ request }) => {
+                              const url = new URL(request.url);
+                              const validAt = url.searchParams.get("valid-at");
+
+                              // Only return the document if the valid-at parameter is present
+                              if (!validAt) {
+                                return HttpResponse.json(
+                                  "Invalid request (missing valid-at parameter)",
+                                  { status: 404 },
+                                );
+                              }
+
                               // Make sure the request has the x-request-id header
                               if (!request.headers.has("x-request-id")) {
                                 return HttpResponse.json(
@@ -2187,6 +2264,17 @@ describe.each(["EBSI URI", "URL"] as const)(
                               `${domain}/did-registry/v5/identifiers/${vpSigner.did}`,
                             ),
                             ({ request }) => {
+                              const url = new URL(request.url);
+                              const validAt = url.searchParams.get("valid-at");
+
+                              // Only return the document if the valid-at parameter is present
+                              if (!validAt) {
+                                return HttpResponse.json(
+                                  "Invalid request (missing valid-at parameter)",
+                                  { status: 404 },
+                                );
+                              }
+
                               // Make sure the request has the x-request-id header
                               if (!request.headers.has("x-request-id")) {
                                 return HttpResponse.json(
@@ -3789,6 +3877,17 @@ describe.each(["EBSI URI", "URL"] as const)(
           http.get(
             escapeDid(`${domain}/did-registry/v5/identifiers/${vpSigner.did}`),
             ({ request }) => {
+              const url = new URL(request.url);
+              const validAt = url.searchParams.get("valid-at");
+
+              // Only return the document if the valid-at parameter is present
+              if (!validAt) {
+                return HttpResponse.json(
+                  "Invalid request (missing valid-at parameter)",
+                  { status: 404 },
+                );
+              }
+
               // Make sure the request has the x-request-id header
               if (!request.headers.has("x-request-id")) {
                 return HttpResponse.json(

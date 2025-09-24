@@ -598,7 +598,7 @@ EUPL version.
 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
 
 ========================================================================================
-- @cef-ebsi/verifiable-credential@^7.2.1-alpha.1
+- @cef-ebsi/verifiable-credential@^8.0.0-alpha.2
 ------------------------------
 This project is licensed under EUPL-1.2.
 
@@ -1644,7 +1644,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ========================================================================================
-- @nestjs/common@^11.1.5
+- @nestjs/common@^11.1.6
 ------------------------------
 This project is licensed under MIT.
 
@@ -1707,7 +1707,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ========================================================================================
-- @nestjs/core@^11.1.5
+- @nestjs/core@^11.1.6
 ------------------------------
 This project is licensed under MIT.
 
@@ -1771,7 +1771,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ========================================================================================
-- @nestjs/platform-fastify@^11.1.5
+- @nestjs/platform-fastify@^11.1.6
 ------------------------------
 This project is licensed under MIT.
 
@@ -2049,7 +2049,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ========================================================================================
-- keyv@^5.5.0
+- keyv@^5.5.2
 ------------------------------
 This project is licensed under MIT.
 
@@ -2081,7 +2081,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ========================================================================================
-- nestjs-pino@^4.4.0
+- nestjs-pino@^4.4.1
 ------------------------------
 This project is licensed under MIT.
 
@@ -2142,7 +2142,7 @@ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ========================================================================================
-- pino@^9.7.0
+- pino@^9.11.0
 ------------------------------
 This project is licensed under MIT.
 
@@ -2152,7 +2152,7 @@ MIT License: https://opensource.org/license/mit/
 
 The MIT License (MIT)
 
-Copyright (c) 2016-2024 Matteo Collina, David Mark Clements and the Pino contributors listed at https://github.com/pinojs/pino#the-team and in the README file.
+Copyright (c) 2016-2025 Matteo Collina, David Mark Clements and the Pino contributors listed at <https://github.com/pinojs/pino#the-team> and in the README file.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
