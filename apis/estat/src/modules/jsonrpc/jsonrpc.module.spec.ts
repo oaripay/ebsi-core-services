@@ -967,9 +967,19 @@ describe("JSON-RPC Module", () => {
             testSetup.push(
               {
                 accessToken: user2.accessToken.tntAuthorise,
-                expectedErrorMessage: `Invalid 'params.0.authorisedDid': The DID must start with "did:ebsi:"`,
+                expectedErrorMessage: `Invalid 'params.0.authorisedDid': The DID is not a valid DID URL`,
                 params: {
                   authorisedDid: "not did",
+                  from: signer.address,
+                  senderDid: user.did,
+                  whiteList: true,
+                } satisfies AuthoriseDidSchema,
+              },
+              {
+                accessToken: user2.accessToken.tntAuthorise,
+                expectedErrorMessage: `Invalid 'params.0.authorisedDid': The DID must start with "did:ebsi:"`,
+                params: {
+                  authorisedDid: "did:something:else",
                   from: signer.address,
                   senderDid: user.did,
                   whiteList: true,
