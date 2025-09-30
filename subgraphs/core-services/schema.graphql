@@ -359,7 +359,7 @@ type Schema @entity(immutable: true) {
   revisions: [SchemaRevision!]! @derivedFrom(field: "schema")
 }
 
-type SchemaRevision @entity(immutable: true) {
+type SchemaRevision @entity(immutable: false) {
   # ID - Set to `schema.id.concat(keccak(content))`
   id: Bytes!
 
