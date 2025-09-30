@@ -1,3 +1,4 @@
+import { json, JSONValueKind } from "@graphprotocol/graph-ts";
 import { log } from "matchstick-as";
 
 import { Schema, SchemaMetadata, SchemaRevision } from "../../generated/schema";
@@ -21,6 +22,9 @@ export function handleMetadataUpdatedEvent(event: MetadataUpdated): void {
   metadata.content = event.params.metadata.toString();
   metadata.revision = revision.id;
   metadata.save();
+
+  // Parse metadata JSON to extract name and version for this revision
+  updateRevisionWithNameAndVersion(revision, metadata.content);
 }
 
 export function handleSchemaInsertedEvent(event: SchemaInserted): void {
@@ -36,6 +40,9 @@ export function handleSchemaInsertedEvent(event: SchemaInserted): void {
   metadata.content = event.params.metadata.toString();
   metadata.revision = revision.id;
   metadata.save();
+
+  // Parse metadata JSON to extract name and version for this revision
+  updateRevisionWithNameAndVersion(revision, metadata.content);
 }
 
 export function handleSchemaUpdatedEvent(event: SchemaUpdated): void {
@@ -55,4 +62,49 @@ export function handleSchemaUpdatedEvent(event: SchemaUpdated): void {
   metadata.content = event.params.metadata.toString();
   metadata.revision = revision.id;
   metadata.save();
+
+  // Parse metadata JSON to extract name and version for this revision
+  updateRevisionWithNameAndVersion(revision, metadata.content);
+}
+
+// Helper function to update schema revision with name and version if they exist
+function updateRevisionWithNameAndVersion(
+  revision: SchemaRevision,
+  metadataContent: string,
+): void {
+  const result = json.try_fromString(metadataContent);
+
+  if (!result.isOk) {
+    log.warning("Failed to parse metadata JSON: {}", [metadataContent]);
+    return;
+  }
+
+  const jsonValue = result.value;
+
+  if (jsonValue.kind !== JSONValueKind.OBJECT) {
+    log.warning("Metadata JSON is not an object: {}", [metadataContent]);
+    return;
+  }
+
+  const obj = jsonValue.toObject();
+
+  // Extract name
+  const nameValue = obj.get("name");
+  let name = "";
+  if (nameValue && nameValue.kind === JSONValueKind.STRING) {
+    name = nameValue.toString();
+  }
+
+  // Extract version
+  const versionValue = obj.get("version");
+  let version = "";
+  if (versionValue && versionValue.kind === JSONValueKind.STRING) {
+    version = versionValue.toString();
+  }
+
+  if (name && version) {
+    revision.name = name;
+    revision.version = version;
+    revision.save();
+  }
 }

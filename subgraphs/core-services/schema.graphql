@@ -366,6 +366,12 @@ type SchemaRevision @entity(immutable: true) {
   # Properties
   content: String!
 
+  # Schema name
+  name: String
+
+  # Current schema version
+  version: String
+
   # Relationships
   schema: Schema!
   metadata: [SchemaMetadata!]! @derivedFrom(field: "revision")
