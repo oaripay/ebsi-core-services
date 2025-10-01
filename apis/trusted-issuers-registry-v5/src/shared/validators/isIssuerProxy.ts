@@ -1,9 +1,11 @@
 import type { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
 import type { AxiosResponse } from "axios";
 
-import { checkStatusList2021Credential } from "@ebsiint-api/shared";
 import axios, { isAxiosError } from "axios";
 import validator from "validator";
+
+import { checkBitstringStatusListCredential } from "./isBitstringStatusListCredential.ts";
+import { checkStatusList2021Credential } from "./isStatusList2021Credential.ts";
 
 const validators = validator.default;
 
@@ -141,7 +143,18 @@ export async function isIssuerProxy(
     };
   }
 
-  return checkStatusList2021Credential(
+  const res = await checkStatusList2021Credential(
+    testResponse.data,
+    ebsiEnvConfig,
+    reqId,
+    {
+      timeout,
+    },
+  );
+
+  if (res.success) return res;
+
+  return await checkBitstringStatusListCredential(
     testResponse.data,
     ebsiEnvConfig,
     reqId,

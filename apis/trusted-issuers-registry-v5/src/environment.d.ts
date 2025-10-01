@@ -21,12 +21,13 @@ declare global {
       // Test vars
       TEST_ADMIN_KID?: string;
       TEST_ADMIN_PRIVATE_KEY?: string;
+      TEST_BITSTRING_STATUS_LIST_SCHEMA_ID?: string;
       TEST_ENABLE_WRITE_OPS?: string;
       TEST_ENV?: string;
       TEST_ISSUER_WITH_PROXY_KID?: string;
       TEST_ISSUER_WITH_PROXY_PRIVATE_KEY?: string;
       TEST_SPECIFIC_NODE_DOMAIN?: string;
-      TEST_STATUS_LIST_SCHEMA_ID?: string;
+      TEST_STATUS_LIST_2021_SCHEMA_ID?: string;
       TEST_VERIFIABLE_ATTESTATION_SCHEMA_ID?: string;
       URI_SCHEME?: string;
     }

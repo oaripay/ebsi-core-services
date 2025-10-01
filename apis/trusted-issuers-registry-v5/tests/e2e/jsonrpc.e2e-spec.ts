@@ -3,10 +3,7 @@ import type {
   EbsiIssuer,
   EbsiVerifiableAttestation,
 } from "@cef-ebsi/verifiable-credential";
-import type {
-  PaginatedList,
-  StatusList2021Credential,
-} from "@ebsiint-api/shared";
+import type { PaginatedList } from "@ebsiint-api/shared";
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 
@@ -44,6 +41,8 @@ import type { UnsignedTransaction } from "../../src/modules/jsonrpc/validators/R
 import type { SetAttributeDataSchema } from "../../src/modules/jsonrpc/validators/RequestSetAttributeDataSchema.ts";
 import type { SetAttributeMetadataSchema } from "../../src/modules/jsonrpc/validators/RequestSetAttributeMetadataSchema.ts";
 import type { UpdateIssuerProxySchema } from "../../src/modules/jsonrpc/validators/RequestUpdateIssuerProxySchema.ts";
+import type { BitstringStatusListCredential } from "../../src/shared/validators/isBitstringStatusListCredential.ts";
+import type { StatusList2021Credential } from "../../src/shared/validators/isStatusList2021Credential.ts";
 import type { IssuerObject } from "../utils/tir.ts";
 
 import { AppModule } from "../../src/app.module.ts";
@@ -107,7 +106,8 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
     let server: RawServerDefault | string;
     let configService: ConfigService<ApiConfig, true>;
     let testVerifiableAttestationSchemaId: string;
-    let testStatusListSchemaId: string;
+    let testStatusList2021SchemaId: string;
+    let testBitstringStatusListSchemaId: string;
     let ledgerApi: string;
     let trustedSchemasRegistryApiUrl: string;
     let authorisationApiUrl: string;
@@ -120,65 +120,110 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
     let testIssuerWithProxy: TestIssuer;
     let ebsiEnvConfig: EbsiEnvConfiguration;
 
-    async function createStatusList2021CredentialJwt(
+    async function createStatusListCredentialJwt(
       issuer: EbsiIssuer,
       issuerProxy: IssuerProxyResponseObject,
-      config: EbsiEnvConfiguration,
+      ebsiEnvConfig: EbsiEnvConfiguration,
+      uriType: "EBSI URI" | "URL",
+      statusList: "BitstringStatusListCredential" | "StatusList2021Credential",
     ) {
       const verifiableAttestationSchemaUrl = `${trustedSchemasRegistryApiUrl}/schemas/${testVerifiableAttestationSchemaId}`;
-      const statusListSchemaUrl = `${trustedSchemasRegistryApiUrl}/schemas/${testStatusListSchemaId}`;
-      const newIssuer1StatusList2021Credential: StatusList2021Credential = {
-        "@context": [
-          "https://www.w3.org/2018/credentials/v1",
-          "https://w3id.org/vc/status-list/2021/v1",
-        ],
-        credentialSchema: [
-          {
-            id:
-              uriType === "URL"
-                ? verifiableAttestationSchemaUrl
-                : fromUrl(verifiableAttestationSchemaUrl, ebsiEnvConfig),
-            type: "FullJsonSchemaValidator2021",
-          },
-          {
-            id:
-              uriType === "URL"
-                ? statusListSchemaUrl
-                : fromUrl(statusListSchemaUrl, ebsiEnvConfig),
-            type: "FullJsonSchemaValidator2021",
-          },
-        ],
-        credentialSubject: {
-          encodedList:
-            "H4sIAAAAAAAAA-3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAAAAAAIC3AYbSVKsAQAAA",
-          // Note: the VC lib requires that credentialSubject.id is a valid EBSI DID. We can't use a URL here!
-          // id: `${issuer.proxies[0]!.rawProxyData.prefix}${issuer.proxies[0]!.rawProxyData.testSuffix}#list`,
-          id: issuer.did,
-          statusPurpose: "revocation",
-          type: "StatusList2021",
-        },
-        id: `${issuerProxy.prefix}${issuerProxy.testSuffix}`,
-        issuanceDate: "2021-04-05T14:27:40Z",
-        issued: "2021-04-05T14:27:40Z",
-        issuer: issuer.did,
-        type: [
-          "VerifiableCredential",
-          "VerifiableAttestation",
-          "StatusList2021Credential",
-        ],
-        validFrom: "2021-04-05T14:27:40Z",
-      };
-      const newIssuer1StatusList2021CredentialJwt =
+      const statusListSchemaUrl =
+        statusList === "StatusList2021Credential"
+          ? `${trustedSchemasRegistryApiUrl}/schemas/${testStatusList2021SchemaId}`
+          : `${trustedSchemasRegistryApiUrl}/schemas/${testBitstringStatusListSchemaId}`;
+      const newIssuer1StatusListCredential =
+        statusList === "StatusList2021Credential"
+          ? ({
+              "@context": [
+                "https://www.w3.org/2018/credentials/v1",
+                "https://w3id.org/vc/status-list/2021/v1",
+              ],
+              credentialSchema: [
+                {
+                  id:
+                    uriType === "URL"
+                      ? verifiableAttestationSchemaUrl
+                      : fromUrl(verifiableAttestationSchemaUrl, ebsiEnvConfig),
+                  type: "FullJsonSchemaValidator2021",
+                },
+                {
+                  id:
+                    uriType === "URL"
+                      ? statusListSchemaUrl
+                      : fromUrl(statusListSchemaUrl, ebsiEnvConfig),
+                  type: "FullJsonSchemaValidator2021",
+                },
+              ],
+              credentialSubject: {
+                encodedList:
+                  "H4sIAAAAAAAAA-3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAAAAAAIC3AYbSVKsAQAAA",
+                // Note: the VC lib requires that credentialSubject.id is a valid EBSI DID. We can't use a URL here!
+                // id: `${issuer.proxy.rawProxyData.prefix}${issuer.proxy.rawProxyData.testSuffix}#list`,
+                id: issuer.did,
+                statusPurpose: "revocation",
+                type: "StatusList2021",
+              },
+              id: `${issuerProxy.prefix}${issuerProxy.testSuffix}`,
+              issuanceDate: "2025-04-05T14:27:40Z",
+              issued: "2025-04-05T14:27:40Z",
+              issuer: issuer.did,
+              type: [
+                "VerifiableCredential",
+                "VerifiableAttestation",
+                "StatusList2021Credential",
+              ],
+              validFrom: "2025-04-05T14:27:40Z",
+            } as const satisfies StatusList2021Credential)
+          : ({
+              "@context": ["https://www.w3.org/2018/credentials/v1"],
+              credentialSchema: [
+                {
+                  id:
+                    uriType === "URL"
+                      ? verifiableAttestationSchemaUrl
+                      : fromUrl(verifiableAttestationSchemaUrl, ebsiEnvConfig),
+                  type: "FullJsonSchemaValidator2021",
+                },
+                {
+                  id:
+                    uriType === "URL"
+                      ? statusListSchemaUrl
+                      : fromUrl(statusListSchemaUrl, ebsiEnvConfig),
+                  type: "FullJsonSchemaValidator2021",
+                },
+              ],
+              credentialSubject: {
+                encodedList:
+                  "uH4sIAAAAAAAAA-3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAAAAAAIC3AYbSVKsAQAAA",
+                // Note: the VC lib requires that credentialSubject.id is a valid EBSI DID. We can't use a URL here!
+                // id: `${issuer.proxy.rawProxyData.prefix}${issuer.proxy.rawProxyData.testSuffix}#list`,
+                id: issuer.did,
+                statusPurpose: "revocation",
+                type: "BitstringStatusList",
+              },
+              id: `${issuerProxy.prefix}${issuerProxy.testSuffix}`,
+              issuanceDate: "2025-04-05T14:27:40Z",
+              issued: "2025-04-05T14:27:40Z",
+              issuer: issuer.did,
+              type: [
+                "VerifiableCredential",
+                "VerifiableAttestation",
+                "BitstringStatusListCredential",
+              ],
+              validFrom: "2025-04-05T14:27:40Z",
+            } as const satisfies BitstringStatusListCredential);
+      const newIssuer1StatusListCredentialJwt =
         await createVerifiableCredentialJwt(
-          newIssuer1StatusList2021Credential,
+          newIssuer1StatusListCredential,
           issuer,
-          config,
+          ebsiEnvConfig,
           {
             skipValidation: true,
           },
         );
 
-      return newIssuer1StatusList2021CredentialJwt;
+      return newIssuer1StatusListCredentialJwt;
     }
 
     let newIssuer1: IssuerObject;
@@ -217,9 +262,14 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
         "testVerifiableAttestationSchemaId",
         { infer: true },
       );
-      testStatusListSchemaId = configService.get("testStatusListSchemaId", {
-        infer: true,
-      });
+      testStatusList2021SchemaId = configService.get(
+        "testStatusList2021SchemaId",
+        { infer: true },
+      );
+      testBitstringStatusListSchemaId = configService.get(
+        "testBitstringStatusListSchemaId",
+        { infer: true },
+      );
 
       ledgerApi = `${configService.get("ledgerApiUrl", { infer: true })}/blockchains/besu`;
       ebsiEnvConfig = configService.get("ebsiEnvConfig", { infer: true });
@@ -1096,169 +1146,177 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
 
     describeLocalTestEnvOnly()("with mocked issuer's endpoint", () => {
       describe.each([
-        "addIssuerProxy",
-        "updateIssuerProxy",
-        "removeIssuerProxy",
-      ] as const)("/jsonrpc - method: %s", (method) => {
-        const mockServer = setupServer();
-        let testIssuerWithProxyWallet: ethers.Wallet;
+        "StatusList2021Credential",
+        "BitstringStatusListCredential",
+      ] as const)("with status list type %s", (statusList) => {
+        describe.each([
+          "addIssuerProxy",
+          "updateIssuerProxy",
+          "removeIssuerProxy",
+        ] as const)("/jsonrpc - method: %s", (method) => {
+          const mockServer = setupServer();
+          let testIssuerWithProxyWallet: ethers.Wallet;
 
-        beforeAll(async () => {
-          // Intercept network requests
-          mockServer.listen({
-            onUnhandledRequest: "bypass",
-          });
+          beforeAll(async () => {
+            // Intercept network requests
+            mockServer.listen({
+              onUnhandledRequest: "bypass",
+            });
 
-          testIssuerWithProxyWallet = new ethers.Wallet(
-            prefixWith0x(
-              configService.get("testIssuerWithProxyPrivateKey", {
-                infer: true,
-              }),
-            ),
-          );
+            testIssuerWithProxyWallet = new ethers.Wallet(
+              prefixWith0x(
+                configService.get("testIssuerWithProxyPrivateKey", {
+                  infer: true,
+                }),
+              ),
+            );
 
-          // Mock Trusted Issuers' endpoint
-          const statusList2021CredentialJwt =
-            await createStatusList2021CredentialJwt(
+            // Mock Trusted Issuers' endpoint
+            const statusListCredentialJwt = await createStatusListCredentialJwt(
               testIssuerWithProxy.info,
               newIssuer1.proxies[0]!.obj,
               ebsiEnvConfig,
+              uriType,
+              statusList,
             );
 
-          mockServer.use(
-            http.get(
-              `${newIssuer1.proxies[0]!.obj.prefix}${newIssuer1.proxies[0]!.obj.testSuffix}`,
-              () => HttpResponse.json(statusList2021CredentialJwt),
-            ),
-          );
-        });
+            mockServer.use(
+              http.get(
+                `${newIssuer1.proxies[0]!.obj.prefix}${newIssuer1.proxies[0]!.obj.testSuffix}`,
+                () => HttpResponse.json(statusListCredentialJwt),
+              ),
+            );
+          });
 
-        afterAll(() => {
-          mockServer.close();
-        });
+          afterAll(() => {
+            mockServer.close();
+          });
 
-        it("should add / update the proxy", async () => {
-          expect.assertions(6);
+          it("should add / update the proxy", async () => {
+            expect.assertions(6);
 
-          const { did } = testIssuerWithProxy.info;
-          let extraTestUrl = "";
-          let extraTestExpectedResponse: unknown = {};
-          let extraTestExpectedStatus = 200;
-          let params = {};
+            const { did } = testIssuerWithProxy.info;
+            let extraTestUrl = "";
+            let extraTestExpectedResponse: unknown = {};
+            let extraTestExpectedStatus = 200;
+            let params = {};
 
-          switch (method) {
-            case "addIssuerProxy": {
-              params = {
-                did,
-                from: testIssuerWithProxyWallet.address,
-                proxyData: newIssuer1.proxies[0]!.utf8,
-              } satisfies AddIssuerProxySchema;
+            switch (method) {
+              case "addIssuerProxy": {
+                params = {
+                  did,
+                  from: testIssuerWithProxyWallet.address,
+                  proxyData: newIssuer1.proxies[0]!.utf8,
+                } satisfies AddIssuerProxySchema;
 
-              extraTestUrl = `/issuers/${did}/proxies/${newIssuer1.proxies[0]!.id}`;
+                extraTestUrl = `/issuers/${did}/proxies/${newIssuer1.proxies[0]!.id}`;
 
-              extraTestExpectedResponse = newIssuer1.proxies[0]!.obj;
+                extraTestExpectedResponse = newIssuer1.proxies[0]!.obj;
 
-              break;
+                break;
+              }
+              case "removeIssuerProxy": {
+                params = {
+                  did,
+                  from: testIssuerWithProxyWallet.address,
+                  proxyId: newIssuer1.proxies[0]!.id,
+                } satisfies RemoveIssuerProxySchema;
+
+                extraTestUrl = `/issuers/${did}/proxies/${newIssuer1.proxies[0]!.id}`;
+                extraTestExpectedResponse = {
+                  detail: `Proxy ${newIssuer1.proxies[0]!.id} of issuer ${did} can't be found`,
+                  status: 404,
+                  title: "Proxy Not Found",
+                  type: "about:blank",
+                };
+                extraTestExpectedStatus = 404;
+
+                break;
+              }
+              case "updateIssuerProxy": {
+                params = {
+                  did,
+                  from: testIssuerWithProxyWallet.address,
+                  proxyData: newIssuer2.proxies[0]!.utf8,
+                  proxyId: newIssuer1.proxies[0]!.id,
+                } satisfies UpdateIssuerProxySchema;
+
+                extraTestUrl = `/issuers/${did}/proxies/${newIssuer1.proxies[0]!.id}`;
+                extraTestExpectedResponse = newIssuer2.proxies[0]!.obj;
+                break;
+              }
+              default: {
+                throw new Error("Invalid method");
+              }
             }
-            case "removeIssuerProxy": {
-              params = {
-                did,
-                from: testIssuerWithProxyWallet.address,
-                proxyId: newIssuer1.proxies[0]!.id,
-              } satisfies RemoveIssuerProxySchema;
 
-              extraTestUrl = `/issuers/${did}/proxies/${newIssuer1.proxies[0]!.id}`;
-              extraTestExpectedResponse = {
-                detail: `Proxy ${newIssuer1.proxies[0]!.id} of issuer ${did} can't be found`,
-                status: 404,
-                title: "Proxy Not Found",
-                type: "about:blank",
-              };
-              extraTestExpectedStatus = 404;
+            const responseBuild: SupertestJsonRpcResponse = await request(
+              server,
+            )
+              .post("/jsonrpc")
+              .auth(testIssuerWithProxy.token, { type: "bearer" })
+              .send({
+                id: 231,
+                jsonrpc: "2.0",
+                method,
+                params: [params],
+              });
 
-              break;
+            const unsignedTransaction = responseBuild.body.result;
+            const uTx = formatEthersUnsignedTransaction(
+              unsignedTransaction as UnsignedTransaction,
+            );
+
+            const sgnTx = await testIssuerWithProxyWallet.signTransaction(uTx);
+            const signature = ethers.Transaction.from(sgnTx).signature;
+            if (!signature) {
+              throw new Error("Signature not found");
             }
-            case "updateIssuerProxy": {
-              params = {
-                did,
-                from: testIssuerWithProxyWallet.address,
-                proxyData: newIssuer2.proxies[0]!.utf8,
-                proxyId: newIssuer1.proxies[0]!.id,
-              } satisfies UpdateIssuerProxySchema;
+            const { r, s, v } = signature;
 
-              extraTestUrl = `/issuers/${did}/proxies/${newIssuer1.proxies[0]!.id}`;
-              extraTestExpectedResponse = newIssuer2.proxies[0]!.obj;
-              break;
-            }
-            default: {
-              throw new Error("Invalid method");
-            }
-          }
+            const responseSend: SupertestJsonRpcResponse = await request(server)
+              .post("/jsonrpc")
+              .auth(testIssuerWithProxy.token, { type: "bearer" })
+              .send({
+                id: "45",
+                jsonrpc: "2.0",
+                method: "sendSignedTransaction",
+                params: [
+                  {
+                    protocol: "eth",
+                    r,
+                    s,
+                    signedRawTransaction: sgnTx,
+                    unsignedTransaction,
+                    v: `0x${v.toString(16)}`,
+                  },
+                ],
+              });
 
-          const responseBuild: SupertestJsonRpcResponse = await request(server)
-            .post("/jsonrpc")
-            .auth(testIssuerWithProxy.token, { type: "bearer" })
-            .send({
-              id: 231,
-              jsonrpc: "2.0",
-              method,
-              params: [params],
-            });
-
-          const unsignedTransaction = responseBuild.body.result;
-          const uTx = formatEthersUnsignedTransaction(
-            unsignedTransaction as UnsignedTransaction,
-          );
-
-          const sgnTx = await testIssuerWithProxyWallet.signTransaction(uTx);
-          const signature = ethers.Transaction.from(sgnTx).signature;
-          if (!signature) {
-            throw new Error("Signature not found");
-          }
-          const { r, s, v } = signature;
-
-          const responseSend: SupertestJsonRpcResponse = await request(server)
-            .post("/jsonrpc")
-            .auth(testIssuerWithProxy.token, { type: "bearer" })
-            .send({
+            expect(responseSend.body).toStrictEqual({
               id: "45",
               jsonrpc: "2.0",
-              method: "sendSignedTransaction",
-              params: [
-                {
-                  protocol: "eth",
-                  r,
-                  s,
-                  signedRawTransaction: sgnTx,
-                  unsignedTransaction,
-                  v: `0x${v.toString(16)}`,
-                },
-              ],
+              result: expect.any(String),
             });
+            expect(responseSend.status).toBe(200);
 
-          expect(responseSend.body).toStrictEqual({
-            id: "45",
-            jsonrpc: "2.0",
-            result: expect.any(String),
+            // wait to be mined
+            const receipt = await waitToBeMined(
+              ledgerApi,
+              responseSend.body.result as string,
+            );
+            expect(receipt.revertReason).toBeUndefined();
+            expect(receipt.status).toBe("0x1");
+            sampleTransaction = responseSend.body.result as string;
+
+            // Extra test
+            const extraTestResponse = await request(server).get(extraTestUrl);
+
+            expect(extraTestResponse.body).toStrictEqual(
+              extraTestExpectedResponse,
+            );
+            expect(extraTestResponse.status).toBe(extraTestExpectedStatus);
           });
-          expect(responseSend.status).toBe(200);
-
-          // wait to be mined
-          const receipt = await waitToBeMined(
-            ledgerApi,
-            responseSend.body.result as string,
-          );
-          expect(receipt.revertReason).toBeUndefined();
-          expect(receipt.status).toBe("0x1");
-          sampleTransaction = responseSend.body.result as string;
-
-          // Extra test
-          const extraTestResponse = await request(server).get(extraTestUrl);
-
-          expect(extraTestResponse.body).toStrictEqual(
-            extraTestExpectedResponse,
-          );
-          expect(extraTestResponse.status).toBe(extraTestExpectedStatus);
         });
       });
     });

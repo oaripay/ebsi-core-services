@@ -8,7 +8,6 @@ export * from "./getPublicKeyJwk.ts";
 export * from "./getSigner.ts";
 export * from "./isBigNumberish.ts";
 export * from "./isEthersError.ts";
-export * from "./isStatusList2021Credential.ts";
 export * from "./jsonSchema.utils.ts";
 export * from "./multibase.utils.ts";
 export * from "./multihash.utils.ts";
