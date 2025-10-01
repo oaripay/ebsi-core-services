@@ -598,7 +598,7 @@ EUPL version.
 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
 
 ========================================================================================
-- @cef-ebsi/verifiable-credential@^8.0.0-alpha.2
+- @cef-ebsi/verifiable-credential@^8.0.0-alpha.3
 ------------------------------
 This project is licensed under EUPL-1.2.
 
@@ -897,7 +897,7 @@ EUPL version.
 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
 
 ========================================================================================
-- @cef-ebsi/verifiable-presentation@^9.0.0-alpha.2
+- @cef-ebsi/verifiable-presentation@^9.0.0-alpha.3
 ------------------------------
 This project is licensed under EUPL-1.2.
 

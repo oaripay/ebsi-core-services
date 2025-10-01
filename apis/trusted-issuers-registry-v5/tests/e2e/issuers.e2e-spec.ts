@@ -2,10 +2,7 @@ import type {
   EbsiEnvConfiguration,
   EbsiIssuer,
 } from "@cef-ebsi/verifiable-credential";
-import type {
-  PaginatedList,
-  StatusList2021Credential,
-} from "@ebsiint-api/shared";
+import type { PaginatedList } from "@ebsiint-api/shared";
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 
@@ -31,6 +28,8 @@ import type {
   IssuerResponseObject,
   ProxyLink,
 } from "../../src/modules/issuers/issuers.interface.ts";
+import type { BitstringStatusListCredential } from "../../src/shared/validators/isBitstringStatusListCredential.ts";
+import type { StatusList2021Credential } from "../../src/shared/validators/isStatusList2021Credential.ts";
 
 import { AppModule } from "../../src/app.module.ts";
 import { getNestFastifyApplication } from "../utils/app.ts";
@@ -102,62 +101,107 @@ describe("TIR API v5 - Issuers (e2e)", () => {
   let testIssuerWithProxyPrivateKey: string;
   let testIssuerWithProxyFirstProxyId: string;
   let testVerifiableAttestationSchemaId: string;
-  let testStatusListSchemaId: string;
+  let testStatusList2021SchemaId: string;
+  let testBitstringStatusListSchemaId: string;
   let trustedSchemasRegistryApiUrl: string;
   const randomDid = EbsiWallet.createDid();
 
-  async function createStatusList2021CredentialJwt(
+  async function createStatusListCredentialJwt(
     issuer: EbsiIssuer,
     issuerProxy: IssuerProxyResponseObject,
     ebsiEnvConfig: EbsiEnvConfiguration,
     uriType: "EBSI URI" | "URL",
+    statusList: "BitstringStatusListCredential" | "StatusList2021Credential",
   ) {
     const verifiableAttestationSchemaUrl = `${trustedSchemasRegistryApiUrl}/schemas/${testVerifiableAttestationSchemaId}`;
-    const statusListSchemaUrl = `${trustedSchemasRegistryApiUrl}/schemas/${testStatusListSchemaId}`;
-    const newIssuer1StatusList2021Credential: StatusList2021Credential = {
-      "@context": [
-        "https://www.w3.org/2018/credentials/v1",
-        "https://w3id.org/vc/status-list/2021/v1",
-      ],
-      credentialSchema: [
-        {
-          id:
-            uriType === "URL"
-              ? verifiableAttestationSchemaUrl
-              : fromUrl(verifiableAttestationSchemaUrl, ebsiEnvConfig),
-          type: "FullJsonSchemaValidator2021",
-        },
-        {
-          id:
-            uriType === "URL"
-              ? statusListSchemaUrl
-              : fromUrl(statusListSchemaUrl, ebsiEnvConfig),
-          type: "FullJsonSchemaValidator2021",
-        },
-      ],
-      credentialSubject: {
-        encodedList:
-          "H4sIAAAAAAAAA-3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAAAAAAIC3AYbSVKsAQAAA",
-        // Note: the VC lib requires that credentialSubject.id is a valid EBSI DID. We can't use a URL here!
-        // id: `${issuer.proxy.rawProxyData.prefix}${issuer.proxy.rawProxyData.testSuffix}#list`,
-        id: issuer.did,
-        statusPurpose: "revocation",
-        type: "StatusList2021",
-      },
-      id: `${issuerProxy.prefix}${issuerProxy.testSuffix}`,
-      issuanceDate: "2021-04-05T14:27:40Z",
-      issued: "2021-04-05T14:27:40Z",
-      issuer: issuer.did,
-      type: [
-        "VerifiableCredential",
-        "VerifiableAttestation",
-        "StatusList2021Credential",
-      ],
-      validFrom: "2021-04-05T14:27:40Z",
-    };
-    const newIssuer1StatusList2021CredentialJwt =
+    const statusListSchemaUrl =
+      statusList === "StatusList2021Credential"
+        ? `${trustedSchemasRegistryApiUrl}/schemas/${testStatusList2021SchemaId}`
+        : `${trustedSchemasRegistryApiUrl}/schemas/${testBitstringStatusListSchemaId}`;
+    const newIssuer1StatusListCredential =
+      statusList === "StatusList2021Credential"
+        ? ({
+            "@context": [
+              "https://www.w3.org/2018/credentials/v1",
+              "https://w3id.org/vc/status-list/2021/v1",
+            ],
+            credentialSchema: [
+              {
+                id:
+                  uriType === "URL"
+                    ? verifiableAttestationSchemaUrl
+                    : fromUrl(verifiableAttestationSchemaUrl, ebsiEnvConfig),
+                type: "FullJsonSchemaValidator2021",
+              },
+              {
+                id:
+                  uriType === "URL"
+                    ? statusListSchemaUrl
+                    : fromUrl(statusListSchemaUrl, ebsiEnvConfig),
+                type: "FullJsonSchemaValidator2021",
+              },
+            ],
+            credentialSubject: {
+              encodedList:
+                "H4sIAAAAAAAAA-3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAAAAAAIC3AYbSVKsAQAAA",
+              // Note: the VC lib requires that credentialSubject.id is a valid EBSI DID. We can't use a URL here!
+              // id: `${issuer.proxy.rawProxyData.prefix}${issuer.proxy.rawProxyData.testSuffix}#list`,
+              id: issuer.did,
+              statusPurpose: "revocation",
+              type: "StatusList2021",
+            },
+            id: `${issuerProxy.prefix}${issuerProxy.testSuffix}`,
+            issuanceDate: "2025-04-05T14:27:40Z",
+            issued: "2025-04-05T14:27:40Z",
+            issuer: issuer.did,
+            type: [
+              "VerifiableCredential",
+              "VerifiableAttestation",
+              "StatusList2021Credential",
+            ],
+            validFrom: "2025-04-05T14:27:40Z",
+          } as const satisfies StatusList2021Credential)
+        : ({
+            "@context": ["https://www.w3.org/2018/credentials/v1"],
+            credentialSchema: [
+              {
+                id:
+                  uriType === "URL"
+                    ? verifiableAttestationSchemaUrl
+                    : fromUrl(verifiableAttestationSchemaUrl, ebsiEnvConfig),
+                type: "FullJsonSchemaValidator2021",
+              },
+              {
+                id:
+                  uriType === "URL"
+                    ? statusListSchemaUrl
+                    : fromUrl(statusListSchemaUrl, ebsiEnvConfig),
+                type: "FullJsonSchemaValidator2021",
+              },
+            ],
+            credentialSubject: {
+              encodedList:
+                "uH4sIAAAAAAAAA-3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAAAAAAIC3AYbSVKsAQAAA",
+              // Note: the VC lib requires that credentialSubject.id is a valid EBSI DID. We can't use a URL here!
+              // id: `${issuer.proxy.rawProxyData.prefix}${issuer.proxy.rawProxyData.testSuffix}#list`,
+              id: issuer.did,
+              statusPurpose: "revocation",
+              type: "BitstringStatusList",
+            },
+            id: `${issuerProxy.prefix}${issuerProxy.testSuffix}`,
+            issuanceDate: "2025-04-05T14:27:40Z",
+            issued: "2025-04-05T14:27:40Z",
+            issuer: issuer.did,
+            type: [
+              "VerifiableCredential",
+              "VerifiableAttestation",
+              "BitstringStatusListCredential",
+            ],
+            validFrom: "2025-04-05T14:27:40Z",
+          } as const satisfies BitstringStatusListCredential);
+    const newIssuer1StatusListCredentialJwt =
       await createVerifiableCredentialJwt(
-        newIssuer1StatusList2021Credential,
+        newIssuer1StatusListCredential,
         issuer,
         ebsiEnvConfig,
         {
@@ -165,7 +209,7 @@ describe("TIR API v5 - Issuers (e2e)", () => {
         },
       );
 
-    return newIssuer1StatusList2021CredentialJwt;
+    return newIssuer1StatusListCredentialJwt;
   }
 
   let lastExistingIssuerDid: string;
@@ -223,9 +267,14 @@ describe("TIR API v5 - Issuers (e2e)", () => {
       "testVerifiableAttestationSchemaId",
       { infer: true },
     );
-    testStatusListSchemaId = configService.get("testStatusListSchemaId", {
-      infer: true,
-    });
+    testStatusList2021SchemaId = configService.get(
+      "testStatusList2021SchemaId",
+      { infer: true },
+    );
+    testBitstringStatusListSchemaId = configService.get(
+      "testBitstringStatusListSchemaId",
+      { infer: true },
+    );
   });
 
   afterAll(async () => {
@@ -1033,91 +1082,96 @@ describe("TIR API v5 - Issuers (e2e)", () => {
         mockServer.close();
       });
 
-      it.each(["URL", "EBSI URI"] as const)(
-        "should return a StatusList2021Credential JWT (using %s as resource locator)",
-        async (uriType) => {
-          expect.assertions(2);
+      describe.each([
+        "StatusList2021Credential",
+        "BitstringStatusListCredential",
+      ] as const)("with status list type %s", (statusList) => {
+        it.each(["URL", "EBSI URI"] as const)(
+          `should return a ${statusList} JWT (using %s as resource locator)`,
+          async (uriType) => {
+            expect.assertions(2);
 
-          // Mock issuer's endpoint response
-          const ebsiEnvConfig = configService.get("ebsiEnvConfig", {
-            infer: true,
-          });
+            // Mock issuer's endpoint response
+            const ebsiEnvConfig = configService.get("ebsiEnvConfig", {
+              infer: true,
+            });
 
-          const testIssuerWithProxy = getEbsiIssuer(
-            testIssuerWithProxyPrivateKey,
-            testIssuerWithProxyDid,
-            testIssuerWithProxyKid,
-          );
+            const testIssuerWithProxy = getEbsiIssuer(
+              testIssuerWithProxyPrivateKey,
+              testIssuerWithProxyDid,
+              testIssuerWithProxyKid,
+            );
 
-          const statusList2021CredentialJwt =
-            await createStatusList2021CredentialJwt(
+            const statusListCredentialJwt = await createStatusListCredentialJwt(
               testIssuerWithProxy,
               proxy,
               ebsiEnvConfig,
               uriType,
+              statusList,
             );
 
+            mockServer.use(
+              http.get(escapeDid(`${proxy.prefix}${path}`), () =>
+                HttpResponse.json(statusListCredentialJwt),
+              ),
+            );
+
+            const response: SupertestStringResponse = await request(server).get(
+              `/issuers/${testIssuerWithProxyDid}/proxies/${testIssuerWithProxyFirstProxyId}${path}`,
+            );
+
+            expect(response.text).toStrictEqual(statusListCredentialJwt);
+            expect(response.status).toBe(200);
+          },
+        );
+
+        it("should return an error 500 when the Trusted Issuer's endpoint respond with a 500", async () => {
+          expect.assertions(2);
+
+          // Mock issuer's endpoint response
           mockServer.use(
-            http.get(escapeDid(`${proxy.prefix}${path}`), () =>
-              HttpResponse.json(statusList2021CredentialJwt),
+            http.get(
+              escapeDid(`${proxy.prefix}${path}`),
+              () => new HttpResponse(undefined, { status: 500 }),
             ),
           );
 
-          const response: SupertestStringResponse = await request(server).get(
+          const response = await request(server).get(
             `/issuers/${testIssuerWithProxyDid}/proxies/${testIssuerWithProxyFirstProxyId}${path}`,
           );
 
-          expect(response.text).toStrictEqual(statusList2021CredentialJwt);
-          expect(response.status).toBe(200);
-        },
-      );
-
-      it("should return an error 500 when the Trusted Issuer's endpoint respond with a 500", async () => {
-        expect.assertions(2);
-
-        // Mock issuer's endpoint response
-        mockServer.use(
-          http.get(
-            escapeDid(`${proxy.prefix}${path}`),
-            () => new HttpResponse(undefined, { status: 500 }),
-          ),
-        );
-
-        const response = await request(server).get(
-          `/issuers/${testIssuerWithProxyDid}/proxies/${testIssuerWithProxyFirstProxyId}${path}`,
-        );
-
-        expect(response.body).toStrictEqual({
-          detail: "The Status List Credential can't be retrieved",
-          status: 500,
-          title: "Unreachable Status List Credential",
-          type: "about:blank",
+          expect(response.body).toStrictEqual({
+            detail: "The Status List Credential can't be retrieved",
+            status: 500,
+            title: "Unreachable Status List Credential",
+            type: "about:blank",
+          });
+          expect(response.status).toBe(500);
         });
-        expect(response.status).toBe(500);
-      });
 
-      it("should return an error 500 when the Trusted Issuer's endpoint respond with an invalid StatusList2021Credential", async () => {
-        expect.assertions(2);
+        it(`should return an error 500 when the Trusted Issuer's endpoint respond with an invalid ${statusList}`, async () => {
+          expect.assertions(2);
 
-        // Mock issuer's endpoint response
-        mockServer.use(
-          http.get(escapeDid(`${proxy.prefix}${path}`), () =>
-            HttpResponse.text("invalid jwt"),
-          ),
-        );
+          // Mock issuer's endpoint response
+          mockServer.use(
+            http.get(escapeDid(`${proxy.prefix}${path}`), () =>
+              HttpResponse.text("invalid jwt"),
+            ),
+          );
 
-        const response = await request(server).get(
-          `/issuers/${testIssuerWithProxyDid}/proxies/${testIssuerWithProxyFirstProxyId}${path}`,
-        );
+          const response = await request(server).get(
+            `/issuers/${testIssuerWithProxyDid}/proxies/${testIssuerWithProxyFirstProxyId}${path}`,
+          );
 
-        expect(response.body).toStrictEqual({
-          detail:
-            "The Status List Credential returned by the Issuer's proxy is invalid",
-          status: 500,
-          title: "Invalid Status List Credential",
-          type: "about:blank",
+          expect(response.body).toStrictEqual({
+            detail:
+              "The Status List Credential returned by the Issuer's proxy is not a JWT",
+            status: 500,
+            title: "Invalid Status List Credential",
+            type: "about:blank",
+          });
+          expect(response.status).toBe(500);
         });
-        expect(response.status).toBe(500);
       });
     });
 

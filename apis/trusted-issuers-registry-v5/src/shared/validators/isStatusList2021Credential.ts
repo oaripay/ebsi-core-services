@@ -1,28 +1,13 @@
 import type {
   EbsiEnvConfiguration,
-  EbsiVerifiableAttestation,
+  EbsiStatusList2021Credential,
   VerifyCredentialOptions,
 } from "@cef-ebsi/verifiable-credential";
 
 import { verifyCredentialJwt } from "@cef-ebsi/verifiable-credential";
 import Joi from "joi";
 
-// StatusList2021Credential extends Credential type
-// https://w3c-ccg.github.io/vc-status-list-2021/#statuslist2021credential
-export interface StatusList2021Credential extends EbsiVerifiableAttestation {
-  "@context": [
-    "https://www.w3.org/2018/credentials/v1",
-    "https://w3id.org/vc/status-list/2021/v1",
-    ...string[],
-  ];
-  credentialSubject: {
-    encodedList: string;
-    id: string;
-    statusPurpose: "revocation" | "suspension";
-    type: "StatusList2021";
-  };
-  type: ["VerifiableCredential", ...string[]];
-}
+export type StatusList2021Credential = EbsiStatusList2021Credential;
 
 export const statusList2021CredentialSchema = Joi.object({
   "@context": Joi.array()
@@ -91,20 +76,4 @@ export async function checkStatusList2021Credential(
   }
 
   return { success: true };
-}
-
-export async function isStatusList2021Credential(
-  credentialJwt: unknown,
-  ebsiEnvConfig: EbsiEnvConfiguration,
-  reqId: string,
-  options?: Omit<VerifyCredentialOptions, "hosts" | "network">,
-): Promise<boolean> {
-  const { success } = await checkStatusList2021Credential(
-    credentialJwt,
-    ebsiEnvConfig,
-    reqId,
-    options,
-  );
-
-  return success;
 }

@@ -1,7 +1,5 @@
 import type { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
 
-// eslint-disable-next-line import/namespace
-import * as SharedLib from "@ebsiint-api/shared";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 import {
@@ -14,7 +12,9 @@ import {
   vi,
 } from "vitest";
 
+import * as BitstringStatusListCredentialHelpers from "./isBitstringStatusListCredential.ts";
 import { isIssuerProxy } from "./isIssuerProxy.ts";
+import * as StatusList2021CredentialHelpers from "./isStatusList2021Credential.ts";
 
 const ebsiEnvConfig = {
   hosts: ["api-test.ebsi.eu"],
@@ -273,8 +273,17 @@ describe("isIssuerProxy", () => {
     );
 
     // The status list returned by the issuer is invalid
-    vi.spyOn(SharedLib, "checkStatusList2021Credential").mockImplementation(
-      () => Promise.resolve({ error: "error", success: false }),
+    vi.spyOn(
+      StatusList2021CredentialHelpers,
+      "checkStatusList2021Credential",
+    ).mockImplementation(() =>
+      Promise.resolve({ error: "error", success: false }),
+    );
+    vi.spyOn(
+      BitstringStatusListCredentialHelpers,
+      "checkBitstringStatusListCredential",
+    ).mockImplementation(() =>
+      Promise.resolve({ error: "error", success: false }),
     );
 
     const result = await isIssuerProxy(
@@ -300,12 +309,36 @@ describe("isIssuerProxy", () => {
       ),
     );
 
-    // Assume that the status list returned by the issuer is valid
-    vi.spyOn(SharedLib, "checkStatusList2021Credential").mockImplementation(
-      () => Promise.resolve({ success: true }),
+    // Assume that the status list returned by the issuer is a valid StatusList2021Credential
+    vi.spyOn(
+      StatusList2021CredentialHelpers,
+      "checkStatusList2021Credential",
+    ).mockImplementation(() => Promise.resolve({ success: true }));
+
+    let result = await isIssuerProxy(
+      JSON.stringify(proxy),
+      ebsiEnvConfig,
+      "reqId",
+      10,
     );
 
-    const result = await isIssuerProxy(
+    expect(result).toStrictEqual({
+      success: true,
+    });
+
+    // Now let's assume that the status list returned by the issuer is not a valid StatusList2021Credential, but is a valid BitstringStatusListCredential
+    vi.spyOn(
+      StatusList2021CredentialHelpers,
+      "checkStatusList2021Credential",
+    ).mockImplementation(() =>
+      Promise.resolve({ error: "error", success: false }),
+    );
+    vi.spyOn(
+      BitstringStatusListCredentialHelpers,
+      "checkBitstringStatusListCredential",
+    ).mockImplementation(() => Promise.resolve({ success: true }));
+
+    result = await isIssuerProxy(
       JSON.stringify(proxy),
       ebsiEnvConfig,
       "reqId",

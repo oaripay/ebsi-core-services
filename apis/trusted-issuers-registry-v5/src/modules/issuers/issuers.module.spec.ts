@@ -1,3 +1,8 @@
+import type {
+  EbsiBitstringStatusListCredential,
+  EbsiStatusList2021Credential,
+  EbsiVerifiableAttestation,
+} from "@cef-ebsi/verifiable-credential";
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { AxiosResponse } from "axios";
 import type { RawServerDefault } from "fastify";
@@ -8,6 +13,7 @@ import { remove0xPrefix } from "@ebsiint-api/shared";
 import { Tir__factory } from "@ebsiint-sc/trusted-issuers-registry-v5";
 import axios, { AxiosError } from "axios";
 import { ethers } from "ethers";
+import { generateKeyPair, SignJWT } from "jose";
 import { randomBytes } from "node:crypto";
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
@@ -1133,64 +1139,102 @@ describe("Issuers Module", () => {
   describe("GET /issuers/{did}/proxies/{proxyId}/{path}", () => {
     const subpath = "/credentials/status/3";
 
-    it("should return a specific StatusList2021Credential (JWT)", async () => {
-      expect.assertions(2);
+    it.each(["StatusList2021Credential", "BitstringCredential"] as const)(
+      `should return a specific %s (JWT)`,
+      async (statusListType) => {
+        expect.assertions(2);
 
-      const url = `/issuers/${issuer.did}/proxies/${issuer.proxies[0]!.id}${subpath}`;
+        const url = `/issuers/${issuer.did}/proxies/${issuer.proxies[0]!.id}${subpath}`;
 
-      // Mock issuer's endpoint response
-      vi.spyOn(axios, "get").mockImplementation((requestUrl: string) => {
-        if (requestUrl === `${issuer.proxies[0]!.obj.prefix}${subpath}`) {
-          return Promise.resolve({
-            data: "jwt",
-            status: 200,
-          });
-        }
+        const vcPayload =
+          statusListType === "StatusList2021Credential"
+            ? ({
+                "@context": [
+                  "https://www.w3.org/2018/credentials/v1",
+                  "https://w3id.org/vc/status-list/2021/v1",
+                ],
+                credentialSchema: {
+                  id: "https://example.net",
+                  type: "FullJsonSchemaValidator2021",
+                },
+                credentialSubject: {
+                  encodedList:
+                    "H4sIAAAAAAAAA-3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAAAAAAIC3AYbSVKsAQAAA",
+                  id: `${issuer.proxies[0]!.obj.prefix}${issuer.proxies[0]!.obj.testSuffix}#list`,
+                  statusPurpose: "revocation",
+                  type: "StatusList2021",
+                },
+                id: `${issuer.proxies[0]!.obj.prefix}${issuer.proxies[0]!.obj.testSuffix}`,
+                issuanceDate: "2021-04-05T14:27:40Z",
+                issued: "2021-04-05T14:27:40Z",
+                issuer: issuer.did,
+                type: [
+                  "VerifiableCredential",
+                  "VerifiableAttestation",
+                  "StatusList2021Credential",
+                ],
+                validFrom: "2021-04-05T14:27:40Z",
+              } as const satisfies EbsiStatusList2021Credential)
+            : ({
+                "@context": ["https://www.w3.org/2018/credentials/v1"],
+                credentialSchema: {
+                  id: "https://example.net",
+                  type: "FullJsonSchemaValidator2021",
+                },
+                credentialSubject: {
+                  encodedList:
+                    "H4sIAAAAAAAAA-3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAAAAAAIC3AYbSVKsAQAAA",
+                  id: `${issuer.proxies[0]!.obj.prefix}${issuer.proxies[0]!.obj.testSuffix}#list`,
+                  statusPurpose: "revocation",
+                  type: "BitstringStatusList",
+                },
+                id: `${issuer.proxies[0]!.obj.prefix}${issuer.proxies[0]!.obj.testSuffix}`,
+                issuanceDate: "2021-04-05T14:27:40Z",
+                issued: "2021-04-05T14:27:40Z",
+                issuer: issuer.did,
+                type: [
+                  "VerifiableCredential",
+                  "VerifiableAttestation",
+                  "BitstringStatusListCredential",
+                ],
+                validFrom: "2021-04-05T14:27:40Z",
+              } as const satisfies EbsiBitstringStatusListCredential);
 
-        return Promise.reject(new Error("Invalid url"));
-      });
+        const { privateKey } = await generateKeyPair("ES256");
+        const jwt = await new SignJWT({ vc: vcPayload })
+          .setProtectedHeader({
+            alg: "ES256",
+            typ: "JWT",
+          })
+          .sign(privateKey);
 
-      // Mock VC Lib validation
-      vi.spyOn(vcLib, "verifyCredentialJwt").mockImplementation(
-        (jwt: string) => {
-          if (jwt === "jwt")
+        // Mock issuer's endpoint response
+        vi.spyOn(axios, "get").mockImplementation((requestUrl: string) => {
+          if (requestUrl === `${issuer.proxies[0]!.obj.prefix}${subpath}`) {
             return Promise.resolve({
-              "@context": [
-                "https://www.w3.org/2018/credentials/v1",
-                "https://w3id.org/vc/status-list/2021/v1",
-              ],
-              credentialSchema: {
-                id: "https://example.net",
-                type: "FullJsonSchemaValidator2021",
-              },
-              credentialSubject: {
-                encodedList:
-                  "H4sIAAAAAAAAA-3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAAAAAAIC3AYbSVKsAQAAA",
-                id: `${issuer.proxies[0]!.obj.prefix}${issuer.proxies[0]!.obj.testSuffix}#list`,
-                statusPurpose: "revocation",
-                type: "StatusList2021",
-              },
-              id: `${issuer.proxies[0]!.obj.prefix}${issuer.proxies[0]!.obj.testSuffix}`,
-              issuanceDate: "2021-04-05T14:27:40Z",
-              issued: "2021-04-05T14:27:40Z",
-              issuer: issuer.did,
-              type: [
-                "VerifiableCredential",
-                "VerifiableAttestation",
-                "StatusList2021Credential",
-              ],
-              validFrom: "2021-04-05T14:27:40Z",
+              data: jwt,
+              status: 200,
             });
+          }
 
-          throw new Error("Invalid JWT");
-        },
-      );
+          return Promise.reject(new Error("Invalid url"));
+        });
 
-      const response = await request(server).get(url);
+        // Mock VC Lib validation
+        vi.spyOn(vcLib, "verifyCredentialJwt").mockImplementation(
+          (jwtToVerify: string) => {
+            if (jwtToVerify === jwt) return Promise.resolve(vcPayload);
 
-      expect(response.text).toBe("jwt");
-      expect(response.status).toBe(200);
-    });
+            throw new Error("Invalid JWT");
+          },
+        );
+
+        const response = await request(server).get(url);
+
+        expect(response.text).toBe(jwt);
+        expect(response.status).toBe(200);
+      },
+    );
 
     it("should return an error if the issuer's endpoint respond with a 500", async () => {
       expect.assertions(2);
@@ -1230,10 +1274,46 @@ describe("Issuers Module", () => {
 
       const url = `/issuers/${issuer.did}/proxies/${issuer.proxies[0]!.id}${subpath}`;
 
+      const vcPayload = {
+        "@context": [
+          "https://www.w3.org/2018/credentials/v1",
+          "https://w3id.org/vc/status-list/2021/v1",
+        ],
+        credentialSchema: {
+          id: "https://example.net",
+          type: "FullJsonSchemaValidator2021",
+        },
+        credentialSubject: {
+          encodedList:
+            "H4sIAAAAAAAAA-3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAAAAAAIC3AYbSVKsAQAAA",
+          id: `${issuer.proxies[0]!.obj.prefix}${issuer.proxies[0]!.obj.testSuffix}#list`,
+          statusPurpose: "revocation",
+          type: "StatusList2021",
+        },
+        id: `${issuer.proxies[0]!.obj.prefix}${issuer.proxies[0]!.obj.testSuffix}`,
+        issuanceDate: "2021-04-05T14:27:40Z",
+        issued: "2021-04-05T14:27:40Z",
+        issuer: issuer.did,
+        type: [
+          "VerifiableCredential",
+          "VerifiableAttestation",
+          "StatusList2021Credential",
+        ],
+        validFrom: "2021-04-05T14:27:40Z",
+      } as const satisfies EbsiVerifiableAttestation;
+
+      const { privateKey } = await generateKeyPair("ES256");
+      const jwt = await new SignJWT({ vc: vcPayload })
+        .setProtectedHeader({
+          alg: "ES256",
+          typ: "JWT",
+        })
+        .sign(privateKey);
+
       vi.spyOn(axios, "get").mockImplementation((requestUrl: string) => {
         if (requestUrl === `${issuer.proxies[0]!.obj.prefix}${subpath}`) {
           return Promise.resolve({
-            data: "jwt",
+            data: jwt,
             status: 200,
           });
         }
@@ -1339,6 +1419,35 @@ describe("Issuers Module", () => {
         type: "about:blank",
       });
       expect(response2.status).toBe(404);
+    });
+
+    it("should throw an error when the proxy doesn't return a JWT", async () => {
+      expect.assertions(2);
+
+      const url = `/issuers/${issuer.did}/proxies/${issuer.proxies[0]!.id}${subpath}`;
+
+      // Mock issuer's endpoint response
+      vi.spyOn(axios, "get").mockImplementation((requestUrl: string) => {
+        if (requestUrl === `${issuer.proxies[0]!.obj.prefix}${subpath}`) {
+          return Promise.resolve({
+            data: "jwt",
+            status: 200,
+          });
+        }
+
+        return Promise.reject(new Error("Invalid url"));
+      });
+
+      const response = await request(server).get(url);
+
+      expect(response.body).toStrictEqual({
+        detail:
+          "The Status List Credential returned by the Issuer's proxy is not a JWT",
+        status: 500,
+        title: "Invalid Status List Credential",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(500);
     });
   });
 });

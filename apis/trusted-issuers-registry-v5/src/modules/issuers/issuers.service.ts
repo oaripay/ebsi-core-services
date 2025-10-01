@@ -4,7 +4,6 @@ import type { AxiosResponse } from "axios";
 
 import {
   BadRequestError,
-  checkStatusList2021Credential,
   InternalServerError,
   isEthersError,
   NotFoundError,
@@ -16,6 +15,7 @@ import { Tir__factory } from "@ebsiint-sc/trusted-issuers-registry-v5";
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import axios from "axios";
+import { decodeJwt, type JWTPayload } from "jose";
 
 import type { ApiConfig } from "../../config/configuration.ts";
 import type {
@@ -24,6 +24,8 @@ import type {
   IssuerResponseObject__deprecated,
 } from "./issuers.interface.ts";
 
+import { checkBitstringStatusListCredential } from "../../shared/validators/isBitstringStatusListCredential.ts";
+import { checkStatusList2021Credential } from "../../shared/validators/isStatusList2021Credential.ts";
 import { LedgerService } from "../ledger/ledger.service.ts";
 import { IssuerTypeNames } from "./issuers.constants.ts";
 
@@ -547,11 +549,45 @@ export class IssuersService {
       });
     }
 
-    const statusListValidation = await checkStatusList2021Credential(
-      res.data,
-      this.ebsiEnvConfig,
-      reqId,
-    );
+    let payload: JWTPayload;
+
+    try {
+      payload = decodeJwt(res.data);
+    } catch {
+      throw new InternalServerError("Invalid Status List Credential", {
+        detail:
+          "The Status List Credential returned by the Issuer's proxy is not a JWT",
+      });
+    }
+
+    if (
+      !("vc" in payload) ||
+      typeof payload["vc"] !== "object" ||
+      !payload["vc"] ||
+      !("type" in payload["vc"]) ||
+      !Array.isArray(payload["vc"].type)
+    ) {
+      throw new InternalServerError("Invalid Status List Credential", {
+        detail:
+          "The Status List Credential returned by the Issuer's proxy is not a VC JWT",
+      });
+    }
+
+    if (
+      !payload["vc"].type.includes("StatusList2021Credential") &&
+      !payload["vc"].type.includes("BitstringStatusListCredential")
+    ) {
+      throw new InternalServerError("Invalid Status List Credential", {
+        detail:
+          "The Status List Credential returned by the Issuer's proxy is not a StatusList2021Credential nor a BitstringStatusListCredential JWT",
+      });
+    }
+
+    const statusListValidation = await (
+      payload["vc"].type.includes("BitstringStatusListCredential")
+        ? checkBitstringStatusListCredential
+        : checkStatusList2021Credential
+    )(res.data, this.ebsiEnvConfig, reqId);
 
     if (!statusListValidation.success) {
       this.logger.error(
