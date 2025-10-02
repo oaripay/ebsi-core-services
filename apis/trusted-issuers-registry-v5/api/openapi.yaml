@@ -774,8 +774,8 @@ paths:
   /trusted-issuers-registry/v5/issuers/{did}/proxies/{proxyId}/{path}:
     get:
       operationId: get-issuer-proxy-path
-      summary: Get StatusList2021Credential
-      description: Retrieves a StatusList2021Credential JWT through the issuer's proxy.
+      summary: Get status list credential
+      description: Retrieves a StatusList2021Credential or BitstringStatusListCredential JWT through the issuer's proxy.
       tags:
         - Issuers
       parameters:
@@ -802,8 +802,8 @@ paths:
           schema:
             type: string
           examples:
-            StatusList2021Credential path:
-              description: Path to a StatusList2021Credential
+            Status list credential path:
+              description: Path to a StatusList2021Credential or BitstringStatusListCredential
               value: credentials/status/1
           required: true
       responses:
