@@ -13,7 +13,8 @@ abstract contract SchemaDetailed is SchemaStorage {
     using Pagination for uint256;
 
     event SchemaInserted(
-        bytes indexed schemaId,
+        bytes indexed schemaIdHash,
+        bytes schemaId,
         bytes schema,
         bytes32 schemaRevisionId,
         bytes metadata,
@@ -21,7 +22,8 @@ abstract contract SchemaDetailed is SchemaStorage {
     );
 
     event SchemaUpdated(
-        bytes indexed schemaId,
+        bytes indexed schemaIdHash,
+        bytes schemaId,
         bytes schema,
         bytes32 schemaRevisionId,
         bytes metadata,

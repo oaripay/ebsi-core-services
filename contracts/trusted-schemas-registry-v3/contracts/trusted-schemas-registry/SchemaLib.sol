@@ -6,7 +6,8 @@ import "./SchemaStorage.sol";
 
 library SchemaLib {
     event SchemaInserted(
-        bytes indexed schemaId,
+        bytes indexed schemaIdHash,
+        bytes schemaId,
         bytes schema,
         bytes32 schemaRevisionId,
         bytes metadata,
@@ -14,7 +15,8 @@ library SchemaLib {
     );
 
     event SchemaUpdated(
-        bytes indexed schemaId,
+        bytes indexed schemaIdHash,
+        bytes schemaId,
         bytes schema,
         bytes32 schemaRevisionId,
         bytes metadata,
@@ -73,6 +75,7 @@ library SchemaLib {
         ss.schemaRevisionStore[schemaRevisionId] = schema;
 
         emit SchemaInserted(
+            schemaId,
             schemaId,
             schema,
             schemaRevisionId,
@@ -163,6 +166,7 @@ library SchemaLib {
         ss.revisionIdToMetadataIds[schemaRevisionId].push(metadataId);
 
         emit SchemaUpdated(
+            schemaId,
             schemaId,
             schema,
             schemaRevisionId,
