@@ -132,6 +132,7 @@ describe("Schema", () => {
       .to.emit(ts, "SchemaInserted")
       .withArgs(
         ethers.hexlify(schemaId),
+        ethers.hexlify(schemaId),
         ethers.hexlify(schemaRevision),
         ethers.sha256(schemaRevision),
         ethers.hexlify(metadata),
@@ -465,6 +466,7 @@ describe("Schema", () => {
     await expect(ts.updateSchema(schemaId, schemaRevision2, metadata2))
       .to.emit(ts, "SchemaUpdated")
       .withArgs(
+        ethers.hexlify(schemaId),
         ethers.hexlify(schemaId),
         ethers.hexlify(schemaRevision2),
         ethers.sha256(schemaRevision2),

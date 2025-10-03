@@ -43,6 +43,7 @@ describe("Trusted Schemas Registry - entity assertions", () => {
     const event = changetype<SchemaInserted>(newMockEvent());
 
     event.parameters = [
+      paramBytes("schemaIdHash", Bytes.fromHexString(schemaId)),
       paramBytes("schemaId", Bytes.fromHexString(schemaId)),
       paramBytes("schema", Bytes.fromUTF8(schema1)),
       paramBytes("schemaRevisionId", Bytes.fromHexString(revision1Id)),
@@ -84,6 +85,7 @@ describe("Trusted Schemas Registry - entity assertions", () => {
     const event = changetype<SchemaUpdated>(newMockEvent());
 
     event.parameters = [
+      paramBytes("schemaIdHash", Bytes.fromHexString(schemaId)),
       paramBytes("schemaId", Bytes.fromHexString(schemaId)),
       paramBytes("schema", Bytes.fromUTF8(schema2)),
       paramBytes("schemaRevisionId", Bytes.fromHexString(revision2Id)),
@@ -209,6 +211,7 @@ describe("Trusted Schemas Registry - entity assertions", () => {
     // Insert a new schema
     const insertEvent = changetype<SchemaInserted>(newMockEvent());
     insertEvent.parameters = [
+      paramBytes("schemaIdHash", Bytes.fromHexString(schemaIdNew)),
       paramBytes("schemaId", Bytes.fromHexString(schemaIdNew)),
       paramBytes("schema", Bytes.fromUTF8(schemaNew)),
       paramBytes("schemaRevisionId", Bytes.fromHexString(revisionNewId)),
@@ -247,6 +250,7 @@ describe("Trusted Schemas Registry - entity assertions", () => {
     // Insert a new schema
     const insertEvent = changetype<SchemaInserted>(newMockEvent());
     insertEvent.parameters = [
+      paramBytes("schemaIdHash", Bytes.fromHexString(schemaId2)),
       paramBytes("schemaId", Bytes.fromHexString(schemaId2)),
       paramBytes("schema", Bytes.fromUTF8(schema3)),
       paramBytes("schemaRevisionId", Bytes.fromHexString(revision3Id)),
@@ -320,6 +324,7 @@ describe("Trusted Schemas Registry - entity assertions", () => {
     // Insert initial schema
     const insertEvent = changetype<SchemaInserted>(newMockEvent());
     insertEvent.parameters = [
+      paramBytes("schemaIdHash", Bytes.fromHexString(schemaId4)),
       paramBytes("schemaId", Bytes.fromHexString(schemaId4)),
       paramBytes("schema", Bytes.fromUTF8(schema5)),
       paramBytes("schemaRevisionId", Bytes.fromHexString(revision5Id)),
@@ -331,6 +336,7 @@ describe("Trusted Schemas Registry - entity assertions", () => {
     // Update schema to create a second revision (latest)
     const updateEvent = changetype<SchemaUpdated>(newMockEvent());
     updateEvent.parameters = [
+      paramBytes("schemaIdHash", Bytes.fromHexString(schemaId4)),
       paramBytes("schemaId", Bytes.fromHexString(schemaId4)),
       paramBytes("schema", Bytes.fromUTF8(schema6)),
       paramBytes("schemaRevisionId", Bytes.fromHexString(revision6Id)),
@@ -437,6 +443,7 @@ describe("Trusted Schemas Registry - entity assertions", () => {
     // Insert initial schema
     const insertEvent = changetype<SchemaInserted>(newMockEvent());
     insertEvent.parameters = [
+      paramBytes("schemaIdHash", Bytes.fromHexString(schemaIdUpdate)),
       paramBytes("schemaId", Bytes.fromHexString(schemaIdUpdate)),
       paramBytes("schema", Bytes.fromUTF8(schemaUpdate1)),
       paramBytes("schemaRevisionId", Bytes.fromHexString(revisionUpdate1Id)),
@@ -448,6 +455,7 @@ describe("Trusted Schemas Registry - entity assertions", () => {
     // Update schema
     const updateEvent = changetype<SchemaUpdated>(newMockEvent());
     updateEvent.parameters = [
+      paramBytes("schemaIdHash", Bytes.fromHexString(schemaIdUpdate)),
       paramBytes("schemaId", Bytes.fromHexString(schemaIdUpdate)),
       paramBytes("schema", Bytes.fromUTF8(schemaUpdate2)),
       paramBytes("schemaRevisionId", Bytes.fromHexString(revisionUpdate2Id)),

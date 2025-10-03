@@ -212,9 +212,9 @@ dataSources:
           # prettier-ignore
           file: {{ &trustedSchemasRegistryAbi }}
       eventHandlers:
-        - event: SchemaInserted(indexed bytes,bytes,bytes32,bytes,bytes32)
+        - event: SchemaInserted(indexed bytes,bytes,bytes,bytes32,bytes,bytes32)
           handler: handleSchemaInsertedEvent
-        - event: SchemaUpdated(indexed bytes,bytes,bytes32,bytes,bytes32)
+        - event: SchemaUpdated(indexed bytes,bytes,bytes,bytes32,bytes,bytes32)
           handler: handleSchemaUpdatedEvent
         - event: MetadataUpdated(indexed bytes32,bytes,bytes32)
           handler: handleMetadataUpdatedEvent
