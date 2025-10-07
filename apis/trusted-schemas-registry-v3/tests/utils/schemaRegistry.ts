@@ -159,7 +159,11 @@ export async function setupTestEnv(
   const schemaMetadata: SchemaMetadataObject[] = [];
   for (let i = 0, k = Math.max(0, schemaMetadataTotal - 1); i < k; i++) {
     schemaMetadata.push(
-      await updateMetadata(schemaRevisionId, schemasRegistryContract),
+      await updateMetadata(
+        schemas[0]!.schemaId,
+        schemaRevisionId,
+        schemasRegistryContract,
+      ),
     );
   }
 
@@ -176,6 +180,7 @@ export async function setupTestEnv(
 }
 
 export async function updateMetadata(
+  schemaId: string,
   schemaRevisionId: string,
   contract: SchemaSCRegistry,
 ): Promise<SchemaMetadataObject> {
@@ -185,7 +190,7 @@ export async function updateMetadata(
   };
   const serializedMetadata = Buffer.from(JSON.stringify(metadata));
 
-  await contract.updateMetadata(schemaRevisionId, serializedMetadata);
+  await contract.updateMetadata(schemaId, schemaRevisionId, serializedMetadata);
 
   return {
     metadata,

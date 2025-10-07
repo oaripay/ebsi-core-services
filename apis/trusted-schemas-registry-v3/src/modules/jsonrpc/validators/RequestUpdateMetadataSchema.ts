@@ -10,6 +10,8 @@ export const updateMetadataSchema = baseParamSchema.merge(
   z.object({
     metadata: z.string().superRefine(isHexadecimalJSON),
 
+    schemaId: z.string().superRefine(isHexadecimal),
+
     schemaRevisionId: z.string().superRefine(isHexadecimal),
   }),
 );

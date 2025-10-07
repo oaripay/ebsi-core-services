@@ -31,7 +31,9 @@ abstract contract SchemaDetailed is SchemaStorage {
     );
 
     event MetadataUpdated(
-        bytes32 indexed schemaRevisionId,
+        bytes indexed schemaIdHash,
+        bytes schemaId,
+        bytes32 schemaRevisionId,
         bytes metadata,
         bytes32 metadataId
     );
@@ -110,6 +112,7 @@ abstract contract SchemaDetailed is SchemaStorage {
      * @dev updateMetadata enables to update the existing metadata.
      */
     function updateMetadata(
+        bytes calldata schemaId,
         bytes32 schemaRevisionId,
         bytes calldata metadata
     ) external returns (bytes32 metadataId) {
@@ -121,7 +124,7 @@ abstract contract SchemaDetailed is SchemaStorage {
             "Policy error: sender doesn't have the attribute TSR:updateMetadata"
         );
         Schemas storage ss = schemaStorage();
-        metadataId = ss.updateMetadata(schemaRevisionId, metadata);
+        metadataId = ss.updateMetadata(schemaId, schemaRevisionId, metadata);
     }
 
     /**
@@ -159,7 +162,7 @@ abstract contract SchemaDetailed is SchemaStorage {
         Schemas storage ss = schemaStorage();
         require(
             ss.schemaIdToRevisionIds[schemaId].length > 0,
-            "Schema not found"
+            "schema not found"
         );
         uint256[] memory ids;
         (ids, total, howMany, prev, next) = ss
@@ -187,10 +190,12 @@ abstract contract SchemaDetailed is SchemaStorage {
      * @dev getLatestSchemaRevisionMetadataByRevisionId returns schema revision metadata for the given schema revision id.
      */
     function getLatestSchemaRevisionMetadataByRevisionId(
+        bytes calldata schemaId,
         bytes32 schemaRevisionId
     ) external view returns (bytes memory metadata) {
         Schemas storage ss = schemaStorage();
         metadata = ss.getLatestSchemaRevisionMetadataByRevisionId(
+            schemaId,
             schemaRevisionId
         );
     }
@@ -221,20 +226,24 @@ abstract contract SchemaDetailed is SchemaStorage {
         Schemas storage ss = schemaStorage();
         require(
             ss.schemaIdToRevisionIds[schemaId].length > 0,
-            "Schema not found"
+            "schema not found"
         );
         require(
-            ss.schemaRevisionStore[schemaRevisionId].length > 0,
-            "No revision"
+            ss
+                .schemaIdRevisionIdToMetadataIds[schemaId][schemaRevisionId]
+                .length > 0,
+            "revision not found"
         );
         uint256[] memory ids;
         (ids, total, howMany, prev, next) = ss
-            .revisionIdToMetadataIds[schemaRevisionId]
+            .schemaIdRevisionIdToMetadataIds[schemaId][schemaRevisionId]
             .length
             .paginate(page, pageSize);
         items = new bytes32[](howMany);
         for (uint256 i = 0; i < howMany; i++) {
-            items[i] = ss.revisionIdToMetadataIds[schemaRevisionId][ids[i]];
+            items[i] = ss.schemaIdRevisionIdToMetadataIds[schemaId][
+                schemaRevisionId
+            ][ids[i]];
         }
     }
 

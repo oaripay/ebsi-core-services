@@ -12,8 +12,8 @@ contract SchemaStorage {
         bytes[] schemaIds;
         // Schema ID to Schema Revisions ID
         mapping(bytes => bytes32[]) schemaIdToRevisionIds;
-        // RevisionId to MetadataIDs
-        mapping(bytes32 => bytes32[]) revisionIdToMetadataIds;
+        // Schema ID + RevisionId to MetadataIDs
+        mapping(bytes => mapping(bytes32 => bytes32[])) schemaIdRevisionIdToMetadataIds;
         // Schema Revision Store
         // key is SHA2-256 hash of the given schema revision
         // value is serialized and encoded

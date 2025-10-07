@@ -227,6 +227,7 @@ describe.each(["fixed", "deprecated"] as const)(
               params = {
                 from: adminTestWallet.address,
                 metadata: `0x${serializedMetadataBuffer2.toString("hex")}`,
+                schemaId,
                 schemaRevisionId,
               } satisfies UpdateMetadataSchema;
               break;
