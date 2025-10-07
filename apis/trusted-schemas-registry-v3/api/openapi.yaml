@@ -627,6 +627,7 @@ paths:
 
           Parameters:
           - **from**: Ethereum address of the signer
+          - **schemaId**: Schema ID
           - **schemaRevisionId**: Schema revision ID
           - **metadata**: Metadata. This field must be a JSON stringified and converted into hex string
 
@@ -696,6 +697,7 @@ paths:
                   id: 1
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
+                      schemaId: "0x312e332e362e312e342e312e3339312e31302e3132302e322e332e312e3734"
                       schemaRevisionId: "0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909"
                       metadata: "0x227b226d657461223a2276616c7565227d22"
               Send Transaction:

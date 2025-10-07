@@ -817,6 +817,7 @@ describe.each(["fixed", "deprecated"] as const)(
               param = {
                 from: signer.address,
                 metadata: `0x${serializedMetadataBuffer2.toString("hex")}`,
+                schemaId,
                 schemaRevisionId: ethers.sha256(serializedSchemaBuffer),
               } satisfies UpdateMetadataSchema;
               break;
@@ -921,6 +922,7 @@ describe.each(["fixed", "deprecated"] as const)(
               param = {
                 from: signer.address,
                 metadata: `0x${serializedMetadataBuffer2.toString("hex")}`,
+                schemaId,
                 schemaRevisionId: ethers.sha256(serializedSchemaBuffer),
               } satisfies UpdateMetadataSchema;
               break;
@@ -1044,11 +1046,13 @@ describe.each(["fixed", "deprecated"] as const)(
               testSetup.push(
                 {
                   expectedErrorMessages: [
+                    "Invalid 'params.0.schemaId': Must start with 0x",
                     "Invalid 'params.0.schemaRevisionId': Must start with 0x",
                   ],
                   params: {
                     from: signer.address,
                     metadata: `0x${serializedMetadataBuffer2.toString("hex")}`,
+                    schemaId: "42",
                     schemaRevisionId: "1234",
                   } satisfies UpdateMetadataSchema,
                 },
@@ -1060,6 +1064,7 @@ describe.each(["fixed", "deprecated"] as const)(
                   params: {
                     from: signer.address,
                     metadata: "0x1234",
+                    schemaId,
                     schemaRevisionId: "0x",
                   } satisfies UpdateMetadataSchema,
                 },
@@ -1071,6 +1076,7 @@ describe.each(["fixed", "deprecated"] as const)(
                   params: {
                     from: signer.address,
                     metadata: serializedMetadataBuffer.toString("hex"),
+                    schemaId,
                     schemaRevisionId: "0x",
                   } satisfies UpdateMetadataSchema,
                 },
@@ -1223,12 +1229,14 @@ describe.each(["fixed", "deprecated"] as const)(
               param1 = {
                 from: signer.address,
                 metadata: `0x${serializedMetadataBuffer2.toString("hex")}`,
+                schemaId,
                 schemaRevisionId: ethers.sha256(serializedSchemaBuffer),
               } satisfies UpdateMetadataSchema;
 
               param2 = {
                 from: signer.address,
                 metadata: `0x${serializedMetadataBuffer.toString("hex")}`,
+                schemaId,
                 schemaRevisionId: ethers.sha256(serializedSchemaBuffer),
               } satisfies UpdateMetadataSchema;
               break;

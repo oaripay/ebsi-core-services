@@ -114,14 +114,36 @@ describe("Schema", () => {
     const metadata = ethers.toUtf8Bytes("metadata");
     await ts.insertSchema(schemaId, schemaRevision, metadata);
 
-    const schemaId2 = ethers.toUtf8Bytes("other schemaId");
     const metadataId2 = ethers.toUtf8Bytes("other metadata");
     await expect(
       ts.insertSchema(schemaId, schemaRevision, metadataId2),
-    ).to.be.revertedWith("Schema already registered");
-    await expect(
-      ts.insertSchema(schemaId2, schemaRevision, metadataId2),
-    ).to.be.revertedWith("Revision already exist.");
+    ).to.be.revertedWith("schema already registered");
+  });
+
+  it("should allow two schemas to have the same content", async () => {
+    const schemaId = ethers.toUtf8Bytes("schemaId");
+    const schemaRevision = ethers.toUtf8Bytes("schema");
+    const metadata = ethers.toUtf8Bytes("metadata");
+    await ts.insertSchema(schemaId, schemaRevision, metadata);
+
+    const schemaId2 = ethers.toUtf8Bytes("other schemaId");
+    const metadata2 = ethers.toUtf8Bytes("other metadata");
+    await expect(ts.insertSchema(schemaId2, schemaRevision, metadata2))
+      .to.emit(ts, "SchemaInserted")
+      .withArgs(
+        ethers.hexlify(schemaId2),
+        ethers.hexlify(schemaId2),
+        ethers.hexlify(schemaRevision),
+        ethers.sha256(schemaRevision),
+        ethers.hexlify(metadata2),
+        ethers.sha256(metadata2),
+      );
+
+    // Verify both schemas return the same revision content
+    const revision1 = await ts.getLatestSchemaRevision(schemaId);
+    const revision2 = await ts.getLatestSchemaRevision(schemaId2);
+    expect(revision1).to.equal(revision2);
+    expect(revision1).to.equal(ethers.hexlify(schemaRevision));
   });
 
   it("insertSchema should succeed", async () => {
@@ -220,7 +242,7 @@ describe("Schema", () => {
   it("getLatestSchemaRevision fails for missing revision", async () => {
     await expect(
       ts.getLatestSchemaRevision(ethers.toBeHex(1, 32)),
-    ).to.be.revertedWith("Schema not found");
+    ).to.be.revertedWith("schema not found");
   });
 
   it("getLatestSchemaRevision fails for unknown revision", async () => {
@@ -230,7 +252,7 @@ describe("Schema", () => {
     await ts.insertSchema(schemaId, schemaRevision, metadata);
     const schemaId1 = ethers.toUtf8Bytes("schemaId1");
     await expect(ts.getLatestSchemaRevision(schemaId1)).to.be.revertedWith(
-      "Schema not found",
+      "schema not found",
     );
   });
 
@@ -303,7 +325,7 @@ describe("Schema", () => {
   it("getSchemaRevision fails for unknown schema ID", async () => {
     await expect(
       ts.getSchemaRevision(ethers.ZeroHash, ethers.ZeroHash),
-    ).to.be.revertedWith("Schema not found");
+    ).to.be.revertedWith("schema not found");
   });
 
   it("getSchemaRevision fails for empty parameter", async () => {
@@ -313,7 +335,7 @@ describe("Schema", () => {
     await ts.insertSchema(schemaId, schemaRevision, metadata);
     await expect(
       ts.getSchemaRevision(schemaId, ethers.ZeroHash),
-    ).to.be.revertedWith("SchemaRevisionId empty");
+    ).to.be.revertedWith("revision not found");
   });
 
   it("getSchemaRevision fails for missing revision", async () => {
@@ -324,7 +346,7 @@ describe("Schema", () => {
     const schemaRevision2 = ethers.toUtf8Bytes("schema2");
     await expect(
       ts.getSchemaRevision(schemaId, ethers.sha256(schemaRevision2)),
-    ).to.be.revertedWith("No revision");
+    ).to.be.revertedWith("revision not found");
   });
 
   it("getSchemaRevision succeeds", async () => {
@@ -342,8 +364,11 @@ describe("Schema", () => {
 
   it("getLatestSchemaRevisionMetadataByRevisionId fails for empty parameter", async () => {
     await expect(
-      ts.getLatestSchemaRevisionMetadataByRevisionId(ethers.ZeroHash),
-    ).to.be.revertedWith("SchemaRevisionId empty");
+      ts.getLatestSchemaRevisionMetadataByRevisionId(
+        new Uint8Array(0),
+        ethers.ZeroHash,
+      ),
+    ).to.be.revertedWith("schemaId empty");
   });
 
   it("getLatestSchemaRevisionMetadataByRevisionId fails for unknown revisionId", async () => {
@@ -354,9 +379,10 @@ describe("Schema", () => {
     const schemaRevision2 = ethers.toUtf8Bytes("schema2");
     await expect(
       ts.getLatestSchemaRevisionMetadataByRevisionId(
+        schemaId,
         ethers.sha256(schemaRevision2),
       ),
-    ).to.be.revertedWith("No metadata");
+    ).to.be.revertedWith("no metadata");
   });
 
   it("should fail when user does not have attribute updateMetadata", async () => {
@@ -367,7 +393,7 @@ describe("Schema", () => {
     await ts.insertSchema(schemaId, schemaRevision1, metadata);
     await policyContractMock.setPolicyResult(false);
     await expect(
-      ts.updateMetadata(ethers.sha256(schemaRevision2), metadata),
+      ts.updateMetadata(schemaId, ethers.sha256(schemaRevision2), metadata),
     ).to.be.revertedWith(
       "Policy error: sender doesn't have the attribute TSR:updateMetadata",
     );
@@ -380,18 +406,28 @@ describe("Schema", () => {
     const schemaRevision2 = ethers.toUtf8Bytes("schema2");
     await ts.insertSchema(schemaId, schemaRevision1, metadata);
     await expect(
-      ts.updateMetadata(ethers.sha256(schemaRevision2), metadata),
-    ).to.be.revertedWith("schema not registered");
+      ts.updateMetadata(schemaId, ethers.sha256(schemaRevision2), metadata),
+    ).to.be.revertedWith("revision not registered");
   });
 
   it("updateMetadata fails for empty parameters", async () => {
-    const metadata = ethers.toUtf8Bytes("metadata");
+    const schemaId = ethers.toUtf8Bytes("schemaId");
     const schemaRevision = ethers.toUtf8Bytes("schema");
+    const metadata = ethers.toUtf8Bytes("metadata");
+    await ts.insertSchema(schemaId, schemaRevision, metadata);
+
     await expect(
-      ts.updateMetadata(ethers.ZeroHash, metadata),
+      ts.updateMetadata(new Uint8Array(), ethers.ZeroHash, metadata),
+    ).to.be.revertedWith("schemaId empty");
+    await expect(
+      ts.updateMetadata(schemaId, ethers.ZeroHash, metadata),
     ).to.be.revertedWith("schemaRevisionId empty");
     await expect(
-      ts.updateMetadata(ethers.sha256(schemaRevision), new Uint8Array()),
+      ts.updateMetadata(
+        schemaId,
+        ethers.sha256(schemaRevision),
+        new Uint8Array(),
+      ),
     ).to.be.revertedWith("metadata empty");
   });
 
@@ -402,17 +438,17 @@ describe("Schema", () => {
     const schemaRevision = ethers.toUtf8Bytes("schema");
     const schemaRevisionId = ethers.sha256(schemaRevision);
     await ts.insertSchema(schemaId, schemaRevision, metadata1);
-    await expect(ts.updateMetadata(schemaRevisionId, metadata2))
+    await expect(ts.updateMetadata(schemaId, schemaRevisionId, metadata2))
       .to.emit(ts, "MetadataUpdated")
       .withArgs(
+        ethers.hexlify(schemaId),
+        ethers.hexlify(schemaId),
         schemaRevisionId,
         ethers.hexlify(metadata2),
         ethers.sha256(metadata2),
       );
-    await expect(
-      ts.updateMetadata(ethers.sha256(schemaRevision), metadata2),
-    ).to.be.revertedWith("Metadata exists");
     const metadata = await ts.getLatestSchemaRevisionMetadataByRevisionId(
+      schemaId,
       ethers.sha256(schemaRevision),
     );
     expect(metadata).to.be.equal(ethers.hexlify(metadata2));
@@ -441,18 +477,7 @@ describe("Schema", () => {
     await ts.insertSchema(schemaId, schemaRevision, metadata1);
     await expect(
       ts.updateSchema(schemaId1, schemaRevision2, metadata1),
-    ).to.be.revertedWith("Schema not registered");
-  });
-
-  it("updateSchema fails when revision already registered", async () => {
-    const schemaId = ethers.toUtf8Bytes("schemaId");
-    const schemaRevision = ethers.toUtf8Bytes("schema");
-    const metadata1 = ethers.toUtf8Bytes("metadata1");
-    const metadata2 = ethers.toUtf8Bytes("metadata2");
-    await ts.insertSchema(schemaId, schemaRevision, metadata1);
-    await expect(
-      ts.updateSchema(schemaId, schemaRevision, metadata2),
-    ).to.be.revertedWith("Revision exist");
+    ).to.be.revertedWith("schema not registered");
   });
 
   it("updateSchema succeeds", async () => {
@@ -473,9 +498,7 @@ describe("Schema", () => {
         ethers.hexlify(metadata2),
         ethers.sha256(metadata2),
       );
-    await expect(
-      ts.updateSchema(schemaId, schemaRevision3, metadata2),
-    ).to.be.revertedWith("Metadata exists");
+    await ts.updateSchema(schemaId, schemaRevision3, metadata2);
     const updatedSchema = await ts.getSchemaRevision(
       schemaId,
       ethers.sha256(schemaRevision2),
@@ -488,7 +511,7 @@ describe("Schema", () => {
     const schemaRevisionId = ethers.sha256(schemaRevision1);
     await expect(
       ts.getSchemaRevisionMetadataIds(ethers.ZeroHash, schemaRevisionId, 1, 1),
-    ).to.be.revertedWith("Schema not found");
+    ).to.be.revertedWith("schema not found");
   });
 
   it("getSchemaRevisionMetadataIds fails for empty schemaRevisionId", async () => {
@@ -536,7 +559,7 @@ describe("Schema", () => {
     for (let i = 1; i <= 10; i += 1) {
       const m = ethers.toUtf8Bytes(`metadata+${i}`);
 
-      await ts.updateMetadata(schemaRevisionId, m);
+      await ts.updateMetadata(schemaId, schemaRevisionId, m);
 
       metadataIds.push(ethers.sha256(m));
     }
@@ -589,7 +612,7 @@ describe("Schema", () => {
         ethers.ZeroHash,
         ethers.ZeroHash,
       ),
-    ).to.be.revertedWith("Schema not found");
+    ).to.be.revertedWith("schema not found");
   });
 
   it("getSchemaRevisionMetadataByMetadataId fails for unknown schema revision ID", async () => {
@@ -603,7 +626,7 @@ describe("Schema", () => {
         ethers.ZeroHash,
         ethers.ZeroHash,
       ),
-    ).to.be.revertedWith("No revision");
+    ).to.be.revertedWith("revision not found");
   });
 
   it("getSchemaRevisionMetadataByMetadataId fails for empty metadataId", async () => {
@@ -617,7 +640,7 @@ describe("Schema", () => {
         ethers.sha256(schemaRevision),
         ethers.ZeroHash,
       ),
-    ).to.be.revertedWith("MetadataId empty");
+    ).to.be.revertedWith("metadataId empty");
   });
 
   it("getSchemaRevisionMetadataByMetadataId fails unknown metadataId", async () => {
@@ -632,7 +655,7 @@ describe("Schema", () => {
         ethers.sha256(schemaRevision),
         ethers.sha256(metadata2),
       ),
-    ).to.be.revertedWith("No metadata");
+    ).to.be.revertedWith("metadata not found");
   });
 
   it("getSchemaRevisionMetadataByMetadataId succeeds", async () => {
@@ -646,5 +669,97 @@ describe("Schema", () => {
       ethers.sha256(metadata),
     );
     expect(r).to.equal(ethers.hexlify(metadata));
+  });
+
+  it("should allow schemas with same content to have different metadata without conflicts", async () => {
+    // Create two schemas with the same content but different IDs
+    const schemaId1 = ethers.toUtf8Bytes("schemaId1");
+    const schemaId2 = ethers.toUtf8Bytes("schemaId2");
+    const schemaRevision = ethers.toUtf8Bytes("same schema content");
+    const metadata1 = ethers.toUtf8Bytes("metadata for schema 1");
+    const metadata2 = ethers.toUtf8Bytes("metadata for schema 2");
+
+    // Insert both schemas
+    await ts.insertSchema(schemaId1, schemaRevision, metadata1);
+    await ts.insertSchema(schemaId2, schemaRevision, metadata2);
+
+    // Verify both schemas have the same revision content
+    const revision1 = await ts.getLatestSchemaRevision(schemaId1);
+    const revision2 = await ts.getLatestSchemaRevision(schemaId2);
+    expect(revision1).to.equal(revision2);
+    expect(revision1).to.equal(ethers.hexlify(schemaRevision));
+
+    const schemaRevisionId = ethers.sha256(schemaRevision);
+
+    // Verify each schema has its own metadata
+    const retrievedMetadata1 =
+      await ts.getLatestSchemaRevisionMetadataByRevisionId(
+        schemaId1,
+        schemaRevisionId,
+      );
+    const retrievedMetadata2 =
+      await ts.getLatestSchemaRevisionMetadataByRevisionId(
+        schemaId2,
+        schemaRevisionId,
+      );
+    expect(retrievedMetadata1).to.equal(ethers.hexlify(metadata1));
+    expect(retrievedMetadata2).to.equal(ethers.hexlify(metadata2));
+    expect(retrievedMetadata1).to.not.equal(retrievedMetadata2);
+
+    // Add different metadata to each schema
+    const newMetadata1 = ethers.toUtf8Bytes("new metadata for schema 1");
+    const newMetadata2 = ethers.toUtf8Bytes("new metadata for schema 2");
+
+    await ts.updateMetadata(schemaId1, schemaRevisionId, newMetadata1);
+    await ts.updateMetadata(schemaId2, schemaRevisionId, newMetadata2);
+
+    // Verify the new metadata is correctly stored for each schema
+    const latestMetadata1 =
+      await ts.getLatestSchemaRevisionMetadataByRevisionId(
+        schemaId1,
+        ethers.sha256(schemaRevision),
+      );
+    const latestMetadata2 =
+      await ts.getLatestSchemaRevisionMetadataByRevisionId(
+        schemaId2,
+        ethers.sha256(schemaRevision),
+      );
+    expect(latestMetadata1).to.equal(ethers.hexlify(newMetadata1));
+    expect(latestMetadata2).to.equal(ethers.hexlify(newMetadata2));
+    expect(latestMetadata1).to.not.equal(latestMetadata2);
+
+    // Verify both schemas still have the same revision content
+    const finalRevision1 = await ts.getLatestSchemaRevision(schemaId1);
+    const finalRevision2 = await ts.getLatestSchemaRevision(schemaId2);
+    expect(finalRevision1).to.equal(finalRevision2);
+    expect(finalRevision1).to.equal(ethers.hexlify(schemaRevision));
+
+    // Verify we can retrieve specific metadata by metadata ID for each schema
+    const metadata1ById = await ts.getSchemaRevisionMetadataByMetadataId(
+      schemaId1,
+      schemaRevisionId,
+      ethers.sha256(metadata1),
+    );
+    const metadata2ById = await ts.getSchemaRevisionMetadataByMetadataId(
+      schemaId2,
+      schemaRevisionId,
+      ethers.sha256(metadata2),
+    );
+    expect(metadata1ById).to.equal(ethers.hexlify(metadata1));
+    expect(metadata2ById).to.equal(ethers.hexlify(metadata2));
+
+    // Verify we can retrieve the new metadata by metadata ID for each schema
+    const newMetadata1ById = await ts.getSchemaRevisionMetadataByMetadataId(
+      schemaId1,
+      schemaRevisionId,
+      ethers.sha256(newMetadata1),
+    );
+    const newMetadata2ById = await ts.getSchemaRevisionMetadataByMetadataId(
+      schemaId2,
+      schemaRevisionId,
+      ethers.sha256(newMetadata2),
+    );
+    expect(newMetadata1ById).to.equal(ethers.hexlify(newMetadata1));
+    expect(newMetadata2ById).to.equal(ethers.hexlify(newMetadata2));
   });
 });

@@ -216,6 +216,6 @@ dataSources:
           handler: handleSchemaInsertedEvent
         - event: SchemaUpdated(indexed bytes,bytes,bytes,bytes32,bytes,bytes32)
           handler: handleSchemaUpdatedEvent
-        - event: MetadataUpdated(indexed bytes32,bytes,bytes32)
+        - event: MetadataUpdated(indexed bytes,bytes,bytes32,bytes,bytes32)
           handler: handleMetadataUpdatedEvent
       file: ./src/trusted-schemas-registry-v3/mappings.ts

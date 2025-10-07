@@ -9,17 +9,20 @@ import {
 } from "../../generated/TrustedSchemasRegistry/TrustedSchemasRegistry";
 
 export function handleMetadataUpdatedEvent(event: MetadataUpdated): void {
-  const revision = SchemaRevision.load(event.params.schemaRevisionId);
+  const revisionId = event.params.schemaId.concat(
+    event.params.schemaRevisionId,
+  );
+  const revision = SchemaRevision.load(revisionId);
 
   if (!revision) {
-    log.error("Revision {} not found", [
-      event.params.schemaRevisionId.toHexString(),
-    ]);
+    log.error("Revision {} not found", [revisionId.toHexString()]);
     return;
   }
 
-  const metadata = new SchemaMetadata(event.params.metadataId);
+  const metadataId = revisionId.concat(event.params.metadataId);
+  const metadata = new SchemaMetadata(metadataId);
   metadata.content = event.params.metadata.toString();
+  metadata.metadataId = event.params.metadataId;
   metadata.revision = revision.id;
   metadata.save();
 
@@ -31,13 +34,19 @@ export function handleSchemaInsertedEvent(event: SchemaInserted): void {
   const schema = new Schema(event.params.schemaId);
   schema.save();
 
-  const revision = new SchemaRevision(event.params.schemaRevisionId);
+  const revisionId = event.params.schemaId.concat(
+    event.params.schemaRevisionId,
+  );
+  const revision = new SchemaRevision(revisionId);
   revision.content = event.params.schema.toString();
+  revision.schemaRevisionId = event.params.schemaRevisionId;
   revision.schema = schema.id;
   revision.save();
 
-  const metadata = new SchemaMetadata(event.params.metadataId);
+  const metadataId = revisionId.concat(event.params.metadataId);
+  const metadata = new SchemaMetadata(metadataId);
   metadata.content = event.params.metadata.toString();
+  metadata.metadataId = event.params.metadataId;
   metadata.revision = revision.id;
   metadata.save();
 
@@ -53,13 +62,19 @@ export function handleSchemaUpdatedEvent(event: SchemaUpdated): void {
     return;
   }
 
-  const revision = new SchemaRevision(event.params.schemaRevisionId);
+  const revisionId = event.params.schemaId.concat(
+    event.params.schemaRevisionId,
+  );
+  const revision = new SchemaRevision(revisionId);
   revision.content = event.params.schema.toString();
+  revision.schemaRevisionId = event.params.schemaRevisionId;
   revision.schema = schema.id;
   revision.save();
 
-  const metadata = new SchemaMetadata(event.params.metadataId);
+  const metadataId = revisionId.concat(event.params.metadataId);
+  const metadata = new SchemaMetadata(metadataId);
   metadata.content = event.params.metadata.toString();
+  metadata.metadataId = event.params.metadataId;
   metadata.revision = revision.id;
   metadata.save();
 

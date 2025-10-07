@@ -131,11 +131,12 @@ export class JsonRpcService {
     try {
       const parsedBody = await requestUpdateMetadataSchema.parseAsync(body);
 
-      const { from, metadata, schemaRevisionId } = parsedBody.params[0]!;
+      const { from, metadata, schemaId, schemaRevisionId } =
+        parsedBody.params[0]!;
 
       const data = this.contract.interface.encodeFunctionData(
         "updateMetadata",
-        [schemaRevisionId, metadata],
+        [schemaId, schemaRevisionId, metadata],
       );
 
       return await this.buildTransaction(from, data);

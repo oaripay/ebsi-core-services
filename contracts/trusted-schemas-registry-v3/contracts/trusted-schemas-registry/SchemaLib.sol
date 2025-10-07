@@ -24,7 +24,9 @@ library SchemaLib {
     );
 
     event MetadataUpdated(
-        bytes32 indexed schemaRevisionId,
+        bytes indexed schemaIdHash,
+        bytes schemaId,
+        bytes32 schemaRevisionId,
         bytes metadata,
         bytes32 metadataId
     );
@@ -47,14 +49,7 @@ library SchemaLib {
         // Verify that the schema ID is not already registered (in the Schema ID To Schema Revisions IDs map)
         require(
             ss.schemaIdToRevisionIds[schemaId].length == 0,
-            "Schema already registered"
-        );
-
-        // Compute the SHA2-256 hash of the schema and verify
-        // that is not already registered (in the Schema Revisions Store)
-        require(
-            (ss.schemaRevisionStore[schemaRevisionId]).length == 0,
-            "Revision already exist."
+            "schema already registered"
         );
 
         // add schema id to the list
@@ -62,17 +57,19 @@ library SchemaLib {
         // add revision id to the list of schema
         ss.schemaIdToRevisionIds[schemaId].push(schemaRevisionId);
         bytes32 metadataId = sha256(metadata);
-        {
-            // add metadataId to the current revisionId
-            ss.revisionIdToMetadataIds[schemaRevisionId].push(metadataId);
-            // save metadata of revision
-            if (ss.revisionMetadataStore[metadataId].length == 0) {
-                ss.revisionMetadataStore[metadataId] = metadata;
-            }
+        // add metadataId to the current revisionId
+        ss.schemaIdRevisionIdToMetadataIds[schemaId][schemaRevisionId].push(
+            metadataId
+        );
+        // save metadata of revision
+        if (ss.revisionMetadataStore[metadataId].length == 0) {
+            ss.revisionMetadataStore[metadataId] = metadata;
         }
 
         // save schema revision (bytes)
-        ss.schemaRevisionStore[schemaRevisionId] = schema;
+        if ((ss.schemaRevisionStore[schemaRevisionId]).length == 0) {
+            ss.schemaRevisionStore[schemaRevisionId] = schema;
+        }
 
         emit SchemaInserted(
             schemaId,
@@ -94,7 +91,7 @@ library SchemaLib {
         require(schemaId.length > 0, "schemaId empty");
         require(
             ss.schemaIdToRevisionIds[schemaId].length > 0,
-            "Schema not found"
+            "schema not found"
         );
         bytes32 latestSchemaRevisionId = ss.schemaIdToRevisionIds[schemaId][
             ss.schemaIdToRevisionIds[schemaId].length - 1
@@ -108,13 +105,15 @@ library SchemaLib {
      */
     function getLatestSchemaRevisionMetadataByRevisionId(
         SchemaStorage.Schemas storage ss,
+        bytes calldata schemaId,
         bytes32 schemaRevisionId
     ) external view returns (bytes memory metadata) {
-        require(schemaRevisionId != bytes32(0), "SchemaRevisionId empty");
-        bytes32[] storage metadataIds = ss.revisionIdToMetadataIds[
-            schemaRevisionId
-        ];
-        require(metadataIds.length > 0, "No metadata");
+        require(schemaId.length > 0, "schemaId empty");
+        require(schemaRevisionId != bytes32(0), "schemaRevisionId empty");
+        bytes32[] storage metadataIds = ss.schemaIdRevisionIdToMetadataIds[
+            schemaId
+        ][schemaRevisionId];
+        require(metadataIds.length > 0, "no metadata");
 
         metadata = ss.revisionMetadataStore[
             metadataIds[metadataIds.length - 1]
@@ -140,30 +139,25 @@ library SchemaLib {
         // Verify that the schema ID is already registered (in the Schema ID To Schema Revisions IDs map)
         require(
             ss.schemaIdToRevisionIds[schemaId].length > 0,
-            "Schema not registered"
-        );
-        // Compute the SHA2-256 hash of the schema and verify
-        // that is not already registered (in the Schema Revisions Store)
-        require(
-            (ss.schemaRevisionStore[schemaRevisionId]).length == 0,
-            "Revision exist"
-        );
-
-        require(
-            ss.revisionMetadataStore[metadataId].length == 0,
-            "Metadata exists"
+            "schema not registered"
         );
 
         // Insert the schema to the Schema Revisions Store
-        ss.schemaRevisionStore[schemaRevisionId] = schema;
+        if ((ss.schemaRevisionStore[schemaRevisionId]).length == 0) {
+            ss.schemaRevisionStore[schemaRevisionId] = schema;
+        }
 
         // Append a new entry in the Schema ID to Schema Revisions IDs map
         ss.schemaIdToRevisionIds[schemaId].push(schemaRevisionId);
         // Store the metadata to the Metadata Store
-        ss.revisionMetadataStore[metadataId] = metadata;
+        if ((ss.revisionMetadataStore[metadataId]).length == 0) {
+            ss.revisionMetadataStore[metadataId] = metadata;
+        }
 
         // Append a new entry in the Schema Revision ID to Metadata IDs store.
-        ss.revisionIdToMetadataIds[schemaRevisionId].push(metadataId);
+        ss.schemaIdRevisionIdToMetadataIds[schemaId][schemaRevisionId].push(
+            metadataId
+        );
 
         emit SchemaUpdated(
             schemaId,
@@ -180,32 +174,46 @@ library SchemaLib {
      */
     function updateMetadata(
         SchemaStorage.Schemas storage ss,
+        bytes calldata schemaId,
         bytes32 schemaRevisionId,
         bytes calldata metadata
     ) external returns (bytes32 metadataId) {
+        require(schemaId.length > 0, "schemaId empty");
         require(schemaRevisionId != bytes32(0), "schemaRevisionId empty");
         require(metadata.length > 0, "metadata empty");
+        // Verify that the Schema ID is already registered
+        require(
+            ss.schemaIdToRevisionIds[schemaId].length > 0,
+            "schema not registered"
+        );
         // Verify that the Schema Revision ID is already registered (in the Schema Revision ID To Metadata IDs map)
         require(
-            ss.revisionIdToMetadataIds[schemaRevisionId].length > 0,
-            "schema not registered"
+            ss
+                .schemaIdRevisionIdToMetadataIds[schemaId][schemaRevisionId]
+                .length > 0,
+            "revision not registered"
         );
 
         // Compute the SHA2-256 hash of the metadata
         metadataId = sha256(metadata);
 
-        require(
-            ss.revisionMetadataStore[metadataId].length == 0,
-            "Metadata exists"
-        );
-
         // Store the metadata to the Metadata Store
-        ss.revisionMetadataStore[metadataId] = metadata;
+        if ((ss.revisionMetadataStore[metadataId]).length == 0) {
+            ss.revisionMetadataStore[metadataId] = metadata;
+        }
 
         // Append a new entry in the Schema Revision ID to Metadata IDs store.
-        ss.revisionIdToMetadataIds[schemaRevisionId].push(metadataId);
+        ss.schemaIdRevisionIdToMetadataIds[schemaId][schemaRevisionId].push(
+            metadataId
+        );
 
-        emit MetadataUpdated(schemaRevisionId, metadata, metadataId);
+        emit MetadataUpdated(
+            schemaId,
+            schemaId,
+            schemaRevisionId,
+            metadata,
+            metadataId
+        );
     }
 
     /**
@@ -218,12 +226,14 @@ library SchemaLib {
     ) external view returns (bytes memory schema) {
         require(
             ss.schemaIdToRevisionIds[schemaId].length > 0,
-            "Schema not found"
+            "schema not found"
         );
-        require(schemaRevisionId != bytes32(0), "SchemaRevisionId empty");
+
         require(
-            ss.schemaRevisionStore[schemaRevisionId].length > 0,
-            "No revision"
+            ss
+                .schemaIdRevisionIdToMetadataIds[schemaId][schemaRevisionId]
+                .length > 0,
+            "revision not found"
         );
 
         schema = ss.schemaRevisionStore[schemaRevisionId];
@@ -239,16 +249,23 @@ library SchemaLib {
         bytes32 schemaRevisionId,
         bytes32 metadataId
     ) external view returns (bytes memory metadata) {
+        require(schemaId.length > 0, "schemaId empty");
         require(
             ss.schemaIdToRevisionIds[schemaId].length > 0,
-            "Schema not found"
+            "schema not found"
         );
         require(
-            ss.schemaRevisionStore[schemaRevisionId].length > 0,
-            "No revision"
+            ss
+                .schemaIdRevisionIdToMetadataIds[schemaId][schemaRevisionId]
+                .length > 0,
+            "revision not found"
         );
-        require(metadataId != bytes32(0), "MetadataId empty");
-        require(ss.revisionMetadataStore[metadataId].length > 0, "No metadata");
+
+        require(metadataId != bytes32(0), "metadataId empty");
+        require(
+            ss.revisionMetadataStore[metadataId].length > 0,
+            "metadata not found"
+        );
         metadata = ss.revisionMetadataStore[metadataId];
     }
 }

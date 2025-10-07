@@ -60,7 +60,7 @@ export class SchemasService {
 
       throw new NotFoundError("Schema Not Found", {
         detail:
-          contractError === "Schema not found"
+          contractError === "schema not found"
             ? `Schema ${schemaId} not found`
             : contractError,
       });
@@ -96,12 +96,12 @@ export class SchemasService {
       const contractError = getContractError(error);
 
       switch (contractError) {
-        case "Schema not found": {
+        case "schema not found": {
           throw new NotFoundError("Schema Not Found", {
             detail: `Schema ${schemaId} not found`,
           });
         }
-        case "No revision": {
+        case "revision not found": {
           throw new NotFoundError("Revision Not Found", {
             detail: `Revision ${schemaRevisionId} not found`,
           });
@@ -151,17 +151,17 @@ export class SchemasService {
       const contractError = getContractError(error);
 
       switch (contractError) {
-        case "Schema not found": {
+        case "schema not found": {
           throw new NotFoundError("Schema Not Found", {
             detail: `Schema ${schemaId} not found`,
           });
         }
-        case "No revision": {
+        case "revision not found": {
           throw new NotFoundError("Revision Not Found", {
             detail: `Revision ${schemaRevisionId} not found`,
           });
         }
-        case "No metadata": {
+        case "metadata not found": {
           throw new NotFoundError("Metadata Not Found", {
             detail: `Metadata ${metadataId} not found`,
           });
@@ -215,12 +215,12 @@ export class SchemasService {
       const contractError = getContractError(error);
 
       switch (contractError) {
-        case "Schema not found": {
+        case "schema not found": {
           throw new NotFoundError("Schema Not Found", {
             detail: `Schema ${schemaId} not found`,
           });
         }
-        case "No revision": {
+        case "revision not found": {
           throw new NotFoundError("Revision Not Found", {
             detail: `Revision ${schemaRevisionId} not found`,
           });
@@ -263,7 +263,7 @@ export class SchemasService {
 
       throw new NotFoundError("Schema Not Found", {
         detail:
-          contractError === "Schema not found"
+          contractError === "schema not found"
             ? `Schema ${schemaId} not found`
             : contractError,
       });
@@ -343,7 +343,10 @@ export class SchemasService {
         const allMetadata = await Promise.all(
           allRevisionsIds.map((id) =>
             limit(() =>
-              contract.getLatestSchemaRevisionMetadataByRevisionId(id),
+              contract.getLatestSchemaRevisionMetadataByRevisionId(
+                hexSchemaId,
+                id,
+              ),
             ),
           ),
         );

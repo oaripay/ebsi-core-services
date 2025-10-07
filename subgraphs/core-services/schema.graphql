@@ -360,8 +360,11 @@ type Schema @entity(immutable: true) {
 }
 
 type SchemaRevision @entity(immutable: false) {
-  # ID - Set to `schema.id.concat(keccak(content))`
+  # ID - Set to `schema.id.concat(schemaRevisionId)`
   id: Bytes!
+
+  # The actual revision ID from the smart contract
+  schemaRevisionId: Bytes!
 
   # Properties
   content: String!
@@ -378,12 +381,14 @@ type SchemaRevision @entity(immutable: false) {
 }
 
 type SchemaMetadata @entity(immutable: false) {
-  # ID - Set to `revision.id.concat(keccak(content))`
+  # ID - Set to `revision.id.concat(metadataId)`
   id: Bytes!
+
+  # The actual metadata ID from the smart contract
+  metadataId: Bytes!
 
   # Properties
   content: String!
-
   # Relationships
   revision: SchemaRevision!
 }
