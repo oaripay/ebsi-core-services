@@ -1794,7 +1794,7 @@ EUPL version.
 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
 
 ========================================================================================
-- @fastify/accepts@^5.0.2
+- @fastify/accepts@^5.0.3
 ------------------------------
 This project is licensed under MIT.
 
@@ -1804,7 +1804,9 @@ MIT License: https://opensource.org/license/mit/
 
 MIT License
 
-Copyright (c) 2017 Fastify
+Copyright (c) 2017-present The Fastify team
+
+The Fastify team members are listed at https://github.com/fastify/fastify#team.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -1856,7 +1858,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ========================================================================================
-- @fastify/helmet@^13.0.1
+- @fastify/helmet@^13.0.2
 ------------------------------
 This project is licensed under MIT.
 
@@ -1866,7 +1868,9 @@ MIT License: https://opensource.org/license/mit/
 
 MIT License
 
-Copyright (c) 2017-2022 Fastify Contributors
+Copyright (c) 2017-present The Fastify team
+
+The Fastify team members are listed at https://github.com/fastify/fastify#team.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -2746,7 +2750,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ========================================================================================
-- keyv@^5.5.2
+- keyv@^5.5.3
 ------------------------------
 This project is licensed under MIT.
 
@@ -2809,7 +2813,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ========================================================================================
-- pino@^9.11.0
+- pino@^10.0.0
 ------------------------------
 This project is licensed under MIT.
 
@@ -2840,7 +2844,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ========================================================================================
-- pino-http@^10.5.0
+- pino-http@^11.0.0
 ------------------------------
 This project is licensed under MIT.
 

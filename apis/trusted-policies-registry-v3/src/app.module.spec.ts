@@ -618,7 +618,6 @@ describe("App Module", () => {
         };
 
         // It should have logged the response (with body)
-        // It should have logged the response (with body)
         expect(mockedLogger.debug).toHaveBeenNthCalledWith(
           calls,
           {
