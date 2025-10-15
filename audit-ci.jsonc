@@ -3,5 +3,10 @@
   "$schema": "https://github.com/IBM/audit-ci/raw/main/docs/schema.json",
   // Prevent integration with moderate or higher vulnerabilities.
   "moderate": true,
-  "allowlist": [],
+  "allowlist": [    
+    // validator.js URL validation bypass - no patched version available yet
+    // CVE-2025-56200: isURL() parsing difference vulnerability
+    // TODO: Remove once a patched version is released
+    "GHSA-9965-vmph-33xx"
+  ],
 }
