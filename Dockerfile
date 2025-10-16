@@ -18,10 +18,12 @@ COPY ./apis/ledger-v4/package.json ./apis/ledger-v4/
 COPY ./apis/shared/package.json ./apis/shared/
 COPY ./apis/timestamp-v4/package.json ./apis/timestamp-v4/
 COPY ./apis/track-and-trace-v1/package.json ./apis/track-and-trace-v1/
+COPY ./apis/trusted-contracts-registry-v1/package.json ./apis/trusted-contracts-registry-v1/
 COPY ./apis/trusted-issuers-registry-v5/package.json ./apis/trusted-issuers-registry-v5/
 COPY ./apis/trusted-policies-registry-v3/package.json ./apis/trusted-policies-registry-v3/
 COPY ./apis/trusted-schemas-registry-v3/package.json ./apis/trusted-schemas-registry-v3/
 COPY ./contracts/bootstrap-v2/package.json ./contracts/bootstrap-v2/
+COPY ./contracts/contract-factory/package.json ./contracts/contract-factory/
 COPY ./contracts/did-registry-v5/package.json ./contracts/did-registry-v5/
 COPY ./contracts/proxy/package.json ./contracts/proxy/
 COPY ./contracts/track-and-trace/package.json ./contracts/track-and-trace/

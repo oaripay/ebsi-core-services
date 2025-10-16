@@ -1,7 +1,7 @@
 {
   "name": "@ebsiint-sc/trusted-contracts-registry-v1",
   "private": true,
-  "version": "1.0.0-rc.7",
+  "version": "1.0.0-rc.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "EUPL-1.2",
