@@ -2,4 +2,4 @@
 "@ebsiint-sc/trusted-contracts-registry-v1": major
 ---
 
-Contract factory impl
+Implement Trusted Contracts Registry SC v1.
