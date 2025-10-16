@@ -27,10 +27,10 @@ COPY --from=builder /app/contracts/trusted-policies-registry-v3/artifacts ./cont
 COPY --from=builder /app/contracts/did-registry-v5/package.json ./contracts/did-registry-v5/package.json
 COPY --from=builder /app/contracts/did-registry-v5/dist ./contracts/did-registry-v5/dist
 COPY --from=builder /app/contracts/did-registry-v5/artifacts ./contracts/did-registry-v5/artifacts
-# Copy Contracts Factory SC v1
-COPY --from=builder /app/contracts/contract-factory/package.json ./contracts/contract-factory/package.json
-COPY --from=builder /app/contracts/contract-factory/dist ./contracts/contract-factory/dist
-COPY --from=builder /app/contracts/contract-factory/artifacts ./contracts/contract-factory/artifacts
+# Copy TCR SC v1
+COPY --from=builder /app/contracts/trusted-contracts-registry-v1/package.json ./contracts/trusted-contracts-registry-v1/package.json
+COPY --from=builder /app/contracts/trusted-contracts-registry-v1/dist ./contracts/trusted-contracts-registry-v1/dist
+COPY --from=builder /app/contracts/trusted-contracts-registry-v1/artifacts ./contracts/trusted-contracts-registry-v1/artifacts
 # Copy shared code
 COPY --from=builder /app/apis/shared/package.json ./apis/shared/package.json
 COPY --from=builder /app/apis/shared/dist ./apis/shared/dist
