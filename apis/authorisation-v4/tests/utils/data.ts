@@ -17,6 +17,8 @@ import {
   DIDR_INVITE_SCOPE,
   DIDR_WRITE_PRESENTATION_DEFINITION,
   DIDR_WRITE_SCOPE,
+  LEDGER_INVOKE_PRESENTATION_DEFINITION,
+  LEDGER_INVOKE_SCOPE,
   TIMESTAMP_WRITE_PRESENTATION_DEFINITION,
   TIMESTAMP_WRITE_SCOPE,
   TIR_INVITE_PRESENTATION_DEFINITION,
@@ -35,12 +37,14 @@ import {
   TSR_WRITE_SCOPE,
 } from "../../src/modules/authorisation/authorisation.constants.ts";
 
-export interface LegalEntity<T extends "EdDSA" | "ES256" | "ES256K"> {
+export interface Entity<T extends "EdDSA" | "ES256" | "ES256K"> {
   address: string;
   did: string;
   didDocument: DIDDocument;
   keys: Record<T, EbsiIssuer & { publicKeyJwk: JsonWebKey }>;
 }
+
+export type LegalEntity<T extends "EdDSA" | "ES256" | "ES256K"> = Entity<T>;
 
 export function createDidDocument(
   did: string,
@@ -105,6 +109,42 @@ export async function createLegalEntity<T extends "EdDSA" | "ES256" | "ES256K">(
   };
 }
 
+export async function createNaturalPerson<
+  T extends "EdDSA" | "ES256" | "ES256K",
+>(alg: T, did?: string): Promise<Entity<T>> {
+  const keys: Record<string, EbsiIssuer & { publicKeyJwk: JsonWebKey }> = {};
+  let address = "";
+
+  const privateKey = generatePrivateKey(alg);
+  const publicKeyJwk = await getPublicKeyJwk(privateKey, alg);
+  did = did ?? EbsiWallet.createDid("NATURAL_PERSON", publicKeyJwk);
+  const kid = `${did}#${did.replace("did:key:", "")}`;
+
+  keys[alg] = {
+    alg,
+    did: did,
+    kid,
+    publicKeyJwk,
+    signer: getSigner(privateKey, alg),
+  };
+
+  if (alg === "ES256K") {
+    const wallet = new ethers.Wallet(
+      `0x${Buffer.from(privateKey).toString("hex")}`,
+    );
+    address = wallet.address;
+  }
+
+  const didDocument = createDidDocument(did, keys);
+
+  return {
+    address,
+    did,
+    didDocument,
+    keys,
+  };
+}
+
 export function createPresentationSubmission(
   scope: (typeof CUSTOM_SCOPES)[number],
   vpFormat: "jwt_vp" | "jwt_vp_json",
@@ -138,6 +178,23 @@ export function createPresentationSubmission(
     case DIDR_WRITE_SCOPE: {
       testPresentationSubmission.definition_id =
         DIDR_WRITE_PRESENTATION_DEFINITION.id;
+
+      break;
+    }
+    case LEDGER_INVOKE_SCOPE: {
+      testPresentationSubmission.definition_id =
+        LEDGER_INVOKE_PRESENTATION_DEFINITION.id;
+
+      testPresentationSubmission.descriptor_map.push({
+        format: vpFormat,
+        id: LEDGER_INVOKE_PRESENTATION_DEFINITION.input_descriptors[0].id,
+        path: "$",
+        path_nested: {
+          format: vcFormat,
+          id: LEDGER_INVOKE_PRESENTATION_DEFINITION.input_descriptors[0].id,
+          path: "$.vp.verifiableCredential[0]",
+        },
+      });
 
       break;
     }

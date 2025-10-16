@@ -496,6 +496,7 @@ paths:
             enum:
               - openid didr_write
               - openid didr_invite
+              - openid ledger_invoke
               - openid tir_write
               - openid tir_invite
               - openid timestamp_write
@@ -511,6 +512,9 @@ paths:
             didr_invite:
               summary: Register DID into DID Registry
               value: openid didr_invite
+            ledger_invoke:
+              summary: Invoke Trusted Contract
+              value: openid ledger_invoke
             tir_write:
               summary: Write to Trusted Issuers Registry
               value: openid tir_write
@@ -768,6 +772,41 @@ paths:
                         alg:
                           - ES256
                     input_descriptors: []
+                ledger_invoke:
+                  summary: Invoke Trusted Contract via Ledger API
+                  value:
+                    id: ledger_invoke_presentation
+                    format:
+                      jwt_vp:
+                        alg:
+                          - ES256
+                          - ES256K
+                      jwt_vp_json:
+                        alg:
+                          - ES256
+                          - ES256K
+                    input_descriptors:
+                      - id: didr_invite_credential
+                        name: Authorisation to interact with a Trusted Contract
+                        purpose: >-
+                          Please present a valid authorisation to interact with a Trusted Contract
+                        format:
+                          jwt_vc:
+                            alg:
+                              - ES256
+                          jwt_vc_json:
+                            alg:
+                              - ES256
+                        constraints:
+                          fields:
+                            - path:
+                                - $.vc.type
+                              filter:
+                                type: array
+                                items:
+                                  type: string
+                                contains:
+                                  const: VerifiableAuthorisationToInvoke
         "400":
           description: Bad Request
           content:

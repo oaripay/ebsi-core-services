@@ -187,3 +187,13 @@ export interface TokenResponse {
   scope: string;
   token_type: string;
 }
+
+// Response from Trusted Contracts Registry API v1's `/contracts/${address}` endpoint
+export interface TrustedContract {
+  address: string;
+  deployer: string;
+  deploymentTimestamp: number;
+  isActive: boolean;
+  issuerDID: string;
+  templateId: string;
+}

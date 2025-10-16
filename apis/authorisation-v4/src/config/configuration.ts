@@ -13,6 +13,7 @@ export interface ApiConfig {
     readonly "did-registry": "v5";
     readonly estat?: "v1";
     readonly "track-and-trace": "v1";
+    readonly "trusted-contracts-registry": "v1";
     readonly "trusted-issuers-registry": "v5";
     readonly "trusted-policies-registry": "v3";
     readonly "trusted-schemas-registry": "v3";
@@ -36,12 +37,14 @@ export interface ApiConfig {
   testTntAuthorisedUserKid: string | undefined;
   testTntAuthorisedUserPrivateKey: string | undefined;
   trackAndTraceAccessesEndpoint: string;
+  trustedContractsRegistry: string;
   trustedIssuersRegistry: string;
   trustedPoliciesRegistry: string;
 }
 
 type Services = EbsiVpEnvConfiguration["services"] & {
   "track-and-trace": `v${number}`;
+  "trusted-contracts-registry": `v${number}`;
 };
 
 export const SERVICE_PREFIX = "authorisation";
@@ -58,6 +61,7 @@ export const loadConfig = () => {
     "did-registry": "v5",
     ...(["pilot", "test"].includes(NETWORK) ? ({ estat: "v1" } as const) : {}),
     "track-and-trace": "v1",
+    "trusted-contracts-registry": "v1",
     "trusted-issuers-registry": "v5",
     "trusted-policies-registry": "v3",
     "trusted-schemas-registry": "v3",
@@ -102,6 +106,7 @@ export const loadConfig = () => {
     testTntAuthorisedUserPrivateKey:
       process.env.TEST_TNT_AUTHORISED_USER_PRIVATE_KEY,
     trackAndTraceAccessesEndpoint: `${DOMAIN}/track-and-trace/${DEPENDENCIES["track-and-trace"]}/accesses`,
+    trustedContractsRegistry: `${DOMAIN}/trusted-contracts-registry/${DEPENDENCIES["trusted-contracts-registry"]}/contracts`,
     trustedIssuersRegistry: `${DOMAIN}/trusted-issuers-registry/${DEPENDENCIES["trusted-issuers-registry"]}/issuers`,
     trustedPoliciesRegistry: `${DOMAIN}/trusted-policies-registry/${DEPENDENCIES["trusted-policies-registry"]}/users`,
   } as const satisfies ApiConfig;
