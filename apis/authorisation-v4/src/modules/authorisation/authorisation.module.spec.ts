@@ -41,6 +41,7 @@ import type {
   JsonWebKeySet,
   Scope,
   TokenResponse,
+  TrustedContract,
 } from "./authorisation.interfaces.ts";
 
 import { getNestFastifyApplication } from "../../../tests/utils/app.ts";
@@ -55,6 +56,8 @@ import {
   DIDR_INVITE_SCOPE,
   DIDR_WRITE_PRESENTATION_DEFINITION,
   DIDR_WRITE_SCOPE,
+  LEDGER_INVOKE_PRESENTATION_DEFINITION,
+  LEDGER_INVOKE_SCOPE,
   TIMESTAMP_WRITE_PRESENTATION_DEFINITION,
   TIMESTAMP_WRITE_SCOPE,
   TIR_INVITE_PRESENTATION_DEFINITION,
@@ -372,7 +375,7 @@ describe.each(["EBSI URI", "URL"] as const)(
         let response = await request(server).get("/presentation-definitions");
 
         expect(response.body).toStrictEqual({
-          detail: `["scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'tir_invite', 'tir_write', 'timestamp_write', 'tnt_authorise', 'tnt_create', 'tnt_write', 'tpr_write', 'tsr_write')"]`,
+          detail: `["scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'ledger_invoke', 'tir_invite', 'tir_write', 'timestamp_write', 'tnt_authorise', 'tnt_create', 'tnt_write', 'tpr_write', 'tsr_write')"]`,
           status: 400,
           title: "Bad Request",
           type: "about:blank",
@@ -388,7 +391,7 @@ describe.each(["EBSI URI", "URL"] as const)(
         );
 
         expect(response.body).toStrictEqual({
-          detail: `["scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'tir_invite', 'tir_write', 'timestamp_write', 'tnt_authorise', 'tnt_create', 'tnt_write', 'tpr_write', 'tsr_write')"]`,
+          detail: `["scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'ledger_invoke', 'tir_invite', 'tir_write', 'timestamp_write', 'tnt_authorise', 'tnt_create', 'tnt_write', 'tpr_write', 'tsr_write')"]`,
           status: 400,
           title: "Bad Request",
           type: "about:blank",
@@ -406,7 +409,7 @@ describe.each(["EBSI URI", "URL"] as const)(
         );
 
         expect(response.body).toStrictEqual({
-          detail: `["scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'tir_invite', 'tir_write', 'timestamp_write', 'tnt_authorise', 'tnt_create', 'tnt_write', 'tpr_write', 'tsr_write')"]`,
+          detail: `["scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'ledger_invoke', 'tir_invite', 'tir_write', 'timestamp_write', 'tnt_authorise', 'tnt_create', 'tnt_write', 'tpr_write', 'tsr_write')"]`,
           status: 400,
           title: "Bad Request",
           type: "about:blank",
@@ -422,7 +425,7 @@ describe.each(["EBSI URI", "URL"] as const)(
         );
 
         expect(response.body).toStrictEqual({
-          detail: `["scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'tir_invite', 'tir_write', 'timestamp_write', 'tnt_authorise', 'tnt_create', 'tnt_write', 'tpr_write', 'tsr_write')"]`,
+          detail: `["scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'ledger_invoke', 'tir_invite', 'tir_write', 'timestamp_write', 'tnt_authorise', 'tnt_create', 'tnt_write', 'tpr_write', 'tsr_write')"]`,
           status: 400,
           title: "Bad Request",
           type: "about:blank",
@@ -434,7 +437,7 @@ describe.each(["EBSI URI", "URL"] as const)(
       });
 
       it("should return the expected presentation definition for the given scope", async () => {
-        expect.assertions(20);
+        expect.assertions(22);
 
         //  With explicit scope "openid didr_invite"
         let response = await request(server).get(
@@ -456,6 +459,18 @@ describe.each(["EBSI URI", "URL"] as const)(
         );
 
         expect(response.body).toStrictEqual(DIDR_WRITE_PRESENTATION_DEFINITION);
+        expect(response.status).toBe(200);
+
+        // With explicit scope "openid ledger_invoke"
+        response = await request(server).get(
+          `/presentation-definitions?scope=${encodeURIComponent(
+            `openid ${LEDGER_INVOKE_SCOPE}`,
+          )}`,
+        );
+
+        expect(response.body).toStrictEqual(
+          LEDGER_INVOKE_PRESENTATION_DEFINITION,
+        );
         expect(response.status).toBe(200);
 
         // With explicit scope "openid tir_invite"
@@ -602,7 +617,7 @@ describe.each(["EBSI URI", "URL"] as const)(
           expect(response.body).toStrictEqual({
             error: "invalid_request",
             error_description:
-              "scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'tir_invite', 'tir_write', 'timestamp_write', 'tnt_authorise', 'tnt_create', 'tnt_write', 'tpr_write', 'tsr_write')",
+              "scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'ledger_invoke', 'tir_invite', 'tir_write', 'timestamp_write', 'tnt_authorise', 'tnt_create', 'tnt_write', 'tpr_write', 'tsr_write')",
           });
           expect(response.status).toBe(400);
           expect(
@@ -736,7 +751,10 @@ describe.each(["EBSI URI", "URL"] as const)(
                 },
                 credentialSubject: {
                   id: credentialSubject.did,
-                  type: "same-device",
+                  ...(customScope === LEDGER_INVOKE_SCOPE && {
+                    contractAddress:
+                      "0x61c36a8d610163660E21a8b7359e1Cac0C9133e1",
+                  }),
                 },
                 expirationDate: `${expirationDate.toISOString().slice(0, -5)}Z`,
                 id: `urn:uuid:${randomUUID()}`,
@@ -754,13 +772,21 @@ describe.each(["EBSI URI", "URL"] as const)(
                 validFrom: `${issuanceDate.toISOString().slice(0, -5)}Z`,
               };
 
-              if (customScope === TIR_INVITE_SCOPE) {
-                vcPayload.type.push("VerifiableAccreditationToAccredit");
-              } else if (
-                customScope === DIDR_INVITE_SCOPE ||
-                customScope === TNT_AUTHORISE_SCOPE
-              ) {
-                vcPayload.type.push("VerifiableAuthorisationToOnboard");
+              switch (customScope) {
+                case DIDR_INVITE_SCOPE:
+                case TNT_AUTHORISE_SCOPE: {
+                  vcPayload.type.push("VerifiableAuthorisationToOnboard");
+                  break;
+                }
+                case LEDGER_INVOKE_SCOPE: {
+                  vcPayload.type.push("VerifiableAuthorisationToInvoke");
+                  break;
+                }
+                case TIR_INVITE_SCOPE: {
+                  vcPayload.type.push("VerifiableAccreditationToAccredit");
+                  break;
+                }
+                // No default
               }
 
               vpPayload = {
@@ -890,6 +916,35 @@ describe.each(["EBSI URI", "URL"] as const)(
                   ),
                 );
               }
+
+              if (customScope === LEDGER_INVOKE_SCOPE) {
+                mockServer.use(
+                  http.get(
+                    escapeDid(
+                      `${domain}/trusted-contracts-registry/v1/contracts/0x61c36a8d610163660E21a8b7359e1Cac0C9133e1`,
+                    ),
+                    ({ request }) => {
+                      // Make sure the request has the x-request-id header
+                      if (!request.headers.has("x-request-id")) {
+                        return HttpResponse.json(
+                          "Invalid request (missing x-request-id header)",
+                          { status: 400 },
+                        );
+                      }
+
+                      return HttpResponse.json({
+                        address: "0x61c36a8d610163660E21a8b7359e1Cac0C9133e1",
+                        deployer: credentialIssuer.address,
+                        deploymentTimestamp: 1_760_600_272,
+                        isActive: true,
+                        issuerDID: credentialIssuer.did,
+                        templateId:
+                          "0x957cef8a6ccfa45ea37ec9976fa2cdeb916d96039d6dac5bd68e37284bc187f4",
+                      } satisfies TrustedContract);
+                    },
+                  ),
+                );
+              }
             }
 
             beforeEach(async () => {
@@ -911,6 +966,7 @@ describe.each(["EBSI URI", "URL"] as const)(
                 if (
                   [
                     DIDR_INVITE_SCOPE,
+                    LEDGER_INVOKE_SCOPE,
                     TIR_INVITE_SCOPE,
                     TNT_AUTHORISE_SCOPE,
                   ].includes(customScope)
@@ -969,6 +1025,7 @@ describe.each(["EBSI URI", "URL"] as const)(
                 if (
                   [
                     DIDR_INVITE_SCOPE,
+                    LEDGER_INVOKE_SCOPE,
                     TIR_INVITE_SCOPE,
                     TNT_AUTHORISE_SCOPE,
                   ].includes(customScope)
@@ -1042,6 +1099,7 @@ describe.each(["EBSI URI", "URL"] as const)(
                 if (
                   [
                     DIDR_INVITE_SCOPE,
+                    LEDGER_INVOKE_SCOPE,
                     TIR_INVITE_SCOPE,
                     TNT_AUTHORISE_SCOPE,
                   ].includes(customScope)
@@ -1100,6 +1158,7 @@ describe.each(["EBSI URI", "URL"] as const)(
                 if (
                   [
                     DIDR_INVITE_SCOPE,
+                    LEDGER_INVOKE_SCOPE,
                     TIR_INVITE_SCOPE,
                     TNT_AUTHORISE_SCOPE,
                   ].includes(customScope)
@@ -1160,6 +1219,7 @@ describe.each(["EBSI URI", "URL"] as const)(
                 if (
                   [
                     DIDR_INVITE_SCOPE,
+                    LEDGER_INVOKE_SCOPE,
                     TIR_INVITE_SCOPE,
                     TNT_AUTHORISE_SCOPE,
                   ].includes(customScope)
@@ -1363,6 +1423,7 @@ describe.each(["EBSI URI", "URL"] as const)(
               if (
                 [
                   DIDR_INVITE_SCOPE,
+                  LEDGER_INVOKE_SCOPE,
                   TIR_INVITE_SCOPE,
                   TNT_AUTHORISE_SCOPE,
                 ].includes(customScope)
@@ -1452,6 +1513,7 @@ describe.each(["EBSI URI", "URL"] as const)(
               if (
                 [
                   DIDR_INVITE_SCOPE,
+                  LEDGER_INVOKE_SCOPE,
                   TIR_INVITE_SCOPE,
                   TNT_AUTHORISE_SCOPE,
                 ].includes(customScope)
@@ -1524,6 +1586,7 @@ describe.each(["EBSI URI", "URL"] as const)(
               if (
                 [
                   DIDR_INVITE_SCOPE,
+                  LEDGER_INVOKE_SCOPE,
                   TIR_INVITE_SCOPE,
                   TNT_AUTHORISE_SCOPE,
                 ].includes(customScope)
@@ -1842,6 +1905,104 @@ describe.each(["EBSI URI", "URL"] as const)(
                   break;
                 }
                 case DIDR_WRITE_SCOPE: {
+                  testCases.push(
+                    // VP Signer is not registered in the DIDR
+                    {
+                      async setup() {
+                        const legalEntity = await createLegalEntity(["ES256K"]);
+                        vpSigner = legalEntity.keys.ES256K;
+                        vpPayload.holder = vpSigner.did;
+
+                        mockServer.use(
+                          http.get(
+                            escapeDid(
+                              `${domain}/did-registry/v5/identifiers/${vpSigner.did}`,
+                            ),
+                            ({ request }) => {
+                              const url = new URL(request.url);
+                              const validAt = url.searchParams.get("valid-at");
+
+                              // Only return the document if the valid-at parameter is present
+                              if (!validAt) {
+                                return HttpResponse.json(
+                                  "Invalid request (missing valid-at parameter)",
+                                  { status: 404 },
+                                );
+                              }
+
+                              // Make sure the request has the x-request-id header
+                              if (!request.headers.has("x-request-id")) {
+                                return HttpResponse.json(
+                                  "Invalid request (missing x-request-id header)",
+                                  { status: 400 },
+                                );
+                              }
+
+                              return HttpResponse.text("Not found", {
+                                status: 404,
+                              });
+                            },
+                          ),
+                        );
+
+                        expectedError = {
+                          error: "invalid_request",
+                          error_description: `Invalid Verifiable Presentation: Unable to resolve ${vpSigner.did}. Error: notFound. Not Found | Registry used: ${domain}/did-registry/v5/identifiers`,
+                        };
+                      },
+                    },
+                    // DIDR API returns an internal error
+                    {
+                      async setup() {
+                        const legalEntity = await createLegalEntity(["ES256K"]);
+                        vpSigner = legalEntity.keys.ES256K;
+                        vpPayload.holder = vpSigner.did;
+
+                        mockServer.use(
+                          http.get(
+                            escapeDid(
+                              `${domain}/did-registry/v5/identifiers/${vpSigner.did}`,
+                            ),
+                            ({ request }) => {
+                              const url = new URL(request.url);
+                              const validAt = url.searchParams.get("valid-at");
+
+                              // Only return the document if the valid-at parameter is present
+                              if (!validAt) {
+                                return HttpResponse.json(
+                                  "Invalid request (missing valid-at parameter)",
+                                  { status: 404 },
+                                );
+                              }
+
+                              // Make sure the request has the x-request-id header
+                              if (!request.headers.has("x-request-id")) {
+                                return HttpResponse.json(
+                                  "Invalid request (missing x-request-id header)",
+                                  { status: 400 },
+                                );
+                              }
+
+                              return HttpResponse.text(
+                                "Internal Server Error",
+                                {
+                                  status: 500,
+                                },
+                              );
+                            },
+                          ),
+                        );
+
+                        expectedError = {
+                          error: "server_error",
+                          error_description: `Unable to resolve ${vpSigner.did}. Error: internalServerError. Internal Server Error | Registry used: ${domain}/did-registry/v5/identifiers`,
+                        };
+                      },
+                    },
+                  );
+                  break;
+                }
+                case LEDGER_INVOKE_SCOPE: {
                   testCases.push(
                     // VP Signer is not registered in the DIDR
                     {
@@ -2544,6 +2705,7 @@ describe.each(["EBSI URI", "URL"] as const)(
                   if (
                     [
                       DIDR_INVITE_SCOPE,
+                      LEDGER_INVOKE_SCOPE,
                       TIR_INVITE_SCOPE,
                       TNT_AUTHORISE_SCOPE,
                     ].includes(customScope)
@@ -2610,6 +2772,7 @@ describe.each(["EBSI URI", "URL"] as const)(
               if (
                 [
                   DIDR_INVITE_SCOPE,
+                  LEDGER_INVOKE_SCOPE,
                   TIR_INVITE_SCOPE,
                   TNT_AUTHORISE_SCOPE,
                 ].includes(customScope)
@@ -3186,6 +3349,7 @@ describe.each(["EBSI URI", "URL"] as const)(
               if (
                 [
                   DIDR_INVITE_SCOPE,
+                  LEDGER_INVOKE_SCOPE,
                   TIR_INVITE_SCOPE,
                   TNT_AUTHORISE_SCOPE,
                 ].includes(customScope)
@@ -3333,6 +3497,11 @@ describe.each(["EBSI URI", "URL"] as const)(
                 jti: expect.any(String),
                 scp: scope,
                 sub: credentialSubject.did,
+                ...(customScope === LEDGER_INVOKE_SCOPE && {
+                  authorization_details: {
+                    addresses: ["0x61c36a8d610163660E21a8b7359e1Cac0C9133e1"],
+                  },
+                }),
               });
 
               // Get API public key in order to verify the signature
@@ -3405,7 +3574,6 @@ describe.each(["EBSI URI", "URL"] as const)(
             },
             credentialSubject: {
               id: credentialSubject.did,
-              type: "same-device",
             },
             expirationDate: `${expirationDate.toISOString().slice(0, -5)}Z`,
             id: `urn:uuid:${randomUUID()}`,
@@ -3539,7 +3707,6 @@ describe.each(["EBSI URI", "URL"] as const)(
             },
             credentialSubject: {
               id: credentialSubject.did,
-              type: "same-device",
             },
             expirationDate: `${expirationDate.toISOString().slice(0, -5)}Z`,
             id: `urn:uuid:${randomUUID()}`,
@@ -3769,6 +3936,325 @@ describe.each(["EBSI URI", "URL"] as const)(
 
           mockServer.resetHandlers();
         });
+
+        it("with scope 'openid ledger_invoke' should return an error if the VC issuer is not the contract deployer", async () => {
+          expect.assertions(8);
+
+          const scope = "openid ledger_invoke";
+          const issuanceDate = new Date(Date.now() - 5000); // issue 5 seconds ago
+          // JWT access token must have 2 hours expiration time and there are no Refresh Tokens.
+          const expirationDate = new Date(
+            issuanceDate.getTime() + 2 * 60 * 60 * 1000,
+          );
+          const testOidSchemaUrl = configService.get("testOidSchemaPattern", {
+            infer: true,
+          });
+          const vcPayload = {
+            "@context": ["https://www.w3.org/2018/credentials/v1"],
+            credentialSchema: {
+              id:
+                uriType === "EBSI URI"
+                  ? fromUrl(testOidSchemaUrl, ebsiEnvConfig)
+                  : testOidSchemaUrl,
+              type: "FullJsonSchemaValidator2021",
+            },
+            credentialSubject: {
+              id: credentialSubject.did,
+              // Missing "contractAddress"
+            },
+            expirationDate: `${expirationDate.toISOString().slice(0, -5)}Z`,
+            id: `urn:uuid:${randomUUID()}`,
+            issuanceDate: `${issuanceDate.toISOString().slice(0, -5)}Z`,
+            issued: `${issuanceDate.toISOString().slice(0, -5)}Z`,
+            issuer: credentialIssuer.did,
+            termsOfUse: {
+              id:
+                uriType === "EBSI URI"
+                  ? fromUrl(credentialIssuerAccreditationUrl, ebsiEnvConfig)
+                  : credentialIssuerAccreditationUrl,
+              type: "IssuanceCertificate",
+            },
+            type: [
+              "VerifiableCredential",
+              "VerifiableAttestation",
+              "VerifiableAuthorisationToInvoke",
+            ],
+            validFrom: `${issuanceDate.toISOString().slice(0, -5)}Z`,
+          } satisfies EbsiVerifiableAttestation;
+
+          let vcJwt = await createVerifiableCredentialJwt(
+            vcPayload,
+            credentialIssuer.keys.ES256,
+            ebsiEnvConfig,
+            { skipValidation: true },
+          );
+
+          const vpPayload = {
+            "@context": ["https://www.w3.org/2018/credentials/v1"],
+            holder: credentialSubject.did,
+            id: randomUUID(),
+            type: ["VerifiablePresentation"],
+            verifiableCredential: [vcJwt],
+          } satisfies EbsiVerifiablePresentation;
+
+          // Reset to valid presentation submission before each test
+          const presentationSubmission = createPresentationSubmission(
+            LEDGER_INVOKE_SCOPE,
+            vpFormat,
+            vcFormat,
+          );
+
+          const didDocument = createDidDocument(
+            credentialSubject.did,
+            credentialSubject.keys,
+          );
+
+          mockServer.use(
+            http.get(
+              escapeDid(
+                `${domain}/did-registry/v5/identifiers/${credentialSubject.did}`,
+              ),
+              ({ request }) => {
+                // Make sure the request has the x-request-id header
+                if (!request.headers.has("x-request-id")) {
+                  return HttpResponse.json(
+                    "Invalid request (missing x-request-id header)",
+                    { status: 400 },
+                  );
+                }
+
+                return HttpResponse.json(didDocument);
+              },
+            ),
+          );
+
+          let nonce = randomUUID();
+
+          const now = Math.floor(Date.now() / 1000);
+          let vpJwt = await createVerifiablePresentationJwt(
+            vpPayload,
+            credentialSubject.keys.ES256K,
+            serviceEndpoint,
+            ebsiEnvConfig,
+            {
+              exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
+              nbf: now,
+              nonce,
+              skipValidation: true,
+            },
+          );
+
+          let response = await request(server)
+            .post("/token")
+            .set("Content-Type", "application/x-www-form-urlencoded")
+            .send(
+              new URLSearchParams({
+                grant_type: "vp_token",
+                presentation_submission: JSON.stringify(presentationSubmission),
+                scope,
+                vp_token: vpJwt,
+              } satisfies CreateAccessTokenDto).toString(),
+            );
+
+          expect(response.body).toStrictEqual({
+            error: "invalid_request",
+            error_description:
+              "Invalid Verifiable Presentation: VC credential subject is missing contractAddress",
+          });
+
+          expect(response.status).toBe(400);
+
+          nonce = randomUUID();
+
+          vcPayload.credentialSubject = {
+            ...vcPayload.credentialSubject,
+            // @ts-expect-error Add missing property
+            contractAddress: "0x61c36a8d610163660E21a8b7359e1Cac0C9133e1",
+          };
+
+          vcJwt = await createVerifiableCredentialJwt(
+            vcPayload,
+            credentialIssuer.keys.ES256,
+            ebsiEnvConfig,
+            { skipValidation: true },
+          );
+
+          vpPayload.verifiableCredential = [vcJwt];
+
+          vpJwt = await createVerifiablePresentationJwt(
+            vpPayload,
+            credentialSubject.keys.ES256K,
+            serviceEndpoint,
+            ebsiEnvConfig,
+            {
+              exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
+              nbf: now,
+              nonce,
+              skipValidation: true,
+            },
+          );
+
+          // The contract doesn't exist
+          mockServer.use(
+            http.get(
+              `${domain}/trusted-contracts-registry/v1/contracts/0x61c36a8d610163660E21a8b7359e1Cac0C9133e1`,
+              ({ request }) => {
+                // Make sure the request has the x-request-id header
+                if (!request.headers.has("x-request-id")) {
+                  return HttpResponse.json(
+                    "Invalid request (missing x-request-id header)",
+                    { status: 400 },
+                  );
+                }
+
+                return HttpResponse.text("Not found", { status: 404 });
+              },
+            ),
+          );
+
+          response = await request(server)
+            .post("/token")
+            .set("Content-Type", "application/x-www-form-urlencoded")
+            .send(
+              new URLSearchParams({
+                grant_type: "vp_token",
+                presentation_submission: JSON.stringify(presentationSubmission),
+                scope,
+                vp_token: vpJwt,
+              } satisfies CreateAccessTokenDto).toString(),
+            );
+
+          expect(response.body).toStrictEqual({
+            error: "invalid_request",
+            error_description:
+              "Invalid Verifiable Credential: contract 0x61c36a8d610163660E21a8b7359e1Cac0C9133e1 does not exist",
+          });
+
+          expect(response.status).toBe(400);
+
+          nonce = randomUUID();
+
+          vpJwt = await createVerifiablePresentationJwt(
+            vpPayload,
+            credentialSubject.keys.ES256K,
+            serviceEndpoint,
+            ebsiEnvConfig,
+            {
+              exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
+              nbf: now,
+              nonce,
+              skipValidation: true,
+            },
+          );
+
+          // The contract issuerDID is different from the VC issuer
+          mockServer.use(
+            http.get(
+              `${domain}/trusted-contracts-registry/v1/contracts/0x61c36a8d610163660E21a8b7359e1Cac0C9133e1`,
+              ({ request }) => {
+                // Make sure the request has the x-request-id header
+                if (!request.headers.has("x-request-id")) {
+                  return HttpResponse.json(
+                    "Invalid request (missing x-request-id header)",
+                    { status: 400 },
+                  );
+                }
+
+                return HttpResponse.json({
+                  address: "0x61c36a8d610163660E21a8b7359e1Cac0C9133e1",
+                  deployer: "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+                  deploymentTimestamp: 1_760_600_272,
+                  isActive: true,
+                  issuerDID: "did:ebsi:zqz4ibiG9bWhPBiebPeeGVB",
+                  templateId:
+                    "0x957cef8a6ccfa45ea37ec9976fa2cdeb916d96039d6dac5bd68e37284bc187f4",
+                });
+              },
+            ),
+          );
+
+          response = await request(server)
+            .post("/token")
+            .set("Content-Type", "application/x-www-form-urlencoded")
+            .send(
+              new URLSearchParams({
+                grant_type: "vp_token",
+                presentation_submission: JSON.stringify(presentationSubmission),
+                scope,
+                vp_token: vpJwt,
+              } satisfies CreateAccessTokenDto).toString(),
+            );
+
+          expect(response.body).toStrictEqual({
+            error: "invalid_request",
+            error_description: `Invalid Verifiable Presentation: VC issuer is not the smart contract deployer`,
+          });
+
+          expect(response.status).toBe(400);
+
+          nonce = randomUUID();
+
+          vpJwt = await createVerifiablePresentationJwt(
+            vpPayload,
+            credentialSubject.keys.ES256K,
+            serviceEndpoint,
+            ebsiEnvConfig,
+            {
+              exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
+              nbf: now,
+              nonce,
+              skipValidation: true,
+            },
+          );
+
+          // The contract is not active
+          mockServer.use(
+            http.get(
+              `${domain}/trusted-contracts-registry/v1/contracts/0x61c36a8d610163660E21a8b7359e1Cac0C9133e1`,
+              ({ request }) => {
+                // Make sure the request has the x-request-id header
+                if (!request.headers.has("x-request-id")) {
+                  return HttpResponse.json(
+                    "Invalid request (missing x-request-id header)",
+                    { status: 400 },
+                  );
+                }
+
+                return HttpResponse.json({
+                  address: "0x61c36a8d610163660E21a8b7359e1Cac0C9133e1",
+                  deployer: credentialIssuer.address,
+                  deploymentTimestamp: 1_760_600_272,
+                  isActive: false,
+                  issuerDID: credentialIssuer.did,
+                  templateId:
+                    "0x957cef8a6ccfa45ea37ec9976fa2cdeb916d96039d6dac5bd68e37284bc187f4",
+                });
+              },
+            ),
+          );
+
+          response = await request(server)
+            .post("/token")
+            .set("Content-Type", "application/x-www-form-urlencoded")
+            .send(
+              new URLSearchParams({
+                grant_type: "vp_token",
+                presentation_submission: JSON.stringify(presentationSubmission),
+                scope,
+                vp_token: vpJwt,
+              } satisfies CreateAccessTokenDto).toString(),
+            );
+
+          expect(response.body).toStrictEqual({
+            error: "invalid_request",
+            error_description:
+              "Invalid Verifiable Credential: contract 0x61c36a8d610163660E21a8b7359e1Cac0C9133e1 is not active",
+          });
+
+          expect(response.status).toBe(400);
+
+          mockServer.resetHandlers();
+        });
       },
     );
 
@@ -3805,7 +4291,6 @@ describe.each(["EBSI URI", "URL"] as const)(
           },
           credentialSubject: {
             id: credentialSubject.did,
-            type: "same-device",
           },
           expirationDate: `${expirationDate.toISOString().slice(0, -5)}Z`,
           id: `urn:uuid:${randomUUID()}`,

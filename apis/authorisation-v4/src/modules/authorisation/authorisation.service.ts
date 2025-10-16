@@ -1,3 +1,4 @@
+import type { EbsiVerifiableAttestation } from "@cef-ebsi/verifiable-credential";
 import type {
   EbsiVerifiablePresentation,
   EbsiVpEnvConfiguration,
@@ -25,6 +26,7 @@ import { PEXv2 } from "@sphereon/pex";
 import axios, { isAxiosError } from "axios";
 import { createJWT, decodeJWT, ES256Signer, hexToBytes } from "did-jwt";
 import { ethers } from "ethers";
+import { decodeJwt } from "jose";
 import { randomUUID } from "node:crypto";
 
 import type { ApiConfig } from "../../config/configuration.ts";
@@ -33,11 +35,13 @@ import type {
   JsonWebKeySet,
   OPMetadata,
   TokenResponse,
+  TrustedContract,
 } from "./authorisation.interfaces.ts";
 
 import {
   CUSTOM_SCOPES,
   DIDR_INVITE_SCOPE,
+  LEDGER_INVOKE_SCOPE,
   PRESENTATION_DEFINITIONS,
   SUPPORTED_SCOPES,
   TIR_INVITE_SCOPE,
@@ -76,6 +80,8 @@ export class AuthorisationService {
 
   private readonly trackAndTraceAccessesEndpoint: string;
 
+  private readonly trustedContractsRegistry: string;
+
   private readonly trustedIssuersRegistry: string;
 
   private readonly trustedPoliciesRegistry: string;
@@ -90,6 +96,10 @@ export class AuthorisationService {
     this.issuer = `${domain}${apiUrlPrefix}`;
     this.ebsiEnvConfig = configService.get("ebsiEnvConfig", { infer: true });
     this.didRegistry = configService.get("didRegistry", { infer: true });
+    this.trustedContractsRegistry = configService.get(
+      "trustedContractsRegistry",
+      { infer: true },
+    );
     this.trustedIssuersRegistry = configService.get("trustedIssuersRegistry", {
       infer: true,
     });
@@ -246,6 +256,9 @@ export class AuthorisationService {
       presentationDefinition,
     );
 
+    // Add extra claims if needed
+    const extraClaims: Record<string, unknown> = {};
+
     // Additional verifications based on the requested scope
 
     // `didr_invite`: the client must present a VP containing a valid VerifiableAuthorisationToOnboard VC.
@@ -262,6 +275,15 @@ export class AuthorisationService {
 
     // `didr_write`: the client needs to have entry in DIDR / can prove her signature.
     // This is already done in validateVpJwt.
+
+    // `ledger_invoke`: the credential subject must contain the contract address and the VC issuer must be the smart contract deployer
+    if (customScope === LEDGER_INVOKE_SCOPE) {
+      const addresses = await this.validateTrustedContractDeployer(
+        presentation,
+        reqId,
+      );
+      extraClaims["authorization_details"] = { addresses };
+    }
 
     // `tir_invite`: the client must present a VP containing a valid VerifiableAuthorisationForTrustChain, VerifiableAccreditationToAttest, or VerifiableAccreditationToAccredit.
     // This is already done by the PEX library, based on the presentation definition.
@@ -306,6 +328,7 @@ export class AuthorisationService {
         jti: randomUUID(), // jti: A unique random identifier
         scp: scope, // scp: string of space separated scopes that we granted
         sub: vpTokenPayload.sub!, // sub: Legal entity DID
+        ...extraClaims,
       },
       {
         issuer: this.issuer, // iss: HTTPS URL of the Authorisation Server instance. Must equal to hosted domain + suffix.
@@ -1124,6 +1147,108 @@ export class AuthorisationService {
         errorDescription: `Invalid Verifiable Presentation: DID ${did} doesn't have write or delegate permission in TnT`,
       });
     }
+  }
+
+  /**
+   * Validates that the credential subject contains the contract address and the VC issuer is the smart contract deployer
+   * @param presentation EbsiVerifiablePresentation
+   * @param reqId
+   */
+  async validateTrustedContractDeployer(
+    presentation: EbsiVerifiablePresentation,
+    reqId: string,
+  ): Promise<string[]> {
+    const vcJwt = presentation.verifiableCredential[0];
+
+    if (!vcJwt) {
+      throw new OAuth2TokenError("invalid_request", {
+        errorDescription: "Invalid Verifiable Presentation: No VC found",
+      });
+    }
+
+    if (typeof vcJwt !== "string") {
+      throw new OAuth2TokenError("invalid_request", {
+        errorDescription: "Invalid Verifiable Presentation: VC is not a string",
+      });
+    }
+
+    const vc = decodeJwt(vcJwt)["vc"] as EbsiVerifiableAttestation;
+
+    const { issuer } = vc;
+
+    const credentialSubjects = Array.isArray(vc.credentialSubject)
+      ? vc.credentialSubject
+      : [vc.credentialSubject];
+
+    const addresses: string[] = [];
+    for (const credentialSubject of credentialSubjects) {
+      const address = credentialSubject["contractAddress"];
+      if (!address) {
+        throw new OAuth2TokenError("invalid_request", {
+          errorDescription:
+            "Invalid Verifiable Presentation: VC credential subject is missing contractAddress",
+        });
+      }
+
+      if (typeof address !== "string") {
+        throw new OAuth2TokenError("invalid_request", {
+          errorDescription:
+            "Invalid Verifiable Presentation: VC credential subject contractAddress is not a string",
+        });
+      }
+
+      let issuerDid: string;
+      let isActive: boolean;
+      try {
+        const { data } = await axios.get<TrustedContract>(
+          `${this.trustedContractsRegistry}/${address}`,
+          { headers: { "x-request-id": reqId } },
+        );
+
+        issuerDid = data.issuerDID;
+        isActive = data.isActive;
+      } catch (error) {
+        /* v8 ignore start */
+        if (!isAxiosError(error)) {
+          this.logger.error(error);
+
+          throw new OAuth2TokenError("server_error", {
+            errorDescription:
+              "Unexpected error when querying Trusted Contracts Registry API",
+          });
+        }
+        /* v8 ignore stop */
+
+        logAxiosError(error, this.logger, 500);
+
+        if (error.response?.status === 404) {
+          throw new OAuth2TokenError("invalid_request", {
+            errorDescription: `Invalid Verifiable Credential: contract ${address} does not exist`,
+          });
+        }
+
+        throw new OAuth2TokenError("invalid_request", {
+          errorDescription: `Invalid Verifiable Credential: contract ${address} is not a valid contract`,
+        });
+      }
+
+      if (issuerDid !== issuer) {
+        throw new OAuth2TokenError("invalid_request", {
+          errorDescription:
+            "Invalid Verifiable Presentation: VC issuer is not the smart contract deployer",
+        });
+      }
+
+      if (!isActive) {
+        throw new OAuth2TokenError("invalid_request", {
+          errorDescription: `Invalid Verifiable Credential: contract ${address} is not active`,
+        });
+      }
+
+      addresses.push(address);
+    }
+
+    return addresses;
   }
 
   async validateTrustedIssuer(

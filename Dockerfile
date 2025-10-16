@@ -23,11 +23,11 @@ COPY ./apis/trusted-issuers-registry-v5/package.json ./apis/trusted-issuers-regi
 COPY ./apis/trusted-policies-registry-v3/package.json ./apis/trusted-policies-registry-v3/
 COPY ./apis/trusted-schemas-registry-v3/package.json ./apis/trusted-schemas-registry-v3/
 COPY ./contracts/bootstrap-v2/package.json ./contracts/bootstrap-v2/
-COPY ./contracts/trusted-contracts-registry-v1/package.json ./contracts/trusted-contracts-registry-v1/
 COPY ./contracts/did-registry-v5/package.json ./contracts/did-registry-v5/
 COPY ./contracts/proxy/package.json ./contracts/proxy/
 COPY ./contracts/track-and-trace/package.json ./contracts/track-and-trace/
 COPY ./contracts/timestamp-v4/package.json ./contracts/timestamp-v4/
+COPY ./contracts/trusted-contracts-registry-v1/package.json ./contracts/trusted-contracts-registry-v1/
 COPY ./contracts/trusted-issuers-registry-v5/package.json ./contracts/trusted-issuers-registry-v5/
 COPY ./contracts/trusted-policies-registry-v3/package.json ./contracts/trusted-policies-registry-v3/
 COPY ./contracts/trusted-schemas-registry-v3/package.json ./contracts/trusted-schemas-registry-v3/

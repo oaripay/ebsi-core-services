@@ -37,6 +37,8 @@ import {
   DIDR_INVITE_SCOPE,
   DIDR_WRITE_PRESENTATION_DEFINITION,
   DIDR_WRITE_SCOPE,
+  LEDGER_INVOKE_PRESENTATION_DEFINITION,
+  LEDGER_INVOKE_SCOPE,
   TIMESTAMP_WRITE_PRESENTATION_DEFINITION,
   TIMESTAMP_WRITE_SCOPE,
   TIR_INVITE_PRESENTATION_DEFINITION,
@@ -58,6 +60,7 @@ import { CreateAccessTokenDto } from "../../src/modules/authorisation/dto/index.
 import { getNestFastifyApplication } from "../utils/app.ts";
 import {
   createLegalEntity,
+  createNaturalPerson,
   createPresentationSubmission,
 } from "../utils/data.ts";
 import { getServer } from "../utils/getServer.ts";
@@ -178,7 +181,7 @@ describe("Authorisation  API v4 (e2e)", () => {
       );
 
       expect(response.body).toStrictEqual({
-        detail: `["scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'tir_invite', 'tir_write', 'timestamp_write', 'tnt_authorise', 'tnt_create', 'tnt_write', 'tpr_write', 'tsr_write')"]`,
+        detail: `["scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'ledger_invoke', 'tir_invite', 'tir_write', 'timestamp_write', 'tnt_authorise', 'tnt_create', 'tnt_write', 'tpr_write', 'tsr_write')"]`,
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -187,7 +190,7 @@ describe("Authorisation  API v4 (e2e)", () => {
     });
 
     it("should return the expected presentation definition for the given scope", async () => {
-      expect.assertions(20);
+      expect.assertions(22);
 
       //  With explicit scope "openid didr_invite"
       let response = await request(server).get(
@@ -207,6 +210,18 @@ describe("Authorisation  API v4 (e2e)", () => {
       );
 
       expect(response.body).toStrictEqual(DIDR_WRITE_PRESENTATION_DEFINITION);
+      expect(response.status).toBe(200);
+
+      // With explicit scope "openid ledger_invoke"
+      response = await request(server).get(
+        `/presentation-definitions?scope=${encodeURIComponent(
+          `openid ${LEDGER_INVOKE_SCOPE}`,
+        )}`,
+      );
+
+      expect(response.body).toStrictEqual(
+        LEDGER_INVOKE_PRESENTATION_DEFINITION,
+      );
       expect(response.status).toBe(200);
 
       // With explicit scope "openid tir_invite"
@@ -343,7 +358,7 @@ describe("Authorisation  API v4 (e2e)", () => {
       expect(response.body).toStrictEqual({
         error: "invalid_request",
         error_description:
-          "scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'tir_invite', 'tir_write', 'timestamp_write', 'tnt_authorise', 'tnt_create', 'tnt_write', 'tpr_write', 'tsr_write')",
+          "scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'ledger_invoke', 'tir_invite', 'tir_write', 'timestamp_write', 'tnt_authorise', 'tnt_create', 'tnt_write', 'tpr_write', 'tsr_write')",
       });
       expect(response.status).toBe(400);
       expect(
@@ -487,6 +502,10 @@ describe("Authorisation  API v4 (e2e)", () => {
                       kid: clientKid,
                       signer: getSigner(hexToBytes(clientPrivateKey), "ES256K"),
                     };
+                  } else if (customScope === LEDGER_INVOKE_SCOPE) {
+                    // client is a new NP
+                    const naturalPerson = await createNaturalPerson("ES256");
+                    client = naturalPerson.keys.ES256;
                   } else {
                     client = issuer;
                   }
@@ -535,13 +554,21 @@ describe("Authorisation  API v4 (e2e)", () => {
                     validFrom: `${issuanceDate.toISOString().slice(0, -5)}Z`,
                   };
 
-                  if (customScope === TIR_INVITE_SCOPE) {
-                    vcPayload.type.push("VerifiableAccreditationToAccredit");
-                  } else if (
-                    customScope === DIDR_INVITE_SCOPE ||
-                    customScope === TNT_AUTHORISE_SCOPE
-                  ) {
-                    vcPayload.type.push("VerifiableAuthorisationToOnboard");
+                  switch (customScope) {
+                    case DIDR_INVITE_SCOPE:
+                    case TNT_AUTHORISE_SCOPE: {
+                      vcPayload.type.push("VerifiableAuthorisationToOnboard");
+                      break;
+                    }
+                    case LEDGER_INVOKE_SCOPE: {
+                      vcPayload.type.push("VerifiableAuthorisationToInvoke");
+                      break;
+                    }
+                    case TIR_INVITE_SCOPE: {
+                      vcPayload.type.push("VerifiableAccreditationToAccredit");
+                      break;
+                    }
+                    // No default
                   }
 
                   vpPayload = {
@@ -575,6 +602,7 @@ describe("Authorisation  API v4 (e2e)", () => {
                     if (
                       [
                         DIDR_INVITE_SCOPE,
+                        LEDGER_INVOKE_SCOPE,
                         TIR_INVITE_SCOPE,
                         TNT_AUTHORISE_SCOPE,
                       ].includes(customScope)
@@ -634,6 +662,7 @@ describe("Authorisation  API v4 (e2e)", () => {
                     if (
                       [
                         DIDR_INVITE_SCOPE,
+                        LEDGER_INVOKE_SCOPE,
                         TIR_INVITE_SCOPE,
                         TNT_AUTHORISE_SCOPE,
                       ].includes(customScope)
@@ -708,6 +737,7 @@ describe("Authorisation  API v4 (e2e)", () => {
                     if (
                       [
                         DIDR_INVITE_SCOPE,
+                        LEDGER_INVOKE_SCOPE,
                         TIR_INVITE_SCOPE,
                         TNT_AUTHORISE_SCOPE,
                       ].includes(customScope)
@@ -767,6 +797,7 @@ describe("Authorisation  API v4 (e2e)", () => {
                     if (
                       [
                         DIDR_INVITE_SCOPE,
+                        LEDGER_INVOKE_SCOPE,
                         TIR_INVITE_SCOPE,
                         TNT_AUTHORISE_SCOPE,
                       ].includes(customScope)
@@ -827,6 +858,7 @@ describe("Authorisation  API v4 (e2e)", () => {
                     if (
                       [
                         DIDR_INVITE_SCOPE,
+                        LEDGER_INVOKE_SCOPE,
                         TIR_INVITE_SCOPE,
                         TNT_AUTHORISE_SCOPE,
                       ].includes(customScope)
@@ -887,6 +919,7 @@ describe("Authorisation  API v4 (e2e)", () => {
                     if (
                       [
                         DIDR_INVITE_SCOPE,
+                        LEDGER_INVOKE_SCOPE,
                         TIR_INVITE_SCOPE,
                         TNT_AUTHORISE_SCOPE,
                       ].includes(customScope)
@@ -948,6 +981,7 @@ describe("Authorisation  API v4 (e2e)", () => {
                     if (
                       [
                         DIDR_INVITE_SCOPE,
+                        LEDGER_INVOKE_SCOPE,
                         TIR_INVITE_SCOPE,
                         TNT_AUTHORISE_SCOPE,
                       ].includes(customScope)
@@ -1046,6 +1080,7 @@ describe("Authorisation  API v4 (e2e)", () => {
                   if (
                     [
                       DIDR_INVITE_SCOPE,
+                      LEDGER_INVOKE_SCOPE,
                       TIR_INVITE_SCOPE,
                       TNT_AUTHORISE_SCOPE,
                     ].includes(customScope)
@@ -1295,6 +1330,7 @@ describe("Authorisation  API v4 (e2e)", () => {
                   if (
                     [
                       DIDR_INVITE_SCOPE,
+                      LEDGER_INVOKE_SCOPE,
                       TIR_INVITE_SCOPE,
                       TNT_AUTHORISE_SCOPE,
                     ].includes(customScope)
@@ -1352,13 +1388,10 @@ describe("Authorisation  API v4 (e2e)", () => {
                 it("should return an access token and an ID token when the presentation is valid", async () => {
                   if (
                     customScope === TIR_INVITE_SCOPE ||
-                    customScope === TNT_AUTHORISE_SCOPE
+                    customScope === TNT_AUTHORISE_SCOPE ||
+                    customScope === LEDGER_INVOKE_SCOPE
                   ) {
                     // /!\ Skip test - Could be implemented later
-                    // In order to pass this test, we would have to register a new DID into the DID Registry
-                    // and a new Trusted Issuer into the TIR. It can only be run in an environment where we
-                    // can use write operations, and where the DIDR API v4 and TIR API v4 support the new
-                    // auth mechanism.
                     expect.assertions(0);
                     return;
                   }

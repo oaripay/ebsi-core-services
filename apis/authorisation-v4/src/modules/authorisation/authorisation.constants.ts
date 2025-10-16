@@ -4,6 +4,7 @@ export const OPENID_SCOPE = "openid";
 
 export const DIDR_INVITE_SCOPE = "didr_invite";
 export const DIDR_WRITE_SCOPE = "didr_write";
+export const LEDGER_INVOKE_SCOPE = "ledger_invoke";
 export const TIR_INVITE_SCOPE = "tir_invite";
 export const TIR_WRITE_SCOPE = "tir_write";
 export const TIMESTAMP_WRITE_SCOPE = "timestamp_write";
@@ -16,6 +17,7 @@ export const TSR_WRITE_SCOPE = "tsr_write";
 export const CUSTOM_SCOPES = [
   DIDR_INVITE_SCOPE,
   DIDR_WRITE_SCOPE,
+  LEDGER_INVOKE_SCOPE,
   TIR_INVITE_SCOPE,
   TIR_WRITE_SCOPE,
   TIMESTAMP_WRITE_SCOPE,
@@ -68,6 +70,36 @@ export const DIDR_WRITE_PRESENTATION_DEFINITION = {
   name: "Any type of Verifiable Attestation",
   purpose:
     "Please present a valid Presentation signed by a registered Legal Entity.",
+} as const satisfies PresentationDefinitionV2;
+
+export const LEDGER_INVOKE_PRESENTATION_DEFINITION = {
+  format: {
+    jwt_vp: { alg: ["ES256", "ES256K"] },
+    jwt_vp_json: { alg: ["ES256", "ES256K"] },
+  },
+  id: "ledger_invoke_presentation",
+  input_descriptors: [
+    {
+      constraints: {
+        fields: [
+          {
+            filter: {
+              contains: {
+                const: "VerifiableAuthorisationToInvoke", // TODO: define proper type?
+              },
+              type: "array",
+            },
+            path: ["$.vc.type"],
+          },
+        ],
+      },
+      format: { jwt_vc: { alg: ["ES256"] }, jwt_vc_json: { alg: ["ES256"] } },
+      id: "didr_invite_credential",
+      name: "Authorisation to interact with a Trusted Contract",
+      purpose:
+        "Please present a valid authorisation to interact with a Trusted Contract",
+    },
+  ],
 } as const satisfies PresentationDefinitionV2;
 
 export const TIR_INVITE_PRESENTATION_DEFINITION = {
@@ -195,6 +227,7 @@ export const TSR_WRITE_PRESENTATION_DEFINITION = {
 export const PRESENTATION_DEFINITIONS = {
   [`${DIDR_INVITE_SCOPE}`]: DIDR_INVITE_PRESENTATION_DEFINITION,
   [`${DIDR_WRITE_SCOPE}`]: DIDR_WRITE_PRESENTATION_DEFINITION,
+  [`${LEDGER_INVOKE_SCOPE}`]: LEDGER_INVOKE_PRESENTATION_DEFINITION,
   [`${TIMESTAMP_WRITE_SCOPE}`]: TIMESTAMP_WRITE_PRESENTATION_DEFINITION,
   [`${TIR_INVITE_SCOPE}`]: TIR_INVITE_PRESENTATION_DEFINITION,
   [`${TIR_WRITE_SCOPE}`]: TIR_WRITE_PRESENTATION_DEFINITION,
