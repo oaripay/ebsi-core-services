@@ -74,6 +74,27 @@ describe("Ledger API v4 - POST /ledger/v4/blockchains/besu", () => {
     );
   });
 
+  it("should return the chain ID when params is omitted", async () => {
+    expect.assertions(4);
+
+    const response = await request(server).post("/blockchains/besu").send({
+      id: "42",
+      jsonrpc: "2.0",
+      method: "eth_chainId",
+    });
+
+    expect(response.body).toStrictEqual({
+      id: "42",
+      jsonrpc: "2.0",
+      result: expect.stringMatching(/^0x[0-9a-fA-F]+$/),
+    });
+    expect(response.status).toBe(200);
+    expect(response.header).toHaveProperty("content-type");
+    expect(response.headers["content-type"]).toStrictEqual(
+      expect.stringContaining("application/json"),
+    );
+  });
+
   it("should return an error when the method does not exist or is not available", async () => {
     expect.assertions(4);
 
@@ -82,7 +103,6 @@ describe("Ledger API v4 - POST /ledger/v4/blockchains/besu", () => {
       id: "43",
       jsonrpc: "2.0",
       method: "test",
-      params: [],
     });
 
     expect(response.body).toStrictEqual({
@@ -100,7 +120,6 @@ describe("Ledger API v4 - POST /ledger/v4/blockchains/besu", () => {
       id: "42",
       jsonrpc: "2.0",
       method: "eth_sendRawTransaction",
-      params: [],
     });
 
     expect(response.body).toStrictEqual({
@@ -125,28 +144,24 @@ describe("Ledger API v4 - POST /ledger/v4/blockchains/besu", () => {
           id: "42",
           jsonrpc: "2.0",
           method: "eth_chainId",
-          params: [],
         },
         // "test" method doesn't exist
         {
           id: "43",
           jsonrpc: "2.0",
           method: "test",
-          params: [],
         },
         // Notifications should be ignored
         {
           // No id
           jsonrpc: "2.0",
           method: "eth_chainId",
-          params: [],
         },
         // "eth_sendRawTransaction" method is not available
         {
           id: "42",
           jsonrpc: "2.0",
           method: "eth_sendRawTransaction",
-          params: [],
         },
       ]);
 

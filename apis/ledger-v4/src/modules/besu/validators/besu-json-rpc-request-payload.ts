@@ -11,7 +11,7 @@ export const besuJsonRpcRequestPayload = z.object({
   ]),
   jsonrpc: z.literal("2.0"),
   method: z.string(),
-  params: z.array(z.unknown()),
+  params: z.array(z.unknown()).optional(),
 });
 
 export type BesuJsonRpcRequestPayload = z.infer<

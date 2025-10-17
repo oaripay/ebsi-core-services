@@ -105,10 +105,10 @@ describe("Besu Module", () => {
       });
 
       it("should return an error if the payload doesn't pass the validation", async () => {
-        expect.assertions(4);
+        expect.assertions(2);
 
         // Batch contains a value that is not an object
-        let response = await request(server)
+        const response = await request(server)
           .post("/blockchains/besu")
           .send(["invalid"]);
 
@@ -123,23 +123,6 @@ describe("Besu Module", () => {
             jsonrpc: "2.0",
           },
         ]);
-        expect(response.status).toBe(200);
-
-        // Payload is missing "params"
-        response = await request(server).post("/blockchains/besu").send({
-          id: "2",
-          jsonrpc: "2.0",
-          method: "eth_chainId",
-        });
-
-        expect(response.body).toStrictEqual({
-          error: {
-            code: -32_600,
-            message: "Invalid 'params': Required",
-          },
-          id: "2",
-          jsonrpc: "2.0",
-        });
         expect(response.status).toBe(200);
       });
 
@@ -184,6 +167,46 @@ describe("Besu Module", () => {
         );
       });
 
+      it("should return the chain ID when params is omitted", async () => {
+        expect.assertions(8);
+
+        // Test without params field
+        let response = await request(server).post("/blockchains/besu").send({
+          id: "42",
+          jsonrpc: "2.0",
+          method: "eth_chainId",
+        });
+
+        expect(response.body).toStrictEqual({
+          id: "42",
+          jsonrpc: "2.0",
+          result: "0x539",
+        });
+        expect(response.status).toBe(200);
+        expect(response.header).toHaveProperty("content-type");
+        expect(response.headers["content-type"]).toStrictEqual(
+          expect.stringContaining("application/json"),
+        );
+
+        // Sending request as a string without params
+        response = await request(server).post("/blockchains/besu").send(`{
+          "id": "abc",
+          "jsonrpc": "2.0",
+          "method": "eth_chainId"
+        }`);
+
+        expect(response.body).toStrictEqual({
+          id: "abc",
+          jsonrpc: "2.0",
+          result: "0x539",
+        });
+        expect(response.status).toBe(200);
+        expect(response.header).toHaveProperty("content-type");
+        expect(response.headers["content-type"]).toStrictEqual(
+          expect.stringContaining("application/json"),
+        );
+      });
+
       it("should ignore notifications (requests without id)", async () => {
         expect.assertions(4);
 
@@ -191,7 +214,6 @@ describe("Besu Module", () => {
           // No id
           jsonrpc: "2.0",
           method: "eth_chainId",
-          params: [],
         });
 
         expect(response.text).toBe("");
@@ -210,7 +232,6 @@ describe("Besu Module", () => {
           id: "43",
           jsonrpc: "2.0",
           method: "test",
-          params: [],
         });
 
         expect(response.body).toStrictEqual({
@@ -228,7 +249,6 @@ describe("Besu Module", () => {
           id: "42",
           jsonrpc: "2.0",
           method: "eth_sendRawTransaction",
-          params: [],
         });
 
         expect(response.body).toStrictEqual({
@@ -254,7 +274,6 @@ describe("Besu Module", () => {
               id: "42",
               jsonrpc: "2.0",
               method: "eth_chainId",
-              params: [],
             })),
           );
 
@@ -294,7 +313,6 @@ describe("Besu Module", () => {
           id: "42",
           jsonrpc: "2.0",
           method: "eth_chainId",
-          params: [],
         });
 
         expect(response.body).toStrictEqual(error);
@@ -331,7 +349,6 @@ describe("Besu Module", () => {
           id: "42",
           jsonrpc: "2.0",
           method: "eth_chainId",
-          params: [],
         });
 
         expect(response.body).toStrictEqual({
@@ -390,28 +407,24 @@ describe("Besu Module", () => {
               id: "42",
               jsonrpc: "2.0",
               method: "eth_chainId",
-              params: [],
             },
             // "test" method doesn't exist
             {
               id: "43",
               jsonrpc: "2.0",
               method: "test",
-              params: [],
             },
             // Notifications should be ignored
             {
               // No id
               jsonrpc: "2.0",
               method: "eth_chainId",
-              params: [],
             },
             // "eth_sendRawTransaction" method is not available
             {
               id: "42",
               jsonrpc: "2.0",
               method: "eth_sendRawTransaction",
-              params: [],
             },
           ]);
 
