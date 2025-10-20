@@ -25,6 +25,7 @@
     "test:ci": "yarn test:unit --coverage --reporter=default"
   },
   "dependencies": {
+    "@cef-ebsi/key-did-resolver": "^2.1.1",
     "@ebsiint-api/shared": "^1.1.0-rc.14",
     "@fastify/accepts": "^5.0.3",
     "@fastify/helmet": "^13.0.2",
@@ -35,9 +36,12 @@
     "@nestjs/platform-fastify": "^11.1.6",
     "@nestjs/terminus": "^11.0.0",
     "axios": "^1.12.2",
+    "cache-manager": "^6.4.3",
     "class-transformer": "^0.5.1",
+    "did-resolver": "^4.1.0",
     "ethers": "^6.15.0",
     "joi": "^17.13.3",
+    "jose": "^5.10.0",
     "nestjs-pino": "^4.4.1",
     "pino": "^10.0.0",
     "pino-http": "^11.0.0",
@@ -47,10 +51,13 @@
     "zod": "^3.25.67"
   },
   "devDependencies": {
+    "@cef-ebsi/wallet-lib": "^6.0.3-alpha.1",
+    "@ebsiint-sc/trusted-contracts-registry-v1": "1.0.0-rc.0",
     "@nestjs/cli": "^11.0.10",
     "@nestjs/schematics": "^11.0.9",
     "@nestjs/testing": "^11.1.6",
     "@nomicfoundation/hardhat-ethers": "^3.1.0",
+    "@openzeppelin/hardhat-upgrades": "^3.9.1",
     "@stoplight/spectral-cli": "^6.15.0",
     "@swc/core": "^1.13.5",
     "@total-typescript/ts-reset": "^0.6.1",

@@ -6,7 +6,7 @@ const path = require("node:path");
 require("@nomicfoundation/hardhat-ethers");
 require("@openzeppelin/hardhat-upgrades");
 
-const tntScPath = path.resolve(
+const tcrScPath = path.resolve(
   require.resolve("@ebsiint-sc/trusted-contracts-registry-v1"),
   "../..", // relative to "dist/index.js"
 );
@@ -18,8 +18,8 @@ const config = {
     hardhat: { allowUnlimitedContractSize: true, hardfork: "berlin" },
   },
   paths: {
-    artifacts: path.resolve(tntScPath, "./artifacts"),
-    cache: path.resolve(tntScPath, "./cache"),
+    artifacts: path.resolve(tcrScPath, "./artifacts"),
+    cache: path.resolve(tcrScPath, "./cache"),
   },
   solidity: {
     settings: {

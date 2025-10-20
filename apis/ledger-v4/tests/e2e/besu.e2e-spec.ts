@@ -96,10 +96,10 @@ describe("Ledger API v4 - POST /ledger/v4/blockchains/besu", () => {
   });
 
   it("should return an error when the method does not exist or is not available", async () => {
-    expect.assertions(4);
+    expect.assertions(2);
 
     // "test" method doesn't exist
-    let response = await request(server).post("/blockchains/besu").send({
+    const response = await request(server).post("/blockchains/besu").send({
       id: "43",
       jsonrpc: "2.0",
       method: "test",
@@ -111,24 +111,6 @@ describe("Ledger API v4 - POST /ledger/v4/blockchains/besu", () => {
         message: "The method test does not exist / is not available.",
       },
       id: "43",
-      jsonrpc: "2.0",
-    });
-    expect(response.status).toBe(200);
-
-    // "eth_sendRawTransaction" method is not available
-    response = await request(server).post("/blockchains/besu").send({
-      id: "42",
-      jsonrpc: "2.0",
-      method: "eth_sendRawTransaction",
-    });
-
-    expect(response.body).toStrictEqual({
-      error: {
-        code: -32_601,
-        message:
-          "The method eth_sendRawTransaction does not exist / is not available.",
-      },
-      id: "42",
       jsonrpc: "2.0",
     });
     expect(response.status).toBe(200);
@@ -157,12 +139,6 @@ describe("Ledger API v4 - POST /ledger/v4/blockchains/besu", () => {
           jsonrpc: "2.0",
           method: "eth_chainId",
         },
-        // "eth_sendRawTransaction" method is not available
-        {
-          id: "42",
-          jsonrpc: "2.0",
-          method: "eth_sendRawTransaction",
-        },
       ]);
 
     expect(response.body).toStrictEqual([
@@ -177,15 +153,6 @@ describe("Ledger API v4 - POST /ledger/v4/blockchains/besu", () => {
           message: "The method test does not exist / is not available.",
         },
         id: "43",
-        jsonrpc: "2.0",
-      },
-      {
-        error: {
-          code: -32_601,
-          message:
-            "The method eth_sendRawTransaction does not exist / is not available.",
-        },
-        id: "42",
         jsonrpc: "2.0",
       },
     ]);

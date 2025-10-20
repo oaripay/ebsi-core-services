@@ -169,7 +169,7 @@ paths:
                     id: 1
                     error:
                       code: -32601
-                      message: The method eth_sendRawTransaction does not exist / is not available.
+                      message: The method eth_unknown requires an access token.
         "400":
           description: JSON-RPC Error
           content:

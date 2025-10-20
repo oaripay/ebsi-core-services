@@ -28,6 +28,7 @@ describe("Health Module", () => {
   let server: RawServerDefault;
   let httpService: HttpService;
   let configService: ConfigService<ApiConfig, true>;
+  let localOrigin: string | undefined;
   const dependencies = Object.keys(
     RUNTIME_DEPENDENCIES,
   ) as (keyof typeof RUNTIME_DEPENDENCIES)[];
@@ -55,6 +56,10 @@ describe("Health Module", () => {
     server = app.getHttpServer();
 
     httpService = await app.resolve<HttpService>(HttpService);
+
+    localOrigin =
+      configService.get("localOrigin", { infer: true }) ??
+      configService.get("domain", { infer: true });
   });
 
   afterEach(() => {
@@ -73,6 +78,12 @@ describe("Health Module", () => {
 
       // All the dependencies return a 200
       mockServer.use(
+        ...dependencies.map((dependency) =>
+          http.get(
+            `${localOrigin}/${dependency}/${RUNTIME_DEPENDENCIES[dependency]}`,
+            () => HttpResponse.json({}),
+          ),
+        ),
         http.get(
           configService.get("besuReadinessEndpoint", { infer: true }),
           () => HttpResponse.json({}),
@@ -83,6 +94,16 @@ describe("Health Module", () => {
 
       const response = await request(server).get("/health").send();
 
+      // Expect httpService.request to have been called for every dependency
+      for (const dependency of dependencies) {
+        expect(spy).toHaveBeenCalledWith({
+          headers: {
+            "EBSI-Healthcheck": "1",
+            "x-request-id": expect.any(String),
+          },
+          url: `${localOrigin}/${dependency}/${RUNTIME_DEPENDENCIES[dependency]}`,
+        });
+      }
       expect(spy).toHaveBeenCalledWith({
         url: configService.get("besuReadinessEndpoint", { infer: true }),
       });
@@ -91,7 +112,6 @@ describe("Health Module", () => {
       const expectedStatuses = {
         ...dependencies
           .map((dependency) => ({
-            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
             [`${dependency}@${RUNTIME_DEPENDENCIES[dependency]}`]: {
               status: "up",
             },
@@ -109,11 +129,90 @@ describe("Health Module", () => {
       expect(response.status).toBe(200);
     });
 
+    it("should return 'error' if some runtime dependencies do not return a 20x", async () => {
+      expect.assertions(3 + dependencies.length);
+
+      // All the dependencies return a 200 except Authorisation API v4
+      mockServer.use(
+        ...dependencies.map((dependency) =>
+          http.get(
+            `${localOrigin}/${dependency}/${RUNTIME_DEPENDENCIES[dependency]}`,
+            () =>
+              dependency === "authorisation"
+                ? HttpResponse.json({}, { status: 500 })
+                : HttpResponse.json({}),
+          ),
+        ),
+        http.get(
+          configService.get("besuReadinessEndpoint", { infer: true }),
+          () => HttpResponse.json({}),
+        ),
+      );
+
+      const spy = vi.spyOn(httpService, "request");
+
+      const response = await request(server).get("/health").send();
+
+      // Expect httpService.request to have been called for every dependency
+      for (const dependency of dependencies) {
+        expect(spy).toHaveBeenCalledWith({
+          headers: {
+            "EBSI-Healthcheck": "1",
+            "x-request-id": expect.any(String),
+          },
+          url: `${localOrigin}/${dependency}/${RUNTIME_DEPENDENCIES[dependency]}`,
+        });
+      }
+      expect(spy).toHaveBeenCalledWith({
+        url: configService.get("besuReadinessEndpoint", { infer: true }),
+      });
+
+      // Expect all the dependencies to be up except Authorisation API v4
+      const expectedStatuses: HealthIndicatorResult = {
+        ...dependencies
+          .map(
+            (dependency) =>
+              ({
+                [`${dependency}@${RUNTIME_DEPENDENCIES[dependency]}`]:
+                  dependency === "authorisation"
+                    ? ({
+                        message: "Request failed with status code 500",
+                        status: "down",
+                        statusCode: 500,
+                        statusText: "Internal Server Error",
+                      } as const)
+                    : ({ status: "up" } as const),
+              }) satisfies HealthIndicatorResult,
+          )
+          .reduce((acc, currentVal) => ({ ...acc, ...currentVal }), {}),
+        Besu: { status: "up" },
+      };
+
+      const { "authorisation@v4": errorStatus, ...otherStatuses } =
+        expectedStatuses;
+
+      expect(response.body).toStrictEqual({
+        details: expectedStatuses,
+        error: {
+          "authorisation@v4": errorStatus,
+        },
+        info: otherStatuses,
+        status: "error",
+      });
+      expect(response.status).toBe(503);
+    });
+
     it("should return 'error' if Besu readiness endpoint returns 503", async () => {
       expect.assertions(3 + dependencies.length);
 
       // All the dependencies return a 200 except Besu readiness (503)
       mockServer.use(
+        ...dependencies.map((dependency) =>
+          http.get(
+            `${localOrigin}/${dependency}/${RUNTIME_DEPENDENCIES[dependency]}`,
+            () => HttpResponse.json({}),
+          ),
+        ),
         http.get(
           configService.get("besuReadinessEndpoint", { infer: true }),
           () => HttpResponse.json({}, { status: 503 }),
@@ -125,6 +224,15 @@ describe("Health Module", () => {
       const response = await request(server).get("/health").send();
 
       // Expect httpService.request to have been called for every dependency
+      for (const dependency of dependencies) {
+        expect(spy).toHaveBeenCalledWith({
+          headers: {
+            "EBSI-Healthcheck": "1",
+            "x-request-id": expect.any(String),
+          },
+          url: `${localOrigin}/${dependency}/${RUNTIME_DEPENDENCIES[dependency]}`,
+        });
+      }
       expect(spy).toHaveBeenCalledWith({
         url: configService.get("besuReadinessEndpoint", { infer: true }),
       });
@@ -135,7 +243,6 @@ describe("Health Module", () => {
           .map(
             (dependency) =>
               ({
-                // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
                 [`${dependency}@${RUNTIME_DEPENDENCIES[dependency]}`]: {
                   status: "up",
                 } as const,
