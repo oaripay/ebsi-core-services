@@ -1,12 +1,21 @@
 /* eslint-disable unicorn/no-null */
+import type { RawBodyRequest } from "@nestjs/common";
 import type { JsonRpcPayload } from "ethers";
+import type { FastifyRequest } from "fastify";
 
+import { getResolver as getKeyDidResolver } from "@cef-ebsi/key-did-resolver";
 import {
   BesuService as AbstractBesuService,
+  encode,
   getErrorMessage,
+  InternalServerError,
+  logAxiosError,
 } from "@ebsiint-api/shared";
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import axios, { isAxiosError } from "axios";
+import { Resolver } from "did-resolver";
+import { ethers } from "ethers";
 
 import type { ApiConfig } from "../../config/configuration.ts";
 import type {
@@ -16,12 +25,13 @@ import type {
 } from "./besu.interface.ts";
 import type { BesuJsonRpcRequestPayload } from "./validators/besu-json-rpc-request-payload.ts";
 
+import { AuthService } from "../auth/auth.service.ts";
 import { besuJsonRpcRequestPayload } from "./validators/besu-json-rpc-request-payload.ts";
 
 class JsonRpcError extends Error {
-  private code: number;
+  private readonly code: number;
 
-  private id: null | number | string;
+  private readonly id: null | number | string;
 
   constructor(
     message: string,
@@ -51,6 +61,7 @@ const PUBLIC_BESU_METHODS = new Set([
   "eth_blockNumber",
   "eth_call",
   "eth_chainId",
+  "eth_estimateGas",
   "eth_getBlockByHash",
   "eth_getBlockByNumber",
   "eth_getBlockReceipts",
@@ -70,21 +81,50 @@ const PUBLIC_BESU_METHODS = new Set([
   "net_version",
   // Not allowed:
   // "eth_sendRawTransaction",
-  // "eth_estimateGas",
 ]);
+
+const PROTECTED_METHODS = new Set(["eth_sendRawTransaction"]);
 
 @Injectable()
 export class BesuService extends AbstractBesuService {
-  constructor(configService: ConfigService<ApiConfig, true>) {
+  private readonly authService: AuthService;
+
+  private readonly didRegistry: string;
+
+  private readonly proxyFactoryAddress: string;
+
+  private readonly timeout: number;
+
+  private readonly trustedPoliciesRegistry: string;
+
+  constructor(
+    configService: ConfigService<ApiConfig, true>,
+    authService: AuthService,
+  ) {
     const logger = new Logger(BesuService.name);
 
     const url = configService.get("besuRpcNode", { infer: true });
     const requestTimeout = configService.get("requestTimeout", { infer: true });
 
     super(url, requestTimeout, logger);
+
+    this.authService = authService;
+    this.didRegistry = configService.get("didRegistryApiUrl", { infer: true });
+    this.proxyFactoryAddress = configService.get("proxyFactoryAddress", {
+      infer: true,
+    });
+    this.timeout = requestTimeout;
+    this.trustedPoliciesRegistry = configService.get(
+      "trustedPoliciesRegistryApiUrl",
+      { infer: true },
+    );
   }
 
-  async sendToBesu(rawBody: Buffer | undefined): Promise<BesuServiceResponse> {
+  async sendToBesu(
+    rawBody: RawBodyRequest<FastifyRequest>["rawBody"],
+    headers: RawBodyRequest<FastifyRequest>["headers"],
+    reqId: string,
+  ): Promise<BesuServiceResponse> {
     if (!rawBody) {
       const error = new JsonRpcError("Parse error", -32_700, null);
 
@@ -135,33 +175,39 @@ export class BesuService extends AbstractBesuService {
       }
 
       return {
-        data: await this.handleBatchRequest(body),
+        data: await this.handleBatchRequest(body, headers, reqId),
         status: 200,
       };
     }
 
     // Single request
     return {
-      data: await this.handleSingleRequest(body),
+      data: await this.handleSingleRequest(body, headers, reqId),
       status: 200,
     };
   }
 
   private async handleBatchRequest(
     requests: unknown[],
+    headers: RawBodyRequest<FastifyRequest>["headers"],
+    reqId: string,
   ): Promise<BesuResponse[]> {
     const responses: BesuResponse[] = [];
 
     // Process requests sequentially because ethers.js' SocketProvider doesn't support batches
     for (const request of requests) {
-      responses.push(await this.handleSingleRequest(request));
+      responses.push(await this.handleSingleRequest(request, headers, reqId));
     }
 
     return responses.filter(Boolean);
   }
 
-  private async handleSingleRequest(request: unknown): Promise<BesuResponse> {
-    const payload = this.validatePayload(request);
+  private async handleSingleRequest(
+    request: unknown,
+    headers: RawBodyRequest<FastifyRequest>["headers"],
+    reqId: string,
+  ): Promise<BesuResponse> {
+    const payload = await this.validatePayload(request, headers, reqId);
 
     // Ignore notifications
     if (!payload) {
@@ -210,9 +256,11 @@ export class BesuService extends AbstractBesuService {
     };
   }
 
-  private validatePayload(
+  private async validatePayload(
     payload: unknown,
-  ): BesuJsonRpcRequestPayload | JsonRpcError | undefined {
+    headers: RawBodyRequest<FastifyRequest>["headers"],
+    reqId: string,
+  ): Promise<BesuJsonRpcRequestPayload | JsonRpcError | undefined> {
     if (!payload || typeof payload !== "object") {
       // https://github.com/ethereum/execution-apis/blob/main/src/engine/common.md#errors
       // -32600 - Invalid Request - The JSON sent is not a valid Request object.
@@ -240,6 +288,216 @@ export class BesuService extends AbstractBesuService {
     }
 
     const query = parsedBody.data;
+
+    if (PROTECTED_METHODS.has(query.method)) {
+      // query.method is eth_sendRawTransaction
+      if (typeof query.params?.[0] !== "string") {
+        return new JsonRpcError(
+          `The method ${query.method} requires a raw transaction.`,
+          -32_600,
+          query.id,
+        );
+      }
+
+      let tx: ethers.Transaction;
+
+      try {
+        tx = ethers.Transaction.from(query.params[0]);
+      } catch (error) {
+        this.logger.error(error);
+
+        return new JsonRpcError(`Invalid raw transaction`, -32_600, query.id);
+      }
+
+      if (!tx.from) {
+        return new JsonRpcError(
+          `The method ${query.method} requires a send address (from).`,
+          -32_600,
+          query.id,
+        );
+      }
+
+      if (!tx.to) {
+        return new JsonRpcError(
+          `The method ${query.method} requires a contract address (to).`,
+          -32_600,
+          query.id,
+        );
+      }
+
+      // 1. If it's a proxy deployment, check if the deployer is allowed to deploy contracts (no bearer token required)
+      //   a/ check if the "to" field is set to the proxy factory
+      //   b/ check if the deployer has the correct policy in the TPR
+      if (tx.to === this.proxyFactoryAddress) {
+        try {
+          await axios.get(
+            `${this.trustedPoliciesRegistry}/subjects/${tx.from}/policies/${encodeURIComponent("TCR:deployProxy")}`,
+            {
+              headers: { "x-request-id": reqId },
+              timeout: this.timeout,
+            },
+          );
+        } catch (error) {
+          if (isAxiosError(error)) {
+            logAxiosError(error, this.logger);
+
+            if (error.status === 404) {
+              return new JsonRpcError(
+                `Address ${tx.from} is not allowed to deploy proxies.`,
+                -32_600,
+                query.id,
+              );
+            }
+          } else {
+            this.logger.error(error);
+          }
+
+          return new JsonRpcError("Internal error", -32_603, query.id);
+        }
+
+        return query;
+      }
+
+      // 2. If it's a contract call, check if the caller is allowed to call the contract
+      const accessToken = headers.authorization?.replace("Bearer ", "");
+
+      if (!accessToken) {
+        return new JsonRpcError(
+          `The method ${query.method} requires an access token.`,
+          -32_600,
+          query.id,
+        );
+      }
+
+      let validatedToken: Awaited<
+        ReturnType<typeof this.authService.validateToken>
+      >;
+
+      try {
+        validatedToken = await this.authService.validateToken(
+          accessToken,
+          reqId,
+        );
+      } catch (error) {
+        this.logger.error(error);
+
+        if (error instanceof InternalServerError) {
+          return new JsonRpcError("Internal error", -32_603, query.id);
+        }
+
+        return new JsonRpcError(
+          error instanceof Error && error.message
+            ? error.message
+            : `The method ${query.method} requires a valid access token.`,
+          -32_600,
+          query.id,
+        );
+      }
+
+      const { authorization_details, sub } = validatedToken;
+
+      if (!authorization_details.addresses.includes(tx.to)) {
+        return new JsonRpcError(
+          `Access to the contract ${tx.to} is not allowed.`,
+          -32_600,
+          query.id,
+        );
+      }
+
+      if (sub.startsWith("did:key:")) {
+        // If sub DID uses the did:key method, derive public key and check if it matches the transaction signer
+        const didResolver = new Resolver(getKeyDidResolver());
+        const result = await didResolver.resolve(sub);
+        const publicKeyJwk =
+          result.didDocument?.verificationMethod![0]?.publicKeyJwk;
+
+        if (!publicKeyJwk) {
+          return new JsonRpcError(
+            `DID ${sub} can't be resolved`,
+            -32_600,
+            query.id,
+          );
+        }
+
+        if (publicKeyJwk.crv !== "secp256k1") {
+          return new JsonRpcError(
+            `The DID ${sub} must use secp256k1 curve. Received: ${publicKeyJwk.crv}`,
+            -32_600,
+            query.id,
+          );
+        }
+
+        // Derive ethereum address
+        const publicKeyHex = encode.publicKey.fromJWKToHex(publicKeyJwk);
+
+        const address = ethers.computeAddress(`0x${publicKeyHex}`);
+
+        if (address.toLowerCase() !== tx.from.toLowerCase()) {
+          return new JsonRpcError(
+            `The transaction signer ${tx.from} is not allowed to call the contract ${tx.to}.`,
+            -32_600,
+            query.id,
+          );
+        }
+      } else if (sub.startsWith("did:ebsi:")) {
+        // If sub DID uses the did:ebsi method, check if the signer controls the DID document
+        let data: {
+          error?: { message: string };
+          result: boolean;
+        };
+
+        try {
+          const response = await axios.post<{
+            error?: { message: string };
+            result: boolean;
+          }>(
+            `${this.didRegistry}/identifiers/${sub}/actions`,
+            {
+              jsonrpc: "2.0",
+              method: "checkController",
+              params: [tx.from],
+            },
+            {
+              headers: { "x-request-id": reqId },
+              timeout: this.timeout,
+              validateStatus: (s) => s >= 200 && s <= 400,
+            },
+          );
+          data = response.data;
+        } catch (error) {
+          if (isAxiosError(error)) {
+            logAxiosError(error, this.logger);
+          } else {
+            this.logger.error(error);
+          }
+          return new JsonRpcError("Internal error", -32_603, query.id);
+        }
+
+        if (data.error) {
+          return new JsonRpcError(
+            `The DID ${sub} does not exist`,
+            -32_600,
+            query.id,
+          );
+        }
+
+        if (!data.result) {
+          return new JsonRpcError(
+            `The DID ${sub} is not controlled by the address ${tx.from}`,
+            -32_600,
+            query.id,
+          );
+        }
+      } else {
+        return new JsonRpcError(
+          `Invalid access token: sub ${sub} is not valid`,
+          -32_600,
+          query.id,
+        );
+      }
+
+      return query;
+    }
 
     if (!PUBLIC_BESU_METHODS.has(query.method)) {
       // https://github.com/ethereum/execution-apis/blob/main/src/engine/common.md#errors

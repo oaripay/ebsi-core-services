@@ -62,7 +62,7 @@ export class AuthService {
       });
     }
 
-    // Verify that the access token has been issued by Authorisation API v3
+    // Verify that the access token has been issued by Authorisation API v4
     const { kid } = jwtHeader;
     if (!kid || typeof kid !== "string") {
       throw new UnauthorizedError(UnauthorizedError.defaultTitle, {

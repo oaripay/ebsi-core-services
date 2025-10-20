@@ -316,7 +316,7 @@ describe("App Module", () => {
       mockServer.use(
         ...dependencies.map((dependency) =>
           http.get(
-            `${localOrigin}${RUNTIME_DEPENDENCIES[dependency] as string}`,
+            `${localOrigin}/${dependency}/${RUNTIME_DEPENDENCIES[dependency]}`,
             () => HttpResponse.json({}),
           ),
         ),
@@ -359,7 +359,7 @@ describe("App Module", () => {
       mockServer.use(
         ...dependencies.map((dependency) =>
           http.get(
-            `${localOrigin}${RUNTIME_DEPENDENCIES[dependency] as string}`,
+            `${localOrigin}/${dependency}/${RUNTIME_DEPENDENCIES[dependency]}`,
             () => HttpResponse.json({}),
           ),
         ),
@@ -389,7 +389,6 @@ describe("App Module", () => {
       const expectedStatuses = {
         ...dependencies
           .map((dependency) => ({
-            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
             [`${dependency}@${RUNTIME_DEPENDENCIES[dependency]}`]: {
               status: "up",
             },

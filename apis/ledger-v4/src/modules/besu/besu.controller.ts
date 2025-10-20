@@ -20,7 +20,11 @@ export class BesuController {
     @Req() req: RawBodyRequest<FastifyRequest>,
     @Response({ passthrough: true }) res: FastifyReply,
   ) {
-    const ledgerResponse = await this.besuService.sendToBesu(req.rawBody);
+    const ledgerResponse = await this.besuService.sendToBesu(
+      req.rawBody,
+      req.headers,
+      req.id,
+    );
 
     res.status(ledgerResponse.status);
     res.type("application/json");

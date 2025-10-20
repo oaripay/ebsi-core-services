@@ -11,6 +11,7 @@ declare global {
       LOG_LEVEL?: "debug" | "error" | "info" | "silent" | "verbose" | "warn";
       NETWORK: string;
       NODE_ENV: "development" | "production" | "test";
+      PROXY_FACTORY_CONTRACT_ADDR: string;
       REQUEST_TIMEOUT?: string;
       TEST_ENV?: string;
       TEST_SPECIFIC_NODE_DOMAIN?: string;

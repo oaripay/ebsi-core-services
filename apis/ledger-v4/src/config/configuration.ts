@@ -5,24 +5,40 @@ import Joi from "joi";
 export interface ApiConfig {
   apiPort: number;
   apiUrlPrefix: string;
+  authorisationApiUrl: string;
   besuReadinessEndpoint: string;
   besuRpcNode: string;
+  didRegistryApiUrl: string;
   dockerContainerTag: string;
   domain: string;
   localOrigin: string | undefined;
   logLevel: "debug" | "error" | "info" | "silent" | "verbose" | "warn";
+  proxyFactoryAddress: string;
   requestTimeout: number;
   testSpecificNodeDomain: string | undefined;
+  trustedPoliciesRegistryApiUrl: string;
 }
 
 export const SERVICE_PREFIX = "ledger";
 export const SERVICE_VERSION = "v4";
 
+// Declare all the services and their versions used by this service
+interface ServiceVersions {
+  authorisation: "v4";
+  "did-registry": "v5";
+  "trusted-policies-registry": "v3";
+}
+
 // EBSI Services that must be up and running before this service starts
-export const BOOTSTRAP_DEPENDENCIES = {} as const;
+export const BOOTSTRAP_DEPENDENCIES =
+  {} as const satisfies Partial<ServiceVersions>;
 
 // EBSI Services that must be up and running for this service to be considered healthy
-export const RUNTIME_DEPENDENCIES = {} as const;
+export const RUNTIME_DEPENDENCIES = {
+  authorisation: "v4",
+  "did-registry": "v5",
+  "trusted-policies-registry": "v3",
+} as const satisfies Partial<ServiceVersions>;
 
 // EBSI Services that are only used during the tests
 export const DEV_DEPENDENCIES = {} as const;
@@ -36,14 +52,18 @@ export const loadConfig = () => {
   return {
     apiPort: Number.parseInt(process.env.API_PORT ?? "3000", 10),
     apiUrlPrefix: `/${SERVICE_PREFIX}/${SERVICE_VERSION}`,
+    authorisationApiUrl: `${DOMAIN}/authorisation/${RUNTIME_DEPENDENCIES.authorisation}`,
     besuReadinessEndpoint: process.env.BESU_READINESS_ENDPOINT,
     besuRpcNode: process.env.BESU_RPC_NODE,
+    didRegistryApiUrl: `${DOMAIN}/did-registry/${RUNTIME_DEPENDENCIES["did-registry"]}`,
     dockerContainerTag: process.env.DOCKER_TAG ?? "",
     domain: DOMAIN,
     localOrigin: process.env.LOCAL_ORIGIN,
     logLevel: process.env.LOG_LEVEL ?? "warn",
+    proxyFactoryAddress: process.env.PROXY_FACTORY_CONTRACT_ADDR,
     requestTimeout: Number.parseInt(process.env.REQUEST_TIMEOUT ?? "15000", 10),
     testSpecificNodeDomain: process.env.TEST_SPECIFIC_NODE_DOMAIN,
+    trustedPoliciesRegistryApiUrl: `${DOMAIN}/trusted-policies-registry/${RUNTIME_DEPENDENCIES["trusted-policies-registry"]}`,
   } as const satisfies ApiConfig;
 };
 
@@ -75,6 +95,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     NODE_ENV: Joi.string()
       .valid("development", "production", "test")
       .default("development"),
+    PROXY_FACTORY_CONTRACT_ADDR: Joi.string(),
     REQUEST_TIMEOUT: Joi.string(),
     TEST_ENV: Joi.string(),
     TEST_SPECIFIC_NODE_DOMAIN: Joi.string().uri(),

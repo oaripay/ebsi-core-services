@@ -1,8 +1,9 @@
 // For more info, read https://docs.nestjs.com/recipes/terminus
 import type { HealthCheckResult } from "@nestjs/terminus";
+import type { FastifyRequest } from "fastify";
 
 import { Accepts } from "@ebsiint-api/shared";
-import { Controller, Get } from "@nestjs/common";
+import { Controller, Get, Req } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import {
   HealthCheck,
@@ -11,6 +12,8 @@ import {
 } from "@nestjs/terminus";
 
 import type { ApiConfig } from "../../config/configuration.ts";
+
+import { RUNTIME_DEPENDENCIES } from "../../config/configuration.ts";
 
 @Controller("/health")
 export class HealthController {
@@ -31,8 +34,25 @@ export class HealthController {
   @Accepts("application/json")
   @Get()
   @HealthCheck()
-  check(): Promise<HealthCheckResult> {
+  check(@Req() req: FastifyRequest): Promise<HealthCheckResult> {
     return this.health.check([
+      ...(
+        Object.keys(
+          RUNTIME_DEPENDENCIES,
+        ) as (keyof typeof RUNTIME_DEPENDENCIES)[]
+      ).map((service) => async () => {
+        const version = RUNTIME_DEPENDENCIES[service];
+        return this.http.pingCheck(
+          `${service}@${version}`,
+          `${
+            this.configService.get("localOrigin", { infer: true }) ??
+            this.configService.get("domain", { infer: true })
+          }/${service}/${version}`,
+          {
+            headers: { "EBSI-Healthcheck": "1", "x-request-id": req.id },
+          },
+        );
+      }),
       () =>
         this.http.pingCheck(
           "Besu",

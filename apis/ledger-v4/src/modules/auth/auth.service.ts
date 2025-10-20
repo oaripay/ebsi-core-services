@@ -6,11 +6,7 @@ import type {
   ProtectedHeaderParameters,
 } from "jose";
 
-import {
-  InternalServerError,
-  logAxiosError,
-  UnauthorizedError,
-} from "@ebsiint-api/shared";
+import { InternalServerError, logAxiosError } from "@ebsiint-api/shared";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Inject, Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
@@ -18,9 +14,8 @@ import axios, { isAxiosError } from "axios";
 import { decodeJwt, decodeProtectedHeader, importJWK, jwtVerify } from "jose";
 
 import type { ApiConfig } from "../../config/configuration.ts";
-import type { SubjectInfo } from "./auth.interface.ts";
 
-import { DIDR_INVITE_SCOPE, DIDR_WRITE_SCOPE } from "./auth.constants.ts";
+import { bearerTokenSchema } from "./validators/bearer-token.validator.ts";
 import { jwksSchema } from "./validators/jwks.validator.ts";
 import { openidConfigurationSchema } from "./validators/openid-configuration.validator.ts";
 
@@ -48,70 +43,54 @@ export class AuthService {
     });
   }
 
-  async validateToken(
-    bearerToken: string,
-    reqId: string,
-  ): Promise<SubjectInfo> {
+  async validateToken(bearerToken: string, reqId: string) {
     let jwtHeader: ProtectedHeaderParameters;
     let payload: JWTPayload;
     try {
       payload = decodeJwt(bearerToken);
       jwtHeader = decodeProtectedHeader(bearerToken);
     } catch (error) {
-      throw new UnauthorizedError(UnauthorizedError.defaultTitle, {
-        detail: `Invalid Authorisation Token: ${error instanceof Error ? error.message : "Unknown error"}`,
-      });
+      throw new Error(
+        `Invalid access token: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
     }
 
     // Verify that the access token has been issued by Authorisation API v4
     const { kid } = jwtHeader;
     if (!kid || typeof kid !== "string") {
-      throw new UnauthorizedError(UnauthorizedError.defaultTitle, {
-        detail: "Invalid JWT: empty or missing kid",
-      });
+      throw new Error("Invalid access token JWT: empty or missing kid");
     }
 
     const authApiPublicKeyJwk = await this.getAuthorisationApiJwk(kid, reqId);
     if (!authApiPublicKeyJwk) {
-      throw new UnauthorizedError(UnauthorizedError.defaultTitle, {
-        detail:
-          "Invalid Access Token. Couldn't find a public key related to the given kid.",
-      });
+      throw new Error(
+        "Invalid access token: couldn't find a public key related to the given kid.",
+      );
     }
 
     try {
       await jwtVerify(bearerToken, await importJWK(authApiPublicKeyJwk));
     } catch {
-      throw new UnauthorizedError(UnauthorizedError.defaultTitle, {
-        detail: "Access Token signature validation failed",
-      });
+      throw new Error("Invalid access token: signature validation failed");
     }
 
-    // We only validate "sub" and "scp" (the only properties we need later)
-    const { scp, sub } = payload;
+    const parsedBearerToken = bearerTokenSchema.safeParse(payload);
 
-    if (!sub) {
-      throw new UnauthorizedError(UnauthorizedError.defaultTitle, {
-        detail: "Invalid JWT: empty or missing sub",
-      });
+    if (!parsedBearerToken.success) {
+      const errorMessage = parsedBearerToken.error.issues
+        .map((issue) => {
+          if (issue.path.length === 0) {
+            return issue.message;
+          }
+
+          return `Invalid '${issue.path.join(".")}': ${issue.message}`;
+        })
+        .join("\n- ");
+
+      throw new Error(`Invalid access token:\n- ${errorMessage}`);
     }
 
-    if (!scp || typeof scp !== "string") {
-      throw new UnauthorizedError(UnauthorizedError.defaultTitle, {
-        detail: "Invalid JWT: empty or missing scp",
-      });
-    }
-
-    // The Access Token `scp` must contain
-    // - "didr_invite" (insertDidDocument)
-    // - "didr_write" (all the other methods)
-    if (!scp.includes(DIDR_INVITE_SCOPE) && !scp.includes(DIDR_WRITE_SCOPE)) {
-      throw new UnauthorizedError(UnauthorizedError.defaultTitle, {
-        detail: `Invalid JWT: scp must contain ${DIDR_INVITE_SCOPE} or ${DIDR_WRITE_SCOPE}`,
-      });
-    }
-
-    return { scp, sub };
+    return parsedBearerToken.data;
   }
 
   private async getAuthorisationApiJwk(kid: string, reqId: string) {
