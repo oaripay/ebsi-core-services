@@ -990,7 +990,7 @@ describe("Besu Module", () => {
             code: -32_600,
             message: `Invalid access token:
 - Invalid 'authorization_details': Required
-- Invalid 'scp': Invalid literal value, expected "ledger_invoke"`,
+- Invalid 'scp': Invalid literal value, expected "openid ledger_invoke"`,
           },
           id: "42",
           jsonrpc: "2.0",
@@ -1024,7 +1024,7 @@ describe("Besu Module", () => {
           authorization_details: {
             addresses: [], // contractAddress is not included
           },
-          scp: "ledger_invoke",
+          scp: "openid ledger_invoke",
           sub: "",
         });
 
@@ -1075,7 +1075,7 @@ describe("Besu Module", () => {
           authorization_details: {
             addresses: [contractAddress],
           },
-          scp: "ledger_invoke",
+          scp: "openid ledger_invoke",
           sub: "", // invalid sub (nor did:ebsi neither did:key)
         });
 
@@ -1126,7 +1126,7 @@ describe("Besu Module", () => {
           authorization_details: {
             addresses: [contractAddress],
           },
-          scp: "ledger_invoke",
+          scp: "openid ledger_invoke",
           sub: "did:key:invalid",
         });
 
@@ -1183,7 +1183,7 @@ describe("Besu Module", () => {
           authorization_details: {
             addresses: [contractAddress],
           },
-          scp: "ledger_invoke",
+          scp: "openid ledger_invoke",
           sub: signerDid,
         });
 
@@ -1240,7 +1240,7 @@ describe("Besu Module", () => {
           authorization_details: {
             addresses: [contractAddress],
           },
-          scp: "ledger_invoke",
+          scp: "openid ledger_invoke",
           sub: signerDid,
         });
 
@@ -1298,7 +1298,7 @@ describe("Besu Module", () => {
           authorization_details: {
             addresses: [contractAddress],
           },
-          scp: "ledger_invoke",
+          scp: "openid ledger_invoke",
           sub: signerDid,
         });
 
@@ -1364,7 +1364,7 @@ describe("Besu Module", () => {
           authorization_details: {
             addresses: [contractAddress],
           },
-          scp: "ledger_invoke",
+          scp: "openid ledger_invoke",
           sub: signerDid,
         });
 
@@ -1429,7 +1429,7 @@ describe("Besu Module", () => {
           authorization_details: {
             addresses: [contractAddress],
           },
-          scp: "ledger_invoke",
+          scp: "openid ledger_invoke",
           sub: signerDid,
         });
 
@@ -1478,7 +1478,7 @@ describe("Besu Module", () => {
           authorization_details: {
             addresses: [contractAddress],
           },
-          scp: "ledger_invoke",
+          scp: "openid ledger_invoke",
           sub: signerDid,
         });
 
@@ -1538,7 +1538,7 @@ describe("Besu Module", () => {
           authorization_details: {
             addresses: [contractAddress],
           },
-          scp: "ledger_invoke",
+          scp: "openid ledger_invoke",
           sub: signerDid,
         });
 
@@ -1608,7 +1608,7 @@ describe("Besu Module", () => {
           authorization_details: {
             addresses: [contractAddress],
           },
-          scp: "ledger_invoke",
+          scp: "openid ledger_invoke",
           sub: signerDid,
         });
 
@@ -1675,7 +1675,7 @@ describe("Besu Module", () => {
           authorization_details: {
             addresses: [contractAddress],
           },
-          scp: "ledger_invoke",
+          scp: "openid ledger_invoke",
           sub: signerDid,
         });
 
