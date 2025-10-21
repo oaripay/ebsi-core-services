@@ -43,6 +43,16 @@ const config: HardhatUserConfig & {
         },
         version: "0.8.12",
       },
+      {
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+          viaIR: true,
+        },
+        version: "0.8.26",
+      },
     ],
   },
   typechain: {

@@ -35,3 +35,6 @@ cp -r ${SCRIPT_DIR}/../../trusted-schemas-registry-v3/contracts ${SCRIPT_DIR}/..
 
 echo Copy the track-and-trace smart contract
 cp -r ${SCRIPT_DIR}/../../track-and-trace/contracts ${SCRIPT_DIR}/../contracts/track-and-trace
+
+echo Copy the trusted-contracts-registry-v1 smart contract
+cp -r ${SCRIPT_DIR}/../../trusted-contracts-registry-v1/contracts ${SCRIPT_DIR}/../contracts/trusted-contracts-registry-v1

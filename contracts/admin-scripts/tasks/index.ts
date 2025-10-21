@@ -16,3 +16,4 @@ import "./grantRole";
 import "./trackAndTrace";
 import "./bootstrap";
 import "./contractDeployedBlock";
+import "./trustedContractsRegistry";
