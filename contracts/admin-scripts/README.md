@@ -158,6 +158,189 @@ yarn hardhat --network test initProxy --proxy PROXY_ADDRESS_TIMESTAMP --implemen
 yarn hardhat --network test changeOwnership --proxy PROXY_ADDRESS_TIMESTAMP
 ```
 
+**Trusted Contracts Registry**
+
+The Trusted Contracts Registry consists of two contracts: ProxyTemplateRegistry and ProxyFactory. These contracts manage the deployment and lifecycle of trusted smart contract proxies.
+
+Deploy both contracts using the dedicated task:
+
+```sh
+yarn hardhat --network test trustedContractsRegistry \
+  --didregistry <DID_REGISTRY_ADDRESS> \
+  --policyregistry <POLICY_REGISTRY_ADDRESS>
+```
+
+Example:
+
+```sh
+yarn hardhat --network test trustedContractsRegistry \
+  --didregistry 0x26E603f6FdCfC007c7bdC5be5f2c91D2a64a32E7 \
+  --policyregistry 0x3d5edA0b5183e245bA9713B58834525EDfE46E90
+```
+
+This will deploy:
+
+1. **ProxyTemplateRegistry** - Manages contract templates (beacons, versions, metadata)
+2. **ProxyFactory** - Deploys proxy instances from templates
+
+**Finding Deployed Addresses**
+
+After deployment, addresses are saved in:
+
+```
+contracts/admin-scripts/settings/<network>/trusted-contracts-registry.json
+```
+
+Example file content:
+
+```json
+{
+  "proxyTemplateRegistryAddress": "0x123...",
+  "proxyFactoryAddress": "0x456...",
+  "didRegistryAddress": "0x789...",
+  "policyRegistryAddress": "0xabc..."
+}
+```
+
+**Adding a Template**
+
+After deploying the Trusted Contracts Registry, you need to add contract templates to the ProxyTemplateRegistry. Templates define which contracts can be deployed through the ProxyFactory.
+
+**Basic Usage (Auto-deploy Mock Contracts)**
+
+For testing, the simplest approach is to let the task deploy mock contracts automatically:
+
+```sh
+yarn hardhat --network test addTemplate \
+  --registry <PROXY_TEMPLATE_REGISTRY_ADDRESS> \
+  --name "MyContract" \
+  --templateversion "1.0.0"
+```
+
+This will:
+
+1. Deploy a `SampleImplementation` contract
+2. Deploy a `SampleUpgradeableBeacon` pointing to the implementation
+3. Register the template in the ProxyTemplateRegistry
+4. Save all addresses to the settings file
+
+**Production Usage (With Existing Beacon)**
+
+For production deployments, provide your own beacon address:
+
+```sh
+yarn hardhat --network test addTemplate \
+  --registry <PROXY_TEMPLATE_REGISTRY_ADDRESS> \
+  --name "MyContract" \
+  --templateversion "1.0.0" \
+  --beacon <YOUR_BEACON_ADDRESS> \
+  --repouri "https://github.com/your-org/contract" \
+  --audituri "https://audit.com/report"
+```
+
+**Advanced Usage (Deploy Beacon Only)**
+
+If you have an existing implementation but need a new beacon:
+
+```sh
+yarn hardhat --network test addTemplate \
+  --registry <PROXY_TEMPLATE_REGISTRY_ADDRESS> \
+  --name "MyContract" \
+  --templateversion "1.0.0" \
+  --implementation <YOUR_IMPLEMENTATION_ADDRESS> \
+  --repouri "https://github.com/your-org/contract" \
+  --audituri "https://audit.com/report"
+```
+
+**Command Parameters**
+
+Required:
+
+- `--registry`: Address of the ProxyTemplateRegistry contract
+- `--name`: Name of the template (e.g., "MyContract", "TokenContract")
+- `--templateversion`: Version of the template (e.g., "1.0.0", "2.1.0")
+
+Optional:
+
+- `--beacon`: Address of existing UpgradeableBeacon (if not provided, deploys SampleUpgradeableBeacon)
+- `--implementation`: Address of existing implementation contract (only used if beacon not provided)
+- `--repouri`: Repository URI for source code (default: "https://github.com/example/repo")
+- `--audituri`: Audit report URI (default: "https://audit.example.com/report")
+- `--suffix`: Deployment suffix for settings file (default: "EBSI")
+
+**Example: Complete Production Deployment**
+
+```sh
+# Deploy your implementation contract first
+# Then deploy your beacon pointing to the implementation
+# Then add the template:
+
+yarn hardhat --network test addTemplate \
+  --registry 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512 \
+  --name "TokenContract" \
+  --templateversion "1.0.0" \
+  --beacon 0x1234567890123456789012345678901234567890 \
+  --repouri "https://github.com/my-org/token-contract" \
+  --audituri "https://audits.example.com/token-contract-v1.0.0.pdf"
+```
+
+**Where Template Data is Stored**
+
+Template information is saved to:
+
+```
+contracts/admin-scripts/settings/<network>/trusted-contracts-registry.json
+```
+
+The settings file will include:
+
+```json
+{
+  "proxyTemplateRegistryAddress": "0x...",
+  "proxyFactoryAddress": "0x...",
+  "beacon_MyContract_1.0.0": "0x...",
+  "implementation_MyContract_1.0.0": "0x...",
+  "templateId_MyContract_1.0.0": "0x..."
+}
+```
+
+**Template Components**
+
+Each template includes:
+
+- **Name & Version**: Unique identifier for the template
+- **Beacon Address**: Points to the implementation contract
+- **Repository URI**: Link to source code
+- **Audit URI**: Link to security audit report
+- **Contract Hash**: keccak256 hash of the bytecode
+- **Init Selector**: Function selector for the initialize function
+- **Storage Layout Hash**: Ensures proxy compatibility
+- **Active Status**: Whether the template can be used for new deployments
+
+**Next Steps**
+
+After adding a template, you can deploy proxy instances using the ProxyFactory:
+
+- Users with TRUSTED_ISSUER_ROLE can deploy proxies
+- Or users whose DID is authorized in the Policy Registry can deploy proxies
+- Proxies are deployed using the `deployProxy` function with the template name and version
+
+**Upgrading Contracts**
+
+To upgrade the ProxyTemplateRegistry:
+
+```sh
+yarn hardhat --network test trustedContractsRegistryUpgrade \
+  --contract templateRegistry
+```
+
+To upgrade the ProxyFactory:
+
+```sh
+yarn hardhat --network test trustedContractsRegistryUpgrade \
+  --contract factory
+```
+
 ### Other Deployments
 
 To deploy the smart contract without upgrade-ability use the deploy script with the contract deployment tag.
