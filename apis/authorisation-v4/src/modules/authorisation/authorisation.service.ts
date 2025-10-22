@@ -1197,7 +1197,7 @@ export class AuthorisationService {
         });
       }
 
-      let issuerDid: string;
+      let deployerDid: string;
       let isActive: boolean;
       try {
         const { data } = await axios.get<TrustedContract>(
@@ -1205,7 +1205,7 @@ export class AuthorisationService {
           { headers: { "x-request-id": reqId } },
         );
 
-        issuerDid = data.issuerDID;
+        deployerDid = data.deployerDID;
         isActive = data.isActive;
       } catch (error) {
         /* v8 ignore start */
@@ -1232,7 +1232,7 @@ export class AuthorisationService {
         });
       }
 
-      if (issuerDid !== issuer) {
+      if (deployerDid !== issuer) {
         throw new OAuth2TokenError("invalid_request", {
           errorDescription:
             "Invalid Verifiable Presentation: VC issuer is not the smart contract deployer",

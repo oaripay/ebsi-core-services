@@ -935,9 +935,9 @@ describe.each(["EBSI URI", "URL"] as const)(
                       return HttpResponse.json({
                         address: "0x61c36a8d610163660E21a8b7359e1Cac0C9133e1",
                         deployer: credentialIssuer.address,
+                        deployerDID: credentialIssuer.did,
                         deploymentTimestamp: 1_760_600_272,
                         isActive: true,
-                        issuerDID: credentialIssuer.did,
                         templateId:
                           "0x957cef8a6ccfa45ea37ec9976fa2cdeb916d96039d6dac5bd68e37284bc187f4",
                       } satisfies TrustedContract);
@@ -4147,7 +4147,7 @@ describe.each(["EBSI URI", "URL"] as const)(
             },
           );
 
-          // The contract issuerDID is different from the VC issuer
+          // The contract deployerDID is different from the VC issuer
           mockServer.use(
             http.get(
               `${domain}/trusted-contracts-registry/v1/contracts/0x61c36a8d610163660E21a8b7359e1Cac0C9133e1`,
@@ -4163,9 +4163,9 @@ describe.each(["EBSI URI", "URL"] as const)(
                 return HttpResponse.json({
                   address: "0x61c36a8d610163660E21a8b7359e1Cac0C9133e1",
                   deployer: "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+                  deployerDID: "did:ebsi:zqz4ibiG9bWhPBiebPeeGVB",
                   deploymentTimestamp: 1_760_600_272,
                   isActive: true,
-                  issuerDID: "did:ebsi:zqz4ibiG9bWhPBiebPeeGVB",
                   templateId:
                     "0x957cef8a6ccfa45ea37ec9976fa2cdeb916d96039d6dac5bd68e37284bc187f4",
                 });
@@ -4223,9 +4223,9 @@ describe.each(["EBSI URI", "URL"] as const)(
                 return HttpResponse.json({
                   address: "0x61c36a8d610163660E21a8b7359e1Cac0C9133e1",
                   deployer: credentialIssuer.address,
+                  deployerDID: credentialIssuer.did,
                   deploymentTimestamp: 1_760_600_272,
                   isActive: false,
-                  issuerDID: credentialIssuer.did,
                   templateId:
                     "0x957cef8a6ccfa45ea37ec9976fa2cdeb916d96039d6dac5bd68e37284bc187f4",
                 });

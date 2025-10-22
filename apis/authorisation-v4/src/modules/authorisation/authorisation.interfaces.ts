@@ -192,8 +192,8 @@ export interface TokenResponse {
 export interface TrustedContract {
   address: string;
   deployer: string;
+  deployerDID: string;
   deploymentTimestamp: number;
   isActive: boolean;
-  issuerDID: string;
   templateId: string;
 }
