@@ -23,17 +23,14 @@ contract ProxyFactory is
     using Address for address;
     using Pagination for address[];
 
-    // Role definitions for EBSI ecosystem
-    bytes32 public constant EBSI_ADMIN_ROLE = keccak256("EBSI_ADMIN_ROLE"); // Add templates, manage registry
-    bytes32 public constant TRUSTED_ISSUER_ROLE =
-        keccak256("TRUSTED_ISSUER_ROLE"); // Call deployProxy()
+    // Policy names for EBSI ecosystem
     string public constant DEPLOY_PROXY_POLICY = "TCR:deployProxy";
 
     // Custom modifier to check authorization
-    modifier isAuthorized(string calldata issuerDID) {
+    modifier isAuthorized(string calldata deployerDID) {
         require(
-            hasRole(TRUSTED_ISSUER_ROLE, msg.sender) ||
-                isAuthorizedDeployerDID(issuerDID),
+            policyRegistry.checkPolicy(DEPLOY_PROXY_POLICY, msg.sender) &&
+                didRegistry.checkController(bytes(deployerDID), msg.sender),
             "Not authorized: missing role or DID authorization"
         );
         _;
@@ -70,16 +67,14 @@ contract ProxyFactory is
         policyRegistry = IPolicyRegistry(_policyRegistry);
 
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _grantRole(EBSI_ADMIN_ROLE, msg.sender);
-        _grantRole(TRUSTED_ISSUER_ROLE, msg.sender);
     }
 
     function deployProxy(
         string calldata templateName,
         string calldata templateVersion,
         bytes calldata initData,
-        string calldata issuerDID
-    ) external override isAuthorized(issuerDID) returns (address) {
+        string calldata deployerDID
+    ) external override isAuthorized(deployerDID) returns (address) {
         require(bytes(templateName).length > 0, "Template name required");
         require(bytes(templateVersion).length > 0, "Template version required");
 
@@ -120,17 +115,17 @@ contract ProxyFactory is
             deployer: msg.sender,
             deploymentTimestamp: block.timestamp,
             isActive: true,
-            issuerDID: issuerDID
+            deployerDID: deployerDID
         });
 
         deployedContracts.push(proxyAddress);
-        didToProxies[issuerDID].push(proxyAddress);
+        didToProxies[deployerDID].push(proxyAddress);
 
         emit ProxyDeployed(
             proxyAddress,
             templateId,
             msg.sender,
-            issuerDID,
+            deployerDID,
             initData,
             block.timestamp
         );
@@ -178,19 +173,10 @@ contract ProxyFactory is
         return deployments[contractAddress].deployer != address(0);
     }
 
-    function isAuthorizedDeployerDID(
-        string calldata issuerDID
-    ) public view override returns (bool) {
-        // Check if DID is authorized AND if caller is controller of that DID
-        return
-            policyRegistry.checkPolicy(DEPLOY_PROXY_POLICY, msg.sender) &&
-            didRegistry.checkController(bytes(issuerDID), msg.sender);
-    }
-
     function getProxiesByDID(
-        string calldata issuerDID
+        string calldata deployerDID
     ) external view override returns (address[] memory) {
-        return didToProxies[issuerDID];
+        return didToProxies[deployerDID];
     }
 
     function getContractsByTemplate(
@@ -221,29 +207,6 @@ contract ProxyFactory is
         return super.hasRole(role, account);
     }
 
-    // EBSI_ADMIN_ROLE can manage other roles in the factory
-    function grantRole(
-        bytes32 role,
-        address account
-    ) public override onlyRole(EBSI_ADMIN_ROLE) {
-        super.grantRole(role, account);
-    }
-
-    function revokeRole(
-        bytes32 role,
-        address account
-    ) public override onlyRole(EBSI_ADMIN_ROLE) {
-        super.revokeRole(role, account);
-    }
-
-    // DID Registry management
-    function setDidRegistry(
-        address _didRegistry
-    ) external onlyRole(EBSI_ADMIN_ROLE) {
-        require(_didRegistry != address(0), "DID registry cannot be zero");
-        didRegistry = IDidRegistry(_didRegistry);
-    }
-
     // Getters for private variables
     function getDeployment(
         address contractAddress
@@ -252,17 +215,20 @@ contract ProxyFactory is
     }
 
     function getProxiesByDIDCount(
-        string calldata issuerDID
+        string calldata deployerDID
     ) external view returns (uint256) {
-        return didToProxies[issuerDID].length;
+        return didToProxies[deployerDID].length;
     }
 
     function getProxiesByDIDAtIndex(
-        string calldata issuerDID,
+        string calldata deployerDID,
         uint256 index
     ) external view returns (address) {
-        require(index < didToProxies[issuerDID].length, "Index out of bounds");
-        return didToProxies[issuerDID][index];
+        require(
+            index < didToProxies[deployerDID].length,
+            "Index out of bounds"
+        );
+        return didToProxies[deployerDID][index];
     }
 
     // Note: Logic contracts ownership is managed by EBSI Governance

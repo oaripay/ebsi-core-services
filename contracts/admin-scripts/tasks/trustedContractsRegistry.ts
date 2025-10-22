@@ -38,7 +38,7 @@ task(
       );
       const proxyTemplateRegistry = await upgrades.deployProxy(
         ProxyTemplateRegistry,
-        [],
+        [taskArgs.policyregistry],
       );
       await proxyTemplateRegistry.waitForDeployment();
       const templateRegistryAddress = await proxyTemplateRegistry.getAddress();
@@ -128,6 +128,98 @@ task(
         console.log(
           `ProxyFactory upgraded to implementation ${await upgraded.getAddress()}`,
         );
+      } else {
+        throw new Error(
+          'Invalid contract parameter. Use "templateRegistry" or "factory"',
+        );
+      }
+    },
+  );
+
+task(
+  "updateTrustedContractsRegistry",
+  "Update configuration of existing Trusted Contracts Registry deployments",
+)
+  .addParam("contract", "Contract to update (templateRegistry or factory)")
+  .addParam("action", "Action to perform (setPolicyRegistry or setDidRegistry)")
+  .addParam("address", "New address to set")
+  .addParam(
+    "suffix",
+    "the suffix name of the contract for the deployment",
+    "EBSI",
+  )
+  .setAction(
+    async (
+      taskArgs: {
+        action: string;
+        address: string;
+        contract: string;
+        suffix: string;
+      },
+      { ethers, network, run },
+    ) => {
+      await run("compile", { quiet: true });
+
+      const fileName =
+        taskArgs.suffix === "EBSI"
+          ? "trusted-contracts-registry"
+          : `trusted-contracts-registry-${taskArgs.suffix}`;
+      const settings = new Settings(fileName, network.name);
+
+      if (taskArgs.contract === "templateRegistry") {
+        const registryAddress = settings.mustGet(
+          "proxyTemplateRegistryAddress",
+        );
+        console.log(`Updating ProxyTemplateRegistry at ${registryAddress}...`);
+
+        const registry = await ethers.getContractAt(
+          "ProxyTemplateRegistry",
+          registryAddress,
+        );
+
+        if (taskArgs.action === "setPolicyRegistry") {
+          console.log(`Setting Policy Registry to ${taskArgs.address}...`);
+          const tx = await registry.setPolicyRegistry(taskArgs.address);
+          await tx.wait();
+
+          // Update settings
+          settings.set("policyRegistryAddress", taskArgs.address);
+
+          console.log("Policy Registry updated successfully!");
+        } else {
+          throw new Error(
+            `Invalid action for templateRegistry. Use "setPolicyRegistry"`,
+          );
+        }
+      } else if (taskArgs.contract === "factory") {
+        const factoryAddress = settings.mustGet("proxyFactoryAddress");
+        console.log(`Updating ProxyFactory at ${factoryAddress}...`);
+
+        const factory = await ethers.getContractAt(
+          "ProxyFactory",
+          factoryAddress,
+        );
+
+        if (taskArgs.action === "setDidRegistry") {
+          console.log(`Setting DID Registry to ${taskArgs.address}...`);
+          const tx = await factory.setDidRegistry(taskArgs.address);
+          await tx.wait();
+
+          // Update settings
+          settings.set("didRegistryAddress", taskArgs.address);
+
+          console.log("DID Registry updated successfully!");
+        } else if (taskArgs.action === "setPolicyRegistry") {
+          console.log(`Setting Policy Registry to ${taskArgs.address}...`);
+
+          // Note: ProxyFactory doesn't have setPolicyRegistry,
+          // it's set during initialization only
+          throw new Error(
+            "ProxyFactory does not support updating Policy Registry. Redeploy required.",
+          );
+        } else {
+          throw new Error(`Invalid action for factory. Use "setDidRegistry"`);
+        }
       } else {
         throw new Error(
           'Invalid contract parameter. Use "templateRegistry" or "factory"',
