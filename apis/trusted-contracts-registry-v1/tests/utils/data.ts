@@ -5,9 +5,9 @@
 export interface TestContract {
   address: string;
   deployer: string;
+  deployerDID: string;
   deploymentTimestamp: bigint;
   isActive: boolean;
-  issuerDID: string;
   templateId: string;
 }
 

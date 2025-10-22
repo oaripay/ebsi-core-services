@@ -107,9 +107,9 @@ export async function setupTestEnv({
     contracts.push({
       address,
       deployer: deploymentInfo.deployer,
+      deployerDID: deploymentInfo.deployerDID,
       deploymentTimestamp: deploymentInfo.deploymentTimestamp,
       isActive: deploymentInfo.isActive,
-      issuerDID: deploymentInfo.issuerDID,
       templateId: deploymentInfo.templateId,
     });
   }
@@ -135,17 +135,6 @@ async function deployContracts() {
 
   const [owner, admin, trustedIssuer, user] = signers;
 
-  const proxyTemplateRegistryFactory = await hre.ethers.getContractFactory(
-    "ProxyTemplateRegistry",
-  );
-
-  const proxyTemplateRegistryContract = await hre.upgrades.deployProxy(
-    proxyTemplateRegistryFactory,
-    [],
-  );
-
-  await proxyTemplateRegistryContract.waitForDeployment();
-
   // Deploy DID Registry Mock
   const didMockFactory = await hre.ethers.getContractFactory("DidRegistryMock");
   const didRegistryMock = await didMockFactory.deploy();
@@ -158,6 +147,17 @@ async function deployContracts() {
     await hre.ethers.getContractFactory("PolicyRegistryMock");
   const policyRegistryMock = await policyRegistryMockFactory.deploy();
   await policyRegistryMock.waitForDeployment();
+
+  const proxyTemplateRegistryFactory = await hre.ethers.getContractFactory(
+    "ProxyTemplateRegistry",
+  );
+
+  const proxyTemplateRegistryContract = await hre.upgrades.deployProxy(
+    proxyTemplateRegistryFactory,
+    [await policyRegistryMock.getAddress()],
+  );
+
+  await proxyTemplateRegistryContract.waitForDeployment();
 
   // Deploy ProxyFactory
   const proxyFactoryContractFactory =
@@ -189,12 +189,6 @@ async function deployContracts() {
     await sampleImplementationContract.getAddress(),
   );
   await sampleBeaconContract.waitForDeployment();
-
-  // Allow trustedIssuer to deploy proxies
-  await proxyFactoryContract.grantRole(
-    await proxyFactoryContract.TRUSTED_ISSUER_ROLE(),
-    trustedIssuer.address,
-  );
 
   return {
     admin,
