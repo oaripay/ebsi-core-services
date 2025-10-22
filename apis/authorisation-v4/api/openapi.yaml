@@ -786,7 +786,7 @@ paths:
                           - ES256
                           - ES256K
                     input_descriptors:
-                      - id: didr_invite_credential
+                      - id: ledger_invoke_credential
                         name: Authorisation to interact with a Trusted Contract
                         purpose: >-
                           Please present a valid authorisation to interact with a Trusted Contract

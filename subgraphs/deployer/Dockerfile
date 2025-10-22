@@ -20,6 +20,7 @@ COPY --from=builder /app/contracts/bootstrap-v2 ./contracts/bootstrap-v2
 COPY --from=builder /app/contracts/did-registry-v5 ./contracts/did-registry-v5
 COPY --from=builder /app/contracts/timestamp-v4 ./contracts/timestamp-v4
 COPY --from=builder /app/contracts/track-and-trace ./contracts/track-and-trace
+COPY --from=builder /app/contracts/trusted-contracts-registry-v1 ./contracts/trusted-contracts-registry-v1
 COPY --from=builder /app/contracts/trusted-issuers-registry-v5 ./contracts/trusted-issuers-registry-v5
 COPY --from=builder /app/contracts/trusted-policies-registry-v3 ./contracts/trusted-policies-registry-v3
 COPY --from=builder /app/contracts/trusted-schemas-registry-v3 ./contracts/trusted-schemas-registry-v3

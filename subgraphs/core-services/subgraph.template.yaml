@@ -45,6 +45,7 @@ dataSources:
         - event: VerificationMethodRolled(string,string,bytes,bool,uint256,uint256,string,uint256)
           handler: handleVerificationMethodRolledEvent
       file: ./src/did-registry-v5/mappings.ts
+  # Timestamp SC v3
   - kind: ethereum
     name: Timestamp
     network: besu
@@ -87,6 +88,7 @@ dataSources:
         - event: OwnerIdRevoked(string)
           handler: handleOwnerIdRevokedEvent
       file: ./src/timestamp-v4/mappings.ts
+  # TNT SC v1
   - kind: ethereum
     name: TrackAndTrace
     network: besu
@@ -123,6 +125,57 @@ dataSources:
         - event: EventWritten(bytes32,bytes32,bytes,string,string,uint256,uint8,bytes32)
           handler: handleEventWrittenEvent
       file: ./src/track-and-trace-v1/mappings.ts
+  # TCR - ProxyFactory SC v1
+  - kind: ethereum
+    name: ProxyFactory
+    network: besu
+    source:
+      abi: ProxyFactory
+      address: "{{ proxyFactoryAddress }}"
+      # prettier-ignore
+      startBlock: {{ proxyFactoryStartBlock }}
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      abis:
+        - name: ProxyFactory
+          # prettier-ignore
+          file: {{ &proxyFactoryAbi }}
+      entities:
+        - ContractProxy
+      eventHandlers:
+        - event: ProxyDeployed(indexed address,indexed bytes32,indexed address,string,bytes,uint256)
+          handler: handleProxyDeployedEvent
+      file: ./src/trusted-contracts-registry-v1/proxy-factory/mappings.ts
+  # TCR - ProxyTemplateRegistry SC v1
+  - kind: ethereum
+    name: ProxyTemplateRegistry
+    network: besu
+    source:
+      abi: ProxyTemplateRegistry
+      address: "{{ proxyTemplateRegistryAddress }}"
+      # prettier-ignore
+      startBlock: {{ proxyTemplateRegistryStartBlock }}
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      abis:
+        - name: ProxyTemplateRegistry
+          # prettier-ignore
+          file: {{ &proxyTemplateRegistryAbi }}
+      entities:
+        - ContractTemplate
+      eventHandlers:
+        - event: TemplateAdded(indexed bytes32,string,string)
+          handler: handleTemplateAddedEvent
+        - event: TemplateDeprecated(indexed bytes32)
+          handler: handleTemplateDeprecatedEvent
+        - event: TemplateUpdated(indexed bytes32)
+          handler: handleTemplateUpdatedEvent
+      file: ./src/trusted-contracts-registry-v1/proxy-template-registry/mappings.ts
+  # TIR SC v5
   - kind: ethereum
     name: TrustedIssuersRegistry
     network: besu
@@ -136,6 +189,7 @@ dataSources:
       apiVersion: 0.0.9
       language: wasm/assemblyscript
       entities:
+        - DidDocument
         - Issuer
         - IssuerAttribute
         - IssuerAttributeRevision
@@ -157,6 +211,7 @@ dataSources:
         - event: RemoveIssuerProxy(string,indexed bytes32)
           handler: handleRemoveIssuerProxyEvent
       file: ./src/trusted-issuers-registry-v5/mappings.ts
+  # TPR SC v3
   - kind: ethereum
     name: TrustedPoliciesRegistry
     network: besu
@@ -191,6 +246,7 @@ dataSources:
         - event: UserAttributeDeleted(address,string)
           handler: handleUserAttributeDeleted
       file: ./src/trusted-policies-registry-v3/mappings.ts
+  # TSR SC v3
   - kind: ethereum
     name: TrustedSchemasRegistry
     network: besu

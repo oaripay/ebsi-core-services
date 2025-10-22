@@ -14,6 +14,26 @@ if (!process.env["DIDR_SC_V5_START_BLOCK"]) {
   process.exit(1);
 }
 
+if (!process.env["PROXY_FACTORY_SC_V1_ADDRESS"]) {
+  console.error("PROXY_FACTORY_SC_V1_ADDRESS must be defined");
+  process.exit(1);
+}
+
+if (!process.env["PROXY_FACTORY_SC_V1_START_BLOCK"]) {
+  console.error("PROXY_FACTORY_SC_V1_START_BLOCK must be defined");
+  process.exit(1);
+}
+
+if (!process.env["PROXY_TEMPLATE_REGISTRY_SC_V1_ADDRESS"]) {
+  console.error("PROXY_TEMPLATE_REGISTRY_SC_V1_ADDRESS must be defined");
+  process.exit(1);
+}
+
+if (!process.env["PROXY_TEMPLATE_REGISTRY_SC_V1_START_BLOCK"]) {
+  console.error("PROXY_TEMPLATE_REGISTRY_SC_V1_START_BLOCK must be defined");
+  process.exit(1);
+}
+
 if (!process.env["TIMESTAMP_SC_V4_ADDRESS"]) {
   console.error("TIMESTAMP_SC_V4_ADDRESS must be defined");
   process.exit(1);
@@ -129,6 +149,29 @@ const contents = Mustache.render(source, {
   didRegistryAddress: process.env["DIDR_SC_V5_ADDRESS"],
   didRegistryStartBlock: Number.parseInt(
     process.env["DIDR_SC_V5_START_BLOCK"],
+    10,
+  ),
+  // TCR - Proxy Factory SC v1
+  proxyFactoryAbi: fileURLToPath(
+    import.meta.resolve(
+      "@ebsiint-sc/trusted-contracts-registry-v1/src/abi/ProxyFactory.json",
+    ),
+  ),
+  proxyFactoryAddress: process.env["PROXY_FACTORY_SC_V1_ADDRESS"],
+  proxyFactoryStartBlock: Number.parseInt(
+    process.env["PROXY_FACTORY_SC_V1_START_BLOCK"],
+    10,
+  ),
+  // TCR - Proxy Template Registry SC v1
+  proxyTemplateRegistryAbi: fileURLToPath(
+    import.meta.resolve(
+      "@ebsiint-sc/trusted-contracts-registry-v1/src/abi/ProxyTemplateRegistry.json",
+    ),
+  ),
+  proxyTemplateRegistryAddress:
+    process.env["PROXY_TEMPLATE_REGISTRY_SC_V1_ADDRESS"],
+  proxyTemplateRegistryStartBlock: Number.parseInt(
+    process.env["PROXY_TEMPLATE_REGISTRY_SC_V1_START_BLOCK"],
     10,
   ),
   // Timestamp SC v4
