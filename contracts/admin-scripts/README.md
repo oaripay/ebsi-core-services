@@ -325,6 +325,21 @@ After adding a template, you can deploy proxy instances using the ProxyFactory:
 - Or users whose DID is authorized in the Policy Registry can deploy proxies
 - Proxies are deployed using the `deployProxy` function with the template name and version
 
+**Updating Existing Deployments**
+
+After deployment, you may need to update the configuration of existing contracts (e.g., updating registry addresses):
+
+Update Policy Registry for ProxyTemplateRegistry:
+
+```sh
+yarn hardhat --network test updateTrustedContractsRegistry \
+  --contract templateRegistry \
+  --action setPolicyRegistry \
+  --address <NEW_POLICY_REGISTRY_ADDRESS>
+```
+
+**Note:** The updated addresses are automatically saved to the settings file.
+
 **Upgrading Contracts**
 
 To upgrade the ProxyTemplateRegistry:

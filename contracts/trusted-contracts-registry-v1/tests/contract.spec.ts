@@ -40,21 +40,6 @@ describe("Contract Factory System", function () {
   });
 
   describe("Deployment", function () {
-    it("Should deploy ProxyTemplateRegistry as upgradeable proxy", async function () {
-      const ProxyTemplateRegistry = await ethers.getContractFactory(
-        "ProxyTemplateRegistry",
-      );
-      proxyTemplateRegistry = await upgrades.deployProxy(
-        ProxyTemplateRegistry,
-        [],
-      );
-      await proxyTemplateRegistry.waitForDeployment();
-
-      expect(await proxyTemplateRegistry.getAddress()).to.not.equal(
-        ethers.ZeroAddress,
-      );
-    });
-
     it("Should deploy DID Registry Mock", async function () {
       const DidRegistryMock =
         await ethers.getContractFactory("DidRegistryMock");
@@ -79,6 +64,21 @@ describe("Contract Factory System", function () {
       await policyRegistryMock.setMockedValue(true);
 
       expect(await policyRegistryMock.getAddress()).to.not.equal(
+        ethers.ZeroAddress,
+      );
+    });
+
+    it("Should deploy ProxyTemplateRegistry as upgradeable proxy", async function () {
+      const ProxyTemplateRegistry = await ethers.getContractFactory(
+        "ProxyTemplateRegistry",
+      );
+      proxyTemplateRegistry = await upgrades.deployProxy(
+        ProxyTemplateRegistry,
+        [await policyRegistryMock.getAddress()],
+      );
+      await proxyTemplateRegistry.waitForDeployment();
+
+      expect(await proxyTemplateRegistry.getAddress()).to.not.equal(
         ethers.ZeroAddress,
       );
     });
@@ -216,25 +216,6 @@ describe("Contract Factory System", function () {
   });
 
   describe("ProxyFactory", function () {
-    it("Should check DID authorization with controller", async function () {
-      // The trustedIssuer should be authorized because they have the role AND are controller of the DID
-      const isAuthorized = await proxyFactory.isAuthorizedDeployerDID(testDID);
-      expect(isAuthorized).to.be.true;
-    });
-
-    it("Should grant TRUSTED_ISSUER_ROLE", async function () {
-      await proxyFactory.grantRole(
-        await proxyFactory.TRUSTED_ISSUER_ROLE(),
-        trustedIssuer.address,
-      );
-
-      const hasRole = await proxyFactory.hasRole(
-        await proxyFactory.TRUSTED_ISSUER_ROLE(),
-        trustedIssuer.address,
-      );
-      expect(hasRole).to.be.true;
-    });
-
     it("Should deploy proxy successfully", async function () {
       // Create a new active template with correct initSelector
       const correctInitSelector = initSelector; // Use the computed selector
@@ -305,10 +286,9 @@ describe("Contract Factory System", function () {
 
   describe("Access Control", function () {
     it("Should only allow EBSI_ADMIN_ROLE to grant roles", async function () {
+      const role = ethers.keccak256(ethers.toUtf8Bytes("EBSI_ADMIN_ROLE"));
       await expect(
-        proxyFactory
-          .connect(user)
-          .grantRole(await proxyFactory.TRUSTED_ISSUER_ROLE(), user.address),
+        proxyFactory.connect(user).grantRole(role, user.address),
       ).to.be.revertedWith(/AccessControl: account .* is missing role/);
     });
 
@@ -403,13 +383,6 @@ describe("Contract Factory System", function () {
       }
     });
 
-    it("Should get authorized deployer DID status", async function () {
-      // Reset the mocked value to true for this test
-      await didRegistryMock.setMockedValue(true);
-      const isAuthorized = await proxyFactory.isAuthorizedDeployerDID(testDID);
-      expect(isAuthorized).to.be.true;
-    });
-
     it("Should get proxies by DID count", async function () {
       const count = await proxyFactory.getProxiesByDIDCount(testDID);
       expect(count).to.be.greaterThan(0);
@@ -430,31 +403,20 @@ describe("Contract Factory System", function () {
       ).to.be.revertedWith("Index out of bounds");
     });
 
-    it("Should set DID registry", async function () {
-      const newDidRegistry = await ethers.deployContract("DidRegistryMock");
-      await proxyFactory.setDidRegistry(await newDidRegistry.getAddress());
-
-      // Verify the DID registry was updated
-      const currentDidRegistry = await proxyFactory.didRegistry();
-      expect(currentDidRegistry).to.equal(await newDidRegistry.getAddress());
-    });
-
-    it("Should fail to set DID registry to zero address", async function () {
-      await expect(
-        proxyFactory.setDidRegistry(ethers.ZeroAddress),
-      ).to.be.revertedWith("DID registry cannot be zero");
-    });
-
     it("Should revoke role", async function () {
-      const role = await proxyFactory.TRUSTED_ISSUER_ROLE();
-      await proxyFactory.revokeRole(role, trustedIssuer.address);
+      const role = ethers.keccak256(ethers.toUtf8Bytes("EBSI_ADMIN_ROLE"));
+      // First grant the role to admin
+      await proxyFactory.grantRole(role, admin.address);
+      // Then revoke it
+      await proxyFactory.revokeRole(role, admin.address);
 
-      const hasRole = await proxyFactory.hasRole(role, trustedIssuer.address);
+      const hasRole = await proxyFactory.hasRole(role, admin.address);
       expect(hasRole).to.be.false;
     });
 
     it("Should check role for account", async function () {
-      const role = await proxyFactory.EBSI_ADMIN_ROLE();
+      const role = await proxyFactory.DEFAULT_ADMIN_ROLE();
+      // Owner should have DEFAULT_ADMIN_ROLE granted during initialization
       const hasRole = await proxyFactory.hasRole(role, owner.address);
       expect(hasRole).to.be.true;
     });
@@ -684,7 +646,9 @@ describe("Contract Factory System", function () {
     });
 
     it("Should revoke role in registry", async function () {
-      const role = await proxyTemplateRegistry.EBSI_ADMIN_ROLE();
+      const role = await proxyTemplateRegistry.DEFAULT_ADMIN_ROLE();
+      // First grant the role to admin, then revoke it
+      await proxyTemplateRegistry.grantRole(role, admin.address);
       await proxyTemplateRegistry.revokeRole(role, admin.address);
 
       const hasRole = await proxyTemplateRegistry.hasRole(role, admin.address);
@@ -692,7 +656,7 @@ describe("Contract Factory System", function () {
     });
 
     it("Should check role in registry", async function () {
-      const role = await proxyTemplateRegistry.EBSI_ADMIN_ROLE();
+      const role = await proxyTemplateRegistry.DEFAULT_ADMIN_ROLE();
       const hasRole = await proxyTemplateRegistry.hasRole(role, owner.address);
       expect(hasRole).to.be.true;
     });
@@ -704,6 +668,8 @@ describe("Contract Factory System", function () {
         ["string", "string", "address", "bytes32"],
         ["Test", "1.0.0", user.address, ethers.keccak256("0x")],
       );
+      await didRegistryMock.setMockedValue(true);
+      await policyRegistryMock.setMockedValue(true);
 
       await expect(
         proxyFactory

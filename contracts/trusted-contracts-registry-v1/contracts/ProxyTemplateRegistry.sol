@@ -3,6 +3,7 @@
 pragma solidity ^0.8.26;
 
 import "./interfaces/IProxyTemplateRegistry.sol";
+import "./interfaces/IPolicyRegistry.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
@@ -18,27 +19,44 @@ contract ProxyTemplateRegistry is
 {
     using Strings for string;
     using Pagination for bytes32[];
-    // Role definitions for EBSI ecosystem
-    bytes32 public constant EBSI_ADMIN_ROLE = keccak256("EBSI_ADMIN_ROLE"); // Add templates, manage registry
+
+    // Policy names for EBSI ecosystem
+    string public constant MANAGE_TEMPLATES_POLICY = "TCR:manageTemplates";
+
+    IPolicyRegistry public policyRegistry;
 
     mapping(bytes32 => ProxyTemplate) private templates;
     bytes32[] private templateIds;
     mapping(bytes32 => bool) private deprecatedTemplates;
+
+    // Custom modifier to check authorization via policy registry
+    modifier isAuthorizedToManage() {
+        require(
+            hasRole(DEFAULT_ADMIN_ROLE, msg.sender) ||
+                policyRegistry.checkPolicy(MANAGE_TEMPLATES_POLICY, msg.sender),
+            "Not authorized to manage templates"
+        );
+        _;
+    }
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
     }
 
-    function initialize() public initializer {
+    function initialize(address _policyRegistry) public initializer {
         __AccessControl_init();
+        require(
+            _policyRegistry != address(0),
+            "Policy registry cannot be zero"
+        );
+        policyRegistry = IPolicyRegistry(_policyRegistry);
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _grantRole(EBSI_ADMIN_ROLE, msg.sender);
     }
 
     function addTemplate(
         ProxyTemplate calldata newTemplate
-    ) external override onlyRole(EBSI_ADMIN_ROLE) {
+    ) external override isAuthorizedToManage {
         require(
             bytes(newTemplate.name).length > 0,
             "Template name cannot be empty"
@@ -100,7 +118,7 @@ contract ProxyTemplateRegistry is
 
     function deprecateTemplate(
         bytes32 templateId
-    ) external override onlyRole(EBSI_ADMIN_ROLE) {
+    ) external override isAuthorizedToManage {
         require(
             templates[templateId].beaconAddress != address(0),
             "Template does not exist"
@@ -120,7 +138,7 @@ contract ProxyTemplateRegistry is
         bytes32 templateId,
         string calldata repoURI,
         string calldata auditURI
-    ) external override onlyRole(EBSI_ADMIN_ROLE) {
+    ) external override isAuthorizedToManage {
         require(
             templates[templateId].beaconAddress != address(0),
             "Template does not exist"
@@ -183,18 +201,18 @@ contract ProxyTemplateRegistry is
         address newImplementation
     ) internal override onlyRole(DEFAULT_ADMIN_ROLE) {}
 
-    // EBSI_ADMIN_ROLE can manage other roles in the registry
+    // Only DEFAULT_ADMIN_ROLE can manage roles
     function grantRole(
         bytes32 role,
         address account
-    ) public override onlyRole(EBSI_ADMIN_ROLE) {
+    ) public override onlyRole(DEFAULT_ADMIN_ROLE) {
         super.grantRole(role, account);
     }
 
     function revokeRole(
         bytes32 role,
         address account
-    ) public override onlyRole(EBSI_ADMIN_ROLE) {
+    ) public override onlyRole(DEFAULT_ADMIN_ROLE) {
         super.revokeRole(role, account);
     }
 

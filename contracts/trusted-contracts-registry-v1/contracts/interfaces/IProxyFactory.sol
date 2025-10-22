@@ -8,7 +8,7 @@ interface IProxyFactory {
         address deployer;
         uint256 deploymentTimestamp;
         bool isActive;
-        string issuerDID;
+        string deployerDID;
     }
 
     // Emitted on every deployment for logging & observability
@@ -16,7 +16,7 @@ interface IProxyFactory {
         address indexed proxyAddress,
         bytes32 indexed templateId,
         address indexed deployer,
-        string issuerDID,
+        string deployerDID,
         bytes initData,
         uint256 timestamp
     );
@@ -25,15 +25,11 @@ interface IProxyFactory {
         string calldata templateName,
         string calldata templateVersion,
         bytes calldata initData,
-        string calldata issuerDID
+        string calldata deployerDID
     ) external returns (address);
 
-    // DID authorization and lookup
-    function isAuthorizedDeployerDID(
-        string calldata issuerDID
-    ) external view returns (bool);
     function getProxiesByDID(
-        string calldata issuerDID
+        string calldata deployerDID
     ) external view returns (address[] memory);
 
     function getDeploymentInfo(
