@@ -259,6 +259,44 @@ type DocumentEvent @entity(immutable: false) {
 }
 
 ###############################################################################
+#                       Trusted Contracts Registry SC v1                      #
+###############################################################################
+
+type ContractProxy @entity(immutable: true) {
+  # ID - Set to proxyAddress
+  id: Bytes!
+
+  # Properties
+  deployerAddress: Bytes! # Ethereum address
+  initData: Bytes!
+  isActive: Boolean!
+  timestamp: BigInt!
+
+  # Relationships
+  deployerDidDocument: DidDocument!
+  template: ContractTemplate!
+}
+
+type ContractTemplate @entity(immutable: false) {
+  # ID - Set to templateId
+  id: Bytes!
+
+  # Properties
+  auditURI: String!
+  beaconAddress: Bytes!
+  contractHash: Bytes!
+  initSelector: Bytes!
+  isActive: Boolean!
+  name: String!
+  repoURI: String!
+  storageLayoutHash: Bytes!
+  version: String!
+
+  # Relationships
+  proxies: [ContractProxy!]! @derivedFrom(field: "template")
+}
+
+###############################################################################
 #                        Trusted Issuers Registry SC v5                       #
 ###############################################################################
 

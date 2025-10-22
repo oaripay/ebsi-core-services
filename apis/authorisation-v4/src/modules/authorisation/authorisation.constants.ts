@@ -94,7 +94,7 @@ export const LEDGER_INVOKE_PRESENTATION_DEFINITION = {
         ],
       },
       format: { jwt_vc: { alg: ["ES256"] }, jwt_vc_json: { alg: ["ES256"] } },
-      id: "didr_invite_credential",
+      id: "ledger_invoke_credential",
       name: "Authorisation to interact with a Trusted Contract",
       purpose:
         "Please present a valid authorisation to interact with a Trusted Contract",
