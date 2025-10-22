@@ -1,9 +1,9 @@
 {
-  "proxyTemplateRegistryAddress": "0x4025982B72b3491d46001eDa074932aC50370b43",
-  "proxyFactoryAddress": "0xEF51D1f2d2b882BD42214F495BdA097370C78268",
+  "proxyTemplateRegistryAddress": "0x28575Fe9C1B1E5878Fc63AfE1Aa8c4eeDE3A1B8a",
+  "proxyFactoryAddress": "0x48a11579fb469e62f698622C5e5bcBB6Fd3e1cCF",
   "didRegistryAddress": "0x26E603f6FdCfC007c7bdC5be5f2c91D2a64a32E7",
   "policyRegistryAddress": "0x3d5edA0b5183e245bA9713B58834525EDfE46E90",
-  "beacon_MyContract_1.0.0": "0x1B0C3552822f594352b161c7cE4eA50635920CBa",
-  "implementation_MyContract_1.0.0": "0x063F731Fe4A64295ad4aFdA61b70DDe9f92bF566",
+  "beacon_MyContract_1.0.0": "0xD41E1faF7EeC3b6b794b0bFabd0393871fc7201a",
+  "implementation_MyContract_1.0.0": "0x00cB97ed995607AD47b65b90C665fBCB99636605",
   "templateId_MyContract_1.0.0": "0x26f4341dc97b05c4a9bd0a2b673bcde2a7e7ec996db3f6efa5832a44020fd7ef"
 }

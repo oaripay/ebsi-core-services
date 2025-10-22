@@ -354,9 +354,9 @@ describe("Contracts Module", () => {
       expect(response.body).toStrictEqual({
         address: contract.address,
         deployer: contract.deployer,
+        deployerDID: contract.deployerDID,
         deploymentTimestamp: Number(contract.deploymentTimestamp),
         isActive: contract.isActive,
-        issuerDID: contract.issuerDID,
         templateId: contract.templateId,
       } satisfies Contract);
       expect(response.status).toBe(200);

@@ -147,9 +147,9 @@ describe("Trusted Contracts Registry API v1 - Contracts (e2e)", () => {
       expect(response.body).toStrictEqual({
         address: contractAddress,
         deployer: expect.stringMatching(/^0x/),
+        deployerDID: expect.stringMatching(/^did:/),
         deploymentTimestamp: expect.any(Number),
         isActive: expect.any(Boolean),
-        issuerDID: expect.stringMatching(/^did:/),
         templateId: expect.stringMatching(/^0x/),
       } satisfies Contract);
       expect(response.status).toBe(200);

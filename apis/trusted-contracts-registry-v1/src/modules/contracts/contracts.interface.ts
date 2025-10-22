@@ -1,9 +1,9 @@
 export interface Contract {
   address: string;
   deployer: string;
+  deployerDID: string;
   deploymentTimestamp: number;
   isActive: boolean;
-  issuerDID: string;
   templateId: string;
 }
 
