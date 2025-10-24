@@ -305,7 +305,7 @@ describe("Contract Factory System", function () {
         proxyFactory
           .connect(user)
           .deployProxy("ActiveTemplate", "1.0.0", initData, testDID),
-      ).to.be.revertedWith("Not authorized: missing role or DID authorization");
+      ).to.be.revertedWith("Not authorized: missing DID authorization");
     });
   });
 
@@ -336,6 +336,289 @@ describe("Contract Factory System", function () {
       // Verify it still works
       const deployedCount = await proxyFactory.getDeployedContractsCount();
       expect(deployedCount).to.be.greaterThan(0);
+    });
+  });
+
+  describe("Proxy deploying proxies", function () {
+    let helloWorldImplementation: any;
+    let helloWorldBeacon: any;
+    let helloWorldDeployerImplementation: any;
+    let helloWorldDeployerBeacon: any;
+    let helloWorldDeployerProxy: any;
+
+    const trustedIssuerDID = "did:ebsi:trustedissuer";
+
+    it("Should deploy HelloWorld (SampleImplementation) and create template", async function () {
+      // Reset mocked values to true (may have been changed by previous tests)
+      await didRegistryMock.setMockedValue(true);
+      await policyRegistryMock.setMockedValue(true);
+
+      // Deploy SampleImplementation (HelloWorld)
+      const HelloWorldImpl = await ethers.getContractFactory(
+        "SampleImplementation",
+      );
+      helloWorldImplementation = await HelloWorldImpl.deploy();
+      await helloWorldImplementation.waitForDeployment();
+
+      expect(await helloWorldImplementation.getAddress()).to.not.equal(
+        ethers.ZeroAddress,
+      );
+
+      // Deploy beacon for HelloWorld
+      const SampleUpgradeableBeacon = await ethers.getContractFactory(
+        "SampleUpgradeableBeacon",
+      );
+      helloWorldBeacon = await SampleUpgradeableBeacon.deploy(
+        await helloWorldImplementation.getAddress(),
+      );
+      await helloWorldBeacon.waitForDeployment();
+
+      expect(await helloWorldBeacon.getAddress()).to.not.equal(
+        ethers.ZeroAddress,
+      );
+      expect(await helloWorldBeacon.implementation()).to.equal(
+        await helloWorldImplementation.getAddress(),
+      );
+
+      // Create template for HelloWorld
+      const helloWorldTemplate = {
+        auditURI: auditURI,
+        beaconAddress: await helloWorldBeacon.getAddress(),
+        contractHash: contractHash,
+        initSelector: initSelector,
+        isActive: true,
+        name: "HelloWorld",
+        repoURI: repoURI,
+        storageLayoutHash: storageLayoutHash,
+        version: "1.0.0",
+      };
+
+      await proxyTemplateRegistry.addTemplate(helloWorldTemplate);
+
+      const templateId = await proxyTemplateRegistry.computeTemplateId(
+        "HelloWorld",
+        "1.0.0",
+      );
+      const retrievedTemplate =
+        await proxyTemplateRegistry.getTemplate(templateId);
+
+      expect(retrievedTemplate.name).to.equal("HelloWorld");
+      expect(retrievedTemplate.version).to.equal("1.0.0");
+      expect(retrievedTemplate.isActive).to.be.true;
+    });
+
+    it("Should deploy HelloWorldDeployer (SampleDeployer) and create template", async function () {
+      // Deploy SampleDeployer (HelloWorldDeployer)
+      const HelloWorldDeployerImpl =
+        await ethers.getContractFactory("SampleDeployer");
+      helloWorldDeployerImplementation = await HelloWorldDeployerImpl.deploy();
+      await helloWorldDeployerImplementation.waitForDeployment();
+
+      expect(await helloWorldDeployerImplementation.getAddress()).to.not.equal(
+        ethers.ZeroAddress,
+      );
+
+      // Deploy beacon for HelloWorldDeployer
+      const SampleUpgradeableBeacon = await ethers.getContractFactory(
+        "SampleUpgradeableBeacon",
+      );
+      helloWorldDeployerBeacon = await SampleUpgradeableBeacon.deploy(
+        await helloWorldDeployerImplementation.getAddress(),
+      );
+      await helloWorldDeployerBeacon.waitForDeployment();
+
+      expect(await helloWorldDeployerBeacon.getAddress()).to.not.equal(
+        ethers.ZeroAddress,
+      );
+      expect(await helloWorldDeployerBeacon.implementation()).to.equal(
+        await helloWorldDeployerImplementation.getAddress(),
+      );
+
+      // Compute the initialize function selector for HelloWorldDeployer
+      // initialize(address owner, address _proxyFactory)
+      const deployerInitSelector = ethers
+        .keccak256(ethers.toUtf8Bytes("initialize(address,address)"))
+        .slice(0, 10);
+
+      // Create template for HelloWorldDeployer
+      const deployerTemplate = {
+        auditURI: auditURI,
+        beaconAddress: await helloWorldDeployerBeacon.getAddress(),
+        contractHash: contractHash,
+        initSelector: deployerInitSelector,
+        isActive: true,
+        name: "HelloWorldDeployer",
+        repoURI: repoURI,
+        storageLayoutHash: storageLayoutHash,
+        version: "1.0.0",
+      };
+
+      await proxyTemplateRegistry.addTemplate(deployerTemplate);
+
+      const templateId = await proxyTemplateRegistry.computeTemplateId(
+        "HelloWorldDeployer",
+        "1.0.0",
+      );
+      const retrievedTemplate =
+        await proxyTemplateRegistry.getTemplate(templateId);
+
+      expect(retrievedTemplate.name).to.equal("HelloWorldDeployer");
+      expect(retrievedTemplate.version).to.equal("1.0.0");
+      expect(retrievedTemplate.isActive).to.be.true;
+    });
+
+    it("Should deploy HelloWorldDeployer proxy using trusted issuer", async function () {
+      // Deploy HelloWorldDeployer as a proxy
+      const deployerInitData = ethers.AbiCoder.defaultAbiCoder().encode(
+        ["address", "address"],
+        [trustedIssuer.address, await proxyFactory.getAddress()],
+      );
+
+      const deployTx = await proxyFactory
+        .connect(trustedIssuer)
+        .deployProxy(
+          "HelloWorldDeployer",
+          "1.0.0",
+          deployerInitData,
+          trustedIssuerDID,
+        );
+
+      const receipt = await deployTx.wait();
+      expect(receipt.status).to.equal(1);
+
+      // Get the deployed proxy address from the event
+      const event = receipt.logs.find(
+        (log: { fragment: { name: string } }) =>
+          log.fragment && log.fragment.name === "ProxyDeployed",
+      );
+      const deployedProxyAddress = event.args[0];
+
+      // Get the contract instance
+      helloWorldDeployerProxy = await ethers.getContractAt(
+        "SampleDeployer",
+        deployedProxyAddress,
+      );
+
+      expect(await helloWorldDeployerProxy.getAddress()).to.not.equal(
+        ethers.ZeroAddress,
+      );
+      expect(await helloWorldDeployerProxy.owner()).to.equal(
+        trustedIssuer.address,
+      );
+      expect(await helloWorldDeployerProxy.proxyFactory()).to.equal(
+        await proxyFactory.getAddress(),
+      );
+
+      // Verify deployment info
+      const deploymentInfo = await proxyFactory.getDeploymentInfo(
+        await helloWorldDeployerProxy.getAddress(),
+      );
+      expect(deploymentInfo.deployerDID).to.equal(trustedIssuerDID);
+      expect(deploymentInfo.isActive).to.be.true;
+    });
+
+    it("Should deploy HelloWorld proxy from HelloWorldDeployer using different user", async function () {
+      // Prepare initData for deploying a HelloWorld proxy
+      const helloWorldInitData = ethers.AbiCoder.defaultAbiCoder().encode(
+        ["string", "string", "address", "bytes32"],
+        ["MyHelloWorld", "1.0.0", user.address, ethers.keccak256("0x")],
+      );
+
+      // User calls deployHelloWorldProxy from the HelloWorldDeployer contract
+      // the DID registry should not be called
+      await didRegistryMock.setMockedValue(false);
+
+      const deployTx = await helloWorldDeployerProxy
+        .connect(user)
+        .deployHelloWorldProxy(helloWorldInitData);
+
+      const receipt = await deployTx.wait();
+      expect(receipt.status).to.equal(1);
+
+      // Get the ProxyDeployed event from the ProxyFactory contract
+      const proxyDeployedEvent = receipt.logs
+        .map((log: unknown) => {
+          try {
+            return proxyFactory.interface.parseLog(log) as unknown;
+          } catch {
+            return;
+          }
+        })
+        .find(
+          (parsed: { name: string }) =>
+            parsed && parsed.name === "ProxyDeployed",
+        );
+
+      expect(proxyDeployedEvent).to.not.be.undefined;
+      const helloWorldProxyAddress = proxyDeployedEvent.args[0];
+      expect(helloWorldProxyAddress).to.not.equal(ethers.ZeroAddress);
+
+      // Verify deployment info
+      const deploymentInfo = await proxyFactory.getDeploymentInfo(
+        helloWorldProxyAddress,
+      );
+      expect(deploymentInfo.deployer).to.equal(
+        await helloWorldDeployerProxy.getAddress(),
+      );
+      expect(deploymentInfo.deployerDID).to.equal(trustedIssuerDID);
+      expect(deploymentInfo.isActive).to.be.true;
+
+      // Verify the deployed contract is a HelloWorld instance
+      const helloWorldProxy = await ethers.getContractAt(
+        "SampleImplementation",
+        helloWorldProxyAddress,
+      );
+      expect(await helloWorldProxy.name()).to.equal("MyHelloWorld");
+      expect(await helloWorldProxy.version()).to.equal("1.0.0");
+    });
+
+    it("Should reject deployment from a non-registered contract", async function () {
+      // Deploy SimpleDeployer directly (not through ProxyFactory)
+      const SimpleDeployerFactory =
+        await ethers.getContractFactory("SimpleDeployer");
+      const simpleDeployerImpl = await SimpleDeployerFactory.deploy(
+        await proxyFactory.getAddress(),
+      );
+      await simpleDeployerImpl.waitForDeployment();
+
+      const notTrustedContract: any = await ethers.getContractAt(
+        "SimpleDeployer",
+        await simpleDeployerImpl.getAddress(),
+      );
+
+      expect(await notTrustedContract.getAddress()).to.not.equal(
+        ethers.ZeroAddress,
+      );
+
+      // Verify this contract is not registered in the ProxyFactory
+      const deploymentInfo = await proxyFactory.getDeploymentInfo(
+        await notTrustedContract.getAddress(),
+      );
+      expect(deploymentInfo.isActive).to.be.false;
+      expect(deploymentInfo.deployer).to.equal(ethers.ZeroAddress);
+
+      // Prepare initData for deploying a HelloWorld proxy
+      const helloWorldInitData = ethers.AbiCoder.defaultAbiCoder().encode(
+        ["string", "string", "address", "bytes32"],
+        [
+          "UnauthorizedHelloWorld",
+          "1.0.0",
+          user.address,
+          ethers.keccak256("0x"),
+        ],
+      );
+
+      // Reset mocked values to true to ensure policy check passes
+      await didRegistryMock.setMockedValue(true);
+      await policyRegistryMock.setMockedValue(true);
+
+      // Try to deploy a proxy from the non-registered contract
+      // This should fail because the contract is not active in the ProxyFactory
+      await expect(
+        notTrustedContract
+          .connect(user)
+          .deployHelloWorldProxy(helloWorldInitData),
+      ).to.be.revertedWith("Not authorized: contract is not active");
     });
   });
 
