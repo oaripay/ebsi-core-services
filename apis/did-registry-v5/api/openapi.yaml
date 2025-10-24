@@ -674,14 +674,15 @@ paths:
                   method: rollVerificationMethod
                   params:
                     - from: "0xc9765eC58E49e6E386549CEAA34FB0d8bB69C320"
-                      did: did:ebsi:z23eve8qDNzYuNVqfSaErpuJ
-                      vMethodId: axZAOKbj-YyMiIN2CRLCwPjSCgMwhBwCVNgEbOl3QJY
-                      publicKey: "0x04e98e599b648b3548468bc8da31937f11980159fd2c1af555b5db9cfab7b4095517d7094c829bb7d5f876ba2054ace767ca66f22df341bc6ad032f865cadb30cb"
-                      isSecp256k1: true
-                      notBefore: 1704067200
-                      notAfter: 1735689600
-                      oldVMethodId: HntX1odLlp_5w-W18Yk6OhR5dNNHsugaM2lOuAHDpmU
-                      duration: 86400
+                      args:
+                        did: did:ebsi:z23eve8qDNzYuNVqfSaErpuJ
+                        vMethodId: axZAOKbj-YyMiIN2CRLCwPjSCgMwhBwCVNgEbOl3QJY
+                        publicKey: "0x04e98e599b648b3548468bc8da31937f11980159fd2c1af555b5db9cfab7b4095517d7094c829bb7d5f876ba2054ace767ca66f22df341bc6ad032f865cadb30cb"
+                        isSecp256k1: true
+                        notBefore: 1704067200
+                        notAfter: 1735689600
+                        oldVMethodId: HntX1odLlp_5w-W18Yk6OhR5dNNHsugaM2lOuAHDpmU
+                        duration: 86400
                   id: 260
               Build tx to rollVerificationMethod (for algorithm different to ES256K):
                 value:
@@ -689,14 +690,15 @@ paths:
                   method: rollVerificationMethod
                   params:
                     - from: "0xc9765eC58E49e6E386549CEAA34FB0d8bB69C320"
-                      did: did:ebsi:z23eve8qDNzYuNVqfSaErpuJ
-                      vMethodId: RCWXLj5EyKYqmaX2j6IUXTtGLIBzqCib6UdJZvRNUJw
-                      publicKey: "0x7b22637276223a2245643235353139222c2278223a22426430466f75497a3445527136544c7032736441474457434d58775749664671703944364865726b77736f222c226b7479223a224f4b50227d"
-                      isSecp256k1: false
-                      notBefore: 1704067200
-                      notAfter: 1735689600
-                      oldVMethodId: HntX1odLlp_5w-W18Yk6OhR5dNNHsugaM2lOuAHDpmU
-                      duration: 86400
+                      args:
+                        did: did:ebsi:z23eve8qDNzYuNVqfSaErpuJ
+                        vMethodId: RCWXLj5EyKYqmaX2j6IUXTtGLIBzqCib6UdJZvRNUJw
+                        publicKey: "0x7b22637276223a2245643235353139222c2278223a22426430466f75497a3445527136544c7032736441474457434d58775749664671703944364865726b77736f222c226b7479223a224f4b50227d"
+                        isSecp256k1: false
+                        notBefore: 1704067200
+                        notAfter: 1735689600
+                        oldVMethodId: HntX1odLlp_5w-W18Yk6OhR5dNNHsugaM2lOuAHDpmU
+                        duration: 86400
                   id: 558
               Send Transaction:
                 value:
