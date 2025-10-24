@@ -29,10 +29,20 @@ contract ProxyFactory is
     // Custom modifier to check authorization
     modifier isAuthorized(string calldata deployerDID) {
         require(
-            policyRegistry.checkPolicy(DEPLOY_PROXY_POLICY, msg.sender) &&
-                didRegistry.checkController(bytes(deployerDID), msg.sender),
-            "Not authorized: missing role or DID authorization"
+            policyRegistry.checkPolicy(DEPLOY_PROXY_POLICY, msg.sender),
+            "Not authorized: missing policy"
         );
+        if (bytes(deployerDID).length == 0) {
+            require(
+                deployments[msg.sender].isActive,
+                "Not authorized: contract is not active"
+            );
+        } else {
+            require(
+                didRegistry.checkController(bytes(deployerDID), msg.sender),
+                "Not authorized: missing DID authorization"
+            );
+        }
         _;
     }
 
@@ -110,22 +120,26 @@ contract ProxyFactory is
         );
         address proxyAddress = address(proxy);
 
+        string memory deployerDIDorParent = deployerDID;
+        if (bytes(deployerDID).length == 0) {
+            deployerDIDorParent = deployments[msg.sender].deployerDID;
+        }
         deployments[proxyAddress] = DeploymentInfo({
             templateId: templateId,
             deployer: msg.sender,
             deploymentTimestamp: block.timestamp,
             isActive: true,
-            deployerDID: deployerDID
+            deployerDID: deployerDIDorParent
         });
 
         deployedContracts.push(proxyAddress);
-        didToProxies[deployerDID].push(proxyAddress);
+        didToProxies[deployerDIDorParent].push(proxyAddress);
 
         emit ProxyDeployed(
             proxyAddress,
             templateId,
             msg.sender,
-            deployerDID,
+            deployerDIDorParent,
             initData,
             block.timestamp
         );
