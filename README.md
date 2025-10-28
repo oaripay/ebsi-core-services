@@ -34,6 +34,9 @@ Install the required libraries and packages dependencies:
 ```sh
 yarn install
 ```
+Pre-commit hooks are also running gitleaks. To install it, please check their github README page:
+[https://github.com/gitleaks/gitleaks?tab=readme-ov-file#installing](https://github.com/gitleaks/gitleaks?tab=readme-ov-file#installing)
+
 
 Keep in mind that libraries' source code will be stored centrally in the root `node_modules` folder whereas binaries required by sub-projects will be stored in nested `node_modules` folders.
 
