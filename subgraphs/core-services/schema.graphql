@@ -275,6 +275,10 @@ type ContractProxy @entity(immutable: true) {
   # Relationships
   deployerDidDocument: DidDocument!
   template: ContractTemplate!
+  # deployerProxy is set if deployerAddress is another ContractProxy (supports recursion)
+  deployerProxy: ContractProxy
+  # Derived field: all proxies deployed by this proxy
+  deployedProxies: [ContractProxy!]! @derivedFrom(field: "deployerProxy")
 }
 
 type ContractTemplate @entity(immutable: false) {

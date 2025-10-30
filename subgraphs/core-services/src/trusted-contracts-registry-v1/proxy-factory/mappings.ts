@@ -11,5 +11,11 @@ export function handleProxyDeployedEvent(event: ProxyDeployed): void {
   proxy.template = event.params.templateId;
   proxy.timestamp = event.params.timestamp;
 
+  // Check if deployerAddress is another ContractProxy (support recursion)
+  const deployerProxy = ContractProxy.load(event.params.deployer);
+  if (deployerProxy) {
+    proxy.deployerProxy = deployerProxy.id;
+  }
+
   proxy.save();
 }
