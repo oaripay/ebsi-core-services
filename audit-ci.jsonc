@@ -8,5 +8,6 @@
     // CVE-2025-56200: isURL() parsing difference vulnerability
     // TODO: Remove once a patched version is released
     "GHSA-9965-vmph-33xx",
+    "GHSA-mh29-5h37-fv8m",
   ],
 }

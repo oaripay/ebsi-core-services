@@ -91,6 +91,7 @@
     "**/@ethersproject/providers/ws": "^7.5.10",
     "**/@ethersproject/signing-key/elliptic": "^6.6.0",
     "**/fastify/pino": "^10.0.0",
+    "**/@graphprotocol/graph-cli/js-yaml": "^4.1.1",
     "**/@graphprotocol/graph-cli/undici": "7.16.0",
     "**/@graphprotocol/graph-ts/assemblyscript": "0.19.23",
     "**/gluegun/cross-spawn": "^7.0.6",

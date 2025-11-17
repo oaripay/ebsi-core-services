@@ -105,9 +105,11 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
     let app: NestFastifyApplication;
     let server: RawServerDefault | string;
     let configService: ConfigService<ApiConfig, true>;
-    let testVerifiableAttestationSchemaId: string;
+    let testVerifiableAttestation1SchemaId: string;
+    let testVerifiableAttestation2SchemaId: string;
     let testStatusList2021SchemaId: string;
-    let testBitstringStatusListSchemaId: string;
+    let testBitstringStatusList1SchemaId: string;
+    let testBitstringStatusList2SchemaId: string;
     let ledgerApi: string;
     let trustedSchemasRegistryApiUrl: string;
     let authorisationApiUrl: string;
@@ -125,94 +127,152 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
       issuerProxy: IssuerProxyResponseObject,
       ebsiEnvConfig: EbsiEnvConfiguration,
       uriType: "EBSI URI" | "URL",
-      statusList: "BitstringStatusListCredential" | "StatusList2021Credential",
+      statusList:
+        | "BitstringStatusListCredential"
+        | "BitstringStatusListCredentialVCDM2.0"
+        | "StatusList2021Credential",
     ) {
-      const verifiableAttestationSchemaUrl = `${trustedSchemasRegistryApiUrl}/schemas/${testVerifiableAttestationSchemaId}`;
-      const statusListSchemaUrl =
-        statusList === "StatusList2021Credential"
-          ? `${trustedSchemasRegistryApiUrl}/schemas/${testStatusList2021SchemaId}`
-          : `${trustedSchemasRegistryApiUrl}/schemas/${testBitstringStatusListSchemaId}`;
-      const newIssuer1StatusListCredential =
-        statusList === "StatusList2021Credential"
-          ? ({
-              "@context": [
-                "https://www.w3.org/2018/credentials/v1",
-                "https://w3id.org/vc/status-list/2021/v1",
-              ],
-              credentialSchema: [
-                {
-                  id:
-                    uriType === "URL"
-                      ? verifiableAttestationSchemaUrl
-                      : fromUrl(verifiableAttestationSchemaUrl, ebsiEnvConfig),
-                  type: "FullJsonSchemaValidator2021",
-                },
-                {
-                  id:
-                    uriType === "URL"
-                      ? statusListSchemaUrl
-                      : fromUrl(statusListSchemaUrl, ebsiEnvConfig),
-                  type: "FullJsonSchemaValidator2021",
-                },
-              ],
-              credentialSubject: {
-                encodedList:
-                  "H4sIAAAAAAAAA-3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAAAAAAIC3AYbSVKsAQAAA",
-                // Note: the VC lib requires that credentialSubject.id is a valid EBSI DID. We can't use a URL here!
-                // id: `${issuer.proxy.rawProxyData.prefix}${issuer.proxy.rawProxyData.testSuffix}#list`,
-                id: issuer.did,
-                statusPurpose: "revocation",
-                type: "StatusList2021",
+      let verifiableAttestationSchemaUrl: string;
+      let statusListSchemaUrl: string;
+      let newIssuer1StatusListCredential:
+        | BitstringStatusListCredential
+        | StatusList2021Credential;
+
+      switch (statusList) {
+        case "BitstringStatusListCredential": {
+          verifiableAttestationSchemaUrl = `${trustedSchemasRegistryApiUrl}/schemas/${testVerifiableAttestation1SchemaId}`;
+          statusListSchemaUrl = `${trustedSchemasRegistryApiUrl}/schemas/${testBitstringStatusList1SchemaId}`;
+          newIssuer1StatusListCredential = {
+            "@context": ["https://www.w3.org/2018/credentials/v1"],
+            credentialSchema: [
+              {
+                id:
+                  uriType === "URL"
+                    ? verifiableAttestationSchemaUrl
+                    : fromUrl(verifiableAttestationSchemaUrl, ebsiEnvConfig),
+                type: "FullJsonSchemaValidator2021",
               },
-              id: `${issuerProxy.prefix}${issuerProxy.testSuffix}`,
-              issuanceDate: "2025-04-05T14:27:40Z",
-              issued: "2025-04-05T14:27:40Z",
-              issuer: issuer.did,
-              type: [
-                "VerifiableCredential",
-                "VerifiableAttestation",
-                "StatusList2021Credential",
-              ],
-              validFrom: "2025-04-05T14:27:40Z",
-            } as const satisfies StatusList2021Credential)
-          : ({
-              "@context": ["https://www.w3.org/2018/credentials/v1"],
-              credentialSchema: [
-                {
-                  id:
-                    uriType === "URL"
-                      ? verifiableAttestationSchemaUrl
-                      : fromUrl(verifiableAttestationSchemaUrl, ebsiEnvConfig),
-                  type: "FullJsonSchemaValidator2021",
-                },
-                {
-                  id:
-                    uriType === "URL"
-                      ? statusListSchemaUrl
-                      : fromUrl(statusListSchemaUrl, ebsiEnvConfig),
-                  type: "FullJsonSchemaValidator2021",
-                },
-              ],
-              credentialSubject: {
-                encodedList:
-                  "uH4sIAAAAAAAAA-3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAAAAAAIC3AYbSVKsAQAAA",
-                // Note: the VC lib requires that credentialSubject.id is a valid EBSI DID. We can't use a URL here!
-                // id: `${issuer.proxy.rawProxyData.prefix}${issuer.proxy.rawProxyData.testSuffix}#list`,
-                id: issuer.did,
-                statusPurpose: "revocation",
-                type: "BitstringStatusList",
+              {
+                id:
+                  uriType === "URL"
+                    ? statusListSchemaUrl
+                    : fromUrl(statusListSchemaUrl, ebsiEnvConfig),
+                type: "FullJsonSchemaValidator2021",
               },
-              id: `${issuerProxy.prefix}${issuerProxy.testSuffix}`,
-              issuanceDate: "2025-04-05T14:27:40Z",
-              issued: "2025-04-05T14:27:40Z",
-              issuer: issuer.did,
-              type: [
-                "VerifiableCredential",
-                "VerifiableAttestation",
-                "BitstringStatusListCredential",
-              ],
-              validFrom: "2025-04-05T14:27:40Z",
-            } as const satisfies BitstringStatusListCredential);
+            ],
+            credentialSubject: {
+              encodedList:
+                "uH4sIAAAAAAAAA-3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAAAAAAIC3AYbSVKsAQAAA",
+              // Note: the VC lib requires that credentialSubject.id is a valid EBSI DID. We can't use a URL here!
+              // id: `${issuer.proxy.rawProxyData.prefix}${issuer.proxy.rawProxyData.testSuffix}#list`,
+              id: issuer.did,
+              statusPurpose: "revocation",
+              type: "BitstringStatusList",
+            },
+            id: `${issuerProxy.prefix}${issuerProxy.testSuffix}`,
+            issuanceDate: "2025-04-05T14:27:40Z",
+            issued: "2025-04-05T14:27:40Z",
+            issuer: issuer.did,
+            type: [
+              "VerifiableCredential",
+              "VerifiableAttestation",
+              "BitstringStatusListCredential",
+            ],
+            validFrom: "2025-04-05T14:27:40Z",
+          } as const satisfies BitstringStatusListCredential;
+          break;
+        }
+        case "BitstringStatusListCredentialVCDM2.0": {
+          verifiableAttestationSchemaUrl = `${trustedSchemasRegistryApiUrl}/schemas/${testVerifiableAttestation2SchemaId}`;
+          statusListSchemaUrl = `${trustedSchemasRegistryApiUrl}/schemas/${testBitstringStatusList2SchemaId}`;
+          newIssuer1StatusListCredential = {
+            "@context": ["https://www.w3.org/ns/credentials/v2"],
+            credentialSchema: [
+              {
+                id:
+                  uriType === "URL"
+                    ? verifiableAttestationSchemaUrl
+                    : fromUrl(verifiableAttestationSchemaUrl, ebsiEnvConfig),
+                type: "FullJsonSchemaValidator2021",
+              },
+              {
+                id:
+                  uriType === "URL"
+                    ? statusListSchemaUrl
+                    : fromUrl(statusListSchemaUrl, ebsiEnvConfig),
+                type: "FullJsonSchemaValidator2021",
+              },
+            ],
+            credentialSubject: {
+              encodedList:
+                "uH4sIAAAAAAAAA-3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAAAAAAIC3AYbSVKsAQAAA",
+              // Note: the VC lib requires that credentialSubject.id is a valid EBSI DID. We can't use a URL here!
+              // id: `${issuer.proxy.rawProxyData.prefix}${issuer.proxy.rawProxyData.testSuffix}#list`,
+              id: issuer.did,
+              statusPurpose: "revocation",
+              type: "BitstringStatusList",
+            },
+            id: `${issuerProxy.prefix}${issuerProxy.testSuffix}`,
+            issuanceDate: "2025-04-05T14:27:40Z",
+            issued: "2025-04-05T14:27:40Z",
+            issuer: issuer.did,
+            type: [
+              "VerifiableCredential",
+              "VerifiableAttestation",
+              "BitstringStatusListCredential",
+            ],
+            validFrom: "2025-04-05T14:27:40Z",
+          } as const satisfies BitstringStatusListCredential;
+          break;
+        }
+        case "StatusList2021Credential": {
+          verifiableAttestationSchemaUrl = `${trustedSchemasRegistryApiUrl}/schemas/${testVerifiableAttestation1SchemaId}`;
+          statusListSchemaUrl = `${trustedSchemasRegistryApiUrl}/schemas/${testStatusList2021SchemaId}`;
+          newIssuer1StatusListCredential = {
+            "@context": [
+              "https://www.w3.org/2018/credentials/v1",
+              "https://w3id.org/vc/status-list/2021/v1",
+            ],
+            credentialSchema: [
+              {
+                id:
+                  uriType === "URL"
+                    ? verifiableAttestationSchemaUrl
+                    : fromUrl(verifiableAttestationSchemaUrl, ebsiEnvConfig),
+                type: "FullJsonSchemaValidator2021",
+              },
+              {
+                id:
+                  uriType === "URL"
+                    ? statusListSchemaUrl
+                    : fromUrl(statusListSchemaUrl, ebsiEnvConfig),
+                type: "FullJsonSchemaValidator2021",
+              },
+            ],
+            credentialSubject: {
+              encodedList:
+                "H4sIAAAAAAAAA-3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAAAAAAIC3AYbSVKsAQAAA",
+              // Note: the VC lib requires that credentialSubject.id is a valid EBSI DID. We can't use a URL here!
+              // id: `${issuer.proxy.rawProxyData.prefix}${issuer.proxy.rawProxyData.testSuffix}#list`,
+              id: issuer.did,
+              statusPurpose: "revocation",
+              type: "StatusList2021",
+            },
+            id: `${issuerProxy.prefix}${issuerProxy.testSuffix}`,
+            issuanceDate: "2025-04-05T14:27:40Z",
+            issued: "2025-04-05T14:27:40Z",
+            issuer: issuer.did,
+            type: [
+              "VerifiableCredential",
+              "VerifiableAttestation",
+              "StatusList2021Credential",
+            ],
+            validFrom: "2025-04-05T14:27:40Z",
+          } as const satisfies StatusList2021Credential;
+          break;
+        }
+      }
+
       const newIssuer1StatusListCredentialJwt =
         await createVerifiableCredentialJwt(
           newIssuer1StatusListCredential,
@@ -258,16 +318,24 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
       authorisationApiUrl = configService.get("authorisationApiUrl", {
         infer: true,
       });
-      testVerifiableAttestationSchemaId = configService.get(
-        "testVerifiableAttestationSchemaId",
+      testVerifiableAttestation1SchemaId = configService.get(
+        "testVerifiableAttestation1SchemaId",
+        { infer: true },
+      );
+      testVerifiableAttestation2SchemaId = configService.get(
+        "testVerifiableAttestation2SchemaId",
         { infer: true },
       );
       testStatusList2021SchemaId = configService.get(
         "testStatusList2021SchemaId",
         { infer: true },
       );
-      testBitstringStatusListSchemaId = configService.get(
-        "testBitstringStatusListSchemaId",
+      testBitstringStatusList1SchemaId = configService.get(
+        "testBitstringStatusList1SchemaId",
+        { infer: true },
+      );
+      testBitstringStatusList2SchemaId = configService.get(
+        "testBitstringStatusList2SchemaId",
         { infer: true },
       );
 
@@ -691,7 +759,7 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
           const expirationDate = new Date(
             issuanceDate.getTime() + 2 * 60 * 60 * 1000,
           );
-          const verifiableAttestationSchemaUrl = `${trustedSchemasRegistryApiUrl}/schemas/${testVerifiableAttestationSchemaId}`;
+          const verifiableAttestationSchemaUrl = `${trustedSchemasRegistryApiUrl}/schemas/${testVerifiableAttestation1SchemaId}`;
           const termsOfUseUrl = configService.get("testAdminAccreditation", {
             infer: true,
           });
@@ -1148,6 +1216,7 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
       describe.each([
         "StatusList2021Credential",
         "BitstringStatusListCredential",
+        "BitstringStatusListCredentialVCDM2.0",
       ] as const)("with status list type %s", (statusList) => {
         describe.each([
           "addIssuerProxy",

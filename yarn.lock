@@ -854,6 +854,18 @@
   resolved "https://registry.yarnpkg.com/@cef-ebsi/vcdm2.0-attestation-schema/-/vcdm2.0-attestation-schema-2.0.0.tgz#29a2f6cad84e2419e4ba8576a851bfa826ff1541"
   integrity sha512-MLfwUmE0Svq9GA14uJdAhT1Uf2O6DmTgUAlsYTDZaOQqPiGyOnW8bm+kvp3Xg/dSJnh4MDLs5AvB9WVe12NGOg==
 
+"@cef-ebsi/vcdm2.0-attestation-schema@2.1.0-next.0", "@cef-ebsi/vcdm2.0-attestation-schema@^2.1.0-next.0":
+  version "2.1.0-next.0"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/vcdm2.0-attestation-schema/-/vcdm2.0-attestation-schema-2.1.0-next.0.tgz#5b868f88a56c2a95908140206aaa45977594f262"
+  integrity sha512-2LrHdk9+/9ZemjfY9DHKqCQspX5LqPRm2pJ5ORjEQPxDKp9r1idVv09quHWXQGlQVceM6W8ZhCmKD0nxj7nf9g==
+
+"@cef-ebsi/vcdm2.0-bitstring-status-list-v1.0-credential-schema@^1.0.0-next.0":
+  version "1.0.0-next.0"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/vcdm2.0-bitstring-status-list-v1.0-credential-schema/-/vcdm2.0-bitstring-status-list-v1.0-credential-schema-1.0.0-next.0.tgz#5109a1eae5a2ed0995cee8fe1401fe7b9388248a"
+  integrity sha512-i7N0NBDoxePOR2tSef5TQuK0LO6Iuc0Ft7iqs1dD+/Ygw5YQKKzq1Rj2Kk0fq/QdSdu99qxT/jRxXlGGq99zbw==
+  dependencies:
+    "@cef-ebsi/vcdm2.0-attestation-schema" "2.1.0-next.0"
+
 "@cef-ebsi/vcdm2.0-delegated-authorisation-schema@^2.0.0":
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/@cef-ebsi/vcdm2.0-delegated-authorisation-schema/-/vcdm2.0-delegated-authorisation-schema-2.0.0.tgz#e0f40c285432fed3f2a3f2c1662b4fd37193a974"
@@ -921,6 +933,13 @@
   dependencies:
     "@cef-ebsi/vcdm2.0-attestation-schema" "2.0.0"
 
+"@cef-ebsi/vcdm2.0-trust-model-schema@^2.1.0-next.0":
+  version "2.1.0-next.0"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/vcdm2.0-trust-model-schema/-/vcdm2.0-trust-model-schema-2.1.0-next.0.tgz#f2ade1eb708eaa298c2d29a9d4e2bec67a679277"
+  integrity sha512-IP8DJiwYwD67PzcSFnwkJfwODkC1vWpVCvx+xeY1cmcKZJCJXk2DId3oxWOfqCKVdZnhXxWFU5RDN3pud07MHQ==
+  dependencies:
+    "@cef-ebsi/vcdm2.0-attestation-schema" "2.1.0-next.0"
+
 "@cef-ebsi/vcdm2.0-type-extensions-evidence-authorisation-delegation-schema@2.0.0", "@cef-ebsi/vcdm2.0-type-extensions-evidence-authorisation-delegation-schema@^2.0.0":
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/@cef-ebsi/vcdm2.0-type-extensions-evidence-authorisation-delegation-schema/-/vcdm2.0-type-extensions-evidence-authorisation-delegation-schema-2.0.0.tgz#5ec5832d06930356957e108d5cec0523d077b9ea"
@@ -959,10 +978,10 @@
   dependencies:
     "@cef-ebsi/vcdm2.0-attestation-schema" "2.0.0"
 
-"@cef-ebsi/verifiable-credential@^8.0.0-alpha.3":
-  version "8.0.0-alpha.3"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/verifiable-credential/-/verifiable-credential-8.0.0-alpha.3.tgz#1042809eaa64671b9763683d4a64de7a390f1768"
-  integrity sha512-A95r8S/68/Xyr94fmykYIqPk3fbV4D2QqwL1+jd0Nj+rz0XRbF9hM7fTYWHXG/KTHrS/7WocgdoBrHJzNv2lTw==
+"@cef-ebsi/verifiable-credential@^8.0.0-alpha.4":
+  version "8.0.0-alpha.4"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/verifiable-credential/-/verifiable-credential-8.0.0-alpha.4.tgz#33dcb30cf70a4f069fe6a8b27dd6429e3d95c22d"
+  integrity sha512-vxgJlLaD0Xp7BxYF7Bop1g0/MAN8KIEglEFJ12U1W3FCO2VSRS/d+iV36nSbhXcWtO1jUkH/MUvFkGv3hdvg+w==
   dependencies:
     "@cef-ebsi/ebsi-did-resolver" "^4.2.0-alpha.1"
     "@cef-ebsi/ebsi-uri" "^1.0.1"
@@ -971,6 +990,9 @@
     "@cef-ebsi/vcdm1.1-attestation-schema" "^2.0.0"
     "@cef-ebsi/vcdm1.1-bitstring-status-list-v1.0-credential-schema" "^1.0.0-next.0"
     "@cef-ebsi/vcdm1.1-revocation-statuslist-schema" "^2.0.0"
+    "@cef-ebsi/vcdm2.0-attestation-schema" "^2.1.0-next.0"
+    "@cef-ebsi/vcdm2.0-bitstring-status-list-v1.0-credential-schema" "^1.0.0-next.0"
+    "@cef-ebsi/vcdm2.0-trust-model-schema" "^2.1.0-next.0"
     "@noble/curves" "^1.9.7"
     "@noble/hashes" "^1.8.0"
     "@segment/ajv-human-errors" "^2.15.0"
@@ -984,16 +1006,16 @@
     pako "^2.1.0"
     uint8arrays "3.1.1"
 
-"@cef-ebsi/verifiable-presentation@^9.0.0-alpha.3":
-  version "9.0.0-alpha.3"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/verifiable-presentation/-/verifiable-presentation-9.0.0-alpha.3.tgz#2a25ecbe5afe1230a2e97651c550f6ca745404c9"
-  integrity sha512-IiQLYIRdVVWS1fmkuf+qOm6yiQLzJU1xOambgKEBBLJ07WZJ4dwBJhSuJdcm8foD8OHkwbPOpwH8CsyQAszQmQ==
+"@cef-ebsi/verifiable-presentation@^9.0.0-alpha.4":
+  version "9.0.0-alpha.4"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/verifiable-presentation/-/verifiable-presentation-9.0.0-alpha.4.tgz#ccee7af3e0716685fd79d9a1a6872ce421c1c1b7"
+  integrity sha512-2zONozTV47wRxLjGn1OuIBOVVY8lWU2mgtICyUEVL1GP3HMJSF1ErR3S6jFRqwDrVgaNO8iLTyXkeddsjedUWw==
   dependencies:
     "@cef-ebsi/ebsi-did-resolver" "^4.2.0-alpha.1"
     "@cef-ebsi/ebsi-uri" "^1.0.1"
     "@cef-ebsi/key-did-resolver" "^2.1.1"
     "@cef-ebsi/vcdm1.1-presentation-schema" "^2.0.0"
-    "@cef-ebsi/verifiable-credential" "^8.0.0-alpha.3"
+    "@cef-ebsi/verifiable-credential" "^8.0.0-alpha.4"
     "@segment/ajv-human-errors" "^2.15.0"
     did-jwt "^8.0.18"
     did-resolver "^4.1.0"
@@ -9784,17 +9806,17 @@ js-tokens@^9.0.1:
   integrity sha512-mxa9E9ITFOt0ban3j6L5MpjwegGz6lBQmM1IJkWeBZGcMxto50+eWdjC/52xDbS2vy0k7vIMK0Fe2wfL9OQSpQ==
 
 js-yaml@3.x, js-yaml@^3.10.0, js-yaml@^3.13.1, js-yaml@^3.6.1:
-  version "3.14.1"
-  resolved "https://registry.yarnpkg.com/js-yaml/-/js-yaml-3.14.1.tgz#dae812fdb3825fa306609a8717383c50c36a0537"
-  integrity sha512-okMH7OXXJ7YrN9Ok3/SXrnu4iX9yOk+25nqX4imS2npuvTYDmo/QEZoqwZkYaIDk3jVvBOTOIEgEhaLOynBS9g==
+  version "3.14.2"
+  resolved "https://registry.yarnpkg.com/js-yaml/-/js-yaml-3.14.2.tgz#77485ce1dd7f33c061fd1b16ecea23b55fcb04b0"
+  integrity sha512-PMSmkqxr106Xa156c2M265Z+FTrPl+oxd/rgOQy2tijQeK5TxQ43psO1ZCwhVOSdnn+RzkzlRz/eY4BgJBYVpg==
   dependencies:
     argparse "^1.0.7"
     esprima "^4.0.0"
 
-js-yaml@4.1.0, js-yaml@^4.1.0:
-  version "4.1.0"
-  resolved "https://registry.yarnpkg.com/js-yaml/-/js-yaml-4.1.0.tgz#c1fb65f8f5017901cdd2c951864ba18458a10602"
-  integrity sha512-wpxZs9NoxZaJESJGIZTyDEaYpl0FKSA+FB9aJiyemKhMwkxQg63h4T1KJgUGHpTqPDNRcmmYLugrRjJlBtWvRA==
+js-yaml@4.1.0, js-yaml@^4.1.0, js-yaml@^4.1.1:
+  version "4.1.1"
+  resolved "https://registry.yarnpkg.com/js-yaml/-/js-yaml-4.1.1.tgz#854c292467705b699476e1a2decc0c8a3458806b"
+  integrity sha512-qQKT4zQxXl8lLwBtHMWwaTcGfFOZviOJet3Oy/xmGk2gZH677CJM9EvtfdSkgWcATZhj/55JZ0rmy3myCT5lsA==
   dependencies:
     argparse "^2.0.1"
 
@@ -12717,7 +12739,16 @@ string-format@^2.0.0:
   resolved "https://registry.yarnpkg.com/string-format/-/string-format-2.0.0.tgz#f2df2e7097440d3b65de31b6d40d54c96eaffb9b"
   integrity sha512-bbEs3scLeYNXLecRRuk6uJxdXUSj6le/8rNPHChIJTn2V79aXVTR1EH2OH5zLKKoz0V02fOUKZZcw01pLUShZA==
 
-"string-width-cjs@npm:string-width@^4.2.0", string-width@^4.0.0, string-width@^4.1.0, string-width@^4.2.0, string-width@^4.2.2, string-width@^4.2.3:
+"string-width-cjs@npm:string-width@^4.2.0":
+  version "4.2.3"
+  resolved "https://registry.yarnpkg.com/string-width/-/string-width-4.2.3.tgz#269c7117d27b05ad2e536830a8ec895ef9c6d010"
+  integrity sha512-wKyQRQpjJ0sIp62ErSZdGsjMJWsap5oRNihHhu6G7JVO/9jIB6UyevL+tXuOqrng8j/cxKTWyWUwvSTriiZz/g==
+  dependencies:
+    emoji-regex "^8.0.0"
+    is-fullwidth-code-point "^3.0.0"
+    strip-ansi "^6.0.1"
+
+string-width@^4.0.0, string-width@^4.1.0, string-width@^4.2.0, string-width@^4.2.2, string-width@^4.2.3:
   version "4.2.3"
   resolved "https://registry.yarnpkg.com/string-width/-/string-width-4.2.3.tgz#269c7117d27b05ad2e536830a8ec895ef9c6d010"
   integrity sha512-wKyQRQpjJ0sIp62ErSZdGsjMJWsap5oRNihHhu6G7JVO/9jIB6UyevL+tXuOqrng8j/cxKTWyWUwvSTriiZz/g==
@@ -12811,7 +12842,14 @@ string_decoder@~0.10.x:
   resolved "https://registry.yarnpkg.com/string_decoder/-/string_decoder-0.10.31.tgz#62e203bc41766c6c28c9fc84301dab1c5310fa94"
   integrity sha512-ev2QzSzWPYmy9GuqfIVildA4OdcGLeFZQrq5ys6RtiuF+RQQiZWr8TZNyAcuVXyQRYfEO+MsoB/1BuQVhOJuoQ==
 
-"strip-ansi-cjs@npm:strip-ansi@^6.0.1", strip-ansi@6.0, strip-ansi@^6.0.0, strip-ansi@^6.0.1:
+"strip-ansi-cjs@npm:strip-ansi@^6.0.1":
+  version "6.0.1"
+  resolved "https://registry.yarnpkg.com/strip-ansi/-/strip-ansi-6.0.1.tgz#9e26c63d30f53443e9489495b2105d37b67a85d9"
+  integrity sha512-Y38VPSHcqkFrCpFnQ9vuSXmquuv5oXOKpGeT6aGrr3o3Gc9AlVa6JBfUSOCnbxGGZF+/0ooI7KrPuUSztUdU5A==
+  dependencies:
+    ansi-regex "^5.0.1"
+
+strip-ansi@6.0, strip-ansi@^6.0.0, strip-ansi@^6.0.1:
   version "6.0.1"
   resolved "https://registry.yarnpkg.com/strip-ansi/-/strip-ansi-6.0.1.tgz#9e26c63d30f53443e9489495b2105d37b67a85d9"
   integrity sha512-Y38VPSHcqkFrCpFnQ9vuSXmquuv5oXOKpGeT6aGrr3o3Gc9AlVa6JBfUSOCnbxGGZF+/0ooI7KrPuUSztUdU5A==
@@ -13982,7 +14020,7 @@ workerpool@^6.5.1:
   resolved "https://registry.yarnpkg.com/workerpool/-/workerpool-6.5.1.tgz#060f73b39d0caf97c6db64da004cd01b4c099544"
   integrity sha512-Fs4dNYcsdpYSAfVxhnl1L5zTksjvOJxtC5hzMNl+1t9B8hTJTdKDyZ5ju7ztgPy+ft9tBFXoOlDNiOT9WUXZlA==
 
-"wrap-ansi-cjs@npm:wrap-ansi@^7.0.0", wrap-ansi@^7.0.0:
+"wrap-ansi-cjs@npm:wrap-ansi@^7.0.0":
   version "7.0.0"
   resolved "https://registry.yarnpkg.com/wrap-ansi/-/wrap-ansi-7.0.0.tgz#67e145cff510a6a6984bdf1152911d69d2eb9e43"
   integrity sha512-YVGIj2kamLSTxw6NsZjoBxfSwsn0ycdesmc4p+Q21c5zPuZ1pl+NfxVdxPtdHvmNVOQ6XSYG4AUtyt/Fi7D16Q==
@@ -13995,6 +14033,15 @@ wrap-ansi@^6.2.0:
   version "6.2.0"
   resolved "https://registry.yarnpkg.com/wrap-ansi/-/wrap-ansi-6.2.0.tgz#e9393ba07102e6c91a3b221478f0257cd2856e53"
   integrity sha512-r6lPcBGxZXlIcymEu7InxDMhdW0KDxpLgoFLcguasxCaJ/SOIZwINatK9KY/tf+ZrlywOKU0UDj3ATXUBfxJXA==
+  dependencies:
+    ansi-styles "^4.0.0"
+    string-width "^4.1.0"
+    strip-ansi "^6.0.0"
+
+wrap-ansi@^7.0.0:
+  version "7.0.0"
+  resolved "https://registry.yarnpkg.com/wrap-ansi/-/wrap-ansi-7.0.0.tgz#67e145cff510a6a6984bdf1152911d69d2eb9e43"
+  integrity sha512-YVGIj2kamLSTxw6NsZjoBxfSwsn0ycdesmc4p+Q21c5zPuZ1pl+NfxVdxPtdHvmNVOQ6XSYG4AUtyt/Fi7D16Q==
   dependencies:
     ansi-styles "^4.0.0"
     string-width "^4.1.0"

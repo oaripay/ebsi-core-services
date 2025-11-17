@@ -12,7 +12,12 @@ export type BitstringStatusListCredential = EbsiBitstringStatusListCredential;
 export const bitstringStatusListCredentialSchema = Joi.object({
   "@context": Joi.array()
     .ordered(
-      Joi.string().valid("https://www.w3.org/2018/credentials/v1").required(),
+      Joi.string()
+        .valid(
+          "https://www.w3.org/2018/credentials/v1",
+          "https://www.w3.org/ns/credentials/v2",
+        )
+        .required(),
     )
     .items(Joi.string().uri())
     .required(),
