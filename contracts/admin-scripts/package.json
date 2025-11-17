@@ -43,7 +43,7 @@
     "@cef-ebsi/vcdm1.1-e-origin-verifiable-importer-schema": "^2.0.0",
     "@cef-ebsi/vcdm1.1-essp-pda1-schema": "^2.0.0",
     "@cef-ebsi/vcdm1.1-euipo-certificate-of-trademark-registration-schema": "^2.0.0",
-    "@cef-ebsi/vcdm1.1-europass-edc-schema": "^4.0.0",
+    "@cef-ebsi/vcdm1.1-europass-edc-schema": "^4.0.1-next.0",
     "@cef-ebsi/vcdm1.1-hr-ds-3-badge-schema": "^2.0.0",
     "@cef-ebsi/vcdm1.1-idunion-odi-schema": "^2.0.0",
     "@cef-ebsi/vcdm1.1-idunion-poa-schema": "^2.0.0",

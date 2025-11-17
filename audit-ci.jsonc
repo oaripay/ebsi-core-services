@@ -4,10 +4,8 @@
   // Prevent integration with moderate or higher vulnerabilities.
   "moderate": true,
   "allowlist": [
-    // validator.js URL validation bypass - no patched version available yet
-    // CVE-2025-56200: isURL() parsing difference vulnerability
-    // TODO: Remove once a patched version is released
-    "GHSA-9965-vmph-33xx",
+    // https://github.com/nodeca/js-yaml/security/advisories/GHSA-mh29-5h37-fv8m
+    // Some packages still depend on js-yaml v3, so we have to allowlist it.
     "GHSA-mh29-5h37-fv8m",
   ],
 }

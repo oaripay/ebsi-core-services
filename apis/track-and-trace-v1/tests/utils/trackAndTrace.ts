@@ -2,6 +2,8 @@ import "@ebsiint-sc/track-and-trace/dist/hardhat.d.ts";
 
 import hre from "hardhat";
 
+import "@openzeppelin/hardhat-upgrades";
+
 import type { TrackAndTrace } from "@ebsiint-sc/track-and-trace";
 import type { HardhatEthersProvider } from "@nomicfoundation/hardhat-ethers/internal/hardhat-ethers-provider.js";
 import type { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers.js";

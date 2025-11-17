@@ -489,7 +489,7 @@ describe("Contract Factory System", function () {
       // Get the deployed proxy address from the event
       const event = receipt.logs.find(
         (log: { fragment: { name: string } }) =>
-          log.fragment && log.fragment.name === "ProxyDeployed",
+          log.fragment?.name === "ProxyDeployed",
       );
       const deployedProxyAddress = event.args[0];
 
@@ -544,10 +544,7 @@ describe("Contract Factory System", function () {
             return;
           }
         })
-        .find(
-          (parsed: { name: string }) =>
-            parsed && parsed.name === "ProxyDeployed",
-        );
+        .find((parsed: { name: string }) => parsed?.name === "ProxyDeployed");
 
       expect(proxyDeployedEvent).to.not.be.undefined;
       const helloWorldProxyAddress = proxyDeployedEvent.args[0];

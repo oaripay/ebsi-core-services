@@ -498,8 +498,7 @@ export class AuthorisationService {
       .filter((vMethod) => {
         return (
           didDocument.capabilityInvocation!.includes(vMethod.id) &&
-          vMethod.publicKeyJwk &&
-          vMethod.publicKeyJwk.crv === "secp256k1"
+          vMethod.publicKeyJwk?.crv === "secp256k1"
         );
       })
       .map((vMethod) => {
@@ -510,11 +509,7 @@ export class AuthorisationService {
       });
 
     for (const rel of didDocument.capabilityInvocation) {
-      if (
-        typeof rel !== "string" &&
-        rel.publicKeyJwk &&
-        rel.publicKeyJwk.crv === "secp256k1"
-      ) {
+      if (typeof rel !== "string" && rel.publicKeyJwk?.crv === "secp256k1") {
         const publicKeyHex = encode.publicKey.fromJWKToHex(rel.publicKeyJwk);
         addresses.push(ethers.computeAddress(`0x${publicKeyHex}`));
       }

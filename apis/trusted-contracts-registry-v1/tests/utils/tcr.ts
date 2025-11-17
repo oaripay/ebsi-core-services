@@ -2,6 +2,8 @@ import "@ebsiint-sc/trusted-contracts-registry-v1/dist/hardhat.d.ts";
 
 import hre from "hardhat";
 
+import "@openzeppelin/hardhat-upgrades";
+
 import type { ProxyFactory } from "@ebsiint-sc/trusted-contracts-registry-v1";
 import type { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers.js";
 
