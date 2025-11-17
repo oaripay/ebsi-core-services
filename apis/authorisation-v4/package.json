@@ -26,8 +26,8 @@
   },
   "dependencies": {
     "@cef-ebsi/ebsi-uri": "^1.0.1",
-    "@cef-ebsi/verifiable-credential": "^8.0.0-alpha.3",
-    "@cef-ebsi/verifiable-presentation": "^9.0.0-alpha.3",
+    "@cef-ebsi/verifiable-credential": "^8.0.0-alpha.4",
+    "@cef-ebsi/verifiable-presentation": "^9.0.0-alpha.4",
     "@cef-ebsi/wallet-lib": "^6.0.3-alpha.1",
     "@ebsiint-api/shared": "^1.1.0-rc.14",
     "@fastify/accepts": "^5.0.3",
@@ -60,6 +60,8 @@
     "zod": "^3.25.67"
   },
   "devDependencies": {
+    "@cef-ebsi/vcdm1.1-attestation-schema": "^2.0.0",
+    "@cef-ebsi/vcdm2.0-attestation-schema": "^2.1.0-next.0",
     "@nestjs/cli": "^11.0.10",
     "@nestjs/schematics": "^11.0.9",
     "@nestjs/testing": "^11.1.6",

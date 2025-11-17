@@ -31,12 +31,14 @@ export interface ApiConfig {
   // Test variables
   testAdminKid: string;
   testAdminPrivateKey: string;
-  testBitstringStatusListSchemaId: string;
+  testBitstringStatusList1SchemaId: string;
+  testBitstringStatusList2SchemaId: string;
   testIssuerWithProxyKid: string;
   testIssuerWithProxyPrivateKey: string;
   testSpecificNodeDomain: string | undefined;
   testStatusList2021SchemaId: string;
-  testVerifiableAttestationSchemaId: string;
+  testVerifiableAttestation1SchemaId: string;
+  testVerifiableAttestation2SchemaId: string;
   // TSR API (using in tests only)
   trustedSchemasRegistryApiUrl: string;
 }
@@ -120,16 +122,20 @@ export const loadConfig = () => {
     // Test vars
     testAdminKid: process.env.TEST_ADMIN_KID ?? "",
     testAdminPrivateKey: process.env.TEST_ADMIN_PRIVATE_KEY ?? "",
-    testBitstringStatusListSchemaId:
-      process.env.TEST_BITSTRING_STATUS_LIST_SCHEMA_ID ?? "",
+    testBitstringStatusList1SchemaId:
+      process.env.TEST_BITSTRING_STATUS_LIST_1_SCHEMA_ID ?? "",
+    testBitstringStatusList2SchemaId:
+      process.env.TEST_BITSTRING_STATUS_LIST_2_SCHEMA_ID ?? "",
     testIssuerWithProxyKid: process.env.TEST_ISSUER_WITH_PROXY_KID ?? "",
     testIssuerWithProxyPrivateKey:
       process.env.TEST_ISSUER_WITH_PROXY_PRIVATE_KEY ?? "",
     testSpecificNodeDomain: process.env.TEST_SPECIFIC_NODE_DOMAIN,
     testStatusList2021SchemaId:
       process.env.TEST_STATUS_LIST_2021_SCHEMA_ID ?? "",
-    testVerifiableAttestationSchemaId:
-      process.env.TEST_VERIFIABLE_ATTESTATION_SCHEMA_ID ?? "",
+    testVerifiableAttestation1SchemaId:
+      process.env.TEST_VERIFIABLE_ATTESTATION_1_SCHEMA_ID ?? "",
+    testVerifiableAttestation2SchemaId:
+      process.env.TEST_VERIFIABLE_ATTESTATION_2_SCHEMA_ID ?? "",
     // TSR API
     trustedSchemasRegistryApiUrl: `${DOMAIN}/trusted-schemas-registry/${RUNTIME_DEPENDENCIES["trusted-schemas-registry"]}`,
   } as const satisfies ApiConfig;
@@ -173,14 +179,16 @@ export const ApiConfigModule = ConfigModule.forRoot({
     // Test vars
     TEST_ADMIN_KID: Joi.string(),
     TEST_ADMIN_PRIVATE_KEY: Joi.string(),
-    TEST_BITSTRING_STATUS_LIST_SCHEMA_ID: Joi.string(),
+    TEST_BITSTRING_STATUS_LIST_1_SCHEMA_ID: Joi.string(),
+    TEST_BITSTRING_STATUS_LIST_2_SCHEMA_ID: Joi.string(),
     TEST_ENABLE_WRITE_OPS: Joi.string(),
     TEST_ENV: Joi.string(),
     TEST_ISSUER_WITH_PROXY_KID: Joi.string(),
     TEST_ISSUER_WITH_PROXY_PRIVATE_KEY: Joi.string(),
     TEST_SPECIFIC_NODE_DOMAIN: Joi.string().uri(),
     TEST_STATUS_LIST_2021_SCHEMA_ID: Joi.string(),
-    TEST_VERIFIABLE_ATTESTATION_SCHEMA_ID: Joi.string(),
+    TEST_VERIFIABLE_ATTESTATION_1_SCHEMA_ID: Joi.string(),
+    TEST_VERIFIABLE_ATTESTATION_2_SCHEMA_ID: Joi.string(),
     // Generic variables
     TZ: Joi.string(),
     // EBSI URI Scheme prefix
