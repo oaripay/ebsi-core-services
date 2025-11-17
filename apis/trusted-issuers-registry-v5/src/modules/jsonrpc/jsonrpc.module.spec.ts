@@ -199,12 +199,11 @@ describe.each(["StatusList2021", "BitstringStatusList"] as const)(
       tao1 = testEnv.issuers[1]!;
 
       // generate data for 3 issuers
-      issuers = [];
-      issuers.push(
+      issuers = [
         createIssuer(IssuerType.TI, tao1.did, tao1.attribute.id, rootTao.did),
         createIssuer(IssuerType.TI, tao1.did, tao1.attribute.id, rootTao.did),
         createIssuer(IssuerType.TI, tao1.did, tao1.attribute.id, rootTao.did),
-      );
+      ];
 
       tirContract = testEnv.tirContract;
       tirContractAddress = await tirContract.getAddress();

@@ -19,10 +19,10 @@
     "@ebsiint-sc/trusted-issuers-registry-v5": "^5.0.0-rc.0",
     "@ebsiint-sc/trusted-policies-registry-v3": "^3.0.0-rc.0",
     "@ebsiint-sc/trusted-schemas-registry-v3": "^3.0.0-rc.0",
-    "@graphprotocol/graph-ts": "0.38.0"
+    "@graphprotocol/graph-ts": "0.38.2"
   },
   "devDependencies": {
-    "@graphprotocol/graph-cli": "0.97.0",
+    "@graphprotocol/graph-cli": "0.98.1",
     "assemblyscript-json": "^1.1.0",
     "execa": "^8.0.1",
     "matchstick-as": "0.6.0"
