@@ -51,7 +51,7 @@
     "eslint-plugin-regexp": "^2.10.0",
     "eslint-plugin-unicorn": "^62.0.0",
     "eslint-plugin-vitest": "^0.5.4",
-    "glob": "^11.0.3",
+    "glob": "^11.1.0",
     "globals": "^16.5.0",
     "husky": "^9.1.7",
     "is-ci": "^4.1.0",
@@ -64,7 +64,7 @@
     "prettier-plugin-solidity": "^2.2.0",
     "read-pkg": "^9.0.1",
     "rimraf": "^6.1.0",
-    "solhint": "~5.0.2",
+    "solhint": "^5.0.5",
     "spdx-license-list": "^6.10.0",
     "typescript": "5.8.3",
     "typescript-eslint": "^8.46.4"
