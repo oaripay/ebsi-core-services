@@ -598,7 +598,7 @@ EUPL version.
 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
 
 ========================================================================================
-- @cef-ebsi/verifiable-credential@^8.0.0-alpha.3
+- @cef-ebsi/verifiable-credential@^8.0.0-alpha.4
 ------------------------------
 This project is licensed under EUPL-1.2.
 
@@ -1648,7 +1648,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ========================================================================================
-- @nestjs/common@^11.1.6
+- @nestjs/common@^11.1.9
 ------------------------------
 This project is licensed under MIT.
 
@@ -1711,7 +1711,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ========================================================================================
-- @nestjs/core@^11.1.6
+- @nestjs/core@^11.1.9
 ------------------------------
 This project is licensed under MIT.
 
@@ -1775,7 +1775,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ========================================================================================
-- @nestjs/platform-fastify@^11.1.6
+- @nestjs/platform-fastify@^11.1.9
 ------------------------------
 This project is licensed under MIT.
 
@@ -1839,7 +1839,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ========================================================================================
-- axios@^1.12.2
+- axios@^1.13.2
 ------------------------------
 This project is licensed under MIT.
 
@@ -2001,7 +2001,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ========================================================================================
-- joi@^17.13.3
+- joi@^18.0.2
 ------------------------------
 This project is licensed under BSD-3-Clause.
 
@@ -2053,7 +2053,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ========================================================================================
-- keyv@^5.5.3
+- keyv@^5.5.4
 ------------------------------
 This project is licensed under MIT.
 
@@ -2085,7 +2085,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ========================================================================================
-- nestjs-pino@^4.4.1
+- nestjs-pino@^4.5.0
 ------------------------------
 This project is licensed under MIT.
 
@@ -2146,7 +2146,7 @@ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ========================================================================================
-- pino@^10.0.0
+- pino@^10.1.0
 ------------------------------
 This project is licensed under MIT.
 
@@ -2306,7 +2306,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ========================================================================================
-- validator@^13.15.15
+- validator@^13.15.23
 ------------------------------
 This project is licensed under MIT.
 
@@ -2336,7 +2336,7 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ========================================================================================
-- yaml@^2.8.0
+- yaml@^2.8.2
 ------------------------------
 This project is licensed under ISC.
 

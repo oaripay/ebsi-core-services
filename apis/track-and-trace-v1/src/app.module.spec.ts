@@ -1,7 +1,5 @@
 import hre from "hardhat";
 
-import type { JWK } from "jose";
-
 import { util } from "@cef-ebsi/key-did-resolver";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { encode, setupInterceptors } from "@ebsiint-api/shared";
@@ -822,9 +820,7 @@ describe("App Module", () => {
       didKeyEventsCreatorWallet.publicKey,
     );
     const didKeyEventsCreator = {
-      did: util.createDid(
-        didKeyEventsCreatorPublicKeyJwk as JWK & { kty: string },
-      ),
+      did: util.createDid(didKeyEventsCreatorPublicKeyJwk),
       wallet: didKeyEventsCreatorWallet,
     } satisfies Actor;
 

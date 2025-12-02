@@ -79,8 +79,8 @@ export class IdentifiersService {
           id,
           undefined,
           error_.error &&
-          "code" in error_.error &&
-          typeof error_.error.code === "number"
+            "code" in error_.error &&
+            typeof error_.error.code === "number"
             ? error_.error.code
             : undefined,
         );

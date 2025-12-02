@@ -1,7 +1,7 @@
 import type { TrackAndTrace } from "@ebsiint-sc/track-and-trace";
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
-import type { GenerateKeyPairResult, JWK } from "jose";
+import type { GenerateKeyPairResult } from "jose";
 
 import { util } from "@cef-ebsi/key-did-resolver";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
@@ -115,7 +115,7 @@ describe("JSON-RPC Module", () => {
       tntCreate: "",
       tntWrite: "",
     },
-    did: util.createDid(user3PublicKeyJwk as JWK & { kty: string }),
+    did: util.createDid(user3PublicKeyJwk),
     wallet: user3Wallet,
   } satisfies UserDetails;
 

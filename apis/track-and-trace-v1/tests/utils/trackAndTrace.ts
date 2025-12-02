@@ -7,7 +7,6 @@ import "@openzeppelin/hardhat-upgrades";
 import type { TrackAndTrace } from "@ebsiint-sc/track-and-trace";
 import type { HardhatEthersProvider } from "@nomicfoundation/hardhat-ethers/internal/hardhat-ethers-provider.js";
 import type { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers.js";
-import type { JWK } from "jose";
 
 import "@nomicfoundation/hardhat-ethers";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
@@ -218,7 +217,7 @@ export async function setupTestEnv({
   const didKeyPublicKeyJwk = await exportJWK(didKeyPublicKey);
   const grantedDidKeyAccount = EbsiWallet.createDid(
     "NATURAL_PERSON",
-    didKeyPublicKeyJwk as JWK & { kty: string },
+    didKeyPublicKeyJwk,
   );
 
   // Deploy contract
