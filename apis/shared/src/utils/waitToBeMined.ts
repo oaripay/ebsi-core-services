@@ -8,8 +8,10 @@ import { parseRevertReason } from "./parseRevertReason.ts";
  * Overrides ethers.js' TransactionReceiptParams with properties returned by Besu
  * See https://besu.hyperledger.org/public-networks/reference/api/objects#transaction-receipt-object
  */
-export interface BesuTransactionReceipt
-  extends Omit<TransactionReceiptParams, "status"> {
+export interface BesuTransactionReceipt extends Omit<
+  TransactionReceiptParams,
+  "status"
+> {
   revertReason: string;
 
   status: "0x0" | "0x1" | "0x2"; // 0x0 (failure), 0x1 (success), or 0x2 (invalid)

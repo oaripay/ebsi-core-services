@@ -1,14 +1,14 @@
-import $RefParser from "@apidevtools/json-schema-ref-parser";
+import type { JSONSchema } from "@apidevtools/json-schema-ref-parser";
+
+import { bundle } from "@apidevtools/json-schema-ref-parser";
 import canonicalize from "canonicalize";
 import cloneDeep from "lodash.clonedeep";
 import crypto from "node:crypto";
 
-export async function computeId(
-  schema: $RefParser.JSONSchema,
-): Promise<Buffer> {
+export async function computeId(schema: JSONSchema): Promise<Buffer> {
   // 1. Bundle schema
   // Warning $RefParser.bundle mutates the object we pass to it, that's why we pass a clone
-  const bundledSchema = await $RefParser.bundle(cloneDeep(schema));
+  const bundledSchema = await bundle(cloneDeep(schema));
 
   // 2. Remove annotations
   const sanitizedDocument = removeAnnotations(bundledSchema);
@@ -29,11 +29,11 @@ export async function computeId(
 }
 
 export async function computeId__deprecated(
-  schema: $RefParser.JSONSchema,
+  schema: JSONSchema,
 ): Promise<Buffer> {
   // 1. Bundle schema
   // Warning $RefParser.bundle mutates the object we pass to it, that's why we pass a clone
-  const bundledSchema = await $RefParser.bundle(cloneDeep(schema));
+  const bundledSchema = await bundle(cloneDeep(schema));
 
   // 2. Remove annotations
   const sanitizedDocument = removeAnnotations(bundledSchema);
@@ -53,7 +53,7 @@ export async function computeId__deprecated(
   return hash;
 }
 
-function removeAnnotations(obj: $RefParser.JSONSchema) {
+function removeAnnotations(obj: JSONSchema) {
   /**
    * Lists of annotations keywords:
    * - https://json-schema.org/draft/2020-12/json-schema-validation.html#rfc.section.9
@@ -74,5 +74,5 @@ function removeAnnotations(obj: $RefParser.JSONSchema) {
     JSON.stringify(obj, (key, val: unknown) =>
       keysToRemove.has(key) ? undefined : val,
     ),
-  ) as $RefParser.JSONSchema;
+  ) as JSONSchema;
 }

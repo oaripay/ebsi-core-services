@@ -3,9 +3,4 @@
   "$schema": "https://github.com/IBM/audit-ci/raw/main/docs/schema.json",
   // Prevent integration with moderate or higher vulnerabilities.
   "moderate": true,
-  "allowlist": [
-    // https://github.com/nodeca/js-yaml/security/advisories/GHSA-mh29-5h37-fv8m
-    // Some packages still depend on js-yaml v3, so we have to allowlist it.
-    "GHSA-mh29-5h37-fv8m",
-  ],
 }

@@ -22,9 +22,8 @@ const source = readFileSync(
 
 const contents = Mustache.render(source, {
   trackAndTraceAbi: fileURLToPath(
-    import.meta.resolve(
-      "@ebsiint-sc/track-and-trace/src/abi/TrackAndTrace.json",
-    ),
+    import.meta
+      .resolve("@ebsiint-sc/track-and-trace/src/abi/TrackAndTrace.json"),
   ),
   trackAndTraceAddress: process.env["ESTAT_SC_V1_ADDRESS"],
   trackAndTraceStartBlock: Number.parseInt(

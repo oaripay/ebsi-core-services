@@ -95,9 +95,8 @@ const source = readFileSync(
 const trustedIssuersRegistryAbi = JSON.parse(
   readFileSync(
     fileURLToPath(
-      import.meta.resolve(
-        "@ebsiint-sc/trusted-issuers-registry-v5/src/abi/Tir.json",
-      ),
+      import.meta
+        .resolve("@ebsiint-sc/trusted-issuers-registry-v5/src/abi/Tir.json"),
     ),
   ).toString(),
 );
@@ -153,9 +152,8 @@ const contents = Mustache.render(source, {
   ),
   // TCR - Proxy Factory SC v1
   proxyFactoryAbi: fileURLToPath(
-    import.meta.resolve(
-      "@ebsiint-sc/trusted-contracts-registry-v1/src/abi/ProxyFactory.json",
-    ),
+    import.meta
+      .resolve("@ebsiint-sc/trusted-contracts-registry-v1/src/abi/ProxyFactory.json"),
   ),
   proxyFactoryAddress: process.env["PROXY_FACTORY_SC_V1_ADDRESS"],
   proxyFactoryStartBlock: Number.parseInt(
@@ -164,9 +162,8 @@ const contents = Mustache.render(source, {
   ),
   // TCR - Proxy Template Registry SC v1
   proxyTemplateRegistryAbi: fileURLToPath(
-    import.meta.resolve(
-      "@ebsiint-sc/trusted-contracts-registry-v1/src/abi/ProxyTemplateRegistry.json",
-    ),
+    import.meta
+      .resolve("@ebsiint-sc/trusted-contracts-registry-v1/src/abi/ProxyTemplateRegistry.json"),
   ),
   proxyTemplateRegistryAddress:
     process.env["PROXY_TEMPLATE_REGISTRY_SC_V1_ADDRESS"],
@@ -184,9 +181,8 @@ const contents = Mustache.render(source, {
     10,
   ),
   trackAndTraceAbi: fileURLToPath(
-    import.meta.resolve(
-      "@ebsiint-sc/track-and-trace/src/abi/TrackAndTrace.json",
-    ),
+    import.meta
+      .resolve("@ebsiint-sc/track-and-trace/src/abi/TrackAndTrace.json"),
   ),
   trackAndTraceAddress: process.env["TNT_SC_V1_ADDRESS"],
   trackAndTraceStartBlock: Number.parseInt(
@@ -200,9 +196,8 @@ const contents = Mustache.render(source, {
     10,
   ),
   trustedPoliciesRegistryAbi: fileURLToPath(
-    import.meta.resolve(
-      "@ebsiint-sc/trusted-policies-registry-v3/src/abi/PolicyRegistry.json",
-    ),
+    import.meta
+      .resolve("@ebsiint-sc/trusted-policies-registry-v3/src/abi/PolicyRegistry.json"),
   ),
   trustedPoliciesRegistryAddress: process.env["TPR_SC_V3_ADDRESS"],
   trustedPoliciesRegistryStartBlock: Number.parseInt(
@@ -210,9 +205,8 @@ const contents = Mustache.render(source, {
     10,
   ),
   trustedSchemasRegistryAbi: fileURLToPath(
-    import.meta.resolve(
-      "@ebsiint-sc/trusted-schemas-registry-v3/src/abi/SchemaSCRegistry.json",
-    ),
+    import.meta
+      .resolve("@ebsiint-sc/trusted-schemas-registry-v3/src/abi/SchemaSCRegistry.json"),
   ),
   trustedSchemasRegistryAddress: process.env["TSR_SC_V3_ADDRESS"],
   trustedSchemasRegistryStartBlock: Number.parseInt(
