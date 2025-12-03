@@ -14,6 +14,7 @@ import {
   BadRequestException,
   Catch,
   ForbiddenException,
+  HttpException,
   Logger,
   NotFoundException,
   ServiceUnavailableException,
@@ -73,6 +74,14 @@ function getProblemDetailsError(
     // Map to Problem Details error
     return new BadRequestError(BadRequestError.defaultTitle, {
       detail,
+    });
+  }
+
+  if (error instanceof HttpException) {
+    logger.error(error.message, error.stack);
+
+    return new ProblemDetailsError(error.getStatus(), error.message, {
+      detail: error.message,
     });
   }
 

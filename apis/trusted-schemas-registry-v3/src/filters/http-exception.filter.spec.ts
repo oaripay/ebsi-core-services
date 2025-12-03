@@ -5,7 +5,11 @@ import {
   MethodNotAllowedError,
   ProblemDetailsError,
 } from "@ebsiint-api/shared";
-import { BadRequestException, NotFoundException } from "@nestjs/common";
+import {
+  BadRequestException,
+  HttpException,
+  NotFoundException,
+} from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { AxiosError } from "axios";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
@@ -150,6 +154,24 @@ describe("All exception filter tests", () => {
           "The server encountered an internal error and was unable to complete your request",
         status: 500,
         title: "Internal Server Error",
+        type: "about:blank",
+      },
+      type: "application/problem+json",
+    });
+  });
+
+  it("should handle custom HttpException with specific status code", () => {
+    const errorMessage = "Unsupported Media Type: bad-x-www-form-urlencoded";
+    const statusCode = 415;
+    const exception = new HttpException(errorMessage, statusCode);
+    const response = service.catch(exception, mockArgumentsHost);
+    expect(response).toStrictEqual({
+      code: statusCode,
+      headers: {},
+      send: {
+        detail: errorMessage,
+        status: statusCode,
+        title: errorMessage,
         type: "about:blank",
       },
       type: "application/problem+json",

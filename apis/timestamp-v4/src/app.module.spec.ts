@@ -655,6 +655,29 @@ describe("App Module", () => {
         await app.close();
       });
     });
+
+    describe("POST /jsonrpc", () => {
+      it("should return error with wrong content-type", async () => {
+        expect.assertions(2);
+
+        const app = await startApp();
+        const server = app.getHttpServer();
+
+        const response = await request(server)
+          .post("/jsonrpc")
+          .set("Content-Type", "bad-content-type")
+          .send();
+
+        expect(response.status).toBe(415);
+        expect(response.body).toStrictEqual({
+          detail: "Unsupported Media Type: bad-content-type",
+          status: 415,
+          title: "Unsupported Media Type: bad-content-type",
+          type: "about:blank",
+        });
+        await app.close();
+      });
+    });
   });
 
   describe("Version with multiple hashes", () => {
