@@ -1,6 +1,7 @@
 import type { JSONSchema } from "@apidevtools/json-schema-ref-parser";
 
 import { bundle } from "@apidevtools/json-schema-ref-parser";
+import { bundle as bundle__deprecated } from "@cef-ebsi/json-schema-ref-parser";
 import canonicalize from "canonicalize";
 import cloneDeep from "lodash.clonedeep";
 import crypto from "node:crypto";
@@ -30,10 +31,11 @@ export async function computeId(schema: JSONSchema): Promise<Buffer> {
 
 export async function computeId__deprecated(
   schema: JSONSchema,
+  doubleStringify: boolean,
 ): Promise<Buffer> {
   // 1. Bundle schema
   // Warning $RefParser.bundle mutates the object we pass to it, that's why we pass a clone
-  const bundledSchema = await bundle(cloneDeep(schema));
+  const bundledSchema = await bundle__deprecated(cloneDeep(schema));
 
   // 2. Remove annotations
   const sanitizedDocument = removeAnnotations(bundledSchema);
@@ -47,7 +49,12 @@ export async function computeId__deprecated(
   // 4. Compute sha256 of the stringified JSON document
   const hash = crypto
     .createHash("sha256")
-    .update(JSON.stringify(canonicalizedDocument), "utf8")
+    .update(
+      doubleStringify === true
+        ? JSON.stringify(canonicalizedDocument)
+        : canonicalizedDocument,
+      "utf8",
+    )
     .digest();
 
   return hash;

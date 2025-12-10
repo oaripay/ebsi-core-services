@@ -106,6 +106,7 @@
     "emptyHostname": false,
     "validatePackageNames": true,
     "allowedPackageNameAliases": [
+      "@cef-ebsi/json-schema-ref-parser:@apidevtools/json-schema-ref-parser",
       "string-width-cjs:string-width",
       "strip-ansi-cjs:strip-ansi",
       "wrap-ansi-cjs:wrap-ansi"

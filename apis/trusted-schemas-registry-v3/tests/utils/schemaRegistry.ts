@@ -78,13 +78,20 @@ export async function deploySchemasRegistryContract(): Promise<{
 
 export async function insertSchema(
   contract: SchemaSCRegistry,
-  schemaIdType: "deprecated" | "fixed",
+  schemaIdType:
+    | "deprecated (invalid $ref, document ok)"
+    | "deprecated (invalid $ref, document stringified twice)"
+    | "fixed",
 ): Promise<SchemaObject> {
   const schema = createSchema();
   const schemaIdBuffer =
     schemaIdType === "fixed"
       ? await computeId(schema)
-      : await computeId__deprecated(schema);
+      : await computeId__deprecated(
+          schema,
+          schemaIdType ===
+            "deprecated (invalid $ref, document stringified twice)",
+        );
   const schemaId = `0x${schemaIdBuffer.toString("hex")}`;
 
   const serializedSchema = Buffer.from(JSON.stringify(schema));
@@ -109,7 +116,10 @@ export async function insertSchema(
 }
 
 export async function setupTestEnv(
-  schemaIdType: "deprecated" | "fixed",
+  schemaIdType:
+    | "deprecated (invalid $ref, document ok)"
+    | "deprecated (invalid $ref, document stringified twice)"
+    | "fixed",
   opts?: SetupOptions,
 ): Promise<{
   policyContractMock: PolicyRegistryMock;
