@@ -23,13 +23,15 @@ const validateSchemaId = async (
 
   // 2. Compute schema ID
   const schemaId = await computeId(jsonSchema);
-  const schemaId__deprecated = await computeId__deprecated(jsonSchema);
+  const schemaId__deprecated = await computeId__deprecated(jsonSchema, false);
+  const schemaId__deprecated2 = await computeId__deprecated(jsonSchema, true);
   const actualSchemaId = prefixWith0x(schemaId.toString("hex"));
 
   // 3. Compare
   if (
     actualSchemaId !== expectedSchemaId &&
-    prefixWith0x(schemaId__deprecated.toString("hex")) !== expectedSchemaId
+    prefixWith0x(schemaId__deprecated.toString("hex")) !== expectedSchemaId &&
+    prefixWith0x(schemaId__deprecated2.toString("hex")) !== expectedSchemaId
   ) {
     return {
       error: `"${expectedSchemaId}" is different from the actual schema ID "${actualSchemaId}"`,
