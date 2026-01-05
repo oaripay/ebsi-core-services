@@ -288,6 +288,9 @@ export default defineConfig(
       // Disable using nullish coalescing operator (`??=`)
       "@typescript-eslint/prefer-nullish-coalescing": "off",
 
+      // Disable optional chaining
+      "@typescript-eslint/prefer-optional-chain": "off",
+
       // Different behavior in AssemblyScript.
       // Remove rule when AssemblyScript version >= 0.20 in graph-tooling
       // https://github.com/graphprotocol/graph-tooling/issues/1187
