@@ -1,7 +1,7 @@
 EBSI
 
 ========================================================================================
-Copyright (C) 2025 European Union
+Copyright (C) 2026 European Union
 
                       EUROPEAN UNION PUBLIC LICENCE v. 1.2
                       EUPL © the European Union 2007, 2016
@@ -1495,7 +1495,7 @@ EUPL version.
 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
 
 ========================================================================================
-- @fastify/accepts@^5.0.3
+- @fastify/accepts@^5.0.4
 ------------------------------
 This project is licensed under MIT.
 
@@ -1617,7 +1617,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ========================================================================================
-- @nestjs/cache-manager@^3.0.1
+- @nestjs/cache-manager@^3.1.0
 ------------------------------
 This project is licensed under MIT.
 
@@ -1648,7 +1648,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ========================================================================================
-- @nestjs/common@^11.1.9
+- @nestjs/common@^11.1.11
 ------------------------------
 This project is licensed under MIT.
 
@@ -1711,7 +1711,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ========================================================================================
-- @nestjs/core@^11.1.9
+- @nestjs/core@^11.1.11
 ------------------------------
 This project is licensed under MIT.
 
@@ -1775,7 +1775,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ========================================================================================
-- @nestjs/platform-fastify@^11.1.9
+- @nestjs/platform-fastify@^11.1.11
 ------------------------------
 This project is licensed under MIT.
 
@@ -1970,7 +1970,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 ========================================================================================
-- ethers@^6.15.0
+- ethers@^6.16.0
 ------------------------------
 This project is licensed under MIT.
 
@@ -2053,7 +2053,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ========================================================================================
-- keyv@^5.5.4
+- keyv@^5.5.5
 ------------------------------
 This project is licensed under MIT.
 
@@ -2306,7 +2306,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ========================================================================================
-- validator@^13.15.23
+- validator@^13.15.26
 ------------------------------
 This project is licensed under MIT.
 

@@ -33,7 +33,7 @@
     "ethers": "^6.14.4",
     "hardhat": "^2.26.1",
     "hardhat-abi-exporter": "^2.11.0",
-    "solidity-coverage": "^0.8.16",
+    "solidity-coverage": "^0.8.17",
     "ts-node": "^10.9.2",
     "typechain": "^8.3.2"
   },

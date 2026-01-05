@@ -68,6 +68,7 @@ function removeAnnotations(obj: JSONSchema) {
    * - https://json-schema.org/draft-07/json-schema-validation.html#rfc.section.10
    */
   const keysToRemove = new Set([
+    "$comment",
     "default",
     "deprecated",
     "description",
