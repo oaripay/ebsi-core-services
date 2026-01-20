@@ -24,7 +24,10 @@ import type {
   IssuerResponseObject__deprecated,
 } from "./issuers.interface.ts";
 
-import { checkBitstringStatusListCredential } from "../../shared/validators/isBitstringStatusListCredential.ts";
+import {
+  checkVcdm11BitstringStatusListCredential,
+  checkVcdm20BitstringStatusListCredential,
+} from "../../shared/validators/isBitstringStatusListCredential.ts";
 import { checkStatusList2021Credential } from "../../shared/validators/isStatusList2021Credential.ts";
 import { LedgerService } from "../ledger/ledger.service.ts";
 import { IssuerTypeNames } from "./issuers.constants.ts";
@@ -560,13 +563,44 @@ export class IssuersService {
       });
     }
 
+    let vcdmVersion: "1.1" | "2.0";
+    let vcType: unknown[];
+
     if (
-      !("vc" in payload) ||
-      typeof payload["vc"] !== "object" ||
-      !payload["vc"] ||
-      !("type" in payload["vc"]) ||
-      !Array.isArray(payload["vc"].type)
+      "vc" in payload &&
+      typeof payload["vc"] === "object" &&
+      payload["vc"] &&
+      "@context" in payload["vc"] &&
+      Array.isArray(payload["vc"]["@context"]) &&
+      payload["vc"]["@context"][0] === "https://www.w3.org/2018/credentials/v1"
     ) {
+      vcdmVersion = "1.1";
+
+      if (!("type" in payload["vc"]) || !Array.isArray(payload["vc"].type)) {
+        throw new InternalServerError("Invalid Status List Credential", {
+          detail:
+            "The Status List Credential returned by the Issuer's proxy is not a VC JWT",
+        });
+      }
+
+      vcType = payload["vc"].type;
+    } else if (
+      "@context" in payload &&
+      Array.isArray(payload["@context"]) &&
+      payload["@context"][0] === "https://www.w3.org/ns/credentials/v2"
+    ) {
+      vcdmVersion = "2.0";
+
+      if (!("type" in payload) || !Array.isArray(payload["type"])) {
+        throw new InternalServerError("Invalid Status List Credential", {
+          detail:
+            "The Status List Credential returned by the Issuer's proxy is not a VC JWT",
+        });
+      }
+
+      vcType = payload["type"];
+    } else {
+      this.logger.error(`Unable to infer VCDM version in VP JWT ${res.data}`);
       throw new InternalServerError("Invalid Status List Credential", {
         detail:
           "The Status List Credential returned by the Issuer's proxy is not a VC JWT",
@@ -574,8 +608,8 @@ export class IssuersService {
     }
 
     if (
-      !payload["vc"].type.includes("StatusList2021Credential") &&
-      !payload["vc"].type.includes("BitstringStatusListCredential")
+      !vcType.includes("StatusList2021Credential") &&
+      !vcType.includes("BitstringStatusListCredential")
     ) {
       throw new InternalServerError("Invalid Status List Credential", {
         detail:
@@ -584,8 +618,10 @@ export class IssuersService {
     }
 
     const statusListValidation = await (
-      payload["vc"].type.includes("BitstringStatusListCredential")
-        ? checkBitstringStatusListCredential
+      vcType.includes("BitstringStatusListCredential")
+        ? vcdmVersion === "1.1"
+          ? checkVcdm11BitstringStatusListCredential
+          : checkVcdm20BitstringStatusListCredential
         : checkStatusList2021Credential
     )(res.data, this.ebsiEnvConfig, reqId);
 

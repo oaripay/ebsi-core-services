@@ -19,7 +19,7 @@
     "deploy-box": "yarn clean && yarn compile && yarn box"
   },
   "dependencies": {
-    "@cef-ebsi/wallet-lib": "^6.0.3-alpha.1",
+    "@cef-ebsi/wallet-lib": "^6.0.3-alpha.3",
     "@ebsiint-sc/bootstrap-v2": "^2.0.0-rc.8",
     "@ebsiint-sc/did-registry-v5": "^5.0.0-rc.0",
     "@ebsiint-sc/proxy": "^2.0.0-rc.12",
@@ -30,7 +30,7 @@
     "@openzeppelin/contracts": "^4.9.6",
     "@openzeppelin/contracts-upgradeable": "^4.9.6",
     "elliptic": "^6.5.5",
-    "multiformats": "^9.6.2"
+    "multiformats": "^13.4.2"
   },
   "devDependencies": {
     "@cef-ebsi/vcdm1.1-accreditation-schema": "^2.0.0",
@@ -88,7 +88,7 @@
     "@nomiclabs/hardhat-solhint": "^4.1.0",
     "@openzeppelin/hardhat-upgrades": "^3.9.1",
     "@types/elliptic": "^6.4.18",
-    "@types/node": "^22.17.0",
+    "@types/node": "^24.10.9",
     "canonicalize": "^2.0.0",
     "dotenv": "^17.2.3",
     "ethers": "^6.14.4",
@@ -97,7 +97,6 @@
     "hardhat-deploy": "^0.14.0",
     "hardhat-deploy-ethers": "^0.4.2",
     "jose": "^5.10.0",
-    "ts-node": "^10.9.2",
     "typechain": "^8.3.2"
   },
   "nx": {

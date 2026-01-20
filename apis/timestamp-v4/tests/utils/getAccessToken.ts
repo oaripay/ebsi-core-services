@@ -1,7 +1,9 @@
-import type { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
-import type { EbsiIssuer } from "@cef-ebsi/verifiable-presentation";
+import type {
+  EbsiEnvConfiguration,
+  EbsiIssuer,
+} from "@cef-ebsi/verifiable-credential";
 
-import { createVerifiablePresentationJwt } from "@cef-ebsi/verifiable-presentation";
+import { createVerifiablePresentationJwt } from "@cef-ebsi/verifiable-presentation/vcdm11.js";
 import axios, { isAxiosError } from "axios";
 import { randomUUID } from "node:crypto";
 import { URLSearchParams } from "node:url";

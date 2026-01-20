@@ -1,13 +1,9 @@
-import type {
-  EbsiBitstringStatusListCredential,
-  EbsiStatusList2021Credential,
-  EbsiVerifiableAttestation,
-} from "@cef-ebsi/verifiable-credential";
+import type { Schemas } from "@cef-ebsi/verifiable-credential/vcdm11.js";
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { AxiosResponse } from "axios";
 import type { RawServerDefault } from "fastify";
 
-import * as vcLib from "@cef-ebsi/verifiable-credential";
+import * as vcLib from "@cef-ebsi/verifiable-credential/vcdm11.js";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { remove0xPrefix } from "@ebsiint-api/shared";
 import { Tir__factory } from "@ebsiint-sc/trusted-issuers-registry-v5";
@@ -28,10 +24,10 @@ import { IssuersModule } from "./issuers.module.ts";
 
 const ISSUERS_TOTAL = 12;
 
-vi.mock("@cef-ebsi/verifiable-credential", async () => {
+vi.mock("@cef-ebsi/verifiable-credential/vcdm11.js", async () => {
   const mod = await vi.importActual<
-    typeof import("@cef-ebsi/verifiable-credential")
-  >("@cef-ebsi/verifiable-credential");
+    typeof import("@cef-ebsi/verifiable-credential/vcdm11.js")
+  >("@cef-ebsi/verifiable-credential/vcdm11.js");
 
   return {
     ...mod,
@@ -1174,7 +1170,7 @@ describe("Issuers Module", () => {
                   "StatusList2021Credential",
                 ],
                 validFrom: "2021-04-05T14:27:40Z",
-              } as const satisfies EbsiStatusList2021Credential)
+              } as const satisfies Schemas["StatusList2021Credential"])
             : ({
                 "@context": ["https://www.w3.org/2018/credentials/v1"],
                 credentialSchema: {
@@ -1198,7 +1194,7 @@ describe("Issuers Module", () => {
                   "BitstringStatusListCredential",
                 ],
                 validFrom: "2021-04-05T14:27:40Z",
-              } as const satisfies EbsiBitstringStatusListCredential);
+              } as const satisfies Schemas["BitstringStatusListCredential"]);
 
         const { privateKey } = await generateKeyPair("ES256");
         const jwt = await new SignJWT({ vc: vcPayload })
@@ -1300,7 +1296,7 @@ describe("Issuers Module", () => {
           "StatusList2021Credential",
         ],
         validFrom: "2021-04-05T14:27:40Z",
-      } as const satisfies EbsiVerifiableAttestation;
+      } as const satisfies Schemas["Attestation"];
 
       const { privateKey } = await generateKeyPair("ES256");
       const jwt = await new SignJWT({ vc: vcPayload })

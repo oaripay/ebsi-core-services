@@ -1,9 +1,9 @@
 import type { EbsiIssuer } from "@cef-ebsi/verifiable-credential";
 
+import { hexToBytes } from "@cef-ebsi/did-jwt";
 import { util } from "@cef-ebsi/key-did-resolver";
 import { encode, getSigner, waitToBeMined } from "@ebsiint-api/shared";
 import { ConfigService } from "@nestjs/config";
-import { hexToBytes } from "did-jwt";
 import { ethers } from "ethers";
 import { randomBytes } from "node:crypto";
 import request from "supertest";

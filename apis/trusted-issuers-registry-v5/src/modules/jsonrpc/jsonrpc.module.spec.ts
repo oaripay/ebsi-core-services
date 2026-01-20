@@ -1,15 +1,13 @@
-import type {
-  EbsiIssuer,
-  EbsiVerifiableAttestation,
-} from "@cef-ebsi/verifiable-credential";
+import type { EbsiIssuer } from "@cef-ebsi/verifiable-credential";
+import type { Schemas } from "@cef-ebsi/verifiable-credential/vcdm11.js";
 import type { Tir } from "@ebsiint-sc/trusted-issuers-registry-v5";
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 import type { GenerateKeyPairResult } from "jose";
 import type { MockInstance } from "vitest";
 
-import * as vcLib from "@cef-ebsi/verifiable-credential";
-import { createVerifiableCredentialJwt } from "@cef-ebsi/verifiable-credential";
+import * as vcLib from "@cef-ebsi/verifiable-credential/vcdm11.js";
+import { createVerifiableCredentialJwt } from "@cef-ebsi/verifiable-credential/vcdm11.js";
 import {
   generatePrivateKey,
   getPublicKeyJwk,
@@ -79,10 +77,10 @@ function escapeDid(url: string) {
   return url.replace("did:ebsi:", String.raw`did\:ebsi\:`);
 }
 
-vi.mock("@cef-ebsi/verifiable-credential", async () => {
+vi.mock("@cef-ebsi/verifiable-credential/vcdm11.js", async () => {
   const mod = await vi.importActual<
-    typeof import("@cef-ebsi/verifiable-credential")
-  >("@cef-ebsi/verifiable-credential");
+    typeof import("@cef-ebsi/verifiable-credential/vcdm11.js")
+  >("@cef-ebsi/verifiable-credential/vcdm11.js");
 
   return {
     ...mod,
@@ -108,7 +106,7 @@ describe.each(["StatusList2021", "BitstringStatusList"] as const)(
     let authApiKid: string;
     let configService: ConfigService<ApiConfig, true>;
     let statusListCredentialJwt: string;
-    let statusListCredentialPayload: EbsiVerifiableAttestation;
+    let statusListCredentialPayload: Schemas["Attestation"];
 
     const mockServer = setupServer();
 

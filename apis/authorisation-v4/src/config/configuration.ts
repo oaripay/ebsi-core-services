@@ -1,4 +1,4 @@
-import type { EbsiVpEnvConfiguration } from "@cef-ebsi/verifiable-presentation";
+import type { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-presentation";
 
 import { ConfigModule } from "@nestjs/config";
 import Joi from "joi";
@@ -21,7 +21,7 @@ export interface ApiConfig {
   didRegistry: string;
   dockerContainerTag: string;
   domain: string;
-  ebsiEnvConfig: EbsiVpEnvConfiguration;
+  ebsiEnvConfig: EbsiEnvConfiguration;
   estatAccessesEndpoint: string | undefined;
   localOrigin: string | undefined;
   logLevel: "debug" | "error" | "info" | "silent" | "verbose" | "warn";
@@ -42,7 +42,7 @@ export interface ApiConfig {
   trustedPoliciesRegistry: string;
 }
 
-type Services = EbsiVpEnvConfiguration["services"] & {
+type Services = EbsiEnvConfiguration["services"] & {
   "track-and-trace": `v${number}`;
   "trusted-contracts-registry": `v${number}`;
 };
@@ -77,7 +77,7 @@ export const loadConfig = () => {
     },
     scheme: URI_SCHEME ?? "ebsi",
     services: DEPENDENCIES,
-  } as const satisfies EbsiVpEnvConfiguration;
+  } as const satisfies EbsiEnvConfiguration;
 
   return {
     apiES256PrivateKey: process.env.API_ES256_PRIVATE_KEY,

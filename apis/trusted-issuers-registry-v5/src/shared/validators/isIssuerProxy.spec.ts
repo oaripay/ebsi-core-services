@@ -281,7 +281,13 @@ describe("isIssuerProxy", () => {
     );
     vi.spyOn(
       BitstringStatusListCredentialHelpers,
-      "checkBitstringStatusListCredential",
+      "checkVcdm11BitstringStatusListCredential",
+    ).mockImplementation(() =>
+      Promise.resolve({ error: "error", success: false }),
+    );
+    vi.spyOn(
+      BitstringStatusListCredentialHelpers,
+      "checkVcdm20BitstringStatusListCredential",
     ).mockImplementation(() =>
       Promise.resolve({ error: "error", success: false }),
     );
@@ -326,7 +332,7 @@ describe("isIssuerProxy", () => {
       success: true,
     });
 
-    // Now let's assume that the status list returned by the issuer is not a valid StatusList2021Credential, but is a valid BitstringStatusListCredential
+    // Now let's assume that the status list returned by the issuer is not a valid StatusList2021Credential, but is a valid BitstringStatusListCredential (VCDM 1.1)
     vi.spyOn(
       StatusList2021CredentialHelpers,
       "checkStatusList2021Credential",
@@ -335,7 +341,36 @@ describe("isIssuerProxy", () => {
     );
     vi.spyOn(
       BitstringStatusListCredentialHelpers,
-      "checkBitstringStatusListCredential",
+      "checkVcdm11BitstringStatusListCredential",
+    ).mockImplementation(() => Promise.resolve({ success: true }));
+
+    result = await isIssuerProxy(
+      JSON.stringify(proxy),
+      ebsiEnvConfig,
+      "reqId",
+      10,
+    );
+
+    expect(result).toStrictEqual({
+      success: true,
+    });
+
+    // Finally let's assume that the status list returned by the issuer is not a valid StatusList2021Credential, but is a valid BitstringStatusListCredential (VCDM 2.0)
+    vi.spyOn(
+      StatusList2021CredentialHelpers,
+      "checkStatusList2021Credential",
+    ).mockImplementation(() =>
+      Promise.resolve({ error: "error", success: false }),
+    );
+    vi.spyOn(
+      BitstringStatusListCredentialHelpers,
+      "checkVcdm11BitstringStatusListCredential",
+    ).mockImplementation(() =>
+      Promise.resolve({ error: "error", success: false }),
+    );
+    vi.spyOn(
+      BitstringStatusListCredentialHelpers,
+      "checkVcdm20BitstringStatusListCredential",
     ).mockImplementation(() => Promise.resolve({ success: true }));
 
     result = await isIssuerProxy(

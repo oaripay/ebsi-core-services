@@ -4,9 +4,9 @@ import type { EbsiIssuer } from "@cef-ebsi/verifiable-credential";
  */
 import type { DIDDocument } from "did-resolver";
 
+import { hexToBytes } from "@cef-ebsi/did-jwt";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { getPublicKeyJwk, getSigner } from "@ebsiint-api/shared";
-import { hexToBytes } from "did-jwt";
 import { ethers } from "ethers";
 
 export interface UserDetails extends EbsiIssuer {

@@ -2,10 +2,10 @@
 **/.env*.local
 
 **/*.md
-**/LICENSE
+**/LICENSE.txt
+**/LICENSES.txt
 **/Dockerfile
 yarn-error.log
-JenkinsfileTest
 .nx
 
 ## APIs
@@ -13,6 +13,7 @@ apis/*/coverage
 apis/*/dist
 
 ## Contracts
+contracts/admin-scripts
 contracts/*/artifacts
 contracts/*/cache
 contracts/*/dist

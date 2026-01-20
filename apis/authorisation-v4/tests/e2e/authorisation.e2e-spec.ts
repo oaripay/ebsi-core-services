@@ -1,21 +1,25 @@
 import type {
   EbsiEnvConfiguration,
   EbsiIssuer,
-  EbsiVerifiableAttestation,
 } from "@cef-ebsi/verifiable-credential";
-import type { EbsiVerifiablePresentation } from "@cef-ebsi/verifiable-presentation";
+import type { Schemas } from "@cef-ebsi/verifiable-presentation/vcdm11.js";
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { PresentationSubmission } from "@sphereon/pex-models";
 import type { RawServerDefault } from "fastify";
 import type { JWK } from "jose";
 
+import {
+  createJWT,
+  decodeJWT,
+  ES256KSigner,
+  hexToBytes,
+} from "@cef-ebsi/did-jwt";
 import { fromUrl } from "@cef-ebsi/ebsi-uri";
-import { createVerifiableCredentialJwt } from "@cef-ebsi/verifiable-credential";
-import { createVerifiablePresentationJwt } from "@cef-ebsi/verifiable-presentation";
+import { createVerifiableCredentialJwt } from "@cef-ebsi/verifiable-credential/vcdm11.js";
+import { createVerifiablePresentationJwt } from "@cef-ebsi/verifiable-presentation/vcdm11.js";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { getSigner } from "@ebsiint-api/shared";
 import { ConfigService } from "@nestjs/config";
-import { createJWT, decodeJWT, ES256KSigner, hexToBytes } from "did-jwt";
 import { calculateJwkThumbprint, importJWK, jwtVerify } from "jose";
 import { randomBytes, randomUUID } from "node:crypto";
 import { URLSearchParams } from "node:url";
@@ -408,8 +412,8 @@ describe("Authorisation  API v4 (e2e)", () => {
               (vpFormat, vcFormat) => {
                 let issuer: EbsiIssuer;
                 let client: EbsiIssuer;
-                let vcPayload: EbsiVerifiableAttestation;
-                let vpPayload: EbsiVerifiablePresentation;
+                let vcPayload: Schemas["Attestation"];
+                let vpPayload: Schemas["Presentation"];
                 let presentationSubmission: PresentationSubmission;
                 let issuanceDate: Date;
                 let expirationDate: Date;
@@ -696,10 +700,9 @@ describe("Authorisation  API v4 (e2e)", () => {
                     const vpJwtDecoded = decodeJWT(vpJwt);
                     const anotherDid = EbsiWallet.createDid();
                     vpJwtDecoded.payload.sub = anotherDid;
-                    const vpTokenTampered = await createJWT(
+                    const vpTokenTampered = createJWT(
                       vpJwtDecoded.payload,
                       {
-                        issuer: vpJwtDecoded.payload.iss!,
                         signer: ES256KSigner(randomBytes(32)),
                       },
                       {
@@ -999,7 +1002,7 @@ describe("Authorisation  API v4 (e2e)", () => {
                     }
 
                     // Create VP JWT manually
-                    const vpJwt = await createJWT(
+                    const vpJwt = createJWT(
                       {
                         aud: authorisationApiV4Url,
                         exp: Math.floor(Date.now() / 1000) + 60, // Expires in 1 minute (less than the 5 minutes limit)
@@ -1011,7 +1014,6 @@ describe("Authorisation  API v4 (e2e)", () => {
                         vp: vpPayload,
                       },
                       {
-                        issuer: client.did,
                         signer: client.signer,
                       },
                       {

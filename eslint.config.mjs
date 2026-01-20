@@ -145,19 +145,21 @@ export default defineConfig(
       "perfectionist/sort-imports": [
         "error",
         {
-          customGroups: {
-            type: { hardhat: "^hardhat(?:/.*)?$" },
-            value: { hardhat: "^hardhat(?:/.*)?$" },
-          },
+          customGroups: [
+            {
+              groupName: "hardhat",
+              elementNamePattern: ["^hardhat(?:/.*)?$"],
+            },
+          ],
           groups: [
             "hardhat",
-            "type",
-            ["builtin", "external"],
-            "internal-type",
-            "internal",
-            ["parent-type", "sibling-type", "index-type"],
-            ["parent", "sibling", "index"],
-            "object",
+            "type-import",
+            ["value-builtin", "value-external"],
+            "type-internal",
+            "value-internal",
+            ["type-parent", "type-sibling", "type-index"],
+            ["value-parent", "value-sibling", "value-index"],
+            "ts-equals-import",
             "unknown",
           ],
         },
@@ -194,19 +196,21 @@ export default defineConfig(
       "perfectionist/sort-imports": [
         "error",
         {
-          customGroups: {
-            type: { hardhat: "^hardhat(?:/.*)?$" },
-            value: { hardhat: "^hardhat(?:/.*)?$" },
-          },
+          customGroups: [
+            {
+              groupName: "hardhat",
+              elementNamePattern: ["^hardhat(?:/.*)?$"],
+            },
+          ],
           groups: [
             "hardhat",
-            "type",
-            ["builtin", "external"],
-            "internal-type",
-            "internal",
-            ["parent-type", "sibling-type", "index-type"],
-            ["parent", "sibling", "index"],
-            "object",
+            "type-import",
+            ["value-builtin", "value-external"],
+            "type-internal",
+            "value-internal",
+            ["type-parent", "type-sibling", "type-index"],
+            ["value-parent", "value-sibling", "value-index"],
+            "ts-equals-import",
             "unknown",
           ],
         },
