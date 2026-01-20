@@ -1,10 +1,12 @@
-import type { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
-import type { EbsiIssuer } from "@cef-ebsi/verifiable-presentation";
+import type {
+  EbsiEnvConfiguration,
+  EbsiIssuer,
+} from "@cef-ebsi/verifiable-credential";
 
-import { createVerifiablePresentationJwt } from "@cef-ebsi/verifiable-presentation";
+import { createJWT, hexToBytes } from "@cef-ebsi/did-jwt";
+import { createVerifiablePresentationJwt } from "@cef-ebsi/verifiable-presentation/vcdm11.js";
 import { getPublicKeyJwk, getSigner } from "@ebsiint-api/shared";
 import axios from "axios";
-import { createJWT, hexToBytes } from "did-jwt";
 import { randomUUID } from "node:crypto";
 import { URLSearchParams } from "node:url";
 
@@ -19,13 +21,13 @@ export async function getDidrInviteAccessToken(
   const authApiPrivateKey = hexToBytes(authApiV3ES256PrivateKey);
   const { kid: authApiKid } = await getPublicKeyJwk(authApiPrivateKey, "ES256");
 
-  const newUserAccessToken = await createJWT(
+  const newUserAccessToken = createJWT(
     {
+      iss: authApiKid,
       scp: "openid didr_invite",
       sub: did,
     },
     {
-      issuer: authApiKid,
       signer: getSigner(authApiPrivateKey, "ES256"),
     },
     {

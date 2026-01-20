@@ -2,17 +2,20 @@ import type {
   EbsiEnvConfiguration,
   EbsiIssuer,
 } from "@cef-ebsi/verifiable-credential";
+import type { Schemas as VCDM11Schemas } from "@cef-ebsi/verifiable-credential/vcdm11.js";
+import type { Schemas as VCDM20Schemas } from "@cef-ebsi/verifiable-credential/vcdm20.js";
 import type { PaginatedList } from "@ebsiint-api/shared";
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 
+import { hexToBytes } from "@cef-ebsi/did-jwt";
 import { fromUrl } from "@cef-ebsi/ebsi-uri";
-import { createVerifiableCredentialJwt } from "@cef-ebsi/verifiable-credential";
+import { createVerifiableCredentialJwt as createVcdm11VerifiableCredentialJwt } from "@cef-ebsi/verifiable-credential/vcdm11.js";
+import { createVerifiableCredentialJwt as createVcdm20VerifiableCredentialJwt } from "@cef-ebsi/verifiable-credential/vcdm20.js";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { getSigner } from "@ebsiint-api/shared";
 import { ConfigService } from "@nestjs/config";
 import { useContainer } from "class-validator";
-import { hexToBytes } from "did-jwt";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 import crypto from "node:crypto";
@@ -28,8 +31,6 @@ import type {
   IssuerResponseObject,
   ProxyLink,
 } from "../../src/modules/issuers/issuers.interface.ts";
-import type { BitstringStatusListCredential } from "../../src/shared/validators/isBitstringStatusListCredential.ts";
-import type { StatusList2021Credential } from "../../src/shared/validators/isStatusList2021Credential.ts";
 
 import { AppModule } from "../../src/app.module.ts";
 import { getNestFastifyApplication } from "../utils/app.ts";
@@ -121,8 +122,9 @@ describe("TIR API v5 - Issuers (e2e)", () => {
     let verifiableAttestationSchemaUrl: string;
     let statusListSchemaUrl: string;
     let newIssuer1StatusListCredential:
-      | BitstringStatusListCredential
-      | StatusList2021Credential;
+      | VCDM11Schemas["BitstringStatusListCredential"]
+      | VCDM11Schemas["StatusList2021Credential"]
+      | VCDM20Schemas["BitstringStatusListCredential"];
 
     switch (statusList) {
       case "BitstringStatusListCredential": {
@@ -165,7 +167,7 @@ describe("TIR API v5 - Issuers (e2e)", () => {
             "BitstringStatusListCredential",
           ],
           validFrom: "2025-04-05T14:27:40Z",
-        } as const satisfies BitstringStatusListCredential;
+        } as const satisfies VCDM11Schemas["BitstringStatusListCredential"];
         break;
       }
       case "BitstringStatusListCredentialVCDM2.0": {
@@ -208,7 +210,7 @@ describe("TIR API v5 - Issuers (e2e)", () => {
             "BitstringStatusListCredential",
           ],
           validFrom: "2025-04-05T14:27:40Z",
-        } as const satisfies BitstringStatusListCredential;
+        } as const satisfies VCDM20Schemas["BitstringStatusListCredential"];
         break;
       }
       case "StatusList2021Credential": {
@@ -254,20 +256,29 @@ describe("TIR API v5 - Issuers (e2e)", () => {
             "StatusList2021Credential",
           ],
           validFrom: "2025-04-05T14:27:40Z",
-        } as const satisfies StatusList2021Credential;
+        } as const satisfies VCDM11Schemas["StatusList2021Credential"];
         break;
       }
     }
 
     const newIssuer1StatusListCredentialJwt =
-      await createVerifiableCredentialJwt(
-        newIssuer1StatusListCredential,
-        issuer,
-        ebsiEnvConfig,
-        {
-          skipValidation: true,
-        },
-      );
+      statusList === "BitstringStatusListCredentialVCDM2.0"
+        ? await createVcdm20VerifiableCredentialJwt(
+            newIssuer1StatusListCredential as VCDM20Schemas["Attestation"],
+            issuer,
+            ebsiEnvConfig,
+            {
+              skipValidation: true,
+            },
+          )
+        : await createVcdm11VerifiableCredentialJwt(
+            newIssuer1StatusListCredential as VCDM11Schemas["Attestation"],
+            issuer,
+            ebsiEnvConfig,
+            {
+              skipValidation: true,
+            },
+          );
 
     return newIssuer1StatusListCredentialJwt;
   }

@@ -2,20 +2,19 @@ import "@ebsiint-sc/trusted-issuers-registry-v5/dist/hardhat.d.ts";
 
 import hre from "hardhat";
 
+import type { Schemas as VCDM11Schemas } from "@cef-ebsi/verifiable-credential/vcdm11.js";
 import type {
   DidRegistryMock,
   PolicyRegistryMock,
   Tir,
 } from "@ebsiint-sc/trusted-issuers-registry-v5";
-import type { HardhatEthersProvider } from "@nomicfoundation/hardhat-ethers/internal/hardhat-ethers-provider.js";
 
 import "@nomicfoundation/hardhat-ethers";
+import type { HardhatEthersProvider } from "@nomicfoundation/hardhat-ethers/internal/hardhat-ethers-provider.js";
+
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { ethers } from "ethers";
 import crypto from "node:crypto";
-
-import type { BitstringStatusListCredential } from "../../src/shared/validators/isBitstringStatusListCredential.ts";
-import type { StatusList2021Credential } from "../../src/shared/validators/isStatusList2021Credential.ts";
 
 import { IssuerType } from "../../src/modules/issuers/issuers.constants.ts";
 
@@ -31,10 +30,10 @@ export interface IssuerObject {
   did: string;
   issuerType: (typeof IssuerType)[keyof typeof IssuerType];
   proxies: {
-    bitstringStatusListCredential: BitstringStatusListCredential;
+    bitstringStatusListCredential: VCDM11Schemas["BitstringStatusListCredential"];
     id: string;
     obj: IssuerProxyObject;
-    statusList2021Credential: StatusList2021Credential;
+    statusList2021Credential: VCDM11Schemas["StatusList2021Credential"];
     utf8: string;
   }[];
   rootTao: string;
@@ -117,7 +116,7 @@ export function createProxy(issuerDid: string) {
   };
   const proxyUtf8 = JSON.stringify(proxyObject);
   const proxyId = ethers.sha256(Buffer.from(proxyUtf8));
-  const statusList2021Credential: StatusList2021Credential = {
+  const statusList2021Credential: VCDM11Schemas["StatusList2021Credential"] = {
     "@context": [
       "https://www.w3.org/2018/credentials/v1",
       "https://w3id.org/vc/status-list/2021/v1",
@@ -145,30 +144,31 @@ export function createProxy(issuerDid: string) {
     validFrom: "2021-04-05T14:27:40Z",
   };
 
-  const bitstringStatusListCredential: BitstringStatusListCredential = {
-    "@context": ["https://www.w3.org/2018/credentials/v1"],
-    credentialSchema: {
-      id: "https://example.net",
-      type: "FullJsonSchemaValidator2021",
-    },
-    credentialSubject: {
-      encodedList:
-        "uH4sIAAAAAAAAA-3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAAAAAAIC3AYbSVKsAQAAA",
-      id: `${proxyObject.prefix}${proxyObject.testSuffix}#list`,
-      statusPurpose: "revocation",
-      type: "BitstringStatusList",
-    },
-    id: `${proxyObject.prefix}${proxyObject.testSuffix}`,
-    issuanceDate: "2021-04-05T14:27:40Z",
-    issued: "2021-04-05T14:27:40Z",
-    issuer: issuerDid,
-    type: [
-      "VerifiableCredential",
-      "VerifiableAttestation",
-      "BitstringStatusListCredential",
-    ],
-    validFrom: "2021-04-05T14:27:40Z",
-  };
+  const bitstringStatusListCredential: VCDM11Schemas["BitstringStatusListCredential"] =
+    {
+      "@context": ["https://www.w3.org/2018/credentials/v1"],
+      credentialSchema: {
+        id: "https://example.net",
+        type: "FullJsonSchemaValidator2021",
+      },
+      credentialSubject: {
+        encodedList:
+          "uH4sIAAAAAAAAA-3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAAAAAAIC3AYbSVKsAQAAA",
+        id: `${proxyObject.prefix}${proxyObject.testSuffix}#list`,
+        statusPurpose: "revocation",
+        type: "BitstringStatusList",
+      },
+      id: `${proxyObject.prefix}${proxyObject.testSuffix}`,
+      issuanceDate: "2021-04-05T14:27:40Z",
+      issued: "2021-04-05T14:27:40Z",
+      issuer: issuerDid,
+      type: [
+        "VerifiableCredential",
+        "VerifiableAttestation",
+        "BitstringStatusListCredential",
+      ],
+      validFrom: "2021-04-05T14:27:40Z",
+    };
 
   return {
     bitstringStatusListCredential,

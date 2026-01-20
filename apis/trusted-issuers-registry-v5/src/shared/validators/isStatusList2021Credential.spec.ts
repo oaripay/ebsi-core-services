@@ -1,6 +1,6 @@
-import type { EbsiVerifiableAttestation } from "@cef-ebsi/verifiable-credential";
+import type { Schemas } from "@cef-ebsi/verifiable-credential/vcdm11.js";
 
-import * as vcLib from "@cef-ebsi/verifiable-credential";
+import * as vcLib from "@cef-ebsi/verifiable-credential/vcdm11.js";
 import Joi from "joi";
 import { describe, expect, it, vi } from "vitest";
 
@@ -9,17 +9,17 @@ import {
   statusList2021CredentialSchema,
 } from "./isStatusList2021Credential.ts";
 
-vi.mock("@cef-ebsi/verifiable-credential", async () => {
+vi.mock("@cef-ebsi/verifiable-credential/vcdm11.js", async () => {
   const mod = await vi.importActual<
-    typeof import("@cef-ebsi/verifiable-credential")
-  >("@cef-ebsi/verifiable-credential");
+    typeof import("@cef-ebsi/verifiable-credential/vcdm11.js")
+  >("@cef-ebsi/verifiable-credential/vcdm11.js");
   // Return a mocked version so we can redefine property `verifyCredentialJwt` later
   return {
     ...mod,
   };
 });
 
-const validStatusListCredential: EbsiVerifiableAttestation = {
+const validStatusListCredential = {
   "@context": [
     "https://www.w3.org/2018/credentials/v1",
     "https://w3id.org/vc/status-list/2021/v1",
@@ -41,36 +41,35 @@ const validStatusListCredential: EbsiVerifiableAttestation = {
   issuer: "did:ebsi:example",
   type: ["VerifiableCredential", "StatusList2021Credential"],
   validFrom: "2021-04-05T14:27:40Z",
-};
+} satisfies Schemas["Attestation"];
 
-const validStatusListCredentialWithVerifiableAttestation: EbsiVerifiableAttestation =
-  {
-    "@context": [
-      "https://www.w3.org/2018/credentials/v1",
-      "https://w3id.org/vc/status-list/2021/v1",
-    ],
-    credentialSchema: {
-      id: "https://example.net",
-      type: "FullJsonSchemaValidator2021",
-    },
-    credentialSubject: {
-      encodedList:
-        "H4sIAAAAAAAAA-3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAAAAAAIC3AYbSVKsAQAAA",
-      id: "https://example.net/creds/1#list",
-      statusPurpose: "revocation",
-      type: "StatusList2021",
-    },
-    id: "https://example.net/creds/1",
-    issuanceDate: "2021-04-05T14:27:40Z",
-    issued: "2021-04-05T14:27:40Z",
-    issuer: "did:ebsi:example",
-    type: [
-      "VerifiableCredential",
-      "VerifiableAttestation",
-      "StatusList2021Credential",
-    ],
-    validFrom: "2021-04-05T14:27:40Z",
-  };
+const validStatusListCredentialWithVerifiableAttestation = {
+  "@context": [
+    "https://www.w3.org/2018/credentials/v1",
+    "https://w3id.org/vc/status-list/2021/v1",
+  ],
+  credentialSchema: {
+    id: "https://example.net",
+    type: "FullJsonSchemaValidator2021",
+  },
+  credentialSubject: {
+    encodedList:
+      "H4sIAAAAAAAAA-3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAAAAAAIC3AYbSVKsAQAAA",
+    id: "https://example.net/creds/1#list",
+    statusPurpose: "revocation",
+    type: "StatusList2021",
+  },
+  id: "https://example.net/creds/1",
+  issuanceDate: "2021-04-05T14:27:40Z",
+  issued: "2021-04-05T14:27:40Z",
+  issuer: "did:ebsi:example",
+  type: [
+    "VerifiableCredential",
+    "VerifiableAttestation",
+    "StatusList2021Credential",
+  ],
+  validFrom: "2021-04-05T14:27:40Z",
+} satisfies Schemas["Attestation"];
 
 describe("checkStatusList2021Credential", () => {
   it("should return false when the credential is not a string", async () => {

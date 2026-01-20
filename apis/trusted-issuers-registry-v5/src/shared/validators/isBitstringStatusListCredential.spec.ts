@@ -1,37 +1,254 @@
-import type { EbsiVerifiableAttestation } from "@cef-ebsi/verifiable-credential";
+import type { Schemas as VCDM11Schemas } from "@cef-ebsi/verifiable-credential/vcdm11.js";
+import type { Schemas as VCDM20Schemas } from "@cef-ebsi/verifiable-credential/vcdm20.js";
 
-import * as vcLib from "@cef-ebsi/verifiable-credential";
+import * as vcdm11Lib from "@cef-ebsi/verifiable-credential/vcdm11.js";
+import * as vcdm20Lib from "@cef-ebsi/verifiable-credential/vcdm20.js";
 import Joi from "joi";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 
 import {
-  bitstringStatusListCredentialSchema,
-  checkBitstringStatusListCredential,
+  checkVcdm11BitstringStatusListCredential,
+  checkVcdm20BitstringStatusListCredential,
+  vcdm11BitstringStatusListCredentialSchema,
+  vcdm20BitstringStatusListCredentialSchema,
 } from "./isBitstringStatusListCredential.ts";
 
-vi.mock("@cef-ebsi/verifiable-credential", async () => {
+vi.mock("@cef-ebsi/verifiable-credential/vcdm11.js", async () => {
   const mod = await vi.importActual<
-    typeof import("@cef-ebsi/verifiable-credential")
-  >("@cef-ebsi/verifiable-credential");
-  // Return a mocked version so we can redefine property `verifyCredentialJwt` later
+    typeof import("@cef-ebsi/verifiable-credential/vcdm11.js")
+  >("@cef-ebsi/verifiable-credential/vcdm11.js");
+  // Return a mocked version so we can redefine `verifyCredentialJwt` later
   return {
     ...mod,
   };
 });
 
-describe.each(["1.1", "2.0"] as const)(
-  "checkBitstringStatusListCredential (using VCDM %s)",
-  (vcdmVersion) => {
-    let validStatusListCredential: EbsiVerifiableAttestation;
-    let validStatusListCredentialWithVerifiableAttestation: EbsiVerifiableAttestation;
+vi.mock("@cef-ebsi/verifiable-credential/vcdm20.js", async () => {
+  const mod = await vi.importActual<
+    typeof import("@cef-ebsi/verifiable-credential/vcdm20.js")
+  >("@cef-ebsi/verifiable-credential/vcdm20.js");
+  // Return a mocked version so we can redefine `verifyCredentialJwt` later
+  return {
+    ...mod,
+  };
+});
 
-    beforeAll(() => {
-      validStatusListCredential = {
-        "@context": [
-          vcdmVersion === "1.1"
-            ? "https://www.w3.org/2018/credentials/v1"
-            : "https://www.w3.org/ns/credentials/v2",
-        ],
+describe("checkVcdm11BitstringStatusListCredential", () => {
+  let validStatusListCredential: VCDM11Schemas["BitstringStatusListCredential"];
+  let validStatusListCredentialWithVerifiableAttestation: VCDM11Schemas["Attestation"];
+
+  beforeAll(() => {
+    validStatusListCredential = {
+      "@context": ["https://www.w3.org/2018/credentials/v1"],
+      credentialSchema: {
+        id: "https://example.net",
+        type: "FullJsonSchemaValidator2021",
+      },
+      credentialSubject: {
+        encodedList:
+          "H4sIAAAAAAAAA-3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAAAAAAIC3AYbSVKsAQAAA",
+        id: "https://example.net/creds/1#list",
+        statusPurpose: "revocation",
+        type: "BitstringStatusList",
+      },
+      id: "https://example.net/creds/1",
+      issuanceDate: "2021-04-05T14:27:40Z",
+      issued: "2021-04-05T14:27:40Z",
+      issuer: "did:ebsi:example",
+      type: [
+        "VerifiableCredential",
+        "VerifiableAttestation",
+        "BitstringStatusListCredential",
+      ],
+      validFrom: "2021-04-05T14:27:40Z",
+    };
+
+    validStatusListCredentialWithVerifiableAttestation = {
+      "@context": ["https://www.w3.org/2018/credentials/v1"],
+      credentialSchema: {
+        id: "https://example.net",
+        type: "FullJsonSchemaValidator2021",
+      },
+      credentialSubject: {
+        encodedList:
+          "H4sIAAAAAAAAA-3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAAAAAAIC3AYbSVKsAQAAA",
+        id: "https://example.net/creds/1#list",
+        statusPurpose: "revocation",
+        type: "BitstringStatusList",
+      },
+      id: "https://example.net/creds/1",
+      issuanceDate: "2021-04-05T14:27:40Z",
+      issued: "2021-04-05T14:27:40Z",
+      issuer: "did:ebsi:example",
+      type: [
+        "VerifiableCredential",
+        "VerifiableAttestation",
+        "BitstringStatusListCredential",
+      ],
+      validFrom: "2021-04-05T14:27:40Z",
+    };
+  });
+
+  describe("checkVcdm11BitstringStatusListCredential", () => {
+    it("should return false when the credential is not a string", async () => {
+      expect.assertions(1);
+
+      await expect(
+        checkVcdm11BitstringStatusListCredential(
+          {
+            not: "a string",
+          },
+          {
+            hosts: ["example.net"],
+            network: { name: "test" },
+            scheme: "ebsi",
+            services: {
+              "did-registry": "v5",
+              "trusted-issuers-registry": "v5",
+              "trusted-policies-registry": "v3",
+              "trusted-schemas-registry": "v3",
+            },
+          },
+          "reqId",
+        ),
+      ).resolves.toStrictEqual({
+        error: "JWT is not a string",
+        success: false,
+      });
+    });
+
+    it("should return false when the credential JWT verification fails", async () => {
+      expect.assertions(1);
+
+      vi.spyOn(vcdm11Lib, "verifyCredentialJwt").mockImplementation(() => {
+        throw new Error("Invalid JWT");
+      });
+
+      await expect(
+        checkVcdm11BitstringStatusListCredential(
+          "jwt",
+          {
+            hosts: ["example.net"],
+            network: { name: "test" },
+            scheme: "ebsi",
+            services: {
+              "did-registry": "v5",
+              "trusted-issuers-registry": "v5",
+              "trusted-policies-registry": "v3",
+              "trusted-schemas-registry": "v3",
+            },
+          },
+          "reqId",
+        ),
+      ).resolves.toStrictEqual({ error: "Invalid JWT", success: false });
+    });
+
+    it("should return false when the credential is not a valid BitstringStatusListCredential", async () => {
+      expect.assertions(1);
+
+      vi.spyOn(vcdm11Lib, "verifyCredentialJwt").mockImplementation(() =>
+        Promise.resolve({
+          ...validStatusListCredential,
+
+          type: [
+            "VerifiableCredential",
+            "InvalidBitstringStatusListCredential",
+          ],
+        }),
+      );
+
+      await expect(
+        checkVcdm11BitstringStatusListCredential(
+          "jwt",
+          {
+            hosts: ["example.net"],
+            network: { name: "test" },
+            scheme: "ebsi",
+            services: {
+              "did-registry": "v5",
+              "trusted-issuers-registry": "v5",
+              "trusted-policies-registry": "v3",
+              "trusted-schemas-registry": "v3",
+            },
+          },
+          "reqId",
+        ),
+      ).resolves.toMatchSnapshot();
+    });
+
+    it("should return true when the credential JWT verification succeeds", async () => {
+      expect.assertions(1);
+
+      vi.spyOn(vcdm11Lib, "verifyCredentialJwt").mockImplementation(() =>
+        Promise.resolve(validStatusListCredential),
+      );
+
+      await expect(
+        checkVcdm11BitstringStatusListCredential(
+          "jwt",
+          {
+            hosts: ["example.net"],
+            network: { name: "test" },
+            scheme: "ebsi",
+            services: {
+              "did-registry": "v5",
+              "trusted-issuers-registry": "v5",
+              "trusted-policies-registry": "v3",
+              "trusted-schemas-registry": "v3",
+            },
+          },
+          "reqId",
+        ),
+      ).resolves.toStrictEqual({ success: true });
+    });
+
+    it("should return true when the credential JWT verification succeeds (with VerifiableAttestation)", async () => {
+      expect.assertions(1);
+
+      vi.spyOn(vcdm11Lib, "verifyCredentialJwt").mockImplementation(() =>
+        Promise.resolve(validStatusListCredentialWithVerifiableAttestation),
+      );
+
+      await expect(
+        checkVcdm11BitstringStatusListCredential(
+          "jwt",
+          {
+            hosts: ["example.net"],
+            network: { name: "test" },
+            scheme: "ebsi",
+            services: {
+              "did-registry": "v5",
+              "trusted-issuers-registry": "v5",
+              "trusted-policies-registry": "v3",
+              "trusted-schemas-registry": "v3",
+            },
+          },
+          "reqId",
+        ),
+      ).resolves.toStrictEqual({ success: true });
+    });
+  });
+
+  describe("vcdm11BitstringStatusListCredentialSchema", () => {
+    it("should not throw when asserting a valid object", () => {
+      expect(() =>
+        Joi.assert(
+          validStatusListCredential,
+          vcdm11BitstringStatusListCredentialSchema,
+        ),
+      ).not.toThrow();
+
+      expect(() =>
+        Joi.assert(
+          validStatusListCredentialWithVerifiableAttestation,
+          vcdm11BitstringStatusListCredentialSchema,
+        ),
+      ).not.toThrow();
+    });
+
+    it("should throw an error when asserting an invalid object", () => {
+      const invalidObject = {
+        "@context": ["https://www.w3.org/2018/credentials/v1"],
         credentialSchema: {
           id: "https://example.net",
           type: "FullJsonSchemaValidator2021",
@@ -40,32 +257,8 @@ describe.each(["1.1", "2.0"] as const)(
           encodedList:
             "H4sIAAAAAAAAA-3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAAAAAAIC3AYbSVKsAQAAA",
           id: "https://example.net/creds/1#list",
-          statusPurpose: "revocation",
-          type: "BitstringStatusList",
-        },
-        id: "https://example.net/creds/1",
-        issuanceDate: "2021-04-05T14:27:40Z",
-        issued: "2021-04-05T14:27:40Z",
-        issuer: "did:ebsi:example",
-        type: ["VerifiableCredential", "BitstringStatusListCredential"],
-        validFrom: "2021-04-05T14:27:40Z",
-      };
-
-      validStatusListCredentialWithVerifiableAttestation = {
-        "@context": [
-          vcdmVersion === "1.1"
-            ? "https://www.w3.org/2018/credentials/v1"
-            : "https://www.w3.org/ns/credentials/v2",
-        ],
-        credentialSchema: {
-          id: "https://example.net",
-          type: "FullJsonSchemaValidator2021",
-        },
-        credentialSubject: {
-          encodedList:
-            "H4sIAAAAAAAAA-3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAAAAAAIC3AYbSVKsAQAAA",
-          id: "https://example.net/creds/1#list",
-          statusPurpose: "revocation",
+          // Invalid purpose
+          statusPurpose: "invalid",
           type: "BitstringStatusList",
         },
         id: "https://example.net/creds/1",
@@ -73,205 +266,269 @@ describe.each(["1.1", "2.0"] as const)(
         issued: "2021-04-05T14:27:40Z",
         issuer: "did:ebsi:example",
         type: [
-          "VerifiableCredential",
+          // Invalid order: VerifiableCredential must be the first item
           "VerifiableAttestation",
-          "BitstringStatusListCredential",
+          "VerifiableCredential",
+          // "BitstringStatusListCredential" is missing
         ],
         validFrom: "2021-04-05T14:27:40Z",
       };
+
+      expect(() =>
+        Joi.assert(invalidObject, vcdm11BitstringStatusListCredentialSchema, {
+          abortEarly: false,
+        }),
+      ).toThrowErrorMatchingSnapshot();
     });
+  });
+});
 
-    describe("checkBitstringStatusListCredential", () => {
-      it("should return false when the credential is not a string", async () => {
-        expect.assertions(1);
+describe("checkVcdm20BitstringStatusListCredential", () => {
+  let validStatusListCredential: VCDM20Schemas["BitstringStatusListCredential"];
+  let validStatusListCredentialWithVerifiableAttestation: VCDM20Schemas["Attestation"];
 
-        await expect(
-          checkBitstringStatusListCredential(
-            {
-              not: "a string",
+  beforeAll(() => {
+    validStatusListCredential = {
+      "@context": ["https://www.w3.org/ns/credentials/v2"],
+      credentialSchema: {
+        id: "https://example.net",
+        type: "FullJsonSchemaValidator2021",
+      },
+      credentialSubject: {
+        encodedList:
+          "H4sIAAAAAAAAA-3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAAAAAAIC3AYbSVKsAQAAA",
+        id: "https://example.net/creds/1#list",
+        statusPurpose: "revocation",
+        type: "BitstringStatusList",
+      },
+      id: "https://example.net/creds/1",
+      issuanceDate: "2021-04-05T14:27:40Z",
+      issued: "2021-04-05T14:27:40Z",
+      issuer: "did:ebsi:example",
+      type: [
+        "VerifiableCredential",
+        "VerifiableAttestation",
+        "BitstringStatusListCredential",
+      ],
+      validFrom: "2021-04-05T14:27:40Z",
+    };
+
+    validStatusListCredentialWithVerifiableAttestation = {
+      "@context": ["https://www.w3.org/ns/credentials/v2"],
+      credentialSchema: {
+        id: "https://example.net",
+        type: "FullJsonSchemaValidator2021",
+      },
+      credentialSubject: {
+        encodedList:
+          "H4sIAAAAAAAAA-3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAAAAAAIC3AYbSVKsAQAAA",
+        id: "https://example.net/creds/1#list",
+        statusPurpose: "revocation",
+        type: "BitstringStatusList",
+      },
+      id: "https://example.net/creds/1",
+      issuanceDate: "2021-04-05T14:27:40Z",
+      issued: "2021-04-05T14:27:40Z",
+      issuer: "did:ebsi:example",
+      type: [
+        "VerifiableCredential",
+        "VerifiableAttestation",
+        "BitstringStatusListCredential",
+      ],
+      validFrom: "2021-04-05T14:27:40Z",
+    };
+  });
+
+  describe("checkVcdm20BitstringStatusListCredential", () => {
+    it("should return false when the credential is not a string", async () => {
+      expect.assertions(1);
+
+      await expect(
+        checkVcdm20BitstringStatusListCredential(
+          {
+            not: "a string",
+          },
+          {
+            hosts: ["example.net"],
+            network: { name: "test" },
+            scheme: "ebsi",
+            services: {
+              "did-registry": "v5",
+              "trusted-issuers-registry": "v5",
+              "trusted-policies-registry": "v3",
+              "trusted-schemas-registry": "v3",
             },
-            {
-              hosts: ["example.net"],
-              network: { name: "test" },
-              scheme: "ebsi",
-              services: {
-                "did-registry": "v5",
-                "trusted-issuers-registry": "v5",
-                "trusted-policies-registry": "v3",
-                "trusted-schemas-registry": "v3",
-              },
-            },
-            "reqId",
-          ),
-        ).resolves.toStrictEqual({
-          error: "JWT is not a string",
-          success: false,
-        });
-      });
-
-      it("should return false when the credential JWT verification fails", async () => {
-        expect.assertions(1);
-
-        vi.spyOn(vcLib, "verifyCredentialJwt").mockImplementation(() => {
-          throw new Error("Invalid JWT");
-        });
-
-        await expect(
-          checkBitstringStatusListCredential(
-            "jwt",
-            {
-              hosts: ["example.net"],
-              network: { name: "test" },
-              scheme: "ebsi",
-              services: {
-                "did-registry": "v5",
-                "trusted-issuers-registry": "v5",
-                "trusted-policies-registry": "v3",
-                "trusted-schemas-registry": "v3",
-              },
-            },
-            "reqId",
-          ),
-        ).resolves.toStrictEqual({ error: "Invalid JWT", success: false });
-      });
-
-      it("should return false when the credential is not a valid BitstringStatusListCredential", async () => {
-        expect.assertions(1);
-
-        vi.spyOn(vcLib, "verifyCredentialJwt").mockImplementation(() =>
-          Promise.resolve({
-            ...validStatusListCredential,
-
-            type: [
-              "VerifiableCredential",
-              "InvalidBitstringStatusListCredential",
-            ],
-          }),
-        );
-
-        await expect(
-          checkBitstringStatusListCredential(
-            "jwt",
-            {
-              hosts: ["example.net"],
-              network: { name: "test" },
-              scheme: "ebsi",
-              services: {
-                "did-registry": "v5",
-                "trusted-issuers-registry": "v5",
-                "trusted-policies-registry": "v3",
-                "trusted-schemas-registry": "v3",
-              },
-            },
-            "reqId",
-          ),
-        ).resolves.toMatchSnapshot();
-      });
-
-      it("should return true when the credential JWT verification succeeds", async () => {
-        expect.assertions(1);
-
-        vi.spyOn(vcLib, "verifyCredentialJwt").mockImplementation(() =>
-          Promise.resolve(validStatusListCredential),
-        );
-
-        await expect(
-          checkBitstringStatusListCredential(
-            "jwt",
-            {
-              hosts: ["example.net"],
-              network: { name: "test" },
-              scheme: "ebsi",
-              services: {
-                "did-registry": "v5",
-                "trusted-issuers-registry": "v5",
-                "trusted-policies-registry": "v3",
-                "trusted-schemas-registry": "v3",
-              },
-            },
-            "reqId",
-          ),
-        ).resolves.toStrictEqual({ success: true });
-      });
-
-      it("should return true when the credential JWT verification succeeds (with VerifiableAttestation)", async () => {
-        expect.assertions(1);
-
-        vi.spyOn(vcLib, "verifyCredentialJwt").mockImplementation(() =>
-          Promise.resolve(validStatusListCredentialWithVerifiableAttestation),
-        );
-
-        await expect(
-          checkBitstringStatusListCredential(
-            "jwt",
-            {
-              hosts: ["example.net"],
-              network: { name: "test" },
-              scheme: "ebsi",
-              services: {
-                "did-registry": "v5",
-                "trusted-issuers-registry": "v5",
-                "trusted-policies-registry": "v3",
-                "trusted-schemas-registry": "v3",
-              },
-            },
-            "reqId",
-          ),
-        ).resolves.toStrictEqual({ success: true });
+          },
+          "reqId",
+        ),
+      ).resolves.toStrictEqual({
+        error: "JWT is not a string",
+        success: false,
       });
     });
 
-    describe("bitstringStatusListCredentialSchema", () => {
-      it("should not throw when asserting a valid object", () => {
-        expect(() =>
-          Joi.assert(
-            validStatusListCredential,
-            bitstringStatusListCredentialSchema,
-          ),
-        ).not.toThrow();
+    it("should return false when the credential JWT verification fails", async () => {
+      expect.assertions(1);
 
-        expect(() =>
-          Joi.assert(
-            validStatusListCredentialWithVerifiableAttestation,
-            bitstringStatusListCredentialSchema,
-          ),
-        ).not.toThrow();
+      vi.spyOn(vcdm20Lib, "verifyCredentialJwt").mockImplementation(() => {
+        throw new Error("Invalid JWT");
       });
 
-      it("should throw an error when asserting an invalid object", () => {
-        const invalidObject = {
-          "@context": ["https://www.w3.org/2018/credentials/v1"],
-          credentialSchema: {
-            id: "https://example.net",
-            type: "FullJsonSchemaValidator2021",
+      await expect(
+        checkVcdm20BitstringStatusListCredential(
+          "jwt",
+          {
+            hosts: ["example.net"],
+            network: { name: "test" },
+            scheme: "ebsi",
+            services: {
+              "did-registry": "v5",
+              "trusted-issuers-registry": "v5",
+              "trusted-policies-registry": "v3",
+              "trusted-schemas-registry": "v3",
+            },
           },
-          credentialSubject: {
-            encodedList:
-              "H4sIAAAAAAAAA-3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAAAAAAIC3AYbSVKsAQAAA",
-            id: "https://example.net/creds/1#list",
-            // Invalid purpose
-            statusPurpose: "invalid",
-            type: "BitstringStatusList",
-          },
-          id: "https://example.net/creds/1",
-          issuanceDate: "2021-04-05T14:27:40Z",
-          issued: "2021-04-05T14:27:40Z",
-          issuer: "did:ebsi:example",
+          "reqId",
+        ),
+      ).resolves.toStrictEqual({ error: "Invalid JWT", success: false });
+    });
+
+    it("should return false when the credential is not a valid BitstringStatusListCredential", async () => {
+      expect.assertions(1);
+
+      vi.spyOn(vcdm20Lib, "verifyCredentialJwt").mockImplementation(() =>
+        Promise.resolve({
+          ...validStatusListCredential,
+
           type: [
-            // Invalid order: VerifiableCredential must be the first item
-            "VerifiableAttestation",
             "VerifiableCredential",
-            // "BitstringStatusListCredential" is missing
+            "InvalidBitstringStatusListCredential",
           ],
-          validFrom: "2021-04-05T14:27:40Z",
-        };
+        }),
+      );
 
-        expect(() =>
-          Joi.assert(invalidObject, bitstringStatusListCredentialSchema, {
-            abortEarly: false,
-          }),
-        ).toThrowErrorMatchingSnapshot();
-      });
+      await expect(
+        checkVcdm20BitstringStatusListCredential(
+          "jwt",
+          {
+            hosts: ["example.net"],
+            network: { name: "test" },
+            scheme: "ebsi",
+            services: {
+              "did-registry": "v5",
+              "trusted-issuers-registry": "v5",
+              "trusted-policies-registry": "v3",
+              "trusted-schemas-registry": "v3",
+            },
+          },
+          "reqId",
+        ),
+      ).resolves.toMatchSnapshot();
     });
-  },
-);
+
+    it("should return true when the credential JWT verification succeeds", async () => {
+      expect.assertions(1);
+
+      vi.spyOn(vcdm20Lib, "verifyCredentialJwt").mockImplementation(() =>
+        Promise.resolve(validStatusListCredential),
+      );
+
+      await expect(
+        checkVcdm20BitstringStatusListCredential(
+          "jwt",
+          {
+            hosts: ["example.net"],
+            network: { name: "test" },
+            scheme: "ebsi",
+            services: {
+              "did-registry": "v5",
+              "trusted-issuers-registry": "v5",
+              "trusted-policies-registry": "v3",
+              "trusted-schemas-registry": "v3",
+            },
+          },
+          "reqId",
+        ),
+      ).resolves.toStrictEqual({ success: true });
+    });
+
+    it("should return true when the credential JWT verification succeeds (with VerifiableAttestation)", async () => {
+      expect.assertions(1);
+
+      vi.spyOn(vcdm20Lib, "verifyCredentialJwt").mockImplementation(() =>
+        Promise.resolve(validStatusListCredentialWithVerifiableAttestation),
+      );
+
+      await expect(
+        checkVcdm20BitstringStatusListCredential(
+          "jwt",
+          {
+            hosts: ["example.net"],
+            network: { name: "test" },
+            scheme: "ebsi",
+            services: {
+              "did-registry": "v5",
+              "trusted-issuers-registry": "v5",
+              "trusted-policies-registry": "v3",
+              "trusted-schemas-registry": "v3",
+            },
+          },
+          "reqId",
+        ),
+      ).resolves.toStrictEqual({ success: true });
+    });
+  });
+
+  describe("vcdm20BitstringStatusListCredentialSchema", () => {
+    it("should not throw when asserting a valid object", () => {
+      expect(() =>
+        Joi.assert(
+          validStatusListCredential,
+          vcdm20BitstringStatusListCredentialSchema,
+        ),
+      ).not.toThrow();
+
+      expect(() =>
+        Joi.assert(
+          validStatusListCredentialWithVerifiableAttestation,
+          vcdm20BitstringStatusListCredentialSchema,
+        ),
+      ).not.toThrow();
+    });
+
+    it("should throw an error when asserting an invalid object", () => {
+      const invalidObject = {
+        "@context": ["https://www.w3.org/2018/credentials/v1"],
+        credentialSchema: {
+          id: "https://example.net",
+          type: "FullJsonSchemaValidator2021",
+        },
+        credentialSubject: {
+          encodedList:
+            "H4sIAAAAAAAAA-3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAAAAAAIC3AYbSVKsAQAAA",
+          id: "https://example.net/creds/1#list",
+          // Invalid purpose
+          statusPurpose: "invalid",
+          type: "BitstringStatusList",
+        },
+        id: "https://example.net/creds/1",
+        issuanceDate: "2021-04-05T14:27:40Z",
+        issued: "2021-04-05T14:27:40Z",
+        issuer: "did:ebsi:example",
+        type: [
+          // Invalid order: VerifiableCredential must be the first item
+          "VerifiableAttestation",
+          "VerifiableCredential",
+          // "BitstringStatusListCredential" is missing
+        ],
+        validFrom: "2021-04-05T14:27:40Z",
+      };
+
+      expect(() =>
+        Joi.assert(invalidObject, vcdm20BitstringStatusListCredentialSchema, {
+          abortEarly: false,
+        }),
+      ).toThrowErrorMatchingSnapshot();
+    });
+  });
+});

@@ -1019,7 +1019,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ========================================================================================
-- @nestjs/common@^11.1.11
+- @nestjs/common@^11.1.12
 ------------------------------
 This project is licensed under MIT.
 
@@ -1029,7 +1029,7 @@ MIT License: https://opensource.org/license/mit/
 
 (The MIT License)
 
-Copyright (c) 2017-2025 Kamil Mysliwiec <https://kamilmysliwiec.com>
+Copyright (c) 2017-present Kamil Mysliwiec <https://kamilmysliwiec.com>
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
@@ -1082,7 +1082,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ========================================================================================
-- @nestjs/core@^11.1.11
+- @nestjs/core@^11.1.12
 ------------------------------
 This project is licensed under MIT.
 
@@ -1092,7 +1092,7 @@ MIT License: https://opensource.org/license/mit/
 
 (The MIT License)
 
-Copyright (c) 2017-2025 Kamil Mysliwiec <https://kamilmysliwiec.com>
+Copyright (c) 2017-present Kamil Mysliwiec <https://kamilmysliwiec.com>
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
@@ -1114,7 +1114,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ========================================================================================
-- @nestjs/platform-fastify@^11.1.11
+- @nestjs/platform-fastify@^11.1.12
 ------------------------------
 This project is licensed under MIT.
 
@@ -1124,7 +1124,7 @@ MIT License: https://opensource.org/license/mit/
 
 (The MIT License)
 
-Copyright (c) 2017-2025 Kamil Mysliwiec <https://kamilmysliwiec.com>
+Copyright (c) 2017-present Kamil Mysliwiec <https://kamilmysliwiec.com>
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
@@ -1363,7 +1363,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ========================================================================================
-- pino@^10.1.0
+- pino@^10.2.0
 ------------------------------
 This project is licensed under MIT.
 

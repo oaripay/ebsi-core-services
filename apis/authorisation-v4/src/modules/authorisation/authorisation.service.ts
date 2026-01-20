@@ -1,10 +1,12 @@
-import type { EbsiVerifiableAttestation } from "@cef-ebsi/verifiable-credential";
+import type { JWTHeader, JWTPayload } from "@cef-ebsi/did-jwt";
 import type {
-  EbsiVerifiablePresentation,
-  EbsiVpEnvConfiguration,
+  EbsiEnvConfiguration,
   ProofPurposeTypes,
-  VpJwtPayload,
 } from "@cef-ebsi/verifiable-presentation";
+import type {
+  Schemas,
+  VpJwtPayload,
+} from "@cef-ebsi/verifiable-presentation/vcdm11.js";
 import type { PaginatedList } from "@ebsiint-api/shared";
 import type { Checked } from "@sphereon/pex";
 import type {
@@ -13,18 +15,21 @@ import type {
 } from "@sphereon/pex-models";
 import type { AxiosResponse } from "axios";
 import type { Cache } from "cache-manager";
-import type { JWTHeader, JWTPayload } from "did-jwt";
 import type { DIDDocument } from "did-resolver";
-import type { JsonWebKey } from "node:crypto";
 
-import { verifyPresentationJwt } from "@cef-ebsi/verifiable-presentation";
+import {
+  createJWT,
+  decodeJWT,
+  ES256Signer,
+  hexToBytes,
+} from "@cef-ebsi/did-jwt";
+import { verifyPresentationJwt } from "@cef-ebsi/verifiable-presentation/vcdm11.js";
 import { encode, getPublicKeyJwk, logAxiosError } from "@ebsiint-api/shared";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Inject, Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PEXv2 } from "@sphereon/pex";
 import axios, { isAxiosError } from "axios";
-import { createJWT, decodeJWT, ES256Signer, hexToBytes } from "did-jwt";
 import { ethers } from "ethers";
 import { decodeJwt } from "jose";
 import { randomUUID } from "node:crypto";
@@ -66,7 +71,7 @@ export class AuthorisationService {
 
   private readonly didRegistry: string;
 
-  private readonly ebsiEnvConfig: EbsiVpEnvConfiguration;
+  private readonly ebsiEnvConfig: EbsiEnvConfiguration;
 
   private readonly estatAccessesEndpoint: string | undefined;
 
@@ -74,7 +79,7 @@ export class AuthorisationService {
 
   private readonly logger = new Logger(AuthorisationService.name);
 
-  private publicKeyJwk?: JsonWebKey;
+  private publicKeyJwk?: Awaited<ReturnType<typeof getPublicKeyJwk>>;
 
   private readonly requestTimeout: number;
 
@@ -320,30 +325,31 @@ export class AuthorisationService {
     const exp = iat + expiresIn;
     const jwk = await this.getPublicKeyJwk();
     const { kid } = jwk;
-    const accessToken = await createJWT(
+    const accessToken = createJWT(
       {
         aud: this.issuer, // aud: Must be equal to 'iss'
         exp,
         iat,
+        iss: this.issuer, // iss: HTTPS URL of the Authorisation Server instance. Must equal to hosted domain + suffix.
         jti: randomUUID(), // jti: A unique random identifier
         scp: scope, // scp: string of space separated scopes that we granted
         sub: vpTokenPayload.sub!, // sub: Legal entity DID
         ...extraClaims,
       },
       {
-        issuer: this.issuer, // iss: HTTPS URL of the Authorisation Server instance. Must equal to hosted domain + suffix.
         signer: ES256Signer(this.apiES256PrivateKey),
       },
       {
         alg: "ES256",
         kid,
+        typ: "JWT",
       },
     );
 
     /**
      * @see https://openid.net/specs/openid-connect-core-1_0.html#IDToken
      */
-    const idToken = await createJWT(
+    const idToken = createJWT(
       {
         /**
          * `aud`
@@ -375,6 +381,14 @@ export class AuthorisationService {
         iat,
 
         /**
+         * `iss`
+         *
+         * REQUIRED. Issuer Identifier for the Issuer of the response.
+         * The iss value is a case sensitive URL using the https scheme that contains scheme, host, and optionally, port number and path components and no query or fragment components.
+         */
+        iss: this.issuer, // iss: HTTPS URL of the Authorisation Server instance. Must equal to hosted domain + suffix.
+
+        /**
          * `jti`
          *
          * @see https://www.rfc-editor.org/rfc/rfc7519.html#section-4.1.7
@@ -394,7 +408,9 @@ export class AuthorisationService {
          * If present in the ID Token, Clients MUST verify that the nonce Claim Value is equal to the value of the nonce parameter sent in the Authentication Request. If present in the Authentication Request, Authorization Servers MUST include a nonce Claim in the ID Token with the Claim Value being the nonce value sent in the Authentication Request.
          * Authorization Servers SHOULD perform no other processing on nonce values used. The nonce value is a case sensitive string.
          */
-        nonce: vpTokenPayload["nonce"] as string | undefined,
+        ...(typeof vpTokenPayload["nonce"] === "string" && {
+          nonce: vpTokenPayload["nonce"],
+        }),
 
         /**
          * `sub`
@@ -407,18 +423,12 @@ export class AuthorisationService {
         sub: vpTokenPayload.iss!,
       },
       {
-        /**
-         * `iss`
-         *
-         * REQUIRED. Issuer Identifier for the Issuer of the response.
-         * The iss value is a case sensitive URL using the https scheme that contains scheme, host, and optionally, port number and path components and no query or fragment components.
-         */
-        issuer: this.issuer, // iss: HTTPS URL of the Authorisation Server instance. Must equal to hosted domain + suffix.
         signer: ES256Signer(this.apiES256PrivateKey),
       },
       {
         alg: "ES256",
         kid,
+        typ: "JWT",
       },
     );
 
@@ -655,7 +665,7 @@ export class AuthorisationService {
    */
   validateCredentialsAlgos(
     vpTokenHeader: JWTHeader,
-    presentation: EbsiVerifiablePresentation,
+    presentation: Schemas["Presentation"],
     presentationSubmission: PresentationSubmission,
     presentationDefinition: PresentationDefinitionV2,
   ) {
@@ -1146,11 +1156,11 @@ export class AuthorisationService {
 
   /**
    * Validates that the credential subject contains the contract address and the VC issuer is the smart contract deployer
-   * @param presentation EbsiVerifiablePresentation
+   * @param presentation Schemas["Presentation"]
    * @param reqId
    */
   async validateTrustedContractDeployer(
-    presentation: EbsiVerifiablePresentation,
+    presentation: Schemas["Presentation"],
     reqId: string,
   ): Promise<string[]> {
     const vcJwt = presentation.verifiableCredential[0];
@@ -1167,7 +1177,7 @@ export class AuthorisationService {
       });
     }
 
-    const vc = decodeJwt(vcJwt)["vc"] as EbsiVerifiableAttestation;
+    const vc = decodeJwt(vcJwt)["vc"] as Schemas["Attestation"];
 
     const { issuer } = vc;
 
@@ -1351,7 +1361,9 @@ export class AuthorisationService {
           skipSignatureValidation: isDidUnresolvable,
           timeout: this.requestTimeout,
           validAt: now, // The JWT VC(s) must be valid now
-          validateAccreditationWithoutTermsOfUse: true, // The VC must contain terms of use (or be self-accredited)
+          verifyCredentialOptions: {
+            validateAccreditationWithoutTermsOfUse: true, // The VC must contain terms of use (or be self-accredited)
+          },
           ...(proofPurpose && { proofPurpose }),
         },
       );

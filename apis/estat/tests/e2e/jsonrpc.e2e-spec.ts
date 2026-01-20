@@ -2,6 +2,7 @@ import type { EbsiIssuer } from "@cef-ebsi/verifiable-credential";
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 
+import { hexToBytes } from "@cef-ebsi/did-jwt";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import {
   generatePrivateKey,
@@ -12,7 +13,6 @@ import {
 import { ConfigService } from "@nestjs/config";
 import axios from "axios";
 import { useContainer } from "class-validator";
-import { hexToBytes } from "did-jwt";
 import { ethers } from "ethers";
 import { randomBytes } from "node:crypto";
 import request from "supertest";

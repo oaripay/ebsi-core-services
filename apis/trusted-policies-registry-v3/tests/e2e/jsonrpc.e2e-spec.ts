@@ -2,9 +2,9 @@ import type { PaginatedList } from "@ebsiint-api/shared";
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 
+import { hexToBytes } from "@cef-ebsi/did-jwt";
 import { prefixWith0x, waitToBeMined } from "@ebsiint-api/shared";
 import { ConfigService } from "@nestjs/config";
-import { hexToBytes } from "did-jwt";
 import { ethers } from "ethers";
 import crypto from "node:crypto";
 import request from "supertest";

@@ -4,7 +4,10 @@ import type { AxiosResponse } from "axios";
 import axios, { isAxiosError } from "axios";
 import validator from "validator";
 
-import { checkBitstringStatusListCredential } from "./isBitstringStatusListCredential.ts";
+import {
+  checkVcdm11BitstringStatusListCredential,
+  checkVcdm20BitstringStatusListCredential,
+} from "./isBitstringStatusListCredential.ts";
 import { checkStatusList2021Credential } from "./isStatusList2021Credential.ts";
 
 const validators = validator.default;
@@ -143,7 +146,7 @@ export async function isIssuerProxy(
     };
   }
 
-  const res = await checkStatusList2021Credential(
+  let res = await checkStatusList2021Credential(
     testResponse.data,
     ebsiEnvConfig,
     reqId,
@@ -154,7 +157,18 @@ export async function isIssuerProxy(
 
   if (res.success) return res;
 
-  return await checkBitstringStatusListCredential(
+  res = await checkVcdm11BitstringStatusListCredential(
+    testResponse.data,
+    ebsiEnvConfig,
+    reqId,
+    {
+      timeout,
+    },
+  );
+
+  if (res.success) return res;
+
+  return await checkVcdm20BitstringStatusListCredential(
     testResponse.data,
     ebsiEnvConfig,
     reqId,

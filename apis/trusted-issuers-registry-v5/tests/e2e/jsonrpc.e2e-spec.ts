@@ -1,14 +1,17 @@
 import type {
   EbsiEnvConfiguration,
   EbsiIssuer,
-  EbsiVerifiableAttestation,
 } from "@cef-ebsi/verifiable-credential";
+import type { Schemas as VCDM11Schemas } from "@cef-ebsi/verifiable-credential/vcdm11.js";
+import type { Schemas as VCDM20Schemas } from "@cef-ebsi/verifiable-credential/vcdm20.js";
 import type { PaginatedList } from "@ebsiint-api/shared";
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 
+import { hexToBytes } from "@cef-ebsi/did-jwt";
 import { fromUrl } from "@cef-ebsi/ebsi-uri";
-import { createVerifiableCredentialJwt } from "@cef-ebsi/verifiable-credential";
+import { createVerifiableCredentialJwt as createVcdm11VerifiableCredentialJwt } from "@cef-ebsi/verifiable-credential/vcdm11.js";
+import { createVerifiableCredentialJwt as createVcdm20VerifiableCredentialJwt } from "@cef-ebsi/verifiable-credential/vcdm20.js";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import {
   encode,
@@ -19,7 +22,6 @@ import {
 } from "@ebsiint-api/shared";
 import { ConfigService } from "@nestjs/config";
 import { useContainer } from "class-validator";
-import { hexToBytes } from "did-jwt";
 import { ethers } from "ethers";
 import { calculateJwkThumbprint, exportJWK, generateKeyPair } from "jose";
 import { http, HttpResponse } from "msw";
@@ -41,8 +43,6 @@ import type { UnsignedTransaction } from "../../src/modules/jsonrpc/validators/R
 import type { SetAttributeDataSchema } from "../../src/modules/jsonrpc/validators/RequestSetAttributeDataSchema.ts";
 import type { SetAttributeMetadataSchema } from "../../src/modules/jsonrpc/validators/RequestSetAttributeMetadataSchema.ts";
 import type { UpdateIssuerProxySchema } from "../../src/modules/jsonrpc/validators/RequestUpdateIssuerProxySchema.ts";
-import type { BitstringStatusListCredential } from "../../src/shared/validators/isBitstringStatusListCredential.ts";
-import type { StatusList2021Credential } from "../../src/shared/validators/isStatusList2021Credential.ts";
 import type { IssuerObject } from "../utils/tir.ts";
 
 import { AppModule } from "../../src/app.module.ts";
@@ -135,8 +135,9 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
       let verifiableAttestationSchemaUrl: string;
       let statusListSchemaUrl: string;
       let newIssuer1StatusListCredential:
-        | BitstringStatusListCredential
-        | StatusList2021Credential;
+        | VCDM11Schemas["BitstringStatusListCredential"]
+        | VCDM11Schemas["StatusList2021Credential"]
+        | VCDM20Schemas["BitstringStatusListCredential"];
 
       switch (statusList) {
         case "BitstringStatusListCredential": {
@@ -179,7 +180,7 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
               "BitstringStatusListCredential",
             ],
             validFrom: "2025-04-05T14:27:40Z",
-          } as const satisfies BitstringStatusListCredential;
+          } as const satisfies VCDM11Schemas["BitstringStatusListCredential"];
           break;
         }
         case "BitstringStatusListCredentialVCDM2.0": {
@@ -222,7 +223,7 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
               "BitstringStatusListCredential",
             ],
             validFrom: "2025-04-05T14:27:40Z",
-          } as const satisfies BitstringStatusListCredential;
+          } as const satisfies VCDM20Schemas["BitstringStatusListCredential"];
           break;
         }
         case "StatusList2021Credential": {
@@ -268,20 +269,29 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
               "StatusList2021Credential",
             ],
             validFrom: "2025-04-05T14:27:40Z",
-          } as const satisfies StatusList2021Credential;
+          } as const satisfies VCDM11Schemas["StatusList2021Credential"];
           break;
         }
       }
 
       const newIssuer1StatusListCredentialJwt =
-        await createVerifiableCredentialJwt(
-          newIssuer1StatusListCredential,
-          issuer,
-          ebsiEnvConfig,
-          {
-            skipValidation: true,
-          },
-        );
+        statusList === "BitstringStatusListCredentialVCDM2.0"
+          ? await createVcdm20VerifiableCredentialJwt(
+              newIssuer1StatusListCredential as VCDM20Schemas["Attestation"],
+              issuer,
+              ebsiEnvConfig,
+              {
+                skipValidation: true,
+              },
+            )
+          : await createVcdm11VerifiableCredentialJwt(
+              newIssuer1StatusListCredential as VCDM11Schemas["Attestation"],
+              issuer,
+              ebsiEnvConfig,
+              {
+                skipValidation: true,
+              },
+            );
 
       return newIssuer1StatusListCredentialJwt;
     }
@@ -763,7 +773,7 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
           const termsOfUseUrl = configService.get("testAdminAccreditation", {
             infer: true,
           });
-          const vcPayload: EbsiVerifiableAttestation = {
+          const vcPayload = {
             "@context": ["https://www.w3.org/2018/credentials/v1"],
             credentialSchema: {
               id:
@@ -791,8 +801,8 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
               "VerifiableAccreditationToAccredit",
             ],
             validFrom: `${issuanceDate.toISOString().slice(0, -5)}Z`,
-          };
-          const vcJwt = await createVerifiableCredentialJwt(
+          } satisfies VCDM11Schemas["Attestation"];
+          const vcJwt = await createVcdm11VerifiableCredentialJwt(
             vcPayload,
             adminIssuer.info,
             ebsiEnvConfig,

@@ -1,7 +1,7 @@
-import { ed25519 } from "@noble/curves/ed25519";
-import { p256 } from "@noble/curves/p256";
-import { secp256k1 } from "@noble/curves/secp256k1";
-import { bytesToBase64url, hexToBytes } from "did-jwt";
+import { bytesToBase64url, hexToBytes } from "@cef-ebsi/did-jwt";
+import { ed25519 } from "@noble/curves/ed25519.js";
+import { p256 } from "@noble/curves/nist.js";
+import { secp256k1 } from "@noble/curves/secp256k1.js";
 import { calculateJwkThumbprint } from "jose";
 
 export async function getPublicKeyJwk(
@@ -10,7 +10,7 @@ export async function getPublicKeyJwk(
 ) {
   if (alg === "ES256K") {
     const pubKeyBytes = secp256k1.getPublicKey(privateKey, false);
-    const point = secp256k1.ProjectivePoint.fromHex(pubKeyBytes).toAffine();
+    const point = secp256k1.Point.fromBytes(pubKeyBytes).toAffine();
 
     const jwk = {
       crv: "secp256k1",
@@ -30,7 +30,7 @@ export async function getPublicKeyJwk(
 
   if (alg === "ES256") {
     const pubKeyBytes = p256.getPublicKey(privateKey, false);
-    const point = p256.ProjectivePoint.fromHex(pubKeyBytes).toAffine();
+    const point = p256.Point.fromBytes(pubKeyBytes).toAffine();
     const jwk = {
       crv: "P-256",
       kty: "EC",

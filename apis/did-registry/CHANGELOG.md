@@ -4,38 +4,38 @@
 
 ### Minor Changes
 
-- [426cf3113318345473cfdfc9da7102820e613a08](https://code.europa.eu/ebsi/public/core-services/-/commit/426cf3113318345473cfdfc9da7102820e613a08): Decommission API.
+- [426cf3113318345473cfdfc9da7102820e613a08](https://gitlab.com/europeum/public/core-services/-/commit/426cf3113318345473cfdfc9da7102820e613a08): Decommission API.
 
 ### Patch Changes
 
-- [0b2fc67ae0f01006cd8de8a6c4fe09e1c4273a89](https://code.europa.eu/ebsi/public/core-services/-/commit/0b2fc67ae0f01006cd8de8a6c4fe09e1c4273a89): Bump dependencies.
-- [e42337f296ad7ca356852fd572d700885815a4b3](https://code.europa.eu/ebsi/public/core-services/-/commit/e42337f296ad7ca356852fd572d700885815a4b3): Reject requests when query parameter is not supported
-- [426cf3113318345473cfdfc9da7102820e613a08](https://code.europa.eu/ebsi/public/core-services/-/commit/426cf3113318345473cfdfc9da7102820e613a08): Bump dependencies.
-- [6314280d6e274c381e67008b5c2960ad4ce7e757](https://code.europa.eu/ebsi/public/core-services/-/commit/6314280d6e274c381e67008b5c2960ad4ce7e757): Add the possibility to disable the LoggingInterceptor for specific endpoints.
+- [0b2fc67ae0f01006cd8de8a6c4fe09e1c4273a89](https://gitlab.com/europeum/public/core-services/-/commit/0b2fc67ae0f01006cd8de8a6c4fe09e1c4273a89): Bump dependencies.
+- [e42337f296ad7ca356852fd572d700885815a4b3](https://gitlab.com/europeum/public/core-services/-/commit/e42337f296ad7ca356852fd572d700885815a4b3): Reject requests when query parameter is not supported
+- [426cf3113318345473cfdfc9da7102820e613a08](https://gitlab.com/europeum/public/core-services/-/commit/426cf3113318345473cfdfc9da7102820e613a08): Bump dependencies.
+- [6314280d6e274c381e67008b5c2960ad4ce7e757](https://gitlab.com/europeum/public/core-services/-/commit/6314280d6e274c381e67008b5c2960ad4ce7e757): Add the possibility to disable the LoggingInterceptor for specific endpoints.
 
 ## 3.0.0-rc.13
 
 ### Minor Changes
 
-- [9c3dba3e038d65e5970171ce242a8e7b93c2970f](https://code.europa.eu/ebsi/public/core-services/-/commit/9c3dba3e038d65e5970171ce242a8e7b93c2970f): Support EBSI URI scheme in Core Services.
+- [9c3dba3e038d65e5970171ce242a8e7b93c2970f](https://gitlab.com/europeum/public/core-services/-/commit/9c3dba3e038d65e5970171ce242a8e7b93c2970f): Support EBSI URI scheme in Core Services.
 
 ### Patch Changes
 
-- [7a4068e0d9804be6295aedec7e610cbc253cb03e](https://code.europa.eu/ebsi/public/core-services/-/commit/7a4068e0d9804be6295aedec7e610cbc253cb03e): Update Node.js to v20.14.0
-- [90b8973cbf68a6e6d34ba2a79ce8469f34eaa5c4](https://code.europa.eu/ebsi/public/core-services/-/commit/90b8973cbf68a6e6d34ba2a79ce8469f34eaa5c4): Catch error for malformed uri
-- [8993a31a472a9ad2a59dbc2999f20e863f4c581d](https://code.europa.eu/ebsi/public/core-services/-/commit/8993a31a472a9ad2a59dbc2999f20e863f4c581d): Bump VC and VP libraries.
-- [f29c5faec44fff1e960986d51bc4b0f60c61cb8c](https://code.europa.eu/ebsi/public/core-services/-/commit/f29c5faec44fff1e960986d51bc4b0f60c61cb8c): Connect to Besu directly.
-- [651235bffbb0168f18ff4631b750103de7312477](https://code.europa.eu/ebsi/public/core-services/-/commit/651235bffbb0168f18ff4631b750103de7312477): Refactor Axios error logging.
-- [4c4d31138e5ba5c9cedd3e598a0017b90335119e](https://code.europa.eu/ebsi/public/core-services/-/commit/4c4d31138e5ba5c9cedd3e598a0017b90335119e): Refactor Axios error logging.
-- [50694cacbd827eeefecbcd2cc765b5660083cccd](https://code.europa.eu/ebsi/public/core-services/-/commit/50694cacbd827eeefecbcd2cc765b5660083cccd): Check Besu readiness in health check.
-- [4c68d45d647735cefa90e5545ff1b5b0c89703ae](https://code.europa.eu/ebsi/public/core-services/-/commit/4c68d45d647735cefa90e5545ff1b5b0c89703ae): Do not return "EBSI-Image-Tag" header anymore.
-- [917370b20c6efe84f3f7c7128dfdb2a7a5457c81](https://code.europa.eu/ebsi/public/core-services/-/commit/917370b20c6efe84f3f7c7128dfdb2a7a5457c81): Bump dependencies and upgrade Node.js to v20.16.0.
-- Updated dependencies [90b8973cbf68a6e6d34ba2a79ce8469f34eaa5c4](https://code.europa.eu/ebsi/public/core-services/-/commit/90b8973cbf68a6e6d34ba2a79ce8469f34eaa5c4)
-- Updated dependencies [8993a31a472a9ad2a59dbc2999f20e863f4c581d](https://code.europa.eu/ebsi/public/core-services/-/commit/8993a31a472a9ad2a59dbc2999f20e863f4c581d)
-- Updated dependencies [9c3dba3e038d65e5970171ce242a8e7b93c2970f](https://code.europa.eu/ebsi/public/core-services/-/commit/9c3dba3e038d65e5970171ce242a8e7b93c2970f)
-- Updated dependencies [651235bffbb0168f18ff4631b750103de7312477](https://code.europa.eu/ebsi/public/core-services/-/commit/651235bffbb0168f18ff4631b750103de7312477)
-- Updated dependencies [4c4d31138e5ba5c9cedd3e598a0017b90335119e](https://code.europa.eu/ebsi/public/core-services/-/commit/4c4d31138e5ba5c9cedd3e598a0017b90335119e)
-- Updated dependencies [917370b20c6efe84f3f7c7128dfdb2a7a5457c81](https://code.europa.eu/ebsi/public/core-services/-/commit/917370b20c6efe84f3f7c7128dfdb2a7a5457c81)
+- [7a4068e0d9804be6295aedec7e610cbc253cb03e](https://gitlab.com/europeum/public/core-services/-/commit/7a4068e0d9804be6295aedec7e610cbc253cb03e): Update Node.js to v20.14.0
+- [90b8973cbf68a6e6d34ba2a79ce8469f34eaa5c4](https://gitlab.com/europeum/public/core-services/-/commit/90b8973cbf68a6e6d34ba2a79ce8469f34eaa5c4): Catch error for malformed uri
+- [8993a31a472a9ad2a59dbc2999f20e863f4c581d](https://gitlab.com/europeum/public/core-services/-/commit/8993a31a472a9ad2a59dbc2999f20e863f4c581d): Bump VC and VP libraries.
+- [f29c5faec44fff1e960986d51bc4b0f60c61cb8c](https://gitlab.com/europeum/public/core-services/-/commit/f29c5faec44fff1e960986d51bc4b0f60c61cb8c): Connect to Besu directly.
+- [651235bffbb0168f18ff4631b750103de7312477](https://gitlab.com/europeum/public/core-services/-/commit/651235bffbb0168f18ff4631b750103de7312477): Refactor Axios error logging.
+- [4c4d31138e5ba5c9cedd3e598a0017b90335119e](https://gitlab.com/europeum/public/core-services/-/commit/4c4d31138e5ba5c9cedd3e598a0017b90335119e): Refactor Axios error logging.
+- [50694cacbd827eeefecbcd2cc765b5660083cccd](https://gitlab.com/europeum/public/core-services/-/commit/50694cacbd827eeefecbcd2cc765b5660083cccd): Check Besu readiness in health check.
+- [4c68d45d647735cefa90e5545ff1b5b0c89703ae](https://gitlab.com/europeum/public/core-services/-/commit/4c68d45d647735cefa90e5545ff1b5b0c89703ae): Do not return "EBSI-Image-Tag" header anymore.
+- [917370b20c6efe84f3f7c7128dfdb2a7a5457c81](https://gitlab.com/europeum/public/core-services/-/commit/917370b20c6efe84f3f7c7128dfdb2a7a5457c81): Bump dependencies and upgrade Node.js to v20.16.0.
+- Updated dependencies [90b8973cbf68a6e6d34ba2a79ce8469f34eaa5c4](https://gitlab.com/europeum/public/core-services/-/commit/90b8973cbf68a6e6d34ba2a79ce8469f34eaa5c4)
+- Updated dependencies [8993a31a472a9ad2a59dbc2999f20e863f4c581d](https://gitlab.com/europeum/public/core-services/-/commit/8993a31a472a9ad2a59dbc2999f20e863f4c581d)
+- Updated dependencies [9c3dba3e038d65e5970171ce242a8e7b93c2970f](https://gitlab.com/europeum/public/core-services/-/commit/9c3dba3e038d65e5970171ce242a8e7b93c2970f)
+- Updated dependencies [651235bffbb0168f18ff4631b750103de7312477](https://gitlab.com/europeum/public/core-services/-/commit/651235bffbb0168f18ff4631b750103de7312477)
+- Updated dependencies [4c4d31138e5ba5c9cedd3e598a0017b90335119e](https://gitlab.com/europeum/public/core-services/-/commit/4c4d31138e5ba5c9cedd3e598a0017b90335119e)
+- Updated dependencies [917370b20c6efe84f3f7c7128dfdb2a7a5457c81](https://gitlab.com/europeum/public/core-services/-/commit/917370b20c6efe84f3f7c7128dfdb2a7a5457c81)
   - @ebsiint-api/shared@1.1.0-rc.10
   - @ebsiint-sc/did-registry@1.1.0-rc.8
 
@@ -43,42 +43,42 @@
 
 ### Patch Changes
 
-- [d3a4a64a16df2bbeec587aadbf7bb5c02c577316](https://code.europa.eu/ebsi/public/core-services/-/commit/d3a4a64a16df2bbeec587aadbf7bb5c02c577316): Bump VC and VP libraries.
-- [c66c349218fe427cfa59df0973b987ce14bbec09](https://code.europa.eu/ebsi/public/core-services/-/commit/c66c349218fe427cfa59df0973b987ce14bbec09): Support VC with credentialStatus as an array.
-- Updated dependencies [d3a4a64a16df2bbeec587aadbf7bb5c02c577316](https://code.europa.eu/ebsi/public/core-services/-/commit/d3a4a64a16df2bbeec587aadbf7bb5c02c577316)
-- Updated dependencies [c66c349218fe427cfa59df0973b987ce14bbec09](https://code.europa.eu/ebsi/public/core-services/-/commit/c66c349218fe427cfa59df0973b987ce14bbec09)
+- [d3a4a64a16df2bbeec587aadbf7bb5c02c577316](https://gitlab.com/europeum/public/core-services/-/commit/d3a4a64a16df2bbeec587aadbf7bb5c02c577316): Bump VC and VP libraries.
+- [c66c349218fe427cfa59df0973b987ce14bbec09](https://gitlab.com/europeum/public/core-services/-/commit/c66c349218fe427cfa59df0973b987ce14bbec09): Support VC with credentialStatus as an array.
+- Updated dependencies [d3a4a64a16df2bbeec587aadbf7bb5c02c577316](https://gitlab.com/europeum/public/core-services/-/commit/d3a4a64a16df2bbeec587aadbf7bb5c02c577316)
+- Updated dependencies [c66c349218fe427cfa59df0973b987ce14bbec09](https://gitlab.com/europeum/public/core-services/-/commit/c66c349218fe427cfa59df0973b987ce14bbec09)
   - @ebsiint-api/shared@1.1.0-rc.9
 
 ## 3.0.0-rc.11
 
 ### Patch Changes
 
-- [b8b8b09c11f84e7809fdea74f93167141eb3916e](https://code.europa.eu/ebsi/public/core-services/-/commit/b8b8b09c11f84e7809fdea74f93167141eb3916e): Verify if the credentials are valid at the current time.
-- [713311de4a45a79c4059b58bb42bf2e258205aac](https://code.europa.eu/ebsi/public/core-services/-/commit/713311de4a45a79c4059b58bb42bf2e258205aac): Validate dates of credentials linked in termsOfUse
-- Updated dependencies [b8b8b09c11f84e7809fdea74f93167141eb3916e](https://code.europa.eu/ebsi/public/core-services/-/commit/b8b8b09c11f84e7809fdea74f93167141eb3916e)
-- Updated dependencies [713311de4a45a79c4059b58bb42bf2e258205aac](https://code.europa.eu/ebsi/public/core-services/-/commit/713311de4a45a79c4059b58bb42bf2e258205aac)
+- [b8b8b09c11f84e7809fdea74f93167141eb3916e](https://gitlab.com/europeum/public/core-services/-/commit/b8b8b09c11f84e7809fdea74f93167141eb3916e): Verify if the credentials are valid at the current time.
+- [713311de4a45a79c4059b58bb42bf2e258205aac](https://gitlab.com/europeum/public/core-services/-/commit/713311de4a45a79c4059b58bb42bf2e258205aac): Validate dates of credentials linked in termsOfUse
+- Updated dependencies [b8b8b09c11f84e7809fdea74f93167141eb3916e](https://gitlab.com/europeum/public/core-services/-/commit/b8b8b09c11f84e7809fdea74f93167141eb3916e)
+- Updated dependencies [713311de4a45a79c4059b58bb42bf2e258205aac](https://gitlab.com/europeum/public/core-services/-/commit/713311de4a45a79c4059b58bb42bf2e258205aac)
   - @ebsiint-api/shared@1.1.0-rc.8
 
 ## 3.0.0-rc.10
 
 ### Minor Changes
 
-- [520038797ef25f4c8ac19150274b8a5368175dfc](https://code.europa.eu/ebsi/public/core-services/-/commit/520038797ef25f4c8ac19150274b8a5368175dfc): Bump VC and VP libraries, support `JsonSchema` credential schema type.
+- [520038797ef25f4c8ac19150274b8a5368175dfc](https://gitlab.com/europeum/public/core-services/-/commit/520038797ef25f4c8ac19150274b8a5368175dfc): Bump VC and VP libraries, support `JsonSchema` credential schema type.
 
 ### Patch Changes
 
-- [1960638f1c5cce829eae0535733d0714632d8841](https://code.europa.eu/ebsi/public/core-services/-/commit/1960638f1c5cce829eae0535733d0714632d8841): Bump dependencies.
-- [1960638f1c5cce829eae0535733d0714632d8841](https://code.europa.eu/ebsi/public/core-services/-/commit/1960638f1c5cce829eae0535733d0714632d8841): Bump jose to v4.15.5, fix CVE-2024-28176.
-- [ddfc40a1f21fae1498059618e71bf1f2e9271ee8](https://code.europa.eu/ebsi/public/core-services/-/commit/ddfc40a1f21fae1498059618e71bf1f2e9271ee8): Bump VC and VP libraries.
-- [e5e5cd041db2e6c9670a596d7526d0e7159efcc5](https://code.europa.eu/ebsi/public/core-services/-/commit/e5e5cd041db2e6c9670a596d7526d0e7159efcc5): Bump dependencies.
-- [85e2c4cd45daea5e75d1f68484a0a062348068e0](https://code.europa.eu/ebsi/public/core-services/-/commit/85e2c4cd45daea5e75d1f68484a0a062348068e0): Do not log requests made by the EBSI healthcheck service.
-- Updated dependencies [82e12c8c38442379aadb957fee5ec8ca4fea4fac](https://code.europa.eu/ebsi/public/core-services/-/commit/82e12c8c38442379aadb957fee5ec8ca4fea4fac)
-- Updated dependencies [3900b6f7697df366effd4110dc1827b6c36c169f](https://code.europa.eu/ebsi/public/core-services/-/commit/3900b6f7697df366effd4110dc1827b6c36c169f)
-- Updated dependencies [1960638f1c5cce829eae0535733d0714632d8841](https://code.europa.eu/ebsi/public/core-services/-/commit/1960638f1c5cce829eae0535733d0714632d8841)
-- Updated dependencies [1960638f1c5cce829eae0535733d0714632d8841](https://code.europa.eu/ebsi/public/core-services/-/commit/1960638f1c5cce829eae0535733d0714632d8841)
-- Updated dependencies [ddfc40a1f21fae1498059618e71bf1f2e9271ee8](https://code.europa.eu/ebsi/public/core-services/-/commit/ddfc40a1f21fae1498059618e71bf1f2e9271ee8)
-- Updated dependencies [520038797ef25f4c8ac19150274b8a5368175dfc](https://code.europa.eu/ebsi/public/core-services/-/commit/520038797ef25f4c8ac19150274b8a5368175dfc)
-- Updated dependencies [e5e5cd041db2e6c9670a596d7526d0e7159efcc5](https://code.europa.eu/ebsi/public/core-services/-/commit/e5e5cd041db2e6c9670a596d7526d0e7159efcc5)
+- [1960638f1c5cce829eae0535733d0714632d8841](https://gitlab.com/europeum/public/core-services/-/commit/1960638f1c5cce829eae0535733d0714632d8841): Bump dependencies.
+- [1960638f1c5cce829eae0535733d0714632d8841](https://gitlab.com/europeum/public/core-services/-/commit/1960638f1c5cce829eae0535733d0714632d8841): Bump jose to v4.15.5, fix CVE-2024-28176.
+- [ddfc40a1f21fae1498059618e71bf1f2e9271ee8](https://gitlab.com/europeum/public/core-services/-/commit/ddfc40a1f21fae1498059618e71bf1f2e9271ee8): Bump VC and VP libraries.
+- [e5e5cd041db2e6c9670a596d7526d0e7159efcc5](https://gitlab.com/europeum/public/core-services/-/commit/e5e5cd041db2e6c9670a596d7526d0e7159efcc5): Bump dependencies.
+- [85e2c4cd45daea5e75d1f68484a0a062348068e0](https://gitlab.com/europeum/public/core-services/-/commit/85e2c4cd45daea5e75d1f68484a0a062348068e0): Do not log requests made by the EBSI healthcheck service.
+- Updated dependencies [82e12c8c38442379aadb957fee5ec8ca4fea4fac](https://gitlab.com/europeum/public/core-services/-/commit/82e12c8c38442379aadb957fee5ec8ca4fea4fac)
+- Updated dependencies [3900b6f7697df366effd4110dc1827b6c36c169f](https://gitlab.com/europeum/public/core-services/-/commit/3900b6f7697df366effd4110dc1827b6c36c169f)
+- Updated dependencies [1960638f1c5cce829eae0535733d0714632d8841](https://gitlab.com/europeum/public/core-services/-/commit/1960638f1c5cce829eae0535733d0714632d8841)
+- Updated dependencies [1960638f1c5cce829eae0535733d0714632d8841](https://gitlab.com/europeum/public/core-services/-/commit/1960638f1c5cce829eae0535733d0714632d8841)
+- Updated dependencies [ddfc40a1f21fae1498059618e71bf1f2e9271ee8](https://gitlab.com/europeum/public/core-services/-/commit/ddfc40a1f21fae1498059618e71bf1f2e9271ee8)
+- Updated dependencies [520038797ef25f4c8ac19150274b8a5368175dfc](https://gitlab.com/europeum/public/core-services/-/commit/520038797ef25f4c8ac19150274b8a5368175dfc)
+- Updated dependencies [e5e5cd041db2e6c9670a596d7526d0e7159efcc5](https://gitlab.com/europeum/public/core-services/-/commit/e5e5cd041db2e6c9670a596d7526d0e7159efcc5)
   - @ebsiint-api/shared@1.1.0-rc.7
   - @ebsiint-sc/did-registry@1.1.0-rc.7
 
@@ -86,20 +86,20 @@
 
 ### Patch Changes
 
-- [48b06089e979a20d1ca3df1be08ac614e5b6856e](https://code.europa.eu/ebsi/public/core-services/-/commit/48b06089e979a20d1ca3df1be08ac614e5b6856e): Bump dependencies, support Verifiable Attestation 2024-01 schema.
-- [99abef34ed7e8a91e3335e712173a45027f9277e](https://code.europa.eu/ebsi/public/core-services/-/commit/99abef34ed7e8a91e3335e712173a45027f9277e): Update VC and VP libraries.
-- [733354a1d2e4e6a18a9a834a96b7b9a4eb321060](https://code.europa.eu/ebsi/public/core-services/-/commit/733354a1d2e4e6a18a9a834a96b7b9a4eb321060): Bump dependencies, update Node.js to v20.11.0.
-- [fe81418ed2d3d8759944423997e4371fff61e348](https://code.europa.eu/ebsi/public/core-services/-/commit/fe81418ed2d3d8759944423997e4371fff61e348): Setup axios agents with `keepAlive: true`.
-- [de238473eb36b1f275866c848e945e9417e917e3](https://code.europa.eu/ebsi/public/core-services/-/commit/de238473eb36b1f275866c848e945e9417e917e3): Initialize LedgerService only once.
-- [f84767e4aedf5c103d6aad87f81c3708ad915e73](https://code.europa.eu/ebsi/public/core-services/-/commit/f84767e4aedf5c103d6aad87f81c3708ad915e73): Bump dependencies.
-- Updated dependencies [61fffd7ccdb3e8aa20dfe2ea6e546b3784a9adcd](https://code.europa.eu/ebsi/public/core-services/-/commit/61fffd7ccdb3e8aa20dfe2ea6e546b3784a9adcd)
-- Updated dependencies [5c6c9e9227b705958af5a1869ddfbdbe237d6262](https://code.europa.eu/ebsi/public/core-services/-/commit/5c6c9e9227b705958af5a1869ddfbdbe237d6262)
-- Updated dependencies [48b06089e979a20d1ca3df1be08ac614e5b6856e](https://code.europa.eu/ebsi/public/core-services/-/commit/48b06089e979a20d1ca3df1be08ac614e5b6856e)
-- Updated dependencies [99abef34ed7e8a91e3335e712173a45027f9277e](https://code.europa.eu/ebsi/public/core-services/-/commit/99abef34ed7e8a91e3335e712173a45027f9277e)
-- Updated dependencies [733354a1d2e4e6a18a9a834a96b7b9a4eb321060](https://code.europa.eu/ebsi/public/core-services/-/commit/733354a1d2e4e6a18a9a834a96b7b9a4eb321060)
-- Updated dependencies [fe81418ed2d3d8759944423997e4371fff61e348](https://code.europa.eu/ebsi/public/core-services/-/commit/fe81418ed2d3d8759944423997e4371fff61e348)
-- Updated dependencies [f84767e4aedf5c103d6aad87f81c3708ad915e73](https://code.europa.eu/ebsi/public/core-services/-/commit/f84767e4aedf5c103d6aad87f81c3708ad915e73)
-- Updated dependencies [79dc01786e983e02373501ec858f4897d8ae3680](https://code.europa.eu/ebsi/public/core-services/-/commit/79dc01786e983e02373501ec858f4897d8ae3680)
+- [48b06089e979a20d1ca3df1be08ac614e5b6856e](https://gitlab.com/europeum/public/core-services/-/commit/48b06089e979a20d1ca3df1be08ac614e5b6856e): Bump dependencies, support Verifiable Attestation 2024-01 schema.
+- [99abef34ed7e8a91e3335e712173a45027f9277e](https://gitlab.com/europeum/public/core-services/-/commit/99abef34ed7e8a91e3335e712173a45027f9277e): Update VC and VP libraries.
+- [733354a1d2e4e6a18a9a834a96b7b9a4eb321060](https://gitlab.com/europeum/public/core-services/-/commit/733354a1d2e4e6a18a9a834a96b7b9a4eb321060): Bump dependencies, update Node.js to v20.11.0.
+- [fe81418ed2d3d8759944423997e4371fff61e348](https://gitlab.com/europeum/public/core-services/-/commit/fe81418ed2d3d8759944423997e4371fff61e348): Setup axios agents with `keepAlive: true`.
+- [de238473eb36b1f275866c848e945e9417e917e3](https://gitlab.com/europeum/public/core-services/-/commit/de238473eb36b1f275866c848e945e9417e917e3): Initialize LedgerService only once.
+- [f84767e4aedf5c103d6aad87f81c3708ad915e73](https://gitlab.com/europeum/public/core-services/-/commit/f84767e4aedf5c103d6aad87f81c3708ad915e73): Bump dependencies.
+- Updated dependencies [61fffd7ccdb3e8aa20dfe2ea6e546b3784a9adcd](https://gitlab.com/europeum/public/core-services/-/commit/61fffd7ccdb3e8aa20dfe2ea6e546b3784a9adcd)
+- Updated dependencies [5c6c9e9227b705958af5a1869ddfbdbe237d6262](https://gitlab.com/europeum/public/core-services/-/commit/5c6c9e9227b705958af5a1869ddfbdbe237d6262)
+- Updated dependencies [48b06089e979a20d1ca3df1be08ac614e5b6856e](https://gitlab.com/europeum/public/core-services/-/commit/48b06089e979a20d1ca3df1be08ac614e5b6856e)
+- Updated dependencies [99abef34ed7e8a91e3335e712173a45027f9277e](https://gitlab.com/europeum/public/core-services/-/commit/99abef34ed7e8a91e3335e712173a45027f9277e)
+- Updated dependencies [733354a1d2e4e6a18a9a834a96b7b9a4eb321060](https://gitlab.com/europeum/public/core-services/-/commit/733354a1d2e4e6a18a9a834a96b7b9a4eb321060)
+- Updated dependencies [fe81418ed2d3d8759944423997e4371fff61e348](https://gitlab.com/europeum/public/core-services/-/commit/fe81418ed2d3d8759944423997e4371fff61e348)
+- Updated dependencies [f84767e4aedf5c103d6aad87f81c3708ad915e73](https://gitlab.com/europeum/public/core-services/-/commit/f84767e4aedf5c103d6aad87f81c3708ad915e73)
+- Updated dependencies [79dc01786e983e02373501ec858f4897d8ae3680](https://gitlab.com/europeum/public/core-services/-/commit/79dc01786e983e02373501ec858f4897d8ae3680)
   - @ebsiint-api/shared@1.1.0-rc.6
   - @ebsiint-sc/did-registry@1.1.0-rc.6
 
@@ -107,19 +107,19 @@
 
 ### Patch Changes
 
-- [f3024ac17c5031e011757bbf4e52700943842ba0](https://code.europa.eu/ebsi/public/core-services/-/commit/f3024ac17c5031e011757bbf4e52700943842ba0): Upgrade Node.js to v18 and bump dependencies.
-- [2de71cb9cf78177e0f60ab150571d03f12d4ab57](https://code.europa.eu/ebsi/public/core-services/-/commit/2de71cb9cf78177e0f60ab150571d03f12d4ab57): Bump dependencies.
-- [ca9544d2978218570fcdf58e57de8144317fc5c8](https://code.europa.eu/ebsi/public/core-services/-/commit/ca9544d2978218570fcdf58e57de8144317fc5c8): Update Node.js to v20.9.0 (LTS).
-- [98b9d3eafb00d634e67a949689a883b63578535a](https://code.europa.eu/ebsi/public/core-services/-/commit/98b9d3eafb00d634e67a949689a883b63578535a): Fix onApplicationBootstrap hook.
-- [e69bbf27731eaeeedb149b4d155a0b2cc9366aa8](https://code.europa.eu/ebsi/public/core-services/-/commit/e69bbf27731eaeeedb149b4d155a0b2cc9366aa8): Refactor service's health check.
-- [a82cf5865669f7fd184a0bf000573856e85c9837](https://code.europa.eu/ebsi/public/core-services/-/commit/a82cf5865669f7fd184a0bf000573856e85c9837): Bump dependencies.
-- [4fa0f0414daebd2e721434108ee63f7b5802abe9](https://code.europa.eu/ebsi/public/core-services/-/commit/4fa0f0414daebd2e721434108ee63f7b5802abe9): Bump dependencies and update Node.js to v20.10.0.
-- Updated dependencies [f3024ac17c5031e011757bbf4e52700943842ba0](https://code.europa.eu/ebsi/public/core-services/-/commit/f3024ac17c5031e011757bbf4e52700943842ba0)
-- Updated dependencies [2de71cb9cf78177e0f60ab150571d03f12d4ab57](https://code.europa.eu/ebsi/public/core-services/-/commit/2de71cb9cf78177e0f60ab150571d03f12d4ab57)
-- Updated dependencies [ca9544d2978218570fcdf58e57de8144317fc5c8](https://code.europa.eu/ebsi/public/core-services/-/commit/ca9544d2978218570fcdf58e57de8144317fc5c8)
-- Updated dependencies [e69bbf27731eaeeedb149b4d155a0b2cc9366aa8](https://code.europa.eu/ebsi/public/core-services/-/commit/e69bbf27731eaeeedb149b4d155a0b2cc9366aa8)
-- Updated dependencies [a82cf5865669f7fd184a0bf000573856e85c9837](https://code.europa.eu/ebsi/public/core-services/-/commit/a82cf5865669f7fd184a0bf000573856e85c9837)
-- Updated dependencies [4fa0f0414daebd2e721434108ee63f7b5802abe9](https://code.europa.eu/ebsi/public/core-services/-/commit/4fa0f0414daebd2e721434108ee63f7b5802abe9)
+- [f3024ac17c5031e011757bbf4e52700943842ba0](https://gitlab.com/europeum/public/core-services/-/commit/f3024ac17c5031e011757bbf4e52700943842ba0): Upgrade Node.js to v18 and bump dependencies.
+- [2de71cb9cf78177e0f60ab150571d03f12d4ab57](https://gitlab.com/europeum/public/core-services/-/commit/2de71cb9cf78177e0f60ab150571d03f12d4ab57): Bump dependencies.
+- [ca9544d2978218570fcdf58e57de8144317fc5c8](https://gitlab.com/europeum/public/core-services/-/commit/ca9544d2978218570fcdf58e57de8144317fc5c8): Update Node.js to v20.9.0 (LTS).
+- [98b9d3eafb00d634e67a949689a883b63578535a](https://gitlab.com/europeum/public/core-services/-/commit/98b9d3eafb00d634e67a949689a883b63578535a): Fix onApplicationBootstrap hook.
+- [e69bbf27731eaeeedb149b4d155a0b2cc9366aa8](https://gitlab.com/europeum/public/core-services/-/commit/e69bbf27731eaeeedb149b4d155a0b2cc9366aa8): Refactor service's health check.
+- [a82cf5865669f7fd184a0bf000573856e85c9837](https://gitlab.com/europeum/public/core-services/-/commit/a82cf5865669f7fd184a0bf000573856e85c9837): Bump dependencies.
+- [4fa0f0414daebd2e721434108ee63f7b5802abe9](https://gitlab.com/europeum/public/core-services/-/commit/4fa0f0414daebd2e721434108ee63f7b5802abe9): Bump dependencies and update Node.js to v20.10.0.
+- Updated dependencies [f3024ac17c5031e011757bbf4e52700943842ba0](https://gitlab.com/europeum/public/core-services/-/commit/f3024ac17c5031e011757bbf4e52700943842ba0)
+- Updated dependencies [2de71cb9cf78177e0f60ab150571d03f12d4ab57](https://gitlab.com/europeum/public/core-services/-/commit/2de71cb9cf78177e0f60ab150571d03f12d4ab57)
+- Updated dependencies [ca9544d2978218570fcdf58e57de8144317fc5c8](https://gitlab.com/europeum/public/core-services/-/commit/ca9544d2978218570fcdf58e57de8144317fc5c8)
+- Updated dependencies [e69bbf27731eaeeedb149b4d155a0b2cc9366aa8](https://gitlab.com/europeum/public/core-services/-/commit/e69bbf27731eaeeedb149b4d155a0b2cc9366aa8)
+- Updated dependencies [a82cf5865669f7fd184a0bf000573856e85c9837](https://gitlab.com/europeum/public/core-services/-/commit/a82cf5865669f7fd184a0bf000573856e85c9837)
+- Updated dependencies [4fa0f0414daebd2e721434108ee63f7b5802abe9](https://gitlab.com/europeum/public/core-services/-/commit/4fa0f0414daebd2e721434108ee63f7b5802abe9)
   - @ebsiint-sc/did-registry@1.1.0-rc.5
   - @ebsiint-api/shared@1.1.0-rc.5
 
@@ -127,14 +127,14 @@
 
 ### Minor Changes
 
-- [91470e6d](https://code.europa.eu/ebsi/public/core-services/-/commit/91470e6d): Fixed blockscout E2E errors
+- [91470e6d](https://gitlab.com/europeum/public/core-services/-/commit/91470e6d): Fixed blockscout E2E errors
 
 ### Patch Changes
 
-- [d5a179ce](https://code.europa.eu/ebsi/public/core-services/-/commit/d5a179ce): Bump VC and VP libraries.
-- Updated dependencies [d5a179ce](https://code.europa.eu/ebsi/public/core-services/-/commit/d5a179ce)
-- Updated dependencies [b8b79ac3](https://code.europa.eu/ebsi/public/core-services/-/commit/b8b79ac3)
-- Updated dependencies [915b2da7](https://code.europa.eu/ebsi/public/core-services/-/commit/915b2da7)
+- [d5a179ce](https://gitlab.com/europeum/public/core-services/-/commit/d5a179ce): Bump VC and VP libraries.
+- Updated dependencies [d5a179ce](https://gitlab.com/europeum/public/core-services/-/commit/d5a179ce)
+- Updated dependencies [b8b79ac3](https://gitlab.com/europeum/public/core-services/-/commit/b8b79ac3)
+- Updated dependencies [915b2da7](https://gitlab.com/europeum/public/core-services/-/commit/915b2da7)
   - @ebsiint-api/shared@1.1.0-rc.4
   - @ebsiint-sc/did-registry@1.1.0-rc.4
 
@@ -142,16 +142,16 @@
 
 ### Minor Changes
 
-- [38b9d313](https://code.europa.eu/ebsi/public/core-services/-/commit/38b9d313): Support custom trusted hostnames.
+- [38b9d313](https://gitlab.com/europeum/public/core-services/-/commit/38b9d313): Support custom trusted hostnames.
 
 ### Patch Changes
 
-- [f0d3dde3](https://code.europa.eu/ebsi/public/core-services/-/commit/f0d3dde3): Improve error handling
-- [f520c43a](https://code.europa.eu/ebsi/public/core-services/-/commit/f520c43a): Bump dependencies and update Node.js to v16.20.1
-- Updated dependencies [f0d3dde3](https://code.europa.eu/ebsi/public/core-services/-/commit/f0d3dde3)
-- Updated dependencies [38b9d313](https://code.europa.eu/ebsi/public/core-services/-/commit/38b9d313)
-- Updated dependencies [f520c43a](https://code.europa.eu/ebsi/public/core-services/-/commit/f520c43a)
-- Updated dependencies [07e3176d](https://code.europa.eu/ebsi/public/core-services/-/commit/07e3176d)
+- [f0d3dde3](https://gitlab.com/europeum/public/core-services/-/commit/f0d3dde3): Improve error handling
+- [f520c43a](https://gitlab.com/europeum/public/core-services/-/commit/f520c43a): Bump dependencies and update Node.js to v16.20.1
+- Updated dependencies [f0d3dde3](https://gitlab.com/europeum/public/core-services/-/commit/f0d3dde3)
+- Updated dependencies [38b9d313](https://gitlab.com/europeum/public/core-services/-/commit/38b9d313)
+- Updated dependencies [f520c43a](https://gitlab.com/europeum/public/core-services/-/commit/f520c43a)
+- Updated dependencies [07e3176d](https://gitlab.com/europeum/public/core-services/-/commit/07e3176d)
   - @ebsiint-api/shared@1.1.0-rc.3
   - @ebsiint-sc/did-registry@1.1.0-rc.3
 
@@ -159,24 +159,24 @@
 
 ### Minor Changes
 
-- [70631f93](https://code.europa.eu/ebsi/public/core-services/-/commit/70631f93): bump VC/VP libraries
+- [70631f93](https://gitlab.com/europeum/public/core-services/-/commit/70631f93): bump VC/VP libraries
 
 ### Patch Changes
 
-- [2966fa3c](https://code.europa.eu/ebsi/public/core-services/-/commit/2966fa3c): Expose service OpenAPI specification
-- [443664aa](https://code.europa.eu/ebsi/public/core-services/-/commit/443664aa): Bump EBSI libraries.
-- [34384586](https://code.europa.eu/ebsi/public/core-services/-/commit/34384586): Check if the smart contract address environment variable is defined.
-- [a623008a](https://code.europa.eu/ebsi/public/core-services/-/commit/a623008a): Rename DID Document to DID document
-- [357775c1](https://code.europa.eu/ebsi/public/core-services/-/commit/357775c1): Fix vulnerabilities related to the Docker image.
-- [1fb98741](https://code.europa.eu/ebsi/public/core-services/-/commit/1fb98741): Bump dependencies.
-- [8a245129](https://code.europa.eu/ebsi/public/core-services/-/commit/8a245129): Bump EBSI libraries.
-- [44412117](https://code.europa.eu/ebsi/public/core-services/-/commit/44412117): Prevent connecting multiple times to Ledger API concurrently.
-- [cdfb5f61](https://code.europa.eu/ebsi/public/core-services/-/commit/cdfb5f61): Wait for dependencies to be up and running.
-- Updated dependencies [443664aa](https://code.europa.eu/ebsi/public/core-services/-/commit/443664aa)
-- Updated dependencies [70631f93](https://code.europa.eu/ebsi/public/core-services/-/commit/70631f93)
-- Updated dependencies [a623008a](https://code.europa.eu/ebsi/public/core-services/-/commit/a623008a)
-- Updated dependencies [1fb98741](https://code.europa.eu/ebsi/public/core-services/-/commit/1fb98741)
-- Updated dependencies [8a245129](https://code.europa.eu/ebsi/public/core-services/-/commit/8a245129)
+- [2966fa3c](https://gitlab.com/europeum/public/core-services/-/commit/2966fa3c): Expose service OpenAPI specification
+- [443664aa](https://gitlab.com/europeum/public/core-services/-/commit/443664aa): Bump EBSI libraries.
+- [34384586](https://gitlab.com/europeum/public/core-services/-/commit/34384586): Check if the smart contract address environment variable is defined.
+- [a623008a](https://gitlab.com/europeum/public/core-services/-/commit/a623008a): Rename DID Document to DID document
+- [357775c1](https://gitlab.com/europeum/public/core-services/-/commit/357775c1): Fix vulnerabilities related to the Docker image.
+- [1fb98741](https://gitlab.com/europeum/public/core-services/-/commit/1fb98741): Bump dependencies.
+- [8a245129](https://gitlab.com/europeum/public/core-services/-/commit/8a245129): Bump EBSI libraries.
+- [44412117](https://gitlab.com/europeum/public/core-services/-/commit/44412117): Prevent connecting multiple times to Ledger API concurrently.
+- [cdfb5f61](https://gitlab.com/europeum/public/core-services/-/commit/cdfb5f61): Wait for dependencies to be up and running.
+- Updated dependencies [443664aa](https://gitlab.com/europeum/public/core-services/-/commit/443664aa)
+- Updated dependencies [70631f93](https://gitlab.com/europeum/public/core-services/-/commit/70631f93)
+- Updated dependencies [a623008a](https://gitlab.com/europeum/public/core-services/-/commit/a623008a)
+- Updated dependencies [1fb98741](https://gitlab.com/europeum/public/core-services/-/commit/1fb98741)
+- Updated dependencies [8a245129](https://gitlab.com/europeum/public/core-services/-/commit/8a245129)
   - @ebsiint-api/shared@1.1.0-rc.2
   - @ebsiint-sc/did-registry@1.1.0-rc.2
 
@@ -184,18 +184,18 @@
 
 ### Minor Changes
 
-- [f2257d7d](https://code.europa.eu/ebsi/public/core-services/-/commit/f2257d7d): connect APIs with DID Registry API v4
-- [4a7ea0a5](https://code.europa.eu/ebsi/public/core-services/-/commit/4a7ea0a5): remove DID policies
+- [f2257d7d](https://gitlab.com/europeum/public/core-services/-/commit/f2257d7d): connect APIs with DID Registry API v4
+- [4a7ea0a5](https://gitlab.com/europeum/public/core-services/-/commit/4a7ea0a5): remove DID policies
 
 ### Patch Changes
 
-- [adc663ea](https://code.europa.eu/ebsi/public/core-services/-/commit/adc663ea): Bump dependencies.
-- [78ee438b](https://code.europa.eu/ebsi/public/core-services/-/commit/78ee438b): Bump dependencies.
-- Updated dependencies [adc663ea](https://code.europa.eu/ebsi/public/core-services/-/commit/adc663ea)
-- Updated dependencies [a6a1f685](https://code.europa.eu/ebsi/public/core-services/-/commit/a6a1f685)
-- Updated dependencies [f2257d7d](https://code.europa.eu/ebsi/public/core-services/-/commit/f2257d7d)
-- Updated dependencies [4a7ea0a5](https://code.europa.eu/ebsi/public/core-services/-/commit/4a7ea0a5)
-- Updated dependencies [78ee438b](https://code.europa.eu/ebsi/public/core-services/-/commit/78ee438b)
+- [adc663ea](https://gitlab.com/europeum/public/core-services/-/commit/adc663ea): Bump dependencies.
+- [78ee438b](https://gitlab.com/europeum/public/core-services/-/commit/78ee438b): Bump dependencies.
+- Updated dependencies [adc663ea](https://gitlab.com/europeum/public/core-services/-/commit/adc663ea)
+- Updated dependencies [a6a1f685](https://gitlab.com/europeum/public/core-services/-/commit/a6a1f685)
+- Updated dependencies [f2257d7d](https://gitlab.com/europeum/public/core-services/-/commit/f2257d7d)
+- Updated dependencies [4a7ea0a5](https://gitlab.com/europeum/public/core-services/-/commit/4a7ea0a5)
+- Updated dependencies [78ee438b](https://gitlab.com/europeum/public/core-services/-/commit/78ee438b)
   - @ebsiint-sc/did-registry@1.1.0-rc.1
   - @ebsiint-api/shared@1.1.0-rc.1
 
@@ -203,17 +203,17 @@
 
 ### Patch Changes
 
-- [2f8b1686](https://code.europa.eu/ebsi/public/core-services/-/commit/2f8b1686): Bump dependencies.
-- [c9f6e302](https://code.europa.eu/ebsi/public/core-services/-/commit/c9f6e302): Refactor common code with Sonar-reported high complexity.
+- [2f8b1686](https://gitlab.com/europeum/public/core-services/-/commit/2f8b1686): Bump dependencies.
+- [c9f6e302](https://gitlab.com/europeum/public/core-services/-/commit/c9f6e302): Refactor common code with Sonar-reported high complexity.
   Update rules for http patch path attribute args to have any order.
-- [79b2951e](https://code.europa.eu/ebsi/public/core-services/-/commit/79b2951e): Fix connection with ethers provider when there is no token.
-- [6d699188](https://code.europa.eu/ebsi/public/core-services/-/commit/6d699188): Bump dependencies, refactor tests.
-- [1e62e0cc](https://code.europa.eu/ebsi/public/core-services/-/commit/1e62e0cc): Move custom errors from `@cef-ebsi/problem-details-errors` to `@ebsiint-api/shared`
-- Updated dependencies [1be2b488](https://code.europa.eu/ebsi/public/core-services/-/commit/1be2b488)
-- Updated dependencies [2f8b1686](https://code.europa.eu/ebsi/public/core-services/-/commit/2f8b1686)
-- Updated dependencies [6d699188](https://code.europa.eu/ebsi/public/core-services/-/commit/6d699188)
-- Updated dependencies [be8604c9](https://code.europa.eu/ebsi/public/core-services/-/commit/be8604c9)
-- Updated dependencies [1e62e0cc](https://code.europa.eu/ebsi/public/core-services/-/commit/1e62e0cc)
+- [79b2951e](https://gitlab.com/europeum/public/core-services/-/commit/79b2951e): Fix connection with ethers provider when there is no token.
+- [6d699188](https://gitlab.com/europeum/public/core-services/-/commit/6d699188): Bump dependencies, refactor tests.
+- [1e62e0cc](https://gitlab.com/europeum/public/core-services/-/commit/1e62e0cc): Move custom errors from `@cef-ebsi/problem-details-errors` to `@ebsiint-api/shared`
+- Updated dependencies [1be2b488](https://gitlab.com/europeum/public/core-services/-/commit/1be2b488)
+- Updated dependencies [2f8b1686](https://gitlab.com/europeum/public/core-services/-/commit/2f8b1686)
+- Updated dependencies [6d699188](https://gitlab.com/europeum/public/core-services/-/commit/6d699188)
+- Updated dependencies [be8604c9](https://gitlab.com/europeum/public/core-services/-/commit/be8604c9)
+- Updated dependencies [1e62e0cc](https://gitlab.com/europeum/public/core-services/-/commit/1e62e0cc)
   - @ebsiint-sc/did-registry@1.0.1-rc.0
   - @ebsiint-sc/bootstrap@1.0.1-rc.0
   - @ebsiint-api/shared@1.1.0-rc.0

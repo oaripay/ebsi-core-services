@@ -1,7 +1,7 @@
 import type { EbsiIssuer } from "@cef-ebsi/verifiable-credential";
 
+import { hexToBytes } from "@cef-ebsi/did-jwt";
 import { getPublicKeyJwk, getSigner } from "@ebsiint-api/shared";
-import { hexToBytes } from "did-jwt";
 
 export async function getEbsiIssuer(
   privateKeyHex: string,
