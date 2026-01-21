@@ -1,10 +1,10 @@
 ![EBSI Logo](https://ec.europa.eu/digital-building-blocks/wikis/images/logo/default-space-logo.svg)
 
-# EBSI core services
+# EBSI Core Services
 
 ## Table of Contents
 
-- [EBSI core services](#ebsi-core-services)
+- [EBSI Core Services](#ebsi-core-services)
   - [Table of Contents](#table-of-contents)
   - [Getting started](#getting-started)
     - [Downloading dependencies](#downloading-dependencies)
@@ -18,7 +18,7 @@
 
 ## Getting started
 
-The monorepo uses [NX](https://nx.dev/) as a task runner in combination with [yarn workspaces](https://classic.yarnpkg.com/lang/en/docs/workspaces/).
+The monorepo uses [Nx](https://nx.dev/) as a task runner in combination with [Yarn workspaces](https://classic.yarnpkg.com/lang/en/docs/workspaces/).
 
 ### Downloading dependencies
 
@@ -35,20 +35,18 @@ Install the required libraries and packages dependencies:
 yarn install
 ```
 
-Pre-commit hooks are also running gitleaks. To install it, please check their github README page:
+Pre-commit hooks are also running [gitleaks](https://github.com/gitleaks/gitleaks). To install it, please check their GitHub README page:
 [https://github.com/gitleaks/gitleaks?tab=readme-ov-file#installing](https://github.com/gitleaks/gitleaks?tab=readme-ov-file#installing)
-
-Keep in mind that libraries' source code will be stored centrally in the root `node_modules` folder whereas binaries required by sub-projects will be stored in nested `node_modules` folders.
 
 ### Executing tasks
 
-To revise most commonly used commands please run:
+To list the most commonly used commands, run:
 
 ```sh
 yarn run
 ```
 
-To build all packages
+To build all packages:
 
 ```sh
 yarn build:all
@@ -90,7 +88,7 @@ Please refer to services' `README` files for more information regarding specific
 
 ## License
 
-Copyright (C) 2025 European Union
+Copyright (C) 2026 European Union
 
 This program is free software: you can redistribute it and/or modify it under the terms of the EUROPEAN UNION PUBLIC LICENCE v. 1.2 as published by the European Union.
 
