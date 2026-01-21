@@ -56,7 +56,7 @@
     "@nomicfoundation/hardhat-ethers": "^3.1.0",
     "@openzeppelin/hardhat-upgrades": "^3.9.1",
     "@stoplight/spectral-cli": "^6.15.0",
-    "@swc/core": "^1.15.8",
+    "@swc/core": "^1.15.10",
     "@total-typescript/ts-reset": "^0.6.1",
     "@tsconfig/node24": "^24.0.4",
     "@tsconfig/strictest": "^2.0.8",
