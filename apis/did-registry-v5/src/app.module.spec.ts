@@ -641,14 +641,14 @@ describe("App Module", () => {
 
         const response = await request(server)
           .post("/jsonrpc")
-          .set("Content-Type", "bad-content-type")
+          .set("Content-Type", "application/bad-content-type")
           .send();
 
         expect(response.status).toBe(415);
         expect(response.body).toStrictEqual({
-          detail: "Unsupported Media Type: bad-content-type",
+          detail: "Unsupported Media Type: application/bad-content-type",
           status: 415,
-          title: "Unsupported Media Type: bad-content-type",
+          title: "Unsupported Media Type: application/bad-content-type",
           type: "about:blank",
         });
         await app.close();

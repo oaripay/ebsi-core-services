@@ -852,7 +852,6 @@ paths:
           - **from**: Ethereum address of the signer
           - **recordId**: Record ID to update
           - **versionId**: Version ID to update
-          - **versionHash**: Version hash to update
           - **hashValue**: Hash value to detach
 
           #### insertRecordVersionInfo

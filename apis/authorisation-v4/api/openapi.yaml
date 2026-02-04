@@ -78,7 +78,7 @@ paths:
 
                       Ref: [OIDC](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata)
                     type: string
-                    format: URI
+                    format: uri
                     example: https://api-pilot.ebsi.eu/authorisation/v4
                   authorization_endpoint:
                     title: Authorisation Endpoint
@@ -89,7 +89,7 @@ paths:
 
                       Ref: [OIDC](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata)
                     type: string
-                    format: URI
+                    format: uri
                     example: https://api-pilot.ebsi.eu/authorisation/v4/authorize
                   token_endpoint:
                     title: Token Endpoint
@@ -100,7 +100,7 @@ paths:
 
                       Ref: [OIDC](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata)
                     type: string
-                    format: URI
+                    format: uri
                     example: https://api-pilot.ebsi.eu/authorisation/v4/token
                   presentation_definition_endpoint:
                     title: Presentation Definitions Endpoint
@@ -109,7 +109,7 @@ paths:
 
                       Non-standard (yet). Used in EBSI.
                     type: string
-                    format: URI
+                    format: uri
                     example: https://api-pilot.ebsi.eu/authorisation/v4/presentation-definitions
                   jwks_uri:
                     title: JWKS URI
@@ -118,7 +118,7 @@ paths:
 
                       Ref: [OIDC](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata)
                     type: string
-                    format: URI
+                    format: uri
                     example: https://api-pilot.ebsi.eu/authorisation/v4/jwks
                   scopes_supported:
                     title: Supported Scopes
@@ -138,6 +138,7 @@ paths:
                       - openid
                       - didr_invite
                       - didr_write
+                      - ledger_invoke
                       - tir_invite
                       - tir_write
                       - timestamp_write
@@ -344,7 +345,7 @@ paths:
                     type: array
                     items:
                       type: string
-                      format: URI
+                      format: uri
                     example:
                       - "did:ebsi"
                       - "did:key"
@@ -363,8 +364,8 @@ paths:
                     title: Supported ID Token types
                     description: |
                       OPTIONAL. A JSON array of strings containing the list of ID Token types supported by the OP, the default value is attester_signed_id_token. The ID Token types defined in this specification are:
-                      - `subject_signed_id_token`: Self-Issued ID Token, i.e. the id token is signed with key material under the end-user's control.
-                      - `attester_signed_id_token`: the id token is issued by the party operating the OP, i.e. this is the classical id token as defined in [OpenID.Core].
+                      - `subject_signed_id_token`: Self-Issued ID Token, i.e. the ID Token is signed with key material under the end-user's control.
+                      - `attester_signed_id_token`: the ID Token is issued by the party operating the OP, i.e. this is the classical id token as defined in [OpenID.Core].
 
                         MUST be subject_signed_id_token
                     type: array
@@ -375,9 +376,9 @@ paths:
                     example:
                       - subject_signed_id_token
               examples:
-                authorisation_v3:
+                authorisation_v4:
                   summary: |
-                    Profile: Authorisation Server v3
+                    Profile: Authorisation Server v4
                   value:
                     issuer: https://api-pilot.ebsi.eu/authorisation/v4
                     authorization_endpoint: https://api-pilot.ebsi.eu/authorisation/v4/authorize
@@ -385,7 +386,7 @@ paths:
                       - ES256
                     grant_types_supported:
                       - vp_token
-                    jwks_uri: /jwks
+                    jwks_uri: https://api-pilot.ebsi.eu/authorisation/v4/jwks
                     presentation_definition_endpoint: https://api-pilot.ebsi.eu/authorisation/v4/presentation_definitions
                     response_types_supported:
                       - vp_token
@@ -395,6 +396,7 @@ paths:
                       - openid
                       - didr_invite
                       - didr_write
+                      - ledger_invoke
                       - tir_invite
                       - tir_write
                       - timestamp_write
@@ -818,7 +820,7 @@ paths:
                   value:
                     title: Bad Request
                     status: 400
-                    detail: '["scope must be a combination of ''openid'' and one of the supported scopes (''didr_invite'', ''didr_write'', ''tir_invite'', ''tir_write'', ''timestamp_write'', ''tnt_authorise'', ''tnt_create'', ''tnt_write'', ''tpr_write'', ''tsr_write'')"]'
+                    detail: '["scope must be a combination of ''openid'' and one of the supported scopes (''didr_invite'', ''didr_write'', ''ledger_invoke'', ''tir_invite'', ''tir_write'', ''timestamp_write'', ''tnt_authorise'', ''tnt_create'', ''tnt_write'', ''tpr_write'', ''tsr_write'')"]'
                     type: "about:blank"
         "500":
           description: Internal Server Error
@@ -852,29 +854,31 @@ paths:
               type: object
               properties:
                 grant_type:
-                  description: MUST be set to "vp_token"
+                  description: MUST be set to "vp_token".
                   type: string
                   example: vp_token
                 vp_token:
-                  description: Signed Verifiable Presentation. The VP Token must have a nonce and an expiration time of less than 5 minutes. See also the VP Token schema definition.
+                  description: Signed Verifiable Presentation. The VP Token must have a "nonce" and an expiration time of less than 5 minutes.
                   type: string
                   example: eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiIsImtpZCI6ImRpZDplYnNpOnp2SFdYMzU5QTNDdmZKbkNZYUFpQWRlI0YwcjVPeXRfbGFodnZ6Nk1XbFlzM21jWU5LWmlpUWRVZnF2OHRzaEhOOXcifQ.eyJpc3MiOiJkaWQ6ZWJzaTowMDAxMjM0NSIsImF1ZCI6ImRpZDplYnNpOnp4QTl0NFoydW9yRVZueDlualdVWXZSIiwibm9uY2UiOiIxMjM0NTY3ODkwIiwiZXhwIjoxNjY4NzU1NzY4LCJpYXQiOjE2Njg3NTQyNjgsInZwIjp7IkBjb250ZXh0IjpbImh0dHBzOi8vd3d3LnczLm9yZy8yMDE4L2NyZWRlbnRpYWxzL3YxIl0sInR5cGUiOlsiVmVyaWZpYWJsZVByZXNlbnRhdGlvbiJdLCJob2xkZXIiOiJkaWQ6ZWJzaTowMDAxMjM0NSIsInZlcmlmaWFibGVDcmVkZW50aWFsIjpbImV5SjBlWEFpT2lKS1YxUWlMQ0poYkdjaU9pSkZVekkxTmlJc0ltdHBaQ0k2SW1ScFpEcGxZbk5wT25wMlNGZFlNelU1UVRORGRtWktia05aWVVGcFFXUmxJMFl3Y2pWUGVYUmZiR0ZvZG5aNk5rMVhiRmx6TTIxaldVNUxXbWxwVVdSVlpuRjJPSFJ6YUVoT09YY2lmUS5lMzAuMFUzZzVrZjJqZDZhN1hNTjBtNXhva091UmhkSlZRZzhFR3UtclQwUVJ2bWJUbm41a0RYbi1tVWhCRWp4SVQxeFkxRmc5YWtRWlBrQmNlR3BuWXZpSFEiXX19.CfwWBrkwOYyrm93A4QEaCCKvG14G0iqr-smrUyrUyC7YBOxhSkYPZgvOy6YCsjFT59Gczd_C0K8Pbni-AH7NRQ
                 presentation_submission:
-                  description: Descriptor for the vp_token, linked by presentation_definition. See also the Presentation Definition schema.
                   type: string
-                  example: |
+                  description: |
+                    Descriptor for the vp_token, linked by presentation_definition.
+
                     Non-normative example:
+
                     ```json
                     {
-                      "id": "jwt_vp with one jwt_vc",
-                      "definition_id": "Selecting JWT from credentials",
+                      "id": "ac9026c2-c3f5-4a26-b609-ec215cf97ba2",
+                      "definition_id": "didr_invite_presentation",
                       "descriptor_map": [
                         {
-                          "id": "requested credential id",
+                          "id": "didr_invite_credential",
                           "format": "jwt_vp",
                           "path": "$",
                           "path_nested": {
-                            "id": "requested credential id",
+                            "id": "didr_invite_credential",
                             "format": "jwt_vc",
                             "path": "$.vp.verifiableCredential[0]"
                           }
@@ -888,6 +892,7 @@ paths:
                   enum:
                     - openid didr_write
                     - openid didr_invite
+                    - openid ledger_invoke
                     - openid tir_write
                     - openid tir_invite
                     - openid timestamp_write
@@ -950,7 +955,7 @@ components:
       properties:
         access_token:
           description: |
-            The access token issued by the Authorisation Server in JWS format. See also the "Access Token" schema definition
+            The access token issued by the Authorisation Server in JWS format.
           type: string
           example: 32164be2809b7e8acdaf
           format: '^(([A-Za-z0-9\-_])+\.)([A-Za-z0-9\-_]+)(\.([A-Za-z0-9\-_]+)?$'
@@ -971,6 +976,7 @@ components:
           enum:
             - openid didr_write
             - openid didr_invite
+            - openid ledger_invoke
             - openid tir_invite
             - openid tir_write
             - openid timestamp_write
@@ -980,7 +986,7 @@ components:
             - openid tpr_write
             - openid tsr_write
         id_token:
-          description: ID Token value associated with the authenticated session. Presents client's identity. ID Token is issued in a JWS format. See also the "ID Token" schema definition.
+          description: ID Token value associated with the authenticated session. Presents client's identity. ID Token is issued in a JWS format.
           example: eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksifQ.eyJpYXQiOjE2NDE1NTI2MDAsInN1YiI6Imh0dHA6Ly9sb2NhbGhvc3Q6MzAwMCIsImF1ZCI6Imh0dHA6Ly9sb2NhbGhvc3Q6MzAwMCIsImlzcyI6ImRpZDplYnNpOnoyMVNxTUo1M2ZZUzY5VlpSWVRVRURhZyJ9.YIdjUCinbG2DRU0VhFTOPcHK9D0iLcx6zBPmF94phfVOx8IVZwOLMfnEp_9xx87-UNODVCLWNR2UdjUgQyv14A
           type: string
           format: '^(([A-Za-z0-9\-_])+\.)([A-Za-z0-9\-_]+)(\.([A-Za-z0-9\-_]+)?$'
@@ -1258,10 +1264,10 @@ components:
       properties:
         id:
           type: string
-          description: The verifiable credentials that is acceptable from the holder. e.g. wa_driver_license
+          description: The verifiable credential that is acceptable from the holder, e.g. wa_driver_license
         name:
           type: string
-          description: The verifiable credentials that is acceptable from the holder in a human readibly string form. i.e. an alternative for the humans to the id
+          description: The verifiable credential that is acceptable from the holder in a human-readable string form, i.e. an alternative for the humans to the ID
         purpose:
           type: string
           description: It describes the purpose for which the Presentation Definition's inputs are being requested.
