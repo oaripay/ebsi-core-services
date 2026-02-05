@@ -1,13 +1,13 @@
 import js from "@eslint/js";
 import importPlugin from "eslint-plugin-import";
-import perfectionist from "eslint-plugin-perfectionist";
+import { configs as perfectionistConfigs } from "eslint-plugin-perfectionist";
 import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
 import regexpPlugin from "eslint-plugin-regexp";
 import eslintPluginUnicorn from "eslint-plugin-unicorn";
 import vitest from "eslint-plugin-vitest";
 import { defineConfig } from "eslint/config";
 import globals from "globals";
-import tseslint from "typescript-eslint";
+import { configs as tsEslintConfigs } from "typescript-eslint";
 
 export default defineConfig(
   // Global ignores (replaces .eslintignore)
@@ -32,15 +32,13 @@ export default defineConfig(
 
   // Extends
   js.configs.recommended,
-  // eslint-disable-next-line import/no-named-as-default-member
-  tseslint.configs.recommendedTypeChecked,
-  // eslint-disable-next-line import/no-named-as-default-member
-  tseslint.configs.stylisticTypeChecked,
+  tsEslintConfigs.recommendedTypeChecked,
+  tsEslintConfigs.stylisticTypeChecked,
   importPlugin.flatConfigs.recommended,
   importPlugin.flatConfigs.typescript,
   eslintPluginUnicorn.configs.recommended,
   regexpPlugin.configs["flat/recommended"],
-  perfectionist.configs["recommended-natural"],
+  perfectionistConfigs["recommended-natural"],
 
   // Global config
   {
@@ -82,8 +80,7 @@ export default defineConfig(
 
   // CommonJS files
   {
-    // eslint-disable-next-line import/no-named-as-default-member
-    extends: [tseslint.configs.disableTypeChecked],
+    extends: [tsEslintConfigs.disableTypeChecked],
     files: ["**/*.js", "**/*.cjs"],
     languageOptions: {
       globals: {
@@ -97,11 +94,10 @@ export default defineConfig(
     },
   },
 
-  // Scripts (ESM)
+  // ESM files
   {
-    // eslint-disable-next-line import/no-named-as-default-member
-    extends: [tseslint.configs.disableTypeChecked],
-    files: ["scripts/*.mjs"],
+    extends: [tsEslintConfigs.disableTypeChecked],
+    files: ["**/*.mjs"],
     languageOptions: {
       globals: {
         ...globals.node,
@@ -147,8 +143,8 @@ export default defineConfig(
         {
           customGroups: [
             {
-              groupName: "hardhat",
               elementNamePattern: ["^hardhat(?:/.*)?$"],
+              groupName: "hardhat",
             },
           ],
           groups: [
@@ -169,8 +165,7 @@ export default defineConfig(
 
   // k6 test files
   {
-    // eslint-disable-next-line import/no-named-as-default-member
-    extends: [tseslint.configs.disableTypeChecked],
+    extends: [tsEslintConfigs.disableTypeChecked],
     files: ["apis/*/tests/k6/**/*.js"],
     languageOptions: {
       globals: { __ENV: true },
@@ -198,8 +193,8 @@ export default defineConfig(
         {
           customGroups: [
             {
-              groupName: "hardhat",
               elementNamePattern: ["^hardhat(?:/.*)?$"],
+              groupName: "hardhat",
             },
           ],
           groups: [
@@ -241,8 +236,7 @@ export default defineConfig(
 
   // Scripts
   {
-    // eslint-disable-next-line import/no-named-as-default-member
-    extends: [tseslint.configs.disableTypeChecked],
+    extends: [tsEslintConfigs.disableTypeChecked],
     files: ["subgraphs/*/scripts/*.mjs"],
     languageOptions: {
       globals: {
