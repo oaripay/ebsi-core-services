@@ -65,7 +65,7 @@ try {
     // Filter out deprecated services
     .filter((project) => !deprecatedServices.has(project))
     .map((project) => {
-      const [scope, packageName] = project.split("/");
+      const [_scope, packageName] = project.split("/");
       return packageName;
     });
 

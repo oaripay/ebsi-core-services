@@ -97,7 +97,6 @@
     "**/@graphprotocol/graph-cli/prettier": "^3.8.0",
     "**/@graphprotocol/graph-cli/undici": "^7.18.2",
     "**/@graphprotocol/graph-ts/assemblyscript": "0.19.23",
-    "**/@nestjs/config/lodash": "^4.17.23",
     "**/gluegun": "^5.2.2",
     "**/gluegun/semver": "7.7.3",
     "**/solc/tmp": "^0.2.5"
