@@ -164,7 +164,7 @@ describeWriteOps()("ESTAT - JSON-RPC (e2e)", () => {
     };
     creator.accessToken.didInvite = await getDidrInviteAccessToken(
       creatorDid,
-      configService.get("testAuthApiES256PrivateKey", { infer: true }),
+      configService.get("testAuthApiV4ES256PrivateKey", { infer: true }),
     );
 
     const params = {

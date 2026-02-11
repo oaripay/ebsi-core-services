@@ -10,6 +10,9 @@ import type { RawServerDefault } from "fastify";
 
 import { hexToBytes } from "@cef-ebsi/did-jwt";
 import { fromUrl } from "@cef-ebsi/ebsi-uri";
+import { metadata as vcdm11BitstringStatusListCredentialSchemaMetadata } from "@cef-ebsi/vcdm1.1-bitstring-status-list-v1.0-credential-schema";
+import { metadata as vcdm11RevocationStatusListSchemaMetadata } from "@cef-ebsi/vcdm1.1-revocation-statuslist-schema";
+import { metadata as vcdm20BitstringStatusListCredentialSchemaMetadata } from "@cef-ebsi/vcdm2.0-bitstring-status-list-v1.0-credential-schema";
 import { createVerifiableCredentialJwt as createVcdm11VerifiableCredentialJwt } from "@cef-ebsi/verifiable-credential/vcdm11.js";
 import { createVerifiableCredentialJwt as createVcdm20VerifiableCredentialJwt } from "@cef-ebsi/verifiable-credential/vcdm20.js";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
@@ -101,11 +104,6 @@ describe("TIR API v5 - Issuers (e2e)", () => {
   let testIssuerWithProxyDid: string;
   let testIssuerWithProxyPrivateKey: string;
   let testIssuerWithProxyFirstProxyId: string;
-  let testVerifiableAttestation1SchemaId: string;
-  let testVerifiableAttestation2SchemaId: string;
-  let testStatusList2021SchemaId: string;
-  let testBitstringStatusList1SchemaId: string;
-  let testBitstringStatusList2SchemaId: string;
   let trustedSchemasRegistryApiUrl: string;
   const randomDid = EbsiWallet.createDid();
 
@@ -119,7 +117,6 @@ describe("TIR API v5 - Issuers (e2e)", () => {
       | "BitstringStatusListCredentialVCDM2.0"
       | "StatusList2021Credential",
   ) {
-    let verifiableAttestationSchemaUrl: string;
     let statusListSchemaUrl: string;
     let newIssuer1StatusListCredential:
       | VCDM11Schemas["BitstringStatusListCredential"]
@@ -128,18 +125,10 @@ describe("TIR API v5 - Issuers (e2e)", () => {
 
     switch (statusList) {
       case "BitstringStatusListCredential": {
-        verifiableAttestationSchemaUrl = `${trustedSchemasRegistryApiUrl}/schemas/${testVerifiableAttestation1SchemaId}`;
-        statusListSchemaUrl = `${trustedSchemasRegistryApiUrl}/schemas/${testBitstringStatusList1SchemaId}`;
+        statusListSchemaUrl = `${trustedSchemasRegistryApiUrl}/schemas/${vcdm11BitstringStatusListCredentialSchemaMetadata.id.multibase_base58btc}`;
         newIssuer1StatusListCredential = {
           "@context": ["https://www.w3.org/2018/credentials/v1"],
           credentialSchema: [
-            {
-              id:
-                uriType === "URL"
-                  ? verifiableAttestationSchemaUrl
-                  : fromUrl(verifiableAttestationSchemaUrl, ebsiEnvConfig),
-              type: "FullJsonSchemaValidator2021",
-            },
             {
               id:
                 uriType === "URL"
@@ -171,18 +160,10 @@ describe("TIR API v5 - Issuers (e2e)", () => {
         break;
       }
       case "BitstringStatusListCredentialVCDM2.0": {
-        verifiableAttestationSchemaUrl = `${trustedSchemasRegistryApiUrl}/schemas/${testVerifiableAttestation2SchemaId}`;
-        statusListSchemaUrl = `${trustedSchemasRegistryApiUrl}/schemas/${testBitstringStatusList2SchemaId}`;
+        statusListSchemaUrl = `${trustedSchemasRegistryApiUrl}/schemas/${vcdm20BitstringStatusListCredentialSchemaMetadata.id.multibase_base58btc}`;
         newIssuer1StatusListCredential = {
           "@context": ["https://www.w3.org/ns/credentials/v2"],
           credentialSchema: [
-            {
-              id:
-                uriType === "URL"
-                  ? verifiableAttestationSchemaUrl
-                  : fromUrl(verifiableAttestationSchemaUrl, ebsiEnvConfig),
-              type: "FullJsonSchemaValidator2021",
-            },
             {
               id:
                 uriType === "URL"
@@ -214,21 +195,13 @@ describe("TIR API v5 - Issuers (e2e)", () => {
         break;
       }
       case "StatusList2021Credential": {
-        verifiableAttestationSchemaUrl = `${trustedSchemasRegistryApiUrl}/schemas/${testVerifiableAttestation1SchemaId}`;
-        statusListSchemaUrl = `${trustedSchemasRegistryApiUrl}/schemas/${testStatusList2021SchemaId}`;
+        statusListSchemaUrl = `${trustedSchemasRegistryApiUrl}/schemas/${vcdm11RevocationStatusListSchemaMetadata.id.multibase_base58btc}`;
         newIssuer1StatusListCredential = {
           "@context": [
             "https://www.w3.org/2018/credentials/v1",
             "https://w3id.org/vc/status-list/2021/v1",
           ],
           credentialSchema: [
-            {
-              id:
-                uriType === "URL"
-                  ? verifiableAttestationSchemaUrl
-                  : fromUrl(verifiableAttestationSchemaUrl, ebsiEnvConfig),
-              type: "FullJsonSchemaValidator2021",
-            },
             {
               id:
                 uriType === "URL"
@@ -329,29 +302,8 @@ describe("TIR API v5 - Issuers (e2e)", () => {
       "testIssuerWithProxyPrivateKey",
       { infer: true },
     );
-
     trustedSchemasRegistryApiUrl = configService.get(
       "trustedSchemasRegistryApiUrl",
-      { infer: true },
-    );
-    testVerifiableAttestation1SchemaId = configService.get(
-      "testVerifiableAttestation1SchemaId",
-      { infer: true },
-    );
-    testVerifiableAttestation2SchemaId = configService.get(
-      "testVerifiableAttestation2SchemaId",
-      { infer: true },
-    );
-    testStatusList2021SchemaId = configService.get(
-      "testStatusList2021SchemaId",
-      { infer: true },
-    );
-    testBitstringStatusList1SchemaId = configService.get(
-      "testBitstringStatusList1SchemaId",
-      { infer: true },
-    );
-    testBitstringStatusList2SchemaId = configService.get(
-      "testBitstringStatusList2SchemaId",
       { infer: true },
     );
   });

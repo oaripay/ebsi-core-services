@@ -2647,7 +2647,7 @@ Apache License 2.0: https://www.apache.org/licenses/LICENSE-2.0
    limitations under the License.
 
 ========================================================================================
-- axios@^1.13.2
+- axios@^1.13.5
 ------------------------------
 This project is licensed under MIT.
 
@@ -2901,7 +2901,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ========================================================================================
-- pino@^10.2.0
+- pino@^10.3.1
 ------------------------------
 This project is licensed under MIT.
 

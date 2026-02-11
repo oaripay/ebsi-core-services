@@ -2138,7 +2138,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ========================================================================================
-- axios@^1.13.2
+- axios@^1.13.5
 ------------------------------
 This project is licensed under MIT.
 
@@ -2656,7 +2656,7 @@ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ========================================================================================
-- pino@^10.2.0
+- pino@^10.3.1
 ------------------------------
 This project is licensed under MIT.
 

@@ -21,7 +21,6 @@ declare global {
       TEST_ENABLE_WRITE_OPS?: string;
       TEST_ENV?: string;
       TEST_SPECIFIC_NODE_DOMAIN?: string;
-      TEST_VA_SCHEMA?: string;
       URI_SCHEME?: string;
     }
   }

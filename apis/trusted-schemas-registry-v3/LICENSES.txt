@@ -299,7 +299,7 @@ https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
 This product makes use of software developed by third parties.
 
 ========================================================================================
-- @apidevtools/json-schema-ref-parser@^15.2.1
+- @apidevtools/json-schema-ref-parser@^15.2.2
 ------------------------------
 This project is licensed under MIT.
 
@@ -1303,7 +1303,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ========================================================================================
-- axios@^1.13.2
+- axios@^1.13.5
 ------------------------------
 This project is licensed under MIT.
 
@@ -1595,7 +1595,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ========================================================================================
-- p-limit@^7.2.0
+- p-limit@^7.3.0
 ------------------------------
 This project is licensed under MIT.
 
@@ -1644,7 +1644,7 @@ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ========================================================================================
-- pino@^10.2.0
+- pino@^10.3.1
 ------------------------------
 This project is licensed under MIT.
 

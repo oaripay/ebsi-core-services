@@ -90,7 +90,7 @@
     "@types/elliptic": "^6.4.18",
     "@types/node": "^24.10.9",
     "canonicalize": "^2.0.0",
-    "dotenv": "^17.2.3",
+    "dotenv": "^17.2.4",
     "ethers": "^6.14.4",
     "hardhat": "^2.26.1",
     "hardhat-abi-exporter": "^2.11.0",
