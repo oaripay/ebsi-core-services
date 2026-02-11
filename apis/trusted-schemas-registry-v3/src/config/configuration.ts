@@ -1,5 +1,6 @@
 import type { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
 
+import { metadata as vcdm11AttestationSchemaMetadata } from "@cef-ebsi/vcdm1.1-attestation-schema";
 import { ConfigModule } from "@nestjs/config";
 import Joi from "joi";
 
@@ -116,7 +117,7 @@ export const loadConfig = () => {
     testAdminKid: process.env.TEST_ADMIN_KID,
     testAdminPrivateKey: process.env.TEST_ADMIN_PRIVATE_KEY,
     testSpecificNodeDomain: process.env.TEST_SPECIFIC_NODE_DOMAIN,
-    testVaSchemaUrl: `${DOMAIN}/${SERVICE_PREFIX}/${SERVICE_VERSION}/schemas/${process.env.TEST_VA_SCHEMA}`,
+    testVaSchemaUrl: `${DOMAIN}/${SERVICE_PREFIX}/${SERVICE_VERSION}/schemas/${vcdm11AttestationSchemaMetadata.id.multibase_base58btc}`,
   } as const satisfies ApiConfig;
 };
 
@@ -160,7 +161,6 @@ export const ApiConfigModule = ConfigModule.forRoot({
     TEST_ENABLE_WRITE_OPS: Joi.string(),
     TEST_ENV: Joi.string(),
     TEST_SPECIFIC_NODE_DOMAIN: Joi.string().uri(),
-    TEST_VA_SCHEMA: Joi.string(),
     // Generic variables
     TZ: Joi.string(),
     // EBSI URI Scheme prefix

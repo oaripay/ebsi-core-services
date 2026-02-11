@@ -706,7 +706,9 @@ describe("Authorisation  API v4 (e2e)", () => {
                         signer: ES256KSigner(randomBytes(32)),
                       },
                       {
+                        alg: "ES256K",
                         kid: client.kid,
+                        typ: "JWT",
                       },
                     );
 
@@ -1420,7 +1422,7 @@ describe("Authorisation  API v4 (e2e)", () => {
                     ebsiEnvConfig,
                     {
                       exp: Math.floor(Date.now() / 1000) + 60, // Expires in 1 minute (less than the 5 minutes limit)
-                      nbf: Math.floor(Date.now() / 1000) - 100,
+                      nbf: Math.floor(Date.now() / 1000),
                       nonce,
                       skipValidation: true,
                     },

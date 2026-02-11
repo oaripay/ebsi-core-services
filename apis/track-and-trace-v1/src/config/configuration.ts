@@ -24,7 +24,7 @@ export interface ApiConfig {
   logLevel: "debug" | "error" | "log" | "silent" | "verbose" | "warn";
   requestTimeout: number;
   // Test variables
-  testAuthApiES256PrivateKey: string;
+  testAuthApiV4ES256PrivateKey: string;
   testAuthorisedLegalEntityKid: string | undefined;
   testAuthorisedLegalEntityPrivateKey: string | undefined;
   testAuthorisedLegalEntityVcToOnboard: string | undefined;
@@ -107,8 +107,8 @@ export const loadConfig = () => {
     logLevel: process.env.LOG_LEVEL ?? "warn",
     requestTimeout: Number.parseInt(process.env.REQUEST_TIMEOUT ?? "15000", 10),
     // Test variables
-    testAuthApiES256PrivateKey:
-      process.env.TEST_AUTH_API_ES256_PRIVATE_KEY ?? "",
+    testAuthApiV4ES256PrivateKey:
+      process.env.TEST_AUTH_API_V4_ES256_PRIVATE_KEY ?? "",
     testAuthorisedLegalEntityKid: process.env.TEST_AUTHORISED_LEGAL_ENTITY_KID,
     testAuthorisedLegalEntityPrivateKey:
       process.env.TEST_AUTHORISED_LEGAL_ENTITY_PRIVATE_KEY,
@@ -154,7 +154,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
       .valid("development", "production", "test")
       .default("development"),
     REQUEST_TIMEOUT: Joi.string(),
-    TEST_AUTH_API_ES256_PRIVATE_KEY: Joi.string(),
+    TEST_AUTH_API_V4_ES256_PRIVATE_KEY: Joi.string(),
     TEST_AUTHORISED_LEGAL_ENTITY_KID: Joi.string(),
     TEST_AUTHORISED_LEGAL_ENTITY_PRIVATE_KEY: Joi.string(),
     TEST_AUTHORISED_LEGAL_ENTITY_VC_TO_ONBOARD: Joi.string(),

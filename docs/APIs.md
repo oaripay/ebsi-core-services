@@ -122,6 +122,16 @@ In CI environments, we use a dedicated command that runs unit tests and automati
 yarn nx test:ci {service-name}
 ```
 
+### Loading secrets from 1Password
+
+Install and configure the [1Password CLI](https://developer.1password.com/docs/cli), and get access to the shared vaults.
+
+You can then run the e2e tests of any API by loading the `.env.op` file in the corresponding folder. For instance, for Authorisation API v4, run:
+
+```sh
+EBSI_ENV=test op run --env-file="apis/authorisation-v4/.env.op" -- yarn nx run @ebsiint-api/authorisation-api-v4:test:e2e
+```
+
 ## Load testing with k6
 
 In order to run the tests, you must start a local server and, in parallel, run k6.
