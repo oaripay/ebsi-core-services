@@ -84,8 +84,9 @@ describe("Policy", () => {
 
   describe("Get functions", () => {
     it("should fail to initialize", async () => {
-      await expect(policyContract.initialize(1)).to.be.revertedWith(
-        "Initializable: contract is already initialized",
+      await expect(policyContract.initialize(1)).to.be.revertedWithCustomError(
+        policyContract,
+        "InvalidInitialization",
       );
     });
 
@@ -242,11 +243,12 @@ describe("Policy", () => {
 
       it(`Should be reverted if it doesn't have operator role (${type})`, async () => {
         // @ts-expect-error Mismatch of types
-        await expect(deactivatePolicyBadUser(value)).to.be.revertedWith(
-          `AccessControl: account ${(
-            await addr1.getAddress()
-          ).toLowerCase()} is missing role ${OPERATOR_ROLE}`,
-        );
+        await expect(deactivatePolicyBadUser(value))
+          .to.be.revertedWithCustomError(
+            policyContract,
+            "AccessControlUnauthorizedAccount",
+          )
+          .withArgs(await addr1.getAddress(), OPERATOR_ROLE);
       });
 
       it(`Should deactivate policy (${type})`, async () => {
@@ -319,11 +321,12 @@ describe("Policy", () => {
 
       it(`Should be reverted if it doesn't have operator role (${type})`, async () => {
         // @ts-expect-error Mismatch of types
-        await expect(activatePolicyBadUser(value)).to.be.revertedWith(
-          `AccessControl: account ${(
-            await addr1.getAddress()
-          ).toLowerCase()} is missing role ${OPERATOR_ROLE}`,
-        );
+        await expect(activatePolicyBadUser(value))
+          .to.be.revertedWithCustomError(
+            policyContract,
+            "AccessControlUnauthorizedAccount",
+          )
+          .withArgs(await addr1.getAddress(), OPERATOR_ROLE);
       });
 
       it(`Should activate policy (${type})`, async () => {
@@ -371,11 +374,12 @@ describe("Policy", () => {
     it("Should be reverted if it doesn't have operator role", async () => {
       await expect(
         policyContract.connect(addr1).insertPolicy("name", "description"),
-      ).to.be.revertedWith(
-        `AccessControl: account ${(
-          await addr1.getAddress()
-        ).toLowerCase()} is missing role ${OPERATOR_ROLE}`,
-      );
+      )
+        .to.be.revertedWithCustomError(
+          policyContract,
+          "AccessControlUnauthorizedAccount",
+        )
+        .withArgs(await addr1.getAddress(), OPERATOR_ROLE);
     });
 
     it("Should insert policy", async () => {
@@ -432,20 +436,22 @@ describe("Policy", () => {
         policyContract
           .connect(addr1)
           ["updatePolicy(string,string)"]("test", "description"),
-      ).to.be.revertedWith(
-        `AccessControl: account ${(
-          await addr1.getAddress()
-        ).toLowerCase()} is missing role 0x97667070c54ef182b0f5858b034beac1b6f3089aa2d3188bb1e8929f4fa9b929`,
-      );
+      )
+        .to.be.revertedWithCustomError(
+          policyContract,
+          "AccessControlUnauthorizedAccount",
+        )
+        .withArgs(await addr1.getAddress(), OPERATOR_ROLE);
       await expect(
         policyContract
           .connect(addr1)
           ["updatePolicy(uint256,string)"](1, "description"),
-      ).to.be.revertedWith(
-        `AccessControl: account ${(
-          await addr1.getAddress()
-        ).toLowerCase()} is missing role 0x97667070c54ef182b0f5858b034beac1b6f3089aa2d3188bb1e8929f4fa9b929`,
-      );
+      )
+        .to.be.revertedWithCustomError(
+          policyContract,
+          "AccessControlUnauthorizedAccount",
+        )
+        .withArgs(await addr1.getAddress(), OPERATOR_ROLE);
     });
 
     it("should update a policy description", async () => {

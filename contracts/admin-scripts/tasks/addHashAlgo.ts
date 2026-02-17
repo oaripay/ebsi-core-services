@@ -1,8 +1,33 @@
 import { task } from "hardhat/config";
 
-import type { Signer } from "ethers";
+import type { ContractTransactionResponse, Signer } from "ethers";
 
-import type { Timestamp } from "../src/types";
+interface HashAlgorithm {
+  ianaName: string;
+  oid: string;
+  outputLength: bigint;
+  status: number;
+}
+
+interface TimestampLike {
+  getHashAlgorithmById(id: number): Promise<HashAlgorithm>;
+  insertHashAlgorithm(
+    outputLength: number,
+    ianaName: string,
+    oid: string,
+    status: number,
+    multihashName: string,
+  ): Promise<ContractTransactionResponse>;
+  updateHashAlgorithm(
+    id: number,
+    outputLength: number,
+    ianaName: string,
+    oid: string,
+    status: number,
+    multihashName: string,
+  ): Promise<ContractTransactionResponse>;
+  version(): Promise<bigint>;
+}
 
 // follows ETH/BTC's BIP 39 protocol
 // https://iancoleman.io/bip39/
@@ -16,7 +41,7 @@ task(
       taskArgs.contract,
       taskArgs.proxy,
       admin as unknown as Signer,
-    )) as unknown as Timestamp;
+    )) as unknown as TimestampLike;
 
     console.log(
       `deployer:${deployer.address}

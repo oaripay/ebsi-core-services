@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: EUPL V1.2
-pragma solidity 0.8.12;
+pragma solidity ^0.8.26;
 
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import "./PolicyStorage.sol";
@@ -19,8 +19,8 @@ contract PolicyRegistry is
     }
 
     function _onInitialize(uint256 _version) internal {
-        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _setupRole(OPERATOR_ROLE, msg.sender);
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _grantRole(OPERATOR_ROLE, msg.sender);
         PolicyContractStorage storage ps = PolicyStorage.policyStorage();
         ps.version = _version;
     }

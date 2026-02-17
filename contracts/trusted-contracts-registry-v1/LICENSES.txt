@@ -897,7 +897,7 @@ EUPL version.
 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
 
 ========================================================================================
-- @openzeppelin/contracts@^4.9.6
+- @openzeppelin/contracts@^5.4.0
 ------------------------------
 This project is licensed under MIT.
 
@@ -923,7 +923,7 @@ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTI
 USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ========================================================================================
-- @openzeppelin/contracts-upgradeable@^4.9.6
+- @openzeppelin/contracts-upgradeable@^5.4.0
 ------------------------------
 This project is licensed under MIT.
 

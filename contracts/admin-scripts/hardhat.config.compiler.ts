@@ -41,7 +41,7 @@ const config: HardhatUserConfig & {
           // remove viaIR when legacy contract are deprecated
           viaIR: true,
         },
-        version: "0.8.12",
+        version: "0.8.26",
       },
       {
         settings: {

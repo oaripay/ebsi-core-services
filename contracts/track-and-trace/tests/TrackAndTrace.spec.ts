@@ -162,7 +162,7 @@ describe("TrackAndTrace - tests", () => {
           await tprMock.getAddress(),
           await didRegistryMock.getAddress(),
         ),
-      ).to.be.revertedWith("Initializable: contract is already initialized");
+      ).to.be.revertedWithCustomError(trackAndTrace, "InvalidInitialization");
     });
 
     it("should reinitialize", async () => {
@@ -201,7 +201,10 @@ describe("TrackAndTrace - tests", () => {
       await expect(
         trackAndTrace
           .connect(broadcaster)
-          .upgradeTo(await newTrackAndTraceImplementation.getAddress()),
+          .upgradeToAndCall(
+            await newTrackAndTraceImplementation.getAddress(),
+            "0x",
+          ),
       ).to.be.revertedWithCustomError(trackAndTrace, "NotUpgrader");
     });
 

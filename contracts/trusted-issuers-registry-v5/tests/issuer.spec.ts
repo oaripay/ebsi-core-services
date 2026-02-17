@@ -637,8 +637,9 @@ describe("Issuers", () => {
     });
 
     it("should not initialize if not proxy", async () => {
-      await expect(tir.initialize(1)).to.be.revertedWith(
-        "Initializable: contract is already initialized",
+      await expect(tir.initialize(1)).to.be.revertedWithCustomError(
+        tir,
+        "InvalidInitialization",
       );
     });
 
@@ -691,8 +692,9 @@ describe("Issuers", () => {
 
       await tirDetailedProxy.waitForDeployment();
 
-      await expect(tirDetailedProxy.init(42)).to.be.revertedWith(
-        "Initializable: contract is not initializing",
+      await expect(tirDetailedProxy.init(42)).to.be.revertedWithCustomError(
+        tirDetailedProxy,
+        "NotInitializing",
       );
     });
 

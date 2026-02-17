@@ -63,7 +63,7 @@ const config: HardhatUserConfig = {
         runs: 200,
       },
     },
-    version: "0.8.12",
+    version: "0.8.26",
   },
   typechain: {
     outDir: "src/types",

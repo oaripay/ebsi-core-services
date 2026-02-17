@@ -141,7 +141,7 @@ await factoryManager.upgradeTemplateImplementation(
 
 - Node.js 18+
 - Hardhat
-- OpenZeppelin contracts v4.9.6+
+- OpenZeppelin contracts v5.4.0+
 
 ### Quick Start
 

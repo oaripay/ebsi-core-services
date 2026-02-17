@@ -299,7 +299,7 @@ https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
 This product makes use of software developed by third parties.
 
 ========================================================================================
-- @openzeppelin/contracts@^4.9.6
+- @openzeppelin/contracts@^5.4.0
 ------------------------------
 This project is licensed under MIT.
 

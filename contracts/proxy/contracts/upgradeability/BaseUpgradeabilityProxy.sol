@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: EUPL V1.2
-pragma solidity 0.8.12;
-
-import "@openzeppelin/contracts/utils/Address.sol";
+pragma solidity ^0.8.26;
 
 import "./Proxy.sol";
 
@@ -69,7 +67,7 @@ abstract contract BaseUpgradeabilityProxy is Proxy {
      */
     function _setImplementation(address newImplementation) internal {
         require(
-            Address.isContract(newImplementation),
+            newImplementation.code.length > 0,
             "implementation must be contract"
         );
         DiamondStorage storage ms = diamondStorage();

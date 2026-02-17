@@ -17,9 +17,8 @@ contract UpgradeableBeaconMock is IBeacon, Ownable {
         address indexed newImplementation
     );
 
-    constructor(address implementation_) {
+    constructor(address implementation_) Ownable(msg.sender) {
         _implementation = implementation_;
-        _transferOwnership(msg.sender);
     }
 
     function implementation() public view override returns (address) {

@@ -766,7 +766,7 @@ describe("JSON-RPC Module", () => {
       error: {
         code: -32_600,
         message: expect.stringContaining(
-          `reverted with reason string 'AccessControl: account ${signer.address.toLowerCase()} is missing role 0x97667070c54ef182b0f5858b034beac1b6f3089aa2d3188bb1e8929f4fa9b929'`,
+          `VM Exception while processing transaction: reverted with custom error 'AccessControlUnauthorizedAccount("${signer.address}", "0x97667070c54ef182b0f5858b034beac1b6f3089aa2d3188bb1e8929f4fa9b929")'`,
         ),
       },
       id: "45",

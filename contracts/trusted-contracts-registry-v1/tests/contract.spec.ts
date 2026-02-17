@@ -287,9 +287,13 @@ describe("Contract Factory System", function () {
   describe("Access Control", function () {
     it("Should only allow EBSI_ADMIN_ROLE to grant roles", async function () {
       const role = ethers.keccak256(ethers.toUtf8Bytes("EBSI_ADMIN_ROLE"));
-      await expect(
-        proxyFactory.connect(user).grantRole(role, user.address),
-      ).to.be.revertedWith(/AccessControl: account .* is missing role/);
+      const adminRole = await proxyFactory.getRoleAdmin(role);
+      await expect(proxyFactory.connect(user).grantRole(role, user.address))
+        .to.be.revertedWithCustomError(
+          proxyFactory,
+          "AccessControlUnauthorizedAccount",
+        )
+        .withArgs(user.address, adminRole);
     });
 
     it("Should only allow authorized users to deploy proxies", async function () {

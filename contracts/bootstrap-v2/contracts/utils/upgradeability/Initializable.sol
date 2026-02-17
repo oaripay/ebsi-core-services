@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: EUPL V1.2
-pragma solidity 0.8.12;
-
-import "@openzeppelin/contracts/utils/Address.sol";
+pragma solidity ^0.8.26;
 
 /**
  * @dev This is a base contract to aid in writing upgradeable contracts, or any kind of contract that will be deployed
@@ -138,7 +136,7 @@ abstract contract Initializable {
 
         require(
             (isTopLevelCall && version > currentVersion) || // not nested with increasing version or
-                (!Address.isContract(address(this)) &&
+                (address(this).code.length == 0 &&
                     (version == 1 || version == type(uint8).max)), // contract being constructed
             "Initializable: contract is already initialized"
         );
