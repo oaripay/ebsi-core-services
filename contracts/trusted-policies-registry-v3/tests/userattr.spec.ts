@@ -14,6 +14,8 @@ describe("UserAttributesManagement", () => {
   let user3: SignerWithAddress;
 
   const userAttr = ["attr1", "attr2", "attr3", "attr4", "attr5"];
+  const OPERATOR_ROLE =
+    "0x97667070c54ef182b0f5858b034beac1b6f3089aa2d3188bb1e8929f4fa9b929";
 
   before(async () => {
     const policyRegistryFactory = await ethers.getContractFactory(
@@ -51,9 +53,12 @@ describe("UserAttributesManagement", () => {
         policyContract
           .connect(user2)
           .insertUserAttributes(ethers.ZeroAddress, ["attr"]),
-      ).to.be.revertedWith(
-        `AccessControl: account ${user2.address.toLowerCase()} is missing role 0x97667070c54ef182b0f5858b034beac1b6f3089aa2d3188bb1e8929f4fa9b929`,
-      );
+      )
+        .to.be.revertedWithCustomError(
+          policyContract,
+          "AccessControlUnauthorizedAccount",
+        )
+        .withArgs(user2.address, OPERATOR_ROLE);
     });
 
     it("should fail for empty user", async () => {
@@ -99,9 +104,12 @@ describe("UserAttributesManagement", () => {
         policyContract
           .connect(user2)
           .deleteUserAttribute(user2.address, "attr"),
-      ).to.be.revertedWith(
-        `AccessControl: account ${user2.address.toLowerCase()} is missing role 0x97667070c54ef182b0f5858b034beac1b6f3089aa2d3188bb1e8929f4fa9b929`,
-      );
+      )
+        .to.be.revertedWithCustomError(
+          policyContract,
+          "AccessControlUnauthorizedAccount",
+        )
+        .withArgs(user2.address, OPERATOR_ROLE);
     });
 
     it("should fail for invalid user address", async () => {

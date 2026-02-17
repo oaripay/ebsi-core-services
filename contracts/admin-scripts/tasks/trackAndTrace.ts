@@ -1,6 +1,14 @@
 import { task } from "hardhat/config";
 
+import type { ContractTransactionResponse } from "ethers";
+
 import { Settings } from "../utils/settings";
+
+interface TrackAndTraceLike {
+  getAddress(): Promise<string>;
+  getImplementation(): Promise<string>;
+  initializeV2(tprAddress: string): Promise<ContractTransactionResponse>;
+}
 
 task("trackAndTrace", "Deploy contract Track And Trace")
   .addParam("admin", "The admin address")
@@ -50,11 +58,11 @@ task("trackAndTrace", "Deploy contract Track And Trace")
       );
 
       // deploy
-      const trackAndTrace = await upgrades.deployProxy(
+      const trackAndTrace = (await upgrades.deployProxy(
         trackAndTraceFactory,
         [taskArgs.admin, taskArgs.upgrader, taskArgs.tpr, taskArgs.registry],
         { unsafeAllowLinkedLibraries: true },
-      );
+      )) as unknown as TrackAndTraceLike;
 
       settings.set("trackAndTraceAddress", await trackAndTrace.getAddress());
       settings.set("adminAddress", taskArgs.admin);
@@ -115,11 +123,11 @@ task("trackAndTraceUpgrade", "Deploy contract Track And Trace")
       console.log(`factory loaded`);
 
       // deploy
-      const trackAndTrace = await upgrades.upgradeProxy(
+      const trackAndTrace = (await upgrades.upgradeProxy(
         proxyAddress,
         trackAndTraceFactory,
         { redeployImplementation: "always", unsafeAllowLinkedLibraries: true },
-      );
+      )) as unknown as TrackAndTraceLike;
 
       console.log(
         `TrackAndTrace contract upgraded to ${await trackAndTrace.getImplementation()}`,
@@ -165,14 +173,14 @@ task(
       console.log(`factory loaded`);
 
       // deploy
-      const trackAndTrace = await upgrades.upgradeProxy(
+      const trackAndTrace = (await upgrades.upgradeProxy(
         proxyAddress,
         trackAndTraceFactory,
         {
           redeployImplementation: "always",
           unsafeAllowLinkedLibraries: true,
         },
-      );
+      )) as unknown as TrackAndTraceLike;
       console.log(
         `new contract deployed, beginning reinit with tpr address ${taskArgs.tpr}`,
       );

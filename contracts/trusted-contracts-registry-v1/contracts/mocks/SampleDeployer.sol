@@ -22,8 +22,7 @@ contract SampleDeployer is Initializable, OwnableUpgradeable {
         address owner,
         address _proxyFactory
     ) public initializer {
-        __Ownable_init();
-        _transferOwnership(owner);
+        __Ownable_init(owner);
         proxyFactory = IProxyFactory(_proxyFactory);
     }
 

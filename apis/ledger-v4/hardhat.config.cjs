@@ -28,7 +28,7 @@ const config = {
         runs: 10,
       },
     },
-    version: "0.8.12",
+    version: "0.8.26",
   },
 };
 

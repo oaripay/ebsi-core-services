@@ -1,6 +1,6 @@
 import { task } from "hardhat/config";
 
-import type { Signer } from "ethers";
+import type { ContractTransactionResponse, Signer } from "ethers";
 
 import canonicalize from "canonicalize";
 import { readdir, readFile } from "node:fs/promises";
@@ -8,16 +8,25 @@ import { readdir, readFile } from "node:fs/promises";
 // follows ETH/BTC's BIP 39 protocol
 // https://iancoleman.io/bip39/
 // and matches the one hardhat uses when using { accounts: { mnemonic }}
+interface SchemaSCRegistryLike {
+  insertSchema(
+    schemaId: string,
+    schemaHex: string,
+    metadata: Uint8Array,
+  ): Promise<ContractTransactionResponse>;
+  version(): Promise<bigint>;
+}
+
 task(
   "insertSchema",
   "Insert new schemas in TSR Contract ",
   async (taskArgs: { proxy: string }, { ethers }) => {
     const [deployer, admin] = await ethers.getSigners();
-    const tsr = await ethers.getContractAt(
+    const tsr = (await ethers.getContractAt(
       "SchemaSCRegistry",
       taskArgs.proxy,
       admin as unknown as Signer,
-    );
+    )) as unknown as SchemaSCRegistryLike;
 
     console.log(
       `deployer:${deployer.address}

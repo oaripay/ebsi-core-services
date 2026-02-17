@@ -119,6 +119,13 @@ const schemas = [
   schema49,
 ];
 
+interface OwnedUpgradeabilityProxyLike {
+  admin(): Promise<string>;
+  changeAdmin(
+    newAdmin: string,
+  ): Promise<{ wait: (confirmations?: number) => Promise<unknown> }>;
+}
+
 // follows ETH/BTC's BIP 39 protocol
 // https://iancoleman.io/bip39/
 // and matches the one hardhat uses when using { accounts: { mnemonic }}
@@ -192,10 +199,10 @@ task(
   )) as unknown as PolicyRegistry;
 
   // move admin to next signer
-  const tprContractProxy = await ethers.getContractAt(
+  const tprContractProxy = (await ethers.getContractAt(
     "OwnedUpgradeabilityProxy",
     process.env.TPR_SC_V3_ADDRESS,
-  );
+  )) as unknown as OwnedUpgradeabilityProxyLike;
   if (
     (await tprContractProxy.admin()) === (await ethers.getSigners())[0].address
   ) {

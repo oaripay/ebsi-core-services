@@ -1,5 +1,13 @@
 import { task, types } from "hardhat/config";
 
+import type { ContractTransactionResponse } from "ethers";
+
+interface OwnedUpgradeabilityProxyLike {
+  changeAdmin(newAdmin: string): Promise<ContractTransactionResponse>;
+  connect(signer: unknown): OwnedUpgradeabilityProxyLike;
+  getAddress(): Promise<string>;
+}
+
 task("changeOwnership", "change proxy implementation")
   .addParam("proxy", "The proxy address")
   .addOptionalParam(
@@ -29,10 +37,10 @@ task("changeOwnership", "change proxy implementation")
         ethers.toUtf8Bytes("diamond.standard.diamond.storage.proxy"),
       );
 
-      const proxyCtr = await ethers.getContractAt(
+      const proxyCtr = (await ethers.getContractAt(
         `OwnedUpgradeabilityProxy`,
         proxyDeployedAddr,
-      );
+      )) as unknown as OwnedUpgradeabilityProxyLike;
 
       // these infos are not easily accessible as they are restricted by an onlyAdmin modifier
       // to retrieve them we use the low level getStorage call
@@ -61,6 +69,9 @@ task("changeOwnership", "change proxy implementation")
       const receipt = await (
         await proxyCtr.connect(curAdmin).changeAdmin(newAdmin)
       ).wait(1);
+      if (!receipt) {
+        throw new Error("Change admin transaction failed");
+      }
 
       const newAdminAddr = BigInt(
         await ethers.provider.getStorage(
@@ -70,9 +81,6 @@ task("changeOwnership", "change proxy implementation")
       ).toString(16);
       console.log(`NEW proxy admin address: ${newAdminAddr}`);
 
-      console.log(
-        "Change Ownership:",
-        (receipt as { status: number }).status === 1 ? "ok" : "error",
-      );
+      console.log("Change Ownership:", receipt.status === 1 ? "ok" : "error");
     },
   );

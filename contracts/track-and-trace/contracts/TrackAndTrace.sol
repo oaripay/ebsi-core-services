@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: EUPL V1.2
-pragma solidity 0.8.12;
+pragma solidity ^0.8.26;
 
 import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+import {ERC1967Utils} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Utils.sol";
 import "./interfaces/ITrackAndTraceInterface.sol";
 import "@ebsiint-sc/trusted-policies-registry-v3/contracts/trusted-policies-registry/interfaces/IPolicyRegistry.sol";
 import "@ebsiint-sc/did-registry-v5/contracts/did-registry/interfaces/IDidRegistry.sol";
 import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
-import {EnumerableMapUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/structs/EnumerableMapUpgradeable.sol";
+import {EnumerableMap} from "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 import "@ebsiint-sc/bootstrap-v2/contracts/utils/Pagination.sol";
 import "./libraries/TrackAndTraceLib.sol";
 
@@ -16,7 +17,7 @@ contract TrackAndTrace is
     ITrackAndTraceInterface,
     AccessControlUpgradeable
 {
-    using EnumerableMapUpgradeable for EnumerableMapUpgradeable.Bytes32ToBytes32Map;
+    using EnumerableMap for EnumerableMap.Bytes32ToBytes32Map;
 
     using Pagination for uint256;
 
@@ -28,7 +29,7 @@ contract TrackAndTrace is
 
     // list of all documents created
     mapping(bytes32 => Document) public documents;
-    EnumerableMapUpgradeable.Bytes32ToBytes32Map internal documentsMapped;
+    EnumerableMap.Bytes32ToBytes32Map internal documentsMapped;
     mapping(bytes => bytes32[]) internal accessBySubject;
     mapping(bytes => mapping(bytes32 => uint256)) internal accessBySubjectIndex;
 
@@ -313,7 +314,7 @@ contract TrackAndTrace is
     }
 
     function getImplementation() external view returns (address) {
-        return _getImplementation();
+        return ERC1967Utils.getImplementation();
     }
 
     function getDocuments(

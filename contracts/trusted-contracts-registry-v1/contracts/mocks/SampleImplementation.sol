@@ -32,12 +32,11 @@ contract SampleImplementation is Initializable, OwnableUpgradeable {
         address _owner,
         bytes32 _dataHash
     ) public initializer {
-        __Ownable_init();
+        __Ownable_init(_owner);
         name = _name;
         version = _version;
         contractOwner = _owner;
         dataHash = _dataHash;
-        _transferOwnership(_owner);
     }
 
     function storeData(bytes32 key, string calldata value) external {

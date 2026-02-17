@@ -1,6 +1,17 @@
 import { task } from "hardhat/config";
 
+import type { ContractTransactionResponse } from "ethers";
+
 import { getDiamondStorage } from "../utils/getDiamondStorage";
+
+interface OwnedUpgradeabilityProxyLike {
+  ["initialize(address,address,bytes)"](
+    implementation: string,
+    admin: string,
+    data: string,
+  ): Promise<ContractTransactionResponse>;
+  getAddress(): Promise<string>;
+}
 
 task("initProxy", "init proxy with implementation")
   .addParam("proxy", "The proxy address")
@@ -24,10 +35,10 @@ task("initProxy", "init proxy with implementation")
         ethers.toUtf8Bytes("diamond.standard.diamond.storage.proxy"),
       );
 
-      const proxyCtr = await ethers.getContractAt(
+      const proxyCtr = (await ethers.getContractAt(
         `OwnedUpgradeabilityProxy`,
         proxyDeployedAddr,
-      );
+      )) as unknown as OwnedUpgradeabilityProxyLike;
       // these infos are not easily accessible as they are restricted by an onlyAdmin modifier
       // to retrieve them we use the low level getStorage call
       let adminAddr = "0x0";
@@ -89,6 +100,9 @@ task("initProxy", "init proxy with implementation")
           setVersionData,
         )
       ).wait(1);
+      if (!receipt) {
+        throw new Error("Initialize transaction failed");
+      }
       console.log(receipt);
 
       const newImplementationAddr = BigInt(
@@ -106,9 +120,6 @@ task("initProxy", "init proxy with implementation")
         ),
       ).toString(16);
       console.log(`new version : ${newVersion}`);
-      console.log(
-        "Initialization:",
-        (receipt as { status: number }).status === 1 ? "ok" : "error",
-      );
+      console.log("Initialization:", receipt.status === 1 ? "ok" : "error");
     },
   );

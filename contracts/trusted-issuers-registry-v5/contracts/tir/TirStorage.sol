@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: EUPL V1.2
-pragma solidity 0.8.12;
+pragma solidity ^0.8.26;
 
 contract TirStorage {
     // The state variables we care about.

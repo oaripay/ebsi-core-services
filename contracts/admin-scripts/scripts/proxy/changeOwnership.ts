@@ -5,7 +5,12 @@
 // Runtime Environment's members available in the global scope.
 import { deployments, ethers } from "hardhat";
 
-import type { OwnedUpgradeabilityProxy } from "../../src/types";
+import type { ContractTransactionResponse } from "ethers";
+
+interface OwnedUpgradeabilityProxyLike {
+  changeAdmin(newAdmin: string): Promise<ContractTransactionResponse>;
+  getAddress(): Promise<string>;
+}
 
 async function main() {
   // This can run only after Timestamp have been deployed with a proxy
@@ -17,7 +22,9 @@ async function main() {
     "OwnedUpgradeabilityProxy",
   );
 
-  const proxy = proxyFactory.attach(dProxy.address) as OwnedUpgradeabilityProxy;
+  const proxy = proxyFactory.attach(
+    dProxy.address,
+  ) as unknown as OwnedUpgradeabilityProxyLike;
 
   const res = await (await proxy.changeAdmin(multiSig.address)).wait(1);
 
@@ -25,11 +32,13 @@ async function main() {
     throw new Error("Transaction failed");
   }
 
+  const tx = await res.getTransaction();
+
   console.log(
     `
     Proxy:${await proxy.getAddress()}
     New admin:${multiSig.address}
-    TransactionHash:${(await res.getTransaction()).hash}
+    TransactionHash:${tx.hash}
     Status:${res.status === 1 ? "ok" : "error"}
     `,
   );

@@ -1,6 +1,23 @@
 import { task } from "hardhat/config";
 
+import type { ContractTransactionResponse } from "ethers";
+
 import { Settings } from "../utils/settings";
+
+interface ProxyTemplateRegistryLike {
+  addTemplate(template: {
+    auditURI: string;
+    beaconAddress: string;
+    contractHash: string;
+    initSelector: string;
+    isActive: boolean;
+    name: string;
+    repoURI: string;
+    storageLayoutHash: string;
+    version: string;
+  }): Promise<ContractTransactionResponse>;
+  computeTemplateId(name: string, version: string): Promise<string>;
+}
 
 task(
   "trustedContractsRegistry",
@@ -227,10 +244,10 @@ task(
       }
 
       // Get the registry contract
-      const registry = await ethers.getContractAt(
+      const registry = (await ethers.getContractAt(
         "ProxyTemplateRegistry",
         taskArgs.registry,
-      );
+      )) as unknown as ProxyTemplateRegistryLike;
 
       // Compute init selector for initialize(string,string,address,bytes32)
       const initSelector = ethers

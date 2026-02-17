@@ -49,8 +49,9 @@ describe("Schema", () => {
   });
 
   it("should not initialize if not proxy", async () => {
-    await expect(ts.initialize(1)).to.be.revertedWith(
-      "Initializable: contract is already initialized",
+    await expect(ts.initialize(1)).to.be.revertedWithCustomError(
+      ts,
+      "InvalidInitialization",
     );
   });
 
