@@ -90,7 +90,7 @@
   },
   "resolutions": {
     "**/@angular-devkit/core/ajv": "^8.18.0",
-    "**/@aws-sdk/xml-builder/fast-xml-parser": "5.3.5",
+    "**/@aws-sdk/xml-builder/fast-xml-parser": "^5.3.8",
     "**/@ethersproject/providers/ws": "^7.5.10",
     "**/@ethersproject/signing-key/elliptic": "^6.6.0",
     "**/@graphprotocol/graph-cli/glob": "^11.1.0",
