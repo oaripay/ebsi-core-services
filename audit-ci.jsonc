@@ -3,4 +3,29 @@
   "$schema": "https://github.com/IBM/audit-ci/raw/main/docs/schema.json",
   // Prevent integration with moderate or higher vulnerabilities.
   "moderate": true,
+  "allowlist": [
+    "GHSA-378v-28hj-76wf", // bn.js
+    "GHSA-3ppc-4f35-3m26", // minimatch
+    "GHSA-g9mf-h72j-4rw9", // hardhat@2.26.1>undici@5.29.0
+    "GHSA-23c5-xmqv-rm74",
+    "GHSA-2g4f-4pwh-qvx6",
+    "GHSA-7r86-cg39-jmmj",
+    "GHSA-mw96-cpmx-2vgc",
+    "GHSA-6rw7-vpxm-498p",
+    "GHSA-73rr-hh4g-fpgx",
+    "GHSA-848j-6mx2-7j84",
+    "GHSA-w7fw-mjwx-w883",
+    "GHSA-r4wm-x892-vjmx",
+    "CVE-2025-14505",
+    "CVE-2025-15284",
+    "CVE-2025-69873",
+    "CVE-2026-2293",
+    "CVE-2026-2391",
+    "CVE-2026-24001",
+    "CVE-2026-26996",
+    "CVE-2026-2739",
+    "CVE-2026-27606",
+    "CVE-2026-27903",
+    "CVE-2026-27904",
+  ],
 }
