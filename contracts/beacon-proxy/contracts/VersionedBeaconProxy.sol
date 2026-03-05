@@ -23,8 +23,13 @@ contract VersionedBeaconProxy is BeaconProxy, IVersionedBeaconProxy {
 
     error VersionNotAvailable();
 
-    constructor(address beacon_, bytes memory data_) BeaconProxy(beacon_, data_) {
-        StorageSlot.getUint256Slot(_VERSION_SLOT).value = IVersionedBeacon(beacon_).latestVersion();
+    constructor(
+        address beacon_,
+        bytes memory data_
+    ) BeaconProxy(beacon_, data_) {
+        StorageSlot.getUint256Slot(_VERSION_SLOT).value = IVersionedBeacon(
+            beacon_
+        ).latestVersion();
         StorageSlot.getAddressSlot(_PROXY_OWNER_SLOT).value = msg.sender;
     }
 
@@ -37,12 +42,21 @@ contract VersionedBeaconProxy is BeaconProxy, IVersionedBeaconProxy {
     }
 
     modifier onlyProxyOwner() {
-        require(msg.sender == _getProxyOwner(), "Proxy: caller is not the proxy owner");
+        require(
+            msg.sender == _getProxyOwner(),
+            "Proxy: caller is not the proxy owner"
+        );
         _;
     }
 
     /// @dev Override: resolve implementation by pinned version from IVersionedBeacon.
-    function _implementation() internal view virtual override returns (address) {
+    function _implementation()
+        internal
+        view
+        virtual
+        override
+        returns (address)
+    {
         return IVersionedBeacon(_getBeacon()).implementation(_getVersion());
     }
 
@@ -66,11 +80,17 @@ contract VersionedBeaconProxy is BeaconProxy, IVersionedBeaconProxy {
     }
 
     /// @dev Upgrade to a new version and optionally run init (upgradeToAndCall-style).
-    function upgradeToVersion(uint64 newVersion, bytes memory data) external override onlyProxyOwner {
+    function upgradeToVersion(
+        uint64 newVersion,
+        bytes memory data
+    ) external override onlyProxyOwner {
         address b = _getBeacon();
-        if (!IVersionedBeacon(b).isVersionAvailable(newVersion)) revert VersionNotAvailable();
+        if (!IVersionedBeacon(b).isVersionAvailable(newVersion))
+            revert VersionNotAvailable();
         uint64 oldVersion = _getVersion();
-        address newImplementation = IVersionedBeacon(b).implementation(newVersion);
+        address newImplementation = IVersionedBeacon(b).implementation(
+            newVersion
+        );
         StorageSlot.getUint256Slot(_VERSION_SLOT).value = newVersion;
         emit ProxyUpgraded(oldVersion, newVersion, newImplementation);
         if (data.length > 0) {

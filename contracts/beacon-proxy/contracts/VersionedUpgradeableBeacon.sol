@@ -26,7 +26,10 @@ contract VersionedUpgradeableBeacon is IVersionedBeacon, IBeacon, Ownable {
     error ImplementationNotContract();
     error VersionNotAvailable();
 
-    constructor(address initialImplementation, address ebsiOwner) Ownable(ebsiOwner) {
+    constructor(
+        address initialImplementation,
+        address ebsiOwner
+    ) Ownable(ebsiOwner) {
         _latestVersion = 1;
         _implementationOfVersion[1] = initialImplementation;
         _versions.push(1);
@@ -38,7 +41,9 @@ contract VersionedUpgradeableBeacon is IVersionedBeacon, IBeacon, Ownable {
         return _implementationOfVersion[_latestVersion];
     }
 
-    function implementation(uint64 version) external view override returns (address) {
+    function implementation(
+        uint64 version
+    ) external view override returns (address) {
         return _implementationOfVersion[version];
     }
 
@@ -46,8 +51,12 @@ contract VersionedUpgradeableBeacon is IVersionedBeacon, IBeacon, Ownable {
         return _latestVersion;
     }
 
-    function isVersionAvailable(uint64 version) external view override returns (bool) {
-        return _implementationOfVersion[version] != address(0) && !_deprecated[version];
+    function isVersionAvailable(
+        uint64 version
+    ) external view override returns (bool) {
+        return
+            _implementationOfVersion[version] != address(0) &&
+            !_deprecated[version];
     }
 
     function getVersions() external view override returns (uint64[] memory) {
@@ -55,7 +64,10 @@ contract VersionedUpgradeableBeacon is IVersionedBeacon, IBeacon, Ownable {
     }
 
     /// @dev Beacon admin: register a new implementation version (must be strictly greater than latestVersion).
-    function addVersion(uint64 version, address newImplementation) external onlyOwner {
+    function addVersion(
+        uint64 version,
+        address newImplementation
+    ) external onlyOwner {
         if (version <= _latestVersion) revert VersionMustIncrease();
         _latestVersion = version;
         _implementationOfVersion[version] = newImplementation;
@@ -65,7 +77,8 @@ contract VersionedUpgradeableBeacon is IVersionedBeacon, IBeacon, Ownable {
 
     /// @dev Beacon admin: mark a version as deprecated (existing proxies on that version keep working).
     function deprecateVersion(uint64 version) external onlyOwner {
-        if (_implementationOfVersion[version] == address(0)) revert VersionNotAvailable();
+        if (_implementationOfVersion[version] == address(0))
+            revert VersionNotAvailable();
         _deprecated[version] = true;
         emit VersionDeprecated(version);
     }

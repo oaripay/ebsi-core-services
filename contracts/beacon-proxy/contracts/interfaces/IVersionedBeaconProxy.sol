@@ -15,6 +15,10 @@ interface IVersionedBeaconProxy {
 
     function upgradeToVersion(uint64 newVersion, bytes memory data) external;
 
-    event ProxyUpgraded(uint64 indexed oldVersion, uint64 indexed newVersion, address indexed newImplementation);
+    event ProxyUpgraded(
+        uint64 indexed oldVersion,
+        uint64 indexed newVersion,
+        address indexed newImplementation
+    );
     event ProxyOwnerChanged(address indexed oldOwner, address indexed newOwner);
 }
