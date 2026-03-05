@@ -20,6 +20,7 @@ contracts/*/dist
 contracts/*/src
 contracts/*/scripts
 contracts/*/tests
+contracts/deuss
 
 ## Subgraphs
 subgraphs/*/subgraph.yaml

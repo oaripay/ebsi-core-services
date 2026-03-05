@@ -38,3 +38,6 @@ cp -r ${SCRIPT_DIR}/../../track-and-trace/contracts ${SCRIPT_DIR}/../contracts/t
 
 echo Copy the trusted-contracts-registry-v1 smart contract
 cp -r ${SCRIPT_DIR}/../../trusted-contracts-registry-v1/contracts ${SCRIPT_DIR}/../contracts/trusted-contracts-registry-v1
+
+echo Copy the beacon-proxy smart contract
+cp -r ${SCRIPT_DIR}/../../beacon-proxy/contracts ${SCRIPT_DIR}/../contracts/beacon-proxy
