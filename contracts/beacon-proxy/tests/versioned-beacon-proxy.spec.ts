@@ -2,11 +2,21 @@ import { ethers } from "hardhat";
 import { expect } from "chai";
 
 describe("VersionedUpgradeableBeacon and VersionedBeaconProxy", function () {
-  let beacon: Awaited<ReturnType<ReturnType<typeof ethers.getContractFactory>["deploy"]>>;
-  let proxy: Awaited<ReturnType<ReturnType<typeof ethers.getContractFactory>["deploy"]>>;
-  let implV1: Awaited<ReturnType<ReturnType<typeof ethers.getContractFactory>["deploy"]>>;
-  let implV2: Awaited<ReturnType<ReturnType<typeof ethers.getContractFactory>["deploy"]>>;
-  let implV3: Awaited<ReturnType<ReturnType<typeof ethers.getContractFactory>["deploy"]>>;
+  let beacon: Awaited<
+    ReturnType<ReturnType<typeof ethers.getContractFactory>["deploy"]>
+  >;
+  let proxy: Awaited<
+    ReturnType<ReturnType<typeof ethers.getContractFactory>["deploy"]>
+  >;
+  let implV1: Awaited<
+    ReturnType<ReturnType<typeof ethers.getContractFactory>["deploy"]>
+  >;
+  let implV2: Awaited<
+    ReturnType<ReturnType<typeof ethers.getContractFactory>["deploy"]>
+  >;
+  let implV3: Awaited<
+    ReturnType<ReturnType<typeof ethers.getContractFactory>["deploy"]>
+  >;
   let owner: { address: string };
   let other: { address: string };
 
@@ -22,7 +32,8 @@ describe("VersionedUpgradeableBeacon and VersionedBeaconProxy", function () {
   });
 
   it("Should deploy VersionedUpgradeableBeacon with initial version 1", async function () {
-    const MockImplementation = await ethers.getContractFactory("MockImplementation");
+    const MockImplementation =
+      await ethers.getContractFactory("MockImplementation");
     implV1 = await MockImplementation.deploy();
     await implV1.waitForDeployment();
 
@@ -44,7 +55,8 @@ describe("VersionedUpgradeableBeacon and VersionedBeaconProxy", function () {
   });
 
   it("Should add version 2 and 3 (beacon admin)", async function () {
-    const MockImplementation = await ethers.getContractFactory("MockImplementation");
+    const MockImplementation =
+      await ethers.getContractFactory("MockImplementation");
     implV2 = await MockImplementation.deploy();
     await implV2.waitForDeployment();
     implV3 = await MockImplementation.deploy();
@@ -65,11 +77,16 @@ describe("VersionedUpgradeableBeacon and VersionedBeaconProxy", function () {
   });
 
   it("Should deploy VersionedBeaconProxy at beacon latest version and initialize", async function () {
-    const initData = ethers.AbiCoder.defaultAbiCoder().encode(["string"], ["V1"]);
+    const initData = ethers.AbiCoder.defaultAbiCoder().encode(
+      ["string"],
+      ["V1"],
+    );
     const initSelector = ethers.id("initialize(string)").slice(0, 10);
     const finalInitData = ethers.concat([initSelector, initData]);
 
-    const VersionedBeaconProxy = await ethers.getContractFactory("VersionedBeaconProxy");
+    const VersionedBeaconProxy = await ethers.getContractFactory(
+      "VersionedBeaconProxy",
+    );
     proxy = await VersionedBeaconProxy.deploy(
       await beacon.getAddress(),
       finalInitData,
@@ -118,10 +135,9 @@ describe("VersionedUpgradeableBeacon and VersionedBeaconProxy", function () {
   });
 
   it("Should revert upgradeToVersion when version not available", async function () {
-    await expect(proxy.upgradeToVersion(99, "0x")).to.be.revertedWithCustomError(
-      proxy,
-      "VersionNotAvailable",
-    );
+    await expect(
+      proxy.upgradeToVersion(99, "0x"),
+    ).to.be.revertedWithCustomError(proxy, "VersionNotAvailable");
   });
 
   it("Should deprecate version 2; isVersionAvailable(2) false", async function () {
@@ -133,18 +149,22 @@ describe("VersionedUpgradeableBeacon and VersionedBeaconProxy", function () {
 
   it("Should revert upgradeToVersion to deprecated version", async function () {
     // Deploy another proxy (starts at latest v3), try to upgrade to deprecated v2
-    const initData = ethers.AbiCoder.defaultAbiCoder().encode(["string"], ["Other"]);
+    const initData = ethers.AbiCoder.defaultAbiCoder().encode(
+      ["string"],
+      ["Other"],
+    );
     const initSelector = ethers.id("initialize(string)").slice(0, 10);
-    const VersionedBeaconProxy = await ethers.getContractFactory("VersionedBeaconProxy");
+    const VersionedBeaconProxy = await ethers.getContractFactory(
+      "VersionedBeaconProxy",
+    );
     const proxy2 = await VersionedBeaconProxy.deploy(
       await beacon.getAddress(),
       ethers.concat([initSelector, initData]),
     );
     await proxy2.waitForDeployment();
-    await expect(proxy2.connect(owner).upgradeToVersion(2, "0x")).to.be.revertedWithCustomError(
-      proxy2,
-      "VersionNotAvailable",
-    );
+    await expect(
+      proxy2.connect(owner).upgradeToVersion(2, "0x"),
+    ).to.be.revertedWithCustomError(proxy2, "VersionNotAvailable");
   });
 
   it("Should transfer proxy ownership and emit event", async function () {
@@ -160,12 +180,12 @@ describe("VersionedUpgradeableBeacon and VersionedBeaconProxy", function () {
   });
 
   it("Should revert addVersion when version does not increase", async function () {
-    const MockImplementation = await ethers.getContractFactory("MockImplementation");
+    const MockImplementation =
+      await ethers.getContractFactory("MockImplementation");
     const impl = await MockImplementation.deploy();
     await impl.waitForDeployment();
-    await expect(beacon.addVersion(3, await impl.getAddress())).to.be.revertedWithCustomError(
-      beacon,
-      "VersionMustIncrease",
-    );
+    await expect(
+      beacon.addVersion(3, await impl.getAddress()),
+    ).to.be.revertedWithCustomError(beacon, "VersionMustIncrease");
   });
 });
