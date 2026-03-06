@@ -1,13 +1,13 @@
-import type { EbsiIssuer } from "@cef-ebsi/verifiable-credential";
+import type { EbsiIssuer } from "@europeum-ebsi/verifiable-credential";
 import type { PresentationSubmission } from "@sphereon/pex-models";
 import type { DIDDocument, JsonWebKey } from "did-resolver";
 
-import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import {
   generatePrivateKey,
   getPublicKeyJwk,
   getSigner,
 } from "@ebsiint-api/shared";
+import { EbsiWallet } from "@europeum-ebsi/wallet-lib";
 import { ethers } from "ethers";
 import { randomUUID } from "node:crypto";
 

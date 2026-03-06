@@ -1,9 +1,9 @@
 import hre from "hardhat";
 
-import { util } from "@cef-ebsi/key-did-resolver";
-import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { encode, setupInterceptors } from "@ebsiint-api/shared";
 import { TrackAndTrace__factory } from "@ebsiint-sc/track-and-trace";
+import { util } from "@europeum-ebsi/key-did-resolver";
+import { EbsiWallet } from "@europeum-ebsi/wallet-lib";
 import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 import {

@@ -1,4 +1,3 @@
 ignored:
   - DL3018 # don't require exact package versions (because of alpine)
   - DL3059 # allow multiple consecutive RUN instructions
-  - DL3060 # don't require "yarn cache clean" because we use cache mounts - https://docs.docker.com/build/cache/optimize/#use-cache-mounts

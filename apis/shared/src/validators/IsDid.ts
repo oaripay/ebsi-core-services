@@ -1,7 +1,10 @@
 import type { ValidationOptions } from "class-validator";
 
-import { EBSI_DID_METHOD_PREFIX, validate } from "@cef-ebsi/ebsi-did-resolver";
-import { util } from "@cef-ebsi/key-did-resolver";
+import {
+  EBSI_DID_METHOD_PREFIX,
+  validate,
+} from "@europeum-ebsi/ebsi-did-resolver";
+import { util } from "@europeum-ebsi/key-did-resolver";
 import { buildMessage, registerDecorator } from "class-validator";
 
 import type { ValidationResult } from "./types.ts";

@@ -3,7 +3,6 @@ import type { RawBodyRequest } from "@nestjs/common";
 import type { JsonRpcPayload } from "ethers";
 import type { FastifyRequest } from "fastify";
 
-import { getResolver as getKeyDidResolver } from "@cef-ebsi/key-did-resolver";
 import {
   BesuService as AbstractBesuService,
   encode,
@@ -11,6 +10,7 @@ import {
   InternalServerError,
   logAxiosError,
 } from "@ebsiint-api/shared";
+import { getResolver as getKeyDidResolver } from "@europeum-ebsi/key-did-resolver";
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import axios, { isAxiosError } from "axios";

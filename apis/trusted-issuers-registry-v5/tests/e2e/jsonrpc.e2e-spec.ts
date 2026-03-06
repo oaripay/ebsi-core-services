@@ -1,22 +1,13 @@
+import type { PaginatedList } from "@ebsiint-api/shared";
 import type {
   EbsiEnvConfiguration,
   EbsiIssuer,
-} from "@cef-ebsi/verifiable-credential";
-import type { Schemas as VCDM11Schemas } from "@cef-ebsi/verifiable-credential/vcdm11.js";
-import type { Schemas as VCDM20Schemas } from "@cef-ebsi/verifiable-credential/vcdm20.js";
-import type { PaginatedList } from "@ebsiint-api/shared";
+} from "@europeum-ebsi/verifiable-credential";
+import type { Schemas as VCDM11Schemas } from "@europeum-ebsi/verifiable-credential/vcdm11.js";
+import type { Schemas as VCDM20Schemas } from "@europeum-ebsi/verifiable-credential/vcdm20.js";
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 
-import { hexToBytes } from "@cef-ebsi/did-jwt";
-import { fromUrl } from "@cef-ebsi/ebsi-uri";
-import { metadata as vcdm11AttestationSchemaMetadata } from "@cef-ebsi/vcdm1.1-attestation-schema";
-import { metadata as vcdm11BitstringStatusListCredentialSchemaMetadata } from "@cef-ebsi/vcdm1.1-bitstring-status-list-v1.0-credential-schema";
-import { metadata as vcdm11RevocationStatusListSchemaMetadata } from "@cef-ebsi/vcdm1.1-revocation-statuslist-schema";
-import { metadata as vcdm20BitstringStatusListCredentialSchemaMetadata } from "@cef-ebsi/vcdm2.0-bitstring-status-list-v1.0-credential-schema";
-import { createVerifiableCredentialJwt as createVcdm11VerifiableCredentialJwt } from "@cef-ebsi/verifiable-credential/vcdm11.js";
-import { createVerifiableCredentialJwt as createVcdm20VerifiableCredentialJwt } from "@cef-ebsi/verifiable-credential/vcdm20.js";
-import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import {
   encode,
   getPublicKeyJwk,
@@ -24,6 +15,15 @@ import {
   prefixWith0x,
   waitToBeMined,
 } from "@ebsiint-api/shared";
+import { hexToBytes } from "@europeum-ebsi/did-jwt";
+import { fromUrl } from "@europeum-ebsi/ebsi-uri";
+import { metadata as vcdm11AttestationSchemaMetadata } from "@europeum-ebsi/vcdm1.1-attestation-schema";
+import { metadata as vcdm11BitstringStatusListCredentialSchemaMetadata } from "@europeum-ebsi/vcdm1.1-bitstring-status-list-v1.0-credential-schema";
+import { metadata as vcdm11RevocationStatusListSchemaMetadata } from "@europeum-ebsi/vcdm1.1-revocation-statuslist-schema";
+import { metadata as vcdm20BitstringStatusListCredentialSchemaMetadata } from "@europeum-ebsi/vcdm2.0-bitstring-status-list-v1.0-credential-schema";
+import { createVerifiableCredentialJwt as createVcdm11VerifiableCredentialJwt } from "@europeum-ebsi/verifiable-credential/vcdm11.js";
+import { createVerifiableCredentialJwt as createVcdm20VerifiableCredentialJwt } from "@europeum-ebsi/verifiable-credential/vcdm20.js";
+import { EbsiWallet } from "@europeum-ebsi/wallet-lib";
 import { ConfigService } from "@nestjs/config";
 import { useContainer } from "class-validator";
 import { ethers } from "ethers";

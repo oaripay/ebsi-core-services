@@ -1,4 +1,4 @@
-import { bytesToBase64url, hexToBytes } from "@cef-ebsi/did-jwt";
+import { bytesToBase64url, hexToBytes } from "@europeum-ebsi/did-jwt";
 import { ed25519 } from "@noble/curves/ed25519.js";
 import { p256 } from "@noble/curves/nist.js";
 import { secp256k1 } from "@noble/curves/secp256k1.js";

@@ -1,19 +1,19 @@
-import type { EbsiIssuer } from "@cef-ebsi/verifiable-credential";
-import type { Schemas } from "@cef-ebsi/verifiable-credential/vcdm11.js";
 import type { Tir } from "@ebsiint-sc/trusted-issuers-registry-v5";
+import type { EbsiIssuer } from "@europeum-ebsi/verifiable-credential";
+import type { Schemas } from "@europeum-ebsi/verifiable-credential/vcdm11.js";
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 import type { GenerateKeyPairResult } from "jose";
 import type { MockInstance } from "vitest";
 
-import * as vcLib from "@cef-ebsi/verifiable-credential/vcdm11.js";
-import { createVerifiableCredentialJwt } from "@cef-ebsi/verifiable-credential/vcdm11.js";
 import {
   generatePrivateKey,
   getPublicKeyJwk,
   getSigner,
 } from "@ebsiint-api/shared";
 import { Tir__factory } from "@ebsiint-sc/trusted-issuers-registry-v5";
+import * as vcLib from "@europeum-ebsi/verifiable-credential/vcdm11.js";
+import { createVerifiableCredentialJwt } from "@europeum-ebsi/verifiable-credential/vcdm11.js";
 import { ConfigService } from "@nestjs/config";
 import { useContainer } from "class-validator";
 import { ethers } from "ethers";
@@ -77,10 +77,10 @@ function escapeDid(url: string) {
   return url.replace("did:ebsi:", String.raw`did\:ebsi\:`);
 }
 
-vi.mock("@cef-ebsi/verifiable-credential/vcdm11.js", async () => {
+vi.mock("@europeum-ebsi/verifiable-credential/vcdm11.js", async () => {
   const mod = await vi.importActual<
-    typeof import("@cef-ebsi/verifiable-credential/vcdm11.js")
-  >("@cef-ebsi/verifiable-credential/vcdm11.js");
+    typeof import("@europeum-ebsi/verifiable-credential/vcdm11.js")
+  >("@europeum-ebsi/verifiable-credential/vcdm11.js");
 
   return {
     ...mod,

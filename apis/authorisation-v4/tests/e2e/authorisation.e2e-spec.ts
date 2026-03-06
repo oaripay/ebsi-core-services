@@ -1,24 +1,24 @@
 import type {
   EbsiEnvConfiguration,
   EbsiIssuer,
-} from "@cef-ebsi/verifiable-credential";
-import type { Schemas } from "@cef-ebsi/verifiable-presentation/vcdm11.js";
+} from "@europeum-ebsi/verifiable-credential";
+import type { Schemas } from "@europeum-ebsi/verifiable-presentation/vcdm11.js";
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { PresentationSubmission } from "@sphereon/pex-models";
 import type { RawServerDefault } from "fastify";
 import type { JWK } from "jose";
 
+import { getSigner } from "@ebsiint-api/shared";
 import {
   createJWT,
   decodeJWT,
   ES256KSigner,
   hexToBytes,
-} from "@cef-ebsi/did-jwt";
-import { fromUrl } from "@cef-ebsi/ebsi-uri";
-import { createVerifiableCredentialJwt } from "@cef-ebsi/verifiable-credential/vcdm11.js";
-import { createVerifiablePresentationJwt } from "@cef-ebsi/verifiable-presentation/vcdm11.js";
-import { EbsiWallet } from "@cef-ebsi/wallet-lib";
-import { getSigner } from "@ebsiint-api/shared";
+} from "@europeum-ebsi/did-jwt";
+import { fromUrl } from "@europeum-ebsi/ebsi-uri";
+import { createVerifiableCredentialJwt } from "@europeum-ebsi/verifiable-credential/vcdm11.js";
+import { createVerifiablePresentationJwt } from "@europeum-ebsi/verifiable-presentation/vcdm11.js";
+import { EbsiWallet } from "@europeum-ebsi/wallet-lib";
 import { ConfigService } from "@nestjs/config";
 import { calculateJwkThumbprint, importJWK, jwtVerify } from "jose";
 import { randomBytes, randomUUID } from "node:crypto";

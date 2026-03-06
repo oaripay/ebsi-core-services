@@ -1,6 +1,5 @@
 import type { TrackAndTrace } from "@ebsiint-sc/track-and-trace";
 
-import { getResolver } from "@cef-ebsi/ebsi-did-resolver";
 import {
   decodeResult,
   getErrorMessage,
@@ -9,6 +8,7 @@ import {
   logAxiosError,
 } from "@ebsiint-api/shared";
 import { TrackAndTrace__factory } from "@ebsiint-sc/track-and-trace";
+import { getResolver } from "@europeum-ebsi/ebsi-did-resolver";
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { isAxiosError } from "axios";

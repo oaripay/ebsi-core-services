@@ -1,33 +1,22 @@
 # Common
+.pnpm-store
 build
+cache
 coverage
 dist
 node_modules
-yarn-error.log
 .env*.local
-*.log
-*log
-.idea
 
-#NX
+# Nx
 .nx/cache
 .nx/workspace-data
-# manifest created by nx for Jenkins CD
+
+# Manifest created by Nx
 affected.yaml
 
-# SC
-.clinic
-.secret*
-# Assets built by hardhat, previously only `src` in SC repos
+# Assets built by hardhat
+contracts/*/artifacts
 contracts/*/src
-# config.ts
-abi
-all.sol
-artifacts
-cache
-coverage.json
-key/private.pem
-typechain
 
 # Subgraphs
 subgraphs/*/subgraph.yaml
@@ -36,3 +25,6 @@ subgraphs/*/generated
 subgraphs/*/tests/.bin
 subgraphs/*/tests/.docker
 subgraphs/*/tests/.latest.json
+
+# Tests
+tests/data

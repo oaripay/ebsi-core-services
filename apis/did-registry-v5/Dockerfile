@@ -2,40 +2,39 @@
 ARG DOCKER_TAG=latest
 FROM ebsi/core-services:$DOCKER_TAG AS builder
 
-FROM node:24.13.0-alpine3.23@sha256:931d7d57f8c1fd0e2179dbff7cc7da4c9dd100998bc2b32afc85142d8efbc213
-
-# Update dependencies
-RUN apk update && apk upgrade
-
+# Create deployment
+# See https://pnpm.io/cli/deploy
+FROM node:24.13.0-alpine3.23@sha256:931d7d57f8c1fd0e2179dbff7cc7da4c9dd100998bc2b32afc85142d8efbc213 AS api-builder
 WORKDIR /app
-# Copy root package.json + lockfile
-COPY --from=builder /app/yarn.lock ./yarn.lock
-COPY --from=builder /app/package.json ./package.json
-# Copy DID Registry API v5
-COPY --from=builder /app/apis/did-registry-v5/package.json ./apis/did-registry-v5/package.json
-COPY --from=builder /app/apis/did-registry-v5/dist ./apis/did-registry-v5/dist
-COPY --from=builder /app/apis/did-registry-v5/api ./apis/did-registry-v5/api
-# Copy Bootstrap SC v2
-COPY --from=builder /app/contracts/bootstrap-v2/package.json ./contracts/bootstrap-v2/package.json
-COPY --from=builder /app/contracts/bootstrap-v2/dist ./contracts/bootstrap-v2/dist
-COPY --from=builder /app/contracts/bootstrap-v2/artifacts ./contracts/bootstrap-v2/artifacts
-# Copy DID Registry SC v5
-COPY --from=builder /app/contracts/did-registry-v5/package.json ./contracts/did-registry-v5/package.json
-COPY --from=builder /app/contracts/did-registry-v5/dist ./contracts/did-registry-v5/dist
-COPY --from=builder /app/contracts/did-registry-v5/artifacts ./contracts/did-registry-v5/artifacts
-# Copy TPR SC v3
-COPY --from=builder /app/contracts/trusted-policies-registry-v3/package.json ./contracts/trusted-policies-registry-v3/package.json
-COPY --from=builder /app/contracts/trusted-policies-registry-v3/dist ./contracts/trusted-policies-registry-v3/dist
-COPY --from=builder /app/contracts/trusted-policies-registry-v3/artifacts ./contracts/trusted-policies-registry-v3/artifacts
-# Copy shared code
-COPY --from=builder /app/apis/shared/package.json ./apis/shared/package.json
-COPY --from=builder /app/apis/shared/dist ./apis/shared/dist
-# Define ENV
-ENV NODE_ENV=production
-# Install prod dependencies
-RUN --mount=type=cache,target=/app/.yarn-cache YARN_CACHE_FOLDER=/app/.yarn-cache yarn install --frozen-lockfile --silent --production --ignore-scripts
+COPY --from=builder /app/ ./
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable
+RUN --mount=type=cache,target=/pnpm/store \
+  pnpm --filter="@ebsiint-api/did-registry-api-v5" deploy --prod --no-optional pruned
+
+# Create tiny runtime image
+# See https://github.com/nodejs/docker-node/blob/main/docs/BestPractices.md#smaller-images-without-npmyarn
+FROM alpine:3.23@sha256:25109184c71bdad752c8312a8623239686a9a2071e8825f20acb8f2198c3f659
+WORKDIR /usr/src/app
+# Add required binaries and create "node" user
+RUN --mount=type=cache,target=/var/cache/apk,sharing=locked \
+  apk add libstdc++ dumb-init && \
+  addgroup -g 1000 node && adduser -u 1000 -G node -s /bin/sh -D node && \
+  chown node:node ./
+COPY --from=api-builder /usr/local/bin/node /usr/local/bin/
+COPY --from=api-builder /usr/local/bin/docker-entrypoint.sh /usr/local/bin/
+ENTRYPOINT ["docker-entrypoint.sh"]
+# Switch to "node" user
+USER node
+# Only import what's necessary
+COPY --from=api-builder /app/pruned/api api
+COPY --from=api-builder /app/pruned/dist dist
+COPY --from=api-builder /app/pruned/node_modules node_modules
+# Create .env.default file with docker tag
 ARG DOCKER_TAG
 RUN echo "DOCKER_TAG=$DOCKER_TAG" >> .env.default
-RUN chown node:node /app
-USER node
-CMD [ "node", "apis/did-registry-v5/dist/main" ]
+# Define environment variables
+ENV NODE_ENV=production
+# Run with dumb-init to not start node with PID=1, since Node.js was not designed to run as PID 1
+CMD [ "dumb-init", "node", "dist/main.js" ]

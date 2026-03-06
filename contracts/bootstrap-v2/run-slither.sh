@@ -1,6 +1,6 @@
-#!/bin/bash
+#!/bin/sh
 
 mkdir tmp
-npx hardhat flatten > ./tmp/contracts.sol
+pnpm exec hardhat flatten > ./tmp/contracts.sol
 slither ./tmp/contracts.sol
 rm -r tmp

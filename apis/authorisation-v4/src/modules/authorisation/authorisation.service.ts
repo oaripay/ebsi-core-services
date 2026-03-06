@@ -1,13 +1,13 @@
-import type { JWTHeader, JWTPayload } from "@cef-ebsi/did-jwt";
+import type { PaginatedList } from "@ebsiint-api/shared";
+import type { JWTHeader, JWTPayload } from "@europeum-ebsi/did-jwt";
 import type {
   EbsiEnvConfiguration,
   ProofPurposeTypes,
-} from "@cef-ebsi/verifiable-presentation";
+} from "@europeum-ebsi/verifiable-presentation";
 import type {
   Schemas,
   VpJwtPayload,
-} from "@cef-ebsi/verifiable-presentation/vcdm11.js";
-import type { PaginatedList } from "@ebsiint-api/shared";
+} from "@europeum-ebsi/verifiable-presentation/vcdm11.js";
 import type { Checked } from "@sphereon/pex";
 import type {
   PresentationDefinitionV2,
@@ -17,14 +17,14 @@ import type { AxiosResponse } from "axios";
 import type { Cache } from "cache-manager";
 import type { DIDDocument } from "did-resolver";
 
+import { encode, getPublicKeyJwk, logAxiosError } from "@ebsiint-api/shared";
 import {
   createJWT,
   decodeJWT,
   ES256Signer,
   hexToBytes,
-} from "@cef-ebsi/did-jwt";
-import { verifyPresentationJwt } from "@cef-ebsi/verifiable-presentation/vcdm11.js";
-import { encode, getPublicKeyJwk, logAxiosError } from "@ebsiint-api/shared";
+} from "@europeum-ebsi/did-jwt";
+import { verifyPresentationJwt } from "@europeum-ebsi/verifiable-presentation/vcdm11.js";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Inject, Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";

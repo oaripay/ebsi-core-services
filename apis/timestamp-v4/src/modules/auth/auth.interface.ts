@@ -1,4 +1,4 @@
-import type { JWTPayload } from "@cef-ebsi/did-jwt";
+import type { JWTPayload } from "@europeum-ebsi/did-jwt";
 
 export interface Payload extends JWTPayload {
   login_hint: string;

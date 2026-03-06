@@ -5,8 +5,8 @@
 **/LICENSE.txt
 **/LICENSES.txt
 **/Dockerfile
-yarn-error.log
 .nx
+.pnpm-store
 
 ## APIs
 apis/*/coverage
@@ -14,13 +14,13 @@ apis/*/dist
 
 ## Contracts
 contracts/admin-scripts
+contracts/deuss
 contracts/*/artifacts
 contracts/*/cache
 contracts/*/dist
 contracts/*/src
 contracts/*/scripts
 contracts/*/tests
-contracts/deuss
 
 ## Subgraphs
 subgraphs/*/subgraph.yaml

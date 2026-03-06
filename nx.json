@@ -32,33 +32,30 @@
     "build": {
       "inputs": ["production", "^production"],
       "outputs": ["{projectRoot}/dist", "{projectRoot}/generated"],
-      "dependsOn": ["^build", "prepare"],
+      "dependsOn": ["^build", "setup"],
       "cache": true
     },
     "lint": {
       "inputs": ["default", "^production", "!{projectRoot}/.env*"],
       "outputs": [],
-      "dependsOn": ["^build", "prepare"],
+      "dependsOn": ["^build", "setup"],
       "cache": true
     },
-    "prepare": {
+    "setup": {
       "inputs": ["production", "^production"],
       "outputs": ["{projectRoot}/.graphclient"],
-      "dependsOn": ["^build"],
+      "dependsOn": ["^build", "clean"],
       "cache": true
-    },
-    "postinstall": {
-      "dependsOn": []
     },
     "start": {
       "inputs": ["production", "^production"],
       "outputs": [],
-      "dependsOn": ["^build", "prepare"]
+      "dependsOn": ["^build", "setup"]
     },
     "start:dev": {
       "inputs": ["production", "^production"],
       "outputs": [],
-      "dependsOn": ["^build", "prepare"]
+      "dependsOn": ["^build", "setup"]
     },
     "start:prod": {
       "inputs": ["production", "^production"],
@@ -68,25 +65,25 @@
     "test": {
       "inputs": ["test", "^production"],
       "outputs": [],
-      "dependsOn": ["^build", "prepare"],
+      "dependsOn": ["^build", "setup"],
       "cache": true
     },
     "test:unit": {
       "inputs": ["test", "^production"],
       "outputs": [],
-      "dependsOn": ["^build", "prepare"],
+      "dependsOn": ["^build", "setup"],
       "cache": true
     },
     "test:ci": {
       "inputs": ["test", "^production"],
       "outputs": [],
-      "dependsOn": ["^build", "prepare"],
+      "dependsOn": ["^build", "setup"],
       "cache": true
     },
     "test:e2e": {
       "inputs": ["test", "^production"],
       "outputs": [],
-      "dependsOn": ["^build", "prepare"]
+      "dependsOn": ["^build", "setup"]
     },
     "compile": {
       "outputs": [
@@ -94,7 +91,7 @@
         "{projectRoot}/dist",
         "{projectRoot}/src"
       ],
-      "dependsOn": ["prepare"],
+      "dependsOn": ["setup"],
       "cache": true
     },
     "prepare-contracts": {

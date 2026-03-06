@@ -2,17 +2,17 @@ import "@ebsiint-sc/trusted-issuers-registry-v5/dist/hardhat.d.ts";
 
 import hre from "hardhat";
 
-import type { Schemas as VCDM11Schemas } from "@cef-ebsi/verifiable-credential/vcdm11.js";
 import type {
   DidRegistryMock,
   PolicyRegistryMock,
   Tir,
 } from "@ebsiint-sc/trusted-issuers-registry-v5";
+import type { Schemas as VCDM11Schemas } from "@europeum-ebsi/verifiable-credential/vcdm11.js";
 
 import "@nomicfoundation/hardhat-ethers";
 import type { HardhatEthersProvider } from "@nomicfoundation/hardhat-ethers/internal/hardhat-ethers-provider.js";
 
-import { EbsiWallet } from "@cef-ebsi/wallet-lib";
+import { EbsiWallet } from "@europeum-ebsi/wallet-lib";
 import { ethers } from "ethers";
 import crypto from "node:crypto";
 

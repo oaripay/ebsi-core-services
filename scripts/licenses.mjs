@@ -4,6 +4,7 @@ import { createRequire } from "node:module";
 import path from "node:path";
 import { readPackage } from "read-pkg";
 import spdxLicenseList from "spdx-license-list/full.js";
+import { parse } from "yaml";
 
 const licenseBasenames = [
   /^LICENSE$/,
@@ -37,14 +38,19 @@ const getModuleDir = (root, moduleEntry) => {
   return lookupPaths.find((p) => fs.existsSync(p));
 };
 
-const { workspaces } = await readPackage({ cwd: "." });
+const { packages } = parse(
+  fs.readFileSync(
+    path.resolve(import.meta.dirname, "../pnpm-workspace.yaml"),
+    "utf8",
+  ),
+);
 
-if (!workspaces || Array.isArray(workspaces) || !workspaces.packages) {
-  throw new Error("No workspaces found");
+if (!packages || !Array.isArray(packages)) {
+  throw new Error("No packages found");
 }
 
 // Get dependencies of each workspace
-for (const workspace of workspaces.packages) {
+for (const workspace of packages) {
   const projects = await glob(workspace);
 
   for (const project of projects) {
@@ -83,7 +89,11 @@ This product makes use of software developed by third parties.
         );
       }
 
-      const { license } = await readPackage({ cwd: dir });
+      const { license, name: packageName } = await readPackage({ cwd: dir });
+
+      if (packageName.startsWith("@ebsiint-")) {
+        continue;
+      }
 
       if (!license) {
         console.warn(`No license found for ${name}@${version}`);

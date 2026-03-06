@@ -1,12 +1,12 @@
-import type { Schemas } from "@cef-ebsi/verifiable-credential/vcdm11.js";
+import type { Schemas } from "@europeum-ebsi/verifiable-credential/vcdm11.js";
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { AxiosResponse } from "axios";
 import type { RawServerDefault } from "fastify";
 
-import * as vcLib from "@cef-ebsi/verifiable-credential/vcdm11.js";
-import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { remove0xPrefix } from "@ebsiint-api/shared";
 import { Tir__factory } from "@ebsiint-sc/trusted-issuers-registry-v5";
+import * as vcLib from "@europeum-ebsi/verifiable-credential/vcdm11.js";
+import { EbsiWallet } from "@europeum-ebsi/wallet-lib";
 import axios, { AxiosError } from "axios";
 import { ethers } from "ethers";
 import { generateKeyPair, SignJWT } from "jose";
@@ -24,10 +24,10 @@ import { IssuersModule } from "./issuers.module.ts";
 
 const ISSUERS_TOTAL = 12;
 
-vi.mock("@cef-ebsi/verifiable-credential/vcdm11.js", async () => {
+vi.mock("@europeum-ebsi/verifiable-credential/vcdm11.js", async () => {
   const mod = await vi.importActual<
-    typeof import("@cef-ebsi/verifiable-credential/vcdm11.js")
-  >("@cef-ebsi/verifiable-credential/vcdm11.js");
+    typeof import("@europeum-ebsi/verifiable-credential/vcdm11.js")
+  >("@europeum-ebsi/verifiable-credential/vcdm11.js");
 
   return {
     ...mod,

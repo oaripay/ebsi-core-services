@@ -1,3 +1,5 @@
+import type { LevelWithSilent } from "pino";
+
 // Provide typings for process.env
 declare global {
   namespace NodeJS {
@@ -11,7 +13,7 @@ declare global {
       DOCKER_TAG?: string;
       DOMAIN: string;
       LOCAL_ORIGIN?: string;
-      LOG_LEVEL?: "debug" | "error" | "log" | "silent" | "verbose" | "warn";
+      LOG_LEVEL?: LevelWithSilent;
       NETWORK: string;
       NODE_ENV: "development" | "production" | "test";
       REQUEST_TIMEOUT?: string;

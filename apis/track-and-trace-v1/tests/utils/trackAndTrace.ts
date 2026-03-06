@@ -9,7 +9,7 @@ import type { HardhatEthersProvider } from "@nomicfoundation/hardhat-ethers/inte
 import type { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers.js";
 
 import "@nomicfoundation/hardhat-ethers";
-import { EbsiWallet } from "@cef-ebsi/wallet-lib";
+import { EbsiWallet } from "@europeum-ebsi/wallet-lib";
 import { exportJWK, generateKeyPair } from "jose";
 
 import type { TestDocument } from "./data.ts";

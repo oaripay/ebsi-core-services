@@ -1,3 +1,5 @@
+import type { LevelWithSilent } from "pino";
+
 // Provide typings for process.env
 declare global {
   namespace NodeJS {
@@ -9,7 +11,7 @@ declare global {
       DOCKER_TAG?: string;
       DOMAIN: string;
       LOCAL_ORIGIN?: string;
-      LOG_LEVEL?: "debug" | "error" | "log" | "silent" | "verbose" | "warn";
+      LOG_LEVEL?: LevelWithSilent;
       NODE_ENV: "development" | "production" | "test";
       PROXY_FACTORY_CONTRACT_ADDR: string;
       PROXY_TEMPLATE_CONTRACT_ADDR: string;

@@ -1,4 +1,4 @@
-import type { EbsiIssuer } from "@cef-ebsi/verifiable-credential";
+import type { EbsiIssuer } from "@europeum-ebsi/verifiable-credential";
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 import type { JWK } from "jose";

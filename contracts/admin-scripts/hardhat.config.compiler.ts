@@ -10,7 +10,7 @@ import "hardhat-abi-exporter";
 
 // The solhint plugin overrides the check task, runs solhint
 // on the project's sources and prints the report to the console
-// when running yarn test
+// when running pnpm run test
 
 const config: HardhatUserConfig & {
   namedAccounts?: Record<

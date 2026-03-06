@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import Mustache from "mustache";
-import { readFileSync, writeFileSync } from "node:fs";
+import { readFileSync, realpathSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -16,14 +16,19 @@ if (!process.env["ESTAT_SC_V1_START_BLOCK"]) {
 
 const { dirname } = import.meta;
 
+function resolveSymlinks(fileToResolve) {
+  return path.resolve(
+    realpathSync(fileURLToPath(import.meta.resolve(fileToResolve))),
+  );
+}
+
 const source = readFileSync(
   path.resolve(dirname, "../subgraph.template.yaml"),
 ).toString();
 
 const contents = Mustache.render(source, {
-  trackAndTraceAbi: fileURLToPath(
-    import.meta
-      .resolve("@ebsiint-sc/track-and-trace/src/abi/TrackAndTrace.json"),
+  trackAndTraceAbi: resolveSymlinks(
+    "@ebsiint-sc/track-and-trace/src/abi/TrackAndTrace.json",
   ),
   trackAndTraceAddress: process.env["ESTAT_SC_V1_ADDRESS"],
   trackAndTraceStartBlock: Number.parseInt(

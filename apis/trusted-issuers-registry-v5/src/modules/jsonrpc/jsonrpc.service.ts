@@ -1,5 +1,5 @@
-import type { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
 import type { Tir } from "@ebsiint-sc/trusted-issuers-registry-v5";
+import type { EbsiEnvConfiguration } from "@europeum-ebsi/verifiable-credential";
 
 import {
   decodeResult,
