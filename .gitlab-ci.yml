@@ -1,3 +1,189 @@
-include:
-  - project: "europeum/private/infrastructure/gitlab-pipelines"
-    file: "/templates/renovate-generate-changesets.yml"
+---
+workflow:
+  rules:
+    ## Run tests on any branch
+    - if: "$CI_COMMIT_BRANCH"
+
+# include:
+#   - project: "europeum/private/infrastructure/gitlab-pipelines"
+#     file: "/templates/renovate-generate-changesets.yml"
+
+# Tests
+
+variables:
+  FF_ENABLE_JOB_CLEANUP: "true"
+  # Fastzip is a performant archiver for cache/artifact archiving and extraction
+  # https://docs.gitlab.com/runner/configuration/feature-flags/#available-feature-flags
+  FF_USE_FASTZIP: "true"
+  # To adjust compression ratio, set to fastest, fast, default, slow, or slowest. This setting works with the Fastzip archiver only.
+  # https://docs.gitlab.com/ci/runners/configure_runners/#artifact-and-cache-settings
+  ARTIFACT_COMPRESSION_LEVEL: "fastest"
+  CACHE_COMPRESSION_LEVEL: "fastest"
+
+# Audit dependencies before installing them
+audit_dependencies:
+  image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/node-runner:24.13.0-alpine3.23
+  script:
+    - corepack enable
+    - corepack prepare --activate
+    - pnpx audit-ci@7.1.0 --config audit-ci.jsonc
+
+# Lint Dockerfile
+hadolint:
+  image:
+    name: hadolint/hadolint:latest-alpine
+  script:
+    - hadolint --version
+    - hadolint Dockerfile
+
+# Check for misspellings
+codespell:
+  image:
+    name: python:3.14-alpine
+  variables:
+    CODESPELL_VERSION: "2.4.1"
+  before_script:
+    - if [ ! -d .venv ]; then echo "setting up python venv"; python -m venv .venv; fi
+    - source .venv/bin/activate
+  script:
+    - pip install codespell==$CODESPELL_VERSION
+    - codespell --version
+    - codespell website/ --skip="build,node_modules,*.svg,"
+  cache:
+    key: "${CI_JOB_IMAGE}-codespell-${CODESPELL_VERSION}"
+    paths: [.venv/]
+
+# node_modules cache
+.node_modules_cache: &node_modules_cache
+  key:
+    files:
+      - pnpm-lock.yaml
+  paths:
+    - .pnpm-store
+  policy: pull
+
+# Nx cache
+.nx_cache: &nx_cache
+  key: nx-cache-$CI_COMMIT_REF_SLUG
+  paths:
+    - .nx/cache
+  policy: pull
+
+# Default node config
+.default_node:
+  image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/node-runner:24.13.0-alpine3.23
+  before_script:
+    - git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
+    - git fetch origin main:main
+    - corepack enable
+    - corepack prepare --activate
+    - pnpm config set store-dir .pnpm-store
+    - pnpm install --prefer-offline --frozen-lockfile --reporter=silent
+  cache:
+    - *node_modules_cache
+    - *nx_cache
+  needs: []
+  variables:
+    NX_REJECT_UNKNOWN_LOCAL_CACHE: 0
+
+# Install dependencies
+install:
+  extends: .default_node
+  needs:
+    - job: audit_dependencies
+      artifacts: false
+  cache:
+    - <<: *node_modules_cache
+      policy: pull-push
+    - *nx_cache
+  script:
+    # Just install the dependencies and store them in cache
+    - exit 0
+
+# Check if a changeset is present
+changesets:
+  extends: .default_node
+  needs:
+    - job: install
+      artifacts: false
+  variables:
+    GIT_DEPTH: 0
+  script:
+    - pnpm exec changeset status --since=main
+
+# Check if some dependencies can be deduped
+dedupe:
+  extends: .default_node
+  needs:
+    - job: install
+      artifacts: false
+  script:
+    - pnpm dedupe --check --ignore-scripts
+
+# Check if licenses are up-to-date
+licenses:
+  extends: .default_node
+  needs:
+    - job: install
+      artifacts: false
+  script:
+    - node ./scripts/licenses.mjs
+    - git diff --name-only --exit-code
+
+# syncpack - https://syncpack.dev/command/lint/
+syncpack:
+  extends: .default_node
+  needs:
+    - job: install
+      artifacts: false
+  script:
+    - pnpm exec syncpack lint --dependency-types prod,dev
+
+# Run build command
+build:
+  extends: .default_node
+  needs:
+    - job: install
+      artifacts: false
+  cache:
+    - *node_modules_cache
+    - <<: *nx_cache
+      policy: pull-push
+  script:
+    - pnpm run build
+
+# Lint code
+lint:
+  extends: .default_node
+  needs:
+    - job: build
+      artifacts: false
+  script:
+    - pnpm run lint
+
+# Run unit tests (except for subgraphs)
+test:
+  extends: .default_node
+  needs:
+    - job: build
+      artifacts: false
+  script:
+    - pnpm run test --exclude='@ebsiint-subgraph/*'
+
+# Use a different image to run subgraph tests
+test_subgraphs:
+  image:
+    name: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/matchstick-runner:matchstick-runner-0.0.0
+    entrypoint: [""]
+  needs:
+    - job: audit_dependencies
+      artifacts: false
+  script:
+    - node -v
+    - git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
+    - git fetch origin main:main
+    - corepack enable
+    - corepack prepare --activate
+    - pnpm config set store-dir .pnpm-store
+    - pnpm install --prefer-offline --frozen-lockfile --reporter=silent
+    - pnpm run test --exclude='*,!@ebsiint-subgraph/*'

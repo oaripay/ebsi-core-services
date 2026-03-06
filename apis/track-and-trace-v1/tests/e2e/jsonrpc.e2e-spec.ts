@@ -1,15 +1,15 @@
-import type { EbsiIssuer } from "@cef-ebsi/verifiable-credential";
+import type { EbsiIssuer } from "@europeum-ebsi/verifiable-credential";
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 
-import { hexToBytes } from "@cef-ebsi/did-jwt";
-import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import {
   generatePrivateKey,
   getPublicKeyJwk,
   getSigner,
   waitToBeMined,
 } from "@ebsiint-api/shared";
+import { hexToBytes } from "@europeum-ebsi/did-jwt";
+import { EbsiWallet } from "@europeum-ebsi/wallet-lib";
 import { ConfigService } from "@nestjs/config";
 import axios from "axios";
 import { useContainer } from "class-validator";

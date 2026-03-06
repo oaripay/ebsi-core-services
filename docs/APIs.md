@@ -33,23 +33,23 @@ Please read [the main documentation](../README.md) first.
 Run the development server:
 
 ```sh
-yarn nx start {service-name}
+pnpm exec nx start {service-name}
 ```
 
 This command starts the web app at http://localhost:3000
 
-The development server can also be started in Live-reload mode with: `yarn nx start:dev {service-name}`. Every time you make a change, the server will automatically restart after compiling the code.
+The development server can also be started in Live-reload mode with: `pnpm exec nx start:dev {service-name}`. Every time you make a change, the server will automatically restart after compiling the code.
 
 You can create a production build with:
 
 ```sh
-yarn nx build {service-name}
+pnpm exec nx build {service-name}
 ```
 
 And then you can serve the production build with:
 
 ```sh
-yarn nx start:prod {service-name}
+pnpm exec nx start:prod {service-name}
 ```
 
 You can now open http://localhost:3000/{service-name}/{version}/health. If everything's working correctly, then you should see `"status":"ok"`.
@@ -59,7 +59,7 @@ You can now open http://localhost:3000/{service-name}/{version}/health. If every
 You can lint the files (ESLint, OpenAPI, tsc) and run Prettier with one command:
 
 ```sh
-yarn nx lint {service-name}
+pnpm exec nx lint {service-name}
 ```
 
 Or you can run the different linters independently:
@@ -67,25 +67,25 @@ Or you can run the different linters independently:
 ### ESLint
 
 ```sh
-yarn nx lint:eslint {service-name}
+pnpm exec nx lint:eslint {service-name}
 ```
 
 ### OpenAPI
 
 ```sh
-yarn nx lint:openapi {service-name}
+pnpm exec nx lint:openapi {service-name}
 ```
 
 ### Prettier
 
 ```sh
-yarn nx lint:prettier {service-name}
+pnpm exec nx lint:prettier {service-name}
 ```
 
 ### TypeScript Compiler (tsc)
 
 ```sh
-yarn nx lint:tsc {service-name}
+pnpm exec nx lint:tsc {service-name}
 ```
 
 ## Testing
@@ -95,31 +95,31 @@ Reminder: you need to set the environment variables before running the e2e tests
 Run all the tests:
 
 ```sh
-yarn nx test {service-name}
+pnpm exec nx test {service-name}
 ```
 
 If you want to get the code coverage, use the `--coverage` parameter:
 
 ```sh
-yarn nx test {service-name} --coverage
+pnpm exec nx test {service-name} --coverage
 ```
 
 Run the unit tests only:
 
 ```sh
-yarn nx test:unit {service-name}
+pnpm exec nx test:unit {service-name}
 ```
 
 Run the end-to-end tests only:
 
 ```sh
-yarn nx test:e2e {service-name}
+pnpm exec nx test:e2e {service-name}
 ```
 
 In CI environments, we use a dedicated command that runs unit tests and automatically generates the code coverage and report for SonarQube:
 
 ```sh
-yarn nx test:ci {service-name}
+pnpm exec nx test:ci {service-name}
 ```
 
 ### Loading secrets from 1Password
@@ -129,7 +129,7 @@ Install and configure the [1Password CLI](https://developer.1password.com/docs/c
 You can then run the e2e tests of any API by loading the `.env.op` file in the corresponding folder. For instance, for Authorisation API v4, run:
 
 ```sh
-EBSI_ENV=test op run --env-file="apis/authorisation-v4/.env.op" -- yarn nx run @ebsiint-api/authorisation-api-v4:test:e2e
+EBSI_ENV=test op run --env-file="apis/authorisation-v4/.env.op" -- pnpm exec nx run @ebsiint-api/authorisation-api-v4:test:e2e
 ```
 
 ## Load testing with k6

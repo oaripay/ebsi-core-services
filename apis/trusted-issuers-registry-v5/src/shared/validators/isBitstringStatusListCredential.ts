@@ -1,9 +1,9 @@
-import type { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
-import type { VerifyCredentialOptions as VerifyVcdm11CredentialOptions } from "@cef-ebsi/verifiable-credential/vcdm11.js";
-import type { VerifyCredentialOptions as VerifyVcdm20CredentialOptions } from "@cef-ebsi/verifiable-credential/vcdm20.js";
+import type { EbsiEnvConfiguration } from "@europeum-ebsi/verifiable-credential";
+import type { VerifyCredentialOptions as VerifyVcdm11CredentialOptions } from "@europeum-ebsi/verifiable-credential/vcdm11.js";
+import type { VerifyCredentialOptions as VerifyVcdm20CredentialOptions } from "@europeum-ebsi/verifiable-credential/vcdm20.js";
 
-import { verifyCredentialJwt as verifyVcdm11CredentialJwt } from "@cef-ebsi/verifiable-credential/vcdm11.js";
-import { verifyCredentialJwt as verifyVcdm20CredentialJwt } from "@cef-ebsi/verifiable-credential/vcdm20.js";
+import { verifyCredentialJwt as verifyVcdm11CredentialJwt } from "@europeum-ebsi/verifiable-credential/vcdm11.js";
+import { verifyCredentialJwt as verifyVcdm20CredentialJwt } from "@europeum-ebsi/verifiable-credential/vcdm20.js";
 import Joi from "joi";
 
 export const vcdm11BitstringStatusListCredentialSchema = Joi.object({

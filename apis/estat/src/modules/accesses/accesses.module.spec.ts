@@ -1,8 +1,8 @@
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 
-import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { TrackAndTrace__factory } from "@ebsiint-sc/track-and-trace";
+import { EbsiWallet } from "@europeum-ebsi/wallet-lib";
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 

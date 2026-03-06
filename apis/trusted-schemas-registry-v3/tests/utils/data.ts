@@ -1,6 +1,6 @@
 import type { JSONSchema } from "@apidevtools/json-schema-ref-parser";
 
-import { EbsiWallet } from "@cef-ebsi/wallet-lib";
+import { EbsiWallet } from "@europeum-ebsi/wallet-lib";
 import crypto from "node:crypto";
 
 export const createDid = (): string => EbsiWallet.createDid();

@@ -2,7 +2,7 @@ import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { DIDDocument } from "did-resolver";
 import type { RawServerDefault } from "fastify";
 
-import { EbsiWallet } from "@cef-ebsi/wallet-lib";
+import { EbsiWallet } from "@europeum-ebsi/wallet-lib";
 import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 import request from "supertest";

@@ -1,4 +1,4 @@
-import type { EbsiIssuer } from "@cef-ebsi/verifiable-credential";
+import type { EbsiIssuer } from "@europeum-ebsi/verifiable-credential";
 
 import { getPublicKeyJwk, getSigner } from "@ebsiint-api/shared";
 

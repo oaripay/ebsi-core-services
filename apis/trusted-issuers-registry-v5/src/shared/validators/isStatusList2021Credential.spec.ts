@@ -1,6 +1,6 @@
-import type { Schemas } from "@cef-ebsi/verifiable-credential/vcdm11.js";
+import type { Schemas } from "@europeum-ebsi/verifiable-credential/vcdm11.js";
 
-import * as vcLib from "@cef-ebsi/verifiable-credential/vcdm11.js";
+import * as vcLib from "@europeum-ebsi/verifiable-credential/vcdm11.js";
 import Joi from "joi";
 import { describe, expect, it, vi } from "vitest";
 
@@ -9,10 +9,10 @@ import {
   statusList2021CredentialSchema,
 } from "./isStatusList2021Credential.ts";
 
-vi.mock("@cef-ebsi/verifiable-credential/vcdm11.js", async () => {
+vi.mock("@europeum-ebsi/verifiable-credential/vcdm11.js", async () => {
   const mod = await vi.importActual<
-    typeof import("@cef-ebsi/verifiable-credential/vcdm11.js")
-  >("@cef-ebsi/verifiable-credential/vcdm11.js");
+    typeof import("@europeum-ebsi/verifiable-credential/vcdm11.js")
+  >("@europeum-ebsi/verifiable-credential/vcdm11.js");
   // Return a mocked version so we can redefine property `verifyCredentialJwt` later
   return {
     ...mod,

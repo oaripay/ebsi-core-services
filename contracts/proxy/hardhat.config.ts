@@ -11,7 +11,7 @@ import * as fs from "node:fs";
 
 // The solhint plugin overrides the check task, runs solhint
 // on the project's sources and prints the report to the console
-// when running yarn test
+// when running pnpm run test
 
 const mnemonicPath = `${__dirname}/.secret.mnemonic`;
 

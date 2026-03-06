@@ -1,5 +1,5 @@
-import { getResolver, util } from "@cef-ebsi/key-did-resolver";
 import { encode, remove0xPrefix } from "@ebsiint-api/shared";
+import { getResolver, util } from "@europeum-ebsi/key-did-resolver";
 import { Resolver } from "did-resolver";
 
 import { Permission, PermissionLabel } from "./constants.ts";

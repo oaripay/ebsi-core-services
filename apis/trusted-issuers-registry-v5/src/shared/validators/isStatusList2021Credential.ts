@@ -1,10 +1,10 @@
-import type { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
+import type { EbsiEnvConfiguration } from "@europeum-ebsi/verifiable-credential";
 import type {
   Schemas,
   VerifyCredentialOptions,
-} from "@cef-ebsi/verifiable-credential/vcdm11.js";
+} from "@europeum-ebsi/verifiable-credential/vcdm11.js";
 
-import { verifyCredentialJwt } from "@cef-ebsi/verifiable-credential/vcdm11.js";
+import { verifyCredentialJwt } from "@europeum-ebsi/verifiable-credential/vcdm11.js";
 import Joi from "joi";
 
 export type StatusList2021Credential = Schemas["StatusList2021Credential"];

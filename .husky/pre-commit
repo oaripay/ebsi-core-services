@@ -1,1 +1,1 @@
-gitleaks git --staged --verbose --no-banner && yarn lint-staged
+gitleaks git --staged --verbose --no-banner && pnpm run lint-staged

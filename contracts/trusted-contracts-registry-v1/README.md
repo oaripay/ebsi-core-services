@@ -150,10 +150,10 @@ await factoryManager.upgradeTemplateImplementation(
 npm install
 
 # Compile contracts
-npx hardhat compile
+pnpm exec hardhat compile
 
 # Deploy the system
-npx hardhat run scripts/deploy-factory.ts --network localhost
+pnpm exec hardhat run scripts/deploy-factory.ts --network localhost
 ```
 
 ### Deployment Order

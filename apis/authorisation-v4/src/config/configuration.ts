@@ -1,4 +1,5 @@
-import type { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-presentation";
+import type { EbsiEnvConfiguration } from "@europeum-ebsi/verifiable-presentation";
+import type { LevelWithSilent } from "pino";
 
 import { ConfigModule } from "@nestjs/config";
 import Joi from "joi";
@@ -24,7 +25,7 @@ export interface ApiConfig {
   ebsiEnvConfig: EbsiEnvConfiguration;
   estatAccessesEndpoint: string | undefined;
   localOrigin: string | undefined;
-  logLevel: "debug" | "error" | "info" | "silent" | "verbose" | "warn";
+  logLevel: LevelWithSilent;
   requestTimeout: number;
   // Test-specific variables
   testEnv: string | undefined;
@@ -128,12 +129,13 @@ export const ApiConfigModule = ConfigModule.forRoot({
     DOMAIN: Joi.string().uri().required(),
     LOCAL_ORIGIN: Joi.string().uri(),
     LOG_LEVEL: Joi.string().valid(
-      "silent",
+      "fatal",
       "error",
       "warn",
       "info",
-      "verbose",
       "debug",
+      "trace",
+      "silent",
     ),
     NETWORK: Joi.string(),
     NODE_ENV: Joi.string()

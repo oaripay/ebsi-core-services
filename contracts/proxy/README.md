@@ -25,7 +25,7 @@
 Install dependencies:
 
 ```sh
-yarn install
+pnpm install
 ```
 
 ## Building
@@ -33,7 +33,7 @@ yarn install
 Build the smart contracts:
 
 ```sh
-yarn run build
+pnpm run build
 ```
 
 ## Deploying
@@ -58,7 +58,7 @@ npx truffle migrate --network ebsi --reset
 ### Launch all tests
 
 ```sh
-yarn run test
+pnpm run test
 ```
 
 ### test change proxy ownership

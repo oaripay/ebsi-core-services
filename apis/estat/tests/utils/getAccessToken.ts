@@ -1,11 +1,11 @@
 import type {
   EbsiEnvConfiguration,
   EbsiIssuer,
-} from "@cef-ebsi/verifiable-credential";
+} from "@europeum-ebsi/verifiable-credential";
 
-import { createJWT, hexToBytes } from "@cef-ebsi/did-jwt";
-import { createVerifiablePresentationJwt } from "@cef-ebsi/verifiable-presentation/vcdm11.js";
 import { getPublicKeyJwk, getSigner } from "@ebsiint-api/shared";
+import { createJWT, hexToBytes } from "@europeum-ebsi/did-jwt";
+import { createVerifiablePresentationJwt } from "@europeum-ebsi/verifiable-presentation/vcdm11.js";
 import axios from "axios";
 import { randomUUID } from "node:crypto";
 import { URLSearchParams } from "node:url";

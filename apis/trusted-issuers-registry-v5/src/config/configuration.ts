@@ -1,4 +1,5 @@
-import type { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
+import type { EbsiEnvConfiguration } from "@europeum-ebsi/verifiable-credential";
+import type { LevelWithSilent } from "pino";
 
 import { ConfigModule } from "@nestjs/config";
 import Joi from "joi";
@@ -25,7 +26,7 @@ export interface ApiConfig {
   ebsiEnvConfig: EbsiEnvConfiguration;
   ledgerApiUrl: string;
   localOrigin: string | undefined;
-  logLevel: "debug" | "error" | "log" | "silent" | "verbose" | "warn";
+  logLevel: LevelWithSilent;
   requestTimeout: number;
   testAdminAccreditation: string;
   // Test variables
@@ -147,12 +148,13 @@ export const ApiConfigModule = ConfigModule.forRoot({
     DOMAIN: Joi.string().uri().required(),
     LOCAL_ORIGIN: Joi.string().uri(),
     LOG_LEVEL: Joi.string().valid(
-      "silent",
+      "fatal",
       "error",
       "warn",
       "info",
-      "verbose",
       "debug",
+      "trace",
+      "silent",
     ),
     NETWORK: Joi.string(),
     // Common API variables

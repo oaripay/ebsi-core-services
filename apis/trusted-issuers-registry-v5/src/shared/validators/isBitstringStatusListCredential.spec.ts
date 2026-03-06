@@ -1,8 +1,8 @@
-import type { Schemas as VCDM11Schemas } from "@cef-ebsi/verifiable-credential/vcdm11.js";
-import type { Schemas as VCDM20Schemas } from "@cef-ebsi/verifiable-credential/vcdm20.js";
+import type { Schemas as VCDM11Schemas } from "@europeum-ebsi/verifiable-credential/vcdm11.js";
+import type { Schemas as VCDM20Schemas } from "@europeum-ebsi/verifiable-credential/vcdm20.js";
 
-import * as vcdm11Lib from "@cef-ebsi/verifiable-credential/vcdm11.js";
-import * as vcdm20Lib from "@cef-ebsi/verifiable-credential/vcdm20.js";
+import * as vcdm11Lib from "@europeum-ebsi/verifiable-credential/vcdm11.js";
+import * as vcdm20Lib from "@europeum-ebsi/verifiable-credential/vcdm20.js";
 import Joi from "joi";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 
@@ -13,20 +13,20 @@ import {
   vcdm20BitstringStatusListCredentialSchema,
 } from "./isBitstringStatusListCredential.ts";
 
-vi.mock("@cef-ebsi/verifiable-credential/vcdm11.js", async () => {
+vi.mock("@europeum-ebsi/verifiable-credential/vcdm11.js", async () => {
   const mod = await vi.importActual<
-    typeof import("@cef-ebsi/verifiable-credential/vcdm11.js")
-  >("@cef-ebsi/verifiable-credential/vcdm11.js");
+    typeof import("@europeum-ebsi/verifiable-credential/vcdm11.js")
+  >("@europeum-ebsi/verifiable-credential/vcdm11.js");
   // Return a mocked version so we can redefine `verifyCredentialJwt` later
   return {
     ...mod,
   };
 });
 
-vi.mock("@cef-ebsi/verifiable-credential/vcdm20.js", async () => {
+vi.mock("@europeum-ebsi/verifiable-credential/vcdm20.js", async () => {
   const mod = await vi.importActual<
-    typeof import("@cef-ebsi/verifiable-credential/vcdm20.js")
-  >("@cef-ebsi/verifiable-credential/vcdm20.js");
+    typeof import("@europeum-ebsi/verifiable-credential/vcdm20.js")
+  >("@europeum-ebsi/verifiable-credential/vcdm20.js");
   // Return a mocked version so we can redefine `verifyCredentialJwt` later
   return {
     ...mod,

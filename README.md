@@ -18,21 +18,24 @@
 
 ## Getting started
 
-The monorepo uses [Nx](https://nx.dev/) as a task runner in combination with [Yarn workspaces](https://classic.yarnpkg.com/lang/en/docs/workspaces/).
+The monorepo uses [Nx](https://nx.dev/) as a task runner in combination with [pnpm](https://pnpm.io/).
 
 ### Downloading dependencies
 
 System requirements:
 
-- Node.js: check the version number in the `.nvmrc` file
-- yarn >= 1.22.0
+In order to contribute to the project, you must have a functional development environment including Node.js. We recommend using [nvm](https://github.com/nvm-sh/nvm) or [fnm](https://github.com/Schniz/fnm) to install the Node.js version specified in the `.nvmrc` file present in this repository.
 
-We recommend the use of [Node Version Manager](https://github.com/creationix/nvm). With it, run `nvm install` followed by `nvm use` to get the right Node.js version.
-
-Install the required libraries and packages dependencies:
+Once Node.js is installed, enable [Corepack](https://github.com/nodejs/corepack) to install [pnpm](https://pnpm.io/):
 
 ```sh
-yarn install
+corepack enable
+```
+
+Install the dependencies:
+
+```sh
+pnpm install
 ```
 
 Pre-commit hooks are also running [gitleaks](https://github.com/gitleaks/gitleaks). To install it, please check their GitHub README page:
@@ -43,21 +46,21 @@ Pre-commit hooks are also running [gitleaks](https://github.com/gitleaks/gitleak
 To list the most commonly used commands, run:
 
 ```sh
-yarn run
+pnpm run
 ```
 
 To build all packages:
 
 ```sh
-yarn build:all
+pnpm run build:all
 ```
 
-Whereas building only ["affected"](https://nx.dev/concepts/affected) packages is done with `yarn build`.
+Whereas building only ["affected"](https://nx.dev/concepts/affected) packages is done with `pnpm run build`.
 
-To execute a specific package npm task, use the following pattern `yarn nx [npm-task] [package-name]`
+To execute a specific package npm task, use the following pattern `pnpm exec nx [npm-task] [package-name]`
 
 ```sh
-yarn nx build @ebsiint-sc/trusted-policies-registry-v3
+pnpm exec nx build @ebsiint-sc/trusted-policies-registry-v3
 ```
 
 ### Developing smart contracts
@@ -70,16 +73,16 @@ Please refer to a more detailed documentation regarding how to [work on EBSI ser
 
 ### Managing changelogs and release version bumps
 
-When working on a PR, run `yarn changeset add` to create a new changeset file, or run `yarn changeset add --empty` to create an empty changeset (i.e. no changes). Rename the file with the jira ticket, e.g. `.changeset/EBSIINT-4242.md`
+When working on a PR, run `pnpm exec changeset add` to create a new changeset file, or run `pnpm exec changeset add --empty` to create an empty changeset (i.e. no changes). Rename the file with the jira ticket, e.g. `.changeset/EBSIINT-4242.md`
 
-When creating a new release, run `yarn changeset version`, open a PR, and merge it.
+When creating a new release, run `pnpm exec changeset version`, open a PR, and merge it.
 
 ## Auditing the dependencies
 
 Using [audit-ci](https://github.com/IBM/audit-ci) (this is the one we run during CI):
 
 ```sh
-yarn run audit
+pnpm run audit
 ```
 
 ### Further details

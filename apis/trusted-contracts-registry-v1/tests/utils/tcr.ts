@@ -8,7 +8,7 @@ import type { ProxyFactory } from "@ebsiint-sc/trusted-contracts-registry-v1";
 import type { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers.js";
 
 import "@nomicfoundation/hardhat-ethers";
-import { EbsiWallet } from "@cef-ebsi/wallet-lib";
+import { EbsiWallet } from "@europeum-ebsi/wallet-lib";
 import { randomBytes } from "node:crypto";
 
 import type { TestContract, TestTemplate } from "./data.ts";

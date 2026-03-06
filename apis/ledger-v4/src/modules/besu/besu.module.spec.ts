@@ -8,9 +8,9 @@ import type { RawServerDefault } from "fastify";
 import type { GenerateKeyPairResult, JWTPayload } from "jose";
 
 import "@nomicfoundation/hardhat-ethers";
-import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { encode } from "@ebsiint-api/shared";
 import { ProxyFactory__factory } from "@ebsiint-sc/trusted-contracts-registry-v1";
+import { EbsiWallet } from "@europeum-ebsi/wallet-lib";
 import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 import {

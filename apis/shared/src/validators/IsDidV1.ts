@@ -1,6 +1,6 @@
 import type { ValidationOptions } from "class-validator";
 
-import { validate } from "@cef-ebsi/ebsi-did-resolver";
+import { validate } from "@europeum-ebsi/ebsi-did-resolver";
 import { buildMessage, ValidateBy } from "class-validator";
 
 import type { ValidationResult } from "./types.ts";

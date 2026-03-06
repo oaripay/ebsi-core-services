@@ -1,4 +1,4 @@
-import type { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
+import type { EbsiEnvConfiguration } from "@europeum-ebsi/verifiable-credential";
 import type { AxiosResponse } from "axios";
 
 import axios, { isAxiosError } from "axios";

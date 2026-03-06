@@ -1,24 +1,24 @@
+import type { PaginatedList } from "@ebsiint-api/shared";
 import type {
   EbsiEnvConfiguration,
   EbsiIssuer,
-} from "@cef-ebsi/verifiable-credential";
+} from "@europeum-ebsi/verifiable-credential";
 import type {
   Schemas,
   TypeExtensions,
-} from "@cef-ebsi/verifiable-presentation/vcdm11.js";
-import type { PaginatedList } from "@ebsiint-api/shared";
+} from "@europeum-ebsi/verifiable-presentation/vcdm11.js";
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { PresentationSubmission } from "@sphereon/pex-models";
 import type { RawServerDefault } from "fastify";
 import type { JWK } from "jose";
 
-import { createJWT, decodeJWT, ES256KSigner } from "@cef-ebsi/did-jwt";
-import { fromUrl } from "@cef-ebsi/ebsi-uri";
-import { metadata as attestationSchemaMetadata } from "@cef-ebsi/vcdm1.1-attestation-schema";
-import { metadata as issuanceCertificateSchemaMetadata } from "@cef-ebsi/vcdm1.1-type-extensions-terms-of-use-issuance-certificate-schema";
-import { createVerifiableCredentialJwt } from "@cef-ebsi/verifiable-credential/vcdm11.js";
-import { createVerifiablePresentationJwt } from "@cef-ebsi/verifiable-presentation/vcdm11.js";
-import { EbsiWallet } from "@cef-ebsi/wallet-lib";
+import { createJWT, decodeJWT, ES256KSigner } from "@europeum-ebsi/did-jwt";
+import { fromUrl } from "@europeum-ebsi/ebsi-uri";
+import { metadata as attestationSchemaMetadata } from "@europeum-ebsi/vcdm1.1-attestation-schema";
+import { metadata as issuanceCertificateSchemaMetadata } from "@europeum-ebsi/vcdm1.1-type-extensions-terms-of-use-issuance-certificate-schema";
+import { createVerifiableCredentialJwt } from "@europeum-ebsi/verifiable-credential/vcdm11.js";
+import { createVerifiablePresentationJwt } from "@europeum-ebsi/verifiable-presentation/vcdm11.js";
+import { EbsiWallet } from "@europeum-ebsi/wallet-lib";
 import { ConfigService } from "@nestjs/config";
 import { calculateJwkThumbprint, importJWK, jwtVerify } from "jose";
 import { http, HttpResponse } from "msw";
@@ -83,10 +83,9 @@ import { AuthorisationModule } from "./authorisation.module.ts";
 import { CreateAccessTokenDto } from "./dto/index.ts";
 
 vi.mock("did-jwt", async () => {
-  const mod =
-    await vi.importActual<typeof import("@cef-ebsi/did-jwt")>(
-      "@cef-ebsi/did-jwt",
-    );
+  const mod = await vi.importActual<typeof import("@europeum-ebsi/did-jwt")>(
+    "@europeum-ebsi/did-jwt",
+  );
   // Return a mocked version so we can redefine property `verifyJWT` later
   return {
     ...mod,

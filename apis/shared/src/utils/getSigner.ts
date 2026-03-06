@@ -1,4 +1,4 @@
-import { EdDSASigner, ES256KSigner, ES256Signer } from "@cef-ebsi/did-jwt";
+import { EdDSASigner, ES256KSigner, ES256Signer } from "@europeum-ebsi/did-jwt";
 
 export function getSigner(
   privateKey: Uint8Array,

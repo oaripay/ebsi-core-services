@@ -3,10 +3,10 @@ import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 import type { GenerateKeyPairResult } from "jose";
 
-import { util } from "@cef-ebsi/key-did-resolver";
-import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { encode } from "@ebsiint-api/shared";
 import { TrackAndTrace__factory } from "@ebsiint-sc/track-and-trace";
+import { util } from "@europeum-ebsi/key-did-resolver";
+import { EbsiWallet } from "@europeum-ebsi/wallet-lib";
 import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 import {

@@ -23,7 +23,7 @@
 Install dependencies:
 
 ```sh
-yarn install
+pnpm install
 ```
 
 ## Building
@@ -31,13 +31,13 @@ yarn install
 Compile the smart contracts:
 
 ```sh
-yarn run compile
+pnpm run compile
 ```
 
 To verify the accounts that will be used by hardhat
 
 ```sh
-npx hardhat accounts
+pnpm exec hardhat accounts
 ```
 
 ## Deployment
@@ -45,7 +45,7 @@ npx hardhat accounts
 To deploy the smart contracts on a network defined in the `hardhat.config.ts`
 
 ```sh
-npx hardhat run --network <your-network> scripts/deployment.ts
+pnpm exec hardhat run --network <your-network> scripts/deployment.ts
 ```
 
 Note that by default smart contracts will be deployed locally using hardhat development node.
@@ -59,7 +59,7 @@ Note that by default smart contracts will be deployed locally using hardhat deve
 ### Launch all tests
 
 ```sh
-yarn run test
+pnpm run test
 ```
 
 if you experience some timeout issues try running tests one by one

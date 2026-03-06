@@ -1,8 +1,8 @@
-import type { EbsiIssuer } from "@cef-ebsi/verifiable-credential";
+import type { EbsiIssuer } from "@europeum-ebsi/verifiable-credential";
 
-import { hexToBytes } from "@cef-ebsi/did-jwt";
-import { util } from "@cef-ebsi/key-did-resolver";
 import { encode, getSigner, waitToBeMined } from "@ebsiint-api/shared";
+import { hexToBytes } from "@europeum-ebsi/did-jwt";
+import { util } from "@europeum-ebsi/key-did-resolver";
 import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 import { randomBytes } from "node:crypto";

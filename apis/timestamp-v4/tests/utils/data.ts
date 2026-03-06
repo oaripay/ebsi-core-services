@@ -3,8 +3,8 @@
  */
 import type { DIDDocument, JsonWebKey } from "did-resolver";
 
-import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { encode } from "@ebsiint-api/shared";
+import { EbsiWallet } from "@europeum-ebsi/wallet-lib";
 import { ethers } from "ethers";
 import { calculateJwkThumbprint } from "jose";
 

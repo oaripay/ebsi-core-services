@@ -1,7 +1,7 @@
 import type { JSONSchema } from "@apidevtools/json-schema-ref-parser";
 
 import { bundle } from "@apidevtools/json-schema-ref-parser";
-import { bundle as bundle__deprecated } from "@cef-ebsi/json-schema-ref-parser";
+import { bundle as bundle__deprecated } from "@europeum-ebsi/json-schema-ref-parser";
 import canonicalize from "canonicalize";
 import cloneDeep from "lodash.clonedeep";
 import crypto from "node:crypto";

@@ -1,5 +1,5 @@
-import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { encode } from "@ebsiint-api/shared";
+import { EbsiWallet } from "@europeum-ebsi/wallet-lib";
 import { exportJWK, generateKeyPair } from "jose";
 import { describe, expect, it } from "vitest";
 

@@ -1,7 +1,7 @@
-diff --git a/node_modules/@graphprotocol/graph-cli/dist/commands/test.js b/node_modules/@graphprotocol/graph-cli/dist/commands/test.js
-index 179ec3b..d4d0819 100644
---- a/node_modules/@graphprotocol/graph-cli/dist/commands/test.js
-+++ b/node_modules/@graphprotocol/graph-cli/dist/commands/test.js
+diff --git a/dist/commands/test.js b/dist/commands/test.js
+index 179ec3b0b6826e215a6aad3e90dcee4042b1ab2f..a3014a9785550242c5be9165c45f7c40cdd2fbb1 100644
+--- a/dist/commands/test.js
++++ b/dist/commands/test.js
 @@ -252,7 +252,7 @@ async function runDocker(datasource, opts) {
          // Build the `docker run` command options and flags
          const dockerRunOpts = [
@@ -16,9 +16,9 @@ index 179ec3b..d4d0819 100644
              }).on('close', code => {
                  if (code === 0) {
 -                    spawn('docker', dockerRunOpts, { stdio: 'inherit' });
-+                  spawn('docker', dockerRunOpts, { stdio: 'inherit' }).on('close', (code) => {
-+                    if (code !== 0) process.exit(code);
-+                  });
++                    spawn('docker', dockerRunOpts, { stdio: 'inherit' }).on('close', (code) => {
++                        if (code !== 0) process.exit(code);
++                    });
                  }
              });
          }
@@ -27,7 +27,7 @@ index 179ec3b..d4d0819 100644
              // Run the container from the existing matchstick docker image
 -            spawn('docker', dockerRunOpts, { stdio: 'inherit' });
 +            spawn('docker', dockerRunOpts, { stdio: 'inherit' }).on('close', (code) => {
-+              if (code !== 0) process.exit(code);
++                if (code !== 0) process.exit(code);
 +            });
          }
      });

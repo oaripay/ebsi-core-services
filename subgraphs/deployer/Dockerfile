@@ -11,9 +11,12 @@ RUN apk update && \
 
 WORKDIR /app
 
-# Copy root package.json + lockfile
-COPY --from=builder /app/yarn.lock ./yarn.lock
+# Copy root package.json + pnpm-lock.yaml + pnpm-workspace.yaml + patches + postinstall script
 COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/pnpm-lock.yaml ./pnpm-lock.yaml
+COPY --from=builder /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
+COPY --from=builder /app/patches patches
+COPY --from=builder /app/scripts/postinstall.mjs ./scripts/postinstall.mjs
 
 # Copy contracts
 COPY --from=builder /app/contracts/bootstrap-v2 ./contracts/bootstrap-v2
@@ -30,10 +33,14 @@ COPY --from=builder /app/subgraphs/core-services ./subgraphs/core-services
 COPY --from=builder /app/subgraphs/estat ./subgraphs/estat
 
 # Install all the dependencies
-RUN --mount=type=cache,target=/app/.yarn-cache YARN_CACHE_FOLDER=/app/.yarn-cache yarn install --frozen-lockfile --silent
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable
+RUN --mount=type=cache,target=/pnpm/store pnpm install --frozen-lockfile
+# --reporter=silent
 
 RUN chown -R node:node /app
 USER node
 
 # Deploy
-CMD [ "sh", "-c", "yarn nx run-many -t deploy -p @ebsiint-subgraph/*" ]
+CMD [ "sh", "-c", "pnpm exec nx run-many -t deploy -p @ebsiint-subgraph/*" ]

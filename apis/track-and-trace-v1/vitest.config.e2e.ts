@@ -1,11 +1,9 @@
-import type { Plugin } from "vite";
-
 import swc from "unplugin-swc";
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   plugins: [
-    swc.vite() as Plugin, // This is required to build the test files with SWC
+    swc.vite(), // This is required to build the test files with SWC
   ],
   test: {
     environment: "node",

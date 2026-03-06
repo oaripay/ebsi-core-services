@@ -47,8 +47,8 @@ const trustedArtifactsRoot = path.resolve(
 );
 
 const hardhatDeployArtifactsRoot = path.resolve(
-  __dirname,
-  "../../../node_modules/hardhat-deploy/extendedArtifacts",
+  path.dirname(require.resolve("hardhat-deploy/package.json")),
+  "./extendedArtifacts",
 );
 
 function decodeResult(result: unknown): Record<string, unknown> {

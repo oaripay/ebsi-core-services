@@ -1,6 +1,6 @@
 import type { JWK, KeyLike } from "jose";
 
-import { EbsiWallet } from "@cef-ebsi/wallet-lib";
+import { EbsiWallet } from "@europeum-ebsi/wallet-lib";
 import elliptic from "elliptic";
 import { ethers } from "ethers";
 import { calculateJwkThumbprint, importJWK } from "jose";

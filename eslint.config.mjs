@@ -1,10 +1,10 @@
 import js from "@eslint/js";
+import vitest from "@vitest/eslint-plugin";
 import importPlugin from "eslint-plugin-import";
 import { configs as perfectionistConfigs } from "eslint-plugin-perfectionist";
 import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
-import regexpPlugin from "eslint-plugin-regexp";
+import { configs as regexpPluginConfigs } from "eslint-plugin-regexp";
 import eslintPluginUnicorn from "eslint-plugin-unicorn";
-import vitest from "eslint-plugin-vitest";
 import { defineConfig } from "eslint/config";
 import globals from "globals";
 import { configs as tsEslintConfigs } from "typescript-eslint";
@@ -15,6 +15,7 @@ export default defineConfig(
     ignores: [
       // Global
       ".nx",
+      ".pnpm-store",
       "**/coverage",
       "**/dist",
       // APIs
@@ -37,7 +38,7 @@ export default defineConfig(
   importPlugin.flatConfigs.recommended,
   importPlugin.flatConfigs.typescript,
   eslintPluginUnicorn.configs.recommended,
-  regexpPlugin.configs["flat/recommended"],
+  regexpPluginConfigs["flat/recommended"],
   perfectionistConfigs["recommended-natural"],
 
   // Global config

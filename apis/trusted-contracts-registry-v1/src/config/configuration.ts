@@ -1,3 +1,5 @@
+import type { LevelWithSilent } from "pino";
+
 import { ConfigModule } from "@nestjs/config";
 import Joi from "joi";
 
@@ -12,7 +14,7 @@ export interface ApiConfig {
   dockerContainerTag: string;
   domain: string;
   localOrigin: string | undefined;
-  logLevel: "debug" | "error" | "log" | "silent" | "verbose" | "warn";
+  logLevel: LevelWithSilent;
   proxyFactoryContractAddr: string;
   proxyTemplateContractAddr: string;
   requestTimeout: number;
@@ -73,12 +75,13 @@ export const ApiConfigModule = ConfigModule.forRoot({
     DOMAIN: Joi.string().uri().required(),
     LOCAL_ORIGIN: Joi.string().uri(),
     LOG_LEVEL: Joi.string().valid(
-      "silent",
+      "fatal",
       "error",
       "warn",
       "info",
-      "verbose",
       "debug",
+      "trace",
+      "silent",
     ),
     NODE_ENV: Joi.string()
       .valid("development", "production", "test")
