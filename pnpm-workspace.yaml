@@ -22,8 +22,6 @@ minimumReleaseAge: 2880
 
 minimumReleaseAgeExclude:
   - "@europeum-ebsi/*"
-  # TODO: remove the 2 following lines after 06/03/2026 - https://github.com/advisories/GHSA-wf6x-7x77-mvgw
-  - immutable@4.3.8 || 5.1.5
 
 overrides:
   "@angular-devkit/core@19.2.19>ajv@8.17.1": 8.18.0
