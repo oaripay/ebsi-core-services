@@ -23,12 +23,12 @@ RUN --mount=type=cache,target=/pnpm/store pnpm fetch
 # Copy all other files
 COPY . .
 
-# Install dependencies and build affected projects
+# Install dependencies and build all projects
 RUN \
   --mount=type=cache,target=/app/.nx \
   --mount=type=cache,target=/pnpm/store \
   pnpm install --frozen-lockfile --offline --reporter=silent && \
-  pnpm run build && \
+  pnpm run build:all && \
   rm -rf ./**/node_modules
 
 USER node
