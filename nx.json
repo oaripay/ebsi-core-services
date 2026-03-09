@@ -18,7 +18,6 @@
       "{projectRoot}/scripts/**/*",
       "!{projectRoot}/**/*.spec.ts",
       "!{projectRoot}/.solhint*",
-      "{projectRoot}/.graphclientrc.yml",
       "{projectRoot}/hardhat.config.ts",
       "{projectRoot}/nest-cli.json",
       "{projectRoot}/package.json",
@@ -43,7 +42,6 @@
     },
     "setup": {
       "inputs": ["production", "^production"],
-      "outputs": ["{projectRoot}/.graphclient"],
       "dependsOn": ["^build", "clean"],
       "cache": true
     },

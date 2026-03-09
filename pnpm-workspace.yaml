@@ -4,14 +4,13 @@ packages:
   - subgraphs/*
 
 allowBuilds:
-  "@nestjs/core@11.1.13": true
+  "@nestjs/core@11.1.16": true
   "@sphereon/pex@4.1.0": true
-  "@swc/core@1.15.11": true
+  "@swc/core@1.15.18": true
   esbuild@0.27.3: true
   keccak@3.0.4: true
-  msw@2.12.9: true
+  msw@2.12.10: true
   nx@20.8.3: true
-  postinstall-postinstall@2.1.0: true
   secp256k1@4.0.4: true
   unrs-resolver@1.11.1: true
 
@@ -25,11 +24,10 @@ minimumReleaseAgeExclude:
 
 overrides:
   "@angular-devkit/core@19.2.19>ajv@8.17.1": 8.18.0
-  "@aws-sdk/xml-builder@3.972.8>fast-xml-parser@5.3.6": 5.3.8
   "@graphprotocol/graph-cli@0.98.1>@oclif/core@4.5.5": 4.8.1
   "@graphprotocol/graph-cli@0.98.1>glob@11.0.3": 11.1.0
   "@graphprotocol/graph-cli@0.98.1>gluegun@5.2.0": 5.2.2
-  "@graphprotocol/graph-cli@0.98.1>graphql@16.11.0": 16.13.0
+  "@graphprotocol/graph-cli@0.98.1>graphql@16.11.0": 16.13.1
   "@graphprotocol/graph-cli@0.98.1>immutable@5.1.4": "5.1.5"
   "@graphprotocol/graph-cli@0.98.1>js-yaml@4.1.0": 4.1.1
   "@graphprotocol/graph-cli@0.98.1>prettier@3.6.2": 3.8.1
@@ -62,7 +60,6 @@ trustPolicyExclude:
   - axios@0.30.3
   - semver@5.7.2 || 6.3.1
   - rollup@2.80.0
-  # TODO: review the following
   - chokidar@4.0.3
   - undici@5.29.0
   - undici-types@6.19.8

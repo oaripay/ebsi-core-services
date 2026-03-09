@@ -1,6 +1,6 @@
 # Create reference to core-services
-ARG DOCKER_TAG=latest
-FROM ebsi/core-services:$DOCKER_TAG AS builder
+# hadolint ignore=DL3006 # core-services-base is defined in docker-compse.yml
+FROM core-services-base AS builder
 
 FROM node:24.13.0-alpine3.23@sha256:931d7d57f8c1fd0e2179dbff7cc7da4c9dd100998bc2b32afc85142d8efbc213
 
@@ -36,8 +36,7 @@ COPY --from=builder /app/subgraphs/estat ./subgraphs/estat
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable
-RUN --mount=type=cache,target=/pnpm/store pnpm install --frozen-lockfile
-# --reporter=silent
+RUN --mount=type=cache,target=/pnpm/store pnpm install --frozen-lockfile --reporter=silent
 
 RUN chown -R node:node /app
 USER node

@@ -18,8 +18,6 @@ export default defineConfig(
       ".pnpm-store",
       "**/coverage",
       "**/dist",
-      // APIs
-      "apis/*/.graphclient",
       // Smart contracts
       "contracts/*/artifacts",
       "contracts/*/cache",
@@ -266,13 +264,6 @@ export default defineConfig(
           devDependencies: true,
           optionalDependencies: false,
           peerDependencies: false,
-          // TODO
-          /*
-          packageDir: [
-            path.join(__dirname, "."),
-            path.join(__dirname, "../.."), // Load dev dependencies from workspace
-          ],
-          */
         },
       ],
     },

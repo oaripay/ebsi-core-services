@@ -1,10 +1,10 @@
 # Create reference to core-services
-ARG DOCKER_TAG=latest
-FROM ebsi/core-services:$DOCKER_TAG AS builder
+# hadolint ignore=DL3006 # core-services-base is defined in docker-compse.yml
+FROM core-services-base AS builder
 
 # Create deployment
 # See https://pnpm.io/cli/deploy
-FROM node:24.13.0-alpine3.23@sha256:931d7d57f8c1fd0e2179dbff7cc7da4c9dd100998bc2b32afc85142d8efbc213 AS api-builder
+FROM node:24.13.0-alpine3.23@sha256:931d7d57f8c1fd0e2179dbff7cc7da4c9dd100998bc2b32afc85142d8efbc213 AS service-builder
 WORKDIR /app
 COPY --from=builder /app/ ./
 ENV PNPM_HOME="/pnpm"
@@ -20,17 +20,18 @@ WORKDIR /usr/src/app
 # Add required binaries and create "node" user
 RUN --mount=type=cache,target=/var/cache/apk,sharing=locked \
   apk add libstdc++ dumb-init && \
+  apk update && apk upgrade && \
   addgroup -g 1000 node && adduser -u 1000 -G node -s /bin/sh -D node && \
   chown node:node ./
-COPY --from=api-builder /usr/local/bin/node /usr/local/bin/
-COPY --from=api-builder /usr/local/bin/docker-entrypoint.sh /usr/local/bin/
+COPY --from=service-builder /usr/local/bin/node /usr/local/bin/
+COPY --from=service-builder /usr/local/bin/docker-entrypoint.sh /usr/local/bin/
 ENTRYPOINT ["docker-entrypoint.sh"]
 # Switch to "node" user
 USER node
 # Only import what's necessary
-COPY --from=api-builder /app/pruned/api api
-COPY --from=api-builder /app/pruned/dist dist
-COPY --from=api-builder /app/pruned/node_modules node_modules
+COPY --from=service-builder /app/pruned/api api
+COPY --from=service-builder /app/pruned/dist dist
+COPY --from=service-builder /app/pruned/node_modules node_modules
 # Create .env.default file with docker tag
 ARG DOCKER_TAG
 RUN echo "DOCKER_TAG=$DOCKER_TAG" >> .env.default
