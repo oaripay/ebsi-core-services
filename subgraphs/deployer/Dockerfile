@@ -41,5 +41,5 @@ RUN --mount=type=cache,target=/pnpm/store pnpm install --frozen-lockfile --repor
 RUN chown -R node:node /app
 USER node
 
-# Deploy
-CMD [ "sh", "-c", "pnpm exec nx run-many -t deploy -p @ebsiint-subgraph/*" ]
+# Deploy subgraphs
+CMD [ "sh", "-c", "pnpm exec nx run-many -t deploy -p @ebsiint-subgraph/* && sleep inf" ]

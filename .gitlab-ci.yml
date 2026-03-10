@@ -1,6 +1,9 @@
 ---
 workflow:
   rules:
+    # Don't run GitLab CI on "merge request" events
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: never
     # Deploy in the following environments
     ## prod
     - if: $CI_COMMIT_TAG =~ /^prod\/.+$/
@@ -44,6 +47,17 @@ include:
     inputs:
       compose_dir: .
       ebsinodes_env: $EBSINODES_ENV
+      app_version: $APP_VERSION
+    rules:
+      - if: $CI_COMMIT_TAG =~ /^(prod|preprod|pilot|conformance)\/.+$/
+      - if: $CI_COMMIT_BRANCH == "main"
+  # Update graph-node (subgraphs-deployer) tag in k8s
+  - component: $CI_SERVER_FQDN/europeum/private/infrastructure/gitlab-pipelines/update-k8s-app-version@main
+    inputs:
+      stage: .post
+      kubernetes_team: devteam
+      kubernetes_env: $EBSINODES_ENV
+      kubernetes_app: graph-node
       app_version: $APP_VERSION
     rules:
       - if: $CI_COMMIT_TAG =~ /^(prod|preprod|pilot|conformance)\/.+$/
