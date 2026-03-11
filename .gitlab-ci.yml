@@ -167,7 +167,9 @@ codespell:
 install:
   stage: build
   extends: .default_node
-  needs: []
+  needs:
+    - job: audit_dependencies
+      artifacts: false
   cache:
     - <<: *node_modules_cache
       policy: pull-push
@@ -264,7 +266,9 @@ test_subgraphs:
   image:
     name: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/matchstick-runner:matchstick-runner-0.0.0
     entrypoint: [""]
-  needs: []
+  needs:
+    - job: audit_dependencies
+      artifacts: false
   script:
     - node -v
     - git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"

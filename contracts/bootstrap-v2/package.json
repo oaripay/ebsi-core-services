@@ -26,7 +26,7 @@
     "@gnosis-guild/typechain-ethers-v6": "0.5.5",
     "@gnosis-guild/typechain-hardhat": "9.2.2",
     "@nomicfoundation/hardhat-ethers": "3.1.0",
-    "@nomiclabs/hardhat-solhint": "4.1.0",
+    "@nomiclabs/hardhat-solhint": "4.1.2",
     "@openzeppelin/hardhat-upgrades": "3.9.1",
     "@types/mocha": "10.0.10",
     "@types/node": "24.11.0",
@@ -41,6 +41,7 @@
       "build": {
         "outputs": [
           "{projectRoot}/artifacts",
+          "{projectRoot}/cache/validations.json",
           "{projectRoot}/dist",
           "{projectRoot}/src"
         ]

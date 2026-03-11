@@ -142,7 +142,7 @@ describe("TrackAndTrace - tests", () => {
         await tprMock.getAddress(),
         await didRegistryMock.getAddress(),
       ],
-      { unsafeAllowLinkedLibraries: true },
+      { unsafeAllow: ["external-library-linking"] },
     );
 
     await didRegistryMock.setDidResult(true);

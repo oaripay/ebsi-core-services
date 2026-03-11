@@ -61,7 +61,7 @@ task("trackAndTrace", "Deploy contract Track And Trace")
       const trackAndTrace = (await upgrades.deployProxy(
         trackAndTraceFactory,
         [taskArgs.admin, taskArgs.upgrader, taskArgs.tpr, taskArgs.registry],
-        { unsafeAllowLinkedLibraries: true },
+        { unsafeAllow: ["external-library-linking"] },
       )) as unknown as TrackAndTraceLike;
 
       settings.set("trackAndTraceAddress", await trackAndTrace.getAddress());
@@ -126,7 +126,10 @@ task("trackAndTraceUpgrade", "Deploy contract Track And Trace")
       const trackAndTrace = (await upgrades.upgradeProxy(
         proxyAddress,
         trackAndTraceFactory,
-        { redeployImplementation: "always", unsafeAllowLinkedLibraries: true },
+        {
+          redeployImplementation: "always",
+          unsafeAllow: ["external-library-linking"],
+        },
       )) as unknown as TrackAndTraceLike;
 
       console.log(
@@ -178,7 +181,7 @@ task(
         trackAndTraceFactory,
         {
           redeployImplementation: "always",
-          unsafeAllowLinkedLibraries: true,
+          unsafeAllow: ["external-library-linking"],
         },
       )) as unknown as TrackAndTraceLike;
       console.log(

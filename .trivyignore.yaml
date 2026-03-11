@@ -36,12 +36,6 @@ vulnerabilities:
       - app/node_modules/.pnpm/serialize-javascript@6.0.2/node_modules/serialize-javascript/package.json
     statement: No fix applicable without a major version bump
 
-  # tar@7.5.9 (HIGH)
-  - id: CVE-2026-29786
-    paths:
-      - root/.cache/node/corepack/v1/pnpm/10.30.3/dist/node_modules/tar/package.json
-    statement: Will be fixed when we update pnpm
-
   # hardhat@2.26.1>undici@5.29.0 (MEDIUM)
   - id: CVE-2026-22036
     paths:

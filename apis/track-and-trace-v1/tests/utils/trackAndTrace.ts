@@ -103,7 +103,7 @@ export async function deployTrackAndTraceContract(): Promise<{
       await tprMock.getAddress(),
       await didRegistryMock.getAddress(),
     ],
-    { unsafeAllowLinkedLibraries: true },
+    { unsafeAllow: ["external-library-linking"] },
   );
 
   await didRegistryMock.setDidResult(true);
