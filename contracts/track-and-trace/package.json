@@ -36,7 +36,7 @@
     "@gnosis-guild/typechain-hardhat": "9.2.2",
     "@nomicfoundation/hardhat-chai-matchers": "2.1.0",
     "@nomicfoundation/hardhat-ethers": "3.1.0",
-    "@nomiclabs/hardhat-solhint": "4.1.0",
+    "@nomiclabs/hardhat-solhint": "4.1.2",
     "@openzeppelin/hardhat-upgrades": "3.9.1",
     "@openzeppelin/upgrades-core": "1.44.2",
     "@types/chai": "4.3.20",
@@ -54,6 +54,7 @@
       "build": {
         "outputs": [
           "{projectRoot}/artifacts",
+          "{projectRoot}/cache/validations.json",
           "{projectRoot}/dist",
           "{projectRoot}/src"
         ]

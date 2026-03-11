@@ -6,6 +6,7 @@
     "test": [
       "{projectRoot}/src/**/*",
       "{projectRoot}/tests/**/*",
+      "{projectRoot}/hardhat.config.cjs",
       "{projectRoot}/vitest.config.ts",
       "{projectRoot}/tsconfig.json",
       "{projectRoot}/.env*",
