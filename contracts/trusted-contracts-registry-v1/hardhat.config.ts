@@ -29,6 +29,7 @@ task("accounts", "Prints the list of accounts", async (_, hre) => {
 const config: HardhatUserConfig = {
   abiExporter: {
     clear: true,
+    except: ["@openzeppelin"],
     flat: true,
     path: "./src/abi",
     runOnCompile: true,

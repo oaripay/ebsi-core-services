@@ -176,12 +176,12 @@ library Pagination {
     }
 
     function paginate(
-        address[] memory self,
+        address[] storage self,
         uint256 page,
         uint256 pageSize
     )
         internal
-        pure
+        view
         returns (
             address[] memory items,
             uint256 total,

@@ -4,7 +4,6 @@ import { EbsiWallet } from "@europeum-ebsi/wallet-lib";
 import elliptic from "elliptic";
 import { ethers } from "ethers";
 import { calculateJwkThumbprint, importJWK } from "jose";
-import { base64url } from "multiformats/bases/base64";
 
 const EC = elliptic.ec;
 
@@ -79,16 +78,26 @@ export function getJwks(privateKeyHex: string, alg: "ES256" | "ES256K") {
   const publicKeyJwk = {
     crv: curve,
     kty: "EC",
-    x: base64url.baseEncode(pubPoint.getX().toBuffer("be", 32)),
-    y: base64url.baseEncode(pubPoint.getY().toBuffer("be", 32)),
+    x: base64urlEncode(pubPoint.getX().toBuffer("be", 32)),
+    y: base64urlEncode(pubPoint.getY().toBuffer("be", 32)),
   };
   const privateKeyJwk = {
     ...publicKeyJwk,
-    d: base64url.baseEncode(Buffer.from(privateKey, "hex")),
+    d: base64urlEncode(Buffer.from(privateKey, "hex")),
   };
   return { privateKeyJwk, publicKeyJwk };
 }
 
 export function removePrefix0x(key: string): string {
   return key.startsWith("0x") ? key.slice(2) : key;
+}
+
+/** Base64url-encode bytes (no padding, URL-safe). Avoids ESM-only multiformats subpath under CJS (e.g. Hardhat). */
+function base64urlEncode(data: Buffer | Uint8Array): string {
+  const buf = Buffer.isBuffer(data) ? data : Buffer.from(data);
+  return buf
+    .toString("base64")
+    .replaceAll("+", "-")
+    .replaceAll("/", "_")
+    .replaceAll("=", "");
 }

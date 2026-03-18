@@ -1,6 +1,9 @@
 import { task } from "hardhat/config";
+import type { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import type { ContractTransactionResponse } from "ethers";
+
+import { getImplementationAddress } from "@openzeppelin/upgrades-core";
 
 import { Settings } from "../utils/settings";
 
@@ -89,6 +92,98 @@ task(
     },
   );
 
+/** Upgrades the ProxyFactory at the given proxy address. Returns the upgraded proxy instance. */
+async function upgradeProxyFactory(
+  proxyAddress: string,
+  hre: Pick<HardhatRuntimeEnvironment, "ethers" | "upgrades">,
+  options?: { unsafeSkipStorageCheck?: boolean },
+): Promise<{
+  getAddress: () => Promise<string>;
+  waitForDeployment: () => Promise<unknown>;
+}> {
+  const { ethers, upgrades } = hre;
+  const ProxyFactory = await ethers.getContractFactory("ProxyFactory");
+  const upgradeOpts: {
+    redeployImplementation: "always";
+    unsafeSkipStorageCheck?: boolean;
+  } = {
+    redeployImplementation: "always",
+  };
+  if (options?.unsafeSkipStorageCheck) {
+    upgradeOpts.unsafeSkipStorageCheck = true;
+  }
+  const upgraded = await upgrades.upgradeProxy(
+    proxyAddress,
+    ProxyFactory,
+    upgradeOpts,
+  );
+  return upgraded as {
+    getAddress: () => Promise<string>;
+    waitForDeployment: () => Promise<unknown>;
+  };
+}
+
+task(
+  "upgradeProxyFactory",
+  "Upgrade the ProxyFactory proxy to the current implementation",
+)
+  .addParam(
+    "suffix",
+    "The suffix name of the contract for the deployment",
+    "EBSI",
+  )
+  .addOptionalParam(
+    "unsafeskipstoragecheck",
+    "Skip storage layout check (unsafe: use only if proxy was deployed with different OZ version, e.g. test env)",
+  )
+  .setAction(
+    async (
+      taskArgs: { suffix: string; unsafeskipstoragecheck?: boolean | string },
+      { ethers, network, run, upgrades },
+    ) => {
+      await run("compile", { force: true });
+
+      const fileName =
+        taskArgs.suffix === "EBSI"
+          ? "trusted-contracts-registry"
+          : `trusted-contracts-registry-${taskArgs.suffix}`;
+      const settings = new Settings(fileName, network.name);
+      const proxyAddress = settings.mustGet("proxyFactoryAddress");
+
+      const unsafeSkipStorageCheck =
+        taskArgs.unsafeskipstoragecheck === true ||
+        taskArgs.unsafeskipstoragecheck === "true" ||
+        taskArgs.unsafeskipstoragecheck === "1";
+      if (unsafeSkipStorageCheck) {
+        console.warn(
+          "Warning: unsafeSkipStorageCheck is set. Storage layout is not validated.",
+        );
+        console.warn(
+          "If the proxy was already upgraded to an implementation with a different AccessControl layout (e.g. different OZ version), " +
+            "role storage slots may not match and the upgrade can revert in _authorizeUpgrade. " +
+            "Recovery: redeploy the proxy, or upgrade using an implementation built with the same OpenZeppelin version as the original deployment.",
+        );
+      }
+
+      console.log(`Upgrading ProxyFactory at ${proxyAddress}...`);
+      const upgraded = await upgradeProxyFactory(
+        proxyAddress,
+        {
+          ethers,
+          upgrades,
+        },
+        { unsafeSkipStorageCheck },
+      );
+      await upgraded.waitForDeployment();
+      const implAddress = await getImplementationAddress(
+        ethers.provider,
+        proxyAddress,
+      );
+      console.log(`ProxyFactory upgraded. Proxy (unchanged): ${proxyAddress}`);
+      console.log(`New implementation: ${implAddress}`);
+    },
+  );
+
 task(
   "trustedContractsRegistryUpgrade",
   "Upgrade Trusted Contracts Registry contracts",
@@ -99,11 +194,16 @@ task(
     "the suffix name of the contract for the deployment",
     "EBSI",
   )
+  .addOptionalParam(
+    "unsafeskipstoragecheck",
+    "Skip storage layout check (unsafe; use only if proxy was deployed with different OZ version)",
+  )
   .setAction(
     async (
       taskArgs: {
         contract: string;
         suffix: string;
+        unsafeskipstoragecheck?: boolean | string;
       },
       { ethers, network, run, upgrades },
     ) => {
@@ -133,15 +233,16 @@ task(
         );
       } else if (taskArgs.contract === "factory") {
         const proxyAddress = settings.mustGet("proxyFactoryAddress");
-        console.log(`Upgrading ProxyFactory at ${proxyAddress}...`);
-
-        const ProxyFactory = await ethers.getContractFactory("ProxyFactory");
-        const upgraded = await upgrades.upgradeProxy(
+        const upgraded = await upgradeProxyFactory(
           proxyAddress,
-          ProxyFactory,
-          { redeployImplementation: "always" },
+          { ethers, upgrades },
+          {
+            unsafeSkipStorageCheck:
+              taskArgs.unsafeskipstoragecheck === true ||
+              taskArgs.unsafeskipstoragecheck === "true" ||
+              taskArgs.unsafeskipstoragecheck === "1",
+          },
         );
-
         console.log(
           `ProxyFactory upgraded to implementation ${await upgraded.getAddress()}`,
         );

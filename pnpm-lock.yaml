@@ -676,7 +676,7 @@ importers:
         version: 3.1.0(ethers@6.16.0)(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3))
       '@openzeppelin/hardhat-upgrades':
         specifier: 3.9.1
-        version: 3.9.1(@nomicfoundation/hardhat-ethers@3.1.0(ethers@6.16.0)(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3)))(encoding@0.1.13)(ethers@6.16.0)(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3))
+        version: 3.9.1(@nomicfoundation/hardhat-ethers@3.1.0(ethers@6.16.0)(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3)))(@nomicfoundation/hardhat-verify@2.0.14(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3)))(encoding@0.1.13)(ethers@6.16.0)(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3))
       '@stoplight/spectral-cli':
         specifier: 6.15.0
         version: 6.15.0(encoding@0.1.13)
@@ -838,7 +838,7 @@ importers:
         version: 3.1.0(ethers@6.16.0)(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3))
       '@openzeppelin/hardhat-upgrades':
         specifier: 3.9.1
-        version: 3.9.1(@nomicfoundation/hardhat-ethers@3.1.0(ethers@6.16.0)(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3)))(encoding@0.1.13)(ethers@6.16.0)(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3))
+        version: 3.9.1(@nomicfoundation/hardhat-ethers@3.1.0(ethers@6.16.0)(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3)))(@nomicfoundation/hardhat-verify@2.0.14(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3)))(encoding@0.1.13)(ethers@6.16.0)(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3))
       '@stoplight/spectral-cli':
         specifier: 6.15.0
         version: 6.15.0(encoding@0.1.13)
@@ -1365,7 +1365,7 @@ importers:
         version: 3.1.0(ethers@6.16.0)(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3))
       '@openzeppelin/hardhat-upgrades':
         specifier: 3.9.1
-        version: 3.9.1(@nomicfoundation/hardhat-ethers@3.1.0(ethers@6.16.0)(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3)))(encoding@0.1.13)(ethers@6.16.0)(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3))
+        version: 3.9.1(@nomicfoundation/hardhat-ethers@3.1.0(ethers@6.16.0)(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3)))(@nomicfoundation/hardhat-verify@2.0.14(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3)))(encoding@0.1.13)(ethers@6.16.0)(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3))
       '@stoplight/spectral-cli':
         specifier: 6.15.0
         version: 6.15.0(encoding@0.1.13)
@@ -1517,7 +1517,7 @@ importers:
         version: 3.1.0(ethers@6.16.0)(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3))
       '@openzeppelin/hardhat-upgrades':
         specifier: 3.9.1
-        version: 3.9.1(@nomicfoundation/hardhat-ethers@3.1.0(ethers@6.16.0)(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3)))(encoding@0.1.13)(ethers@6.16.0)(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3))
+        version: 3.9.1(@nomicfoundation/hardhat-ethers@3.1.0(ethers@6.16.0)(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3)))(@nomicfoundation/hardhat-verify@2.0.14(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3)))(encoding@0.1.13)(ethers@6.16.0)(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3))
       '@stoplight/spectral-cli':
         specifier: 6.15.0
         version: 6.15.0(encoding@0.1.13)
@@ -2352,12 +2352,18 @@ importers:
       '@nomicfoundation/hardhat-ethers':
         specifier: 3.1.0
         version: 3.1.0(ethers@6.16.0)(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3))
+      '@nomicfoundation/hardhat-verify':
+        specifier: 2.0.14
+        version: 2.0.14(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3))
       '@nomiclabs/hardhat-solhint':
         specifier: 4.1.2
         version: 4.1.2(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3))(typescript@5.9.3)
       '@openzeppelin/hardhat-upgrades':
         specifier: 3.9.1
-        version: 3.9.1(@nomicfoundation/hardhat-ethers@3.1.0(ethers@6.16.0)(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3)))(encoding@0.1.13)(ethers@6.16.0)(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3))
+        version: 3.9.1(@nomicfoundation/hardhat-ethers@3.1.0(ethers@6.16.0)(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3)))(@nomicfoundation/hardhat-verify@2.0.14(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3)))(encoding@0.1.13)(ethers@6.16.0)(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3))
+      '@openzeppelin/upgrades-core':
+        specifier: 1.44.2
+        version: 1.44.2
       '@types/elliptic':
         specifier: 6.4.18
         version: 6.4.18
@@ -2451,7 +2457,7 @@ importers:
         version: 4.1.2(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3))(typescript@5.9.3)
       '@openzeppelin/hardhat-upgrades':
         specifier: 3.9.1
-        version: 3.9.1(@nomicfoundation/hardhat-ethers@3.1.0(ethers@6.16.0)(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3)))(encoding@0.1.13)(ethers@6.16.0)(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3))
+        version: 3.9.1(@nomicfoundation/hardhat-ethers@3.1.0(ethers@6.16.0)(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3)))(@nomicfoundation/hardhat-verify@2.0.14(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3)))(encoding@0.1.13)(ethers@6.16.0)(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3))
       '@types/mocha':
         specifier: 10.0.10
         version: 10.0.10
@@ -2742,7 +2748,7 @@ importers:
         version: 4.1.2(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3))(typescript@5.9.3)
       '@openzeppelin/hardhat-upgrades':
         specifier: 3.9.1
-        version: 3.9.1(@nomicfoundation/hardhat-ethers@3.1.0(ethers@6.16.0)(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3)))(encoding@0.1.13)(ethers@6.16.0)(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3))
+        version: 3.9.1(@nomicfoundation/hardhat-ethers@3.1.0(ethers@6.16.0)(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3)))(@nomicfoundation/hardhat-verify@2.0.14(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3)))(encoding@0.1.13)(ethers@6.16.0)(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3))
       '@openzeppelin/upgrades-core':
         specifier: 1.44.2
         version: 1.44.2
@@ -2810,7 +2816,7 @@ importers:
         version: 4.1.2(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3))(typescript@5.9.3)
       '@openzeppelin/hardhat-upgrades':
         specifier: 3.9.1
-        version: 3.9.1(@nomicfoundation/hardhat-ethers@3.1.0(ethers@6.16.0)(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3)))(encoding@0.1.13)(ethers@6.16.0)(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3))
+        version: 3.9.1(@nomicfoundation/hardhat-ethers@3.1.0(ethers@6.16.0)(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3)))(@nomicfoundation/hardhat-verify@2.0.14(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3)))(encoding@0.1.13)(ethers@6.16.0)(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3))
       '@openzeppelin/upgrades-core':
         specifier: 1.44.2
         version: 1.44.2
@@ -2878,7 +2884,7 @@ importers:
         version: 4.1.2(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3))(typescript@5.9.3)
       '@openzeppelin/hardhat-upgrades':
         specifier: 3.9.1
-        version: 3.9.1(@nomicfoundation/hardhat-ethers@3.1.0(ethers@6.16.0)(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3)))(encoding@0.1.13)(ethers@6.16.0)(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3))
+        version: 3.9.1(@nomicfoundation/hardhat-ethers@3.1.0(ethers@6.16.0)(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3)))(@nomicfoundation/hardhat-verify@2.0.14(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3)))(encoding@0.1.13)(ethers@6.16.0)(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3))
       '@types/chai':
         specifier: 4.3.20
         version: 4.3.20
@@ -2992,7 +2998,7 @@ importers:
         version: 4.1.2(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3))(typescript@5.9.3)
       '@openzeppelin/hardhat-upgrades':
         specifier: 3.9.1
-        version: 3.9.1(@nomicfoundation/hardhat-ethers@3.1.0(ethers@6.16.0)(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3)))(encoding@0.1.13)(ethers@6.16.0)(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3))
+        version: 3.9.1(@nomicfoundation/hardhat-ethers@3.1.0(ethers@6.16.0)(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3)))(@nomicfoundation/hardhat-verify@2.0.14(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3)))(encoding@0.1.13)(ethers@6.16.0)(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3))
       '@openzeppelin/upgrades-core':
         specifier: 1.44.2
         version: 1.44.2
@@ -3057,7 +3063,7 @@ importers:
         version: 4.1.2(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3))(typescript@5.9.3)
       '@openzeppelin/hardhat-upgrades':
         specifier: 3.9.1
-        version: 3.9.1(@nomicfoundation/hardhat-ethers@3.1.0(ethers@6.16.0)(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3)))(encoding@0.1.13)(ethers@6.16.0)(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3))
+        version: 3.9.1(@nomicfoundation/hardhat-ethers@3.1.0(ethers@6.16.0)(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3)))(@nomicfoundation/hardhat-verify@2.0.14(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3)))(encoding@0.1.13)(ethers@6.16.0)(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3))
       '@types/chai':
         specifier: 4.3.20
         version: 4.3.20
@@ -4624,6 +4630,11 @@ packages:
     peerDependencies:
       ethers: ^6.14.0
       hardhat: ^2.26.0
+
+  '@nomicfoundation/hardhat-verify@2.0.14':
+    resolution: {integrity: sha512-z3iVF1WYZHzcdMMUuureFpSAfcnlfJbJx3faOnGrOYg6PRTki1Ut9JAuRccnFzMHf1AmTEoSUpWcyvBCoxL5Rg==}
+    peerDependencies:
+      hardhat: ^2.24.1
 
   '@nomicfoundation/slang@0.18.3':
     resolution: {integrity: sha512-YqAWgckqbHM0/CZxi9Nlf4hjk9wUNLC9ngWCWBiqMxPIZmzsVKYuChdlrfeBPQyvQQBoOhbx+7C1005kLVQDZQ==}
@@ -6488,6 +6499,10 @@ packages:
   cbor@10.0.12:
     resolution: {integrity: sha512-exQDevYd7ZQLP4moMQcZkKCVZsXLAtUSflObr3xTh4xzFIv/xBCdvCd6L259kQOUP2kcTC0jvC6PpZIf/WmRXA==}
     engines: {node: '>=20'}
+
+  cbor@8.1.0:
+    resolution: {integrity: sha512-DwGjNW9omn6EwP70aXsn7FQJx5kO12tX0bZkaTjzdVFM6/7nhA4t0EENocKGx6D2Bch9PE2KzCUf5SceBdeijg==}
+    engines: {node: '>=12.19'}
 
   cborg@4.5.8:
     resolution: {integrity: sha512-6/viltD51JklRhq4L7jC3zgy6gryuG5xfZ3kzpE+PravtyeQLeQmCYLREhQH7pWENg5pY4Yu/XCd6a7dKScVlw==}
@@ -12821,6 +12836,21 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  '@nomicfoundation/hardhat-verify@2.0.14(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3))':
+    dependencies:
+      '@ethersproject/abi': 5.8.0
+      '@ethersproject/address': 5.8.0
+      cbor: 8.1.0
+      debug: 4.4.3(supports-color@8.1.1)
+      hardhat: 2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3)
+      lodash.clonedeep: 4.5.0
+      picocolors: 1.1.1
+      semver: 6.3.1
+      table: 6.9.0
+      undici: 5.29.0
+    transitivePeerDependencies:
+      - supports-color
+
   '@nomicfoundation/slang@0.18.3':
     dependencies:
       '@bytecodealliance/preview2-shim': 0.17.0
@@ -13024,7 +13054,7 @@ snapshots:
       - debug
       - encoding
 
-  '@openzeppelin/hardhat-upgrades@3.9.1(@nomicfoundation/hardhat-ethers@3.1.0(ethers@6.16.0)(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3)))(encoding@0.1.13)(ethers@6.16.0)(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3))':
+  '@openzeppelin/hardhat-upgrades@3.9.1(@nomicfoundation/hardhat-ethers@3.1.0(ethers@6.16.0)(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3)))(@nomicfoundation/hardhat-verify@2.0.14(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3)))(encoding@0.1.13)(ethers@6.16.0)(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3))':
     dependencies:
       '@nomicfoundation/hardhat-ethers': 3.1.0(ethers@6.16.0)(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3))
       '@openzeppelin/defender-sdk-base-client': 2.7.1(debug@4.4.3)(encoding@0.1.13)
@@ -13038,6 +13068,8 @@ snapshots:
       hardhat: 2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3)
       proper-lockfile: 4.1.2
       undici: 6.23.0
+    optionalDependencies:
+      '@nomicfoundation/hardhat-verify': 2.0.14(hardhat@2.26.1(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@24.11.0)(typescript@5.9.3))(typescript@5.9.3))
     transitivePeerDependencies:
       - aws-crt
       - encoding
@@ -15029,6 +15061,10 @@ snapshots:
   canonicalize@2.1.0: {}
 
   cbor@10.0.12:
+    dependencies:
+      nofilter: 3.1.0
+
+  cbor@8.1.0:
     dependencies:
       nofilter: 3.1.0
 
