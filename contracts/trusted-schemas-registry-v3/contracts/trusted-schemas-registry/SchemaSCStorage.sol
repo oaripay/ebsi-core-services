@@ -3,8 +3,9 @@ pragma solidity ^0.8.26;
 
 contract SchemaSCStorage {
     // The state variables we care about.
-    bytes32 public constant TSC_DIAMOND_STORAGE_POSITION =
-        keccak256("diamond.standard.tsr.storage");
+    bytes32 public constant TSC_DIAMOND_STORAGE_POSITION = keccak256(
+        "diamond.standard.tsr.storage"
+    );
 
     struct TSC {
         uint256 version;

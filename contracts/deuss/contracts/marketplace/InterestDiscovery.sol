@@ -265,8 +265,8 @@ contract InterestDiscovery is IInterestDiscovery, InterestDiscoveryBase {
             Deal storage _currentDeal = _deals[dealId];
             _currentDeal.status = DealStatus.PENDING;
             _currentDeal.dealType = DealType.OFFER;
-            uint256 newPaymentDeadline = _paymentExpiryThreshold +
-                block.timestamp;
+            uint256 newPaymentDeadline =
+                _paymentExpiryThreshold + block.timestamp;
             _currentDeal.paymentDeadline = newPaymentDeadline;
             _currentDeal.disputeBuffer =
                 newPaymentDeadline + _disputeBufferPeriod;

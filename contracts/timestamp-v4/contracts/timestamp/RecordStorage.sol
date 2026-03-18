@@ -5,8 +5,9 @@ import "./TimestampStorage.sol";
 
 abstract contract RecordStorage is TimestampStorage {
     // The state variables we care about.
-    bytes32 public constant TS_RECORD_DIAMOND_STORAGE_POSITION =
-        keccak256("diamond.standard.record.storage");
+    bytes32 public constant TS_RECORD_DIAMOND_STORAGE_POSITION = keccak256(
+        "diamond.standard.record.storage"
+    );
 
     struct OwnerInfo {
         uint256 notBefore; // time before which the owner should be considered inactive

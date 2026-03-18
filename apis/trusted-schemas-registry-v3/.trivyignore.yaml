@@ -17,9 +17,3 @@ vulnerabilities:
     paths:
       - usr/src/app/node_modules/.pnpm/elliptic@6.6.1/node_modules/elliptic/package.json
     statement: No fix available
-
-  # fastify@5.7.4 (MEDIUM)
-  - id: CVE-2026-3419
-    paths:
-      - usr/src/app/node_modules/.pnpm/fastify@5.7.4/node_modules/fastify/package.json
-    statement: Waiting for @nestjs/platform-fastify to be updated

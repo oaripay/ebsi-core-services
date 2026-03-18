@@ -146,9 +146,10 @@ contract BondRegistry is
 
             // Choose template id based on token type
             // slither-disable-next-line incorrect-equality
-            bytes32 templateId = tokenType_ == TokenType.ERC6909FT
-                ? _templateIdFT
-                : _templateIdNFT;
+            bytes32 templateId =
+                tokenType_ == TokenType.ERC6909FT
+                    ? _templateIdFT
+                    : _templateIdNFT;
 
             // Deploy via EBSI ProxyFactory through ProxyDeployer
             deployedTokenAddr = _deployProxy(templateId, initData);
@@ -946,9 +947,10 @@ contract BondRegistry is
     ) private {
         bytes12 isinBytes = isin._isinToBytes12();
 
-        BondProposal storage proposal = isRegistration
-            ? _registrationProposals[isinBytes]
-            : _updateProposals[isinBytes];
+        BondProposal storage proposal =
+            isRegistration
+                ? _registrationProposals[isinBytes]
+                : _updateProposals[isinBytes];
 
         uint256 id = proposal.id;
 
@@ -1070,9 +1072,8 @@ contract BondRegistry is
     ) private view {
         Bond memory bond = _bonds[id];
 
-        bool checkFutureIssueDate = bond.issueDate != input.issueDate
-            ? true
-            : false;
+        bool checkFutureIssueDate =
+            bond.issueDate != input.issueDate ? true : false;
         _validateBasicBondInput(input, checkFutureIssueDate);
 
         if (bond.status != BondStatus.Approved) {

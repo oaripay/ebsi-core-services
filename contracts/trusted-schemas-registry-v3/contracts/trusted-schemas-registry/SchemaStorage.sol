@@ -3,8 +3,9 @@ pragma solidity ^0.8.26;
 
 contract SchemaStorage {
     // The state variables we care about.
-    bytes32 public constant SCHEMA_DIAMOND_STORAGE_POSITION =
-        keccak256("diamond.standard.schema.storage");
+    bytes32 public constant SCHEMA_DIAMOND_STORAGE_POSITION = keccak256(
+        "diamond.standard.schema.storage"
+    );
 
     struct Schemas {
         uint256 _version;

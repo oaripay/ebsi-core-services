@@ -3,8 +3,9 @@ pragma solidity ^0.8.26;
 
 contract IssuerStorage {
     // The state variables we care about.
-    bytes32 public constant ISSUER_DIAMOND_STORAGE_POSITION =
-        keccak256("diamond.standard.tir.issuer.storage");
+    bytes32 public constant ISSUER_DIAMOND_STORAGE_POSITION = keccak256(
+        "diamond.standard.tir.issuer.storage"
+    );
 
     enum IssuerType {
         Undefined,

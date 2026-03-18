@@ -2,8 +2,9 @@
 pragma solidity ^0.8.26;
 
 contract VRelationshipsStorage {
-    bytes32 public constant VRELATIONSHIPS_DIAMOND_STORAGE_POSITION =
-        keccak256("diamond.standard.vrelationships.storage");
+    bytes32 public constant VRELATIONSHIPS_DIAMOND_STORAGE_POSITION = keccak256(
+        "diamond.standard.vrelationships.storage"
+    );
 
     struct DidWithPeriod {
         string did;

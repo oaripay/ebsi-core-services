@@ -18,12 +18,6 @@ vulnerabilities:
       - app/node_modules/.pnpm/elliptic@6.6.1/node_modules/elliptic/package.json
     statement: No fix available
 
-  # fastify@5.7.4 (MEDIUM)
-  - id: CVE-2026-3419
-    paths:
-      - app/node_modules/.pnpm/fastify@5.7.4/node_modules/fastify/package.json
-    statement: Waiting for @nestjs/platform-fastify to be updated
-
   # hardhat@2.26.1>@sentry/node@5.30.0>cookie@0.4.2 (LOW)
   - id: CVE-2024-47764
     paths:
@@ -38,6 +32,30 @@ vulnerabilities:
 
   # hardhat@2.26.1>undici@5.29.0 (MEDIUM)
   - id: CVE-2026-22036
+    paths:
+      - app/node_modules/.pnpm/undici@5.29.0/node_modules/undici/package.json
+    statement: No fix applicable without a major version bump
+
+  # hardhat@2.26.1>undici@5.29.0 (HIGH)
+  - id: CVE-2026-1526
+    paths:
+      - app/node_modules/.pnpm/undici@5.29.0/node_modules/undici/package.json
+    statement: No fix applicable without a major version bump
+
+  # hardhat@2.26.1>undici@5.29.0 (HIGH)
+  - id: CVE-2026-2229
+    paths:
+      - app/node_modules/.pnpm/undici@5.29.0/node_modules/undici/package.json
+    statement: No fix applicable without a major version bump
+
+  # hardhat@2.26.1>undici@5.29.0 (MEDIUM)
+  - id: CVE-2026-1525
+    paths:
+      - app/node_modules/.pnpm/undici@5.29.0/node_modules/undici/package.json
+    statement: No fix applicable without a major version bump
+
+  # hardhat@2.26.1>undici@5.29.0 (MEDIUM)
+  - id: CVE-2026-1527
     paths:
       - app/node_modules/.pnpm/undici@5.29.0/node_modules/undici/package.json
     statement: No fix applicable without a major version bump

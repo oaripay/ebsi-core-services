@@ -3,8 +3,9 @@ pragma solidity ^0.8.26;
 
 contract DidDocumentStorage {
     // The state variables we care about.
-    bytes32 public constant DID_DOCUMENT_DIAMOND_STORAGE_POSITION =
-        keccak256("diamond.standard.diddocument.storage");
+    bytes32 public constant DID_DOCUMENT_DIAMOND_STORAGE_POSITION = keccak256(
+        "diamond.standard.diddocument.storage"
+    );
 
     struct RollArgs {
         string did;

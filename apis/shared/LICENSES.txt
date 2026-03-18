@@ -629,7 +629,7 @@ EUPL version.
 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
 
 ========================================================================================
-- @europeum-ebsi/ebsi-did-resolver@0.0.0
+- @europeum-ebsi/ebsi-did-resolver@0.0.1
 ------------------------------
 This project is licensed under EUPL-1.2.
 
@@ -1557,7 +1557,7 @@ EUPL version.
 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
 
 ========================================================================================
-- @europeum-ebsi/verifiable-credential@0.0.0
+- @europeum-ebsi/verifiable-credential@0.1.0
 ------------------------------
 This project is licensed under EUPL-1.2.
 
@@ -1889,7 +1889,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ========================================================================================
-- @nestjs/common@11.1.16
+- @nestjs/common@11.1.17
 ------------------------------
 This project is licensed under MIT.
 
@@ -1921,7 +1921,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ========================================================================================
-- @nestjs/core@11.1.16
+- @nestjs/core@11.1.17
 ------------------------------
 This project is licensed under MIT.
 
@@ -2542,7 +2542,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ========================================================================================
-- fastify@5.7.4
+- fastify@5.8.2
 ------------------------------
 This project is licensed under MIT.
 
@@ -2552,7 +2552,7 @@ MIT License: https://opensource.org/license/mit/
 
 MIT License
 
-Copyright (c) 2016-present The Fastify Team (members are listed in the README file)
+Copyright (c) 2016-present The Fastify team <https://github.com/fastify/fastify#team>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -2728,7 +2728,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 ========================================================================================
-- nestjs-pino@4.6.0
+- nestjs-pino@4.6.1
 ------------------------------
 This project is licensed under MIT.
 
