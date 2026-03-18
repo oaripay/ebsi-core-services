@@ -425,8 +425,8 @@ library DidDocumentLib {
         DidDocumentStorage.DidDocument storage d = ds.didList[did];
         baseDocument = d.baseDocument;
         controllers = d.controllers;
-        uint maxLength = d.vRelationships.length +
-            d.capabilityInvocations.length;
+        uint maxLength =
+            d.vRelationships.length + d.capabilityInvocations.length;
         string[] memory vMethodIdsAux = new string[](maxLength);
         DidDocumentStorage.VMethod[]
             memory vMethodsAux = new DidDocumentStorage.VMethod[](maxLength);

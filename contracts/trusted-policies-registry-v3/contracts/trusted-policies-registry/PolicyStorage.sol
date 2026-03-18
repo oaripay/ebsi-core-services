@@ -3,8 +3,9 @@ pragma solidity ^0.8.26;
 
 contract PolicyStorage {
     // The state variables we care about.
-    bytes32 public constant POLICY_DIAMOND_STORAGE_POSITION =
-        keccak256("diamond.standard.policy.registry.storage");
+    bytes32 public constant POLICY_DIAMOND_STORAGE_POSITION = keccak256(
+        "diamond.standard.policy.registry.storage"
+    );
     struct UserAttribute {
         bool defined;
         uint index;
@@ -39,8 +40,9 @@ contract PolicyStorage {
         }
     }
 
-    bytes32 public constant DIAMOND_STORAGE_POSITION =
-        keccak256("diamond.standard.diamond.storage.proxy");
+    bytes32 public constant DIAMOND_STORAGE_POSITION = keccak256(
+        "diamond.standard.diamond.storage.proxy"
+    );
 
     struct DiamondStorage {
         // owner of the contract

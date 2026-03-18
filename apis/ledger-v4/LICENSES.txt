@@ -751,7 +751,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ========================================================================================
-- @nestjs/common@11.1.16
+- @nestjs/common@11.1.17
 ------------------------------
 This project is licensed under MIT.
 
@@ -814,7 +814,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ========================================================================================
-- @nestjs/core@11.1.16
+- @nestjs/core@11.1.17
 ------------------------------
 This project is licensed under MIT.
 
@@ -846,7 +846,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ========================================================================================
-- @nestjs/platform-fastify@11.1.16
+- @nestjs/platform-fastify@11.1.17
 ------------------------------
 This project is licensed under MIT.
 
@@ -1281,7 +1281,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ========================================================================================
-- nestjs-pino@4.6.0
+- nestjs-pino@4.6.1
 ------------------------------
 This project is licensed under MIT.
 

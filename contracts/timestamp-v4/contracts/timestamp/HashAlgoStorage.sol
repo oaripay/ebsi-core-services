@@ -3,8 +3,9 @@ pragma solidity ^0.8.26;
 
 contract HashAlgoStorage {
     // The state variables we care about.
-    bytes32 public constant TS_HASHALGO_DIAMOND_STORAGE_POSITION =
-        keccak256("diamond.standard.timestamp.hashAlgo.storage");
+    bytes32 public constant TS_HASHALGO_DIAMOND_STORAGE_POSITION = keccak256(
+        "diamond.standard.timestamp.hashAlgo.storage"
+    );
 
     enum Status {
         undefined,

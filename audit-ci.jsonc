@@ -4,15 +4,11 @@
   // Prevent integration with moderate or higher vulnerabilities.
   "moderate": true,
   "allowlist": [
-    "GHSA-2mjp-6q6p-2qxm", // undici (hardhat, hardhat-upgrades, graph-cli)
-    "GHSA-4992-7rv2-5pvq", // undici CRLF (hardhat, hardhat-upgrades, graph-cli)
     "GHSA-5c6j-r48x-rmvq", // (hardhat|solidity-coverage)>mocha>serialize-javascript
-    "GHSA-573f-x89g-hqp9", // fastify; update when nest includes fix
-    "GHSA-f269-vfmq-vjvj", // undici WebSocket (hardhat-upgrades, graph-cli)
     "GHSA-g9mf-h72j-4rw9", // hardhat>undici
-    "GHSA-j47w-4g3g-c36v", // @nestjs/common>file-type
-    "GHSA-phc3-fgpg-7m6h", // undici deduplication (graph-cli)
-    "GHSA-v9p9-hfj2-hcw8", // undici server_max_window_bits (hardhat, hardhat-upgrades, graph-cli)
-    "GHSA-vrm6-8vpv-qv8q", // undici permessage-deflate (hardhat, hardhat-upgrades, graph-cli)
+    "GHSA-2mjp-6q6p-2qxm", // hardhat>undici
+    "GHSA-4992-7rv2-5pvq", // hardhat>undici
+    "GHSA-v9p9-hfj2-hcw8", // hardhat>undici
+    "GHSA-vrm6-8vpv-qv8q", // hardhat>undici
   ],
 }

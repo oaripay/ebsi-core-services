@@ -16,10 +16,12 @@ import "./interfaces/IVersionedBeaconProxy.sol";
  *      proxy owner to avoid storage conflicts with implementation and Ownable's slot 0.
  */
 contract VersionedBeaconProxy is BeaconProxy, IVersionedBeaconProxy {
-    bytes32 private constant _VERSION_SLOT =
-        bytes32(uint256(keccak256("eip1967.versionedbeaconproxy.version")) - 1);
-    bytes32 private constant _PROXY_OWNER_SLOT =
-        bytes32(uint256(keccak256("eip1967.versionedbeaconproxy.owner")) - 1);
+    bytes32 private constant _VERSION_SLOT = bytes32(
+        uint256(keccak256("eip1967.versionedbeaconproxy.version")) - 1
+    );
+    bytes32 private constant _PROXY_OWNER_SLOT = bytes32(
+        uint256(keccak256("eip1967.versionedbeaconproxy.owner")) - 1
+    );
 
     error VersionNotAvailable();
 

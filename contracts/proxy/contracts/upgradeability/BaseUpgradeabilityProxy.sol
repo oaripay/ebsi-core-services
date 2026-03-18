@@ -16,8 +16,9 @@ abstract contract BaseUpgradeabilityProxy is Proxy {
      */
     event Upgraded(address indexed implementation);
 
-    bytes32 public constant DIAMOND_STORAGE_POSITION =
-        keccak256("diamond.standard.diamond.storage.proxy");
+    bytes32 public constant DIAMOND_STORAGE_POSITION = keccak256(
+        "diamond.standard.diamond.storage.proxy"
+    );
 
     struct DiamondStorage {
         // owner of the contract

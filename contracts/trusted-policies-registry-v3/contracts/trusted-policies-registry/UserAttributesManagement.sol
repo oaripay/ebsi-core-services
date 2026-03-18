@@ -74,9 +74,8 @@ abstract contract UserAttributesManagement is
         ][lastAttribute];
 
         // set last Attribute on new index
-        ps.listOfUserAttributes[user][
-            userAttributeToBeDeleted.index
-        ] = lastAttribute;
+        ps.listOfUserAttributes[user][userAttributeToBeDeleted.index] =
+            lastAttribute;
         // remove last Attribute
         ps.listOfUserAttributes[user].pop();
         // set the index of interchanged attribute to new index

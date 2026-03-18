@@ -617,17 +617,14 @@ contract TrackAndTrace is
         }
 
         _document.invited[subjectAccount].acc[permission] = true;
-        _document.invited[subjectAccount].grantedBy[
-            permission
-        ] = grantedByAccount;
-        _document.invited[subjectAccount].grantedByAccountType[
-            permission
-        ] = grantedByAccType;
+        _document.invited[subjectAccount].grantedBy[permission] =
+            grantedByAccount;
+        _document.invited[subjectAccount].grantedByAccountType[permission] =
+            grantedByAccType;
         if (_document.invited[subjectAccount].subject.length == 0) {
             _document.invited[subjectAccount].subject = subjectAccount;
-            _document
-                .invited[subjectAccount]
-                .subjectAccountType = subjectAccType;
+            _document.invited[subjectAccount].subjectAccountType =
+                subjectAccType;
         }
         // add helpers
 

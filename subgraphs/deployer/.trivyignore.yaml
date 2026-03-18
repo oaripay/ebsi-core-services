@@ -36,6 +36,30 @@ vulnerabilities:
       - app/node_modules/.pnpm/undici@5.29.0/node_modules/undici/package.json
     statement: No fix applicable without a major version bump
 
+  # hardhat@2.26.1>undici@5.29.0 (HIGH)
+  - id: CVE-2026-1526
+    paths:
+      - app/node_modules/.pnpm/undici@5.29.0/node_modules/undici/package.json
+    statement: No fix applicable without a major version bump
+
+  # hardhat@2.26.1>undici@5.29.0 (HIGH)
+  - id: CVE-2026-2229
+    paths:
+      - app/node_modules/.pnpm/undici@5.29.0/node_modules/undici/package.json
+    statement: No fix applicable without a major version bump
+
+  # hardhat@2.26.1>undici@5.29.0 (MEDIUM)
+  - id: CVE-2026-1525
+    paths:
+      - app/node_modules/.pnpm/undici@5.29.0/node_modules/undici/package.json
+    statement: No fix applicable without a major version bump
+
+  # hardhat@2.26.1>undici@5.29.0 (MEDIUM)
+  - id: CVE-2026-1527
+    paths:
+      - app/node_modules/.pnpm/undici@5.29.0/node_modules/undici/package.json
+    statement: No fix applicable without a major version bump
+
   # hardhat@2.26.1>@nomicfoundation/solidity-analyzer@0.1.2>atty@0.2.14 (LOW)
   - id: GHSA-g98v-hv3f-hcfr
     paths:

@@ -5,8 +5,9 @@ import "./HashAlgoStorage.sol";
 
 abstract contract TimestampStorage is HashAlgoStorage {
     // The state variables we care about.
-    bytes32 public constant TS_DIAMOND_STORAGE_POSITION =
-        keccak256("diamond.standard.timestamp.storage");
+    bytes32 public constant TS_DIAMOND_STORAGE_POSITION = keccak256(
+        "diamond.standard.timestamp.storage"
+    );
 
     struct Hash {
         uint256 algorithm;

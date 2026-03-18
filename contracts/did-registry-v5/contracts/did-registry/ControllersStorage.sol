@@ -2,8 +2,9 @@
 pragma solidity ^0.8.26;
 
 contract ControllersStorage {
-    bytes32 public constant CONTROLLERS_DIAMOND_STORAGE_POSITION =
-        keccak256("diamond.standard.controllers.storage");
+    bytes32 public constant CONTROLLERS_DIAMOND_STORAGE_POSITION = keccak256(
+        "diamond.standard.controllers.storage"
+    );
 
     struct Controllers {
         mapping(string => string[]) didsByController;

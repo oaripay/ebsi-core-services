@@ -670,9 +670,9 @@ describe("App Module", () => {
 
         expect(response.status).toBe(415);
         expect(response.body).toStrictEqual({
-          detail: "Unsupported Media Type: application/bad-content-type",
+          detail: "Unsupported Media Type",
           status: 415,
-          title: "Unsupported Media Type: application/bad-content-type",
+          title: "Unsupported Media Type",
           type: "about:blank",
         });
         await app.close();

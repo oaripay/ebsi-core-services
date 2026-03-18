@@ -1362,7 +1362,7 @@ export class AuthorisationService {
           timeout: this.requestTimeout,
           validAt: now, // The JWT VC(s) must be valid now
           verifyCredentialOptions: {
-            validateAccreditationWithoutTermsOfUse: true, // The VC must contain terms of use (or be self-accredited)
+            skipAccreditationWithoutTermsOfUseValidation: false, // The VC must contain terms of use (or be self-accredited)
           },
           ...(proofPurpose && { proofPurpose }),
         },
