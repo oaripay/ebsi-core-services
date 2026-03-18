@@ -17,3 +17,4 @@ import "./trackAndTrace";
 import "./bootstrap";
 import "./contractDeployedBlock";
 import "./trustedContractsRegistry";
+import "./migrateProxyTemplateRegistry";

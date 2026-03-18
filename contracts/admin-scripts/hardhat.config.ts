@@ -6,6 +6,7 @@ import "hardhat-deploy";
 import "hardhat-deploy-ethers";
 import "hardhat-abi-exporter";
 import "@openzeppelin/hardhat-upgrades";
+import "@nomicfoundation/hardhat-verify";
 
 import "./tasks/index";
 
@@ -54,6 +55,21 @@ const config = {
     path: "./src/abi",
   },
   defaultNetwork: "local",
+  etherscan: {
+    apiKey: {
+      test: "empty",
+    },
+    customChains: [
+      {
+        chainId: 6175, // EBSI testnet (test network from TEST_HARDHAT_NETWORK_URL)
+        network: "test",
+        urls: {
+          apiURL: "https://blockexplorer-test.ebsi.eu/api",
+          browserURL: "https://blockexplorer-test.ebsi.eu",
+        },
+      },
+    ],
+  },
   namedAccounts: {
     admin: 2,
     deployer: 0,
@@ -104,6 +120,7 @@ const config = {
       accounts: [privKey],
       gas: 20_000_000,
       gasPrice: 0,
+      timeout: 120_000, // 2 min (RPC can be slow; avoid HeadersTimeoutError)
       url: TEST_HARDHAT_NETWORK_URL!,
     },
   },

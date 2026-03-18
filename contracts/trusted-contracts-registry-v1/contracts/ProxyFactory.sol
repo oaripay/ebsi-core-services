@@ -8,16 +8,16 @@ import "./interfaces/IProxyFactory.sol";
 import "./interfaces/IPolicyRegistry.sol";
 import "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol";
 import "@openzeppelin/contracts/proxy/beacon/IBeacon.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 import "./libraries/Pagination.sol";
 
 contract ProxyFactory is
     IProxyFactory,
     Initializable,
-    AccessControl,
+    AccessControlUpgradeable,
     UUPSUpgradeable
 {
     using Address for address;
@@ -67,6 +67,7 @@ contract ProxyFactory is
         address _didRegistry,
         address _policyRegistry
     ) public initializer {
+        __AccessControl_init();
         require(
             _templateRegistry != address(0),
             "Template registry cannot be zero"
@@ -212,13 +213,6 @@ contract ProxyFactory is
         }
 
         return result;
-    }
-
-    function hasRole(
-        bytes32 role,
-        address account
-    ) public view override(AccessControl) returns (bool) {
-        return super.hasRole(role, account);
     }
 
     // Getters for private variables
