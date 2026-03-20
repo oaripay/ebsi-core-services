@@ -29,6 +29,14 @@ export class AccessesController {
     await this.accessesService.isCreator(creator);
   }
 
+  @Get("/get")
+  @HttpCode(204)
+  async isCreator__tmp_get(@Query() query: HeadAccessesDto): Promise<void> {
+    const { creator } = query;
+
+    await this.accessesService.isCreator(creator);
+  }
+
   @Accepts("application/json")
   @Get("")
   async getAccessesBySubject(@Query() query: SubjectAccessesDto) {
