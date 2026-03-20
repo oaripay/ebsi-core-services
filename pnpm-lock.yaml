@@ -7,7 +7,7 @@ settings:
 
 overrides:
   '@angular-devkit/core@19.2.19>ajv@8.17.1': 8.18.0
-  '@aws-sdk/xml-builder@3.972.11>fast-xml-parser@5.4.1': 5.5.6
+  '@aws-sdk/xml-builder@3.972.11>fast-xml-parser@5.4.1': 5.5.7
   '@graphprotocol/graph-cli@0.98.1>@oclif/core@4.5.5': 4.8.1
   '@graphprotocol/graph-cli@0.98.1>glob@11.0.3': 11.1.0
   '@graphprotocol/graph-cli@0.98.1>gluegun@5.2.0': 5.2.2
@@ -7449,8 +7449,8 @@ packages:
   fast-xml-builder@1.1.4:
     resolution: {integrity: sha512-f2jhpN4Eccy0/Uz9csxh3Nu6q4ErKxf0XIsasomfOihuSUa3/xw6w8dnOtCDgEItQFJG8KyXPzQXzcODDrrbOg==}
 
-  fast-xml-parser@5.5.6:
-    resolution: {integrity: sha512-3+fdZyBRVg29n4rXP0joHthhcHdPUHaIC16cuyyd1iLsuaO6Vea36MPrxgAzbZna8lhvZeRL8Bc9GP56/J9xEw==}
+  fast-xml-parser@5.5.7:
+    resolution: {integrity: sha512-LteOsISQ2GEiDHZch6L9hB0+MLoYVLToR7xotrzU0opCICBkxOPgHAy1HxAvtxfJNXDJpgAsQN30mkrfpO2Prg==}
     hasBin: true
 
   fastest-levenshtein@1.0.16:
@@ -7541,8 +7541,8 @@ packages:
     resolution: {integrity: sha512-b6suED+5/3rTpUBdG1gupIl8MPFCAMA0QXwmljLhvCUKcUvdE4gWky9zpuGCcXHOsz4J9wPGNWq6OKpmIzz3hQ==}
     hasBin: true
 
-  flatted@3.4.1:
-    resolution: {integrity: sha512-IxfVbRFVlV8V/yRaGzk0UVIcsKKHMSfYw66T/u4nTwlWteQePsxe//LjudR1AMX4tZW3WFCh3Zqa/sjlqpbURQ==}
+  flatted@3.4.2:
+    resolution: {integrity: sha512-PjDse7RzhcPkIJwy5t7KPWQSZ9cAbzQXcafsetQoD7sOJRQlGikNbx7yZp2OotDnJyrDcbyRq3Ttb18iYOqkxA==}
 
   fmix@0.1.0:
     resolution: {integrity: sha512-Y6hyofImk9JdzU8k5INtTXX1cu8LDlePWDFU5sftm9H+zKCr5SGrVjdhkvsim646cw5zD0nADj8oHyXMZmCZ9w==}
@@ -11260,7 +11260,7 @@ snapshots:
   '@aws-sdk/xml-builder@3.972.11':
     dependencies:
       '@smithy/types': 4.13.1
-      fast-xml-parser: 5.5.6
+      fast-xml-parser: 5.5.7
       tslib: 2.8.1
 
   '@aws/lambda-invoke-store@0.2.4': {}
@@ -16353,7 +16353,7 @@ snapshots:
     dependencies:
       path-expression-matcher: 1.1.3
 
-  fast-xml-parser@5.5.6:
+  fast-xml-parser@5.5.7:
     dependencies:
       fast-xml-builder: 1.1.4
       path-expression-matcher: 1.1.3
@@ -16452,12 +16452,12 @@ snapshots:
 
   flat-cache@4.0.1:
     dependencies:
-      flatted: 3.4.1
+      flatted: 3.4.2
       keyv: 4.5.4
 
   flat@5.0.2: {}
 
-  flatted@3.4.1: {}
+  flatted@3.4.2: {}
 
   fmix@0.1.0:
     dependencies:
