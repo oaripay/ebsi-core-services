@@ -136,7 +136,7 @@ export class AuthorisationService {
     // Validate query params (full DTO)
     let parsedDto: CreateAccessTokenDto;
     try {
-      parsedDto = parseDto(body, CreateAccessTokenDto);
+      parsedDto = await parseDto(body, CreateAccessTokenDto);
     } catch (error) {
       // Unknown error during validation
       if (!(error instanceof ClassValidatorError)) {

@@ -2248,7 +2248,7 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ========================================================================================
-- yaml@2.8.2
+- yaml@2.8.3
 ------------------------------
 This project is licensed under ISC.
 

@@ -1,7 +1,7 @@
 import type { ClassConstructor } from "class-transformer";
 
 import { ClassTransformer } from "class-transformer";
-import { validateSync } from "class-validator";
+import { validate } from "class-validator";
 
 import { ClassValidatorError } from "./errors/index.ts";
 
@@ -10,13 +10,13 @@ import { ClassValidatorError } from "./errors/index.ts";
  *
  * @param data The DTO to parse
  */
-export function parseDto<T extends object>(
+export async function parseDto<T extends object>(
   data: unknown,
   cls: ClassConstructor<T>,
-): T {
+): Promise<T> {
   const dataClass = new ClassTransformer().plainToInstance(cls, data);
 
-  const errors = validateSync(dataClass, {
+  const errors = await validate(dataClass, {
     stopAtFirstError: true,
   });
 
