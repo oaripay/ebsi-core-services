@@ -6,7 +6,7 @@ packages:
 allowBuilds:
   "@nestjs/core@11.1.17": true
   "@sphereon/pex@4.1.0": true
-  "@swc/core@1.15.18": true
+  "@swc/core@1.15.21": true
   esbuild@0.27.4: true
   keccak@3.0.4: true
   msw@2.12.14: true
