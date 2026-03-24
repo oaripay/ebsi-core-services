@@ -4,12 +4,12 @@ packages:
   - subgraphs/*
 
 allowBuilds:
-  "@nestjs/core@11.1.16": true
+  "@nestjs/core@11.1.17": true
   "@sphereon/pex@4.1.0": true
   "@swc/core@1.15.18": true
-  esbuild@0.27.3: true
+  esbuild@0.27.4: true
   keccak@3.0.4: true
-  msw@2.12.10: true
+  msw@2.12.14: true
   nx@20.8.3: true
   secp256k1@4.0.4: true
   unrs-resolver@1.11.1: true
