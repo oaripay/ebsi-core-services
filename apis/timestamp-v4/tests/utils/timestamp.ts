@@ -2,9 +2,9 @@ import "@ebsiint-sc/timestamp-v4/dist/hardhat.d.ts";
 
 import hre from "hardhat";
 
+import type { HashName } from "@ebsiint-api/shared";
 import type { PolicyRegistryMock, Timestamp } from "@ebsiint-sc/timestamp-v4";
 import type { ContractTransactionResponse } from "ethers";
-import type { HashName } from "multihashes";
 
 import "@nomicfoundation/hardhat-ethers";
 import { HardhatEthersProvider } from "@nomicfoundation/hardhat-ethers/internal/hardhat-ethers-provider.js";

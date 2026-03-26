@@ -1,7 +1,7 @@
+import type { HashName } from "@ebsiint-api/shared";
 import type { EbsiIssuer } from "@europeum-ebsi/verifiable-credential";
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
-import type { HashName } from "multihashes";
 
 import { prefixWith0x, waitToBeMined } from "@ebsiint-api/shared";
 import { ConfigService } from "@nestjs/config";

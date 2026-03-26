@@ -299,7 +299,7 @@ https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
 This product makes use of software developed by third parties.
 
 ========================================================================================
-- @apidevtools/json-schema-ref-parser@15.3.1
+- @apidevtools/json-schema-ref-parser@15.3.2
 ------------------------------
 This project is licensed under MIT.
 
@@ -1166,7 +1166,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ========================================================================================
-- joi@18.0.2
+- joi@18.1.1
 ------------------------------
 This project is licensed under BSD-3-Clause.
 

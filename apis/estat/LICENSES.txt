@@ -1913,7 +1913,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ========================================================================================
-- joi@18.0.2
+- joi@18.1.1
 ------------------------------
 This project is licensed under BSD-3-Clause.
 
