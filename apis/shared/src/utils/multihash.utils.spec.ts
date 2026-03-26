@@ -1,10 +1,16 @@
+import { hexToBytes } from "@noble/curves/utils.js";
+import { digest } from "multiformats";
 import { describe, expect, it } from "vitest";
 
-import { multihashEncode } from "./multihash.utils.ts";
+import {
+  hashNames,
+  multihashDecode,
+  multihashEncode,
+} from "./multihash.utils.ts";
 
-describe("multihashEncode", () => {
+describe("multihashEncode / multihashDecode", () => {
   it("should produce the expected result", () => {
-    expect.assertions(4);
+    expect.assertions(7);
 
     expect(
       Buffer.from(
@@ -16,6 +22,39 @@ describe("multihashEncode", () => {
     ).toBe(
       "122041dd7b6443542e75701aa98a0c235951a28a0d851b11564d20022ab11d2589a8",
     );
+
+    expect(
+      Buffer.from(
+        multihashDecode(
+          Buffer.from(
+            "122041dd7b6443542e75701aa98a0c235951a28a0d851b11564d20022ab11d2589a8",
+            "hex",
+          ),
+        ).bytes,
+      ).toString("hex"),
+    ).toBe(
+      "122041dd7b6443542e75701aa98a0c235951a28a0d851b11564d20022ab11d2589a8",
+    );
+
+    expect(
+      Buffer.from(
+        multihashDecode(
+          Buffer.from(
+            "122041dd7b6443542e75701aa98a0c235951a28a0d851b11564d20022ab11d2589a8",
+            "hex",
+          ),
+        ).digest,
+      ).toString("hex"),
+    ).toBe("41dd7b6443542e75701aa98a0c235951a28a0d851b11564d20022ab11d2589a8");
+
+    expect(
+      multihashDecode(
+        Buffer.from(
+          "122041dd7b6443542e75701aa98a0c235951a28a0d851b11564d20022ab11d2589a8",
+          "hex",
+        ),
+      ).code,
+    ).toBe(hashNames["sha2-256"]);
 
     expect(
       Buffer.from(
@@ -58,21 +97,35 @@ describe("multihashEncode", () => {
   });
 
   it("should throw an error when the input is not valid", () => {
-    expect.assertions(2);
+    expect.assertions(3);
 
     expect(() =>
       multihashEncode(
         "41dd7b6443542e75701aa98a0c235951a28a0d851b11XXX64d20022ab11d2589a8",
         "sha2-256",
       ),
-    ).toThrow(new SyntaxError("Non-base16 character"));
+    ).toThrow(
+      new Error('hex string expected, got non-hex character "XX" at index 44'),
+    );
 
     expect(() =>
       multihashEncode(
         "41dd7b6443542e75701aa98a0c235951a28a0d851b11564d22ab11d2589a8",
         "sha2-256",
       ),
-    ).toThrow(new SyntaxError("Unexpected end of data"));
+    ).toThrow(new Error("hex string expected, got unpadded hex of length 61"));
+
+    expect(() =>
+      multihashDecode(
+        digest.create(
+          // eslint-disable-next-line unicorn/numeric-separators-style
+          0xb403, // Invalid code
+          hexToBytes(
+            "41dd7b6443542e75701aa98a0c235951a28a0d851b11564d20022ab11d2589a8",
+          ),
+        ).bytes,
+      ),
+    ).toThrow(new Error("multihash unknown function code: 0xb403"));
   });
 
   it("should throw an error when the algorithm is not valid", () => {

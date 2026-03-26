@@ -20,7 +20,7 @@
     "test:ci": "pnpm run test:unit --coverage --reporter=default"
   },
   "dependencies": {
-    "@apidevtools/json-schema-ref-parser": "15.3.1",
+    "@apidevtools/json-schema-ref-parser": "15.3.2",
     "@europeum-ebsi/did-jwt": "0.0.0",
     "@europeum-ebsi/ebsi-did-resolver": "0.0.1",
     "@europeum-ebsi/json-schema-ref-parser": "npm:@apidevtools/json-schema-ref-parser@^11.9.3",
@@ -38,12 +38,11 @@
     "did-resolver": "4.1.0",
     "elliptic": "6.6.1",
     "ethers": "6.16.0",
-    "fastify": "5.8.2",
-    "joi": "18.0.2",
+    "fastify": "5.8.4",
+    "joi": "18.1.1",
     "jose": "5.10.0",
     "lodash.clonedeep": "4.5.0",
     "multiformats": "13.4.2",
-    "multihashes": "4.0.3",
     "nestjs-pino": "4.6.1",
     "pino": "10.3.1",
     "reflect-metadata": "0.2.2",
@@ -65,10 +64,10 @@
     "@types/node": "24.12.0",
     "@types/validator": "13.15.10",
     "@types/ws": "8.18.1",
-    "@vitest/coverage-v8": "4.1.0",
+    "@vitest/coverage-v8": "4.1.1",
     "msw": "2.12.14",
     "typescript": "5.9.3",
-    "vite": "8.0.1",
-    "vitest": "4.1.0"
+    "vite": "8.0.2",
+    "vitest": "4.1.1"
   }
 }

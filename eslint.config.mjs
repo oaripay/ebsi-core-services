@@ -1,6 +1,6 @@
 import js from "@eslint/js";
 import vitest from "@vitest/eslint-plugin";
-import importPlugin from "eslint-plugin-import";
+import { importX } from "eslint-plugin-import-x";
 import { configs as perfectionistConfigs } from "eslint-plugin-perfectionist";
 import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
 import { configs as regexpPluginConfigs } from "eslint-plugin-regexp";
@@ -33,8 +33,8 @@ export default defineConfig(
   js.configs.recommended,
   tsEslintConfigs.recommendedTypeChecked,
   tsEslintConfigs.stylisticTypeChecked,
-  importPlugin.flatConfigs.recommended,
-  importPlugin.flatConfigs.typescript,
+  importX.flatConfigs.recommended,
+  importX.flatConfigs.typescript,
   eslintPluginUnicorn.configs.recommended,
   regexpPluginConfigs["flat/recommended"],
   perfectionistConfigs["recommended-natural"],
@@ -67,13 +67,6 @@ export default defineConfig(
       "unicorn/filename-case": "off",
       "unicorn/no-array-reduce": "off",
       "unicorn/prevent-abbreviations": "off",
-    },
-    settings: {
-      "import/resolver": {
-        // See also https://github.com/import-js/eslint-import-resolver-typescript#configuration
-        node: true,
-        typescript: true,
-      },
     },
   },
 
@@ -169,9 +162,6 @@ export default defineConfig(
     languageOptions: {
       globals: { __ENV: true },
     },
-    rules: {
-      "import/no-unresolved": ["error", { ignore: ["^k6"] }],
-    },
   },
 
   ///////////////
@@ -249,21 +239,6 @@ export default defineConfig(
         {
           // Enable to use tagged template literals with execa
           allowTaggedTemplates: true,
-        },
-      ],
-    },
-  },
-  // Allow importing devDependencies in dev files
-  {
-    files: ["subgraphs/*/*.cjs", "subgraphs/*/*.mjs"],
-    rules: {
-      "import/no-extraneous-dependencies": [
-        "error",
-        {
-          bundledDependencies: false,
-          devDependencies: true,
-          optionalDependencies: false,
-          peerDependencies: false,
         },
       ],
     },

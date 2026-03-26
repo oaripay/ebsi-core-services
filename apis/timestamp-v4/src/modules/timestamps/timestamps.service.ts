@@ -1,5 +1,5 @@
+import type { HashName } from "@ebsiint-api/shared";
 import type { Timestamp } from "@ebsiint-sc/timestamp-v4";
-import type { HashName } from "multihashes";
 
 import {
   InternalServerError,
@@ -45,7 +45,7 @@ export class TimestampsService {
 
     try {
       const timestampIdDecoded = `0x${Buffer.from(
-        multihashDecode(multibase.base64url.decode(timestampId)),
+        multihashDecode(multibase.base64url.decode(timestampId)).digest,
       ).toString("hex")}`;
 
       timestamp = await this.contract

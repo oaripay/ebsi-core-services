@@ -2,7 +2,7 @@
 # hadolint ignore=DL3006 # core-services-base is defined in docker-compse.yml
 FROM core-services-base AS builder
 
-FROM node:24.13.0-alpine3.23@sha256:931d7d57f8c1fd0e2179dbff7cc7da4c9dd100998bc2b32afc85142d8efbc213
+FROM node:24.14.1-alpine3.23@sha256:01743339035a5c3c11a373cd7c83aeab6ed1457b55da6a69e014a95ac4e4700b
 
 # Install build dependencies
 RUN apk update && \
