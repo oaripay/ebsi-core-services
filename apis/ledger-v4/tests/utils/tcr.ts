@@ -13,7 +13,7 @@ import { randomBytes } from "node:crypto";
 
 import type { TestContract, TestTemplate } from "./data.ts";
 
-export interface SetupOptions {
+interface SetupOptions {
   contractsTotal?: number;
   templatesTotal?: number;
 }

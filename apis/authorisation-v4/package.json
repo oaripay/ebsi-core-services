@@ -41,7 +41,7 @@
     "@nestjs/platform-fastify": "11.1.17",
     "@nestjs/terminus": "11.1.1",
     "@sphereon/pex": "4.1.0",
-    "axios": "1.13.6",
+    "axios": "1.14.0",
     "cache-manager": "6.4.3",
     "class-transformer": "0.5.1",
     "class-validator": "0.14.1",
@@ -70,18 +70,19 @@
     "@total-typescript/ts-reset": "0.6.1",
     "@tsconfig/node24": "24.0.4",
     "@tsconfig/strictest": "2.0.8",
-    "@types/k6": "1.6.0",
+    "@types/k6": "1.7.0",
     "@types/node": "24.12.0",
     "@types/qs": "6.15.0",
     "@types/supertest": "6.0.3",
-    "@vitest/coverage-v8": "4.1.1",
+    "@vitest/coverage-v8": "4.1.2",
     "did-resolver": "4.1.0",
     "fastify": "5.8.4",
     "msw": "2.12.14",
     "supertest": "7.2.2",
     "typescript": "5.9.3",
+    "undici-types": "7.16.0",
     "unplugin-swc": "1.5.9",
-    "vite": "8.0.2",
-    "vitest": "4.1.1"
+    "vite": "8.0.3",
+    "vitest": "4.1.2"
   }
 }

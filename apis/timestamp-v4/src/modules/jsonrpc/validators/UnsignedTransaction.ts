@@ -1,7 +1,6 @@
 import { z } from "zod";
 
 import { baseParamSchema } from "./BaseParamSchema.ts";
-import { jsonRpcSchema } from "./JsonRpcSchema.ts";
 
 export const unsignedTransactionSchema = baseParamSchema.merge(
   z.object({
@@ -19,9 +18,3 @@ export const unsignedTransactionSchema = baseParamSchema.merge(
 export type UnsignedTransactionSchema = z.infer<
   typeof unsignedTransactionSchema
 >;
-
-export const requestunsignedTransactionDtoSchema = jsonRpcSchema.merge(
-  z.object({
-    params: z.array(unsignedTransactionSchema).min(1).max(1),
-  }),
-);

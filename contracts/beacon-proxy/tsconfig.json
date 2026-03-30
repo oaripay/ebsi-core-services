@@ -1,13 +1,22 @@
 {
   "compilerOptions": {
-    "target": "es2021",
     "module": "commonjs",
     "strict": true,
     "esModuleInterop": true,
+    "declaration": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowImportingTsExtensions": true,
+    "rewriteRelativeImportExtensions": true,
+    "target": "es2021",
+    "sourceMap": true,
+    "outDir": "./dist",
+    "baseUrl": "./",
+    "types": ["node"],
+    "incremental": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
-    "moduleResolution": "node",
-    "types": ["node"]
-  },
-  "include": ["hardhat.config.ts", "tests/**/*.ts"]
+    "allowSyntheticDefaultImports": true
+  }
 }

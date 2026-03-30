@@ -23,8 +23,8 @@ export interface ApiConfig {
   testSpecificNodeDomain: string | undefined;
 }
 
-export const SERVICE_PREFIX = "trusted-contracts-registry";
-export const SERVICE_VERSION = "v1";
+const SERVICE_PREFIX = "trusted-contracts-registry";
+const SERVICE_VERSION = "v1";
 
 // EBSI Services that must be up and running before this service starts
 export const BOOTSTRAP_DEPENDENCIES = {} as const;
@@ -32,7 +32,7 @@ export const BOOTSTRAP_DEPENDENCIES = {} as const;
 // EBSI Services that must be up and running for this service to be considered healthy
 export const RUNTIME_DEPENDENCIES = {} as const;
 
-export const loadConfig = () => {
+const loadConfig = () => {
   const { DOMAIN } = process.env;
 
   return {

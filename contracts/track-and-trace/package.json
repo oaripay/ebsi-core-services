@@ -14,7 +14,7 @@
     "compile": "hardhat compile && pnpm exec tsc --project tsconfig.build.json && copyfiles -f src/types/hardhat.d.ts dist",
     "coverage": "hardhat coverage --testfiles 'tests/*.ts'",
     "lint": "pnpm run lint:prettier && pnpm run lint:eslint && pnpm run lint:tsc && pnpm run lint:sol",
-    "lint:sol": "solhint -c .solhint.json \"contracts/**/*.sol\"",
+    "lint:sol": "solhint \"contracts/**/*.sol\"",
     "lint:eslint": "eslint .",
     "lint:tsc": "tsc --noEmit --incremental false",
     "lint:prettier": "prettier . --check && pnpm exec prettier --list-different --plugin=prettier-plugin-solidity \"contracts/**/*.sol\"",

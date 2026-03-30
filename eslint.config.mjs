@@ -98,6 +98,14 @@ export default defineConfig(
     },
   },
 
+  // Scripts
+  {
+    files: ["scripts/**"],
+    rules: {
+      "unicorn/no-process-exit": "off",
+    },
+  },
+
   //////////
   // APIS //
   //////////

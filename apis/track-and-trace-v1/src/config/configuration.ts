@@ -35,8 +35,8 @@ export interface ApiConfig {
   testSpecificNodeDomain: string | undefined;
 }
 
-export const SERVICE_PREFIX = "track-and-trace";
-export const SERVICE_VERSION = "v1";
+const SERVICE_PREFIX = "track-and-trace";
+const SERVICE_VERSION = "v1";
 
 // Declare all the services and their versions used by this service
 interface ServiceVersions {
@@ -60,14 +60,14 @@ export const RUNTIME_DEPENDENCIES = {
 } as const satisfies Partial<ServiceVersions>;
 
 // EBSI Services that are only used during the tests
-export const DEV_DEPENDENCIES = {
+const DEV_DEPENDENCIES = {
   ledger: "v4",
   "trusted-issuers-registry": "v5",
   "trusted-policies-registry": "v3",
   "trusted-schemas-registry": "v3",
 } as const satisfies Partial<ServiceVersions>;
 
-export const loadConfig = () => {
+const loadConfig = () => {
   const { DOMAIN, URI_SCHEME } = process.env;
 
   const ebsiEnvConfig = {

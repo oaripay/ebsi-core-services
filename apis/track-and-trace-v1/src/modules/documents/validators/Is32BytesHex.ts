@@ -2,9 +2,9 @@ import type { ValidationOptions } from "class-validator";
 
 import { buildMessage, isHexadecimal, ValidateBy } from "class-validator";
 
-export const IS_32_BYTES_HEX = "is32BytesHex";
+const IS_32_BYTES_HEX = "is32BytesHex";
 
-export const is32BytesHex = (value: unknown) => {
+const is32BytesHex = (value: unknown) => {
   // Check if the value is an hexadecimal string starting with 0x
   if (
     typeof value !== "string" ||

@@ -10,33 +10,6 @@ import axios from "axios";
 import { randomUUID } from "node:crypto";
 import { URLSearchParams } from "node:url";
 
-export async function bypassAndGetAccessToken(
-  did: string,
-  authApiV3ES256PrivateKey: string,
-  scope: "openid tnt_authorise" | "openid tnt_create" | "openid tnt_write",
-) {
-  const authApiPrivateKey = hexToBytes(authApiV3ES256PrivateKey);
-  const { kid: authApiKid } = await getPublicKeyJwk(authApiPrivateKey, "ES256");
-
-  const newUserAccessToken = createJWT(
-    {
-      iss: authApiKid,
-      scp: scope,
-      sub: did,
-    },
-    {
-      signer: getSigner(authApiPrivateKey, "ES256"),
-    },
-    {
-      alg: "ES256",
-      kid: authApiKid,
-      typ: "JWT",
-    },
-  );
-
-  return newUserAccessToken;
-}
-
 export async function getAccessToken(
   authorisationApiUrl: string,
   issuer: EbsiIssuer,

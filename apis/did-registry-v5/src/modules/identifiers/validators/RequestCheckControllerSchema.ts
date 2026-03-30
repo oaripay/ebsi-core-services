@@ -3,11 +3,9 @@ import { z } from "zod";
 
 import { jsonRpcSchema } from "./JsonRpcSchema.ts";
 
-export const checkControllerSchema = z
+const checkControllerSchema = z
   .string()
   .refine(isAddress, { message: "Invalid Ethereum address" });
-
-export type CheckControllerSchema = z.infer<typeof checkControllerSchema>;
 
 export const requestCheckControllerDtoSchema = jsonRpcSchema.merge(
   z.object({

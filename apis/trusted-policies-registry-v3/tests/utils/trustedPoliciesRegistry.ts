@@ -9,60 +9,21 @@ import "@nomicfoundation/hardhat-ethers";
 import { ethers } from "ethers";
 import crypto from "node:crypto";
 
-export interface PolicyObject {
+export interface UserObject {
+  attributes: string[];
+  user: string;
+}
+
+interface PolicyObject {
   description: string;
   policyId: number;
   policyName: string;
   status: true;
 }
 
-export interface SetupOptions {
+interface SetupOptions {
   policiesTotal?: number;
   usersTotal?: number;
-}
-
-export interface UserObject {
-  attributes: string[];
-  user: string;
-}
-
-export async function deployPoliciesRegistryContract(): Promise<PolicyRegistry> {
-  const policiesRegistryFactory =
-    await hre.ethers.getContractFactory("PolicyRegistry");
-
-  const policyRegistry = await policiesRegistryFactory.deploy();
-  await policyRegistry.initialize(1);
-  return policyRegistry;
-}
-
-export async function insertPolicy(
-  contract: PolicyRegistry,
-  policyId: number,
-): Promise<PolicyObject> {
-  const policyName = `policy-test-${crypto.randomBytes(16).toString("hex")}`;
-  const description = crypto.randomBytes(16).toString("hex");
-
-  await contract.insertPolicy(policyName, description);
-
-  return {
-    description,
-    policyId: policyId + 1,
-    policyName,
-    status: true,
-  };
-}
-
-export async function insertUser(
-  contract: PolicyRegistry,
-): Promise<UserObject> {
-  const user: UserObject = {
-    attributes: ["test-attr1", "test-attr2", "test-attr3"],
-    user: ethers.Wallet.createRandom().address,
-  };
-
-  await contract.insertUserAttributes(user.user, user.attributes);
-
-  return user;
 }
 
 export async function setupTestEnv(opts: SetupOptions): Promise<{
@@ -115,4 +76,41 @@ export async function setupTestEnv(opts: SetupOptions): Promise<{
     provider: ethersProvider,
     users,
   };
+}
+
+async function deployPoliciesRegistryContract(): Promise<PolicyRegistry> {
+  const policiesRegistryFactory =
+    await hre.ethers.getContractFactory("PolicyRegistry");
+
+  const policyRegistry = await policiesRegistryFactory.deploy();
+  await policyRegistry.initialize(1);
+  return policyRegistry;
+}
+
+async function insertPolicy(
+  contract: PolicyRegistry,
+  policyId: number,
+): Promise<PolicyObject> {
+  const policyName = `policy-test-${crypto.randomBytes(16).toString("hex")}`;
+  const description = crypto.randomBytes(16).toString("hex");
+
+  await contract.insertPolicy(policyName, description);
+
+  return {
+    description,
+    policyId: policyId + 1,
+    policyName,
+    status: true,
+  };
+}
+
+async function insertUser(contract: PolicyRegistry): Promise<UserObject> {
+  const user: UserObject = {
+    attributes: ["test-attr1", "test-attr2", "test-attr3"],
+    user: ethers.Wallet.createRandom().address,
+  };
+
+  await contract.insertUserAttributes(user.user, user.attributes);
+
+  return user;
 }

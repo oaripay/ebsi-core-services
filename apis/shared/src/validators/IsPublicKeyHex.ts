@@ -25,7 +25,7 @@ function isBase64url(value: string): boolean {
  *
  * @see https://www.rfc-editor.org/rfc/rfc7517
  */
-export const jwkSchema = z
+const jwkSchema = z
   .discriminatedUnion("kty", [
     /**
      * Elliptic Curve keys
