@@ -1,27 +1,26 @@
 import { ethers } from "hardhat";
+
+import type { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
+
 import { expect } from "chai";
 
+import type {
+  MockImplementation,
+  VersionedBeaconProxy,
+  VersionedUpgradeableBeacon,
+} from "../src/types/index.ts";
+
 describe("VersionedUpgradeableBeacon and VersionedBeaconProxy", function () {
-  let beacon: Awaited<
-    ReturnType<ReturnType<typeof ethers.getContractFactory>["deploy"]>
-  >;
-  let proxy: Awaited<
-    ReturnType<ReturnType<typeof ethers.getContractFactory>["deploy"]>
-  >;
-  let implV1: Awaited<
-    ReturnType<ReturnType<typeof ethers.getContractFactory>["deploy"]>
-  >;
-  let implV2: Awaited<
-    ReturnType<ReturnType<typeof ethers.getContractFactory>["deploy"]>
-  >;
-  let implV3: Awaited<
-    ReturnType<ReturnType<typeof ethers.getContractFactory>["deploy"]>
-  >;
-  let owner: { address: string };
-  let other: { address: string };
+  let beacon: VersionedUpgradeableBeacon;
+  let proxy: VersionedBeaconProxy;
+  let implV1: MockImplementation;
+  let implV2: MockImplementation;
+  let implV3: MockImplementation;
+  let owner: HardhatEthersSigner;
+  let other: HardhatEthersSigner;
 
   /** Call versioned beacon's implementation(version) to avoid overload ambiguity with implementation(). */
-  function beaconImplementationAt(version: number | bigint) {
+  function beaconImplementationAt(version: bigint | number) {
     return beacon.getFunction("implementation(uint64)")(BigInt(version));
   }
 
@@ -48,6 +47,7 @@ describe("VersionedUpgradeableBeacon and VersionedBeaconProxy", function () {
 
     expect(await beacon.latestVersion()).to.equal(1n);
     expect(await beaconImplementationAt(1)).to.equal(await implV1.getAddress());
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     expect(await beacon.isVersionAvailable(1)).to.be.true;
     const versions = await beacon.getVersions();
     expect(versions.length).to.equal(1);
@@ -65,6 +65,7 @@ describe("VersionedUpgradeableBeacon and VersionedBeaconProxy", function () {
     await beacon.addVersion(2, await implV2.getAddress());
     expect(await beacon.latestVersion()).to.equal(2n);
     expect(await beaconImplementationAt(2)).to.equal(await implV2.getAddress());
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     expect(await beacon.isVersionAvailable(2)).to.be.true;
 
     await beacon.addVersion(3, await implV3.getAddress());
@@ -82,6 +83,7 @@ describe("VersionedUpgradeableBeacon and VersionedBeaconProxy", function () {
       ["V1"],
     );
     const initSelector = ethers.id("initialize(string)").slice(0, 10);
+    // eslint-disable-next-line unicorn/prefer-spread
     const finalInitData = ethers.concat([initSelector, initData]);
 
     const VersionedBeaconProxy = await ethers.getContractFactory(
@@ -142,6 +144,7 @@ describe("VersionedUpgradeableBeacon and VersionedBeaconProxy", function () {
 
   it("Should deprecate version 2; isVersionAvailable(2) false", async function () {
     await beacon.deprecateVersion(2);
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     expect(await beacon.isVersionAvailable(2)).to.be.false;
     // Proxy on v3 is unaffected
     expect(await proxy.version()).to.equal(3n);
@@ -159,6 +162,7 @@ describe("VersionedUpgradeableBeacon and VersionedBeaconProxy", function () {
     );
     const proxy2 = await VersionedBeaconProxy.deploy(
       await beacon.getAddress(),
+      // eslint-disable-next-line unicorn/prefer-spread
       ethers.concat([initSelector, initData]),
     );
     await proxy2.waitForDeployment();

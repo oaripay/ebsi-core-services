@@ -18,180 +18,10 @@ import { AccountType, Permission } from "../../src/shared/constants.ts";
 import { didToHex } from "../../src/shared/utils.ts";
 import { createDocument, createEvent } from "./data.ts";
 
-export interface SetupOptions {
+interface SetupOptions {
   documentEventsTotal?: number;
   documentsWithBlockSourceTotal?: number;
   documentsWithExternalSourceTotal?: number;
-}
-
-export async function addEvent(contract: TrackAndTrace, doc: TestDocument) {
-  const event = createEvent(doc.documentHash, doc.didEbsiCreator);
-
-  const tx = await contract["writeEvent((bytes32,string,bytes,string,string))"](
-    {
-      documentHash: event.documentHash,
-      externalHash: event.externalHash,
-      metadata: event.metadata,
-      origin: event.origin,
-      sender: await didToHex(event.sender),
-    },
-  );
-
-  const receipt = await tx.wait();
-
-  if (!receipt) {
-    throw new Error("Receipt not found");
-  }
-
-  const block = await hre.ethers.provider.getBlock(receipt.blockHash);
-
-  if (!block) {
-    throw new Error("Block not found");
-  }
-
-  event.timestamp = {
-    datetime: `0x${block.timestamp.toString(16)}`,
-    proof: `0x${block.number.toString(16).padStart(64, "0")}`,
-  };
-
-  doc.events.push(event);
-}
-
-export async function deployTrackAndTraceContract(): Promise<{
-  broadcaster: SignerWithAddress;
-  trackAndTraceContract: TrackAndTrace;
-}> {
-  const signers = (await hre.ethers.getSigners()) as [
-    SignerWithAddress,
-    SignerWithAddress,
-    SignerWithAddress,
-    ...SignerWithAddress[],
-  ];
-  const [admin, upgrader, broadcaster] = signers;
-
-  const trackAndTraceLibFactory = await hre.ethers.getContractFactory(
-    "TrackAndTraceLib",
-    {},
-  );
-  const trackAndTraceLibContract = await trackAndTraceLibFactory.deploy();
-
-  await trackAndTraceLibContract.waitForDeployment();
-
-  const trackAndTraceContractFactory = await hre.ethers.getContractFactory(
-    "TrackAndTrace",
-    {
-      libraries: {
-        TrackAndTraceLib: await trackAndTraceLibContract.getAddress(),
-      },
-    },
-  );
-
-  // deploy TPR mock
-  const policyRegistryFactory =
-    await hre.ethers.getContractFactory("PolicyRegistryMock");
-  const tprMock = await policyRegistryFactory.deploy();
-
-  // deploy DID mock
-  const didMockFactory = await hre.ethers.getContractFactory("DidRegistryMock");
-  const didRegistryMock = await didMockFactory.deploy();
-
-  const trackAndTraceContract = await hre.upgrades.deployProxy(
-    trackAndTraceContractFactory,
-    [
-      admin.address,
-      upgrader.address,
-      await tprMock.getAddress(),
-      await didRegistryMock.getAddress(),
-    ],
-    { unsafeAllow: ["external-library-linking"] },
-  );
-
-  await didRegistryMock.setDidResult(true);
-  await tprMock.setPolicyResult(true);
-
-  return {
-    broadcaster,
-    trackAndTraceContract,
-  };
-}
-
-export async function grantAccess(
-  contract: TrackAndTrace,
-  documentHash: string,
-  grantedByAccount: string,
-  subjectAccount: string,
-  subjectAccType: (typeof AccountType)[keyof typeof AccountType],
-) {
-  // permission to delegate
-  const txDelegate = await contract.grantAccess(
-    documentHash,
-    Buffer.from(grantedByAccount),
-    await didToHex(subjectAccount),
-    AccountType.DID_EBSI,
-    subjectAccType,
-    Permission.DELEGATE,
-  );
-  await txDelegate.wait();
-
-  // permission to write
-  const txWrite = await contract.grantAccess(
-    documentHash,
-    Buffer.from(grantedByAccount),
-    await didToHex(subjectAccount),
-    AccountType.DID_EBSI,
-    subjectAccType,
-    Permission.WRITE,
-  );
-  await txWrite.wait();
-}
-
-export async function insertDocumentWithBlockSource(
-  contract: TrackAndTrace,
-  creatorAccount: string,
-) {
-  const doc = createDocument(creatorAccount, false);
-
-  const tx = await contract["createDocument(bytes32,string,string)"](
-    doc.documentHash,
-    doc.documentMetadata,
-    doc.didEbsiCreator,
-  );
-
-  const receipt = await tx.wait();
-
-  if (!receipt) {
-    throw new Error("Receipt not found");
-  }
-
-  const block = await hre.ethers.provider.getBlock(receipt.blockHash);
-
-  if (!block) {
-    throw new Error("Block not found");
-  }
-
-  doc.timestamp = {
-    datetime: `0x${block.timestamp.toString(16)}`,
-    proof: `0x${block.number.toString(16).padStart(64, "0")}`,
-  };
-
-  return doc;
-}
-
-export async function insertDocumentWithExternalSource(
-  contract: TrackAndTrace,
-  creatorAccount: string,
-) {
-  const doc = createDocument(creatorAccount, true);
-
-  await contract["createDocument(bytes32,string,string,uint256,bytes32)"](
-    doc.documentHash,
-    doc.documentMetadata,
-    doc.didEbsiCreator,
-    doc.timestamp.datetime,
-    doc.timestamp.proof,
-  );
-
-  return doc;
 }
 
 export async function setupTestEnv({
@@ -285,4 +115,174 @@ export async function setupTestEnv({
     provider: ethersProvider,
     trackAndTraceContract,
   };
+}
+
+async function addEvent(contract: TrackAndTrace, doc: TestDocument) {
+  const event = createEvent(doc.documentHash, doc.didEbsiCreator);
+
+  const tx = await contract["writeEvent((bytes32,string,bytes,string,string))"](
+    {
+      documentHash: event.documentHash,
+      externalHash: event.externalHash,
+      metadata: event.metadata,
+      origin: event.origin,
+      sender: await didToHex(event.sender),
+    },
+  );
+
+  const receipt = await tx.wait();
+
+  if (!receipt) {
+    throw new Error("Receipt not found");
+  }
+
+  const block = await hre.ethers.provider.getBlock(receipt.blockHash);
+
+  if (!block) {
+    throw new Error("Block not found");
+  }
+
+  event.timestamp = {
+    datetime: `0x${block.timestamp.toString(16)}`,
+    proof: `0x${block.number.toString(16).padStart(64, "0")}`,
+  };
+
+  doc.events.push(event);
+}
+
+async function deployTrackAndTraceContract(): Promise<{
+  broadcaster: SignerWithAddress;
+  trackAndTraceContract: TrackAndTrace;
+}> {
+  const signers = (await hre.ethers.getSigners()) as [
+    SignerWithAddress,
+    SignerWithAddress,
+    SignerWithAddress,
+    ...SignerWithAddress[],
+  ];
+  const [admin, upgrader, broadcaster] = signers;
+
+  const trackAndTraceLibFactory = await hre.ethers.getContractFactory(
+    "TrackAndTraceLib",
+    {},
+  );
+  const trackAndTraceLibContract = await trackAndTraceLibFactory.deploy();
+
+  await trackAndTraceLibContract.waitForDeployment();
+
+  const trackAndTraceContractFactory = await hre.ethers.getContractFactory(
+    "TrackAndTrace",
+    {
+      libraries: {
+        TrackAndTraceLib: await trackAndTraceLibContract.getAddress(),
+      },
+    },
+  );
+
+  // deploy TPR mock
+  const policyRegistryFactory =
+    await hre.ethers.getContractFactory("PolicyRegistryMock");
+  const tprMock = await policyRegistryFactory.deploy();
+
+  // deploy DID mock
+  const didMockFactory = await hre.ethers.getContractFactory("DidRegistryMock");
+  const didRegistryMock = await didMockFactory.deploy();
+
+  const trackAndTraceContract = await hre.upgrades.deployProxy(
+    trackAndTraceContractFactory,
+    [
+      admin.address,
+      upgrader.address,
+      await tprMock.getAddress(),
+      await didRegistryMock.getAddress(),
+    ],
+    { unsafeAllow: ["external-library-linking"] },
+  );
+
+  await didRegistryMock.setDidResult(true);
+  await tprMock.setPolicyResult(true);
+
+  return {
+    broadcaster,
+    trackAndTraceContract,
+  };
+}
+
+async function grantAccess(
+  contract: TrackAndTrace,
+  documentHash: string,
+  grantedByAccount: string,
+  subjectAccount: string,
+  subjectAccType: (typeof AccountType)[keyof typeof AccountType],
+) {
+  // permission to delegate
+  const txDelegate = await contract.grantAccess(
+    documentHash,
+    Buffer.from(grantedByAccount),
+    await didToHex(subjectAccount),
+    AccountType.DID_EBSI,
+    subjectAccType,
+    Permission.DELEGATE,
+  );
+  await txDelegate.wait();
+
+  // permission to write
+  const txWrite = await contract.grantAccess(
+    documentHash,
+    Buffer.from(grantedByAccount),
+    await didToHex(subjectAccount),
+    AccountType.DID_EBSI,
+    subjectAccType,
+    Permission.WRITE,
+  );
+  await txWrite.wait();
+}
+
+async function insertDocumentWithBlockSource(
+  contract: TrackAndTrace,
+  creatorAccount: string,
+) {
+  const doc = createDocument(creatorAccount, false);
+
+  const tx = await contract["createDocument(bytes32,string,string)"](
+    doc.documentHash,
+    doc.documentMetadata,
+    doc.didEbsiCreator,
+  );
+
+  const receipt = await tx.wait();
+
+  if (!receipt) {
+    throw new Error("Receipt not found");
+  }
+
+  const block = await hre.ethers.provider.getBlock(receipt.blockHash);
+
+  if (!block) {
+    throw new Error("Block not found");
+  }
+
+  doc.timestamp = {
+    datetime: `0x${block.timestamp.toString(16)}`,
+    proof: `0x${block.number.toString(16).padStart(64, "0")}`,
+  };
+
+  return doc;
+}
+
+async function insertDocumentWithExternalSource(
+  contract: TrackAndTrace,
+  creatorAccount: string,
+) {
+  const doc = createDocument(creatorAccount, true);
+
+  await contract["createDocument(bytes32,string,string,uint256,bytes32)"](
+    doc.documentHash,
+    doc.documentMetadata,
+    doc.didEbsiCreator,
+    doc.timestamp.datetime,
+    doc.timestamp.proof,
+  );
+
+  return doc;
 }

@@ -36,8 +36,8 @@ export interface ApiConfig {
   };
 }
 
-export const SERVICE_PREFIX = "timestamp";
-export const SERVICE_VERSION = "v4";
+const SERVICE_PREFIX = "timestamp";
+const SERVICE_VERSION = "v4";
 
 // Declare all the services and their versions used by this service
 interface ServiceVersions {
@@ -61,7 +61,7 @@ export const RUNTIME_DEPENDENCIES = {
 } as const satisfies Partial<ServiceVersions>;
 
 // EBSI Services that are only used during the tests
-export const DEV_DEPENDENCIES = {
+const DEV_DEPENDENCIES = {
   ledger: "v4",
   "trusted-issuers-registry": "v5",
   "trusted-policies-registry": "v3",
@@ -71,7 +71,7 @@ export const DEV_DEPENDENCIES = {
 // Config factory
 // Note that process.env — for which provide typings in src/environment.d.ts —
 // should have already been validated by Joi in src/app.module.ts
-export const loadConfig = () => {
+const loadConfig = () => {
   const { DOMAIN, URI_SCHEME } = process.env;
 
   const ebsiEnvConfig = {

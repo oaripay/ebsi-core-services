@@ -29,5 +29,3 @@ export function getDiamondStorage(contractName: string) {
     }
   }
 }
-
-export default getDiamondStorage;

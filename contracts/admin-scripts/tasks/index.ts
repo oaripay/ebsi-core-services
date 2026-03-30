@@ -18,3 +18,4 @@ import "./bootstrap";
 import "./contractDeployedBlock";
 import "./trustedContractsRegistry";
 import "./migrateProxyTemplateRegistry";
+import "./getImplementation";

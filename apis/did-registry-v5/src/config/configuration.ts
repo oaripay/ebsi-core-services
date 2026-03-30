@@ -27,8 +27,8 @@ export interface ApiConfig {
   testSpecificNodeDomain: string | undefined;
 }
 
-export const SERVICE_PREFIX = "did-registry";
-export const SERVICE_VERSION = "v5";
+const SERVICE_PREFIX = "did-registry";
+const SERVICE_VERSION = "v5";
 
 // Declare all the services and their versions used by this service
 interface ServiceVersions {
@@ -60,7 +60,7 @@ export const DEV_DEPENDENCIES = {
 // Config factory
 // Note that process.env — for which provide typings in src/environment.d.ts —
 // should have already been validated by Joi in src/app.module.ts
-export const loadConfig = () => {
+const loadConfig = () => {
   const { DOMAIN, URI_SCHEME } = process.env;
 
   const ebsiEnvConfig = {

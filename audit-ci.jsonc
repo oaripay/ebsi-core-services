@@ -10,5 +10,6 @@
     "GHSA-4992-7rv2-5pvq", // hardhat>undici
     "GHSA-v9p9-hfj2-hcw8", // hardhat>undici
     "GHSA-vrm6-8vpv-qv8q", // hardhat>undici
+    "GHSA-qj8w-gfj5-8c6v", // (hardhat|solidity-coverage)>mocha>serialize-javascript
   ],
 }

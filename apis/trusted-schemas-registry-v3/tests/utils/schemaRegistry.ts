@@ -15,12 +15,6 @@ import crypto from "node:crypto";
 
 import { createDid, createSchema } from "./data.ts";
 
-export interface SetupOptions {
-  schemaMetadataTotal?: number;
-  schemaRevisionsTotal?: number;
-  schemasTotal?: number;
-}
-
 interface SchemaMetadataObject {
   metadata: unknown;
   serializedMetadata: Buffer;
@@ -34,85 +28,15 @@ interface SchemaObject {
   serializedSchema: Buffer;
 }
 
+interface SetupOptions {
+  schemaMetadataTotal?: number;
+  schemaRevisionsTotal?: number;
+  schemasTotal?: number;
+}
+
 interface User {
   did: string;
   wallet: ethers.BaseWallet;
-}
-
-export async function deploySchemasRegistryContract(): Promise<{
-  policyContractMock: PolicyRegistryMock;
-  schemasRegistryContract: SchemaSCRegistry;
-}> {
-  const testTprAddress = "0xb2a560271ce08135e245F490b8794794A13a1208";
-  const policyRegistryFactory =
-    await hre.ethers.getContractFactory("PolicyRegistryMock");
-  const tempPolicyContract = await policyRegistryFactory.deploy();
-
-  const bytecode = await hre.ethers.provider.getCode(
-    await tempPolicyContract.getAddress(),
-  );
-  await hre.network.provider.send("hardhat_setCode", [
-    testTprAddress,
-    bytecode,
-  ]);
-  const policyContractMock = policyRegistryFactory.attach(
-    testTprAddress,
-  ) as PolicyRegistryMock;
-
-  const schemaLibFactory = await hre.ethers.getContractFactory("SchemaLib", {});
-  const schemaLib = await schemaLibFactory.deploy();
-
-  const schemasRegistryFactory = await hre.ethers.getContractFactory(
-    "SchemaSCRegistry",
-    {
-      libraries: {
-        SchemaLib: await schemaLib.getAddress(),
-      },
-    },
-  );
-  const schemasRegistry = await schemasRegistryFactory.deploy(testTprAddress);
-  await policyContractMock.setPolicyResult(true);
-
-  return { policyContractMock, schemasRegistryContract: schemasRegistry };
-}
-
-export async function insertSchema(
-  contract: SchemaSCRegistry,
-  schemaIdType:
-    | "deprecated (invalid $ref, document ok)"
-    | "deprecated (invalid $ref, document stringified twice)"
-    | "fixed",
-): Promise<SchemaObject> {
-  const schema = createSchema();
-  const schemaIdBuffer =
-    schemaIdType === "fixed"
-      ? await computeId(schema)
-      : await computeId__deprecated(
-          schema,
-          schemaIdType ===
-            "deprecated (invalid $ref, document stringified twice)",
-        );
-  const schemaId = `0x${schemaIdBuffer.toString("hex")}`;
-
-  const serializedSchema = Buffer.from(JSON.stringify(schema));
-
-  const metadata = {
-    data: `data-${crypto.randomBytes(16).toString("hex")}`,
-    meta: "value",
-    validFrom: new Date(Date.now() - 60 * 1000).toISOString(), // -1 minute
-    validTo: new Date(Date.now() + 5 * 60 * 1000).toISOString(), // +5 minutes
-  };
-  const serializedMetadata = Buffer.from(JSON.stringify(metadata));
-
-  await contract.insertSchema(schemaId, serializedSchema, serializedMetadata);
-
-  return {
-    metadata,
-    schema,
-    schemaId,
-    serializedMetadata,
-    serializedSchema,
-  };
 }
 
 export async function setupTestEnv(
@@ -189,7 +113,83 @@ export async function setupTestEnv(
   };
 }
 
-export async function updateMetadata(
+async function deploySchemasRegistryContract(): Promise<{
+  policyContractMock: PolicyRegistryMock;
+  schemasRegistryContract: SchemaSCRegistry;
+}> {
+  const testTprAddress = "0xb2a560271ce08135e245F490b8794794A13a1208";
+  const policyRegistryFactory =
+    await hre.ethers.getContractFactory("PolicyRegistryMock");
+  const tempPolicyContract = await policyRegistryFactory.deploy();
+
+  const bytecode = await hre.ethers.provider.getCode(
+    await tempPolicyContract.getAddress(),
+  );
+  await hre.network.provider.send("hardhat_setCode", [
+    testTprAddress,
+    bytecode,
+  ]);
+  const policyContractMock = policyRegistryFactory.attach(
+    testTprAddress,
+  ) as PolicyRegistryMock;
+
+  const schemaLibFactory = await hre.ethers.getContractFactory("SchemaLib", {});
+  const schemaLib = await schemaLibFactory.deploy();
+
+  const schemasRegistryFactory = await hre.ethers.getContractFactory(
+    "SchemaSCRegistry",
+    {
+      libraries: {
+        SchemaLib: await schemaLib.getAddress(),
+      },
+    },
+  );
+  const schemasRegistry = await schemasRegistryFactory.deploy(testTprAddress);
+  await policyContractMock.setPolicyResult(true);
+
+  return { policyContractMock, schemasRegistryContract: schemasRegistry };
+}
+
+async function insertSchema(
+  contract: SchemaSCRegistry,
+  schemaIdType:
+    | "deprecated (invalid $ref, document ok)"
+    | "deprecated (invalid $ref, document stringified twice)"
+    | "fixed",
+): Promise<SchemaObject> {
+  const schema = createSchema();
+  const schemaIdBuffer =
+    schemaIdType === "fixed"
+      ? await computeId(schema)
+      : await computeId__deprecated(
+          schema,
+          schemaIdType ===
+            "deprecated (invalid $ref, document stringified twice)",
+        );
+  const schemaId = `0x${schemaIdBuffer.toString("hex")}`;
+
+  const serializedSchema = Buffer.from(JSON.stringify(schema));
+
+  const metadata = {
+    data: `data-${crypto.randomBytes(16).toString("hex")}`,
+    meta: "value",
+    validFrom: new Date(Date.now() - 60 * 1000).toISOString(), // -1 minute
+    validTo: new Date(Date.now() + 5 * 60 * 1000).toISOString(), // +5 minutes
+  };
+  const serializedMetadata = Buffer.from(JSON.stringify(metadata));
+
+  await contract.insertSchema(schemaId, serializedSchema, serializedMetadata);
+
+  return {
+    metadata,
+    schema,
+    schemaId,
+    serializedMetadata,
+    serializedSchema,
+  };
+}
+
+async function updateMetadata(
   schemaId: string,
   schemaRevisionId: string,
   contract: SchemaSCRegistry,
@@ -208,7 +208,7 @@ export async function updateMetadata(
   };
 }
 
-export async function updateSchema(
+async function updateSchema(
   schemaId: string,
   contract: SchemaSCRegistry,
 ): Promise<SchemaObject> {

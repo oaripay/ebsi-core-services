@@ -3,12 +3,10 @@
   "private": true,
   "version": "2.0.0-rc.8",
   "license": "EUPL-1.2",
-  "main": "index.js",
   "scripts": {
     "clean": "rimraf artifacts cache src dist",
     "build": "pnpm run compile",
     "compile": "hardhat compile && pnpm exec tsc --project tsconfig.build.json && copyfiles -f src/types/hardhat.d.ts dist",
-    "coverage": "pnpm exec hardhat coverage --network coverage",
     "lint": "pnpm run lint:prettier && pnpm run lint:eslint && pnpm run lint:sol",
     "lint:prettier": "prettier . --check && pnpm exec prettier --list-different --plugin=prettier-plugin-solidity \"contracts/**/*.sol\"",
     "lint:write": "prettier . --write && pnpm exec prettier --write --plugin=prettier-plugin-solidity \"contracts/**/*.sol\"",
@@ -33,7 +31,6 @@
     "ethers": "6.16.0",
     "hardhat": "2.26.1",
     "hardhat-abi-exporter": "2.11.0",
-    "solidity-coverage": "0.8.17",
     "typechain": "8.3.2"
   },
   "nx": {

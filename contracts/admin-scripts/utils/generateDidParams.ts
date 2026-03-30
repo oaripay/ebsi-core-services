@@ -65,7 +65,17 @@ export async function generateDidParams(
   };
 }
 
-export function getJwks(privateKeyHex: string, alg: "ES256" | "ES256K") {
+/** Base64url-encode bytes (no padding, URL-safe). Avoids ESM-only multiformats subpath under CJS (e.g. Hardhat). */
+function base64urlEncode(data: Buffer | Uint8Array): string {
+  const buf = Buffer.isBuffer(data) ? data : Buffer.from(data);
+  return buf
+    .toString("base64")
+    .replaceAll("+", "-")
+    .replaceAll("/", "_")
+    .replaceAll("=", "");
+}
+
+function getJwks(privateKeyHex: string, alg: "ES256" | "ES256K") {
   const ec = alg === "ES256" ? new EC("p256") : new EC("secp256k1");
   const privateKey = removePrefix0x(privateKeyHex);
   const keyPair = ec.keyFromPrivate(privateKey, "hex");
@@ -88,16 +98,6 @@ export function getJwks(privateKeyHex: string, alg: "ES256" | "ES256K") {
   return { privateKeyJwk, publicKeyJwk };
 }
 
-export function removePrefix0x(key: string): string {
+function removePrefix0x(key: string): string {
   return key.startsWith("0x") ? key.slice(2) : key;
-}
-
-/** Base64url-encode bytes (no padding, URL-safe). Avoids ESM-only multiformats subpath under CJS (e.g. Hardhat). */
-function base64urlEncode(data: Buffer | Uint8Array): string {
-  const buf = Buffer.isBuffer(data) ? data : Buffer.from(data);
-  return buf
-    .toString("base64")
-    .replaceAll("+", "-")
-    .replaceAll("/", "_")
-    .replaceAll("=", "");
 }

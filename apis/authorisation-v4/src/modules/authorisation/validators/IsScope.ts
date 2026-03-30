@@ -4,28 +4,7 @@ import { buildMessage, ValidateBy } from "class-validator";
 
 import { CUSTOM_SCOPES, OPENID_SCOPE } from "../authorisation.constants.ts";
 
-export const IS_SCOPE = "isScope";
-
-export function isScope(value: unknown): boolean {
-  if (typeof value !== "string") {
-    return false;
-  }
-
-  const valueAsArray = value.split(" ");
-
-  // scope must contain 2 items
-  if (valueAsArray.length !== 2) {
-    return false;
-  }
-
-  // The first item must be "openid"
-  if (valueAsArray[0] !== OPENID_SCOPE) {
-    return false;
-  }
-
-  // The second item must be one of the custom scopes
-  return CUSTOM_SCOPES.includes(valueAsArray[1]!);
-}
+const IS_SCOPE = "isScope";
 
 export function IsScope(
   validationOptions?: ValidationOptions,
@@ -46,4 +25,25 @@ export function IsScope(
     },
     validationOptions,
   );
+}
+
+function isScope(value: unknown): boolean {
+  if (typeof value !== "string") {
+    return false;
+  }
+
+  const valueAsArray = value.split(" ");
+
+  // scope must contain 2 items
+  if (valueAsArray.length !== 2) {
+    return false;
+  }
+
+  // The first item must be "openid"
+  if (valueAsArray[0] !== OPENID_SCOPE) {
+    return false;
+  }
+
+  // The second item must be one of the custom scopes
+  return CUSTOM_SCOPES.includes(valueAsArray[1]!);
 }

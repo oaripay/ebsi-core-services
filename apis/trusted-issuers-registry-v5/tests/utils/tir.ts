@@ -46,7 +46,7 @@ export interface IssuerProxyObject {
   testSuffix: string;
 }
 
-export interface SetupOptions {
+interface SetupOptions {
   issuersTotal?: number;
 }
 
@@ -106,7 +106,68 @@ export function createIssuer(
   };
 }
 
-export function createProxy(issuerDid: string) {
+export async function setupTestEnv({
+  issuersTotal = 0,
+}: SetupOptions = {}): Promise<{
+  didContractMock: DidRegistryMock;
+  issuers: IssuerObject[];
+  provider: HardhatEthersProvider;
+  tirContract: Tir;
+}> {
+  const ethersProvider = hre.ethers.provider;
+
+  // Deploy contract
+  const { didContractMock, tirContract } = await deployTirContract();
+
+  // Insert fake data
+  const issuers: IssuerObject[] = [];
+
+  // create a Root TAO
+  const rootTao = await insertIssuer(tirContract, IssuerType.RootTAO);
+  issuers.push(rootTao);
+
+  // create TAOs
+  const tao1 = await insertIssuer(
+    tirContract,
+    IssuerType.TAO,
+    rootTao.did,
+    rootTao.attribute.id,
+    rootTao.did,
+  );
+  const tao2 = await insertIssuer(
+    tirContract,
+    IssuerType.TAO,
+    rootTao.did,
+    rootTao.attribute.id,
+    rootTao.did,
+  );
+  issuers.push(tao1, tao2);
+
+  // create TIs
+  const insertIssuerAsTI = async () =>
+    insertIssuer(
+      tirContract,
+      IssuerType.TI,
+      tao1.did,
+      tao1.attribute.id,
+      rootTao.did,
+    );
+
+  // Create as many issuers as requested
+  for (let i = 0; i < issuersTotal - 3; i++) {
+    issuers.push(await insertIssuerAsTI());
+  }
+
+  // Return test env variables
+  return {
+    didContractMock,
+    issuers,
+    provider: ethersProvider,
+    tirContract,
+  };
+}
+
+function createProxy(issuerDid: string) {
   const proxyObject: IssuerProxyObject = {
     headers: {
       Authorization: `Bearer ${crypto.randomBytes(16).toString("hex")}`,
@@ -179,7 +240,7 @@ export function createProxy(issuerDid: string) {
   };
 }
 
-export async function deployTirContract(): Promise<{
+async function deployTirContract(): Promise<{
   didContractMock: DidRegistryMock;
   policyContractMock: PolicyRegistryMock;
   tirContract: Tir;
@@ -230,7 +291,7 @@ export async function deployTirContract(): Promise<{
   };
 }
 
-export async function insertIssuer(
+async function insertIssuer(
   contract: Tir,
   issuerType: (typeof IssuerType)[keyof typeof IssuerType],
   inputTaoDid?: string,
@@ -262,65 +323,4 @@ export async function insertIssuer(
     await contract.addIssuerProxy(issuer.did, proxy.utf8);
   }
   return issuer;
-}
-
-export async function setupTestEnv({
-  issuersTotal = 0,
-}: SetupOptions = {}): Promise<{
-  didContractMock: DidRegistryMock;
-  issuers: IssuerObject[];
-  provider: HardhatEthersProvider;
-  tirContract: Tir;
-}> {
-  const ethersProvider = hre.ethers.provider;
-
-  // Deploy contract
-  const { didContractMock, tirContract } = await deployTirContract();
-
-  // Insert fake data
-  const issuers: IssuerObject[] = [];
-
-  // create a Root TAO
-  const rootTao = await insertIssuer(tirContract, IssuerType.RootTAO);
-  issuers.push(rootTao);
-
-  // create TAOs
-  const tao1 = await insertIssuer(
-    tirContract,
-    IssuerType.TAO,
-    rootTao.did,
-    rootTao.attribute.id,
-    rootTao.did,
-  );
-  const tao2 = await insertIssuer(
-    tirContract,
-    IssuerType.TAO,
-    rootTao.did,
-    rootTao.attribute.id,
-    rootTao.did,
-  );
-  issuers.push(tao1, tao2);
-
-  // create TIs
-  const insertIssuerAsTI = async () =>
-    insertIssuer(
-      tirContract,
-      IssuerType.TI,
-      tao1.did,
-      tao1.attribute.id,
-      rootTao.did,
-    );
-
-  // Create as many issuers as requested
-  for (let i = 0; i < issuersTotal - 3; i++) {
-    issuers.push(await insertIssuerAsTI());
-  }
-
-  // Return test env variables
-  return {
-    didContractMock,
-    issuers,
-    provider: ethersProvider,
-    tirContract,
-  };
 }

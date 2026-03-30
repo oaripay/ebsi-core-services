@@ -2348,7 +2348,7 @@ Apache License 2.0: https://www.apache.org/licenses/LICENSE-2.0
    limitations under the License.
 
 ========================================================================================
-- axios@1.13.6
+- axios@1.14.0
 ------------------------------
 This project is licensed under MIT.
 

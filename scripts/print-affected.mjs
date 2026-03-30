@@ -1,8 +1,6 @@
-#!/usr/bin/env node
-
-const { spawnSync } = require("node:child_process");
-const { writeFileSync } = require("node:fs");
-const { EOL } = require("node:os");
+import { spawnSync } from "node:child_process";
+import { writeFileSync } from "node:fs";
+import { EOL } from "node:os";
 
 /**
  * The script below should prepare a list of affected (modified) services and apps managed through Docker containers.

@@ -1122,9 +1122,9 @@ describe("Timestamp API v4 - Records (e2e)", () => {
           "",
       );
 
-      const { recordId } = (responseLast.body as { items: string }).items[
-        (responseLast.body as { items: string }).items.length - 1
-      ] as unknown as RecordLink;
+      const { recordId } = (responseLast.body as { items: string }).items.at(
+        -1,
+      ) as unknown as RecordLink;
 
       const decodedRecordId = `0x${Buffer.from(
         multibase.base64url.decode(recordId),

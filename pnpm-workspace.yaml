@@ -40,13 +40,15 @@ overrides:
   "@graphprotocol/graph-cli@0.98.1>yaml@2.8.1": 2.8.3
   "@graphprotocol/graph-ts@0.38.2>assemblyscript@0.27.31": 0.19.23
   "@nestjs/common@11.1.16>file-type@21.3.0": 21.3.1
+  "@nestjs/core@11.1.17>path-to-regexp@8.3.0": 8.4.0
   "@nestjs/platform-fastify@11.1.17>fastify@5.8.2": 5.8.4
+  "@nestjs/platform-fastify@11.1.17>path-to-regexp@8.3.0": 8.4.0
   "@nestjs/schematics@11.0.9>@angular-devkit/core@19.2.17": 19.2.19
   "@nestjs/schematics@11.0.9>@angular-devkit/schematics@19.2.17": 19.2.19
   "@nx/devkit@20.8.4>minimatch@9.0.3": "9.0.9"
   "@nx/workspace@20.8.4>picomatch@4.0.2": 4.0.4
   "@scaleway/changesets-renovate@2.2.4>simple-git@3.30.0": 3.32.3
-  "@stoplight/spectral-core@1.21.0>minimatch@3.1.2": 3.1.4
+  "@stoplight/spectral-core@1.21.0>minimatch@3.1.2": 3.1.5
   "@stoplight/spectral-ruleset-bundler@1.6.3>rollup@2.79.2": 2.80.0
   "@types/glob@7.2.0>@types/minimatch@*": 5.1.2
   apisauce@2.1.6>axios@0.21.4: 0.30.3

@@ -48,13 +48,13 @@ type Services = EbsiEnvConfiguration["services"] & {
   "trusted-contracts-registry": `v${number}`;
 };
 
-export const SERVICE_PREFIX = "authorisation";
-export const SERVICE_VERSION = "v4";
+const SERVICE_PREFIX = "authorisation";
+const SERVICE_VERSION = "v4";
 
 // Config factory
 // Note that process.env — for which provide typings in src/environment.d.ts —
 // should have already been validated by Joi in src/app.module.ts
-export const loadConfig = () => {
+const loadConfig = () => {
   const { DOMAIN, NETWORK, URI_SCHEME } = process.env;
 
   // EBSI Services Authorisation API v4 depends on

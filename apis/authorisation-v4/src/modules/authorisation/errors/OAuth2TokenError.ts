@@ -6,7 +6,7 @@ import { OAuth2Error } from "./OAuth2Error.ts";
  * OAuth2 Token Error
  * https://www.rfc-editor.org/rfc/rfc6749.html#section-5.2
  */
-export type OAuth2TokenErrorCode =
+type OAuth2TokenErrorCode =
   /**
    * Client authentication failed (e.g., unknown client, no client authentication included, or
    * unsupported authentication method).  The authorization server MAY return an HTTP 401

@@ -11,7 +11,7 @@ import { HardhatEthersProvider } from "@nomicfoundation/hardhat-ethers/internal/
 import { ethers } from "ethers";
 import { randomBytes } from "node:crypto";
 
-export const validHashAlgorithms = [
+const validHashAlgorithms = [
   "sha-256",
   "sha-512",
   "sha3-224",
@@ -25,9 +25,9 @@ export const validHashAlgorithms = [
   "keccak-512",
 ] as const;
 
-export type ValidIanaHashAlgorithms = (typeof validHashAlgorithms)[number];
+type ValidIanaHashAlgorithms = (typeof validHashAlgorithms)[number];
 
-export const ianaToMultihashAlg = {
+const ianaToMultihashAlg = {
   "keccak-224": "keccak-224",
   "keccak-256": "keccak-256",
   "keccak-384": "keccak-384",
@@ -41,7 +41,7 @@ export const ianaToMultihashAlg = {
   "shake-256": "shake-256",
 } as const satisfies Record<ValidIanaHashAlgorithms, HashName>;
 
-export type ValidMultihashAlgorithms =
+type ValidMultihashAlgorithms =
   (typeof ianaToMultihashAlg)[ValidIanaHashAlgorithms];
 
 export const multihashToNodeHashAlg = {
@@ -58,7 +58,7 @@ export const multihashToNodeHashAlg = {
   "shake-256": "shake-256",
 } as const satisfies Record<ValidMultihashAlgorithms, string>;
 
-export const outputLengths = {
+const outputLengths = {
   "keccak-224": 224,
   "keccak-256": 256,
   "keccak-384": 384,
@@ -71,12 +71,6 @@ export const outputLengths = {
   "sha-512": 512,
   "shake-256": 256,
 } as const satisfies Record<ValidIanaHashAlgorithms, number>;
-
-export interface SetupOptions {
-  hashAlgorithmsTotal?: number;
-  hashesTotal?: number;
-  recordsTotal?: number;
-}
 
 interface HashAlgorithmObject {
   ianaName: ValidIanaHashAlgorithms;
@@ -101,12 +95,93 @@ interface RecordObject {
   versionInfo: string;
 }
 
+interface SetupOptions {
+  hashAlgorithmsTotal?: number;
+  hashesTotal?: number;
+  recordsTotal?: number;
+}
+
 export function createHash(alg: ValidIanaHashAlgorithms): string {
   const outputLength = outputLengths[alg];
   return `0x${randomBytes(outputLength / 8).toString("hex")}`;
 }
 
-export async function deployTimestampContract(): Promise<{
+export async function insertHash(
+  contract: Timestamp,
+  hashAlgorithm: HashAlgorithmObject,
+): Promise<HashObject> {
+  const hashAlgorithmIds = [0];
+  const hashValues = [createHash(hashAlgorithm.ianaName)];
+  const timestampData = [`0x${randomBytes(4).toString("hex")}`];
+
+  const tx = await contract.timestampHashes(
+    hashAlgorithmIds,
+    hashValues,
+    timestampData,
+  );
+
+  return {
+    hashAlgorithmIds,
+    hashValues,
+    timestampData,
+    tx: tx as unknown as ContractTransactionResponse,
+  };
+}
+
+export async function setupTestEnv(opts?: SetupOptions): Promise<{
+  hashAlgorithms: HashAlgorithmObject[];
+  hashes: HashObject[];
+  policyContractMock: PolicyRegistryMock;
+  provider: HardhatEthersProvider;
+  records: RecordObject[];
+  sender: string;
+  timestampContract: Timestamp;
+}> {
+  const { hashAlgorithmsTotal, hashesTotal, recordsTotal } = {
+    hashAlgorithmsTotal: 1,
+    hashesTotal: 0,
+    recordsTotal: 1,
+    ...opts,
+  };
+  const ethersProvider = hre.ethers.provider;
+  const signer = await ethersProvider.getSigner();
+  const sender = await signer.getAddress();
+
+  // Deploy contract
+  const { policyContractMock, timestampContract } =
+    await deployTimestampContract();
+
+  // Insert fake data
+  const hashAlgorithms: HashAlgorithmObject[] = [];
+  for (let i = 0; i < hashAlgorithmsTotal; i++) {
+    hashAlgorithms.push(await insertHashAlgorithm(timestampContract, i));
+  }
+
+  const records: RecordObject[] = [];
+  for (let i = 0; i < recordsTotal; i++) {
+    records.push(
+      await insertRecord(timestampContract, sender, hashAlgorithms[0]!),
+    );
+  }
+
+  const hashes: HashObject[] = [];
+  for (let i = 0; i < hashesTotal; i++) {
+    hashes.push(await insertHash(timestampContract, hashAlgorithms[0]!));
+  }
+
+  // Return test env variables
+  return {
+    hashAlgorithms,
+    hashes,
+    policyContractMock,
+    provider: ethersProvider,
+    records,
+    sender,
+    timestampContract,
+  };
+}
+
+async function deployTimestampContract(): Promise<{
   policyContractMock: PolicyRegistryMock;
   timestampContract: Timestamp;
 }> {
@@ -162,29 +237,7 @@ export async function deployTimestampContract(): Promise<{
   return { policyContractMock, timestampContract };
 }
 
-export async function insertHash(
-  contract: Timestamp,
-  hashAlgorithm: HashAlgorithmObject,
-): Promise<HashObject> {
-  const hashAlgorithmIds = [0];
-  const hashValues = [createHash(hashAlgorithm.ianaName)];
-  const timestampData = [`0x${randomBytes(4).toString("hex")}`];
-
-  const tx = await contract.timestampHashes(
-    hashAlgorithmIds,
-    hashValues,
-    timestampData,
-  );
-
-  return {
-    hashAlgorithmIds,
-    hashValues,
-    timestampData,
-    tx: tx as unknown as ContractTransactionResponse,
-  };
-}
-
-export async function insertHashAlgorithm(
+async function insertHashAlgorithm(
   contract: Timestamp,
   index: number,
 ): Promise<HashAlgorithmObject> {
@@ -211,7 +264,7 @@ export async function insertHashAlgorithm(
   };
 }
 
-export async function insertRecord(
+async function insertRecord(
   contract: Timestamp,
   sender: string,
   hashAlgorithm: HashAlgorithmObject,
@@ -246,58 +299,5 @@ export async function insertRecord(
     recordId,
     timestampData,
     versionInfo,
-  };
-}
-
-export async function setupTestEnv(opts?: SetupOptions): Promise<{
-  hashAlgorithms: HashAlgorithmObject[];
-  hashes: HashObject[];
-  policyContractMock: PolicyRegistryMock;
-  provider: HardhatEthersProvider;
-  records: RecordObject[];
-  sender: string;
-  timestampContract: Timestamp;
-}> {
-  const { hashAlgorithmsTotal, hashesTotal, recordsTotal } = {
-    hashAlgorithmsTotal: 1,
-    hashesTotal: 0,
-    recordsTotal: 1,
-    ...opts,
-  };
-  const ethersProvider = hre.ethers.provider;
-  const signer = await ethersProvider.getSigner();
-  const sender = await signer.getAddress();
-
-  // Deploy contract
-  const { policyContractMock, timestampContract } =
-    await deployTimestampContract();
-
-  // Insert fake data
-  const hashAlgorithms: HashAlgorithmObject[] = [];
-  for (let i = 0; i < hashAlgorithmsTotal; i++) {
-    hashAlgorithms.push(await insertHashAlgorithm(timestampContract, i));
-  }
-
-  const records: RecordObject[] = [];
-  for (let i = 0; i < recordsTotal; i++) {
-    records.push(
-      await insertRecord(timestampContract, sender, hashAlgorithms[0]!),
-    );
-  }
-
-  const hashes: HashObject[] = [];
-  for (let i = 0; i < hashesTotal; i++) {
-    hashes.push(await insertHash(timestampContract, hashAlgorithms[0]!));
-  }
-
-  // Return test env variables
-  return {
-    hashAlgorithms,
-    hashes,
-    policyContractMock,
-    provider: ethersProvider,
-    records,
-    sender,
-    timestampContract,
   };
 }

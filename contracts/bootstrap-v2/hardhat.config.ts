@@ -4,7 +4,6 @@ import { task } from "hardhat/config";
 import "@gnosis-guild/typechain-hardhat";
 import "@nomiclabs/hardhat-solhint";
 import "hardhat-abi-exporter";
-import "solidity-coverage";
 import "@openzeppelin/hardhat-upgrades";
 import * as fs from "node:fs";
 

@@ -14,5 +14,3 @@ export const bearerTokenSchema = z
     sub: z.string(),
   })
   .passthrough(); // Allow extra properties
-
-export type BearerTokenPayload = z.infer<typeof bearerTokenSchema>;

@@ -25,11 +25,39 @@ const deployContract = async (
   return contract.getAddress();
 };
 
-export interface SetupOptions {
+interface SetupOptions {
   didDocumentsTotal?: number;
 }
 
-export async function deployDidRegistryContract(): Promise<{
+export async function setupTestEnv({
+  didDocumentsTotal = 1,
+}: SetupOptions = {}): Promise<{
+  didRegistryContract: DidRegistry;
+  policyContractMock: PolicyRegistryMock;
+  provider: HardhatEthersProvider;
+  users: UserDetails[];
+}> {
+  const ethersProvider = hre.ethers.provider;
+  const users: UserDetails[] = [];
+
+  // Deploy contract
+  const { didRegistryContract, policyContractMock } =
+    await deployDidRegistryContract();
+
+  for (let i = 0; i < didDocumentsTotal; i++) {
+    users.push(await insertDidDocument(didRegistryContract, i));
+  }
+
+  // Return test env variables
+  return {
+    didRegistryContract,
+    policyContractMock,
+    provider: ethersProvider,
+    users,
+  };
+}
+
+async function deployDidRegistryContract(): Promise<{
   didRegistryContract: DidRegistry;
   policyContractMock: PolicyRegistryMock;
 }> {
@@ -78,7 +106,7 @@ export async function deployDidRegistryContract(): Promise<{
   };
 }
 
-export async function insertDidDocument(
+async function insertDidDocument(
   contract: DidRegistry,
   indexAccount: number,
 ): Promise<UserDetails> {
@@ -114,32 +142,4 @@ export async function insertDidDocument(
   );
 
   return user;
-}
-
-export async function setupTestEnv({
-  didDocumentsTotal = 1,
-}: SetupOptions = {}): Promise<{
-  didRegistryContract: DidRegistry;
-  policyContractMock: PolicyRegistryMock;
-  provider: HardhatEthersProvider;
-  users: UserDetails[];
-}> {
-  const ethersProvider = hre.ethers.provider;
-  const users: UserDetails[] = [];
-
-  // Deploy contract
-  const { didRegistryContract, policyContractMock } =
-    await deployDidRegistryContract();
-
-  for (let i = 0; i < didDocumentsTotal; i++) {
-    users.push(await insertDidDocument(didRegistryContract, i));
-  }
-
-  // Return test env variables
-  return {
-    didRegistryContract,
-    policyContractMock,
-    provider: ethersProvider,
-    users,
-  };
 }

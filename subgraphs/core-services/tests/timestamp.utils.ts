@@ -172,31 +172,6 @@ export function detachRecordVersionHash(
   return event;
 }
 
-export function encodeTransactionInput(
-  functionSig: string,
-  value: ethereum.Value,
-): Bytes {
-  const encoded = ethereum.encode(value);
-
-  if (!encoded) {
-    throw new Error("Failed to encode transaction input");
-  }
-
-  // Get function signature hash
-  const sigHash = new Bytes(4);
-  sigHash.set(crypto.keccak256(Bytes.fromUTF8(functionSig)).slice(0, 4));
-
-  // Replace 0x0000000000000000000000000000000000000000000000000000000000000020 with the function signature
-  return Bytes.fromHexString(
-    encoded
-      .toHexString()
-      .replace(
-        "0x0000000000000000000000000000000000000000000000000000000000000020",
-        sigHash.toHexString(),
-      ),
-  );
-}
-
 export function getRecordId(
   from: Bytes,
   blockNumber: BigInt,
@@ -762,4 +737,29 @@ export function updateHashAlgorithm(
   handleUpdateHashAlgoEvent(event);
 
   return event;
+}
+
+function encodeTransactionInput(
+  functionSig: string,
+  value: ethereum.Value,
+): Bytes {
+  const encoded = ethereum.encode(value);
+
+  if (!encoded) {
+    throw new Error("Failed to encode transaction input");
+  }
+
+  // Get function signature hash
+  const sigHash = new Bytes(4);
+  sigHash.set(crypto.keccak256(Bytes.fromUTF8(functionSig)).slice(0, 4));
+
+  // Replace 0x0000000000000000000000000000000000000000000000000000000000000020 with the function signature
+  return Bytes.fromHexString(
+    encoded
+      .toHexString()
+      .replace(
+        "0x0000000000000000000000000000000000000000000000000000000000000020",
+        sigHash.toHexString(),
+      ),
+  );
 }
