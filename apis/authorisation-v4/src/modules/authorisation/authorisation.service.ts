@@ -4,11 +4,7 @@ import type {
   EbsiEnvConfiguration,
   ProofPurposeTypes,
 } from "@europeum-ebsi/verifiable-presentation";
-import type {
-  Schemas,
-  VpJwtPayload,
-} from "@europeum-ebsi/verifiable-presentation/vcdm11.js";
-import type { Checked } from "@sphereon/pex";
+import type { Schemas } from "@europeum-ebsi/verifiable-presentation/vcdm20.js";
 import type {
   PresentationDefinitionV2,
   PresentationSubmission,
@@ -24,7 +20,7 @@ import {
   ES256Signer,
   hexToBytes,
 } from "@europeum-ebsi/did-jwt";
-import { verifyPresentationJwt } from "@europeum-ebsi/verifiable-presentation/vcdm11.js";
+import { verifyPresentationJwt } from "@europeum-ebsi/verifiable-presentation/vcdm20.js";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Inject, Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
@@ -233,14 +229,29 @@ export class AuthorisationService {
       presentationDefinition,
     );
 
-    // Now, we can assert that vpTokenPayload is a VpJwtPayload
-    const { vp } = vpTokenPayload as VpJwtPayload;
+    const {
+      aud: _aud,
+      exp: _expVp,
+      iat: _iatVp,
+      iss: _iss,
+      jti: _jti,
+      nbf: _nbf,
+      sub: _sub,
+      ...vp
+    } = vpTokenPayload;
+
+    const presentationHolder = vp["holder"];
+    const holderDid =
+      typeof presentationHolder === "string"
+        ? presentationHolder
+        : (presentationHolder as { id?: string } | undefined)?.id ?? "";
 
     // Verify presentation exchange
     this.validatePresentationExchange(
       vpToken,
       presentationDefinition,
       presentationSubmission,
+      vp,
     );
 
     // Verify VP JWT
@@ -271,10 +282,10 @@ export class AuthorisationService {
     // Verify that the DID is not registered yet.
     if (
       customScope === DIDR_INVITE_SCOPE &&
-      (await this.isDidRegistered(vp.holder, reqId))
+      (await this.isDidRegistered(holderDid, reqId))
     ) {
       throw new OAuth2TokenError("invalid_request", {
-        errorDescription: `Invalid Verifiable Presentation: DID ${vp.holder} is already registered in the DID Registry`,
+        errorDescription: `Invalid Verifiable Presentation: DID ${holderDid} is already registered in the DID Registry`,
       });
     }
 
@@ -293,12 +304,12 @@ export class AuthorisationService {
     // `tir_invite`: the client must present a VP containing a valid VerifiableAuthorisationForTrustChain, VerifiableAccreditationToAttest, or VerifiableAccreditationToAccredit.
     // This is already done by the PEX library, based on the presentation definition.
     if (customScope === TIR_INVITE_SCOPE) {
-      await this.validateTrustedIssuer(vp.holder, true, reqId);
+      await this.validateTrustedIssuer(holderDid, true, reqId);
     }
 
     // `tir_write`: the client needs to be registered as a Trusted Issuer with accreditations.
     if (customScope === TIR_WRITE_SCOPE) {
-      await this.validateTrustedIssuer(vp.holder, false, reqId);
+      await this.validateTrustedIssuer(holderDid, false, reqId);
     }
 
     // `timestamp_write`: the client needs to have entry in DIDR / can prove her signature.
@@ -306,17 +317,17 @@ export class AuthorisationService {
 
     // `tnt_authorise`: the client must be have the TNT:authoriseDid attribute in Trusted Policies Registry.
     if (customScope === TNT_AUTHORISE_SCOPE) {
-      await this.validateTntAdmin(vp.holder, reqId);
+      await this.validateTntAdmin(holderDid, reqId);
     }
 
     // `tnt_create`: the client must be an allowlisted TnT Document creator
     if (customScope === TNT_CREATE_SCOPE) {
-      await this.validateTntCreator(vp.holder, reqId);
+      await this.validateTntCreator(holderDid, reqId);
     }
 
     // `tnt_write`: the client must have granted access for write
     if (customScope === TNT_WRITE_SCOPE) {
-      await this.validateTntWriter(vp.holder, reqId);
+      await this.validateTntWriter(holderDid, reqId);
     }
 
     // Generate access token
@@ -333,7 +344,7 @@ export class AuthorisationService {
         iss: this.issuer, // iss: HTTPS URL of the Authorisation Server instance. Must equal to hosted domain + suffix.
         jti: randomUUID(), // jti: A unique random identifier
         scp: scope, // scp: string of space separated scopes that we granted
-        sub: vpTokenPayload.sub!, // sub: Legal entity DID
+        sub: holderDid, // sub: Legal entity DID
         ...extraClaims,
       },
       {
@@ -360,7 +371,7 @@ export class AuthorisationService {
          * In the general case, the aud value is an array of case sensitive strings.
          * In the common special case when there is one audience, the aud value MAY be a single case sensitive string.
          */
-        aud: vpTokenPayload.iss!,
+        aud: holderDid,
 
         /**
          * `exp`
@@ -420,7 +431,7 @@ export class AuthorisationService {
          * It MUST NOT exceed 255 ASCII characters in length.
          * The sub value is a case sensitive string.
          */
-        sub: vpTokenPayload.iss!,
+        sub: holderDid,
       },
       {
         signer: ES256Signer(this.apiES256PrivateKey),
@@ -743,23 +754,50 @@ export class AuthorisationService {
       }
 
       // Get corresponding VC
-      const matches = /^\$\.vp\.verifiableCredential\[(\d*)\]/m.exec(
+      const vcdm11Match = /^\$\.vp\.verifiableCredential\[(\d*)\]/m.exec(
         descriptor.path_nested.path,
       );
-
-      if (!matches) {
+      const vcdm20Match = /^\$\.verifiableCredential\[(\d*)\]/m.exec(
+        descriptor.path_nested.path,
+      );
+      const match = vcdm11Match ?? vcdm20Match;
+      if (!match) {
         throw new OAuth2TokenError("invalid_request", {
           errorDescription: `Invalid Verifiable Presentation submission: path_nested.path '${descriptor.path_nested.path}' is not valid`,
         });
       }
 
-      const vcIndex = Number.parseInt(matches[1]!, 10);
+      const vcIndex = Number.parseInt(match[1]!, 10);
 
-      const vcJwt = presentation.verifiableCredential[vcIndex];
+      const rawVc = presentation.verifiableCredential?.[vcIndex];
 
-      if (!vcJwt || typeof vcJwt !== "string") {
+      if (!rawVc) {
         throw new OAuth2TokenError("invalid_request", {
-          errorDescription: `Invalid Verifiable Presentation submission: $.vp.verifiableCredential[${vcIndex}] not found`,
+          errorDescription: `Invalid Verifiable Presentation submission: $.verifiableCredential[${vcIndex}] not found`,
+        });
+      }
+
+      let vcJwt: string;
+
+      if (
+        typeof rawVc === "object" &&
+        rawVc !== null &&
+        "id" in rawVc &&
+        typeof rawVc.id === "string"
+      ) {
+        const prefix = "data:application/vc+jwt,";
+        if (!rawVc.id.startsWith(prefix)) {
+          throw new OAuth2TokenError("invalid_request", {
+            errorDescription: `Invalid Verifiable Presentation submission: verifiableCredential[${vcIndex}] id must be a data URI`,
+          });
+        }
+        vcJwt = rawVc.id.slice(prefix.length);
+        // VCDM 1.1 format: plain JWT string
+      } else if (typeof rawVc === "string") {
+        vcJwt = rawVc;
+      } else {
+        throw new OAuth2TokenError("invalid_request", {
+          errorDescription: `Invalid Verifiable Presentation submission: verifiableCredential[${vcIndex}] has unsupported format`,
         });
       }
 
@@ -794,51 +832,169 @@ export class AuthorisationService {
    * @param presentationSubmission - The Presentation Submission that describes the proofs submitted.
    */
   validatePresentationExchange(
-    vpJwt: string,
+    _vpJwt: string,
     presentationDefinition: PresentationDefinitionV2,
     presentationSubmission: PresentationSubmission,
+    vp: Record<string, unknown>,
   ) {
     // Only evaluate the presentation if the presentation definition requires some VCs
-    // Otherwise, https://github.com/Sphereon-Opensource/SSI-SDK/blob/8d0ea61f25e33ef614e9579e727ba319cce5bcc0/packages/ssi-types/src/mapper/credential-mapper.ts#L184 will throw an error
     if (presentationDefinition.input_descriptors.length === 0) {
       return;
     }
 
-    const pex = new PEXv2();
-    let errors: Checked[] = [];
-
-    try {
-      const res = pex.evaluatePresentation(presentationDefinition, vpJwt, {
-        // Pass presentation submission as an option (although it's not declared in PEXv2.ts)
-        // https://github.com/Sphereon-Opensource/PEX/blob/develop/lib/PEXv2.ts#L34
-        // https://github.com/Sphereon-Opensource/PEX/blob/develop/lib/PEX.ts#L79C7-L79C29
-        // @ts-expect-error This property is not declared, but it exists
-        presentationSubmission,
+    const verifiableCredentials = vp["verifiableCredential"] as
+      | Array<unknown>
+      | undefined;
+    if (!verifiableCredentials || verifiableCredentials.length === 0) {
+      throw new OAuth2TokenError("invalid_request", {
+        errorDescription:
+          "Invalid Presentation Submission: no verifiable credentials in presentation",
       });
+    }
 
-      if (res.errors) {
-        errors = res.errors;
+    for (const inputDescriptor of presentationDefinition.input_descriptors) {
+      if (
+        !inputDescriptor.constraints?.fields ||
+        inputDescriptor.constraints.fields.length === 0
+      ) {
+        continue;
       }
-    } catch (error) {
-      if (error instanceof Error) {
+
+      const descriptorMapEntry = presentationSubmission.descriptor_map.find(
+        (d) => d.id === inputDescriptor.id,
+      );
+      if (!descriptorMapEntry) {
         throw new OAuth2TokenError("invalid_request", {
-          errorDescription: `Invalid Presentation Submission: ${error.message}`,
+          errorDescription: `Input descriptor ${inputDescriptor.id} is missing from presentation submission`,
         });
       }
 
-      // Unhandled error
-      /* v8 ignore next 1 */
-      throw error;
-    }
+      if (!descriptorMapEntry.path_nested) {
+        throw new OAuth2TokenError("invalid_request", {
+          errorDescription: `Missing path_nested for descriptor ${inputDescriptor.id}`,
+        });
+      }
 
-    if (errors.length > 0) {
-      throw new OAuth2TokenError("invalid_request", {
-        errorDescription: `Invalid Presentation Submission:\n${errors
-          .map(
-            (error) => `${error.tag} tag: ${error.message ?? "Unknown error"};`,
-          )
-          .join(",")}`,
-      });
+      const vcdm11Match =
+        /^\$\.vp\.verifiableCredential\[(\d*)\]/m.exec(
+          descriptorMapEntry.path_nested.path,
+        );
+      const vcdm20Match =
+        /^\$\.verifiableCredential\[(\d*)\]/m.exec(
+          descriptorMapEntry.path_nested.path,
+        );
+      const match = vcdm11Match ?? vcdm20Match;
+      if (!match) {
+        throw new OAuth2TokenError("invalid_request", {
+          errorDescription: `Invalid path_nested.path for descriptor ${inputDescriptor.id}`,
+        });
+      }
+
+      const vcIndex = Number.parseInt(match[1]!, 10);
+      const rawVc = verifiableCredentials[vcIndex];
+      if (!rawVc) {
+        throw new OAuth2TokenError("invalid_request", {
+          errorDescription: `Verifiable credential at index ${vcIndex} not found`,
+        });
+      }
+
+      let vcPayload: Record<string, unknown> | undefined;
+      if (
+        typeof rawVc === "object" &&
+        rawVc !== null &&
+        "id" in rawVc &&
+        typeof (rawVc as Record<string, unknown>)["id"] === "string"
+      ) {
+        const prefix = "data:application/vc+jwt,";
+        const id = (rawVc as Record<string, unknown>)["id"] as string;
+        if (id.startsWith(prefix)) {
+          try {
+            vcPayload = decodeJwt(id.slice(prefix.length));
+          } catch {
+            /* ignore decode errors */
+          }
+        }
+      } else if (typeof rawVc === "string") {
+        try {
+          vcPayload = decodeJwt(rawVc);
+        } catch {
+          /* ignore decode errors */
+        }
+      }
+
+      if (!vcPayload) {
+        throw new OAuth2TokenError("invalid_request", {
+          errorDescription: `Cannot decode verifiable credential at index ${vcIndex}`,
+        });
+      }
+
+      for (const field of inputDescriptor.constraints.fields) {
+        if (!field.path || field.path.length === 0) continue;
+
+        const resolvedValue = this.resolveJsonPath(
+          vcPayload,
+          field.path[0]!,
+        );
+
+        if (field.filter) {
+          this.evaluateVcFilter(resolvedValue, field.filter as Record<string, unknown>);
+        }
+      }
+    }
+  }
+
+  private resolveJsonPath(
+    obj: Record<string, unknown>,
+    path: string,
+  ): unknown {
+    const parts = path.replace(/^\$\.?/, "").split(".");
+    let current: unknown = obj;
+    for (const part of parts) {
+      if (
+        current === null ||
+        current === undefined ||
+        typeof current !== "object"
+      ) {
+        return undefined;
+      }
+      current = (current as Record<string, unknown>)[part];
+    }
+    return current;
+  }
+
+  private evaluateVcFilter(
+    value: unknown,
+    filter: Record<string, unknown>,
+  ) {
+    if (filter["type"] === "array" && Array.isArray(value)) {
+      const contains = filter["contains"] as
+        | Record<string, unknown>
+        | undefined;
+      if (contains) {
+        if (typeof contains["const"] === "string") {
+          if (!value.includes(contains["const"])) {
+            throw new OAuth2TokenError("invalid_request", {
+              errorDescription: `Verifiable credential does not contain required value: ${contains["const"]}`,
+            });
+          }
+        }
+        const anyOf = contains["anyOf"] as
+          | Array<Record<string, unknown>>
+          | undefined;
+        if (anyOf) {
+          const anyMatch = anyOf.some(
+            (item) =>
+              typeof item["const"] === "string" &&
+              value.includes(item["const"]),
+          );
+          if (!anyMatch) {
+            throw new OAuth2TokenError("invalid_request", {
+              errorDescription:
+                "Verifiable credential does not contain any of the required values",
+            });
+          }
+        }
+      }
     }
   }
 
@@ -1163,21 +1319,40 @@ export class AuthorisationService {
     presentation: Schemas["Presentation"],
     reqId: string,
   ): Promise<string[]> {
-    const vcJwt = presentation.verifiableCredential[0];
+    const rawVc = presentation.verifiableCredential?.[0];
 
-    if (!vcJwt) {
+    if (!rawVc) {
       throw new OAuth2TokenError("invalid_request", {
         errorDescription: "Invalid Verifiable Presentation: No VC found",
       });
     }
 
-    if (typeof vcJwt !== "string") {
+    let vcJwt: string;
+
+    if (
+      typeof rawVc === "object" &&
+      rawVc !== null &&
+      "id" in rawVc &&
+      typeof rawVc.id === "string"
+    ) {
+      const prefix = "data:application/vc+jwt,";
+      if (!rawVc.id.startsWith(prefix)) {
+        throw new OAuth2TokenError("invalid_request", {
+          errorDescription:
+            "Invalid Verifiable Presentation: VC id must be a data URI",
+        });
+      }
+      vcJwt = rawVc.id.slice(prefix.length);
+    } else if (typeof rawVc === "string") {
+      vcJwt = rawVc;
+    } else {
       throw new OAuth2TokenError("invalid_request", {
-        errorDescription: "Invalid Verifiable Presentation: VC is not a string",
+        errorDescription:
+          "Invalid Verifiable Presentation: VC has unsupported format",
       });
     }
 
-    const vc = decodeJwt(vcJwt)["vc"] as Schemas["Attestation"];
+    const vc = decodeJwt(vcJwt) as Schemas["Attestation"];
 
     const { issuer } = vc;
 
