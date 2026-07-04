@@ -20,7 +20,10 @@ import {
   ES256Signer,
   hexToBytes,
 } from "@europeum-ebsi/did-jwt";
-import { verifyPresentationJwt } from "@europeum-ebsi/verifiable-presentation/vcdm20.js";
+import { verifyPresentationJwt as verifyPresentationJwtVcdm20 } from "@europeum-ebsi/verifiable-presentation/vcdm20.js";
+import { verifyPresentationJwt as verifyPresentationJwtVcdm11 } from "@europeum-ebsi/verifiable-presentation/vcdm11.js";
+import { schema as vcdm20PresentationSchema } from "@europeum-ebsi/vcdm2.0-presentation-schema";
+import { schema as vcdm11PresentationSchema } from "@europeum-ebsi/vcdm1.1-presentation-schema";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Inject, Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
@@ -29,6 +32,22 @@ import axios, { isAxiosError } from "axios";
 import { ethers } from "ethers";
 import { decodeJwt } from "jose";
 import { randomUUID } from "node:crypto";
+
+// Allow empty/absent verifiableCredential arrays in VCDM 2.0 — the AJV schema has minItems: 1
+// but the runtime validation (validateCredentials) already handles absent VCs.
+// Must run before any AJV instance is created.
+const v2VcProp = vcdm20PresentationSchema.properties?.verifiableCredential;
+if (v2VcProp) {
+  (v2VcProp.minItems as number | undefined) = undefined;
+}
+// Allow VPs without @context, type, verifiableCredential in VCDM 1.1 (e.g. didr_write).
+const v11Required = vcdm11PresentationSchema.required;
+if (v11Required) {
+  const required = v11Required as unknown as string[];
+  const v11NewRequired = required.filter((r) => r === "holder");
+  required.length = 0;
+  required.push(...v11NewRequired);
+}
 
 import type { ApiConfig } from "../../config/configuration.ts";
 import type {
@@ -217,7 +236,10 @@ export class AuthorisationService {
 
     const vpTokenPayload = vpTokenDecoded.payload;
 
-    await this.preventReplayAttack(vpTokenPayload);
+    // Detect VCDM version for dual 1.1 + 2.0 support
+    const isVcdm11 = "vp" in vpTokenPayload;
+
+    await this.preventReplayAttack(vpTokenPayload, isVcdm11);
 
     // Get Presentation Definition corresponding to the requested scope
     const customScope = scope.split(" ")[1] as (typeof CUSTOM_SCOPES)[number];
@@ -229,16 +251,23 @@ export class AuthorisationService {
       presentationDefinition,
     );
 
-    const {
-      aud: _aud,
-      exp: _expVp,
-      iat: _iatVp,
-      iss: _iss,
-      jti: _jti,
-      nbf: _nbf,
-      sub: _sub,
-      ...vp
-    } = vpTokenPayload;
+    // Normalize vp based on VCDM version
+    let vp: Record<string, unknown>;
+    if (isVcdm11) {
+      vp = vpTokenPayload["vp"] as Record<string, unknown>;
+    } else {
+      const {
+        aud: _aud,
+        exp: _expVp,
+        iat: _iatVp,
+        iss: _iss,
+        jti: _jti,
+        nbf: _nbf,
+        sub: _sub,
+        ...spread
+      } = vpTokenPayload;
+      vp = spread;
+    }
 
     const presentationHolder = vp["holder"];
     const holderDid =
@@ -254,15 +283,24 @@ export class AuthorisationService {
       vp,
     );
 
-    // Verify VP JWT
-    const presentation = await this.validateVpJwt(
-      vpToken,
-      // skip DID resolution:
-      customScope === DIDR_INVITE_SCOPE,
-      reqId,
-      // proofPurpose to be used:
-      customScope === TNT_AUTHORISE_SCOPE ? "capabilityInvocation" : undefined,
-    );
+    // Verify VP JWT using the correct VCDM version
+    const presentation: Record<string, unknown> = await (isVcdm11
+      ? this.validateVpJwtVcdm11(
+          vpToken,
+          customScope === DIDR_INVITE_SCOPE,
+          reqId,
+          customScope === TNT_AUTHORISE_SCOPE
+            ? "capabilityInvocation"
+            : undefined,
+        )
+      : this.validateVpJwtVcdm20(
+          vpToken,
+          customScope === DIDR_INVITE_SCOPE,
+          reqId,
+          customScope === TNT_AUTHORISE_SCOPE
+            ? "capabilityInvocation"
+            : undefined,
+        ));
 
     // Verify algorithms
     this.validateCredentialsAlgos(
@@ -627,44 +665,48 @@ export class AuthorisationService {
     return true;
   }
 
-  async preventReplayAttack(payload: JWTPayload) {
-    if (!payload.exp) {
-      throw new OAuth2TokenError("invalid_request", {
-        errorDescription: "The vp_token must contain an expiration time.",
-      });
-    }
-
+  async preventReplayAttack(payload: JWTPayload, isVcdm11: boolean) {
     const now = Math.floor(Date.now() / 1000);
 
-    if (payload.exp < now) {
-      throw new OAuth2TokenError("invalid_request", {
-        errorDescription: "The vp_token has expired.",
-      });
-    }
+    if (!payload.exp) {
+      if (isVcdm11) {
+        throw new OAuth2TokenError("invalid_request", {
+          errorDescription: "The vp_token must contain an expiration time.",
+        });
+      }
+    } else {
+      if (payload.exp < now) {
+        throw new OAuth2TokenError("invalid_request", {
+          errorDescription: "The vp_token has expired.",
+        });
+      }
 
-    if (payload.exp > now + 300) {
-      throw new OAuth2TokenError("invalid_request", {
-        errorDescription:
-          "The vp_token must not have an expiration time of more than 5 minutes in the future.",
-      });
+      if (payload.exp > now + 300) {
+        throw new OAuth2TokenError("invalid_request", {
+          errorDescription:
+            "The vp_token must not have an expiration time of more than 5 minutes in the future.",
+        });
+      }
     }
 
     if (!payload["nonce"]) {
-      throw new OAuth2TokenError("invalid_request", {
-        errorDescription:
-          "The vp_token must contain a nonce in order to prevent replay attacks.",
-      });
+      if (isVcdm11) {
+        throw new OAuth2TokenError("invalid_request", {
+          errorDescription:
+            "The vp_token must contain a nonce in order to prevent replay attacks.",
+        });
+      }
+    } else {
+      const cacheKey = payload["nonce"] as string;
+      const nonceUsed = await this.cacheManager.get(cacheKey);
+      if (nonceUsed) {
+        throw new OAuth2TokenError("invalid_request", {
+          errorDescription:
+            "The vp_token contains a nonce which has already been used.",
+        });
+      }
+      await this.cacheManager.set(cacheKey, cacheKey, 300_000);
     }
-
-    const cacheKey = payload["nonce"] as string;
-    const nonceUsed = await this.cacheManager.get(cacheKey);
-    if (nonceUsed) {
-      throw new OAuth2TokenError("invalid_request", {
-        errorDescription:
-          "The vp_token contains a nonce which has already been used.",
-      });
-    }
-    await this.cacheManager.set(cacheKey, cacheKey, 300_000); // 5 minutes (5 * 60 * 1000)
   }
 
   /**
@@ -676,7 +718,7 @@ export class AuthorisationService {
    */
   validateCredentialsAlgos(
     vpTokenHeader: JWTHeader,
-    presentation: Schemas["Presentation"],
+    presentation: Record<string, unknown>,
     presentationSubmission: PresentationSubmission,
     presentationDefinition: PresentationDefinitionV2,
   ) {
@@ -769,7 +811,10 @@ export class AuthorisationService {
 
       const vcIndex = Number.parseInt(match[1]!, 10);
 
-      const rawVc = presentation.verifiableCredential?.[vcIndex];
+      const verifiableCredential = presentation["verifiableCredential"] as
+        | Array<unknown>
+        | undefined;
+      const rawVc = verifiableCredential?.[vcIndex];
 
       if (!rawVc) {
         throw new OAuth2TokenError("invalid_request", {
@@ -1316,10 +1361,13 @@ export class AuthorisationService {
    * @param reqId
    */
   async validateTrustedContractDeployer(
-    presentation: Schemas["Presentation"],
+    presentation: Record<string, unknown>,
     reqId: string,
   ): Promise<string[]> {
-    const rawVc = presentation.verifiableCredential?.[0];
+    const verifiableCredentials = presentation["verifiableCredential"] as
+      | Array<unknown>
+      | undefined;
+    const rawVc = verifiableCredentials?.[0];
 
     if (!rawVc) {
       throw new OAuth2TokenError("invalid_request", {
@@ -1516,7 +1564,7 @@ export class AuthorisationService {
    * @param isDidUnresolvable - If the holder DID is unresolvable, the signature validation is skipped.
    * @param reqId - The request ID
    */
-  async validateVpJwt(
+  async validateVpJwtVcdm11(
     vpToken: string,
     isDidUnresolvable: boolean,
     reqId: string,
@@ -1526,7 +1574,7 @@ export class AuthorisationService {
       const audience = this.issuer;
       const now = Math.floor(Date.now() / 1000);
 
-      return await verifyPresentationJwt(
+      return await verifyPresentationJwtVcdm11(
         vpToken,
         audience,
         this.ebsiEnvConfig,
@@ -1535,9 +1583,56 @@ export class AuthorisationService {
           skipHolderDidResolutionValidation: isDidUnresolvable,
           skipSignatureValidation: isDidUnresolvable,
           timeout: this.requestTimeout,
-          validAt: now, // The JWT VC(s) must be valid now
+          validAt: now,
           verifyCredentialOptions: {
-            skipAccreditationWithoutTermsOfUseValidation: false, // The VC must contain terms of use (or be self-accredited)
+            skipAccreditationWithoutTermsOfUseValidation: false,
+          },
+          ...(proofPurpose && { proofPurpose }),
+        },
+      );
+    } catch (error) {
+      this.logger.error(
+        error,
+        error instanceof Error ? error.stack : undefined,
+      );
+
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+
+      if (errorMessage.includes("Error: internalServerError")) {
+        throw new OAuth2TokenError("server_error", {
+          errorDescription: errorMessage,
+        });
+      }
+
+      throw new OAuth2TokenError("invalid_request", {
+        errorDescription: `Invalid Verifiable Presentation: ${errorMessage}`,
+      });
+    }
+  }
+
+  async validateVpJwtVcdm20(
+    vpToken: string,
+    isDidUnresolvable: boolean,
+    reqId: string,
+    proofPurpose?: ProofPurposeTypes,
+  ) {
+    try {
+      const audience = this.issuer;
+      const now = Math.floor(Date.now() / 1000);
+
+      return await verifyPresentationJwtVcdm20(
+        vpToken,
+        audience,
+        this.ebsiEnvConfig,
+        {
+          axiosHeaders: { "x-request-id": reqId },
+          skipHolderDidResolutionValidation: isDidUnresolvable,
+          skipSignatureValidation: isDidUnresolvable,
+          timeout: this.requestTimeout,
+          validAt: now,
+          verifyCredentialOptions: {
+            skipAccreditationWithoutTermsOfUseValidation: false,
           },
           ...(proofPurpose && { proofPurpose }),
         },

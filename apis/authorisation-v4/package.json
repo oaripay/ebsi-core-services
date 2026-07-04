@@ -29,6 +29,8 @@
     "@europeum-ebsi/ebsi-uri": "0.0.0",
     "@europeum-ebsi/verifiable-credential": "0.1.0",
     "@europeum-ebsi/verifiable-presentation": "0.1.0",
+    "@europeum-ebsi/vcdm1.1-presentation-schema": "0.0.0",
+    "@europeum-ebsi/vcdm2.0-presentation-schema": "0.0.0",
     "@europeum-ebsi/wallet-lib": "0.0.1",
     "@fastify/accepts": "5.0.4",
     "@fastify/formbody": "8.0.2",

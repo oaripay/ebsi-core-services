@@ -193,6 +193,20 @@ task(
   const tprSigner = tprOp.connect(ethers.provider);
   const soSigner = soOp.connect(ethers.provider);
 
+  // Fund the TPR and SO wallets from the deployer for gas
+  const deployer = (await ethers.getSigners())[0];
+  const fundAmount = ethers.parseEther("10");
+  for (const wallet of [tprOp, soOp]) {
+    const balance = await ethers.provider.getBalance(wallet.address);
+    if (balance < ethers.parseEther("0.01")) {
+      console.log(`Funding ${wallet.address} with ${ethers.formatEther(fundAmount)} ETH...`);
+      await (await deployer.sendTransaction({
+        to: wallet.address,
+        value: fundAmount,
+      })).wait(1);
+    }
+  }
+
   const tprContract = (await ethers.getContractAt(
     "contracts/trusted-policies-registry-v3/trusted-policies-registry/PolicyRegistry.sol:PolicyRegistry",
     process.env.TPR_SC_V3_ADDRESS,

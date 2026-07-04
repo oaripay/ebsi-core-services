@@ -4,11 +4,11 @@ dependencies="$(pwd)/scripts/deployment/dependencies.json"
 dependenciesUpdated="$(pwd)/scripts/deployment/updated_dependencies.json"
 
 
-account=`pnpm exec hardhat accounts --network box | sed -n '2p'`
-chainId=`curl -X POST --data '{"jsonrpc":"2.0","method":"eth_chainId","params":[],"id":51}' http://192.168.55.5:8545 | jq ".result" | xargs printf "%d\n"`
+account=`pnpm exec hardhat accounts --network box | grep '^0x' | sed -n '2p'`
+chainId=`curl -X POST --data '{"jsonrpc":"2.0","method":"eth_chainId","params":[],"id":51}' http://192.168.55.1:8545 | jq ".result" | xargs printf "%d\n"`
 # deploy proxy for TPR
 output=`pnpm exec hardhat deploy --network box --tags OwnedUpgradeabilityProxy --reset`
-tprProxy=`echo $output | grep -o '\b0x[a-fA-F0-9]\{40\}\b'`
+tprProxy=`echo $output | grep -o '\b0x[a-fA-F0-9]\{40\}\b' | tail -1`
 pnpm exec hardhat initProxy --network box --proxy $tprProxy --implementation PolicyRegistryV3
 
 # update dependencies
@@ -21,7 +21,7 @@ mv $dependenciesUpdated $dependencies
 
 # deploy proxy for DIDRegistry
 output=`pnpm exec hardhat deploy --network box --tags OwnedUpgradeabilityProxy --reset`
-DIDRegistryProxy=`echo $output | grep -o '\b0x[a-fA-F0-9]\{40\}\b'`
+DIDRegistryProxy=`echo $output | grep -o '\b0x[a-fA-F0-9]\{40\}\b' | tail -1`
 pnpm exec hardhat initProxy --network box --proxy $DIDRegistryProxy --implementation DidRegistryV5
 
 # update dependencies with did registry service
@@ -33,7 +33,7 @@ mv $dependenciesUpdated $dependencies
 
 # deploy proxy for TimestampV4
 output=`pnpm exec hardhat deploy --network box --tags OwnedUpgradeabilityProxy --reset`
-timestampProxy=`echo $output | grep -o '\b0x[a-fA-F0-9]\{40\}\b'`
+timestampProxy=`echo $output | grep -o '\b0x[a-fA-F0-9]\{40\}\b' | tail -1`
 pnpm exec hardhat initProxy --network box --proxy $timestampProxy --implementation TimestampV4
 
 # track and trace
@@ -42,12 +42,12 @@ TrackAndTraceProxy=`echo $output | grep -o '\b0x[a-fA-F0-9]\{40\}\b' | tail -1`
 
 # deploy proxy for TIR V5
 output=`pnpm exec hardhat deploy --network box --tags OwnedUpgradeabilityProxy --reset`
-tirRegistry=`echo $output | grep -o '\b0x[a-fA-F0-9]\{40\}\b'`
+tirRegistry=`echo $output | grep -o '\b0x[a-fA-F0-9]\{40\}\b' | tail -1`
 pnpm exec hardhat initProxy --network box --proxy $tirRegistry --implementation TirV5
 
 # deploy proxy for TSR V2
 output=`pnpm exec hardhat deploy --network box --tags OwnedUpgradeabilityProxy --reset`
-tsrRegistry=`echo $output | grep -o '\b0x[a-fA-F0-9]\{40\}\b'`
+tsrRegistry=`echo $output | grep -o '\b0x[a-fA-F0-9]\{40\}\b' | tail -1`
 pnpm exec hardhat initProxy --network box --proxy $tsrRegistry --implementation SchemaSCRegistryV3
 
 

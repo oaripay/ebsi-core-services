@@ -11,11 +11,12 @@ RUN apk update && \
 ENV PUPPETEER_SKIP_DOWNLOAD=true
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
-RUN corepack enable
-
-# Copy pnpm-lock.yaml + pnpm-workspace.yaml
-COPY pnpm-lock.yaml pnpm-workspace.yaml ./
+# Copy package.json (has packageManager field) + pnpm-lock.yaml + pnpm-workspace.yaml
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY patches patches
+
+# Pre-install pnpm so it doesn't need to download on every RUN step
+RUN corepack enable && corepack prepare pnpm --activate
 
 # Fetch dependencies
 RUN --mount=type=cache,target=/pnpm/store pnpm fetch

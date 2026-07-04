@@ -60,6 +60,7 @@
     "solhint": "5.0.5",
     "spdx-license-list": "6.11.0",
     "syncpack": "14.2.1",
+    "ts-node": "10.9.2",
     "typescript": "5.9.3",
     "typescript-eslint": "8.57.2",
     "yaml": "2.8.3"

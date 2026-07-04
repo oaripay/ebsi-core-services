@@ -82,7 +82,7 @@ const config = {
   networks: {
     box: {
       accounts,
-      url: "http://192.168.55.5:8545", // config for node1-besu-1
+      url: "http://192.168.55.5:8545",
     },
     conformance: {
       accounts: [privKey],
